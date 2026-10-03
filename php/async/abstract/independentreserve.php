@@ -86,6 +86,18 @@ abstract class independentreserve extends \ccxt\async\Exchange {
         return $this->request('GetOrderMinimumVolumes', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function public_get_getdepositfees($params = array()) {
+        return $this->request('GetDepositFees', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function public_get_getfiatwithdrawalfees($params = array()) {
+        return $this->request('GetFiatWithdrawalFees', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_getcryptowithdrawalfees($params = array()) {
@@ -182,6 +194,12 @@ abstract class independentreserve extends \ccxt\async\Exchange {
         return $this->request('GetTrades', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_gettradesbyorder($params = array()) {
+        return $this->request('GetTradesByOrder', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_post_getbrokeragefees($params = array()) {
@@ -192,6 +210,24 @@ abstract class independentreserve extends \ccxt\async\Exchange {
      */
     public function private_post_getdigitalcurrencywithdrawal($params = array()) {
         return $this->request('GetDigitalCurrencyWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_getfiatwithdrawal($params = array()) {
+        return $this->request('GetFiatWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_getdepositlimits($params = array()) {
+        return $this->request('GetDepositLimits', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_getwithdrawallimits($params = array()) {
+        return $this->request('GetWithdrawalLimits', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -210,6 +246,12 @@ abstract class independentreserve extends \ccxt\async\Exchange {
      */
     public function private_post_cancelorder($params = array()) {
         return $this->request('CancelOrder', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_cancelorders($params = array()) {
+        return $this->request('CancelOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -320,6 +362,18 @@ abstract class independentreserve extends \ccxt\async\Exchange {
         return $this->request('GetOrderMinimumVolumes', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetGetDepositFees($params = array()) {
+        return $this->request('GetDepositFees', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetGetFiatWithdrawalFees($params = array()) {
+        return $this->request('GetFiatWithdrawalFees', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetGetCryptoWithdrawalFees($params = array()) {
@@ -416,6 +470,12 @@ abstract class independentreserve extends \ccxt\async\Exchange {
         return $this->request('GetTrades', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostGetTradesByOrder($params = array()) {
+        return $this->request('GetTradesByOrder', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privatePostGetBrokerageFees($params = array()) {
@@ -426,6 +486,24 @@ abstract class independentreserve extends \ccxt\async\Exchange {
      */
     public function privatePostGetDigitalCurrencyWithdrawal($params = array()) {
         return $this->request('GetDigitalCurrencyWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostGetFiatWithdrawal($params = array()) {
+        return $this->request('GetFiatWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostGetDepositLimits($params = array()) {
+        return $this->request('GetDepositLimits', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostGetWithdrawalLimits($params = array()) {
+        return $this->request('GetWithdrawalLimits', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -444,6 +522,12 @@ abstract class independentreserve extends \ccxt\async\Exchange {
      */
     public function privatePostCancelOrder($params = array()) {
         return $this->request('CancelOrder', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostCancelOrders($params = array()) {
+        return $this->request('CancelOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

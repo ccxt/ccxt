@@ -198,11 +198,11 @@ class binance extends Exchange {
         return $flatMarkets;
     }
 
-    public function fetch_raw_topics(?int $maxTopics, $rest = array()): PromiseInterface {
+    public function fetch_raw_topics(?int $maxTopics, array $rest = array()): PromiseInterface {
         return Async\async(self::do_fetch_raw_topics(...))($maxTopics, $rest);
     }
 
-    private function do_fetch_raw_topics(?int $maxTopics, $rest = array()) {
+    private function do_fetch_raw_topics(?int $maxTopics, array $rest = array()) {
         /**
          * @ignore
          * pages the market/list endpoint and returns up to `$maxTopics` raw market topics
@@ -213,9 +213,7 @@ class binance extends Exchange {
          * @param {array} [$rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
          * @return {array[]} raw market topic objects
          */
-        if ($maxTopics === null) {
-            $maxTopics = $this->safe_integer($this->options, 'maxFetchMarketsLimit', 200);
-        }
+        $maxTopicsResolved = ($maxTopics === null) ? $this->safe_integer($this->options, 'maxFetchMarketsLimit', 200) : $maxTopics;
         $pageLimit = $this->safe_integer($this->options, 'marketsPageLimit', 100);
         if ($pageLimit > 100) {
             $pageLimit = 100;
@@ -225,7 +223,7 @@ class binance extends Exchange {
         while (true) {
             $reqLimit = $pageLimit;
             $collectedLength = count($collected);
-            $remaining = $maxTopics - $collectedLength;
+            $remaining = $maxTopicsResolved - $collectedLength;
             if ($remaining < $reqLimit) {
                 $reqLimit = $remaining;
             }
@@ -239,34 +237,34 @@ class binance extends Exchange {
             $response = Async\await($this->sapiPrivateGetMarketList($this->extend($request, $rest)));
             //
             //     {
-            //         "marketTopics" => array(
+            //         "marketTopics": [
             //             {
-            //                 "marketTopicId" => 4229564,
-            //                 "vendor" => "PREDICT_FUN",
-            //                 "chainId" => "56",
-            //                 "slug" => "btc-price-1h-up-or-down",
-            //                 "title" => "BTC Price 1h Up or Down?",
-            //                 "question" => "Will BTC price go UP?",
-            //                 "topicType" => "FLAT",
-            //                 "chartType" => "CRYPTO_UP_DOWN",
-            //                 "symbol" => "BTCUSDT",
-            //                 "participantCount" => 3420,
-            //                 "collateral" => "USDT",
-            //                 "feeRateBps" => 200,
-            //                 "slippageBps" => 1200,
-            //                 "tradeVolume" => "158234.56",
-            //                 "liquidity" => "45000.00",
-            //                 "publishedAt" => 1748100000000,
-            //                 "startDate" => 1748131200000,
-            //                 "endDate" => 1748134800000,
-            //                 "status" => "REGISTERED",
-            //                 "markets" => array()
+            //                 "marketTopicId": 4229564,
+            //                 "vendor": "PREDICT_FUN",
+            //                 "chainId": "56",
+            //                 "slug": "btc-price-1h-up-or-down",
+            //                 "title": "BTC Price 1h Up or Down?",
+            //                 "question": "Will BTC price go UP?",
+            //                 "topicType": "FLAT",
+            //                 "chartType": "CRYPTO_UP_DOWN",
+            //                 "symbol": "BTCUSDT",
+            //                 "participantCount": 3420,
+            //                 "collateral": "USDT",
+            //                 "feeRateBps": 200,
+            //                 "slippageBps": 1200,
+            //                 "tradeVolume": "158234.56",
+            //                 "liquidity": "45000.00",
+            //                 "publishedAt": 1748100000000,
+            //                 "startDate": 1748131200000,
+            //                 "endDate": 1748134800000,
+            //                 "status": "REGISTERED",
+            //                 "markets": []
             //             }
-            //         ),
-            //         "total" => 128,
-            //         "offset" => 0,
-            //         "limit" => 20,
-            //         "hasMore" => true
+            //         ],
+            //         "total": 128,
+            //         "offset": 0,
+            //         "limit": 20,
+            //         "hasMore": true
             //     }
             //
             $pageTopics = $this->safe_list($response, 'marketTopics', array());
@@ -275,7 +273,7 @@ class binance extends Exchange {
                 $collected[] = $pageTopics[$i];
             }
             $hasMore = $this->safe_bool($response, 'hasMore', false);
-            if (!$hasMore || ($pageTopicsLength < $reqLimit)) {
+            if (($hasMore !== true) || ($pageTopicsLength < $reqLimit)) {
                 break;
             }
             $offset = $this->sum($offset, $pageTopicsLength);
@@ -351,7 +349,7 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->query] a free-text search resolved against the semantic market search endpoint
          * @param {string[]} [$params->queries] multiple free-text searches (alternative to query)
-         * @param {string[]} [$params->tags] treated free-text searches (binance has no tag taxonomy)
+         * @param {string[]} [$params->tags] treated as additional free-text searches (binance has no tag taxonomy)
          * @param {string} [$params->eventId] a marketTopicId, fetched directly via the $detail endpoint
          * @param {string} [$params->l1Category] scope the listing server-side by a level-1 category id
          * @param {string} [$params->l2Category] scope the listing server-side by a level-2 category id
@@ -363,11 +361,11 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
          */
         $allowUnscopedFetchEvents = $this->safe_bool($this->options, 'allowUnscopedFetchEvents', false);
-        if (!$allowUnscopedFetchEvents) {
+        if ($allowUnscopedFetchEvents !== true) {
             $this->require_event_query($params);
         }
         $queries = $this->parse_search_queries($params);
-        // binance has no tag taxonomy — resolve requested $tags through the semantic search too
+        // binance has no tag taxonomy — resolve requested tags through the semantic search too
         $tags = $this->safe_list($params, 'tags', array());
         $tagsLength = count($tags);
         $allQueries = array();
@@ -378,17 +376,19 @@ class binance extends Exchange {
             $allQueries[] = $tags[$i];
         }
         $allQueriesLength = count($allQueries);
-        $params = $this->omit($params, array( 'query', 'queries' ));
-        $userLimit = $this->safe_integer($params, 'limit');
+        $paramsOmitted = $this->omit($params, array( 'query', 'queries' ));
+        // keys dropped before the client-side pass; a server-side sort also drops its own keys
+        $postOmitKeys = array( 'tags', 'l1Category', 'l2Category' );
+        $userLimit = $this->safe_integer($paramsOmitted, 'limit');
         $fetchCap = $this->safe_integer($this->options, 'maxFetchEventsResults', 100);
         if ($userLimit !== null) {
             $fetchCap = $userLimit;
         }
-        $rest = $this->omit($params, array( 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'l1Category', 'l2Category' ));
-        $eventId = $this->safe_string($params, 'eventId');
-        $l1Category = $this->safe_string($params, 'l1Category');
-        $l2Category = $this->safe_string($params, 'l2Category');
-        if (!$this->markets) {
+        $rest = $this->omit($paramsOmitted, array( 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'l1Category', 'l2Category' ));
+        $eventId = $this->safe_string($paramsOmitted, 'eventId');
+        $l1Category = $this->safe_string($paramsOmitted, 'l1Category');
+        $l2Category = $this->safe_string($paramsOmitted, 'l2Category');
+        if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
         $rawTopics = array();
@@ -405,11 +405,11 @@ class binance extends Exchange {
             if ($l2Category !== null) {
                 $listingRequest['l2Category'] = $l2Category;
             }
-            $sortBy = $this->safe_string_upper_2($params, 'sortBy', 'sort');
+            $sortBy = $this->safe_string_upper_2($paramsOmitted, 'sortBy', 'sort');
             if ($sortBy !== null) {
                 // map the unified sort values onto the server enum, one of RECOMMENDED,
                 // VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no
-                // server-side equivalent and stays in $params so the base
+                // server-side equivalent and stays in params so the base
                 // applyEventFetchParams sorts it client-side instead
                 if ($sortBy === 'NEWEST') {
                     $sortBy = 'CREATED_TIME';
@@ -418,7 +418,8 @@ class binance extends Exchange {
                 }
                 if ($sortBy !== null) {
                     $listingRequest['sortBy'] = $sortBy;
-                    $params = $this->omit($params, array( 'sort', 'sortBy' ));
+                    $postOmitKeys[] = 'sort';
+                    $postOmitKeys[] = 'sortBy';
                 }
             }
             $listed = Async\await($this->fetch_raw_topics($fetchCap, $this->extend($listingRequest, $rest)));
@@ -433,7 +434,7 @@ class binance extends Exchange {
             $parsedMarketsLength = count($parsedMarkets);
             for ($mi = 0; $mi < $parsedMarketsLength; $mi++) {
                 $m = $parsedMarkets[$mi];
-                // prediction market rows are keyed by the unified 'market' $handle
+                // prediction market rows are keyed by the unified 'market' handle
                 $handle = $this->safe_string($m, 'market');
                 if ($handle !== null) {
                     $this->markets[$handle] = $m;
@@ -441,18 +442,18 @@ class binance extends Exchange {
             }
         }
         $this->populate_outcomes();
-        // scoping already happened server-side => the tag filter needs an event-level $tags field
+        // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        $postParams = $this->omit($params, array( 'tags', 'l1Category', 'l2Category' ));
+        $postParams = $this->omit($paramsOmitted, $postOmitKeys);
         return $this->apply_event_fetch_params($result, $postParams, array());
     }
 
-    public function fetch_events_by_query(array $queries, ?int $limit, $rest = array()): PromiseInterface {
+    public function fetch_events_by_query(array $queries, ?int $limit, array $rest = array()): PromiseInterface {
         return Async\async(self::do_fetch_events_by_query(...))($queries, $limit, $rest);
     }
 
-    private function do_fetch_events_by_query(array $queries, ?int $limit, $rest = array()) {
+    private function do_fetch_events_by_query(array $queries, ?int $limit, array $rest = array()) {
         /**
          * @ignore
          * resolves free-text $queries through the semantic market search endpoint, then completes the matched topics with their outcome tokens
@@ -467,32 +468,33 @@ class binance extends Exchange {
         $seen = array();
         $collected = array();
         $queriesLength = count($queries);
+        $limitResolved = $limit;
         if ($limit === null) {
-            $limit = 20;
+            $limitResolved = 20;
         } elseif ($limit > 50) {
-            $limit = 50;
+            $limitResolved = 50;
         }
         for ($qi = 0; $qi < $queriesLength; $qi++) {
             $request = array(
                 'query' => $queries[$qi],
             );
-            $request['topK'] = $limit;
+            $request['topK'] = $limitResolved;
             $response = Async\await($this->sapiPrivateGetMarketSearch($this->extend($request, $rest)));
             //
-            //     array(
+            //     [
             //         {
-            //             "marketTopicId" => 4229564,
-            //             "vendor" => "PREDICT_FUN",
-            //             "slug" => "btc-price-1h-up-or-down",
-            //             "title" => "BTC Price 1h Up or Down?",
+            //             "marketTopicId": 4229564,
+            //             "vendor": "PREDICT_FUN",
+            //             "slug": "btc-price-1h-up-or-down",
+            //             "title": "BTC Price 1h Up or Down?",
             //             ...
-            //             "markets" => array()
+            //             "markets": []
             //         }
-            //     )
+            //     ]
             //
             $responseLength = count($response);
             for ($i = 0; $i < $responseLength; $i++) {
-                $rawTopic = $response[$i];
+                $rawTopic = $this->safe_dict($response, $i);
                 $topicId = $this->safe_string($rawTopic, 'marketTopicId');
                 if ($topicId !== null) {
                     $already = $this->safe_string($seen, $topicId);
@@ -505,8 +507,8 @@ class binance extends Exchange {
         }
         $capped = $collected;
         $collectedLength = count($collected);
-        if (($limit !== null) && ($collectedLength > $limit)) {
-            $capped = $this->array_slice($collected, 0, $limit);
+        if (($limitResolved !== null) && ($collectedLength > $limitResolved)) {
+            $capped = $this->array_slice($collected, 0, $limitResolved);
         }
         return Async\await($this->complete_raw_topics($capped));
     }
@@ -538,30 +540,30 @@ class binance extends Exchange {
          */
         //
         //     {
-        //         "marketTopicId" => 4229564,
-        //         "vendor" => "PREDICT_FUN",
-        //         "chainId" => "56",
-        //         "slug" => "btc-price-1h-up-or-down",
-        //         "title" => "BTC Price 1h Up or Down?",
-        //         "question" => "Will BTC price go UP?",
-        //         "description" => "Resolves YES if BTC spot price is higher than the starting price.",
-        //         "imageUrl" => "https://...",
-        //         "topicType" => "FLAT",
-        //         "chartType" => "CRYPTO_UP_DOWN",
-        //         "symbol" => "BTCUSDT",
-        //         "variantData" => array( "type" => "CRYPTO_UP_DOWN", "startPrice" => "67890.12", "endPrice" => null ),
-        //         "participantCount" => 3420,
-        //         "collateral" => "USDT",
-        //         "feeRateBps" => 200,
-        //         "slippageBps" => 1200,
-        //         "tradeVolume" => "158234.56",
-        //         "liquidity" => "45000.00",
-        //         "publishedAt" => 1748100000000,
-        //         "startDate" => 1748131200000,
-        //         "endDate" => 1748134800000,
-        //         "status" => "REGISTERED",
-        //         "timeline" => array( ... ),
-        //         "markets" => array( array( "marketId" => 5567895, "title" => "UP", "outcomes" => array( ... ) ) )
+        //         "marketTopicId": 4229564,
+        //         "vendor": "PREDICT_FUN",
+        //         "chainId": "56",
+        //         "slug": "btc-price-1h-up-or-down",
+        //         "title": "BTC Price 1h Up or Down?",
+        //         "question": "Will BTC price go UP?",
+        //         "description": "Resolves YES if BTC spot price is higher than the starting price.",
+        //         "imageUrl": "https://...",
+        //         "topicType": "FLAT",
+        //         "chartType": "CRYPTO_UP_DOWN",
+        //         "symbol": "BTCUSDT",
+        //         "variantData": { "type": "CRYPTO_UP_DOWN", "startPrice": "67890.12", "endPrice": null },
+        //         "participantCount": 3420,
+        //         "collateral": "USDT",
+        //         "feeRateBps": 200,
+        //         "slippageBps": 1200,
+        //         "tradeVolume": "158234.56",
+        //         "liquidity": "45000.00",
+        //         "publishedAt": 1748100000000,
+        //         "startDate": 1748131200000,
+        //         "endDate": 1748134800000,
+        //         "status": "REGISTERED",
+        //         "timeline": [ ... ],
+        //         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
         //     }
         //
         $rawMarkets = $this->safe_list($rawTopic, 'markets', array());
@@ -621,20 +623,20 @@ class binance extends Exchange {
          */
         //
         //     {
-        //         "marketId" => 5567895,
-        //         "externalId" => "ext_001",
-        //         "title" => "UP",
-        //         "question" => "Will BTC go UP?",
-        //         "description" => "Resolves YES if BTC $price increases.",
-        //         "conditionId" => "0xabc123",
-        //         "status" => "REGISTERED",
-        //         "tradingStatus" => "OPEN",
-        //         "tradeVolume" => "90000.00",
-        //         "liquidity" => "25000.00",
-        //         "decimalPrecision" => 2,
-        //         "outcomes" => array(
-        //             array( "name" => "YES", "price" => "0.52", "chance" => "0.52", "index" => 0, "tokenId" => "112233" )
-        //         )
+        //         "marketId": 5567895,
+        //         "externalId": "ext_001",
+        //         "title": "UP",
+        //         "question": "Will BTC go UP?",
+        //         "description": "Resolves YES if BTC price increases.",
+        //         "conditionId": "0xabc123",
+        //         "status": "REGISTERED",
+        //         "tradingStatus": "OPEN",
+        //         "tradeVolume": "90000.00",
+        //         "liquidity": "25000.00",
+        //         "decimalPrecision": 2,
+        //         "outcomes": [
+        //             { "name": "YES", "price": "0.52", "chance": "0.52", "index": 0, "tokenId": "112233" }
+        //         ]
         //     }
         //
         $marketId = $this->safe_string($rawMarket, 'marketId');
@@ -667,7 +669,7 @@ class binance extends Exchange {
         $resolvedOutcomeRaw = null;
         $rawOutcomesLength = count($rawOutcomes);
         for ($oi = 0; $oi < $rawOutcomesLength; $oi++) {
-            $rawOutcome = $rawOutcomes[$oi];
+            $rawOutcome = $this->safe_dict($rawOutcomes, $oi);
             $label = $this->safe_string_upper($rawOutcome, 'name');
             $tokenId = $this->safe_string($rawOutcome, 'tokenId');
             $outcomeHandle = $marketSymbol . ':' . $label;
@@ -769,11 +771,11 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_ticker(?string $outcome, $params = array()): PromiseInterface {
+    public function fetch_ticker(string $outcome, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker(...))($outcome, $params);
     }
 
-    private function do_fetch_ticker(?string $outcome, $params = array()) {
+    private function do_fetch_ticker(string $outcome, $params = array()) {
         /**
          * fetches the last trade price for a single prediction $outcome
          *
@@ -791,7 +793,7 @@ class binance extends Exchange {
         );
         $response = Async\await($this->sapiPrivateGetOrderBookLastTradePrice($this->extend($request, $params)));
         //
-        //     array( "marketId" => 5567895, "lastTradePrice" => "0.52" )
+        //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
         return $this->parse_prediction_ticker($response, $outcomeObj);
     }
@@ -799,18 +801,18 @@ class binance extends Exchange {
     public function parse_prediction_ticker(array $raw, ?array $market = null): array {
         /**
          * @ignore
-         * parses a $last-trade-price response into a unified ticker object; the venue quotes the market's primary (YES) token, so a NO outcome mirrors - price
+         * parses a $last-trade-price response into a unified ticker object; the venue quotes the market's primary (YES) token, so a NO outcome mirrors as 1 - price
          * @param {array} $raw the $raw $last-trade-price object
          * @param {array} [$market] the outcome object the ticker belongs to
          * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
          */
         //
-        //     array( "marketId" => 5567895, "lastTradePrice" => "0.52" )
+        //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
         $marketAny = $market;
         $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
-        // any other outcome of a binary $market mirrors - price
+        // any other outcome of a binary market mirrors as 1 - price
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
         $outcomeIndex = $this->safe_string($outcomeInfo, 'index');
         $isMirrored = false;
@@ -829,14 +831,13 @@ class binance extends Exchange {
                 $last = $this->parse_number($lastString);
             }
         }
-        $now = $this->milliseconds();
         return $this->safe_prediction_ticker(array(
             'outcome' => $this->safe_string($outcomeObj, 'outcome'),
             'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
             'label' => $this->safe_string($outcomeObj, 'label'),
             'market' => $this->safe_string($outcomeObj, 'market'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => null,
             'low' => null,
             'bid' => null,
@@ -872,7 +873,7 @@ class binance extends Exchange {
          * @return {array} a dictionary of prediction [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure)
          */
         if ($outcomes === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
         Async\await($this->load_outcomes($outcomes));
         $responsesByMarketId = array();
@@ -900,11 +901,11 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_book(...))($outcome, $limit, $params);
     }
 
-    private function do_fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    private function do_fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the order book for a single prediction $outcome token
          *
@@ -926,11 +927,11 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivateGetOrderBook($this->extend($request, $params)));
         //
         //     {
-        //         "outcome" => "YES",
-        //         "tokenId" => "112233",
-        //         "timestamp" => 1748131800000,
-        //         "bids" => array( array( "price" => "0.51", "size" => "5000.00" ) ),
-        //         "asks" => array( array( "price" => "0.52", "size" => "3000.00" ) )
+        //         "outcome": "YES",
+        //         "tokenId": "112233",
+        //         "timestamp": 1748131800000,
+        //         "bids": [ { "price": "0.51", "size": "5000.00" } ],
+        //         "asks": [ { "price": "0.52", "size": "3000.00" } ]
         //     }
         //
         $timestamp = $this->safe_integer($response, 'timestamp');
@@ -952,18 +953,17 @@ class binance extends Exchange {
          * @param {string} [$params->type] 'CeDefi', 'FUNDING', or 'SPOT'
          * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
-        $type = null;
-        list($type, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'type', 'SPOT');
-        $response = Async\await($this->sapiPrivateGetBalancePaymentOptions($params));
+        list($type, $paramsType) = $this->handle_option_string_and_params($params, 'fetchBalance', 'type', 'SPOT');
+        $response = Async\await($this->sapiPrivateGetBalancePaymentOptions($paramsType));
         //
         // {
-        //     "items" => array(
+        //     "items": [
         //         {
-        //             "accountType" => "SPOT",
-        //             "availableBalanceDisplay" => "1000.00",
-        //             "enabled" => true
+        //             "accountType": "SPOT",
+        //             "availableBalanceDisplay": "1000.00",
+        //             "enabled": true
         //         }
-        //     )
+        //     ]
         // }
         //
         $result = array(
@@ -971,7 +971,7 @@ class binance extends Exchange {
         );
         $balances = $this->safe_list($response, 'items', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $accountType = $this->safe_string($balance, 'accountType');
             if ($accountType === $type) {
                 $free = $this->safe_string($balance, 'availableBalanceDisplay');
@@ -993,33 +993,34 @@ class binance extends Exchange {
          */
         //
         // {
-        //     "orderId" => "54124",
-        //     "vendorOrderId" => "0x1234abcd...",
-        //     "vendor" => "PREDICT_FUN",
-        //     "marketTopicId" => 4229564,
-        //     "slug" => "btc-price-1h-up-or-down",
-        //     "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //     "marketId" => 5567895,
-        //     "marketTitle" => "UP",
-        //     "outcome" => "YES",
-        //     "outcomeIndex" => 0,
-        //     "status" => "OPENING",
-        //     "side" => "BUY",
-        //     "orderType" => "LIMIT",
-        //     "createTime" => 1748131500000,
-        //     "modifyTime" => 1748131500000,
-        //     "makerUsdtAmount" => "1.00",
-        //     "makerShareQty" => "2000.00",
-        //     "filledUsdtAmount" => "0.00",
-        //     "filledShareQty" => "0.00",
-        //     "fillPercentage" => "0.00",
-        //     "price" => "0.50",
-        //     "marketProviderFee" => "0.02",
-        //     "networkFee" => "0.000001"
+        //     "orderId": "54124",
+        //     "vendorOrderId": "0x1234abcd...",
+        //     "vendor": "PREDICT_FUN",
+        //     "marketTopicId": 4229564,
+        //     "slug": "btc-price-1h-up-or-down",
+        //     "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //     "marketId": 5567895,
+        //     "marketTitle": "UP",
+        //     "outcome": "YES",
+        //     "outcomeIndex": 0,
+        //     "status": "OPENING",
+        //     "side": "BUY",
+        //     "orderType": "LIMIT",
+        //     "createTime": 1748131500000,
+        //     "modifyTime": 1748131500000,
+        //     "makerUsdtAmount": "1.00",
+        //     "makerShareQty": "2000.00",
+        //     "filledUsdtAmount": "0.00",
+        //     "filledShareQty": "0.00",
+        //     "fillPercentage": "0.00",
+        //     "price": "0.50",
+        //     "marketProviderFee": "0.02",
+        //     "networkFee": "0.000001"
         // }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        if ($outcomeObj === null) {
+        $outcomeObjResolved = $outcomeObj;
+        if ($outcomeObjResolved === null) {
             $marketId = $this->safe_string($order, 'marketId');
             $outcome = $this->safe_string_upper($order, 'outcome');
             $market = $this->safe_market($marketId);
@@ -1028,7 +1029,7 @@ class binance extends Exchange {
                 $outcomeName = $marketId;
             }
             $outcomeName .= ':' . $outcome;
-            $outcomeObj = $this->safe_outcome($outcomeName);
+            $outcomeObjResolved = $this->safe_outcome($outcomeName);
         }
         $side = $this->safe_string_lower($order, 'side');
         $timestamp = $this->safe_integer($order, 'createTime');
@@ -1040,10 +1041,10 @@ class binance extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'outcome' => $this->safe_string($outcomeObj, 'outcome'),
-            'outcomeId' => $this->safe_string($outcomeObj, 'id'),
-            'label' => $this->safe_string($outcomeObj, 'label'),
-            'market' => $this->safe_string($outcomeObj, 'market'),
+            'outcome' => $this->safe_string($outcomeObjResolved, 'outcome'),
+            'outcomeId' => $this->safe_string($outcomeObjResolved, 'id'),
+            'label' => $this->safe_string($outcomeObjResolved, 'label'),
+            'market' => $this->safe_string($outcomeObjResolved, 'market'),
             'type' => $this->safe_string_lower($order, 'orderType'),
             'timeInForce' => null,
             'postOnly' => null,
@@ -1058,16 +1059,16 @@ class binance extends Exchange {
             'remaining' => null,
             'fee' => null,
             'trades' => array(),
-        ), $outcomeObj);
+        ), $outcomeObjResolved);
     }
 
     public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'OPENING' => 'open',
             'FILLED' => 'closed',
-            // 'canceled' => 'canceled',
-            // 'rejected' => 'rejected',
-            // 'marginCanceled' => 'canceled',
+            // 'canceled': 'canceled',
+            // 'rejected': 'rejected',
+            // 'marginCanceled': 'canceled',
         );
         if ($status === null) {
             return null;
@@ -1101,16 +1102,16 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
-        $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
+        list($maxEntriesPerRequest, $paramsMaxEntriesPerRequest) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchOpenOrders', $outcome, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
+            return Async\await($this->fetch_paginated_call_incremental('fetchOpenOrders', $outcome, $since, $limit, $paramsMaxEntriesPerRequest, $pageKey, $maxEntriesPerRequest));
         }
-        $page = $this->safe_integer($params, $pageKey, 1) - 1;
+        $page = $this->safe_integer($paramsMaxEntriesPerRequest, $pageKey, 1) - 1;
         $request = array();
-        $offSet = $this->safe_integer($params, 'offset', $page * $maxEntriesPerRequest);
+        $offSet = $this->safe_integer($paramsMaxEntriesPerRequest, 'offset', $page * $maxEntriesPerRequest);
         if ($offSet > 0) {
             $request['offset'] = $offSet;
         }
@@ -1124,41 +1125,41 @@ class binance extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $wallet = Async\await($this->fetch_wallet('fetchOpenOrders', $params));
+        $wallet = Async\await($this->fetch_wallet('fetchOpenOrders', $paramsMaxEntriesPerRequest));
         $request['walletAddress'] = $wallet['walletAddress'];
-        $response = Async\await($this->sapiPrivateGetOrderList($this->extend($request, $params)));
+        $response = Async\await($this->sapiPrivateGetOrderList($this->extend($request, $paramsMaxEntriesPerRequest)));
         //
         // {
-        //     "total" => 2,
-        //     "offset" => 0,
-        //     "limit" => 20,
-        //     "orders" => array(
+        //     "total": 2,
+        //     "offset": 0,
+        //     "limit": 20,
+        //     "orders": [
         //         {
-        //             "orderId" => "54124",
-        //             "vendorOrderId" => "0x1234abcd...",
-        //             "vendor" => "PREDICT_FUN",
-        //             "marketTopicId" => 4229564,
-        //             "slug" => "btc-price-1h-up-or-down",
-        //             "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //             "marketId" => 5567895,
-        //             "marketTitle" => "UP",
-        //             "outcome" => "YES",
-        //             "outcomeIndex" => 0,
-        //             "status" => "OPENING",
-        //             "side" => "BUY",
-        //             "orderType" => "LIMIT",
-        //             "createTime" => 1748131500000,
-        //             "modifyTime" => 1748131500000,
-        //             "makerUsdtAmount" => "1.00",
-        //             "makerShareQty" => "2000.00",
-        //             "filledUsdtAmount" => "0.00",
-        //             "filledShareQty" => "0.00",
-        //             "fillPercentage" => "0.00",
-        //             "price" => "0.50",
-        //             "marketProviderFee" => "0.02",
-        //             "networkFee" => "0.000001"
+        //             "orderId": "54124",
+        //             "vendorOrderId": "0x1234abcd...",
+        //             "vendor": "PREDICT_FUN",
+        //             "marketTopicId": 4229564,
+        //             "slug": "btc-price-1h-up-or-down",
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketId": 5567895,
+        //             "marketTitle": "UP",
+        //             "outcome": "YES",
+        //             "outcomeIndex": 0,
+        //             "status": "OPENING",
+        //             "side": "BUY",
+        //             "orderType": "LIMIT",
+        //             "createTime": 1748131500000,
+        //             "modifyTime": 1748131500000,
+        //             "makerUsdtAmount": "1.00",
+        //             "makerShareQty": "2000.00",
+        //             "filledUsdtAmount": "0.00",
+        //             "filledShareQty": "0.00",
+        //             "fillPercentage": "0.00",
+        //             "price": "0.50",
+        //             "marketProviderFee": "0.02",
+        //             "networkFee": "0.000001"
         //         }
-        //     )
+        //     ]
         // }
         //
         $orders = $this->safe_list($response, 'orders', array());
@@ -1188,16 +1189,16 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
-        $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'maxEntriesPerRequest', 100);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
+        list($maxEntriesPerRequest, $paramsMaxEntriesPerRequest) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOrders', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $outcome, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
+            return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $outcome, $since, $limit, $paramsMaxEntriesPerRequest, $pageKey, $maxEntriesPerRequest));
         }
-        $page = $this->safe_integer($params, $pageKey, 1) - 1;
+        $page = $this->safe_integer($paramsMaxEntriesPerRequest, $pageKey, 1) - 1;
         $request = array();
-        $offSet = $this->safe_integer($params, 'offset', $page * $maxEntriesPerRequest);
+        $offSet = $this->safe_integer($paramsMaxEntriesPerRequest, 'offset', $page * $maxEntriesPerRequest);
         if ($offSet > 0) {
             $request['offset'] = $offSet;
         }
@@ -1212,47 +1213,47 @@ class binance extends Exchange {
         if ($since !== null) {
             $request['startDate'] = $this->yyyymmdd($since);
         }
-        $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, 'until');
+        $until = $this->safe_integer($paramsMaxEntriesPerRequest, 'until');
+        $paramsOmitted = $this->omit($paramsMaxEntriesPerRequest, 'until');
         if ($until !== null) {
             $request['endDate'] = $this->yyyymmdd($until);
         }
-        $wallet = Async\await($this->fetch_wallet('fetchOrders', $params));
+        $wallet = Async\await($this->fetch_wallet('fetchOrders', $paramsOmitted));
         $request['walletAddress'] = $wallet['walletAddress'];
-        $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $params)));
+        $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $paramsOmitted)));
         //
         // {
-        //     "total" => 15,
-        //     "offset" => 0,
-        //     "limit" => 20,
-        //     "orders" => array(
+        //     "total": 15,
+        //     "offset": 0,
+        //     "limit": 20,
+        //     "orders": [
         //         {
-        //             "orderId" => "54100",
-        //             "vendorOrderId" => "0xabcd5678...",
-        //             "vendor" => "PREDICT_FUN",
-        //             "marketTopicId" => 4229500,
-        //             "slug" => "btc-price-1h-up-or-down-prev",
-        //             "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //             "marketId" => 5567800,
-        //             "marketTitle" => "UP",
-        //             "outcome" => "YES",
-        //             "outcomeIndex" => 0,
-        //             "status" => "CLOSED",
-        //             "side" => "BUY",
-        //             "orderType" => "MARKET",
-        //             "createTime" => 1748045100000,
-        //             "modifyTime" => 1748045101000,
-        //             "terminalTime" => 1748045101000,
-        //             "makerUsdtAmount" => "1.00",
-        //             "makerShareQty" => "1923.07",
-        //             "filledUsdtAmount" => "1.00",
-        //             "filledShareQty" => "1923.07",
-        //             "fillPercentage" => "1.00",
-        //             "price" => "0.52",
-        //             "marketProviderFee" => "0.02",
-        //             "networkFee" => "0.000001"
+        //             "orderId": "54100",
+        //             "vendorOrderId": "0xabcd5678...",
+        //             "vendor": "PREDICT_FUN",
+        //             "marketTopicId": 4229500,
+        //             "slug": "btc-price-1h-up-or-down-prev",
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketId": 5567800,
+        //             "marketTitle": "UP",
+        //             "outcome": "YES",
+        //             "outcomeIndex": 0,
+        //             "status": "CLOSED",
+        //             "side": "BUY",
+        //             "orderType": "MARKET",
+        //             "createTime": 1748045100000,
+        //             "modifyTime": 1748045101000,
+        //             "terminalTime": 1748045101000,
+        //             "makerUsdtAmount": "1.00",
+        //             "makerShareQty": "1923.07",
+        //             "filledUsdtAmount": "1.00",
+        //             "filledShareQty": "1923.07",
+        //             "fillPercentage": "1.00",
+        //             "price": "0.52",
+        //             "marketProviderFee": "0.02",
+        //             "networkFee": "0.000001"
         //         }
-        //     )
+        //     ]
         // }
         //
         $orders = $this->safe_list($response, 'orders', array());
@@ -1292,51 +1293,51 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivateGetPositionList($this->extend($request, $params)));
         //
         // {
-        //     "summary" => array(
-        //         "totalValue" => "1523.45",
-        //         "positionValue" => "523.45",
-        //         "walletBalance" => "1000.00",
-        //         "totalClaimableAmount" => "50.00",
-        //         "todayRealizedPnl" => "15.30",
-        //         "todayRealizedPnlPercent" => "3.10",
-        //         "todayTotalCost" => "493.55"
-        //     ),
-        //     "counts" => array(
-        //         "ongoingCount" => 3,
-        //         "endedCount" => 12,
-        //         "pendingClaimCount" => 1
-        //     ),
-        //     "positions" => array(
+        //     "summary": {
+        //         "totalValue": "1523.45",
+        //         "positionValue": "523.45",
+        //         "walletBalance": "1000.00",
+        //         "totalClaimableAmount": "50.00",
+        //         "todayRealizedPnl": "15.30",
+        //         "todayRealizedPnlPercent": "3.10",
+        //         "todayTotalCost": "493.55"
+        //     },
+        //     "counts": {
+        //         "ongoingCount": 3,
+        //         "endedCount": 12,
+        //         "pendingClaimCount": 1
+        //     },
+        //     "positions": [
         //         {
-        //             "positionId" => 1001,
-        //             "vendor" => "PREDICT_FUN",
-        //             "chainId" => "56",
-        //             "tokenId" => "112233",
-        //             "collateralSymbol" => "USDT",
-        //             "topicType" => "FLAT",
-        //             "marketTopicId" => 4229564,
-        //             "marketId" => 5567895,
-        //             "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //             "marketTitle" => "UP",
-        //             "outcomeName" => "YES",
-        //             "outcomeIndex" => 0,
-        //             "shares" => "1923.07",
-        //             "avgPrice" => "0.52",
-        //             "totalCost" => "1.00",
-        //             "value" => "1.06",
-        //             "currentPrice" => "0.55",
-        //             "toWin" => "1923.07",
-        //             "positionStatus" => "OPEN",
-        //             "canClaim" => false,
-        //             "endDate" => 1748134800000,
-        //             "unrealizedPnl" => "0.06",
-        //             "unrealizedPnlPercent" => "6.00",
-        //             "realizedPnl" => "0.00",
-        //             "pnl" => "0.06",
-        //             "createdTime" => 1748131500000,
-        //             "updatedTime" => 1748132000000
+        //             "positionId": 1001,
+        //             "vendor": "PREDICT_FUN",
+        //             "chainId": "56",
+        //             "tokenId": "112233",
+        //             "collateralSymbol": "USDT",
+        //             "topicType": "FLAT",
+        //             "marketTopicId": 4229564,
+        //             "marketId": 5567895,
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketTitle": "UP",
+        //             "outcomeName": "YES",
+        //             "outcomeIndex": 0,
+        //             "shares": "1923.07",
+        //             "avgPrice": "0.52",
+        //             "totalCost": "1.00",
+        //             "value": "1.06",
+        //             "currentPrice": "0.55",
+        //             "toWin": "1923.07",
+        //             "positionStatus": "OPEN",
+        //             "canClaim": false,
+        //             "endDate": 1748134800000,
+        //             "unrealizedPnl": "0.06",
+        //             "unrealizedPnlPercent": "6.00",
+        //             "realizedPnl": "0.00",
+        //             "pnl": "0.06",
+        //             "createdTime": 1748131500000,
+        //             "updatedTime": 1748132000000
         //         }
-        //     )
+        //     ]
         // }
         //
         $data = $this->safe_list($response, 'positions', array());
@@ -1397,7 +1398,8 @@ class binance extends Exchange {
          * @param {array} [$outcomeObj] the ourtome the $position belongs to
          * @return {array} a [prediction $position structure](https://docs.ccxt.com/#/?id=prediction-$position-structure)
          */
-        if ($outcomeObj === null) {
+        $outcomeObjResolved = $outcomeObj;
+        if ($outcomeObjResolved === null) {
             $marketId = $this->safe_string($position, 'marketId');
             $outcome = $this->safe_string_upper($position, 'outcomeName');
             $market = $this->safe_market($marketId);
@@ -1406,15 +1408,15 @@ class binance extends Exchange {
                 $outcomeName = $marketId;
             }
             $outcomeName .= ':' . $outcome;
-            $outcomeObj = $this->safe_outcome($outcomeName);
+            $outcomeObjResolved = $this->safe_outcome($outcomeName);
         }
         $timestamp = $this->safe_integer($position, 'createdTime');
         $totalCost = $this->parse_number($this->safe_string($position, 'totalCost'));
         return $this->safe_prediction_position(array(
             'id' => $this->safe_integer($position, 'positionId'),
-            'outcome' => $this->safe_string($outcomeObj, 'outcome'),
-            'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
-            'market' => $this->safe_string($outcomeObj, 'market'),
+            'outcome' => $this->safe_string($outcomeObjResolved, 'outcome'),
+            'outcomeId' => $this->safe_string_2($outcomeObjResolved, 'outcomeId', 'id'),
+            'market' => $this->safe_string($outcomeObjResolved, 'market'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'isolated' => false,
@@ -1463,18 +1465,18 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
-        $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
+        list($maxEntriesPerRequest, $paramsMaxEntriesPerRequest) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $outcome, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
+            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $outcome, $since, $limit, $paramsMaxEntriesPerRequest, $pageKey, $maxEntriesPerRequest));
         }
-        $page = $this->safe_integer($params, $pageKey, 1) - 1;
+        $page = $this->safe_integer($paramsMaxEntriesPerRequest, $pageKey, 1) - 1;
         $request = array(
             'status' => 'FILLED',
         );
-        $offSet = $this->safe_integer($params, 'offset', $page * $maxEntriesPerRequest);
+        $offSet = $this->safe_integer($paramsMaxEntriesPerRequest, 'offset', $page * $maxEntriesPerRequest);
         if ($offSet > 0) {
             $request['offset'] = $offSet;
         }
@@ -1489,47 +1491,47 @@ class binance extends Exchange {
         if ($since !== null) {
             $request['startDate'] = $this->yyyymmdd($since);
         }
-        $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, 'until');
+        $until = $this->safe_integer($paramsMaxEntriesPerRequest, 'until');
+        $paramsOmitted = $this->omit($paramsMaxEntriesPerRequest, 'until');
         if ($until !== null) {
             $request['endDate'] = $this->yyyymmdd($until);
         }
-        $wallet = Async\await($this->fetch_wallet('fetchMyTrades', $params));
+        $wallet = Async\await($this->fetch_wallet('fetchMyTrades', $paramsOmitted));
         $request['walletAddress'] = $wallet['walletAddress'];
-        $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $params)));
+        $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $paramsOmitted)));
         //
         // {
-        //     "total" => 15,
-        //     "offset" => 0,
-        //     "limit" => 20,
-        //     "orders" => array(
+        //     "total": 15,
+        //     "offset": 0,
+        //     "limit": 20,
+        //     "orders": [
         //         {
-        //             "orderId" => "54100",
-        //             "vendorOrderId" => "0xabcd5678...",
-        //             "vendor" => "PREDICT_FUN",
-        //             "marketTopicId" => 4229500,
-        //             "slug" => "btc-price-1h-up-or-down-prev",
-        //             "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //             "marketId" => 5567800,
-        //             "marketTitle" => "UP",
-        //             "outcome" => "YES",
-        //             "outcomeIndex" => 0,
-        //             "status" => "CLOSED",
-        //             "side" => "BUY",
-        //             "orderType" => "MARKET",
-        //             "createTime" => 1748045100000,
-        //             "modifyTime" => 1748045101000,
-        //             "terminalTime" => 1748045101000,
-        //             "makerUsdtAmount" => "1.00",
-        //             "makerShareQty" => "1923.07",
-        //             "filledUsdtAmount" => "1.00",
-        //             "filledShareQty" => "1923.07",
-        //             "fillPercentage" => "1.00",
-        //             "price" => "0.52",
-        //             "marketProviderFee" => "0.02",
-        //             "networkFee" => "0.000001"
+        //             "orderId": "54100",
+        //             "vendorOrderId": "0xabcd5678...",
+        //             "vendor": "PREDICT_FUN",
+        //             "marketTopicId": 4229500,
+        //             "slug": "btc-price-1h-up-or-down-prev",
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketId": 5567800,
+        //             "marketTitle": "UP",
+        //             "outcome": "YES",
+        //             "outcomeIndex": 0,
+        //             "status": "CLOSED",
+        //             "side": "BUY",
+        //             "orderType": "MARKET",
+        //             "createTime": 1748045100000,
+        //             "modifyTime": 1748045101000,
+        //             "terminalTime": 1748045101000,
+        //             "makerUsdtAmount": "1.00",
+        //             "makerShareQty": "1923.07",
+        //             "filledUsdtAmount": "1.00",
+        //             "filledShareQty": "1923.07",
+        //             "fillPercentage": "1.00",
+        //             "price": "0.52",
+        //             "marketProviderFee": "0.02",
+        //             "networkFee": "0.000001"
         //         }
-        //     )
+        //     ]
         // }
         //
         $trades = $this->safe_list($response, 'orders', array());
@@ -1547,32 +1549,33 @@ class binance extends Exchange {
          */
         //
         // {
-        //     "orderId" => "54124",
-        //     "vendorOrderId" => "0x1234abcd...",
-        //     "vendor" => "PREDICT_FUN",
-        //     "marketTopicId" => 4229564,
-        //     "slug" => "btc-$price-1h-up-or-down",
-        //     "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //     "marketId" => 5567895,
-        //     "marketTitle" => "UP",
-        //     "outcome" => "YES",
-        //     "outcomeIndex" => 0,
-        //     "status" => "OPENING",
-        //     "side" => "BUY",
-        //     "orderType" => "LIMIT",
-        //     "createTime" => 1748131500000,
-        //     "modifyTime" => 1748131500000,
-        //     "makerUsdtAmount" => "1.00",
-        //     "makerShareQty" => "2000.00",
-        //     "filledUsdtAmount" => "0.00",
-        //     "filledShareQty" => "0.00",
-        //     "fillPercentage" => "0.00",
-        //     "price" => "0.50",
-        //     "marketProviderFee" => "0.02",
-        //     "networkFee" => "0.000001"
+        //     "orderId": "54124",
+        //     "vendorOrderId": "0x1234abcd...",
+        //     "vendor": "PREDICT_FUN",
+        //     "marketTopicId": 4229564,
+        //     "slug": "btc-price-1h-up-or-down",
+        //     "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //     "marketId": 5567895,
+        //     "marketTitle": "UP",
+        //     "outcome": "YES",
+        //     "outcomeIndex": 0,
+        //     "status": "OPENING",
+        //     "side": "BUY",
+        //     "orderType": "LIMIT",
+        //     "createTime": 1748131500000,
+        //     "modifyTime": 1748131500000,
+        //     "makerUsdtAmount": "1.00",
+        //     "makerShareQty": "2000.00",
+        //     "filledUsdtAmount": "0.00",
+        //     "filledShareQty": "0.00",
+        //     "fillPercentage": "0.00",
+        //     "price": "0.50",
+        //     "marketProviderFee": "0.02",
+        //     "networkFee": "0.000001"
         // }
         //
-        if ($outcomeObj === null) {
+        $outcomeObjResolved = $outcomeObj;
+        if ($outcomeObjResolved === null) {
             $marketId = $this->safe_string($trade, 'marketId');
             $outcome = $this->safe_string_upper($trade, 'outcome');
             $market = $this->safe_market($marketId);
@@ -1581,7 +1584,7 @@ class binance extends Exchange {
                 $outcomeName = $marketId;
             }
             $outcomeName .= ':' . $outcome;
-            $outcomeObj = $this->safe_outcome($outcomeName);
+            $outcomeObjResolved = $this->safe_outcome($outcomeName);
         }
         $timestamp = $this->safe_integer($trade, 'createTime');
         $filled = $this->safe_string($trade, 'filledShareQty');
@@ -1590,8 +1593,8 @@ class binance extends Exchange {
         $orderType = $this->safe_string_lower($trade, 'orderType');
         $fee = null;
         if (($orderType === 'market') && ($cost !== null) && ($price !== null) && ($filled !== null)) {
-            // buys pay $cost above $price*$filled, sells receive proceeds net of the $fee —
-            // either way the $fee is the absolute difference
+            // buys pay cost above price*filled, sells receive proceeds net of the fee —
+            // either way the fee is the absolute difference
             $feeCost = Precise::string_abs(Precise::string_sub($cost, Precise::string_mul($price, $filled)));
             $fee = array(
                 'currency' => 'USDT',
@@ -1603,21 +1606,19 @@ class binance extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $this->safe_integer($trade, 'modifyTime'),
-            'outcome' => $this->safe_string($outcomeObj, 'outcome'),
-            'outcomeId' => $this->safe_string($outcomeObj, 'id'),
-            'label' => $this->safe_string($outcomeObj, 'label'),
-            'market' => $this->safe_string($outcomeObj, 'market'),
+            'outcome' => $this->safe_string($outcomeObjResolved, 'outcome'),
+            'outcomeId' => $this->safe_string($outcomeObjResolved, 'id'),
+            'label' => $this->safe_string($outcomeObjResolved, 'label'),
+            'market' => $this->safe_string($outcomeObjResolved, 'market'),
             'order' => $this->safe_string($trade, 'orderId'),
             'type' => $orderType,
             'side' => $this->safe_string_lower($trade, 'side'),
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $this->safe_string($trade, 'makerShareQty'),
-            'filled' => $filled,
             'cost' => $cost,
             'fee' => $fee,
-        ), $outcomeObj);
+        ), $outcomeObjResolved);
     }
 
     public function fetch_wallet(string $methodName, $params = array()): PromiseInterface {
@@ -1638,18 +1639,17 @@ class binance extends Exchange {
         if ($cachedWallet !== null) {
             return $cachedWallet;
         }
-        $walletAddress = null;
-        list($walletAddress, $params) = $this->handle_option_and_params($params, $methodName, 'walletAddress', $this->walletAddress);
+        $walletAddress = $this->handle_option_string_and_params($params, $methodName, 'walletAddress', $this->walletAddress)[0];
         $response = Async\await($this->sapiPrivateGetWalletList());
         //
         // {
-        //     "wallets" => array(
+        //     "wallets": [
         //         {
-        //             "walletAddress" => "0x12e32db8817e292508c34111cbc4b23340df542c",
-        //             "walletId" => "5b5c1ec3be4e4416a5872b21c1ca5d20",
-        //             "registeredTime" => 1748000000000
+        //             "walletAddress": "0x12e32db8817e292508c34111cbc4b23340df542c",
+        //             "walletId": "5b5c1ec3be4e4416a5872b21c1ca5d20",
+        //             "registeredTime": 1748000000000
         //         }
-        //     )
+        //     ]
         // }
         //
         $wallets = $this->safe_list($response, 'wallets', array());
@@ -1694,31 +1694,31 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivatePostTradeGetQuote($this->extend($request, $params)));
         //
         // {
-        //     "quoteId" => "q_20260525_abc123xyz",
-        //     "tokenId" => "112233",
-        //     "chance" => "0.52",
-        //     "vendor" => "PREDICT_FUN",
-        //     "marketTitle" => "UP",
-        //     "marketExtId" => "ext_001",
-        //     "side" => "BUY",
-        //     "amountIn" => "1000000000000000000",
-        //     "amountOut" => "1923070000000000000",
-        //     "isMinAmountOut" => false,
-        //     "feeAmount" => "20000000000000000",
-        //     "feeDiscountBps" => "0",
-        //     "averagePrice" => 0.52,
-        //     "lastPrice" => 0.52,
-        //     "priceImpact" => 0.001,
-        //     "timestamp" => 1748131500000,
-        //     "chainId" => "56",
-        //     "userId" => 100103755893,
-        //     "walletAddress" => "0x12e32db8817e292508c34111cbc4b23340df542c",
-        //     "orderType" => "MARKET",
-        //     "slippageBps" => 1200,
-        //     "feeRateBps" => 200,
-        //     "minReceive" => "1900000000000000000",
-        //     "expireAt" => 1748131800000,
-        //     "priceLimit" => null
+        //     "quoteId": "q_20260525_abc123xyz",
+        //     "tokenId": "112233",
+        //     "chance": "0.52",
+        //     "vendor": "PREDICT_FUN",
+        //     "marketTitle": "UP",
+        //     "marketExtId": "ext_001",
+        //     "side": "BUY",
+        //     "amountIn": "1000000000000000000",
+        //     "amountOut": "1923070000000000000",
+        //     "isMinAmountOut": false,
+        //     "feeAmount": "20000000000000000",
+        //     "feeDiscountBps": "0",
+        //     "averagePrice": 0.52,
+        //     "lastPrice": 0.52,
+        //     "priceImpact": 0.001,
+        //     "timestamp": 1748131500000,
+        //     "chainId": "56",
+        //     "userId": 100103755893,
+        //     "walletAddress": "0x12e32db8817e292508c34111cbc4b23340df542c",
+        //     "orderType": "MARKET",
+        //     "slippageBps": 1200,
+        //     "feeRateBps": 200,
+        //     "minReceive": "1900000000000000000",
+        //     "expireAt": 1748131800000,
+        //     "priceLimit": null
         // }
         //
         return $response;
@@ -1772,8 +1772,8 @@ class binance extends Exchange {
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
-        // markets are keyed by the parent $market $outcome; the $outcome handle ("MARKET:LABEL")
-        // is not a $market id, so resolve the $market and price/amount precision via $outcomeObj['market']
+        // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
+        // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
         $marketSymbol = $this->safe_string($outcomeObj, 'market');
         $market = $this->market($marketSymbol);
         $typeUpper = strtoupper($type);
@@ -1793,7 +1793,7 @@ class binance extends Exchange {
         $defaultTif = 'FOK';
         if ($typeUpper === 'LIMIT') {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . 'createOrder requires $price for limit order');
+                throw new ArgumentsRequired($this->id . 'createOrder requires price for limit order');
             }
             $commonRequest['priceLimit'] = $this->price_to_precision($marketSymbol, $price);
             $defaultTif = 'GTC';
@@ -1808,7 +1808,7 @@ class binance extends Exchange {
                     $feeRateBps = '0';
                 } else {
                     if ($price === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder requires $price for ' . $side . ' order');
+                        throw new ArgumentsRequired($this->id . ' createOrder requires price for ' . $side . ' order');
                     }
                 }
                 $feeRate = Precise::string_div($feeRateBps, '10000');
@@ -1820,15 +1820,15 @@ class binance extends Exchange {
         $timeInForce = $this->safe_string_upper($params, 'timeInForce', $defaultTif);
         $accountType = $this->safe_string($params, 'accountType');
         if ($accountType === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder requires $accountType (SPOT, FUNDING)');
+            throw new ArgumentsRequired($this->id . ' createOrder requires accountType (SPOT, FUNDING)');
         }
-        $params = $this->omit($params, array( 'timeInForce', 'accountType', 'cost' ));
+        $paramsOmitted = $this->omit($params, array( 'timeInForce', 'accountType', 'cost' ));
         $quoteRequest = $this->extend($commonRequest, array(
             'tokenId' => $outcomeObj['id'],
             'side' => $sideUpper,
             'amountIn' => Precise::string_mul($this->amount_to_precision($marketSymbol, $amountStr), '1000000000000000000'),
         ));
-        $quote = Async\await($this->fetch_quote($quoteRequest, $params));
+        $quote = Async\await($this->fetch_quote($quoteRequest, $paramsOmitted));
         $quoteId = $this->safe_string($quote, 'quoteId');
         $orderRequest = $this->extend($commonRequest, array(
             'walletId' => $wallet['walletId'],
@@ -1836,7 +1836,7 @@ class binance extends Exchange {
             'timeInForce' => $timeInForce,
             'accountType' => $accountType,
         ));
-        $response = Async\await($this->sapiPrivatePostTradePlaceOrderBundle($this->extend($orderRequest, $params)));
+        $response = Async\await($this->sapiPrivatePostTradePlaceOrderBundle($this->extend($orderRequest, $paramsOmitted)));
         return $this->safe_prediction_order(array(
             'id' => $this->safe_string($response, 'orderId'),
             'clientOrderId' => null,
@@ -1898,7 +1898,8 @@ class binance extends Exchange {
          * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
          */
         $orders = Async\await($this->cancel_orders(array( $id ), $outcome, $params));
-        return $this->safe_dict($orders, 0, array());
+        $first = $this->safe_dict($orders, 0, array());
+        return $first;
     }
 
     public function cancel_orders(array $ids, ?string $outcome = null, $params = array()): PromiseInterface {
@@ -1934,15 +1935,15 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivatePostTradeBatchCancel($this->extend($request, $params)));
         //
         // {
-        //     "canceled" => array(
+        //     "canceled": [
         //         "54124"
-        //     ),
-        //     "failed" => array(
+        //     ],
+        //     "failed": [
         //         {
-        //             "orderId" => "54126",
-        //             "reason" => "ORDER_NOT_FOUND"
+        //             "orderId": "54126",
+        //             "reason": "ORDER_NOT_FOUND"
         //         }
-        //     )
+        //     ]
         // }
         //
         $canceledOrders = $this->safe_list($response, 'canceled', array());
@@ -1952,7 +1953,7 @@ class binance extends Exchange {
         if ($failedOrdersLength > 0) {
             $failedDetails = '';
             for ($i = 0; $i < $failedOrdersLength; $i++) {
-                $failedOrder = $failedOrders[$i];
+                $failedOrder = $this->safe_dict($failedOrders, $i);
                 $failedOrderId = $this->safe_string($failedOrder, 'orderId');
                 $failedReason = $this->safe_string($failedOrder, 'reason');
                 if ($i > 0) {
@@ -1975,8 +1976,8 @@ class binance extends Exchange {
                 'outcomeId' => $this->safe_string($outcomeObj, 'id'),
                 'label' => $this->safe_string($outcomeObj, 'label'),
                 'market' => $this->safe_string($outcomeObj, 'market'),
-                'timestamp' => $this->milliseconds(),
-                'datetime' => $this->iso8601($this->milliseconds()),
+                'timestamp' => null,
+                'datetime' => null,
             );
             $orders[] = $this->safe_prediction_order($order);
         }
@@ -1998,7 +1999,7 @@ class binance extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'sapi', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, mixed $api = 'sapi', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request URL and attaches the standard binance SAPI HMAC-SHA256 $signature — every prediction endpoint is signed
@@ -2027,16 +2028,17 @@ class binance extends Exchange {
         $querystring = str_replace('%5B', '[', $querystring);
         $querystring = str_replace('%5D', ']', $querystring);
         $signature = $this->hmac($this->encode($querystring), $this->encode($this->secret), 'sha256');
-        $querystring = $querystring . '&$signature=' . $signature;
-        $headers = array(
+        $querystring = $querystring . '&signature=' . $signature;
+        $headersValue = array(
             'X-MBX-APIKEY' => $this->apiKey,
         );
+        $bodyValue = $body;
         if (($method === 'GET') || ($method === 'DELETE')) {
             $url = $url . '?' . $querystring;
         } else {
-            $body = $querystring;
-            $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            $bodyValue = $querystring;
+            $headersValue['Content-Type'] = 'application/x-www-form-urlencoded';
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
     }
 }

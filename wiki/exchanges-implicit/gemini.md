@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official gemini API documentation:** [docs.gemini.com](https://docs.gemini.com/rest-api) · [docs.sandbox.gemini.com](https://docs.sandbox.gemini.com)
 
-> 82 implicit endpoints across 4 access groups.
+> 115 implicit endpoints across 4 access groups.
 
 ## webExchange
 
@@ -98,6 +98,19 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetV2DerivativesCandlesSymbolTimeFrame` | GET | `v2/derivatives/candles/{symbol}/{time_frame}` | 5 |
 | `publicGetV2FxrateSymbolTimestamp` | GET | `v2/fxrate/{symbol}/{timestamp}` | 5 |
 | `publicGetV1RiskstatsSymbol` | GET | `v1/riskstats/{symbol}` | 5 |
+| `publicGetV1PredictionMarketsEvents` | GET | `v1/prediction-markets/events` | 5 |
+| `publicGetV1PredictionMarketsEventsEventTicker` | GET | `v1/prediction-markets/events/{eventTicker}` | 5 |
+| `publicGetV1PredictionMarketsEventsEventTickerStrike` | GET | `v1/prediction-markets/events/{eventTicker}/strike` | 5 |
+| `publicGetV1PredictionMarketsEventsNewlyListed` | GET | `v1/prediction-markets/events/newly-listed` | 5 |
+| `publicGetV1PredictionMarketsEventsRecentlySettled` | GET | `v1/prediction-markets/events/recently-settled` | 5 |
+| `publicGetV1PredictionMarketsEventsUpcoming` | GET | `v1/prediction-markets/events/upcoming` | 5 |
+| `publicGetV1PredictionMarketsCategories` | GET | `v1/prediction-markets/categories` | 5 |
+| `publicGetV1PredictionMarketsVolumeDate` | GET | `v1/prediction-markets/volume/{date}` | 5 |
+| `publicGetV1PredictionMarketsVolumeDateHourly` | GET | `v1/prediction-markets/volume/{date}/hourly` | 5 |
+| `publicGetV1PredictionMarketsTerms` | GET | `v1/prediction-markets/terms` | 5 |
+| `publicGetV1PredictionMarketsMakerRebateRates` | GET | `v1/prediction-markets/maker-rebate/rates` | 5 |
+| `publicGetV1PredictionMarketsLiquidityRewardsConfig` | GET | `v1/prediction-markets/liquidity-rewards/config` | 5 |
+| `publicGetV1PredictionMarketsLiquidityRewardsEvents` | GET | `v1/prediction-markets/liquidity-rewards/events` | 5 |
 
 ## private
 
@@ -106,6 +119,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `privateGetV1PerpetualsFundingpaymentreportRecordsXlsx` | GET | `v1/perpetuals/fundingpaymentreport/records.xlsx` | 1 |
+| `privateGetV1PredictionMarketsTermsStatus` | GET | `v1/prediction-markets/terms/status` | 1 |
+| `privateGetV1PredictionMarketsMakerRebateSummaryTotal` | GET | `v1/prediction-markets/maker-rebate/summary/total` | 1 |
+| `privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily` | GET | `v1/prediction-markets/liquidity-rewards/summary/daily` | 1 |
+| `privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal` | GET | `v1/prediction-markets/liquidity-rewards/summary/total` | 1 |
+| `privateGetV2NetworkToken` | GET | `v2/network/{token}` | 1 |
+| `privateGetV2NetworksNetworkAssets` | GET | `v2/networks/{network}/assets` | 1 |
 | `privatePostV1StakingUnstake` | POST | `v1/staking/unstake` | 1 |
 | `privatePostV1StakingStake` | POST | `v1/staking/stake` | 1 |
 | `privatePostV1StakingRewards` | POST | `v1/staking/rewards` | 1 |
@@ -166,4 +185,18 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostV1PerpetualsFundingPayment` | POST | `v1/perpetuals/fundingPayment` | 1 |
 | `privatePostV1PerpetualsFundingpaymentreportRecordsJson` | POST | `v1/perpetuals/fundingpaymentreport/records.json` | 1 |
 | `privatePostV1Positions` | POST | `v1/positions` | 1 |
+| `privatePostV1PredictionMarketsOrder` | POST | `v1/prediction-markets/order` | 1 |
+| `privatePostV1PredictionMarketsOrderBatch` | POST | `v1/prediction-markets/order/batch` | 1 |
+| `privatePostV1PredictionMarketsOrderCancel` | POST | `v1/prediction-markets/order/cancel` | 1 |
+| `privatePostV1PredictionMarketsOrderBatchCancel` | POST | `v1/prediction-markets/order/batch/cancel` | 1 |
+| `privatePostV1PredictionMarketsOrdersActive` | POST | `v1/prediction-markets/orders/active` | 1 |
+| `privatePostV1PredictionMarketsOrdersHistory` | POST | `v1/prediction-markets/orders/history` | 1 |
+| `privatePostV1PredictionMarketsPositions` | POST | `v1/prediction-markets/positions` | 1 |
+| `privatePostV1PredictionMarketsPositionsSettled` | POST | `v1/prediction-markets/positions/settled` | 1 |
+| `privatePostV1PredictionMarketsMetricsVolume` | POST | `v1/prediction-markets/metrics/volume` | 1 |
+| `privatePostV1PredictionMarketsTermsAccept` | POST | `v1/prediction-markets/terms/accept` | 1 |
+| `privatePostV1PredictionMarketsMakerRebatePayouts` | POST | `v1/prediction-markets/maker-rebate/payouts` | 1 |
+| `privatePostV2Transfers` | POST | `v2/transfers` | 1 |
+| `privatePostV2WithdrawNetworkTicker` | POST | `v2/withdraw/{network}/{ticker}` | 1 |
+| `privatePostV2WithdrawNetworkTickerFeeEstimate` | POST | `v2/withdraw/{network}/{ticker}/feeEstimate` | 1 |
 

@@ -19,7 +19,7 @@ function testCamelCasePropertyConversion () {
     // (the parent of the thin Exchange class), not on exchange.constructor.prototype
     const propNames = Object.getOwnPropertyNames (exchange);
     let proto = exchange.constructor.prototype;
-    while (proto && proto !== Object.prototype) {
+    while ((proto !== undefined) && (proto !== null) && (proto !== Object.prototype)) {
         propNames.push (...Object.getOwnPropertyNames (proto));
         proto = Object.getPrototypeOf (proto);
     }
@@ -27,7 +27,9 @@ function testCamelCasePropertyConversion () {
 
     // eslint-disable-next-line no-restricted-syntax
     for (const k of Array.from (propsSeenBefore)) {
-        if (exchange[k] && !props.has (k)) {
+        const propValue = exchange[k];
+        const propIsTruthy = (propValue !== undefined) && (propValue !== null) && (propValue !== false) && (propValue !== 0) && (propValue !== '');
+        if (propIsTruthy && !props.has (k)) {
             throw new Error (`missing prop: ${k}`);
         }
     }

@@ -9,27 +9,27 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchLastPrices(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchLastprices";
+        string method = "fetchLastprices";
         // log ('fetching all tickers at once...')
         object response = new Dictionary<string, object>() {};
         object checkedSymbol = null;
         try
         {
-            response = await ((dynamic)exchange).fetchLastPrices();
+            response = await invokeExchangeDynamically(exchange, "fetchLastPrices");
         } catch(Exception e)
         {
-            response = await ((dynamic)exchange).fetchLastPrices(new List<object>() {symbol});
+            response = await invokeExchangeDynamically(exchange, "fetchLastPrices", new List<object>() {symbol});
             checkedSymbol = symbol;
         }
         testSharedMethods.assertDictionaryResponse(exchange, method, response, checkedSymbol);
-        object values = new List<object>(((IDictionary<string,object>)response).Values);
+        List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-        object atLeastOnePassed = false;
-        for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+        bool atLeastOnePassed = false;
+        for (int i = 0; i < values.Count; i++)
         {
             // todo: symbol check here
-            testLastPrice(exchange, skippedProperties, method, getValue(values, i), ((string)checkedSymbol));
-            atLeastOnePassed = isTrue(atLeastOnePassed) || isTrue((isGreaterThan(exchange.safeNumber(getValue(values, i), "price"), 0)));
+            testLastPrice(exchange, skippedProperties, method, values[i], ((string)checkedSymbol));
+            atLeastOnePassed = atLeastOnePassed || (isGreaterThan(exchange.safeNumber(values[i], "price"), 0));
         }
         assert(atLeastOnePassed, add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " at least one symbol should pass the test"));
         return true;

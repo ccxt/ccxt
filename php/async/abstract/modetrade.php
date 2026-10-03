@@ -232,6 +232,12 @@ abstract class modetrade extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_public_get_tv_kline_history($params = array()) {
+        return $this->request('tv/kline_history', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_public_get_public_funding_rate_history($params = array()) {
         return $this->request('public/funding_rate_history', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -288,6 +294,12 @@ abstract class modetrade extends \ccxt\async\Exchange {
      */
     public function v1_public_post_register_account($params = array()) {
         return $this->request('register_account', array('v1', 'public'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_public_post_public_query($params = array()) {
+        return $this->request('public/query', array('v1', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -400,6 +412,12 @@ abstract class modetrade extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_private_get_internal_transfer_history($params = array()) {
+        return $this->request('internal_transfer_history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_private_get_volume_user_daily($params = array()) {
         return $this->request('volume/user/daily', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
     }
@@ -478,6 +496,12 @@ abstract class modetrade extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_private_get_broker_daily_fee_revenue($params = array()) {
+        return $this->request('broker/daily_fee_revenue', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_private_get_orderbook_symbol($params = array()) {
         return $this->request('orderbook/{symbol}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -486,6 +510,72 @@ abstract class modetrade extends \ccxt\async\Exchange {
      */
     public function v1_private_get_kline($params = array()) {
         return $this->request('kline', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_client_leverages($params = array()) {
+        return $this->request('client/leverages', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_client_margin_modes($params = array()) {
+        return $this->request('client/margin_modes', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_referral_multi_level_admin($params = array()) {
+        return $this->request('referral/multi_level/admin', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_referral_multi_level_admin_info($params = array()) {
+        return $this->request('referral/multi_level/admin/info', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_referral_multi_level_admin_referee_list($params = array()) {
+        return $this->request('referral/multi_level/admin/referee_list', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_referral_multi_level_admin_summary($params = array()) {
+        return $this->request('referral/multi_level/admin/summary', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_referral_multi_level_max_rebate_rate($params = array()) {
+        return $this->request('referral/multi_level/max_rebate_rate', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_referral_multi_level_rebate_info($params = array()) {
+        return $this->request('referral/multi_level/rebate_info', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_referral_multi_level_referee_list($params = array()) {
+        return $this->request('referral/multi_level/referee_list', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_referral_multi_level_statistics($params = array()) {
+        return $this->request('referral/multi_level/statistics', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_referral_multi_level_volume_prerequisite($params = array()) {
+        return $this->request('referral/multi_level/volume_prerequisite', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -550,6 +640,12 @@ abstract class modetrade extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_private_post_internal_transfer($params = array()) {
+        return $this->request('internal_transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_private_post_notification_inbox_mark_read($params = array()) {
         return $this->request('notification/inbox/mark_read', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 60));
     }
@@ -564,6 +660,24 @@ abstract class modetrade extends \ccxt\async\Exchange {
      */
     public function v1_private_post_client_leverage($params = array()) {
         return $this->request('client/leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 120));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_client_leverages($params = array()) {
+        return $this->request('client/leverages', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 120));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_client_margin_mode($params = array()) {
+        return $this->request('client/margin_mode', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_position_margin($params = array()) {
+        return $this->request('position_margin', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -636,6 +750,60 @@ abstract class modetrade extends \ccxt\async\Exchange {
      */
     public function v1_private_post_referral_edit_split($params = array()) {
         return $this->request('referral/edit_split', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_referral_edit_referee_description($params = array()) {
+        return $this->request('referral/edit_referee_description', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_referral_multi_level_admin($params = array()) {
+        return $this->request('referral/multi_level/admin', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_referral_multi_level_admin_update($params = array()) {
+        return $this->request('referral/multi_level/admin/update', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_referral_multi_level_admin_create_affiliate($params = array()) {
+        return $this->request('referral/multi_level/admin/create/affiliate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_referral_multi_level_admin_reset_affiliate($params = array()) {
+        return $this->request('referral/multi_level/admin/reset/affiliate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_referral_multi_level_admin_update_affiliate($params = array()) {
+        return $this->request('referral/multi_level/admin/update/affiliate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_referral_multi_level_claim_code($params = array()) {
+        return $this->request('referral/multi_level/claim_code', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_referral_multi_level_rebate_rate_set_default($params = array()) {
+        return $this->request('referral/multi_level/rebate_rate/set_default', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_referral_multi_level_rebate_rate_update($params = array()) {
+        return $this->request('referral/multi_level/rebate_rate/update', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -922,6 +1090,12 @@ abstract class modetrade extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1PublicGetTvKlineHistory($params = array()) {
+        return $this->request('tv/kline_history', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1PublicGetPublicFundingRateHistory($params = array()) {
         return $this->request('public/funding_rate_history', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -978,6 +1152,12 @@ abstract class modetrade extends \ccxt\async\Exchange {
      */
     public function v1PublicPostRegisterAccount($params = array()) {
         return $this->request('register_account', array('v1', 'public'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PublicPostPublicQuery($params = array()) {
+        return $this->request('public/query', array('v1', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1090,6 +1270,12 @@ abstract class modetrade extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1PrivateGetInternalTransferHistory($params = array()) {
+        return $this->request('internal_transfer_history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1PrivateGetVolumeUserDaily($params = array()) {
         return $this->request('volume/user/daily', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
     }
@@ -1168,6 +1354,12 @@ abstract class modetrade extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1PrivateGetBrokerDailyFeeRevenue($params = array()) {
+        return $this->request('broker/daily_fee_revenue', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1PrivateGetOrderbookSymbol($params = array()) {
         return $this->request('orderbook/{symbol}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1176,6 +1368,72 @@ abstract class modetrade extends \ccxt\async\Exchange {
      */
     public function v1PrivateGetKline($params = array()) {
         return $this->request('kline', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetClientLeverages($params = array()) {
+        return $this->request('client/leverages', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetClientMarginModes($params = array()) {
+        return $this->request('client/margin_modes', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetReferralMultiLevelAdmin($params = array()) {
+        return $this->request('referral/multi_level/admin', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetReferralMultiLevelAdminInfo($params = array()) {
+        return $this->request('referral/multi_level/admin/info', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetReferralMultiLevelAdminRefereeList($params = array()) {
+        return $this->request('referral/multi_level/admin/referee_list', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetReferralMultiLevelAdminSummary($params = array()) {
+        return $this->request('referral/multi_level/admin/summary', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetReferralMultiLevelMaxRebateRate($params = array()) {
+        return $this->request('referral/multi_level/max_rebate_rate', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetReferralMultiLevelRebateInfo($params = array()) {
+        return $this->request('referral/multi_level/rebate_info', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetReferralMultiLevelRefereeList($params = array()) {
+        return $this->request('referral/multi_level/referee_list', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetReferralMultiLevelStatistics($params = array()) {
+        return $this->request('referral/multi_level/statistics', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetReferralMultiLevelVolumePrerequisite($params = array()) {
+        return $this->request('referral/multi_level/volume_prerequisite', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1240,6 +1498,12 @@ abstract class modetrade extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1PrivatePostInternalTransfer($params = array()) {
+        return $this->request('internal_transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1PrivatePostNotificationInboxMarkRead($params = array()) {
         return $this->request('notification/inbox/mark_read', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 60));
     }
@@ -1254,6 +1518,24 @@ abstract class modetrade extends \ccxt\async\Exchange {
      */
     public function v1PrivatePostClientLeverage($params = array()) {
         return $this->request('client/leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 120));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostClientLeverages($params = array()) {
+        return $this->request('client/leverages', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 120));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostClientMarginMode($params = array()) {
+        return $this->request('client/margin_mode', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostPositionMargin($params = array()) {
+        return $this->request('position_margin', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1326,6 +1608,60 @@ abstract class modetrade extends \ccxt\async\Exchange {
      */
     public function v1PrivatePostReferralEditSplit($params = array()) {
         return $this->request('referral/edit_split', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostReferralEditRefereeDescription($params = array()) {
+        return $this->request('referral/edit_referee_description', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostReferralMultiLevelAdmin($params = array()) {
+        return $this->request('referral/multi_level/admin', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostReferralMultiLevelAdminUpdate($params = array()) {
+        return $this->request('referral/multi_level/admin/update', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostReferralMultiLevelAdminCreateAffiliate($params = array()) {
+        return $this->request('referral/multi_level/admin/create/affiliate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostReferralMultiLevelAdminResetAffiliate($params = array()) {
+        return $this->request('referral/multi_level/admin/reset/affiliate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostReferralMultiLevelAdminUpdateAffiliate($params = array()) {
+        return $this->request('referral/multi_level/admin/update/affiliate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostReferralMultiLevelClaimCode($params = array()) {
+        return $this->request('referral/multi_level/claim_code', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostReferralMultiLevelRebateRateSetDefault($params = array()) {
+        return $this->request('referral/multi_level/rebate_rate/set_default', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostReferralMultiLevelRebateRateUpdate($params = array()) {
+        return $this->request('referral/multi_level/rebate_rate/update', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

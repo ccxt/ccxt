@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class MarginLoan {
+public final class MarginLoan extends TypedMap {
     public String id;
     public String currency;
     public Double amount;
@@ -16,6 +16,7 @@ public final class MarginLoan {
 
     @SuppressWarnings("unchecked")
     public MarginLoan(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.currency = TypeHelper.safeString(data, "currency");

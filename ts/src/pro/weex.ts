@@ -7,6 +7,8 @@ import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -81,7 +83,7 @@ export default class weex extends weexRest {
         });
     }
 
-    requestId () {
+    requestId (): Str {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -89,11 +91,11 @@ export default class weex extends weexRest {
         return this.numberToString (requestId);
     }
 
-    async subscribePublic (messageHashes: any, channels: any, isContract = false, params = {}, subscription = {}) {
+    async subscribePublic (messageHashes: string[], channels: Strings, isContract: boolean = false, params: Dict = {}, subscription: Dict = {}) {
         const id = this.requestId ();
         let method = 'SUBSCRIBE';
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
-        if (unsubscribe) {
+        if (unsubscribe === true) {
             method = 'UNSUBSCRIBE';
         }
         const message: Dict = {
@@ -101,19 +103,25 @@ export default class weex extends weexRest {
             'method': method,
             'params': channels,
         };
-        subscription = this.extend (subscription, { 'id': id });
-        const type = isContract ? 'contract' : 'spot';
-        const url = this.urls['api']['ws'][type] + '/public';
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
+        const subscriptionExtended: Dict = this.extend (subscription, { 'id': id });
+        let type: Str = 'spot';
+        if (isContract) {
+            type = 'contract';
+        }
+        const url = this.safeString (this.urls['api']['ws'], type) + '/public';
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscriptionExtended);
     }
 
-    async subscribePrivate (messageHash: any, subscribeHash: any, channel: any, isContract = false, params: any = {}, subscription = {}) {
-        const type = isContract ? 'contract' : 'spot';
-        const url = this.urls['api']['ws'][type] + '/private';
+    async subscribePrivate (messageHash: string, subscribeHash: string, channel: Str, isContract: boolean = false, params: Dict = {}, subscription: Dict = {}) {
+        let type: Str = 'spot';
+        if (isContract) {
+            type = 'contract';
+        }
+        const url = this.safeString (this.urls['api']['ws'], type) + '/private';
         this.authenticate (url);
         let method = 'SUBSCRIBE';
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
-        if (unsubscribe) {
+        if (unsubscribe === true) {
             method = 'UNSUBSCRIBE';
         }
         const id = this.requestId ();
@@ -122,11 +130,11 @@ export default class weex extends weexRest {
             'method': method,
             'params': [ channel ],
         };
-        subscription = this.extend (subscription, { 'id': id });
-        return await this.watch (url, messageHash, this.deepExtend (message, params), subscribeHash, subscription);
+        const subscriptionExtended: Dict = this.extend (subscription, { 'id': id });
+        return await this.watch (url, messageHash, this.deepExtend (message, params), subscribeHash, subscriptionExtended);
     }
 
-    authenticate (url: any) {
+    authenticate (url: string) {
         this.checkRequiredCredentials ();
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
@@ -134,7 +142,7 @@ export default class weex extends weexRest {
         const timestamp = this.nonce ();
         const payload = timestamp.toString () + '/v3/ws/private';
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
-        const originalHeaders = this.options['ws']['options']['headers'];
+        const originalHeaders = this.safeDict (this.options['ws']['options'], 'headers');
         const userAgent = this.safeString (originalHeaders, 'User-Agent', 'ccxt');
         const extendedOptions: Dict = {
             'ws': {
@@ -176,13 +184,13 @@ export default class weex extends weexRest {
      * @param {string} [params.name] stream to use can be ticker or miniTicker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const tickers = await this.watchTickers ([ symbol ], params);
-        return tickers[symbol];
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbolValue ], params);
+        return tickers[symbolValue];
     }
 
     /**
@@ -195,18 +203,18 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const isContract = firstMarket['contract'];
         const topic = 'ticker';
         const messageHashes: string[] = [];
         const channels: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const channelName = market['id'] + '@' + topic;
             const messageHash = topic + '::' + symbol;
@@ -216,10 +224,13 @@ export default class weex extends weexRest {
         const newTicker = await this.subscribePublic (messageHashes, channels, isContract, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -246,19 +257,19 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const isContract = firstMarket['contract'];
         const topic = 'ticker';
         const subHashes: string[] = [];
         const channels: string[] = [];
         const unSubHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const channelName = market['id'] + '@' + topic;
             const messageHash = topic + '::' + symbol;
@@ -269,7 +280,7 @@ export default class weex extends weexRest {
         }
         const subscription = {
             'unsubscribe': true,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': topic,
@@ -277,7 +288,7 @@ export default class weex extends weexRest {
         return await this.subscribePublic (unSubHashes, channels, isContract, params, subscription);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "e": "ticker",
@@ -337,7 +348,12 @@ export default class weex extends weexRest {
         //
         const timestamp = this.safeInteger (ticker, 'C');
         const close = this.safeString (ticker, 'c');
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        let symbol: Str = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        } else {
+            symbol = market['symbol'];
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -354,7 +370,8 @@ export default class weex extends weexRest {
             'last': close,
             'previousClose': this.safeString (ticker, 'x'),
             'change': this.safeString (ticker, 'p'),
-            'percentage': this.safeString (ticker, 'P'),
+            // The live spot and contract streams report P as a relative change.
+            'percentage': Precise.stringMul (this.safeString (ticker, 'P'), '100'),
             'average': this.safeString (ticker, 'w'),
             'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': this.safeString (ticker, 'q'),
@@ -376,7 +393,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -392,18 +409,18 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const isContract = firstMarket['contract'];
         const topic = 'trade';
         const messageHashes: string[] = [];
         const channels: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const channelName = market['id'] + '@' + topic;
             const messageHash = topic + '::' + symbol;
@@ -411,12 +428,13 @@ export default class weex extends weexRest {
             channels.push (channelName);
         }
         const trades = await this.subscribePublic (messageHashes, channels, isContract, params);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -443,19 +461,19 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const isContract = firstMarket['contract'];
         const topic = 'trade';
         const subHashes: string[] = [];
         const channels: string[] = [];
         const unSubHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const channelName = market['id'] + '@' + topic;
             const messageHash = topic + '::' + symbol;
@@ -466,7 +484,7 @@ export default class weex extends weexRest {
         }
         const subscription = {
             'unsubscribe': true,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': 'trades',
@@ -474,7 +492,7 @@ export default class weex extends weexRest {
         return await this.subscribePublic (unSubHashes, channels, isContract, params, subscription);
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict) {
         //
         //     {
         //         "e": "trade",
@@ -519,7 +537,7 @@ export default class weex extends weexRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "T": 1776089287762,
@@ -531,7 +549,19 @@ export default class weex extends weexRest {
         //     }
         //
         const timestamp = this.safeInteger (trade, 'T');
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        let symbol: Str = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        } else {
+            symbol = market['symbol'];
+        }
+        const isBuyerMaker = this.safeBool (trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        let side: Str = undefined;
+        let takerOrMaker: Str = undefined;
+        if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
+            takerOrMaker = 'taker'; // a public trade is reported from the aggressor's side, same as parseTrade
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 't'),
@@ -540,8 +570,8 @@ export default class weex extends weexRest {
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
             'cost': this.safeString (trade, 'v'),
@@ -562,7 +592,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         const extendedParams = this.extend (params, {
             'callerMethodName': 'watchOHLCV',
         });
@@ -582,12 +612,12 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const callerMethodName = this.safeString (params, 'callerMethodName', 'watchOHLCVForSymbols');
-        params = this.omit (params, 'callerMethodName');
+        const paramsOmitted: Dict = this.omit (params, 'callerMethodName');
         const channels: string[] = [];
         const messageHashes: string[] = [];
         const firstEntry = this.safeList (symbolsAndTimeframes, 0, []);
@@ -595,8 +625,9 @@ export default class weex extends weexRest {
         const firstMarket = this.market (firstSymbol);
         const isContract = firstMarket['contract'];
         let priceType = 'LAST_PRICE';
-        if (isContract) {
-            [ priceType, params ] = this.handleOptionAndParams2 (params, callerMethodName, 'price', 'priceType', priceType);
+        let paramsPriceType: Dict = paramsOmitted;
+        if (isContract === true) {
+            [ priceType, paramsPriceType ] = this.handleOptionStringAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
@@ -605,7 +636,7 @@ export default class weex extends weexRest {
             if (market['type'] !== firstMarket['type']) {
                 throw new BadRequest (this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
-            symbolString = market['symbol'];
+            symbolString = this.safeString (market, 'symbol');
             const unifiedTimeframe = this.safeString (data, 1, '1');
             const interval = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
             const channel = market['id'] + '@kline_' + interval + '_' + priceType;
@@ -613,11 +644,12 @@ export default class weex extends weexRest {
             channels.push (channel);
             messageHashes.push (messageHash);
         }
-        const [ symbol, timeframe, stored ] = await this.subscribePublic (messageHashes, channels, isContract, params);
+        const [ symbol, timeframe, stored ] = await this.subscribePublic (messageHashes, channels, isContract, paramsPriceType);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
+            limitResolved = stored.getLimit (symbol, limit);
         }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -647,12 +679,12 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const callerMethodName = this.safeString (params, 'callerMethodName', 'unWatchOHLCVForSymbols');
-        params = this.omit (params, 'callerMethodName');
+        const paramsOmitted: Dict = this.omit (params, 'callerMethodName');
         const channels: string[] = [];
         const subHashes: string[] = [];
         const unSubHashes: string[] = [];
@@ -661,8 +693,9 @@ export default class weex extends weexRest {
         const firstMarket = this.market (firstSymbol);
         const isContract = firstMarket['contract'];
         let priceType = 'LAST_PRICE';
-        if (isContract) {
-            [ priceType, params ] = this.handleOptionAndParams2 (params, callerMethodName, 'price', 'priceType', priceType);
+        let paramsPriceType: Dict = paramsOmitted;
+        if (isContract === true) {
+            [ priceType, paramsPriceType ] = this.handleOptionStringAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
@@ -671,7 +704,7 @@ export default class weex extends weexRest {
             if (market['type'] !== firstMarket['type']) {
                 throw new BadRequest (this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
-            symbolString = market['symbol'];
+            symbolString = this.safeString (market, 'symbol');
             const unifiedTimeframe = this.safeString (data, 1, '1');
             const interval = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
             const channel = market['id'] + '@kline_' + interval + '_' + priceType;
@@ -688,10 +721,10 @@ export default class weex extends weexRest {
             'subMessageHashes': subHashes,
             'topic': 'ohlcv',
         };
-        return await this.subscribePublic (unSubHashes, channels, isContract, params, subscription);
+        return await this.subscribePublic (unSubHashes, channels, isContract, paramsPriceType, subscription);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         e: 'kline',
@@ -729,7 +762,7 @@ export default class weex extends weexRest {
         const firstEntry = this.safeDict (data, 0, {});
         const interval = this.safeString (firstEntry, 'i');
         const timeframe = this.findTimeframe (interval);
-        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -786,11 +819,11 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        params = this.extend (params, {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        const paramsExtended: Dict = this.extend (params, {
             'callerMethodName': 'watchOrderBook',
         });
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, paramsExtended);
     }
 
     /**
@@ -804,31 +837,31 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const isContract = firstMarket['contract'];
         const callerMethodName = this.safeString (params, 'callerMethodName', 'watchOrderBookForSymbols');
-        params = this.omit (params, 'callerMethodName');
-        let depth = '200';
-        [ depth, params ] = this.handleOptionAndParams (params, callerMethodName, 'depth', depth);
+        const paramsOmitted: Dict = this.omit (params, 'callerMethodName');
+        const depth = '200';
+        const [ depthOption, paramsDepth ] = this.handleOptionStringAndParams (paramsOmitted, callerMethodName, 'depth', depth);
         const messageHashes: string[] = [];
         const channels: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const messageHash = 'orderbook::' + symbol;
-            const channel = market['id'] + '@depth' + depth;
+            const channel = market['id'] + '@depth' + depthOption;
             messageHashes.push (messageHash);
             channels.push (channel);
         }
         const subscription: Dict = {
             'limit': limit,
         };
-        const orderbook = await this.subscribePublic (messageHashes, channels, isContract, params, subscription);
+        const orderbook: WsOrderBook = await this.subscribePublic (messageHashes, channels, isContract, paramsDepth, subscription);
         return orderbook.limit ();
     }
 
@@ -842,11 +875,11 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        params = this.extend (params, {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+        const paramsExtended = this.extend (params, {
             'callerMethodName': 'unWatchOrderBook',
         });
-        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+        return await this.unWatchOrderBookForSymbols ([ symbol ], paramsExtended);
     }
 
     /**
@@ -859,25 +892,25 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const isContract = firstMarket['contract'];
         const callerMethodName = this.safeString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
-        params = this.omit (params, 'callerMethodName');
-        let depth = '200';
-        [ depth, params ] = this.handleOptionAndParams (params, callerMethodName, 'depth', depth);
+        const paramsOmitted = this.omit (params, 'callerMethodName');
+        const depth = '200';
+        const [ depthOption, paramsDepth ] = this.handleOptionStringAndParams (paramsOmitted, callerMethodName, 'depth', depth);
         const subHashes: string[] = [];
         const channels: string[] = [];
         const unSubHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const messageHash = 'orderbook::' + symbol;
-            const channel = market['id'] + '@depth' + depth;
+            const channel = market['id'] + '@depth' + depthOption;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push (messageHash);
             channels.push (channel);
@@ -885,15 +918,15 @@ export default class weex extends weexRest {
         }
         const subscription = {
             'unsubscribe': true,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': 'orderbook',
         };
-        return await this.subscribePublic (unSubHashes, channels, isContract, params, subscription);
+        return await this.subscribePublic (unSubHashes, channels, isContract, paramsDepth, subscription);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "e": "depth",
@@ -956,19 +989,19 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
-        if (firstMarket['contract']) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
+        if (firstMarket['contract'] === true) {
             throw new NotSupported (this.id + ' watchBidsAsks is supported for spot markets only');
         }
         const messageHashes: string[] = [];
         const channels: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const channelName = market['id'] + '@' + 'bookTicker';
             const messageHash = 'bidask::' + symbol;
@@ -978,10 +1011,13 @@ export default class weex extends weexRest {
         const newTicker = await this.subscribePublic (messageHashes, channels, false, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
-        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -993,20 +1029,20 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
-        if (firstMarket['contract']) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
+        if (firstMarket['contract'] === true) {
             throw new NotSupported (this.id + ' unWatchBidsAsks is supported for spot markets only');
         }
         const subHashes: string[] = [];
         const channels: string[] = [];
         const unSubHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const channelName = market['id'] + '@' + 'bookTicker';
             const messageHash = 'bidask::' + symbol;
@@ -1017,7 +1053,7 @@ export default class weex extends weexRest {
         }
         const subscription = {
             'unsubscribe': true,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': 'bidsasks',
@@ -1025,7 +1061,7 @@ export default class weex extends weexRest {
         return await this.subscribePublic (unSubHashes, channels, false, params, subscription);
     }
 
-    handleBidAsk (client: Client, message: any) {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //         "e": "bookTicker",
@@ -1051,9 +1087,14 @@ export default class weex extends weexRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseWsBidAsk (message: any, market: Market = undefined) {
+    parseWsBidAsk (message: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (message, 'E');
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        let symbol: Str = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        } else {
+            symbol = market['symbol'];
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1079,29 +1120,32 @@ export default class weex extends weexRest {
      * @param {string} [params.type] spot or swap, default is spot if symbol is not provided
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let marketType: Str = undefined;
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        const symbolResolved: Str = this.safeString (market, 'symbol');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const isContract = (marketType !== 'spot');
-        let messageHash = isContract ? 'myContractTrades' : 'myTrades';
+        let messageHash: Str = 'myTrades';
+        if (isContract) {
+            messageHash = 'myContractTrades';
+        }
         const subscriptionHash = messageHash;
-        if (symbol !== undefined) {
-            messageHash += '::' + symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += '::' + symbolResolved;
         }
         const channel = 'fill';
-        const trades = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, params);
+        const trades = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1115,14 +1159,16 @@ export default class weex extends weexRest {
      * @param {string} [params.type] spot or swap, default is spot
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.');
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('unWatchMyTrades', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('unWatchMyTrades', undefined, params);
         const isContract = (marketType !== 'spot');
-        const subHash = isContract ? 'myContractTrades' : 'myTrades';
+        let subHash: Str = 'myTrades';
+        if (isContract) {
+            subHash = 'myContractTrades';
+        }
         const unSubHash = 'unsubscribe::' + subHash;
         const channel = 'fill';
         const subscription = {
@@ -1132,10 +1178,10 @@ export default class weex extends weexRest {
             'topic': 'myTrades',
             'subHashIsPrefix': true,
         };
-        return await this.subscribePrivate (unSubHash, unSubHash, channel, isContract, params, subscription);
+        return await this.subscribePrivate (unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict) {
         //
         // spot
         //     {
@@ -1201,7 +1247,7 @@ export default class weex extends weexRest {
         let messageHash = 'myTrades';
         const symbolKeys = Object.keys (symbols);
         const market = this.getMarketFromSymbols (symbolKeys);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             messageHash = 'myContractTrades';
         }
         for (let j = 0; j < symbolKeys.length; j++) {
@@ -1212,7 +1258,7 @@ export default class weex extends weexRest {
         client.resolve (trades, messageHash);
     }
 
-    parseWsMyTrade (trade: any, market: Market = undefined) {
+    parseWsMyTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // spot
         //     {
@@ -1238,7 +1284,6 @@ export default class weex extends weexRest {
             marketType = 'swap';
         }
         const marketResolved = this.safeMarket (marketId, undefined, undefined, marketType);
-        market = marketResolved;
         const side = this.safeStringLower (trade, 'orderSide');
         let fee: FeeString = undefined;
         const commission = this.safeString (trade, 'fillFee');
@@ -1247,9 +1292,9 @@ export default class weex extends weexRest {
             let feeCurrency = this.safeCurrencyCode (commissionAsset);
             if (marketType === 'spot') {
                 if (side === 'buy') {
-                    feeCurrency = marketResolved['base'];
+                    feeCurrency = this.safeString (marketResolved, 'base');
                 } else {
-                    feeCurrency = marketResolved['quote'];
+                    feeCurrency = this.safeString (marketResolved, 'quote');
                 }
             }
             fee = {
@@ -1287,29 +1332,32 @@ export default class weex extends weexRest {
      * @param {string} [params.type] spot or swap, default is spot if symbol is not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const symbolResolved: Str = this.safeString (market, 'symbol');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const isContract = (marketType !== 'spot');
-        let messageHash = isContract ? 'contractOrders' : 'orders';
+        let messageHash: Str = 'orders';
+        if (isContract) {
+            messageHash = 'contractOrders';
+        }
         const subscriptionHash = messageHash;
-        if (symbol !== undefined) {
-            messageHash += '::' + symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += '::' + symbolResolved;
         }
         const channel = 'orders';
-        const orders = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, params);
+        const orders = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1322,14 +1370,16 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.');
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('unWatchOrders', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('unWatchOrders', undefined, params);
         const isContract = (marketType !== 'spot');
-        const subHash = isContract ? 'contractOrders' : 'orders';
+        let subHash: Str = 'orders';
+        if (isContract) {
+            subHash = 'contractOrders';
+        }
         const unSubHash = 'unsubscribe::' + subHash;
         const channel = 'orders';
         const subscription = {
@@ -1339,10 +1389,10 @@ export default class weex extends weexRest {
             'topic': 'orders',
             'subHashIsPrefix': true,
         };
-        return await this.subscribePrivate (unSubHash, unSubHash, channel, isContract, params, subscription);
+        return await this.subscribePrivate (unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: Dict) {
         //
         //     {
         //         "e": "orders",
@@ -1409,7 +1459,7 @@ export default class weex extends weexRest {
         let messageHash = 'orders';
         const symbolKeys = Object.keys (symbols);
         const market = this.getMarketFromSymbols (symbolKeys);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             messageHash = 'contractOrders';
         }
         for (let i = 0; i < symbolKeys.length; i++) {
@@ -1420,7 +1470,7 @@ export default class weex extends weexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //     {
@@ -1514,7 +1564,7 @@ export default class weex extends weexRest {
             marketType = 'swap';
         }
         const marketResolved = this.safeMarket (marketId, undefined, undefined, marketType);
-        market = marketResolved;
+        const marketValue: Market = marketResolved;
         const side = this.safeStringLower (order, 'orderSide');
         let fee: FeeString = undefined;
         const commission = this.safeString (order, 'cumFillFee');
@@ -1523,9 +1573,9 @@ export default class weex extends weexRest {
             let feeCurrency = this.safeCurrencyCode (commissionAsset);
             if (marketType === 'spot') {
                 if (side === 'buy') {
-                    feeCurrency = marketResolved['base'];
+                    feeCurrency = this.safeString (marketResolved, 'base');
                 } else {
-                    feeCurrency = marketResolved['quote'];
+                    feeCurrency = this.safeString (marketResolved, 'quote');
                 }
             }
             fee = {
@@ -1569,7 +1619,7 @@ export default class weex extends weexRest {
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'info': order,
-        }, market);
+        }, marketValue);
     }
 
     /**
@@ -1582,35 +1632,37 @@ export default class weex extends weexRest {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const isContract = (type !== 'spot');
-        const urlType = isContract ? 'contract' : 'spot';
-        const url = this.urls['api']['ws'][urlType] + '/private';
+        let urlType: Str = 'spot';
+        if (isContract) {
+            urlType = 'contract';
+        }
+        const url = this.safeString (this.urls['api']['ws'], urlType) + '/private';
         this.authenticate (url);
         const client = this.client (url);
         this.setBalanceCache (client, type);
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':' + 'balance';
-        return await this.subscribePrivate (messageHash, type, 'account', isContract, params);
+        return await this.subscribePrivate (messageHash, type, 'account', isContract, paramsMarketType);
     }
 
-    setBalanceCache (client: Client, type: any) {
+    setBalanceCache (client: Client, type: string) {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1621,12 +1673,12 @@ export default class weex extends weexRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: any, type: any) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string) {
         const params: Dict = {
             'type': type,
         };
         const response = await this.fetchBalance (params);
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1635,7 +1687,7 @@ export default class weex extends weexRest {
         }
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         //     {
@@ -1712,7 +1764,7 @@ export default class weex extends weexRest {
             account['free'] = this.safeString2 (entry, 'available', 'amount');
             account['used'] = this.safeString (entry, 'frozen');
             account['total'] = this.safeString2 (entry, 'equity', 'legacyAmount');
-            if ((accountType !== undefined) && (code !== undefined)) {
+            if (code !== undefined) {
                 this.balance[accountType][code] = account;
             }
         }
@@ -1735,37 +1787,37 @@ export default class weex extends weexRest {
      * @param {int} [params.accountNumber] account number to query orders for, required
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws']['contract'] + '/private';
+        const url = this.safeString (this.urls['api']['ws'], 'contract') + '/private';
         this.authenticate (url);
         const client = this.client (url);
-        symbols = this.marketSymbols (symbols, 'swap', true);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, 'swap', true);
         let messageHash = 'positions';
         const subscriptionHash = messageHash;
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join (',');
+        if (symbolsNormalized !== undefined) {
+            messageHash += '::' + symbolsNormalized.join (',');
         }
         const channel = 'positions';
         this.setPositionsCache (client, params);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const newPositions = await this.subscribePrivate (messageHash, subscriptionHash, channel, true, params);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client, params: Dict = {}) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1776,10 +1828,10 @@ export default class weex extends weexRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any, params: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string, params: any) {
         const positions = await this.fetchPositions (undefined, params);
         this.positions = new ArrayCacheBySymbolById ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolById = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             cache.append (position);
@@ -1799,7 +1851,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    override async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (symbols !== undefined) {
             throw new NotSupported (this.id + ' unWatchPositions does not support a symbols argument. Unsubscribing from positions is global for all symbols.');
         }
@@ -1816,7 +1868,7 @@ export default class weex extends weexRest {
         return await this.subscribePrivate (unSubHash, unSubHash, channel, true, params, subscription);
     }
 
-    handlePositions (client: any, message: any) {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         "e": "positions",
@@ -1858,7 +1910,7 @@ export default class weex extends weexRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolById ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolById = this.positions;
         const newPositions: Position[] = [];
         const data = this.safeList (message, 'd', []);
         for (let i = 0; i < data.length; i++) {
@@ -1881,12 +1933,12 @@ export default class weex extends weexRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         // same as REST api
         return this.parsePosition (position, market);
     }
 
-    getMarketFromClientAndMessage (client: Client, message: any) {
+    getMarketFromClientAndMessage (client: Client, message: Dict): Market {
         const url = client.url;
         let marketType = 'spot';
         if (url.indexOf ('contract') >= 0) {
@@ -1897,7 +1949,7 @@ export default class weex extends weexRest {
         return market;
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: Dict) {
         //
         //     { "event": "ping", "time": "1776078750000" } - public
         //
@@ -1910,11 +1962,11 @@ export default class weex extends weexRest {
         await client.send (response);
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //     { "result": true, "id": 2 }
         //
@@ -1922,7 +1974,7 @@ export default class weex extends weexRest {
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeDict (subscriptionsById, id, {});
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
-        if (unsubscribe) {
+        if (unsubscribe === true) {
             const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
             const messageHashes = this.safeList (subscription, 'messageHashes', []);
             const subHashes = this.safeList (subscription, 'subMessageHashes', []);
@@ -1936,7 +1988,7 @@ export default class weex extends weexRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "result": false,
@@ -1945,7 +1997,7 @@ export default class weex extends weexRest {
         //     }
         //
         const result = this.safeBool (message, 'result', true);
-        if (!result) {
+        if (result !== true) {
             const msg = this.safeString (message, 'msg', '');
             const feedback = this.id + ' ' + this.json (message);
             try {
@@ -1960,7 +2012,7 @@ export default class weex extends weexRest {
         return false;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         //
         //     { "id": "5", "method": "PONG" }
         //

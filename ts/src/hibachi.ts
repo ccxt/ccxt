@@ -6,6 +6,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type{ Balances, Currencies, Dict, Fee, FeeString, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict, Endpoint, List } from './base/types.js';
+import type { OpenInterest } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
@@ -292,6 +293,9 @@ export default class hibachi extends Exchange {
         const quoteId = this.safeString (market, 'settlementSymbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = this.safeString (market, 'settlementSymbol');
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
@@ -356,7 +360,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetMarketExchangeInfo (params);
         // {
         //     "displayName": "ETH/USDT Perps",
@@ -463,7 +467,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         const request: Dict = {
             'accountId': this.getAccountId (),
         };
@@ -546,8 +550,8 @@ export default class hibachi extends Exchange {
         //          "timestamp": 1752543391
         //      }
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString (trade, 'id');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
@@ -587,7 +591,7 @@ export default class hibachi extends Exchange {
             'type': orderType,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -601,12 +605,12 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of recent [trade structures]
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetMarketDataTrades (this.extend (request, params));
@@ -622,7 +626,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
@@ -640,7 +644,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -698,7 +702,7 @@ export default class hibachi extends Exchange {
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const status = this.safeString (order, 'status');
         const type = this.safeStringLower (order, 'orderType');
         const price = this.safeString2 (order, 'price', 'avgFillPrice');
@@ -722,7 +726,7 @@ export default class hibachi extends Exchange {
             remainingString = Precise.stringSub (totalQuantity, filled);
         }
         let timeInForce = 'GTC';
-        const orderFlags = this.safeValue (order, 'orderFlags');
+        const orderFlags = this.safeString (order, 'orderFlags');
         let postOnly = false;
         let reduceOnly = false;
         if (orderFlags === 'POST_ONLY') {
@@ -747,7 +751,7 @@ export default class hibachi extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': this.parseOrderStatus (status),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'side': side,
@@ -762,7 +766,7 @@ export default class hibachi extends Exchange {
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
             'triggerPrice': this.safeNumber (order, 'triggerPrice'),
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -775,7 +779,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -799,7 +803,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -828,7 +832,7 @@ export default class hibachi extends Exchange {
         return result;
     }
 
-    orderMessage (market: any, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price: Num = undefined) {
+    orderMessage (market: Market, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price: Num = undefined) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -884,7 +888,7 @@ export default class hibachi extends Exchange {
         return message;
     }
 
-    createOrderRequest (nonce: number, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createOrderRequest (nonce: number, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -904,7 +908,7 @@ export default class hibachi extends Exchange {
             sideInternal = 'BID';
         }
         let priceInternal: Str = '';
-        if (price) {
+        if ((price !== undefined) && (price !== 0)) {
             priceInternal = this.priceToPrecision (symbol, price);
         }
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
@@ -927,14 +931,14 @@ export default class hibachi extends Exchange {
             request['orderFlags'] = 'POST_ONLY';
         } else if (timeInForce === 'ioc') {
             request['orderFlags'] = 'IOC';
-        } else if (reduceOnly) {
+        } else if (reduceOnly === true) {
             request['orderFlags'] = 'REDUCE_ONLY';
         }
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = triggerPrice;
         }
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
-        return this.extend (request, params);
+        const paramsOmitted: Dict = this.omit (params, [ 'reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
+        return this.extend (request, paramsOmitted);
     }
 
     /**
@@ -950,11 +954,11 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const nonce = this.nonce ();
+        const nonce = this.incrementingNonce ();
         const request = this.createOrderRequest (nonce, symbol, type, side, amount, price, params);
         request['accountId'] = this.getAccountId ();
         const response = await this.privatePostTradeOrder (request);
@@ -978,19 +982,19 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}) : Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const nonce = this.nonce ();
+        const nonce = this.incrementingNonce ();
         const requestOrders: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (nonce + i, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'place';
@@ -1005,7 +1009,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         const ret: Order[] = [];
-        const responseOrders = this.safeList (response, 'orders', []);
+        const responseOrders: Dict[] = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1017,7 +1021,7 @@ export default class hibachi extends Exchange {
         return ret;
     }
 
-    editOrderRequest (nonce: number, id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (nonce: number, id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1032,7 +1036,7 @@ export default class hibachi extends Exchange {
         const feeRate = Math.max (takerFeeValue, makerFeeValue);
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'nonce': nonce,
             'updatedQuantity': this.amountToPrecision (symbol, amount),
@@ -1057,11 +1061,11 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const nonce = this.nonce ();
+        const nonce = this.incrementingNonce ();
         const request = this.editOrderRequest (nonce, id, symbol, type, side, amount, price, params);
         request['accountId'] = this.getAccountId ();
         await this.privatePutTradeOrder (request);
@@ -1084,20 +1088,20 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
+    override async editOrders (orders: OrderRequest[], params: Dict = {}) : Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const nonce = this.nonce ();
+        const nonce = this.incrementingNonce ();
         const requestOrders: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const id = this.safeString (rawOrder, 'id');
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.editOrderRequest (nonce + i, id, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'modify';
@@ -1112,7 +1116,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret: Order[] = [];
-        const responseOrders = this.safeList (response, 'orders', []);
+        const responseOrders: Dict[] = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1146,7 +1150,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const request: Dict = this.cancelOrderRequest (id);
         request['accountId'] = this.getAccountId ();
         const response = await this.privateDeleteTradeOrder (this.extend (request, params));
@@ -1171,7 +1175,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids:string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         const orders: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const orderRequest: Dict = this.cancelOrderRequest (ids[i]);
@@ -1187,7 +1191,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret: Order[] = [];
-        const responseOrders = this.safeList (response, 'orders', []);
+        const responseOrders: Dict[] = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1208,11 +1212,11 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const nonce = this.nonce ();
+        const nonce = this.incrementingNonce ();
         const nonce16 = this.intToBase16 (nonce);
         const noncePadded = nonce16.padStart (16, '0');
         const message = this.base16ToBinary (noncePadded);
@@ -1277,7 +1281,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         const withdrawAddress = address.slice (-40);
         // Get the withdraw fees
         const exchangeInfo = await this.publicGetMarketExchangeInfo (params);
@@ -1295,7 +1299,7 @@ export default class hibachi extends Exchange {
         // Generate the signature
         const message = this.encodeWithdrawMessage (amount, maxFees, withdrawAddress);
         const signature = this.signMessage (message, this.privateKey);
-        const request = {
+        const request: Dict = {
             'accountId': this.getAccountId (),
             'coin': 'USDT',
             'network': 'ARBITRUM',
@@ -1334,11 +1338,11 @@ export default class hibachi extends Exchange {
         } as Transaction;
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
-    signMessage (message: any, privateKey: any) {
+    signMessage (message: any, privateKey: string): string {
         if (privateKey.length === 44) {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
             return this.hmac (message, this.encode (privateKey), sha256, 'hex');
@@ -1363,7 +1367,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters to be passed -- see documentation link above
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1427,7 +1431,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1435,7 +1439,7 @@ export default class hibachi extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = { 'accountId': this.getAccountId () };
+        const request: Dict = { 'accountId': this.getAccountId () };
         const response = await this.privateGetTradeAccountTrades (this.extend (request, params));
         //
         // {
@@ -1496,12 +1500,12 @@ export default class hibachi extends Exchange {
      * @description fetches all current open orders
      * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
      * @param {string} [symbol] unified market symbol to filter by
-     * @param {int} [since] milisecond timestamp of the earliest order
+     * @param {int} [since] millisecond timestamp of the earliest order
      * @param {int} [limit] the maximum number of open orders to return
      * @param {object} [params] extra parameters
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1509,7 +1513,7 @@ export default class hibachi extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'accountId': this.getAccountId (),
         };
         const response = await this.privateGetTradeOrders (this.extend (request, params));
@@ -1559,7 +1563,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1576,12 +1580,11 @@ export default class hibachi extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, 'fetchOrdersByStatus', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetTradeOrdersHistory (this.extend (request, params));
+        const response = await this.privateGetTradeOrdersHistory (this.extend (request, paramsUntil));
         //
         //     {
         //         "hasMore": false,
@@ -1608,7 +1611,7 @@ export default class hibachi extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeList (response, 'orders', []);
+        const orders: Dict[] = this.safeList (response, 'orders', []);
         const parsedOrders = this.parseOrders (orders, market);
         return this.filterBySymbolSinceLimit (parsedOrders, symbol, since, limit) as Order[];
     }
@@ -1626,7 +1629,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const orders = await this.fetchOrdersByStatus ('filled', symbol, since, limit, params);
         const filtered = this.filterBy (orders, 'status', 'closed') as Order[];
         return this.filterBySinceLimit (filtered, since, limit) as Order[];
@@ -1645,7 +1648,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const orders = await this.fetchOrdersByStatus (undefined, symbol, since, limit, params);
         const filtered = this.filterBy (orders, 'status', 'canceled') as Order[];
         return this.filterBySinceLimit (filtered, since, limit) as Order[];
@@ -1664,25 +1667,24 @@ export default class hibachi extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
+        const timeframeValue: string = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'symbol': market['id'],
-            'interval': timeframe,
+            'interval': timeframeValue,
         };
         if (since !== undefined) {
             request['fromMs'] = since;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['toMs'] = until;
         }
-        const response = await this.publicGetMarketDataKlines (this.extend (request, params));
+        const response = await this.publicGetMarketDataKlines (this.extend (request, paramsUntil));
         //
         // [
         //     {
@@ -1697,7 +1699,7 @@ export default class hibachi extends Exchange {
         //   ]
         //
         const klines = this.safeList (response, 'klines', []);
-        return this.parseOHLCVs (klines, market, timeframe, since, limit);
+        return this.parseOHLCVs (klines, market, timeframeValue, since, limit);
     }
 
     /**
@@ -1709,11 +1711,11 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {
             'accountId': this.getAccountId (),
         };
@@ -1760,11 +1762,11 @@ export default class hibachi extends Exchange {
         //     ],
         //   }
         //
-        const data = this.safeList (response, 'positions', []);
-        return this.parsePositions (data, symbols);
+        const data: Dict[] = this.safeList (response, 'positions', []);
+        return this.parsePositions (data, symbolsNormalized);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         // {
         //     "direction": "Short",
@@ -1777,8 +1779,8 @@ export default class hibachi extends Exchange {
         // }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower (position, 'direction');
         const quantity = this.safeString (position, 'quantity');
         const unrealizedFunding = this.safeString (position, 'unrealizedFundingPnl', '0');
@@ -1811,10 +1813,14 @@ export default class hibachi extends Exchange {
         });
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + endpoint;
-        headers = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + endpoint;
+        const headersValue: NullableDict = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
         if (method === 'GET') {
             const request = this.omit (params, this.extractParams (path));
             const query = this.urlencode (request);
@@ -1822,15 +1828,19 @@ export default class hibachi extends Exchange {
                 url += '?' + query;
             }
         }
-        if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-            headers['Content-Type'] = 'application/json';
-            body = this.json (params);
+        const hasJsonBody = (method === 'POST' || method === 'PUT' || method === 'DELETE');
+        if (hasJsonBody) {
+            headersValue['Content-Type'] = 'application/json';
+        }
+        let bodyResult = body;
+        if (hasJsonBody) {
+            bodyResult = this.json (params);
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            headers['Authorization'] = this.apiKey;
+            headersValue['Authorization'] = this.apiKey;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -1855,7 +1865,7 @@ export default class hibachi extends Exchange {
         return undefined;
     }
 
-    parseTransactionType (type: any) {
+    parseTransactionType (type: Str): Str {
         const types: Dict = {
             'deposit': 'transaction',
             'withdrawal': 'transaction',
@@ -1943,18 +1953,18 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency ('USDT');
-        const request = { 'accountId': this.getAccountId () };
+        const request: Dict = { 'accountId': this.getAccountId () };
         const rawPromises = [
             this.privateGetCapitalHistory (this.extend (request, params)),
             this.privateGetTradeAccountTradingHistory (this.extend (request, params)),
         ];
         const promises = await Promise.all (rawPromises);
-        const responseCapitalHistory = promises[0];
+        const responseCapitalHistory = this.safeDict (promises, 0);
         //
         // {
         //     "transactions": [
@@ -2009,7 +2019,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const rowsCapitalHistory = this.safeList (responseCapitalHistory, 'transactions', []);
-        const responseTradingHistory = promises[1];
+        const responseTradingHistory = this.safeDict (promises, 1);
         //
         // {
         //     "tradingHistory": [
@@ -2051,8 +2061,8 @@ export default class hibachi extends Exchange {
      * @param {string} [params.publicKey] your public key, you can get it from UI after creating API key
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        const request = {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
+        const request: Dict = {
             'publicKey': this.safeString (params, 'publicKey'),
             'accountId': this.getAccountId (),
         };
@@ -2111,9 +2121,9 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const currency = this.safeCurrency (code);
-        const request = {
+        const request: Dict = {
             'accountId': this.getAccountId (),
         };
         const response = await this.privateGetCapitalHistory (this.extend (request, params));
@@ -2148,7 +2158,7 @@ export default class hibachi extends Exchange {
         //         },
         //     ]
         // }
-        const transactions = this.safeList (response, 'transactions', []);
+        const transactions: Dict[] = this.safeList (response, 'transactions', []);
         return this.parseTransactions (transactions, currency, since, limit, params);
     }
 
@@ -2163,7 +2173,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters to be passed to API
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const transactions = await this.fetchDepositsWithdrawals (code, since, undefined, params);
         const deposits = this.filterBy (transactions, 'type', 'deposit');
         return this.filterBySinceLimit (deposits, since, limit, 'timestamp') as Transaction[];
@@ -2180,13 +2190,13 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters to be passed to API
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const transactions = await this.fetchDepositsWithdrawals (code, since, undefined, params);
         const withdrawals = this.filterBy (transactions, 'type', 'withdrawal');
         return this.filterBySinceLimit (withdrawals, since, limit, 'timestamp') as Transaction[];
     }
 
-    parseSettlement (settlement: any, market: Market = undefined) {
+    parseSettlement (settlement: Dict, market: Market = undefined): Dict {
         //
         //     {
         //         "direction": "Long",
@@ -2209,7 +2219,7 @@ export default class hibachi extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any, market: Market = undefined) {
+    parseSettlements (settlements: any[], market: Market = undefined): Dict[] {
         const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
@@ -2229,16 +2239,17 @@ export default class hibachi extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest settlement
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
      */
-    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
         const request: Dict = {
             'accountId': this.getAccountId (),
         };
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['contractId'] = market['numericId'];
-            symbol = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         if (since !== undefined) {
             request['startTime'] = this.parseToInt (since / 1000);
@@ -2246,12 +2257,11 @@ export default class hibachi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchMySettlementHistory', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, 'fetchMySettlementHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt (until / 1000);
         }
-        const response = await this.privateGetTradeAccountSettlementsHistory (this.extend (request, params));
+        const response = await this.privateGetTradeAccountSettlementsHistory (this.extend (request, paramsUntil));
         //
         //     {
         //         "settlements": [
@@ -2267,10 +2277,10 @@ export default class hibachi extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'settlements', []);
+        const data: Dict[] = this.safeList (response, 'settlements', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit);
     }
 
     /**
@@ -2281,7 +2291,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicGetExchangeUtcTimestamp (params);
         //
         //     { "timestampMs":1754077574040 }
@@ -2298,7 +2308,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}) {
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2330,7 +2340,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2389,7 +2399,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2410,7 +2420,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

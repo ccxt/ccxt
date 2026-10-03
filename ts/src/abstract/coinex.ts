@@ -155,6 +155,7 @@ interface Exchange {
     v2PublicGetFuturesBasisHistory (params?: {}): Promise<Dict>;
     v2PublicGetAssetsDepositWithdrawConfig (params?: {}): Promise<Dict>;
     v2PublicGetAssetsAllDepositWithdrawConfig (params?: {}): Promise<Dict>;
+    v2PublicGetAssetsInfo (params?: {}): Promise<Dict>;
     v2PrivateGetAccountSubs (params?: {}): Promise<Dict>;
     v2PrivateGetAccountSubsApiDetail (params?: {}): Promise<Dict>;
     v2PrivateGetAccountSubsInfo (params?: {}): Promise<Dict>;
@@ -260,6 +261,8 @@ interface Exchange {
     v2PrivatePostFuturesAdjustPositionLeverage (params?: {}): Promise<Dict>;
     v2PrivatePostFuturesSetPositionStopLoss (params?: {}): Promise<Dict>;
     v2PrivatePostFuturesSetPositionTakeProfit (params?: {}): Promise<Dict>;
+    v2PrivatePostFuturesModifyPositionStopLoss (params?: {}): Promise<Dict>;
+    v2PrivatePostFuturesModifyPositionTakeProfit (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

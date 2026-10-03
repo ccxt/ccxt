@@ -263,7 +263,7 @@ myriad.cancelOrder (id, outcome?, params?)
 cancels all open order book orders for the wallet, optionally scoped to one market (gasless)
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - the raw response with the count of cancelled orders
+**Returns**: <code>Array&lt;object&gt;</code> - a list with one [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure) whose `info` carries the cancelled count
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e7a14cd34e6a716761  
 

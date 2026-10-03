@@ -459,6 +459,20 @@ public partial class coinsph : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostOpenapiFiatV1History",parameters);
     }
 
+    /// <summary>Calls the privatePostOpenapiFiatV2History endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOpenapiFiatV2History (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOpenapiFiatV2History",parameters);
+    }
+
+    /// <summary>Calls the privatePostOpenapiFiatV1CancelQrCode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOpenapiFiatV1CancelQrCode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOpenapiFiatV1CancelQrCode",parameters);
+    }
+
     /// <summary>Calls the privatePostOpenapiMigrationV4Sellorder endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostOpenapiMigrationV4Sellorder (object parameters = null)

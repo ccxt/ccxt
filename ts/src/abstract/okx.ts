@@ -13,6 +13,7 @@ interface Exchange {
     publicGetMarketTicker (params?: {}): Promise<Dict>;
     publicGetMarketBooks (params?: {}): Promise<Dict>;
     publicGetMarketBooksFull (params?: {}): Promise<Dict>;
+    publicGetMarketBooksRpi (params?: {}): Promise<Dict>;
     publicGetMarketCandles (params?: {}): Promise<Dict>;
     publicGetMarketHistoryCandles (params?: {}): Promise<Dict>;
     publicGetMarketTrades (params?: {}): Promise<Dict>;
@@ -64,6 +65,8 @@ interface Exchange {
     publicGetPublicEventContractMarkets (params?: {}): Promise<Dict>;
     publicGetPublicEventContractSeries (params?: {}): Promise<Dict>;
     publicGetPublicVipInterestRateLoanQuota (params?: {}): Promise<Dict>;
+    publicGetPublicMmInstrumentTypes (params?: {}): Promise<Dict>;
+    publicGetPublicDeltaHedgeCurrencies (params?: {}): Promise<Dict>;
     publicGetRubikStatTradingDataSupportCoin (params?: {}): Promise<Dict>;
     publicGetRubikStatContractsOpenInterestHistory (params?: {}): Promise<Dict>;
     publicGetRubikStatTakerVolume (params?: {}): Promise<Dict>;
@@ -253,6 +256,18 @@ interface Exchange {
     privateGetFinanceFlexibleLoanLoanInfo (params?: {}): Promise<Dict>;
     privateGetFinanceFlexibleLoanLoanHistory (params?: {}): Promise<Dict>;
     privateGetFinanceFlexibleLoanInterestAccrued (params?: {}): Promise<Dict>;
+    privateGetFinanceFlexibleLoanEmodeInfo (params?: {}): Promise<Dict>;
+    privateGetFinanceOkusdLimits (params?: {}): Promise<Dict>;
+    privateGetFinanceOkusdAccount (params?: {}): Promise<Dict>;
+    privateGetFinanceOkusdSubscribeHistory (params?: {}): Promise<Dict>;
+    privateGetFinanceOkusdRedeemHistory (params?: {}): Promise<Dict>;
+    privateGetFinanceOkusdRewardsHistory (params?: {}): Promise<Dict>;
+    privateGetFinanceOkusdRateHistory (params?: {}): Promise<Dict>;
+    privateGetFinanceStableRewardsProductInfo (params?: {}): Promise<Dict>;
+    privateGetFinanceStableRewardsBalance (params?: {}): Promise<Dict>;
+    privateGetFinanceStableRewardsApyHistory (params?: {}): Promise<Dict>;
+    privateGetUsersGlpTodayperformance (params?: {}): Promise<Dict>;
+    privateGetUsersGlpHistoricalperformance (params?: {}): Promise<Dict>;
     privateGetCopytradingCurrentSubpositions (params?: {}): Promise<Dict>;
     privateGetCopytradingSubpositionsHistory (params?: {}): Promise<Dict>;
     privateGetCopytradingInstruments (params?: {}): Promise<Dict>;
@@ -285,6 +300,11 @@ interface Exchange {
     privateGetFinanceSfpDcdOrderStatus (params?: {}): Promise<Dict>;
     privateGetFinanceSfpDcdOrderHistory (params?: {}): Promise<Dict>;
     privateGetAffiliateInviteeDetail (params?: {}): Promise<Dict>;
+    privateGetAffiliatePerformanceSummary (params?: {}): Promise<Dict>;
+    privateGetAffiliateInviteeList (params?: {}): Promise<Dict>;
+    privateGetAffiliateLinkList (params?: {}): Promise<Dict>;
+    privateGetAffiliateCoInviterList (params?: {}): Promise<Dict>;
+    privateGetAffiliateSubAffiliateList (params?: {}): Promise<Dict>;
     privateGetUsersPartnerIfRebate (params?: {}): Promise<Dict>;
     privateGetSupportAnnouncements (params?: {}): Promise<Dict>;
     privatePostRfqCreateRfq (params?: {}): Promise<Dict>;
@@ -427,6 +447,10 @@ interface Exchange {
     privatePostFinanceStakingDefiSolCancelRedeem (params?: {}): Promise<Dict>;
     privatePostFinanceFlexibleLoanMaxLoan (params?: {}): Promise<Dict>;
     privatePostFinanceFlexibleLoanAdjustCollateral (params?: {}): Promise<Dict>;
+    privatePostFinanceFlexibleLoanBorrow (params?: {}): Promise<Dict>;
+    privatePostFinanceFlexibleLoanRepay (params?: {}): Promise<Dict>;
+    privatePostFinanceOkusdSubscribe (params?: {}): Promise<Dict>;
+    privatePostFinanceOkusdRedeem (params?: {}): Promise<Dict>;
     privatePostCopytradingAlgoOrder (params?: {}): Promise<Dict>;
     privatePostCopytradingCloseSubposition (params?: {}): Promise<Dict>;
     privatePostCopytradingSetInstruments (params?: {}): Promise<Dict>;

@@ -4,8 +4,8 @@ import ccxt, { BaseError, type Exchange } from 'ccxt';
 import { STATUS_FILE, type StatusEntry } from './exchange-status';
 
 // Writer side of the status feed: probes each exchange through ccxt's unified API,
-// times it, and snapshots the results to STATUS_FILE for /api/status and /docs/status
-// to read. Started on server boot by src/instrumentation.ts, then every 30 minutes.
+// times it, and snapshots the results to STATUS_FILE for the /api/status route to
+// read. Started on server boot by src/instrumentation.ts, then every 30 minutes.
 
 const TIMEOUT_MS = 10_000;
 

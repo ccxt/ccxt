@@ -58,6 +58,30 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_public_get_instruments_volumes_daily($params = array()) {
+        return $this->request('instruments/volumes/daily', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_public_get_position_offsets($params = array()) {
+        return $this->request('position-offsets', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function v1_public_get_fee_rate_tiers($params = array()) {
+        return $this->request('fee-rate-tiers', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function v1_private_get_address_book($params = array()) {
+        return $this->request('address-book', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_private_get_orders($params = array()) {
         return $this->request('orders', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -66,6 +90,30 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
      */
     public function v1_private_get_orders_id($params = array()) {
         return $this->request('orders/{id}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_index_index_composition($params = array()) {
+        return $this->request('index/{index}/composition', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_index_index_composition_history($params = array()) {
+        return $this->request('index/{index}/composition-history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_index_index_price($params = array()) {
+        return $this->request('index/{index}/price', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_index_index_candles($params = array()) {
+        return $this->request('index/{index}/candles', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -118,6 +166,24 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_private_get_portfolios_portfolio_position_limits($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function v1_private_get_portfolios_portfolio_position_limits_positions($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits/positions', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolios_portfolio_position_limits_positions_instrument($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits/positions/{instrument}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_private_get_portfolios_fills($params = array()) {
         return $this->request('portfolios/fills', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -126,6 +192,36 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
      */
     public function v1_private_get_portfolios_portfolio_fills($params = array()) {
         return $this->request('portfolios/{portfolio}/fills', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function v1_private_get_portfolios_fee_rates($params = array()) {
+        return $this->request('portfolios/fee-rates', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function v1_private_get_portfolios_portfolio_loans($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolios_portfolio_loans_asset($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolios_portfolio_loans_asset_availability($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}/availability', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolios_portfolio_margin_call_status($params = array()) {
+        return $this->request('portfolios/{portfolio}/margin-call-status', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -138,6 +234,12 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
      */
     public function v1_private_get_transfers_transfer_uuid($params = array()) {
         return $this->request('transfers/{transfer_uuid}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_transfers_withdraw_portfolio_asset_counterparty_withdrawal_limit($params = array()) {
+        return $this->request('transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -160,8 +262,38 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_private_post_portfolios_portfolio_cross_collateral_enabled($params = array()) {
+        return $this->request('portfolios/{portfolio}/cross-collateral-enabled', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_portfolios_portfolio_auto_margin_enabled($params = array()) {
+        return $this->request('portfolios/{portfolio}/auto-margin-enabled', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_portfolios_portfolio_loans_asset($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_portfolios_portfolio_loans_asset_preview($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}/preview', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_private_post_portfolios_transfer($params = array()) {
         return $this->request('portfolios/transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_portfolios_transfer_position($params = array()) {
+        return $this->request('portfolios/transfer-position', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -218,6 +350,12 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
         return $this->request('orders/{id}', array('v1', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_patch_portfolios_portfolio($params = array()) {
+        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function v1PublicGetAssets($params = array()) {
@@ -268,6 +406,30 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1PublicGetInstrumentsVolumesDaily($params = array()) {
+        return $this->request('instruments/volumes/daily', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PublicGetPositionOffsets($params = array()) {
+        return $this->request('position-offsets', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function v1PublicGetFeeRateTiers($params = array()) {
+        return $this->request('fee-rate-tiers', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function v1PrivateGetAddressBook($params = array()) {
+        return $this->request('address-book', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1PrivateGetOrders($params = array()) {
         return $this->request('orders', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -276,6 +438,30 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
      */
     public function v1PrivateGetOrdersId($params = array()) {
         return $this->request('orders/{id}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetIndexIndexComposition($params = array()) {
+        return $this->request('index/{index}/composition', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetIndexIndexCompositionHistory($params = array()) {
+        return $this->request('index/{index}/composition-history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetIndexIndexPrice($params = array()) {
+        return $this->request('index/{index}/price', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetIndexIndexCandles($params = array()) {
+        return $this->request('index/{index}/candles', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -328,6 +514,24 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1PrivateGetPortfoliosPortfolioPositionLimits($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function v1PrivateGetPortfoliosPortfolioPositionLimitsPositions($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits/positions', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument($params = array()) {
+        return $this->request('portfolios/{portfolio}/position-limits/positions/{instrument}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1PrivateGetPortfoliosFills($params = array()) {
         return $this->request('portfolios/fills', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -336,6 +540,36 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
      */
     public function v1PrivateGetPortfoliosPortfolioFills($params = array()) {
         return $this->request('portfolios/{portfolio}/fills', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function v1PrivateGetPortfoliosFeeRates($params = array()) {
+        return $this->request('portfolios/fee-rates', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function v1PrivateGetPortfoliosPortfolioLoans($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfoliosPortfolioLoansAsset($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfoliosPortfolioLoansAssetAvailability($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}/availability', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfoliosPortfolioMarginCallStatus($params = array()) {
+        return $this->request('portfolios/{portfolio}/margin-call-status', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -348,6 +582,12 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
      */
     public function v1PrivateGetTransfersTransferUuid($params = array()) {
         return $this->request('transfers/{transfer_uuid}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit($params = array()) {
+        return $this->request('transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -370,8 +610,38 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled($params = array()) {
+        return $this->request('portfolios/{portfolio}/cross-collateral-enabled', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostPortfoliosPortfolioAutoMarginEnabled($params = array()) {
+        return $this->request('portfolios/{portfolio}/auto-margin-enabled', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostPortfoliosPortfolioLoansAsset($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostPortfoliosPortfolioLoansAssetPreview($params = array()) {
+        return $this->request('portfolios/{portfolio}/loans/{asset}/preview', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1PrivatePostPortfoliosTransfer($params = array()) {
         return $this->request('portfolios/transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostPortfoliosTransferPosition($params = array()) {
+        return $this->request('portfolios/transfer-position', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -426,5 +696,11 @@ abstract class coinbaseinternational extends \ccxt\async\Exchange {
      */
     public function v1PrivateDeleteOrdersId($params = array()) {
         return $this->request('orders/{id}', array('v1', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePatchPortfoliosPortfolio($params = array()) {
+        return $this->request('portfolios/{portfolio}', array('v1', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
     }
 }

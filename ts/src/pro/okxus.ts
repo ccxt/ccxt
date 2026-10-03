@@ -14,7 +14,7 @@ export default class okxus extends okx {
             'urls': {
                 'api': {
                     'rest': 'https://{hostname}',
-                    'ws': 'wss://wsus.okx.com:8443/ws/v5',
+                    'ws': 'wss://wsus.okx.com:443/ws/v5',
                 },
                 'www': 'https://app.okx.com',
                 'doc': 'https://app.okx.com/docs-v5/en/#overview',
@@ -24,7 +24,7 @@ export default class okxus extends okx {
                     'discount': 0.2,
                 },
                 'test': {
-                    'ws': 'wss://wsuspap.okx.com:8443/ws/v5',
+                    'ws': 'wss://wsuspap.okx.com:443/ws/v5',
                 },
             },
             'has': {

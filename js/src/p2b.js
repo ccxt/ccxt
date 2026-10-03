@@ -7,7 +7,7 @@
 // ---------------------------------------------------------------------------
 import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/p2b.js';
-import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
+import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired, ExchangeError, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // ---------------------------------------------------------------------------
 /**
@@ -284,47 +284,49 @@ export default class p2b extends Exchange {
             'commonCurrencies': {},
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '1001': AuthenticationError, // Key not provided. X-TXC-APIKEY header is missing in the request or empty.
-                '1002': AuthenticationError, // Payload not provided. X-TXC-PAYLOAD header is missing in the request or empty.
-                '1003': AuthenticationError, // Signature not provided. X-TXC-SIGNATURE header is missing in the request or empty.
-                '1004': AuthenticationError, // Nonce and url not provided. Request body is empty. Missing required parameters "request", "nonce".
-                '1005': AuthenticationError, // Invalid body data. Invalid request body
-                '1006': AuthenticationError, // Nonce not provided. Request body missing required parameter "nonce".
-                '1007': AuthenticationError, // Request not provided. Request body missing required parameter "request".
-                '1008': AuthenticationError, // Invalid request in body. The passed request parameter does not match the URL of this request.
-                '1009': AuthenticationError, // Invalid payload. The transmitted payload value (X-TXC-PAYLOAD header) does not match the request body.
-                '1010': AuthenticationError, // This action is unauthorized. - API key passed in the X-TXC-APIKEY header does not exist. - Access to API is not activated. Go to profile and activate access.
-                '1011': AuthenticationError, // This action is unauthorized. Please, enable two-factor authentication. Two-factor authentication is not activated for the user.
-                '1012': AuthenticationError, // Invalid nonce. Parameter "nonce" is not a number.
-                '1013': AuthenticationError, // Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests (10) within one second.
-                '1014': AuthenticationError, // Unauthorized request. Signature value passed (in the X-TXC-SIGNATURE header) does not match the request body.
-                '1015': AuthenticationError, // Temporary block. Temporary blocking. There is a cancellation of orders.
-                '1016': AuthenticationError, // Not unique nonce. The request was sent with a repeated parameter "nonce" within 10 seconds.
-                '2010': BadRequest, // Currency not found. Currency not found.
-                '2020': BadRequest, // Market is not available. Market is not available.
-                '2021': BadRequest, // Unknown market. Unknown market.
-                '2030': BadRequest, // Order not found. Order not found.
-                '2040': InsufficientFunds, // Balance not enough. Insufficient balance.
-                '2050': BadRequest, // Amount less than the permitted minimum. Amount less than the permitted minimum.
-                '2051': BadRequest, // Amount is greater than the maximum allowed. Amount exceeds the allowed maximum.
-                '2052': BadRequest, // Amount step size error. Amount step size error.
-                '2060': BadRequest, // Price less than the permitted minimum. Price is less than the permitted minimum.
-                '2061': BadRequest, // Price is greater than the maximum allowed. Price exceeds the allowed maximum.
-                '2062': BadRequest, // Price pick size error. Price pick size error.
-                '2070': BadRequest, // Total less than the permitted minimum. Total less than the permitted minimum.
-                '3001': BadRequest, // Validation exception. The given data was invalid.
-                '3020': BadRequest, // Invalid currency value. Incorrect parameter, check your request.
-                '3030': BadRequest, // Invalid market value. Incorrect "market" parameter, check your request.
-                '3040': BadRequest, // Invalid amount value. Incorrect "amount" parameter, check your request.
-                '3050': BadRequest, // Invalid price value. Incorrect "price" parameter, check your request.
-                '3060': BadRequest, // Invalid limit value. Incorrect "limit" parameter, check your request.
-                '3070': BadRequest, // Invalid offset value. Incorrect "offset" parameter, check your request.
-                '3080': BadRequest, // Invalid orderId value. Incorrect "orderId" parameter, check your request.
-                '3090': BadRequest, // Invalid lastId value. Incorrect "lastId" parameter, check your request.
-                '3100': BadRequest, // Invalid side value. Incorrect "side" parameter, check your request.
-                '3110': BadRequest, // Invalid interval value. Incorrect "interval" parameter, check your request.
-                '4001': ExchangeNotAvailable, // Service temporary unavailable. An unexpected system error has occurred. Try again after a while. If the error persists, please contact support.
-                '6010': InsufficientFunds, // Balance not enough. Insufficient balance.
+                'exact': {
+                    '1001': AuthenticationError, // Key not provided. X-TXC-APIKEY header is missing in the request or empty.
+                    '1002': AuthenticationError, // Payload not provided. X-TXC-PAYLOAD header is missing in the request or empty.
+                    '1003': AuthenticationError, // Signature not provided. X-TXC-SIGNATURE header is missing in the request or empty.
+                    '1004': AuthenticationError, // Nonce and url not provided. Request body is empty. Missing required parameters "request", "nonce".
+                    '1005': AuthenticationError, // Invalid body data. Invalid request body
+                    '1006': AuthenticationError, // Nonce not provided. Request body missing required parameter "nonce".
+                    '1007': AuthenticationError, // Request not provided. Request body missing required parameter "request".
+                    '1008': AuthenticationError, // Invalid request in body. The passed request parameter does not match the URL of this request.
+                    '1009': AuthenticationError, // Invalid payload. The transmitted payload value (X-TXC-PAYLOAD header) does not match the request body.
+                    '1010': AuthenticationError, // This action is unauthorized. - API key passed in the X-TXC-APIKEY header does not exist. - Access to API is not activated. Go to profile and activate access.
+                    '1011': AuthenticationError, // This action is unauthorized. Please, enable two-factor authentication. Two-factor authentication is not activated for the user.
+                    '1012': AuthenticationError, // Invalid nonce. Parameter "nonce" is not a number.
+                    '1013': RateLimitExceeded, // Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests (10) within one second.
+                    '1014': AuthenticationError, // Unauthorized request. Signature value passed (in the X-TXC-SIGNATURE header) does not match the request body.
+                    '1015': ExchangeNotAvailable, // Temporary block. Temporary blocking. There is a cancellation of orders.
+                    '1016': AuthenticationError, // Not unique nonce. The request was sent with a repeated parameter "nonce" within 10 seconds.
+                    '2010': BadRequest, // Currency not found. Currency not found.
+                    '2020': BadRequest, // Market is not available. Market is not available.
+                    '2021': BadRequest, // Unknown market. Unknown market.
+                    '2030': BadRequest, // Order not found. Order not found.
+                    '2040': InsufficientFunds, // Balance not enough. Insufficient balance.
+                    '2050': BadRequest, // Amount less than the permitted minimum. Amount less than the permitted minimum.
+                    '2051': BadRequest, // Amount is greater than the maximum allowed. Amount exceeds the allowed maximum.
+                    '2052': BadRequest, // Amount step size error. Amount step size error.
+                    '2060': BadRequest, // Price less than the permitted minimum. Price is less than the permitted minimum.
+                    '2061': BadRequest, // Price is greater than the maximum allowed. Price exceeds the allowed maximum.
+                    '2062': BadRequest, // Price pick size error. Price pick size error.
+                    '2070': BadRequest, // Total less than the permitted minimum. Total less than the permitted minimum.
+                    '3001': BadRequest, // Validation exception. The given data was invalid.
+                    '3020': BadRequest, // Invalid currency value. Incorrect parameter, check your request.
+                    '3030': BadRequest, // Invalid market value. Incorrect "market" parameter, check your request.
+                    '3040': BadRequest, // Invalid amount value. Incorrect "amount" parameter, check your request.
+                    '3050': BadRequest, // Invalid price value. Incorrect "price" parameter, check your request.
+                    '3060': BadRequest, // Invalid limit value. Incorrect "limit" parameter, check your request.
+                    '3070': BadRequest, // Invalid offset value. Incorrect "offset" parameter, check your request.
+                    '3080': BadRequest, // Invalid orderId value. Incorrect "orderId" parameter, check your request.
+                    '3090': BadRequest, // Invalid lastId value. Incorrect "lastId" parameter, check your request.
+                    '3100': BadRequest, // Invalid side value. Incorrect "side" parameter, check your request.
+                    '3110': BadRequest, // Invalid interval value. Incorrect "interval" parameter, check your request.
+                    '4001': ExchangeNotAvailable, // Service temporary unavailable. An unexpected system error has occurred. Try again after a while. If the error persists, please contact support.
+                    '6010': InsufficientFunds, // Balance not enough. Insufficient balance.
+                },
             },
             'options': {},
         });
@@ -332,7 +334,7 @@ export default class p2b extends Exchange {
     /**
      * @method
      * @name p2b#fetchMarkets
-     * @description retrieves data on all markets for bigone
+     * @description retrieves data on all markets for p2b
      * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -350,12 +352,12 @@ export default class p2b extends Exchange {
         //                "stock": "ETH",
         //                "money": "BTC",
         //                "precision": {
-        //                    "money": "6",
+        //                    "money": "5",
         //                    "stock": "4",
         //                    "fee": "4"
         //                },
         //                "limits": {
-        //                    "min_amount": "0.001",
+        //                    "min_amount": "0.0001",
         //                    "max_amount": "100000",
         //                    "step_size": "0.0001",
         //                    "min_price": "0.00001",
@@ -368,7 +370,7 @@ export default class p2b extends Exchange {
         //        ]
         //    }
         //
-        const markets = this.safeValue(response, 'result', []);
+        const markets = this.safeList(response, 'result', []);
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
@@ -377,7 +379,10 @@ export default class p2b extends Exchange {
         const quoteId = this.safeString(market, 'money');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const limits = this.safeValue(market, 'limits');
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
+        const limits = this.safeDict(market, 'limits');
         const maxAmount = this.safeString(limits, 'max_amount');
         const maxPrice = this.safeString(limits, 'max_price');
         return {
@@ -422,7 +427,7 @@ export default class p2b extends Exchange {
                     'max': this.parseNumber(this.omitZero(maxPrice)),
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.safeNumber(limits, 'min_total'),
                     'max': undefined,
                 },
             },
@@ -434,7 +439,7 @@ export default class p2b extends Exchange {
      * @method
      * @name p2b#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -469,7 +474,7 @@ export default class p2b extends Exchange {
         //        current_time: '1699252644.487566'
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseTickers(result, symbols);
     }
     /**
@@ -510,9 +515,8 @@ export default class p2b extends Exchange {
         //        current_time: '1699252958.859391'
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
-        const timestamp = this.safeIntegerProduct(response, 'cache_time', 1000);
-        return this.extend({ 'timestamp': timestamp, 'datetime': this.iso8601(timestamp) }, this.parseTicker(result, market));
+        const result = this.safeDict(response, 'result', {});
+        return this.parseTicker(result, market);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -547,31 +551,32 @@ export default class p2b extends Exchange {
         //    }
         //
         const timestamp = this.safeIntegerProduct(ticker, 'at', 1000);
+        let tickerInner = ticker;
         if ('ticker' in ticker) {
-            ticker = this.safeValue(ticker, 'ticker');
+            tickerInner = this.safeDict(ticker, 'ticker');
         }
-        const last = this.safeString(ticker, 'last');
+        const last = this.safeString(tickerInner, 'last');
         return this.safeTicker({
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': this.safeString(ticker, 'high'),
-            'low': this.safeString(ticker, 'low'),
-            'bid': this.safeString(ticker, 'bid'),
+            'high': this.safeString(tickerInner, 'high'),
+            'low': this.safeString(tickerInner, 'low'),
+            'bid': this.safeString(tickerInner, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeString(ticker, 'ask'),
+            'ask': this.safeString(tickerInner, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
+            'open': this.safeString(tickerInner, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString(ticker, 'change'),
+            'percentage': this.safeString(tickerInner, 'change'),
             'average': undefined,
-            'baseVolume': this.safeString2(ticker, 'vol', 'volume'),
-            'quoteVolume': this.safeString(ticker, 'deal'),
-            'info': ticker,
+            'baseVolume': this.safeString2(tickerInner, 'vol', 'volume'),
+            'quoteVolume': this.safeString(tickerInner, 'deal'),
+            'info': tickerInner,
         }, market);
     }
     /**
@@ -624,7 +629,7 @@ export default class p2b extends Exchange {
         //        "current_time": 1698733470.469274
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const timestamp = this.safeIntegerProduct(response, 'current_time', 1000);
         return this.parseOrderBook(result, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
@@ -850,7 +855,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseBalance(result);
     }
     parseBalance(response) {
@@ -872,7 +877,7 @@ export default class p2b extends Exchange {
         const keys = Object.keys(response);
         for (let i = 0; i < keys.length; i++) {
             const currencyId = keys[i];
-            const balance = response[currencyId];
+            const balance = this.safeDict(response, currencyId);
             const code = this.safeCurrencyCode(currencyId);
             const used = this.safeString(balance, 'freeze');
             const available = this.safeString(balance, 'available');
@@ -1092,7 +1097,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const records = this.safeList(result, 'records', []);
         return this.parseTrades(records, market, since, limit);
     }
@@ -1119,7 +1124,7 @@ export default class p2b extends Exchange {
             await this.loadMarkets();
         }
         let until = this.safeInteger(params, 'until');
-        params = this.omit(params, 'until');
+        const paramsOmitted = this.omit(params, 'until');
         if (until === undefined) {
             if (since === undefined) {
                 until = this.milliseconds();
@@ -1128,14 +1133,12 @@ export default class p2b extends Exchange {
                 until = since + 86400000;
             }
         }
-        if (since === undefined) {
-            since = until - 86400000;
-        }
-        if ((until - since) > 86400000) {
+        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
+        if ((until - sinceResolved) > 86400000) {
             throw new BadRequest(this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const market = this.market(symbol);
-        const sinceSec = this.parseToInt(since / 1000);
+        const sinceSec = this.parseToInt(sinceResolved / 1000);
         const untilSec = this.parseToInt(until / 1000);
         const request = {
             'market': market['id'],
@@ -1145,7 +1148,7 @@ export default class p2b extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostAccountMarketDealHistory(this.extend(request, params));
+        const response = await this.privatePostAccountMarketDealHistory(this.extend(request, paramsOmitted));
         //
         //    {
         //        "success": true,
@@ -1172,14 +1175,14 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const deals = this.safeList(result, 'deals', []);
-        return this.parseTrades(deals, market, since, limit);
+        return this.parseTrades(deals, market, sinceResolved, limit);
     }
     /**
      * @method
      * @name p2b#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
+     * @description fetches information on multiple closed orders made by the user, the time between since and params["until"] cannot be longer than 24 hours
      * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000
@@ -1196,7 +1199,7 @@ export default class p2b extends Exchange {
             await this.loadMarkets();
         }
         let until = this.safeInteger(params, 'until');
-        params = this.omit(params, 'until');
+        const paramsOmitted = this.omit(params, 'until');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1209,13 +1212,11 @@ export default class p2b extends Exchange {
                 until = since + 86400000;
             }
         }
-        if (since === undefined) {
-            since = until - 86400000;
-        }
-        if ((until - since) > 86400000) {
+        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
+        if ((until - sinceResolved) > 86400000) {
             throw new BadRequest(this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
-        const sinceSec = this.parseToInt(since / 1000);
+        const sinceSec = this.parseToInt(sinceResolved / 1000);
         const untilSec = this.parseToInt(until / 1000);
         const request = {
             'startTime': sinceSec,
@@ -1227,7 +1228,7 @@ export default class p2b extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostAccountOrderHistory(this.extend(request, params));
+        const response = await this.privatePostAccountOrderHistory(this.extend(request, paramsOmitted));
         //
         //    {
         //        "success": true,
@@ -1254,13 +1255,13 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         let orders = [];
         const keys = Object.keys(result);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const marketOrders = result[marketId];
-            const parsedOrders = this.parseOrders(marketOrders, market, since, limit);
+            const parsedOrders = this.parseOrders(marketOrders, market, sinceResolved, limit);
             orders = this.arrayConcat(orders, parsedOrders);
         }
         return orders;
@@ -1305,7 +1306,7 @@ export default class p2b extends Exchange {
         //
         const timestamp = this.safeIntegerProduct2(order, 'timestamp', 'ctime', 1000);
         const marketId = this.safeString(order, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         return this.safeOrder({
             'info': order,
             'id': this.safeString2(order, 'id', 'orderId'),
@@ -1313,7 +1314,7 @@ export default class p2b extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.safeString(order, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1327,31 +1328,39 @@ export default class p2b extends Exchange {
             'remaining': this.safeString(order, 'left'),
             'status': undefined,
             'fee': {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': this.safeString(order, 'dealFee'),
             },
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.implodeParams(path, params);
-        params = this.omit(params, this.extractParams(path));
+        const baseApiUrl = this.safeString(this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = baseApiUrl;
+        let url = baseUrl + '/' + this.implodeParams(path, params);
+        const paramsOmitted = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
-            if (Object.keys(params).length) {
-                url += '?' + this.urlencode(params);
+            if (Object.keys(paramsOmitted).length > 0) {
+                url += '?' + this.urlencode(paramsOmitted);
             }
         }
         if (api === 'private') {
-            params['request'] = '/api/v2/' + path;
-            params['nonce'] = this.nonce().toString();
-            const payload = this.stringToBase64(this.json(params)); // Body json encoded in base64
-            headers = {
+            paramsOmitted['request'] = '/api/v2/' + path;
+            // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
+            // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
+            paramsOmitted['nonce'] = this.incrementingNonce().toString();
+            const payload = this.stringToBase64(this.json(paramsOmitted)); // Body json encoded in base64
+            const headersSigned = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': this.hmac(this.encode(payload), this.encode(this.secret), sha512),
             };
-            body = this.json(params);
+            const bodyJson = this.json(paramsOmitted);
+            return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1359,12 +1368,22 @@ export default class p2b extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        if (code === 400) {
-            const error = this.safeValue(response, 'error');
-            const errorCode = this.safeString(error, 'code');
-            const feedback = this.id + ' ' + this.json(response);
-            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
-            // fallback to default error handler
+        //
+        //     {"success":false,"errorCode":2021,"message":"Unknown market.","result":[]}
+        //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
+        //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
+        //
+        const success = this.safeBool(response, 'success', true);
+        if (success !== true) {
+            const errorCode = this.safeString(response, 'errorCode');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            const codeAsString = code.toString();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
+                throw new ExchangeError(feedback);
+            }
+            // unmapped codes on the remaining error statuses fall through to the default http-status handler
         }
         return undefined;
     }

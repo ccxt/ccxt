@@ -17,6 +17,9 @@ interface Exchange {
     publicGetLastPricePair (params?: {}): Promise<Dict>;
     publicGetTickerPair (params?: {}): Promise<Dict>;
     publicGetTradesPair (params?: {}): Promise<List>;
+    publicGetVaspInfoVaspMasterId (params?: {}): Promise<List>;
+    publicGetCountryInfoCode (params?: {}): Promise<List>;
+    publicGetCorpTypeIdInfoId (params?: {}): Promise<List>;
     privatePostActiveOrders (params?: {}): Promise<Dict>;
     privatePostCancelOrder (params?: {}): Promise<Dict>;
     privatePostDepositHistory (params?: {}): Promise<Dict>;

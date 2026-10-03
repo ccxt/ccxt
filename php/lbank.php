@@ -169,6 +169,7 @@ class lbank extends Exchange {
                             'supplement/deposit_history' => array( 'cost' => 2.5 ),
                             'supplement/withdraws' => array( 'cost' => 2.5 ),
                             'supplement/get_deposit_address' => array( 'cost' => 2.5 ),
+                            'supplement/add_deposit_address' => array( 'cost' => 2.5 ),
                             'supplement/asset_detail' => array( 'cost' => 2.5 ),
                             'supplement/customer_trade_fee' => array( 'cost' => 2.5 ),
                             'supplement/api_Restrictions' => array( 'cost' => 2.5 ),
@@ -184,6 +185,12 @@ class lbank extends Exchange {
                             'supplement/orders_info_history' => array( 'cost' => 2.5 ),
                             'supplement/user_info_account' => array( 'cost' => 2.5 ),
                             'supplement/transaction_history' => array( 'cost' => 2.5 ),
+                            // new spot/wallet, spot/trade endpoints
+                            'spot/wallet/withdraw' => array( 'cost' => 2.5 ),
+                            'spot/wallet/deposit_history' => array( 'cost' => 2.5 ),
+                            'spot/wallet/withdraws' => array( 'cost' => 2.5 ),
+                            'spot/trade/orders_info' => array( 'cost' => 2.5 ),
+                            'spot/trade/orders_info_history' => array( 'cost' => 2.5 ),
                         ),
                     ),
                 ),
@@ -257,23 +264,23 @@ class lbank extends Exchange {
                     'BTCTRON' => 'btctron',
                     'XRP' => 'xrp',
                     // other unusual chains with number of listed currencies supported
-                    //     'avax c-chain' => 1,
-                    //     klay => 12,
-                    //     bta => 1,
-                    //     fantom => 1,
-                    //     celo => 1,
-                    //     sol => 2,
-                    //     zenith => 1,
-                    //     ftm => 5,
-                    //     bep20 => 1, (single token with mis-named chain) SSS
-                    //     bitci => 1,
-                    //     sgb => 1,
-                    //     moonbeam => 1,
-                    //     ekta => 1,
-                    //     etl => 1,
-                    //     arbitrum => 1,
-                    //     tpc => 1,
-                    //     ptx => 1
+                    //     'avax c-chain': 1,
+                    //     klay: 12,
+                    //     bta: 1,
+                    //     fantom: 1,
+                    //     celo: 1,
+                    //     sol: 2,
+                    //     zenith: 1,
+                    //     ftm: 5,
+                    //     bep20: 1, (single token with mis-named chain) SSS
+                    //     bitci: 1,
+                    //     sgb: 1,
+                    //     moonbeam: 1,
+                    //     ekta: 1,
+                    //     etl: 1,
+                    //     arbitrum: 1,
+                    //     tpc: 1,
+                    //     ptx: 1
                     // }
                 ),
                 'networksById' => array(
@@ -342,7 +349,7 @@ class lbank extends Exchange {
                         'trailing' => false,
                         'symbolRequired' => true,
                     ),
-                    'fetchClosedOrders' => null, // todo => through fetchOrders "status" -1 => Cancelled 0 => Unfilled 1 => Partially filled 2 => Completely filled 3 => Partially filled has been cancelled 4 => Cancellation is being processed
+                    'fetchClosedOrders' => null, // todo: through fetchOrders "status" -1: Cancelled 0: Unfilled 1: Partially filled 2: Completely filled 3: Partially filled has been cancelled 4: Cancellation is being processed
                     'fetchOHLCV' => array(
                         'limit' => 2000,
                     ),
@@ -374,31 +381,30 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTime', null, $params);
         if ($type === 'swap') {
-            $response = $this->contractPublicGetCfdOpenApiV1PubGetTime($params);
+            $response = $this->contractPublicGetCfdOpenApiV1PubGetTime($paramsMarketType);
         } else {
-            $response = $this->spotPublicGetTimestamp($params);
+            $response = $this->spotPublicGetTimestamp($paramsMarketType);
         }
         //
         // spot
         //
         //     {
-        //         "result" => "true",
-        //         "data" => 1691789627950,
-        //         "error_code" => 0,
-        //         "ts" => 1691789627950
+        //         "result": "true",
+        //         "data": 1691789627950,
+        //         "error_code": 0,
+        //         "ts": 1691789627950
         //     }
         //
         // swap
         //
         //     {
-        //         "data" => 1691789627950,
-        //         "error_code" => 0,
-        //         "msg" => "Success",
-        //         "result" => "true",
-        //         "success" => true
+        //         "data": 1691789627950,
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
         //     }
         //
         return $this->safe_integer($response, 'data');
@@ -413,35 +419,35 @@ class lbank extends Exchange {
         $response = $this->spotPublicGetWithdrawConfigs($params);
         //
         //    {
-        //        "msg" => "Success",
-        //        "result" => "true",
-        //        "data" => array(
-        //            array(
-        //                "amountScale" => "4",
-        //                "chain" => "bep20(bsc)",
-        //                "assetCode" => "usdt",
-        //                "min" => "10",
-        //                "transferAmtScale" => "4",
-        //                "canWithDraw" => true,
-        //                "fee" => "0.0000",
-        //                "minTransfer" => "0.0001",
-        //                "type" => "1"
-        //            ),
-        //            array(
-        //                "amountScale" => "4",
-        //                "chain" => "trc20",
-        //                "assetCode" => "usdt",
-        //                "min" => "1",
-        //                "transferAmtScale" => "4",
-        //                "canWithDraw" => true,
-        //                "fee" => "1.0000",
-        //                "minTransfer" => "0.0001",
-        //                "type" => "1"
-        //            ),
+        //        "msg": "Success",
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "bep20(bsc)",
+        //                "assetCode": "usdt",
+        //                "min": "10",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "0.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "trc20",
+        //                "assetCode": "usdt",
+        //                "min": "1",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "1.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
         //            ...
-        //        ),
-        //        "error_code" => "0",
-        //        "ts" => "1747973911431"
+        //        ],
+        //        "error_code": "0",
+        //        "ts": "1747973911431"
         //    }
         //
         $currenciesData = $this->safe_list($response, 'data', array());
@@ -456,10 +462,10 @@ class lbank extends Exchange {
         $networksRaw = $rawCurrency;
         $networks = array();
         for ($j = 0; $j < count($networksRaw); $j++) {
-            $networkEntry = $networksRaw[$j];
+            $networkEntry = $this->safe_dict($networksRaw, $j);
             $networkId = $this->safe_string($networkEntry, 'chain');
             if ($networkId === null) {
-                $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
+                $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type as fallback if networkId is not present
             }
             $networkCode = $this->network_id_to_code($networkId, $code);
             if ($networkCode !== null) {
@@ -532,20 +538,20 @@ class lbank extends Exchange {
         $response = $this->spotPublicGetAccuracy($params);
         //
         //     {
-        //         "result" => "true",
-        //         "data" => array(
-        //             array(
-        //                 "symbol" => "btc_usdt",
-        //                 "quantityAccuracy" => "4",
-        //                 "minTranQua" => "0.0001",
-        //                 "priceAccuracy" => "2"
-        //             ),
-        //         ),
-        //         "error_code" => 0,
-        //         "ts" => 1691560288484
+        //         "result": "true",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "quantityAccuracy": "4",
+        //                 "minTranQua": "0.0001",
+        //                 "priceAccuracy": "2"
+        //             },
+        //         ],
+        //         "error_code": 0,
+        //         "ts": 1691560288484
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -555,6 +561,9 @@ class lbank extends Exchange {
             $quoteId = $parts[1];
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $symbol = $base . '/' . $quote;
             $result[] = array(
                 'id' => $marketId,
@@ -616,33 +625,33 @@ class lbank extends Exchange {
         $response = $this->contractPublicGetCfdOpenApiV1PubInstrument($this->extend($request, $params));
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "priceLimitUpperValue" => 0.2,
-        //                 "symbol" => "BTCUSDT",
-        //                 "volumeTick" => 0.0001,
-        //                 "indexPrice" => "29707.70200000",
-        //                 "minOrderVolume" => "0.0001",
-        //                 "priceTick" => 0.1,
-        //                 "maxOrderVolume" => "30.0",
-        //                 "baseCurrency" => "BTC",
-        //                 "volumeMultiple" => 1.0,
-        //                 "exchangeID" => "Exchange",
-        //                 "priceCurrency" => "USDT",
-        //                 "priceLimitLowerValue" => 0.2,
-        //                 "clearCurrency" => "USDT",
-        //                 "symbolName" => "BTCUSDT",
-        //                 "defaultLeverage" => 20.0,
-        //                 "minOrderCost" => "5.0"
-        //             ),
-        //         ),
-        //         "error_code" => 0,
-        //         "msg" => "Success",
-        //         "result" => "true",
-        //         "success" => true
+        //         "data": [
+        //             {
+        //                 "priceLimitUpperValue": 0.2,
+        //                 "symbol": "BTCUSDT",
+        //                 "volumeTick": 0.0001,
+        //                 "indexPrice": "29707.70200000",
+        //                 "minOrderVolume": "0.0001",
+        //                 "priceTick": 0.1,
+        //                 "maxOrderVolume": "30.0",
+        //                 "baseCurrency": "BTC",
+        //                 "volumeMultiple": 1.0,
+        //                 "exchangeID": "Exchange",
+        //                 "priceCurrency": "USDT",
+        //                 "priceLimitLowerValue": 0.2,
+        //                 "clearCurrency": "USDT",
+        //                 "symbolName": "BTCUSDT",
+        //                 "defaultLeverage": 20.0,
+        //                 "minOrderCost": "5.0"
+        //             },
+        //         ],
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -652,6 +661,9 @@ class lbank extends Exchange {
             $quoteId = $settleId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote . ':' . $settle;
             $result[] = array(
@@ -694,7 +706,7 @@ class lbank extends Exchange {
                     'price' => array(
                         // priceLimitLowerValue and priceLimitUpperValue are
                         // deviation ratios around the mark price, observed live
-                        // near 0.2 on nearly every $symbol and asymmetric on some,
+                        // near 0.2 on nearly every symbol and asymmetric on some,
                         // they are not absolute price bounds so they stay in info
                         'min' => null,
                         'max' => null,
@@ -713,34 +725,34 @@ class lbank extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        // spot => fetchTicker, fetchTickers
+        // spot: fetchTicker, fetchTickers
         //
         //     {
-        //         "symbol" => "btc_usdt",
-        //         "ticker" => array(
-        //             "high" => "29695.57",
-        //             "vol" => "6890.2789",
-        //             "low" => "29110",
-        //             "change" => "0.58",
-        //             "turnover" => "202769821.06",
-        //             "latest" => "29405.98"
-        //         ),
-        //         "timestamp" => :1692064274908
+        //         "symbol": "btc_usdt",
+        //         "ticker": {
+        //             "high": "29695.57",
+        //             "vol": "6890.2789",
+        //             "low": "29110",
+        //             "change": "0.58",
+        //             "turnover": "202769821.06",
+        //             "latest": "29405.98"
+        //         },
+        //         "timestamp": :1692064274908
         //     }
         //
-        // swap => fetchTickers
+        // swap: fetchTickers
         //
         //     {
-        //         "lastTime" => 1784884932,
-        //         "prePositionFeeRate" => "0.000053",
-        //         "volume" => "2435.459",
-        //         "symbol" => "BTCUSDT",
-        //         "highestPrice" => "29446.5",
-        //         "lowestPrice" => "29362.9",
-        //         "openPrice" => "29419.5",
-        //         "markedPrice" => "29385.1",
-        //         "turnover" => "36345526.2438402",
-        //         "lastPrice" => "29387.0"
+        //         "lastTime": 1784884932,
+        //         "prePositionFeeRate": "0.000053",
+        //         "volume": "2435.459",
+        //         "symbol": "BTCUSDT",
+        //         "highestPrice": "29446.5",
+        //         "lowestPrice": "29362.9",
+        //         "openPrice": "29419.5",
+        //         "markedPrice": "29385.1",
+        //         "turnover": "36345526.2438402",
+        //         "lastPrice": "29387.0"
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
@@ -749,9 +761,9 @@ class lbank extends Exchange {
         }
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $tickerData = $this->safe_value($ticker, 'ticker', array());
-        $market = $this->safe_market($marketId, $market);
-        $data = ($market['contract']) ? $ticker : $tickerData;
+        $tickerData = $this->safe_dict($ticker, 'ticker', array());
+        $marketResolved = $this->safe_market($marketId, $market);
+        $data = ($marketResolved['contract'] === true) ? $ticker : $tickerData;
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -773,7 +785,7 @@ class lbank extends Exchange {
             'baseVolume' => $this->safe_string_2($data, 'vol', 'volume'),
             'quoteVolume' => $this->safe_string($data, 'turnover'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
@@ -790,9 +802,10 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $responseForSwap = $this->fetch_tickers(array( $market['symbol'] ), $params);
-            return $this->safe_value($responseForSwap, $market['symbol']);
+            $swapTicker = $this->safe_dict($responseForSwap, $market['symbol']);
+            return $swapTicker;
         }
         $request = array(
             'symbol' => $market['id'],
@@ -800,26 +813,26 @@ class lbank extends Exchange {
         $response = $this->spotPublicGetTicker24hr($this->extend($request, $params));
         //
         //     {
-        //         "result" => "true",
-        //         "data" => array(
+        //         "result": "true",
+        //         "data": [
         //             {
-        //                 "symbol" => "btc_usdt",
-        //                 "ticker" => array(
-        //                     "high" => "29695.57",
-        //                     "vol" => "6890.2789",
-        //                     "low" => "29110",
-        //                     "change" => "0.58",
-        //                     "turnover" => "202769821.06",
-        //                     "latest" => "29405.98"
-        //                 ),
-        //                 "timestamp" => :1692064274908
+        //                 "symbol": "btc_usdt",
+        //                 "ticker": {
+        //                     "high": "29695.57",
+        //                     "vol": "6890.2789",
+        //                     "low": "29110",
+        //                     "change": "0.58",
+        //                     "turnover": "202769821.06",
+        //                     "latest": "29405.98"
+        //                 },
+        //                 "timestamp": :1692064274908
         //             }
-        //         ),
-        //         "error_code" => 0,
-        //         "ts" => :1692064276872
+        //         ],
+        //         "error_code": 0,
+        //         "ts": :1692064276872
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $first = $this->safe_dict($data, 0, array());
         return $this->parse_ticker($first, $market);
     }
@@ -839,70 +852,69 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = null;
-        if ($symbols !== null) {
-            $symbols = $this->market_symbols($symbols);
-            $symbolsLength = count($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength > 0) {
-                $market = $this->market($symbols[0]);
+                $market = $this->market($symbolsNormalized[0]);
             }
         }
         $request = array();
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         if ($type === 'swap') {
             $request['productGroup'] = 'SwapU';
-            $response = $this->contractPublicGetCfdOpenApiV1PubMarketData($this->extend($request, $params));
+            $response = $this->contractPublicGetCfdOpenApiV1PubMarketData($this->extend($request, $paramsMarketType));
         } else {
             $request['symbol'] = 'all';
-            $response = $this->spotPublicGetTicker24hr($this->extend($request, $params));
+            $response = $this->spotPublicGetTicker24hr($this->extend($request, $paramsMarketType));
         }
         //
         // spot
         //
         //     {
-        //         "result" => "true",
-        //         "data" => array(
+        //         "result": "true",
+        //         "data": [
         //             {
-        //                 "symbol" => "btc_usdt",
-        //                 "ticker" => array(
-        //                     "high" => "29695.57",
-        //                     "vol" => "6890.2789",
-        //                     "low" => "29110",
-        //                     "change" => "0.58",
-        //                     "turnover" => "202769821.06",
-        //                     "latest" => "29405.98"
-        //                 ),
-        //                 "timestamp" => :1692064274908
+        //                 "symbol": "btc_usdt",
+        //                 "ticker": {
+        //                     "high": "29695.57",
+        //                     "vol": "6890.2789",
+        //                     "low": "29110",
+        //                     "change": "0.58",
+        //                     "turnover": "202769821.06",
+        //                     "latest": "29405.98"
+        //                 },
+        //                 "timestamp": :1692064274908
         //             }
-        //         ),
-        //         "error_code" => 0,
-        //         "ts" => :1692064276872
+        //         ],
+        //         "error_code": 0,
+        //         "ts": :1692064276872
         //     }
         //
         // swap
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "prePositionFeeRate" => "0.000053",
-        //                 "volume" => "2435.459",
-        //                 "symbol" => "BTCUSDT",
-        //                 "highestPrice" => "29446.5",
-        //                 "lowestPrice" => "29362.9",
-        //                 "openPrice" => "29419.5",
-        //                 "markedPrice" => "29385.1",
-        //                 "turnover" => "36345526.2438402",
-        //                 "lastPrice" => "29387.0"
-        //             ),
-        //         ),
-        //         "error_code" => 0,
-        //         "msg" => "Success",
-        //         "result" => "true",
-        //         "success" => true
+        //         "data": [
+        //             {
+        //                 "prePositionFeeRate": "0.000053",
+        //                 "volume": "2435.459",
+        //                 "symbol": "BTCUSDT",
+        //                 "highestPrice": "29446.5",
+        //                 "lowestPrice": "29362.9",
+        //                 "openPrice": "29419.5",
+        //                 "markedPrice": "29385.1",
+        //                 "turnover": "36345526.2438402",
+        //                 "lastPrice": "29387.0"
+        //             },
+        //         ],
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_tickers($data, $symbols);
+        return $this->parse_tickers($data, $symbolsNormalized);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -921,72 +933,69 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 60;
-        }
+        $limitResolved = ($limit === null) ? 60 : $limit;
         $request = array(
             'symbol' => $market['id'],
         );
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
         if ($type === 'swap') {
-            $request['depth'] = $limit;
-            $response = $this->contractPublicGetCfdOpenApiV1PubMarketOrder($this->extend($request, $params));
+            $request['depth'] = $limitResolved;
+            $response = $this->contractPublicGetCfdOpenApiV1PubMarketOrder($this->extend($request, $paramsMarketType));
         } else {
-            $request['size'] = $limit;
-            $response = $this->spotPublicGetDepth($this->extend($request, $params));
+            $request['size'] = $limitResolved;
+            $response = $this->spotPublicGetDepth($this->extend($request, $paramsMarketType));
         }
         //
         // spot
         //
         //     {
-        //         "result" => "true",
-        //         "data" => array(
-        //             "asks" => array(
+        //         "result": "true",
+        //         "data": {
+        //             "asks": [
         //                 ["29243.37", "2.8783"],
         //                 ["29243.39", "2.2842"],
         //                 ["29243.4", "0.0337"]
-        //             ),
-        //             "bids" => array(
+        //             ],
+        //             "bids": [
         //                 ["29243.36", "1.5258"],
         //                 ["29243.34", "0.8218"],
         //                 ["29243.28", "1.285"]
-        //             ),
-        //             "timestamp" => :1692157328820
-        //         ),
-        //         "error_code" => 0,
-        //         "ts" => :1692157328820
+        //             ],
+        //             "timestamp": :1692157328820
+        //         },
+        //         "error_code": 0,
+        //         "ts": :1692157328820
         //     }
         //
         // swap
         //
         //     {
-        //         "data" => array(
-        //             "symbol" => "BTCUSDT",
-        //             "asks" => array(
-        //                 array(
-        //                     "volume" => "14.6535",
-        //                     "price" => "29234.2",
-        //                     "orders" => "1"
-        //                 ),
-        //             ),
-        //             "bids" => array(
-        //                 array(
-        //                     "volume" => "13.4899",
-        //                     "price" => "29234.1",
-        //                     "orders" => "4"
-        //                 ),
-        //             )
-        //         ),
-        //         "error_code" => 0,
-        //         "msg" => "Success",
-        //         "result" => "true",
-        //         "success" => true
+        //         "data": {
+        //             "symbol": "BTCUSDT",
+        //             "asks": [
+        //                 {
+        //                     "volume": "14.6535",
+        //                     "price": "29234.2",
+        //                     "orders": "1"
+        //                 },
+        //             ],
+        //             "bids": [
+        //                 {
+        //                     "volume": "13.4899",
+        //                     "price": "29234.1",
+        //                     "orders": "4"
+        //                 },
+        //             ]
+        //         },
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
         //     }
         //
-        $orderbook = $this->safe_value($response, 'data', array());
+        $orderbook = $this->safe_dict($response, 'data', array());
         $timestamp = $this->milliseconds();
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
         }
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks');
@@ -1124,19 +1133,19 @@ class lbank extends Exchange {
         } else {
             $request['size'] = 600; // max
         }
-        $options = $this->safe_value($this->options, 'fetchTrades', array());
+        $options = $this->safe_dict($this->options, 'fetchTrades', array());
         $defaultMethod = $this->safe_string($options, 'method', 'spotPublicGetTrades');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $params = $this->omit($params, 'method');
+        $paramsOmitted = $this->omit($params, 'method');
         if ($method === 'spotPublicGetSupplementTrades') {
-            $response = $this->spotPublicGetSupplementTrades($this->extend($request, $params));
+            $response = $this->spotPublicGetSupplementTrades($this->extend($request, $paramsOmitted));
         } else {
-            $response = $this->spotPublicGetTrades($this->extend($request, $params));
+            $response = $this->spotPublicGetTrades($this->extend($request, $paramsOmitted));
         }
         //
         //      {
         //          "result":"true",
-        //          "data" => array(
+        //          "data": [
         //              {
         //                  "date_ms":1647021989789,
         //                  "amount":0.0028,
@@ -1144,7 +1153,7 @@ class lbank extends Exchange {
         //                  "type":"buy",
         //                  "tid":"52d5616ee35c43019edddebe59b3e094"
         //               }
-        //           ),
+        //           ],
         //           "error_code":0,
         //           "ts":1647021999308
         //      }
@@ -1155,14 +1164,14 @@ class lbank extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //   array(
+        //   [
         //     1482311500, // timestamp
         //     5423.23,    // open
         //     5472.80,    // high
         //     5516.09,    // low
         //     5462,       // close
         //     234.3250    // volume
-        //   ),
+        //   ],
         //
         return array(
             $this->safe_timestamp($ohlcv, 0), // timestamp
@@ -1185,24 +1194,18 @@ class lbank extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         // endpoint doesnt work
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100;
-        } else {
-            $limit = min($limit, 2000);
-        }
-        if ($since === null) {
-            $duration = $this->parse_timeframe($timeframe);
-            $since = $this->milliseconds() - ($duration * 1000 * $limit);
-        }
-        $parsedSince = $this->parse_to_int($since / 1000);
-        $parsedLimit = min($limit + 1, 2000); // max 2000;
+        $limitResolved = ($limit === null) ? 100 : min($limit, 2000);
+        $duration = $this->parse_timeframe($timeframe);
+        $sinceResolved = ($since === null) ? ($this->milliseconds() - ($duration * 1000 * $limitResolved)) : $since;
+        $parsedSince = $this->parse_to_int($sinceResolved / 1000);
+        $parsedLimit = min($limitResolved + 1, 2000); // max 2000;
         $request = array(
             'symbol' => $market['id'],
             'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
@@ -1213,26 +1216,26 @@ class lbank extends Exchange {
         $ohlcvs = $this->safe_list($response, 'data', array());
         //
         //
-        // array(
-        //   array(
+        // [
+        //   [
         //     1482311500,
         //     5423.23,
         //     5472.80,
         //     5516.09,
         //     5462,
         //     234.3250
-        //   ),
-        //   array(
+        //   ],
+        //   [
         //     1482311400,
         //     5432.52,
         //     5459.87,
         //     5414.30,
         //     5428.23,
         //     213.7329
-        //   )
-        // )
+        //   ]
+        // ]
         //
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $sinceResolved, $limitResolved);
     }
 
     public function parse_balance(mixed $response): array {
@@ -1240,48 +1243,48 @@ class lbank extends Exchange {
         // spotPrivatePostUserInfo
         //
         //      {
-        //          "toBtc" => array(
-        //              "egc:" => "0",
-        //              "iog" => "0",
-        //              "ksm" => "0",
-        //              ),
-        //          "freeze" => array(
-        //              "egc" => "0",
-        //              "iog" => "0",
-        //              "ksm" => "0" ,
-        //              ),
-        //          "asset" => array(
-        //              "egc" => "0",
-        //              "iog" => "0",
-        //              "ksm" => "0",
-        //              ),
-        //          "free" => {
-        //              "egc" => "0",
-        //              "iog" => "0",
-        //              "ksm" => "0",
+        //          "toBtc": {
+        //              "egc:": "0",
+        //              "iog": "0",
+        //              "ksm": "0",
+        //              },
+        //          "freeze": {
+        //              "egc": "0",
+        //              "iog": "0",
+        //              "ksm": "0" ,
+        //              },
+        //          "asset": {
+        //              "egc": "0",
+        //              "iog": "0",
+        //              "ksm": "0",
+        //              },
+        //          "free": {
+        //              "egc": "0",
+        //              "iog": "0",
+        //              "ksm": "0",
         //              }
         //      }
         //
         // spotPrivatePostSupplementUserInfoAccount
         //
         //      {
-        //          "balances":array(
-        //              array(
+        //          "balances":[
+        //              {
         //                  "asset":"lbk",
         //                  "free":"0",
         //                  "locked":"0"
-        //              ), ...
-        //          )
+        //              }, ...
+        //          ]
         //      }
         //
         // spotPrivatePostSupplementUserInfo
         //
-        //      array(
+        //      [
         //          {
         //              "usableAmt":"31.45130723",
         //              "assetAmt":"31.45130723",
-        //              "networkList":array(
-        //                  array(
+        //              "networkList":[
+        //                  {
         //                      "isDefault":true,
         //                      "withdrawFeeRate":"",
         //                      "name":"bep20(bsc)",
@@ -1293,8 +1296,8 @@ class lbank extends Exchange {
         //                      "type":1,
         //                      "coin":"doge",
         //                      "network":"bsc"
-        //                  ),
-        //                  array(
+        //                  },
+        //                  {
         //                      "isDefault":false,
         //                      "withdrawFeeRate":"",
         //                      "name":"dogecoin",
@@ -1307,11 +1310,11 @@ class lbank extends Exchange {
         //                      "coin":"doge",
         //                      "network":"dogecoin"
         //                  }
-        //              ),
+        //              ],
         //              "freezeAmt":"0",
         //              "coin":"doge"
-        //          ), ...
-        //      )
+        //          }, ...
+        //      ]
         //
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array(
@@ -1319,12 +1322,12 @@ class lbank extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         // from spotPrivatePostUserInfo
         $toBtc = $this->safe_value($data, 'toBtc');
         if ($toBtc !== null) {
-            $used = $this->safe_value($data, 'freeze', array());
-            $free = $this->safe_value($data, 'free', array());
+            $used = $this->safe_dict($data, 'freeze', array());
+            $free = $this->safe_dict($data, 'free', array());
             $currencies = is_array($free) ? array_keys($free) : array();
             for ($i = 0; $i < count($currencies); $i++) {
                 $currencyId = $currencies[$i];
@@ -1339,10 +1342,10 @@ class lbank extends Exchange {
             return $this->safe_balance($result);
         }
         // from spotPrivatePostSupplementUserInfoAccount
-        $balances = $this->safe_value($data, 'balances');
+        $balances = $this->safe_list($data, 'balances');
         if ($balances !== null) {
             for ($i = 0; $i < count($balances); $i++) {
-                $item = $balances[$i];
+                $item = $this->safe_dict($balances, $i);
                 $currencyId = $this->safe_string($item, 'asset');
                 $codeInner = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -1358,7 +1361,7 @@ class lbank extends Exchange {
         $isArray = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)));
         if ($isArray === true) {
             for ($i = 0; $i < count($data); $i++) {
-                $item = $data[$i];
+                $item = $this->safe_dict($data, $i);
                 $currencyId = $this->safe_string($item, 'coin');
                 $codeInner = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -1375,19 +1378,19 @@ class lbank extends Exchange {
 
     public function parse_funding_rate(mixed $ticker, ?array $market = null): array {
         // {
-        //     "symbol" => "BTCUSDT",
-        //     "highestPrice" => "69495.5",
-        //     "underlyingPrice" => "68455.904",
-        //     "lowestPrice" => "68182.1",
-        //     "openPrice" => "68762.4",
-        //     "positionFeeRate" => "0.0001",
-        //     "volume" => "33534.2858",
-        //     "markedPrice" => "68434.1",
-        //     "turnover" => "1200636218.210558",
-        //     "positionFeeTime" => "28800",
-        //     "lastPrice" => "68427.3",
-        //     "nextFeeTime" => "1730736000000",
-        //     "fundingRate" => "0.0001",
+        //     "symbol": "BTCUSDT",
+        //     "highestPrice": "69495.5",
+        //     "underlyingPrice": "68455.904",
+        //     "lowestPrice": "68182.1",
+        //     "openPrice": "68762.4",
+        //     "positionFeeRate": "0.0001",
+        //     "volume": "33534.2858",
+        //     "markedPrice": "68434.1",
+        //     "turnover": "1200636218.210558",
+        //     "positionFeeTime": "28800",
+        //     "lastPrice": "68427.3",
+        //     "nextFeeTime": "1730736000000",
+        //     "fundingRate": "0.0001",
         // }
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1436,7 +1439,8 @@ class lbank extends Exchange {
         }
         $market = $this->market($symbol);
         $responseForSwap = $this->fetch_funding_rates(array( $market['symbol'] ), $params);
-        return $this->safe_value($responseForSwap, $market['symbol']);
+        $fundingRate = $this->safe_dict($responseForSwap, $market['symbol']);
+        return $fundingRate;
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
@@ -1452,36 +1456,36 @@ class lbank extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
             'productGroup' => 'SwapU',
         );
         $response = $this->contractPublicGetCfdOpenApiV1PubMarketData($this->extend($request, $params));
         // {
-        //     "data" => array(
+        //     "data": [
         //         {
-        //             "symbol" => "BTCUSDT",
-        //             "highestPrice" => "69495.5",
-        //             "underlyingPrice" => "68455.904",
-        //             "lowestPrice" => "68182.1",
-        //             "openPrice" => "68762.4",
-        //             "positionFeeRate" => "0.0001",
-        //             "volume" => "33534.2858",
-        //             "markedPrice" => "68434.1",
-        //             "turnover" => "1200636218.210558",
-        //             "positionFeeTime" => "28800",
-        //             "lastPrice" => "68427.3",
-        //             "nextFeeTime" => "1730736000000",
-        //             "fundingRate" => "0.0001",
+        //             "symbol": "BTCUSDT",
+        //             "highestPrice": "69495.5",
+        //             "underlyingPrice": "68455.904",
+        //             "lowestPrice": "68182.1",
+        //             "openPrice": "68762.4",
+        //             "positionFeeRate": "0.0001",
+        //             "volume": "33534.2858",
+        //             "markedPrice": "68434.1",
+        //             "turnover": "1200636218.210558",
+        //             "positionFeeTime": "28800",
+        //             "lastPrice": "68427.3",
+        //             "nextFeeTime": "1730736000000",
+        //             "fundingRate": "0.0001",
         //         }
-        //     ),
-        //     "error_code" => "0",
-        //     "msg" => "Success",
-        //     "result" => "true",
-        //     "success" => True,
+        //     ],
+        //     "error_code": "0",
+        //     "msg": "Success",
+        //     "result": "true",
+        //     "success": True,
         // }
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_funding_rates($data, $symbols);
+        return $this->parse_funding_rates($data, $symbolsNormalized);
     }
 
     public function fetch_balance($params = array()): array {
@@ -1498,7 +1502,7 @@ class lbank extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $options = $this->safe_value($this->options, 'fetchBalance', array());
+        $options = $this->safe_dict($this->options, 'fetchBalance', array());
         $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementUserInfo');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         if ($method === 'spotPrivatePostSupplementUserInfoAccount') {
@@ -1510,32 +1514,32 @@ class lbank extends Exchange {
         }
         //
         //    {
-        //        "result" => "true",
-        //        "data" => array(
+        //        "result": "true",
+        //        "data": [
         //            {
-        //                "usableAmt" => "14.36",
-        //                "assetAmt" => "14.36",
-        //                "networkList" => array(
-        //                    array(
-        //                        "isDefault" => false,
-        //                        "withdrawFeeRate" => "",
-        //                        "name" => "erc20",
-        //                        "withdrawMin" => 30,
-        //                        "minLimit" => 0.0001,
-        //                        "minDeposit" => 20,
-        //                        "feeAssetCode" => "usdt",
-        //                        "withdrawFee" => "30",
-        //                        "type" => 1,
-        //                        "coin" => "usdt",
-        //                        "network" => "eth"
-        //                    ),
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
         //                    ...
-        //                ),
-        //                "freezeAmt" => "0",
-        //                "coin" => "ada"
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
         //            }
-        //        ),
-        //        "code" => 0
+        //        ],
+        //        "code": 0
         //    }
         //
         $balanceResponse = ($response === null) ? array() : $response;
@@ -1570,15 +1574,16 @@ class lbank extends Exchange {
         /**
          * fetch the trading fees for a $market
          *
-         * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
+         * @see https://www.lbank.com/en-US/docs/index.html#transaction-$fee-rate-query
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$fee-structure $fee structure~
          */
         $market = $this->market($symbol);
         $result = $this->fetch_trading_fees($this->extend($params, array( 'category' => $market['id'] )));
-        return $this->safe_dict($result, $symbol);
+        $fee = $this->safe_dict($result, $symbol);
+        return $fee;
     }
 
     public function fetch_trading_fees($params = array()): array {
@@ -1595,7 +1600,7 @@ class lbank extends Exchange {
         }
         $request = array();
         $response = $this->spotPrivatePostSupplementCustomerTradeFee($this->extend($request, $params));
-        $fees = $this->safe_value($response, 'data', array());
+        $fees = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
@@ -1605,7 +1610,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
          * create a $market buy order by providing the $symbol and $cost
          *
@@ -1621,14 +1626,14 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1650,15 +1655,15 @@ class lbank extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'custom_id', 'clientOrderId');
         $postOnly = $this->safe_bool($params, 'postOnly', false);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $params = $this->omit($params, array( 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ));
+        $paramsRequest = $this->omit($params, array( 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ));
         $request = array(
             'symbol' => $market['id'],
         );
         $ioc = ($timeInForce === 'IOC');
         $fok = ($timeInForce === 'FOK');
-        $maker = ($postOnly || ($timeInForce === 'PO'));
+        $maker = (($postOnly === true) || ($timeInForce === 'PO'));
         if (($type === 'market') && ($ioc || $fok || $maker)) {
-            throw new InvalidOrder($this->id . ' createOrder () does not allow $market FOK, IOC, or $postOnly orders. Only limit IOC, FOK, and $postOnly orders are allowed');
+            throw new InvalidOrder($this->id . ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
         }
         if ($type === 'limit') {
             $request['type'] = $side;
@@ -1679,14 +1684,14 @@ class lbank extends Exchange {
                 $request['type'] = $side . '_' . 'market';
                 $quoteAmount = null;
                 $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                $cost = $this->safe_number($params, 'cost');
-                $params = $this->omit($params, 'cost');
+                list($createMarketBuyOrderRequiresPrice, $paramsRequest) = $this->handle_option_bool_and_params($paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($paramsRequest, 'cost');
+                $paramsRequest = $this->omit($paramsRequest, 'cost');
                 if ($cost !== null) {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -1696,34 +1701,34 @@ class lbank extends Exchange {
                 } else {
                     $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
-                // $market buys require filling the $price param instead of the $amount param, for $market buys the $price is treated $cost by lbank
+                // market buys require filling the price param instead of the amount param, for market buys the price is treated as the cost by lbank
                 $request['price'] = $quoteAmount;
             }
         }
         if ($clientOrderId !== null) {
             $request['custom_id'] = $clientOrderId;
         }
-        $options = $this->safe_value($this->options, 'createOrder', array());
+        $options = $this->safe_dict($this->options, 'createOrder', array());
         $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementCreateOrder');
-        $method = $this->safe_string($params, 'method', $defaultMethod);
-        $params = $this->omit($params, 'method');
+        $method = $this->safe_string($paramsRequest, 'method', $defaultMethod);
+        $paramsOmitted = $this->omit($paramsRequest, 'method');
         if ($method === 'spotPrivatePostCreateOrder') {
-            $response = $this->spotPrivatePostCreateOrder($this->extend($request, $params));
+            $response = $this->spotPrivatePostCreateOrder($this->extend($request, $paramsOmitted));
         } else {
-            $response = $this->spotPrivatePostSupplementCreateOrder($this->extend($request, $params));
+            $response = $this->spotPrivatePostSupplementCreateOrder($this->extend($request, $paramsOmitted));
         }
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "symbol":"doge_usdt",
         //              "order_id":"0cf8a3de-4597-4296-af45-be7abaa06b07"
-        //              ),
+        //              },
         //          "error_code":0,
         //          "ts":1648162321043
         //      }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_dict($response, 'data', array());
         return $this->safe_order(array(
             'id' => $this->safe_string($result, 'order_id'),
             'info' => $result,
@@ -1772,7 +1777,7 @@ class lbank extends Exchange {
         //          "avg_price":0.00002466180000000104,
         //          "type":"buy_market",
         //          "order_id":"abe8b92d-86d9-4d6d-b71e-d14f5fb53ddf",
-        //          "custom_id" => "007",                                 // field only present if user creates it at $order time
+        //          "custom_id": "007",                                 // field only present if user creates it at order time
         //          "deal_amount":40548.54065802,
         //          "status":2
         //      }
@@ -1835,14 +1840,14 @@ class lbank extends Exchange {
         $timestamp = $this->safe_integer_2($order, 'time', 'create_time');
         $rawStatus = $this->safe_string($order, 'status');
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timeInForce = null;
         $postOnly = false;
         $type = 'limit';
         $rawType = $this->safe_string_2($order, 'type', 'tradeType'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
         $parts = explode('_', $rawType);
         $side = $this->safe_string($parts, 0);
-        $typePart = $this->safe_string($parts, 1); // $market, maker, ioc, fok or null (limit)
+        $typePart = $this->safe_string($parts, 1); // market, maker, ioc, fok or undefined (limit)
         if ($typePart === 'market') {
             $type = 'market';
         }
@@ -1870,7 +1875,7 @@ class lbank extends Exchange {
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $this->parse_order_status($rawStatus),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
@@ -1885,10 +1890,10 @@ class lbank extends Exchange {
             'fee' => null,
             'info' => $order,
             'average' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -1905,7 +1910,7 @@ class lbank extends Exchange {
         }
         $method = $this->safe_string($params, 'method');
         if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchOrder', array());
+            $options = $this->safe_dict($this->options, 'fetchOrder', array());
             $method = $this->safe_string($options, 'method', 'fetchOrderSupplement');
         }
         if ($method === 'fetchOrderSupplement') {
@@ -1914,9 +1919,9 @@ class lbank extends Exchange {
         return $this->fetch_order_default($id, $symbol, $params);
     }
 
-    public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array()): array {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1930,7 +1935,7 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "cummulativeQuoteQty":0,
         //              "symbol":"doge_usdt",
         //              "executedQty":0,
@@ -1943,7 +1948,7 @@ class lbank extends Exchange {
         //              "time":1648163139387,
         //              "type":"buy_maker",
         //              "status":-1
-        //              ),
+        //              },
         //          "error_code":0,
         //          "ts":1648164471827
         //      }
@@ -1952,10 +1957,10 @@ class lbank extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function fetch_order_default(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_default(string $id, ?string $symbol = null, $params = array()): array {
         // Id can be a list of ids delimited by a comma
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1969,7 +1974,7 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":[
         //              {
         //                  "symbol":"doge_usdt",
         //                  "amount":18,
@@ -1981,27 +1986,27 @@ class lbank extends Exchange {
         //                  "deal_amount":18,
         //                  "status":2
         //                }
-        //            ),
+        //            ],
         //          "error_code":0,
         //          "ts":1647455270776
         //      }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_list($response, 'data', array());
         $numOrders = count($result);
         if ($numOrders === 1) {
             return $this->parse_order($result[0]);
         } else {
-            // $parsedOrders = array();
-            // for ($i = 0; $i < $numOrders; $i++) {
-            //     $parsedOrder = $this->parse_order($result[$i]);
-            //     $parsedOrders[] = $parsedOrder;
+            // const parsedOrders = [];
+            // for (let i = 0; i < numOrders; i++) {
+            //     const parsedOrder = this.parseOrder (result[i]);
+            //     parsedOrders.push (parsedOrder);
             // }
-            // return $parsedOrders;
+            // return parsedOrders;
             throw new BadRequest($this->id . ' fetchOrder() can only fetch one order at a time');
         }
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $trades made by the user
          *
@@ -2014,19 +2019,19 @@ class lbank extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $since = $this->safe_value($params, 'start_date', $since);
-        $params = $this->omit($params, 'start_date');
+        $sinceValue = $this->safe_value($params, 'start_date', $since);
+        $paramsOmitted = $this->omit($params, 'start_date');
         $request = array(
             'symbol' => $market['id'],
             // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
             // 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
-            // 'The start' => and end date of the query window is up to 2 days
+            // 'The start': and end date of the query window is up to 2 days
             // 'from' Initial transaction number inquiring
             // 'direct' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
             // 'size' Query the number of defaults to 100
@@ -2034,15 +2039,15 @@ class lbank extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        if ($since !== null) {
-            $request['start_date'] = $this->ymd($since, '-'); // max query 2 days ago
-            $request['end_date'] = $this->ymd($since + 86400000, '-'); // will cover 2 days
+        if ($sinceValue !== null) {
+            $request['start_date'] = $this->ymd($sinceValue, '-'); // max query 2 days ago
+            $request['end_date'] = $this->ymd($sinceValue + 86400000, '-'); // will cover 2 days
         }
-        $response = $this->spotPrivatePostTransactionHistory($this->extend($request, $params));
+        $response = $this->spotPrivatePostTransactionHistory($this->extend($request, $paramsOmitted));
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":[
         //              {
         //                  "orderUuid":"38b4e7a4-14f6-45fd-aba1-1a37024124a0",
         //                  "tradeFeeRate":0.0010000000,
@@ -2054,13 +2059,13 @@ class lbank extends Exchange {
         //                  "dealVolumePrice":4.53339000000000000000,
         //                  "tradeType":"sell_market"
         //              }
-        //          ),
+        //          ],
         //          "error_code":0,
         //          "ts":1648509742164
         //      }
         //
         $trades = $this->safe_list($response, 'data', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_trades($trades, $market, $sinceValue, $limit);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2075,33 +2080,31 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        // default query is for canceled and completely filled $orders
-        // does not return open $orders unless specified explicitly
+        // default query is for canceled and completely filled orders
+        // does not return open orders unless specified explicitly
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100;
-        }
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $request = array(
             'symbol' => $market['id'],
             'current_page' => 1,
-            'page_length' => $limit,
-            // 'status'  -1 => Cancelled, 0 => Unfilled, 1 => Partially filled, 2 => Completely filled, 3 => Partially filled and cancelled, 4 => Cancellation is being processed
+            'page_length' => $limitResolved,
+            // 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         );
         $response = $this->spotPrivatePostSupplementOrdersInfoHistory($this->extend($request, $params));
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "total":1,
         //              "page_length":100,
-        //              "orders":array(
-        //                  array(
+        //              "orders":[
+        //                  {
         //                      "cummulativeQuoteQty":0,
         //                      "symbol":"doge_usdt",
         //                      "executedQty":0,
@@ -2113,17 +2116,17 @@ class lbank extends Exchange {
         //                      "time":1648501363889,
         //                      "type":"buy",
         //                      "status":-1
-        //                  ), ...
-        //              ),
+        //                  }, ...
+        //              ],
         //              "current_page":1
-        //          ),
+        //          },
         //          "error_code":0,
         //          "ts":1648505706348
         //      }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($result, 'orders', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return $this->parse_orders($orders, $market, $since, $limitResolved);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2139,29 +2142,27 @@ class lbank extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100;
-        }
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $request = array(
             'symbol' => $market['id'],
             'current_page' => 1,
-            'page_length' => $limit,
+            'page_length' => $limitResolved,
         );
         $response = $this->spotPrivatePostSupplementOrdersInfoNoDeal($this->extend($request, $params));
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "total":1,
         //              "page_length":100,
-        //              "orders":array(
-        //                  array(
+        //              "orders":[
+        //                  {
         //                      "cummulativeQuoteQty":0,
         //                      "symbol":"doge_usdt",
         //                      "executedQty":0,
@@ -2173,20 +2174,20 @@ class lbank extends Exchange {
         //                      "time":1648501762353,
         //                      "type":"buy",
         //                      "status":0
-        //                  ), ...
-        //             ),
+        //                  }, ...
+        //             ],
         //             "current_page":1
-        //         ),
+        //         },
         //         "error_code":0,
         //         "ts":1648506110196
         //     }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($result, 'orders', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return $this->parse_orders($orders, $market, $since, $limitResolved);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2198,13 +2199,13 @@ class lbank extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
         $clientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
-        $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
+        $paramsOmitted = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2213,17 +2214,17 @@ class lbank extends Exchange {
         if ($clientOrderId !== null) {
             $request['origClientOrderId'] = $clientOrderId;
         }
-        $response = $this->spotPrivatePostSupplementCancelOrder($this->extend($request, $params));
+        $response = $this->spotPrivatePostSupplementCancelOrder($this->extend($request, $paramsOmitted));
         //
         //   {
         //      "result":true,
-        //      "data":array(
+        //      "data":{
         //          "executedQty":0.0,
         //          "price":0.05,
         //          "origQty":100.0,
         //          "tradeType":"buy",
         //          "status":0
-        //      ),
+        //      },
         //      "error_code":0,
         //      "ts":1648501286196
         //  }
@@ -2231,7 +2232,7 @@ class lbank extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders in a $market
          *
@@ -2242,7 +2243,7 @@ class lbank extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2255,16 +2256,16 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":"true",
-        //          "data":array(
-        //              array(
+        //          "data":[
+        //              {
         //                  "executedQty":0.00000000000000000000,
         //                  "orderId":"293ef71b-3e67-4962-af93-aa06990a045f",
         //                  "price":0.05000000000000000000,
         //                  "origQty":100.00000000000000000000,
         //                  "tradeType":"buy",
         //                  "status":0
-        //              ),
-        //          ),
+        //              },
+        //          ],
         //          "error_code":0,
         //          "ts":1648506641468
         //      }
@@ -2273,10 +2274,10 @@ class lbank extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function get_network_code_for_currency(mixed $currencyCode, mixed $params) {
-        $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
+    public function get_network_code_for_currency(?string $currencyCode, array $params): ?string {
+        $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks');
         $defaultNetwork = $this->safe_string_upper($defaultNetworks, $currencyCode);
-        $networks = $this->safe_value($this->options, 'networks', array());
+        $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
         return $network;
@@ -2296,14 +2297,14 @@ class lbank extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
+        $options = $this->safe_dict($this->options, 'fetchDepositAddress', array());
         $defaultMethod = $this->safe_string($options, 'method', 'fetchDepositAddressDefault');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $params = $this->omit($params, 'method');
+        $paramsOmitted = $this->omit($params, 'method');
         if ($method === 'fetchDepositAddressSupplement') {
-            $response = $this->fetch_deposit_address_supplement($code, $params);
+            $response = $this->fetch_deposit_address_supplement($code, $paramsOmitted);
         } else {
-            $response = $this->fetch_deposit_address_default($code, $params);
+            $response = $this->fetch_deposit_address_default($code, $paramsOmitted);
         }
         return $response;
     }
@@ -2317,25 +2318,25 @@ class lbank extends Exchange {
             'assetCode' => $currency['id'],
         );
         $network = $this->get_network_code_for_currency($code, $params);
+        $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         if ($network !== null) {
             $request['netWork'] = $network; // ... yes, really lol
-            $params = $this->omit($params, 'network');
         }
-        $response = $this->spotPrivatePostGetDepositAddress($this->extend($request, $params));
+        $response = $this->spotPrivatePostGetDepositAddress($this->extend($request, $paramsOmitted));
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "assetCode":"usdt",
         //              "address":"0xc85689d37ca650bf2f2161364cdedee21eb6ca53",
         //              "memo":null,
         //              "netWork":"bep20(bsc)"
-        //              ),
+        //              },
         //          "error_code":0,
         //          "ts":1648075865103
         //      }
         //
-        $result = $this->safe_value($response, 'data');
+        $result = $this->safe_dict($response, 'data');
         $address = $this->safe_string($result, 'address');
         $tag = $this->safe_string($result, 'memo');
         return array(
@@ -2348,7 +2349,7 @@ class lbank extends Exchange {
     }
 
     public function fetch_deposit_address_supplement(string $code, $params = array()): array {
-        // returns the $address for whatever the default $network is...
+        // returns the address for whatever the default network is...
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2356,27 +2357,27 @@ class lbank extends Exchange {
         $request = array(
             'coin' => $currency['id'],
         );
-        $networks = $this->safe_value($this->options, 'networks');
+        $networks = $this->safe_dict($this->options, 'networks');
         $network = $this->safe_string_upper($params, 'network');
         $network = $this->safe_string($networks, $network, $network);
+        $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         if ($network !== null) {
             $request['networkName'] = $network;
-            $params = $this->omit($params, 'network');
         }
-        $response = $this->spotPrivatePostSupplementGetDepositAddress($this->extend($request, $params));
+        $response = $this->spotPrivatePostSupplementGetDepositAddress($this->extend($request, $paramsOmitted));
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "address":"TDxtabCC8iQwaxUUrPcE4WL2jArGAfvQ5A",
         //              "memo":null,
         //              "coin":"usdt"
-        //              ),
+        //              },
         //          "error_code":0,
         //          "ts":1648073818880
         //     }
         //
-        $result = $this->safe_value($response, 'data');
+        $result = $this->safe_dict($response, 'data');
         $address = $this->safe_string($result, 'address');
         $tag = $this->safe_string($result, 'memo');
         return array(
@@ -2401,58 +2402,58 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $fee = $this->safe_string($params, 'fee');
-        $params = $this->omit($params, 'fee');
-        // The relevant coin $network $fee can be found by calling fetchDepositWithdrawFees (), note => if no $network param is supplied then the default $network will be used, this can also be found in fetchDepositWithdrawFees ().
+        $fee = $this->safe_string($paramsWithdrawTag, 'fee');
+        $paramsOmitted = $this->omit($paramsWithdrawTag, 'fee');
+        // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
         $this->check_required_argument('withdraw', $fee, 'fee');
         $currency = $this->currency($code);
         $request = array(
             'address' => $address,
             'coin' => $currency['id'],
             'amount' => $amount,
-            'fee' => $fee, // the correct coin-$network $fee must be supplied, which can be found by calling fetchDepositWithdrawFees (private)
-            // 'networkName' => defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
-            // 'memo' => memo => memo word of bts and dct
-            // 'mark' => Withdrawal Notes
-            // 'name' => Remarks of the $address-> After property_exists($this, filling) parameter, it will be added to the withdrawal $address book of the $currency->
-            // 'withdrawOrderId' => withdrawOrderId
-            // 'type' => type=1 is for intra-site transfer
+            'fee' => $fee, // the correct coin-network fee must be supplied, which can be found by calling fetchDepositWithdrawFees (private)
+            // 'networkName': defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
+            // 'memo': memo: memo word of bts and dct
+            // 'mark': Withdrawal Notes
+            // 'name': Remarks of the address. After filling in this parameter, it will be added to the withdrawal address book of the currency.
+            // 'withdrawOrderId': withdrawOrderId
+            // 'type': type=1 is for intra-site transfer
         );
-        if ($tag !== null) {
-            $request['memo'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['memo'] = $tagWithdrawTag;
         }
-        $network = $this->safe_string_upper_2($params, 'network', 'networkName');
-        $params = $this->omit($params, array( 'network', 'networkName' ));
-        $networks = $this->safe_value($this->options, 'networks');
+        $network = $this->safe_string_upper_2($paramsOmitted, 'network', 'networkName');
+        $paramsOmitted2 = $this->omit($paramsOmitted, array( 'network', 'networkName' ));
+        $networks = $this->safe_dict($this->options, 'networks');
         $networkId = $this->safe_string($networks, $network, $network);
         if ($networkId !== null) {
             $request['networkName'] = $networkId;
         }
-        $response = $this->spotPrivatePostSupplementWithdraw($this->extend($request, $params));
+        $response = $this->spotPrivatePostSupplementWithdraw($this->extend($request, $paramsOmitted2));
         //
         //      {
         //          "result":true,
-        //          "data" => array(
+        //          "data": {
         //              "fee":10.00000000000000000000,
         //              "withdrawId":1900377
-        //              ),
+        //              },
         //          "error_code":0,
         //          "ts":1648992501414
         //      }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_dict($response, 'data', array());
         return array(
             'info' => $result,
             'id' => $this->safe_string($result, 'withdrawId'),
         );
     }
 
-    public function parse_transaction_status(?string $status, mixed $type) {
+    public function parse_transaction_status(?string $status, ?string $type): ?string {
         $statuses = array(
             'deposit' => array(
                 '1' => 'pending',
@@ -2468,7 +2469,7 @@ class lbank extends Exchange {
                 '4' => 'ok',
             ),
         );
-        return $this->safe_string($this->safe_value($statuses, $type, array()), $status, $status);
+        return $this->safe_string($this->safe_dict($statuses, $type, array()), $status, $status);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2570,8 +2571,8 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
-            // 'endTime' => end time, timestamp in milliseconds, default now
+            // 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
+            // 'endTime': end time, timestamp in milliseconds, default now
         );
         $currency = null;
         if ($code !== null) {
@@ -2585,10 +2586,10 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data" => array(
+        //          "data": {
         //              "total":1,
-        //              "depositOrders" => array(
-        //                  array(
+        //              "depositOrders": [
+        //                  {
         //                      "insertTime":1649012310000,
         //                      "amount":9.00000000000000000000,
         //                      "address":"TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS",
@@ -2596,16 +2597,16 @@ class lbank extends Exchange {
         //                      "txId":"081e4e9351dd0274922168da5f2d14ea6c495b1c3b440244f4a6dd9fe196bf2b",
         //                      "coin":"usdt",
         //                      "status":"2"
-        //                  ),
-        //              ),
+        //                  },
+        //              ],
         //              "page_length":20,
         //              "current_page":1
-        //          ),
+        //          },
         //          "error_code":0,
         //          "ts":1649719721758
         //      }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $deposits = $this->safe_list($data, 'depositOrders', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
@@ -2626,9 +2627,9 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
-            // 'endTime' => end time, timestamp in milliseconds, default now
-            // 'withdrawOrderId' => Custom withdrawal id
+            // 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
+            // 'endTime': end time, timestamp in milliseconds, default now
+            // 'withdrawOrderId': Custom withdrawal id
         );
         $currency = null;
         if ($code !== null) {
@@ -2642,10 +2643,10 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data" => array(
+        //          "data": {
         //              "total":1,
-        //              "withdraws" => array(
-        //                  array(
+        //              "withdraws": [
+        //                  {
         //                      "amount":2.00000000000000000000,
         //                      "address":"TBjrW5JHDyPZjFc5nrRMhRWUDaJmhGhmD6",
         //                      "fee":1.00000000000000000000,
@@ -2656,21 +2657,21 @@ class lbank extends Exchange {
         //                      "id":1902194,
         //                      "applyTime":1649014002000,
         //                      "status":"4"
-        //                  ),
-        //              ),
+        //                  },
+        //              ],
         //              "page_length":20,
         //              "current_page":1
-        //          ),
+        //          },
         //          "error_code":0,
         //          "ts":1649720362362
         //      }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $withdraws = $this->safe_list($data, 'withdraws', array());
         return $this->parse_transactions($withdraws, $currency, $since, $limit);
     }
 
-    public function fetch_transaction_fees(?array $codes = null, $params = array()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array()): array {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
@@ -2684,14 +2685,14 @@ class lbank extends Exchange {
         }
         $isAuthorized = $this->check_required_credentials(false);
         if ($isAuthorized === true) {
-            $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
+            $options = $this->safe_dict($this->options, 'fetchTransactionFees', array());
             $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
             $method = $this->safe_string($params, 'method', $defaultMethod);
-            $params = $this->omit($params, 'method');
+            $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicTransactionFees') {
-                $result = $this->fetch_public_transaction_fees($params);
+                $result = $this->fetch_public_transaction_fees($paramsOmitted);
             } else {
-                $result = $this->fetch_private_transaction_fees($params);
+                $result = $this->fetch_private_transaction_fees($paramsOmitted);
             }
         } else {
             $result = $this->fetch_public_transaction_fees($params);
@@ -2699,55 +2700,55 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function fetch_private_transaction_fees($params = array()) {
-        // complete $response
-        // incl. for coins which null in public method
+    public function fetch_private_transaction_fees($params = array()): array {
+        // complete response
+        // incl. for coins which undefined in public method
         if ($this->markets === null) {
             $this->load_markets();
         }
         $response = $this->spotPrivatePostSupplementUserInfo();
         //
         //    {
-        //        "result" => "true",
-        //        "data" => array(
+        //        "result": "true",
+        //        "data": [
         //            {
-        //                "usableAmt" => "14.36",
-        //                "assetAmt" => "14.36",
-        //                "networkList" => array(
-        //                    array(
-        //                        "isDefault" => false,
-        //                        "withdrawFeeRate" => "",
-        //                        "name" => "erc20",
-        //                        "withdrawMin" => 30,
-        //                        "minLimit" => 0.0001,
-        //                        "minDeposit" => 20,
-        //                        "feeAssetCode" => "usdt",
-        //                        "withdrawFee" => "30",
-        //                        "type" => 1,
-        //                        "coin" => "usdt",
-        //                        "network" => "eth"
-        //                    ),
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
         //                    ...
-        //                ),
-        //                "freezeAmt" => "0",
-        //                "coin" => "ada"
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
         //            }
-        //        ),
-        //        "code" => 0
+        //        ],
+        //        "code": 0
         //    }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_list($response, 'data', array());
         $withdrawFees = array();
         for ($i = 0; $i < count($result); $i++) {
-            $entry = $result[$i];
+            $entry = $this->safe_dict($result, $i);
             $currencyId = $this->safe_string($entry, 'coin');
             $code = $this->safe_currency_code($currencyId);
-            $networkList = $this->safe_value($entry, 'networkList', array());
+            $networkList = $this->safe_list($entry, 'networkList', array());
             if ($code !== null) {
                 $withdrawFees[$code] = array();
             }
             for ($j = 0; $j < count($networkList); $j++) {
-                $networkEntry = $networkList[$j];
+                $networkEntry = $this->safe_dict($networkList, $j);
                 $fee = $this->safe_number($networkEntry, 'withdrawFee');
                 if ($fee !== null) {
                     $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
@@ -2766,46 +2767,46 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_public_transaction_fees($params = array()) {
-        // extremely incomplete $response
-        // vast majority fees null
+    public function fetch_public_transaction_fees($params = array()): array {
+        // extremely incomplete response
+        // vast majority fees undefined
         if ($this->markets === null) {
             $this->load_markets();
         }
         $code = $this->safe_string_2($params, 'coin', 'assetCode');
-        $params = $this->omit($params, array( 'coin', 'assetCode' ));
+        $paramsOmitted = $this->omit($params, array( 'coin', 'assetCode' ));
         $request = array();
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['assetCode'] = $currency['id'];
         }
-        $response = $this->spotPublicGetWithdrawConfigs($this->extend($request, $params));
+        $response = $this->spotPublicGetWithdrawConfigs($this->extend($request, $paramsOmitted));
         //
         //    {
-        //        "result" => "true",
-        //        "data" => array(
-        //          array(
-        //            "amountScale" => "4",
-        //            "chain" => "heco",
-        //            "assetCode" => "lbk",
-        //            "min" => "200",
-        //            "transferAmtScale" => "4",
-        //            "canWithDraw" => true,
-        //            "fee" => "100",
-        //            "minTransfer" => "0.0001",
-        //            "type" => "1"
-        //          ),
+        //        "result": "true",
+        //        "data": [
+        //          {
+        //            "amountScale": "4",
+        //            "chain": "heco",
+        //            "assetCode": "lbk",
+        //            "min": "200",
+        //            "transferAmtScale": "4",
+        //            "canWithDraw": true,
+        //            "fee": "100",
+        //            "minTransfer": "0.0001",
+        //            "type": "1"
+        //          },
         //          ...
-        //        ),
-        //        "error_code" => "0",
-        //        "ts" => "1663364435973"
+        //        ],
+        //        "error_code": "0",
+        //        "ts": "1663364435973"
         //    }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_list($response, 'data', array());
         $withdrawFees = array();
         for ($i = 0; $i < count($result); $i++) {
-            $item = $result[$i];
-            $canWithdraw = $this->safe_value($item, 'canWithDraw');
+            $item = $this->safe_dict($result, $i);
+            $canWithdraw = $this->safe_string($item, 'canWithDraw');
             if ($canWithdraw === 'true') {
                 $currencyId = $this->safe_string($item, 'assetCode');
                 $codeInner = $this->safe_currency_code($currencyId);
@@ -2847,14 +2848,14 @@ class lbank extends Exchange {
         }
         $isAuthorized = $this->check_required_credentials(false);
         if ($isAuthorized === true) {
-            $options = $this->safe_value($this->options, 'fetchDepositWithdrawFees', array());
+            $options = $this->safe_dict($this->options, 'fetchDepositWithdrawFees', array());
             $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
             $method = $this->safe_string($params, 'method', $defaultMethod);
-            $params = $this->omit($params, 'method');
+            $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicDepositWithdrawFees') {
-                $response = $this->fetch_public_deposit_withdraw_fees($codes, $params);
+                $response = $this->fetch_public_deposit_withdraw_fees($codes, $paramsOmitted);
             } else {
-                $response = $this->fetch_private_deposit_withdraw_fees($codes, $params);
+                $response = $this->fetch_private_deposit_withdraw_fees($codes, $paramsOmitted);
             }
         } else {
             $response = $this->fetch_public_deposit_withdraw_fees($codes, $params);
@@ -2862,50 +2863,50 @@ class lbank extends Exchange {
         return $response;
     }
 
-    public function fetch_private_deposit_withdraw_fees(?array $codes = null, $params = array()) {
-        // complete $response
-        // incl. for coins which null in public method
+    public function fetch_private_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
+        // complete response
+        // incl. for coins which undefined in public method
         if ($this->markets === null) {
             $this->load_markets();
         }
         $response = $this->spotPrivatePostSupplementUserInfo($params);
         //
         //    {
-        //        "result" => "true",
-        //        "data" => array(
+        //        "result": "true",
+        //        "data": [
         //            {
-        //                "usableAmt" => "14.36",
-        //                "assetAmt" => "14.36",
-        //                "networkList" => array(
-        //                    array(
-        //                        "isDefault" => false,
-        //                        "withdrawFeeRate" => "",
-        //                        "name" => "erc20",
-        //                        "withdrawMin" => 30,
-        //                        "minLimit" => 0.0001,
-        //                        "minDeposit" => 20,
-        //                        "feeAssetCode" => "usdt",
-        //                        "withdrawFee" => "30",
-        //                        "type" => 1,
-        //                        "coin" => "usdt",
-        //                        "network" => "eth"
-        //                    ),
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
         //                    ...
-        //                ),
-        //                "freezeAmt" => "0",
-        //                "coin" => "ada"
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
         //            }
-        //        ),
-        //        "code" => 0
+        //        ],
+        //        "code": 0
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_deposit_withdraw_fees($data, $codes, 'coin');
     }
 
-    public function fetch_public_deposit_withdraw_fees(?array $codes = null, $params = array()) {
-        // extremely incomplete $response
-        // vast majority fees null
+    public function fetch_public_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
+        // extremely incomplete response
+        // vast majority fees undefined
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2913,57 +2914,57 @@ class lbank extends Exchange {
         $response = $this->spotPublicGetWithdrawConfigs($this->extend($request, $params));
         //
         //    {
-        //        "result" => "true",
-        //        "data" => array(
-        //            array(
-        //                "amountScale" => "4",
-        //                "chain" => "heco",
-        //                "assetCode" => "lbk",
-        //                "min" => "200",
-        //                "transferAmtScale" => "4",
-        //                "canWithDraw" => true,
-        //                "fee" => "100",
-        //                "minTransfer" => "0.0001",
-        //                "type" => "1"
-        //            ),
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "heco",
+        //                "assetCode": "lbk",
+        //                "min": "200",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "100",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
         //            ...
-        //        ),
-        //        "error_code" => "0",
-        //        "ts" => "1663364435973"
+        //        ],
+        //        "error_code": "0",
+        //        "ts": "1663364435973"
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_public_deposit_withdraw_fees($data, $codes);
     }
 
-    public function parse_public_deposit_withdraw_fees(mixed $response, ?array $codes = null) {
+    public function parse_public_deposit_withdraw_fees(array $response, ?array $codes = null): array {
         //
-        //    array(
-        //        array(
-        //            "amountScale" => "4",
-        //            "chain" => "heco",
-        //            "assetCode" => "lbk",
-        //            "min" => "200",
-        //            "transferAmtScale" => "4",
-        //            "canWithDraw" => true,
-        //            "fee" => "100",
-        //            "minTransfer" => "0.0001",
-        //            "type" => "1"
-        //        ),
+        //    [
+        //        {
+        //            "amountScale": "4",
+        //            "chain": "heco",
+        //            "assetCode": "lbk",
+        //            "min": "200",
+        //            "transferAmtScale": "4",
+        //            "canWithDraw": true,
+        //            "fee": "100",
+        //            "minTransfer": "0.0001",
+        //            "type": "1"
+        //        },
         //        ...
-        //    )
+        //    ]
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $fee = $response[$i];
-            $canWithdraw = $this->safe_value($fee, 'canWithDraw');
+            $canWithdraw = $this->safe_bool($fee, 'canWithDraw');
             if ($canWithdraw === true) {
                 $currencyId = $this->safe_string($fee, 'assetCode');
                 $code = $this->safe_currency_code($currencyId);
                 if (($code !== null) && ($codes === null || $this->in_array($code, $codes))) {
                     $withdrawFee = $this->safe_number($fee, 'fee');
                     if ($withdrawFee !== null) {
-                        $resultValue = $this->safe_value($result, $code);
+                        $resultValue = $this->safe_dict($result, $code);
                         if ($resultValue === null) {
                             $result[$code] = $this->deposit_withdraw_fee(array( $fee ));
                         } else {
@@ -2995,43 +2996,43 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         // * only used for fetchPrivateDepositWithdrawFees
         //
         //    {
-        //        "usableAmt" => "14.36",
-        //        "assetAmt" => "14.36",
-        //        "networkList" => array(
-        //            array(
-        //                "isDefault" => false,
-        //                "withdrawFeeRate" => "",
-        //                "name" => "erc20",
-        //                "withdrawMin" => 30,
-        //                "minLimit" => 0.0001,
-        //                "minDeposit" => 20,
-        //                "feeAssetCode" => "usdt",
-        //                "withdrawFee" => "30",
-        //                "type" => 1,
-        //                "coin" => "usdt",
-        //                "network" => "eth"
-        //            ),
+        //        "usableAmt": "14.36",
+        //        "assetAmt": "14.36",
+        //        "networkList": [
+        //            {
+        //                "isDefault": false,
+        //                "withdrawFeeRate": "",
+        //                "name": "erc20",
+        //                "withdrawMin": 30,
+        //                "minLimit": 0.0001,
+        //                "minDeposit": 20,
+        //                "feeAssetCode": "usdt",
+        //                "withdrawFee": "30",
+        //                "type": 1,
+        //                "coin": "usdt",
+        //                "network": "eth"
+        //            },
         //            ...
-        //        ),
-        //        "freezeAmt" => "0",
-        //        "coin" => "ada"
+        //        ],
+        //        "freezeAmt": "0",
+        //        "coin": "ada"
         //    }
         //
         $result = $this->deposit_withdraw_fee($fee);
         $code = $this->safe_string($currency, 'code');
-        $networkList = $this->safe_value($fee, 'networkList', array());
+        $networkList = $this->safe_list($fee, 'networkList', array());
         for ($j = 0; $j < count($networkList); $j++) {
-            $networkEntry = $networkList[$j];
+            $networkEntry = $this->safe_dict($networkList, $j);
             $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
             $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
-            $isDefault = $this->safe_value($networkEntry, 'isDefault');
+            $isDefault = $this->safe_bool($networkEntry, 'isDefault');
             if ($withdrawFee !== null) {
-                if ($isDefault) {
+                if ($isDefault === true) {
                     $result['withdraw'] = array(
                         'fee' => $withdrawFee,
                         'percentage' => null,
@@ -3054,17 +3055,25 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $this->version . '/' . $this->implode_params($path, $params);
         // Every spot endpoint ends with ".do"
         if ($api[0] === 'spot') {
             $url .= '.do';
         } else {
-            $url = $this->urls['api']['contract'] . '/' . $this->implode_params($path, $params);
+            $contractUrl = $this->safe_string($this->urls['api'], 'contract');
+            if ($contractUrl === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $contractUrl . '/' . $this->implode_params($path, $params);
         }
         if ($api[1] === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($this->keysort($query));
             }
         } else {
@@ -3093,8 +3102,8 @@ class lbank extends Exchange {
             if ($signatureMethod === 'RSA') {
                 $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
                 $pem = null;
-                if ($cacheSecretAsPem) {
-                    $pem = $this->safe_value($this->options, 'pem');
+                if ($cacheSecretAsPem === true) {
+                    $pem = $this->safe_string($this->options, 'pem');
                     if ($pem === null) {
                         $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                         $this->options['pem'] = $pem;
@@ -3107,13 +3116,14 @@ class lbank extends Exchange {
                 $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret), 'sha256');
             }
             $query['sign'] = $sign;
-            $body = $this->urlencode($this->keysort($query));
-            $headers = array(
+            $bodySigned = $this->urlencode($this->keysort($query));
+            $headersSigned = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'timestamp' => $timestamp,
                 'signature_method' => $signatureMethod,
                 'echostr' => $echostr,
             );
+            return array( 'url' => $url, 'method' => $method, 'body' => $bodySigned, 'headers' => $headersSigned );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
@@ -3137,7 +3147,7 @@ class lbank extends Exchange {
             throw new NullResponse($this->id . ' parseBalance() returned empty response');
         }
         $success = $this->safe_value($response, 'result');
-        if ($success === 'false' || !$success) {
+        if (($success === 'false') || ($success === null) || ($success === null) || ($success === false)) {
             $errorCode = $this->safe_string($response, 'error_code');
             $message = $this->safe_string(array(
                 '10000' => 'Internal error',
@@ -3151,8 +3161,8 @@ class lbank extends Exchange {
                 '10008' => 'Invalid Trading Pair',
                 '10009' => 'Price and/or Amount are required for limit order',
                 '10010' => 'Price and/or Amount must be less than minimum requirement',
-                // '10011' => 'Market orders can not be missing the amount of the order',
-                // '10012' => 'market sell orders can not be missing orders',
+                // '10011': 'Market orders can not be missing the amount of the order',
+                // '10012': 'market sell orders can not be missing orders',
                 '10013' => 'The amount is too small',
                 '10014' => 'Insufficient amount of money in the account',
                 '10015' => 'Invalid order type',

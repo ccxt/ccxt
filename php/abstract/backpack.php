@@ -32,6 +32,12 @@ abstract class backpack extends \ccxt\Exchange {
         return $this->request('api/v1/borrowLend/markets/history', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function public_get_api_v1_borrowlend_apy($params = array()) {
+        return $this->request('api/v1/borrowLend/apy', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return list<mixed>
      */
     public function public_get_api_v1_markets($params = array()) {
@@ -60,6 +66,36 @@ abstract class backpack extends \ccxt\Exchange {
      */
     public function public_get_api_v1_depth($params = array()) {
         return $this->request('api/v1/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_get_api_v1_prediction($params = array()) {
+        return $this->request('api/v1/prediction', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_get_api_v1_prediction_tags($params = array()) {
+        return $this->request('api/v1/prediction/tags', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_get_api_v1_market_sessions($params = array()) {
+        return $this->request('api/v1/market-sessions', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_get_api_v1_market_holidays($params = array()) {
+        return $this->request('api/v1/market-holidays', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_get_api_v1_securities($params = array()) {
+        return $this->request('api/v1/securities', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -154,6 +190,12 @@ abstract class backpack extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_api_v1_borrowlend_position_liquidationprice($params = array()) {
+        return $this->request('api/v1/borrowLend/position/liquidationPrice', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_api_v1_capital($params = array()) {
         return $this->request('api/v1/capital', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -226,8 +268,20 @@ abstract class backpack extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function private_get_wapi_v1_history_position($params = array()) {
+        return $this->request('wapi/v1/history/position', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_wapi_v1_history_orders($params = array()) {
         return $this->request('wapi/v1/history/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_get_api_v1_rfqs($params = array()) {
+        return $this->request('api/v1/rfqs', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -244,6 +298,18 @@ abstract class backpack extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function private_get_wapi_v1_history_rfq_fill($params = array()) {
+        return $this->request('wapi/v1/history/rfq/fill', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_get_wapi_v1_history_quote_fill($params = array()) {
+        return $this->request('wapi/v1/history/quote/fill', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_wapi_v1_history_settlement($params = array()) {
         return $this->request('wapi/v1/history/settlement', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -252,6 +318,18 @@ abstract class backpack extends \ccxt\Exchange {
      */
     public function private_get_wapi_v1_history_strategies($params = array()) {
         return $this->request('wapi/v1/history/strategies', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_api_v1_strategy($params = array()) {
+        return $this->request('api/v1/strategy', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_get_api_v1_strategies($params = array()) {
+        return $this->request('api/v1/strategies', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -328,6 +406,12 @@ abstract class backpack extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_api_v1_strategy($params = array()) {
+        return $this->request('api/v1/strategy', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_api_v1_order($params = array()) {
         return $this->request('api/v1/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -336,6 +420,18 @@ abstract class backpack extends \ccxt\Exchange {
      */
     public function private_delete_api_v1_orders($params = array()) {
         return $this->request('api/v1/orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_delete_api_v1_strategy($params = array()) {
+        return $this->request('api/v1/strategy', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_delete_api_v1_strategies($params = array()) {
+        return $this->request('api/v1/strategies', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -368,6 +464,12 @@ abstract class backpack extends \ccxt\Exchange {
         return $this->request('api/v1/borrowLend/markets/history', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function publicGetApiV1BorrowLendApy($params = array()) {
+        return $this->request('api/v1/borrowLend/apy', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return list<mixed>
      */
     public function publicGetApiV1Markets($params = array()) {
@@ -396,6 +498,36 @@ abstract class backpack extends \ccxt\Exchange {
      */
     public function publicGetApiV1Depth($params = array()) {
         return $this->request('api/v1/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicGetApiV1Prediction($params = array()) {
+        return $this->request('api/v1/prediction', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicGetApiV1PredictionTags($params = array()) {
+        return $this->request('api/v1/prediction/tags', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicGetApiV1MarketSessions($params = array()) {
+        return $this->request('api/v1/market-sessions', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicGetApiV1MarketHolidays($params = array()) {
+        return $this->request('api/v1/market-holidays', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicGetApiV1Securities($params = array()) {
+        return $this->request('api/v1/securities', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -490,6 +622,12 @@ abstract class backpack extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetApiV1BorrowLendPositionLiquidationPrice($params = array()) {
+        return $this->request('api/v1/borrowLend/position/liquidationPrice', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetApiV1Capital($params = array()) {
         return $this->request('api/v1/capital', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -562,8 +700,20 @@ abstract class backpack extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function privateGetWapiV1HistoryPosition($params = array()) {
+        return $this->request('wapi/v1/history/position', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetWapiV1HistoryOrders($params = array()) {
         return $this->request('wapi/v1/history/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetApiV1Rfqs($params = array()) {
+        return $this->request('api/v1/rfqs', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -580,6 +730,18 @@ abstract class backpack extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function privateGetWapiV1HistoryRfqFill($params = array()) {
+        return $this->request('wapi/v1/history/rfq/fill', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetWapiV1HistoryQuoteFill($params = array()) {
+        return $this->request('wapi/v1/history/quote/fill', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetWapiV1HistorySettlement($params = array()) {
         return $this->request('wapi/v1/history/settlement', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -588,6 +750,18 @@ abstract class backpack extends \ccxt\Exchange {
      */
     public function privateGetWapiV1HistoryStrategies($params = array()) {
         return $this->request('wapi/v1/history/strategies', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetApiV1Strategy($params = array()) {
+        return $this->request('api/v1/strategy', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetApiV1Strategies($params = array()) {
+        return $this->request('api/v1/strategies', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -664,6 +838,12 @@ abstract class backpack extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatePostApiV1Strategy($params = array()) {
+        return $this->request('api/v1/strategy', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteApiV1Order($params = array()) {
         return $this->request('api/v1/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -672,6 +852,18 @@ abstract class backpack extends \ccxt\Exchange {
      */
     public function privateDeleteApiV1Orders($params = array()) {
         return $this->request('api/v1/orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateDeleteApiV1Strategy($params = array()) {
+        return $this->request('api/v1/strategy', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateDeleteApiV1Strategies($params = array()) {
+        return $this->request('api/v1/strategies', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

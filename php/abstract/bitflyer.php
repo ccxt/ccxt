@@ -70,6 +70,12 @@ abstract class bitflyer extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function public_get_getfundingratehistory($params = array()) {
+        return $this->request('getfundingratehistory', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_getpermissions($params = array()) {
         return $this->request('getpermissions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -276,6 +282,12 @@ abstract class bitflyer extends \ccxt\Exchange {
      */
     public function publicGetGetfundingrate($params = array()) {
         return $this->request('getfundingrate', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicGetGetfundingratehistory($params = array()) {
+        return $this->request('getfundingratehistory', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>

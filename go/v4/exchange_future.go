@@ -10,14 +10,14 @@ import (
 //	- use the channel returned by Await() (or the struct itself) to receive the value
 
 type GetsLimit interface {
-	GetLimit(symbol any, limit any) any
+	GetLimit(symbol any, limit any) *int64
 }
 
 // used when a value does not implement GetsLimit
 // returns the caller-supplied limit unchanged
 type NoopLimit struct{ Val any }
 
-func (n NoopLimit) GetLimit(symbol any, limit any) any { return limit }
+func (n NoopLimit) GetLimit(symbol any, limit any) *int64 { return Int64PtrTyped(limit) }
 
 // converts arbitrary values to the GetsLimit interface expected by Future.Resolve
 func ToGetsLimit(v any) GetsLimit {
@@ -31,7 +31,7 @@ func ToGetsLimit(v any) GetsLimit {
 type Future struct {
 	result        chan any
 	err           chan any
-	subscribers   []chan any
+	subscribers   []chan AsyncResult[any]
 	resolved      bool
 	resolvedValue any
 	resolvedError any
@@ -87,7 +87,7 @@ func (f *Future) Resolve(args ...any) {
 		// capacity 1 and receives at most this one send, so the non blocking
 		// send cannot drop a wakeup
 		for _, sub := range subscribers {
-			func(sub chan any) {
+			func(sub chan AsyncResult[any]) {
 				defer func() {
 					if r := recover(); r != nil {
 						// Channel is closed, but that's okay since we're using sync.Once
@@ -95,7 +95,7 @@ func (f *Future) Resolve(args ...any) {
 					}
 				}()
 				select {
-				case sub <- value:
+				case sub <- AsyncResult[any]{Value: value}:
 				default:
 				}
 			}(sub)
@@ -128,8 +128,9 @@ func (f *Future) Reject(reason any) {
 		}()
 
 		// notify the snapshot outside the lock, see Resolve
+		failure := rejectionError(reason)
 		for _, sub := range subscribers {
-			func(sub chan any) {
+			func(sub chan AsyncResult[any]) {
 				defer func() {
 					if r := recover(); r != nil {
 						// Channel is closed, but that's okay since we're using sync.Once
@@ -137,7 +138,7 @@ func (f *Future) Reject(reason any) {
 					}
 				}()
 				select {
-				case sub <- reason:
+				case sub <- AsyncResult[any]{Err: failure}:
 				default:
 				}
 			}(sub)
@@ -145,85 +146,24 @@ func (f *Future) Reject(reason any) {
 	})
 }
 
-// // Await blocks until either result or error is received
-// // Returns the resolved value (which could be an error)
-// func (f *Future) Await() <-chan any {
-// 	ch := make(chan any)
+// rejectionError is the Err a rejection reason is delivered as; a nil reason reads as nil, as before.
+func rejectionError(reason any) error {
+	if reason == nil {
+		return nil
+	}
+	return RecoveredError(reason)
+}
 
-// 	go func() {
-// 		defer close(ch)
-
-// 		// f.mu.Lock()
-// 		if f.resolved {
-// 			// f.mu.Unlock()
-// 			// for {
-// 			// Already resolved, return cached value immediately
-// 			// f.mu.Lock()
-// 			if f.resolvedError != nil {
-// 				ch <- f.resolvedError
-// 			} else {
-// 				ch <- f.resolvedValue
-// 			}
-// 			// f.mu.Unlock()
-// 			// f.mu.Unlock()
-// 			// return
-// 		}
-// 		// }
-// 		// f.mu.Unlock()
-
-// 		// // Not resolved yet, wait for it
-// 		// select {
-// 		// case res := <-f.result:
-// 		// 	for {
-// 		// 		ch <- res
-// 		// 	}
-// 		// case err := <-f.err:
-// 		// 	for {
-// 		// 		ch <- err
-// 		// 	}
-// 		// }
-
-// 		resCh, errCh := f.result, f.err
-// 		// f.mu.Unlock()
-
-// 		var out any
-// 		select {
-// 		case out = <-resCh:
-// 		case out = <-errCh:
-// 		}
-
-// 		// Cache the resolution
-// 		f.mu.Lock()
-// 		f.resolved = true
-// 		if e, ok := out.(error); ok {
-// 			f.resolvedError = e
-// 		} else {
-// 			f.resolvedValue = out
-// 		}
-// 		val, err := f.resolvedValue, f.resolvedError
-// 		f.mu.Unlock()
-
-// 		// for {
-// 		if err != nil {
-// 			ch <- err
-// 		} else {
-// 			ch <- val
-// 		}
-// 		// }
-// 	}()
-
-// 	return ch
-// }
-
-func (f *Future) Await() <-chan any {
-	ch := make(chan any, 1)
+// Await delivers the outcome: {Value} on resolve, {Err} on reject.
+func (f *Future) Await() <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	f.mu.Lock()
 	if f.resolved {
 		// Already resolved, return cached value immediately
 		if f.resolvedError != nil {
-			ch <- f.resolvedError
+			ch <- AsyncResult[any]{Err: rejectionError(f.resolvedError)}
 		} else {
-			ch <- f.resolvedValue
+			ch <- AsyncResult[any]{Value: f.resolvedValue}
 		}
 		f.mu.Unlock()
 		return ch
@@ -231,34 +171,10 @@ func (f *Future) Await() <-chan any {
 	// still unresolved under the same lock, so a concurrent Resolve cannot
 	// have taken its subscriber snapshot yet, the append below is safe
 	if f.subscribers == nil {
-		f.subscribers = make([]chan any, 0)
+		f.subscribers = make([]chan AsyncResult[any], 0)
 	}
 	f.subscribers = append(f.subscribers, ch)
 	f.mu.Unlock()
-	// go func() {
-	// 	defer close(ch)
-	// 	// f.mu.Lock()
-	// 	if f.resolved {
-	// 		// Already resolved, return cached value immediately
-	// 		if f.resolvedError != nil {
-	// 			ch <- f.resolvedError
-	// 		} else {
-	// 			ch <- f.resolvedValue
-	// 		}
-	// 		// f.mu.Unlock()
-	// 		return
-	// 	}
-
-	// 	// f.mu.Unlock()
-
-	// 	// Not resolved yet, wait for it
-	// 	select {
-	// 	case res := <-f.result:
-	// 		ch <- res
-	// 	case err := <-f.err:
-	// 		ch <- err
-	// 	}
-	// }()
 
 	return ch
 }
@@ -287,7 +203,7 @@ func FutureRace(futures []*Future) *Future {
 	result := NewFuture()
 	// Buffered so that a non-blocking send from Future.Resolve succeeds
 	// even before the reader goroutine is scheduled.
-	sharedCh := make(chan interface{}, 1)
+	sharedCh := make(chan AsyncResult[any], 1)
 
 	for _, f := range futures {
 		f.mu.Lock()
@@ -295,7 +211,7 @@ func FutureRace(futures []*Future) *Future {
 			val, err := f.resolvedValue, f.resolvedError
 			f.mu.Unlock()
 			if err != nil {
-				result.Reject(err.(error))
+				result.Reject(err)
 			} else {
 				result.Resolve(val)
 			}
@@ -305,7 +221,7 @@ func FutureRace(futures []*Future) *Future {
 		// landing in between would otherwise notify an empty list and this
 		// racer would never wake, see https://github.com/ccxt/ccxt/issues/29586
 		if f.subscribers == nil {
-			f.subscribers = make([]chan interface{}, 0)
+			f.subscribers = make([]chan AsyncResult[any], 0)
 		}
 		f.subscribers = append(f.subscribers, sharedCh)
 		f.mu.Unlock()
@@ -314,10 +230,10 @@ func FutureRace(futures []*Future) *Future {
 	// Single goroutine forwards the first resolved/rejected value.
 	go func() {
 		val := <-sharedCh
-		if err, isError := val.(error); isError {
-			result.Reject(err)
+		if val.Err != nil {
+			result.Reject(val.Err)
 		} else {
-			result.Resolve(val)
+			result.Resolve(val.Value)
 		}
 	}()
 

@@ -5,12 +5,13 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class PositionModeInfo {
+public final class PositionModeInfo extends TypedMap {
     public Boolean hedged;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
     public PositionModeInfo(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.hedged = TypeHelper.safeBool(data, "hedged");
         this.info = TypeHelper.getInfo(data);

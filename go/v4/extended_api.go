@@ -8,256 +8,346 @@
 package ccxt
 
 // V1PublicGetInfoMarkets returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfoMarkets", args...)
+func (this *Extended) V1PublicGetInfoMarkets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "info/markets", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetInfoAssets returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfoAssets", args...)
+func (this *Extended) V1PublicGetInfoAssets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "info/assets", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetInfoAssetsAssetPrice returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoAssetsAssetPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfoAssetsAssetPrice", args...)
+func (this *Extended) V1PublicGetInfoAssetsAssetPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "info/assets/{asset}/price", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetInfoMarketsMarketStats returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarketsMarketStats(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfoMarketsMarketStats", args...)
+func (this *Extended) V1PublicGetInfoMarketsMarketStats(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "info/markets/{market}/stats", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetInfoMarketsMarketOrderbook returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarketsMarketOrderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfoMarketsMarketOrderbook", args...)
+func (this *Extended) V1PublicGetInfoMarketsMarketOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "info/markets/{market}/orderbook", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetInfoMarketsMarketTrades returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarketsMarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfoMarketsMarketTrades", args...)
+func (this *Extended) V1PublicGetInfoMarketsMarketTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "info/markets/{market}/trades", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetInfoCandlesMarketCandleType returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoCandlesMarketCandleType(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfoCandlesMarketCandleType", args...)
+func (this *Extended) V1PublicGetInfoCandlesMarketCandleType(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "info/candles/{market}/{candleType}", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetInfoMarketFunding returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarketFunding(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfoMarketFunding", args...)
+func (this *Extended) V1PublicGetInfoMarketFunding(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "info/{market}/funding", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetInfoMarketOpenInterests returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarketOpenInterests(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfoMarketOpenInterests", args...)
+func (this *Extended) V1PublicGetInfoMarketOpenInterests(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "info/{market}/open-interests", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetInfoBuilderDashboard returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoBuilderDashboard(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfoBuilderDashboard", args...)
+func (this *Extended) V1PublicGetInfoBuilderDashboard(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "info/builder/dashboard", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PublicGetInterestInfoRateCurves returns a channel that yields a JSON object.
+func (this *Extended) V1PublicGetInterestInfoRateCurves(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "interest/info/rate-curves", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PublicGetInterestInfoLatestRateCurves returns a channel that yields a JSON object.
+func (this *Extended) V1PublicGetInterestInfoLatestRateCurves(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "interest/info/latest-rate-curves", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserAccounts returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserAccounts", args...)
+func (this *Extended) V1PrivateGetUserAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/accounts", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserAccountInfo returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserAccountInfo", args...)
+func (this *Extended) V1PrivateGetUserAccountInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/account/info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserBalance returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserBalance", args...)
+func (this *Extended) V1PrivateGetUserBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/balance", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserSpotBalances returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserSpotBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserSpotBalances", args...)
+func (this *Extended) V1PrivateGetUserSpotBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/spot/balances", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserAssetOperations returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserAssetOperations(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserAssetOperations", args...)
+func (this *Extended) V1PrivateGetUserAssetOperations(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/assetOperations", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserPositions returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserPositions", args...)
+func (this *Extended) V1PrivateGetUserPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/positions", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserPositionsHistory returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserPositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserPositionsHistory", args...)
+func (this *Extended) V1PrivateGetUserPositionsHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/positions/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserOrders returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserOrders", args...)
+func (this *Extended) V1PrivateGetUserOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/orders", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserOrdersHistory returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserOrdersHistory", args...)
+func (this *Extended) V1PrivateGetUserOrdersHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/orders/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserOrdersId returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserOrdersId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserOrdersId", args...)
+func (this *Extended) V1PrivateGetUserOrdersId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/orders/{id}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserOrdersExternalExternalId returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserOrdersExternalExternalId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserOrdersExternalExternalId", args...)
+func (this *Extended) V1PrivateGetUserOrdersExternalExternalId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/orders/external/{externalId}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserTrades returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserTrades", args...)
+func (this *Extended) V1PrivateGetUserTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/trades", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserFundingHistory returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserFundingHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserFundingHistory", args...)
+func (this *Extended) V1PrivateGetUserFundingHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/funding/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserRebatesStats returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserRebatesStats(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserRebatesStats", args...)
+func (this *Extended) V1PrivateGetUserRebatesStats(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/rebates/stats", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserLeverage returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserLeverage", args...)
+func (this *Extended) V1PrivateGetUserLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/leverage", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserFees returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserFees(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserFees", args...)
+func (this *Extended) V1PrivateGetUserFees(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/fees", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserBridgeConfig returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserBridgeConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserBridgeConfig", args...)
+func (this *Extended) V1PrivateGetUserBridgeConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/bridge/config", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserBridgeQuote returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserBridgeQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserBridgeQuote", args...)
+func (this *Extended) V1PrivateGetUserBridgeQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/bridge/quote", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserAffiliate returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserAffiliate(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserAffiliate", args...)
+func (this *Extended) V1PrivateGetUserAffiliate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/affiliate", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserReferralsStatus returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserReferralsStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserReferralsStatus", args...)
+func (this *Extended) V1PrivateGetUserReferralsStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/referrals/status", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserReferralsLinks returns a channel that yields a JSON array.
-func (this *ExtendedCore) V1PrivateGetUserReferralsLinks(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserReferralsLinks", args...)
+func (this *Extended) V1PrivateGetUserReferralsLinks(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "user/referrals/links", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserReferralsDashboard returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserReferralsDashboard(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserReferralsDashboard", args...)
+func (this *Extended) V1PrivateGetUserReferralsDashboard(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/referrals/dashboard", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserRewardsEarned returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserRewardsEarned(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserRewardsEarned", args...)
+func (this *Extended) V1PrivateGetUserRewardsEarned(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/rewards/earned", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetUserRewardsLeaderboardStats returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserRewardsLeaderboardStats(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetUserRewardsLeaderboardStats", args...)
+func (this *Extended) V1PrivateGetUserRewardsLeaderboardStats(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/rewards/leaderboard/stats", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetPortfolioChartsEquities returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioChartsEquities(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfolioChartsEquities", args...)
+func (this *Extended) V1PrivateGetPortfolioChartsEquities(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/charts/equities", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetPortfolioChartsPnl returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioChartsPnl(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfolioChartsPnl", args...)
+func (this *Extended) V1PrivateGetPortfolioChartsPnl(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/charts/pnl", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetPortfolioChartsPnlPercentage returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetPortfolioChartsPnlPercentage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/charts/pnl/percentage", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetPortfolioChartsPnlCumulative returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetPortfolioChartsPnlCumulative(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/charts/pnl/cumulative", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetPortfolioChartsPnlCumulativePercentage returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetPortfolioChartsPnlCumulativePercentage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/charts/pnl/cumulative/percentage", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetPortfolioChartsVaultEquities returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetPortfolioChartsVaultEquities(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/charts/vault-equities", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetPortfolioChartsMaxDrawdown returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetPortfolioChartsMaxDrawdown(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/charts/max-drawdown", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetPortfolioChartsFunding returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetPortfolioChartsFunding(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/charts/funding", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetPortfolioAccountsSummary returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetPortfolioAccountsSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/accounts/summary", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetPortfolioAccountsHealth returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetPortfolioAccountsHealth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/accounts/health", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetPortfolioAccountsPerformance returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetPortfolioAccountsPerformance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/accounts/performance", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetPortfolioFundingStats returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetPortfolioFundingStats(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/funding/stats", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetPortfolioFundingHistory returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetPortfolioFundingHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "portfolio/funding/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetVaultPublicPerformance returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetVaultPublicPerformance(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetVaultPublicPerformance", args...)
+func (this *Extended) V1PrivateGetVaultPublicPerformance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "vault/public/performance", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetVaultPublicSummary returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetVaultPublicSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetVaultPublicSummary", args...)
+func (this *Extended) V1PrivateGetVaultPublicSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "vault/public/summary", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetBuilderTrades returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetBuilderTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetBuilderTrades", args...)
+func (this *Extended) V1PrivateGetBuilderTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "builder/trades", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetInterestKeyMetrics returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetInterestKeyMetrics(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "interest/key-metrics", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetInterestDailyMetrics returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetInterestDailyMetrics(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "interest/daily-metrics", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetInterestPaymentChart returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetInterestPaymentChart(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "interest/payment-chart", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivateGetInterestPayments returns a channel that yields a JSON object.
+func (this *Extended) V1PrivateGetInterestPayments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "interest/payments", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostUserOrder returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostUserOrder", args...)
+func (this *Extended) V1PrivatePostUserOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/order", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// V1PrivatePostUserOrderRfq returns a channel that yields a JSON object.
+func (this *Extended) V1PrivatePostUserOrderRfq(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/order/rfq", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostUserOrderMassCancel returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserOrderMassCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostUserOrderMassCancel", args...)
+func (this *Extended) V1PrivatePostUserOrderMassCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/order/massCancel", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostUserDeadmanswitch returns a channel that yields a JSON scalar.
-func (this *ExtendedCore) V1PrivatePostUserDeadmanswitch(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostUserDeadmanswitch", args...)
+func (this *Extended) V1PrivatePostUserDeadmanswitch(args ...any) <-chan EndpointResult[string] {
+	return Fetch2Result[string](this, "user/deadmanswitch", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostUserBridgeQuote returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserBridgeQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostUserBridgeQuote", args...)
+func (this *Extended) V1PrivatePostUserBridgeQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/bridge/quote", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostUserWithdrawal returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostUserWithdrawal", args...)
+func (this *Extended) V1PrivatePostUserWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/withdrawal", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostUserTransfer returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostUserTransfer", args...)
+func (this *Extended) V1PrivatePostUserTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/transfer", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostUserReferralsUse returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserReferralsUse(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostUserReferralsUse", args...)
+func (this *Extended) V1PrivatePostUserReferralsUse(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/referrals/use", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostUserReferrals returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserReferrals(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostUserReferrals", args...)
+func (this *Extended) V1PrivatePostUserReferrals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/referrals", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePutUserReferrals returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePutUserReferrals(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePutUserReferrals", args...)
+func (this *Extended) V1PrivatePutUserReferrals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/referrals", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePatchUserLeverage returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePatchUserLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePatchUserLeverage", args...)
+func (this *Extended) V1PrivatePatchUserLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/leverage", []string{"v1", "private"}, "PATCH", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteUserOrderId returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateDeleteUserOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteUserOrderId", args...)
+func (this *Extended) V1PrivateDeleteUserOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/order/{id}", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteUserOrder returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateDeleteUserOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteUserOrder", args...)
+func (this *Extended) V1PrivateDeleteUserOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

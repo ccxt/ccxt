@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official dydx API documentation:** [docs.dydx.xyz](https://docs.dydx.xyz)
 
-> 54 implicit endpoints across 3 access groups.
+> 60 implicit endpoints across 3 access groups.
 
 ## indexer
 
@@ -109,6 +109,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders` | GET | `addresses/{address}/subaccountNumber/{subaccountNumber}/orders` | 1 |
 | `indexerGetFillsParentSubaccount` | GET | `fills/parentSubaccount` | 1 |
 | `indexerGetHistoricalPnlParentSubaccount` | GET | `historical-pnl/parentSubaccount` | 1 |
+| `indexerGetPnl` | GET | `pnl` | 1 |
+| `indexerGetPnlParentSubaccountNumber` | GET | `pnl/parentSubaccountNumber` | 1 |
+| `indexerGetTradeHistory` | GET | `tradeHistory` | 1 |
+| `indexerGetTradeHistoryParentSubaccountNumber` | GET | `tradeHistory/parentSubaccountNumber` | 1 |
+| `indexerPostTurnkeySignin` | POST | `turnkey/signin` | 1 |
+| `indexerPostTurnkeyUploadAddress` | POST | `turnkey/uploadAddress` | 1 |
 
 ## nodeRpc
 

@@ -56,6 +56,24 @@ abstract class zaif extends \ccxt\async\Exchange {
         return $this->request('trades/{pair}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function public_get_vasp_info_vasp_master_id($params = array()) {
+        return $this->request('vasp_info/{vasp_master_id}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function public_get_country_info_code($params = array()) {
+        return $this->request('country_info/{code}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function public_get_corp_type_id_info_id($params = array()) {
+        return $this->request('corp_type_id_info/{id}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_active_orders($params = array()) {
@@ -258,6 +276,24 @@ abstract class zaif extends \ccxt\async\Exchange {
      */
     public function publicGetTradesPair($params = array()) {
         return $this->request('trades/{pair}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetVaspInfoVaspMasterId($params = array()) {
+        return $this->request('vasp_info/{vasp_master_id}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetCountryInfoCode($params = array()) {
+        return $this->request('country_info/{code}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetCorpTypeIdInfoId($params = array()) {
+        return $this->request('corp_type_id_info/{id}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

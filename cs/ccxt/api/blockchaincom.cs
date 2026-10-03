@@ -60,6 +60,13 @@ public partial class blockchaincom : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetFees",parameters);
     }
 
+    /// <summary>Calls the privateGetInternalOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetInternalOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetInternalOrders",parameters);
+    }
+
     /// <summary>Calls the privateGetOrders endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateGetOrders (object parameters = null)

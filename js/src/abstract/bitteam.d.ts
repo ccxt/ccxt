@@ -10,6 +10,7 @@ interface Exchange {
     publicGetTradeApiPairs(params?: {}): Promise<Dict>;
     publicGetTradeApiPairsPrecisions(params?: {}): Promise<Dict>;
     publicGetTradeApiRates(params?: {}): Promise<Dict>;
+    publicGetTradeApiStats(params?: {}): Promise<Dict>;
     publicGetTradeApiTradeId(params?: {}): Promise<Dict>;
     publicGetTradeApiTrades(params?: {}): Promise<Dict>;
     publicGetTradeApiCcxtPairs(params?: {}): Promise<Dict>;

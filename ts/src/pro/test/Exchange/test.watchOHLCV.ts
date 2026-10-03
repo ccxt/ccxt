@@ -9,7 +9,7 @@ async function testWatchOHLCV (exchange: Exchange, skippedProperties: object, sy
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     const timeframeKeys = Object.keys (exchange.timeframes);
-    assert (timeframeKeys.length, exchange.id + ' ' + method + ' - no timeframes found');
+    assert (timeframeKeys.length > 0, exchange.id + ' ' + method + ' - no timeframes found');
     // prefer 1m timeframe if available, otherwise return the first one
     let chosenTimeframeKey = '1m';
     if (!exchange.inArray (chosenTimeframeKey, timeframeKeys)) {

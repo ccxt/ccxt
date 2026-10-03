@@ -10,33 +10,33 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchOHLCVForSymbols(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchOHLCVForSymbols";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        object timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
-        assert(getArrayLength(timeframeKeys), add(add(add(exchange.id, " "), method), " - no timeframes found"));
+        string method = "watchOHLCVForSymbols";
+        Int64 now = exchange.milliseconds();
+        Int64 ends = (now + 15000);
+        List<object> timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
+        assert(timeframeKeys.Count > 0, add(add(add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         object chosenTimeframeKey = "1m";
         if (!isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            chosenTimeframeKey = getValue(timeframeKeys, 0);
+            chosenTimeframeKey = (timeframeKeys != null && 0 < timeframeKeys.Count ? timeframeKeys[0] : null);
         }
-        object limit = 10;
-        object duration = exchange.parseTimeframe(chosenTimeframeKey);
-        object since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
-        object maxIdleTime = 5000;
-        object idle = false;
-        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
+        int limit = 10;
+        int duration = exchange.parseTimeframe(chosenTimeframeKey);
+        Int64 since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
+        int maxIdleTime = 5000;
+        bool idle = false;
+        while ((now < ends) && !idle)
         {
             object response = null;
-            object success = true;
-            object startTime = exchange.milliseconds();
+            bool success = true;
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit);
-                if (isTrue(isEqual(response, null)))
+                response = detypeForComparison(await exchange.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit));
+                if ((response == null))
                 {
-                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                    throw new Exception (add(exchange.id, " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {
@@ -47,21 +47,21 @@ public partial class testMainClass : BaseTest
                 success = false;
             }
             now = exchange.milliseconds();
-            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
+            if (((success == true)) && ((response != null)))
             {
                 object assertionMessage = add(add(add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.json(response));
-                assert(exchange.isDictionary(response), add("Response must be a dictionary. ", assertionMessage));
-                assert(inOp(response, symbol), add("Response should contain the symbol as key. ", assertionMessage));
+                assert(exchange.isDictionary(response), ("Response must be a dictionary. " + (assertionMessage)));
+                assert(inOp(response, symbol), ("Response should contain the symbol as key. " + (assertionMessage)));
                 object symbolObj = getValue(response, symbol);
-                assert(exchange.isDictionary(symbolObj), add("Response.Symbol should be a dictionary. ", assertionMessage));
-                assert(inOp(symbolObj, chosenTimeframeKey), add("Response.symbol should contain the timeframe key. ", assertionMessage));
+                assert(exchange.isDictionary(symbolObj), ("Response.Symbol should be a dictionary. " + (assertionMessage)));
+                assert(inOp(symbolObj, chosenTimeframeKey), ("Response.symbol should contain the timeframe key. " + (assertionMessage)));
                 object ohlcvs = getValue(symbolObj, chosenTimeframeKey);
-                assert(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("Response.symbol.timeframe should be an array. ", assertionMessage));
-                for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
+                assert(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("Response.symbol.timeframe should be an array. " + (assertionMessage)));
+                for (int i = 0; i < getArrayLength(ohlcvs); i++)
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(ohlcvs, i), symbol, now);
                 }
-                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                if ((((now - startTime)) > maxIdleTime))
                 {
                     idle = true;
                 }

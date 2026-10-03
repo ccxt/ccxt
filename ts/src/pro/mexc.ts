@@ -3,9 +3,10 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import mexcRest from '../mexc.js';
-import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, List, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings, FundingRate, Fee, Market } from '../base/types.js';
+import type { Int, List, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, NullableDict, Tickers, Strings, FundingRate, Fee, Market } from '../base/types.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -92,13 +93,13 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'];
             return await this.watchSpotPublic (channel, messageHash, params);
         } else {
@@ -110,7 +111,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         //
         // swap
         //
@@ -185,7 +186,7 @@ export default class mexc extends mexcRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let ticker: Ticker;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             ticker = this.parseWsTicker (rawTicker as Dict, market);
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
@@ -208,19 +209,18 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined);
         const messageHashes: List = [];
-        const firstSymbol = this.safeString (symbols, 0);
+        const firstSymbol = this.safeString (symbolsNormalized, 0);
         let market: Market = undefined;
         if (firstSymbol !== undefined) {
             market = this.market (firstSymbol);
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const isSpot = (type === 'spot');
         const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
         const request: Dict = {};
@@ -257,16 +257,19 @@ export default class mexc extends mexcRest {
             request['params'] = {};
             messageHashes.push ('ticker');
         }
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, paramsMarketType), messageHashes);
         if (isSpot && this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
-    handleTickers (client: Client, message: any) {
+    handleTickers (client: Client, message: Dict) {
         //
         // swap
         //
@@ -327,7 +330,7 @@ export default class mexc extends mexcRest {
         //         "s": "BTCUSDT"
         //     }
         //
-        const data = this.safeList2 (message, 'data', 'd', []);
+        const data: Dict[] = this.safeList2 (message, 'data', 'd', []);
         const channel = this.safeString (message, 'c', '');
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
@@ -335,13 +338,16 @@ export default class mexc extends mexcRest {
         const marketIdIsUndefined = marketId === undefined;
         const isSpot = marketIdIsUndefined ? channelStartsWithSpot : market['spot'];
         const spotPrefix = 'spot:';
-        const messageHashPrefix = isSpot ? spotPrefix : '';
+        let messageHashPrefix: Str = '';
+        if (isSpot === true) {
+            messageHashPrefix = spotPrefix;
+        }
         const topic = messageHashPrefix + 'ticker';
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             let ticker: Ticker;
-            if (isSpot) {
+            if (isSpot === true) {
                 ticker = this.parseWsTicker (entry, market);
             } else {
                 ticker = this.parseTicker (entry);
@@ -357,7 +363,7 @@ export default class mexc extends mexcRest {
         client.resolve (result, topic);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         // protobuf ticker
         // "bidprice": "93387.28",  // Best bid price
         // "bidquantity": "3.73485", // Best bid quantity
@@ -426,45 +432,47 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, false, true);
-        let marketType: Str = undefined;
-        if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, false, true);
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks required symbols argument');
         }
-        const markets = this.requireValue (this.marketsForSymbols (symbols), 'watchBidsAsks() markets is required');
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
+        const markets = this.requireValue (this.marketsForSymbols (symbolsNormalized), 'watchBidsAsks() markets is required');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
             throw new NotSupported (this.id + ' watchBidsAsks only support spot market');
         }
         const messageHashes: List = [];
         const topics: List = [];
-        for (let i = 0; i < symbols.length; i++) {
+        for (let i = 0; i < symbolsNormalized.length; i++) {
             if (isSpot) {
-                const market = this.market (symbols[i]);
+                const market = this.market (symbolsNormalized[i]);
                 topics.push ('spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id']);
             }
-            messageHashes.push ('bidask:' + symbols[i]);
+            messageHashes.push ('bidask:' + symbolsNormalized[i]);
         }
         const url = this.urls['api']['ws']['spot'];
         const request: Dict = {
             'method': 'SUBSCRIPTION',
             'params': topics,
         };
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, paramsMarketType), messageHashes);
         if (this.newUpdates) {
             const tickers: Dict = {};
-            tickers[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                tickers[tickerSymbol] = ticker;
+            }
             return tickers;
         }
-        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
     }
 
-    handleBidAsk (client: Client, message: any) {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
@@ -488,11 +496,11 @@ export default class mexc extends mexcRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker: any, market: Market = undefined) {
+    parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const data = this.safeDict (ticker, 'd');
         const marketId = this.safeString (ticker, 's');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 't');
         return this.safeTicker ({
             'symbol': symbol,
@@ -503,25 +511,32 @@ export default class mexc extends mexcRest {
             'bid': this.safeNumber (data, 'b'),
             'bidVolume': this.safeNumber (data, 'B'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
-    async watchSpotPublic (channel: any, messageHash: any, params = {}) {
+    async watchSpotPublic (channel: string, messageHash: string, params: Dict = {}) {
         const unsubscribed = this.safeBool (params, 'unsubscribed', false);
-        params = this.omit (params, [ 'unsubscribed' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'unsubscribed' ]);
         const url = this.urls['api']['ws']['spot'];
-        const method = (unsubscribed) ? 'UNSUBSCRIPTION' : 'SUBSCRIPTION';
+        let method: Str = 'SUBSCRIPTION';
+        if (unsubscribed === true) {
+            method = 'UNSUBSCRIPTION';
+        }
         const request: Dict = {
             'method': method,
             'params': [ channel ],
         };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.extend (request, paramsOmitted), messageHash);
     }
 
-    async watchSpotPrivate (channel: any, messageHash: any, params = {}) {
+    async watchSpotPrivate (channel: string, messageHash: string, params: Dict = {}) {
         this.checkRequiredCredentials ();
         const listenKey = await this.authenticate (channel);
-        const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'spot');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchSpotPrivate() has no spot websocket url');
+        }
+        const url = wsUrl + '?listenKey=' + listenKey;
         const request: Dict = {
             'method': 'SUBSCRIPTION',
             'params': [ channel ],
@@ -529,7 +544,7 @@ export default class mexc extends mexcRest {
         return await this.watch (url, messageHash, this.extend (request, params), channel);
     }
 
-    async watchSwapPublic (channel: any, messageHash: any, requestParams: any, params = {}) {
+    async watchSwapPublic (channel: string, messageHash: string, requestParams: Dict, params: Dict = {}) {
         const url = this.urls['api']['ws']['swap'];
         const request: Dict = {
             'method': channel,
@@ -539,7 +554,7 @@ export default class mexc extends mexcRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchSwapPrivate (messageHash: any, params = {}) {
+    async watchSwapPrivate (messageHash: string, params: Dict = {}) {
         this.checkRequiredCredentials ();
         const channel = 'login';
         const url = this.urls['api']['ws']['swap'];
@@ -571,17 +586,17 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const symbolValue: string = market['symbol'];
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe);
-        const messageHash = 'candles:' + symbol + ':' + timeframe;
+        const messageHash = 'candles:' + symbolValue + ':' + timeframe;
         let ohlcv: any = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId;
             ohlcv = await this.watchSpotPublic (channel, messageHash, params);
         } else {
@@ -593,13 +608,14 @@ export default class mexc extends mexcRest {
             ohlcv = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         ohlcv = this.requireValue (ohlcv, 'watchOHLCV() ohlcv is required');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // spot
         //
@@ -674,10 +690,10 @@ export default class mexc extends mexcRest {
             timeframe = this.findTimeframe (timeframeId, this.options['timeframes']);
             parsed = this.parseWsOHLCV (data, this.safeMarket (symbol));
         } else {
-            const d = this.safeValue2 (message, 'd', 'data', {});
-            const rawOhlcv = this.safeValue (d, 'k', d);
+            const d = this.safeDict2 (message, 'd', 'data', {});
+            const rawOhlcv = this.safeDict (d, 'k', d);
             const timeframeId = this.safeString2 (rawOhlcv, 'i', 'interval');
-            const timeframes = this.safeValue (this.options, 'timeframes', {});
+            const timeframes = this.safeDict (this.options, 'timeframes', {});
             timeframe = this.findTimeframe (timeframeId, timeframes);
             const marketId = this.safeString2 (message, 's', 'symbol');
             const market = this.safeMarket (marketId);
@@ -685,7 +701,7 @@ export default class mexc extends mexcRest {
             parsed = this.parseWsOHLCV (rawOhlcv, market);
         }
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        const symbolOhlcvs = this.safeValue (this.ohlcvs, symbol, {});
+        const symbolOhlcvs = this.safeDict (this.ohlcvs, symbol, {});
         this.ohlcvs[symbol] = symbolOhlcvs;
         let stored = this.safeValue (symbolOhlcvs, timeframe);
         if (stored === undefined) {
@@ -746,7 +762,7 @@ export default class mexc extends mexcRest {
         let volume = this.safeNumber2 (ohlcv, 'v', 'volume');
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if ((market !== undefined) && (!this.safeBool (market, 'spot')) && (volume === undefined)) {
+        if ((market !== undefined) && (!this.safeBool (market, 'spot', false)) && (volume === undefined)) {
             volume = this.safeNumber2 (ohlcv, 'q', 'v');
         }
         return [
@@ -771,19 +787,18 @@ export default class mexc extends mexcRest {
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'orderbook:' + symbolValue;
         let orderbook: any = undefined;
-        if (market['spot']) {
-            let frequency: Str = undefined;
-            [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
+        if (market['spot'] === true) {
+            const [ frequency, paramsFrequency ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
-            orderbook = await this.watchSpotPublic (channel, messageHash, params);
+            orderbook = await this.watchSpotPublic (channel, messageHash, paramsFrequency);
         } else {
             const channel = 'sub.depth';
             const requestParams: Dict = {
@@ -795,7 +810,7 @@ export default class mexc extends mexcRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSubscription (client: Client, message: any) {
+    handleOrderBookSubscription (client: Client, message: Dict) {
         // spot
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
@@ -806,10 +821,10 @@ export default class mexc extends mexcRest {
         this.orderbooks[symbol] = this.orderBook ({});
     }
 
-    override getCacheIndex (orderbook: any, cache: any) {
+    override getCacheIndex (orderbook: any, cache: any): number {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger (orderbook, 'nonce');
-        const firstDelta = this.safeValue (cache, 0);
+        const firstDelta = this.safeDict (cache, 0);
         const firstDeltaNonce = this.safeIntegerN (firstDelta, [ 'r', 'version', 'fromVersion' ]);
         if ((nonce === undefined) || (firstDeltaNonce === undefined)) {
             return -1;
@@ -818,7 +833,7 @@ export default class mexc extends mexcRest {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
-            const delta = cache[i];
+            const delta = this.safeDict (cache, i);
             const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
             if (deltaNonce === undefined) {
                 continue;
@@ -830,7 +845,7 @@ export default class mexc extends mexcRest {
         return cache.length;
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // spot
         //    {
@@ -901,7 +916,7 @@ export default class mexc extends mexcRest {
         const marketId = this.safeString2 (message, 's', 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol;
-        const subscription = this.safeValue (client.subscriptions, messageHash);
+        const subscription = this.safeDict (client.subscriptions, messageHash);
         const limit = this.safeInteger (subscription, 'limit');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
@@ -911,7 +926,7 @@ export default class mexc extends mexcRest {
         let shouldReturn = false;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
+            const snapshotDelay: Int = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
@@ -919,7 +934,7 @@ export default class mexc extends mexcRest {
             return;
         }
         try {
-            this.handleDelta (storedOrderBook, data);
+            this.handleBookDelta (storedOrderBook, data);
             const timestamp = this.safeIntegerN (message, [ 't', 'ts', 'sendTime' ]);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
@@ -935,7 +950,7 @@ export default class mexc extends mexcRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    handleBooksideDelta (bookside: any, bidasks: any) {
+    handleBooksideDelta (bookside: any, bidasks: any[]) {
         //
         //    [{
         //        "p": "20290.89",
@@ -954,7 +969,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         const existingNonce = this.safeInteger (orderbook, 'nonce');
         const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
         if ((deltaNonce !== undefined) && (existingNonce !== undefined) && (deltaNonce < existingNonce)) {
@@ -983,15 +998,15 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trades:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'trades:' + symbolValue;
         let trades: any = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id'];
             trades = await this.watchSpotPublic (channel, messageHash, params);
         } else {
@@ -1002,13 +1017,14 @@ export default class mexc extends mexcRest {
             trades = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         trades = this.requireValue (trades, 'watchTrades() trades is required');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         // protobuf
         // {
         // "channel": "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
@@ -1076,7 +1092,7 @@ export default class mexc extends mexcRest {
         }
         for (let j = 0; j < trades.length; j++) {
             let parsedTrade: Trade;
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 parsedTrade = this.parseWsTrade (trades[j], market);
             } else {
                 parsedTrade = this.parseTrade (trades[j], market);
@@ -1098,7 +1114,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1106,26 +1122,28 @@ export default class mexc extends mexcRest {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
+        if (symbol !== undefined) {
+            messageHash = messageHash + ':' + symbolResolved;
+        }
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let trades: any = undefined;
         if (type === 'spot') {
             const channel = 'spot@private.deals.v3.api.pb';
-            trades = await this.watchSpotPrivate (channel, messageHash, params);
+            trades = await this.watchSpotPrivate (channel, messageHash, paramsMarketType);
         } else {
-            trades = await this.watchSwapPrivate (messageHash, params);
+            trades = await this.watchSwapPrivate (messageHash, paramsMarketType);
         }
         trades = this.requireValue (trades, 'watchMyTrades() trades is required');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
-    handleMyTrade (client: Client, message: any, subscription: Dict | undefined = undefined) {
+    handleMyTrade (client: Client, message: Dict, subscription: Dict | undefined = undefined) {
         //
         //    {
         //        "c": "spot@private.deals.v3.api",
@@ -1167,7 +1185,7 @@ export default class mexc extends mexcRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let trade: Trade;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             trade = this.parseWsTrade (data, market);
         } else if (data !== undefined) {
             trade = this.parseTrade (data, market);
@@ -1186,7 +1204,7 @@ export default class mexc extends mexcRest {
         client.resolve (trades, symbolSpecificMessageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // public trade (protobuf)
         //    {
@@ -1245,7 +1263,10 @@ export default class mexc extends mexcRest {
         const priceString = this.safeString2 (trade, 'p', 'price');
         const amountString = this.safeString2 (trade, 'v', 'quantity');
         const rawSide = this.safeString2 (trade, 'S', 'tradeType');
-        const side = (rawSide === '1') ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (rawSide === '1') {
+            side = 'buy';
+        }
         const isMaker = this.safeInteger (trade, 'm');
         const feeAmount = this.safeString2 (trade, 'n', 'feeAmount');
         const feeCurrencyId = this.safeString2 (trade, 'N', 'feeCurrency');
@@ -1258,7 +1279,7 @@ export default class mexc extends mexcRest {
             'symbol': this.safeSymbol (undefined, market),
             'type': undefined,
             'side': side,
-            'takerOrMaker': (isMaker) ? 'maker' : 'taker',
+            'takerOrMaker': (isMaker !== undefined && isMaker !== 0) ? 'maker' : 'taker',
             'price': priceString,
             'amount': amountString,
             'cost': this.safeString (trade, 'amount'),
@@ -1282,7 +1303,7 @@ export default class mexc extends mexcRest {
      * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'swap'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1290,26 +1311,28 @@ export default class mexc extends mexcRest {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
+        if (symbol !== undefined) {
+            messageHash = messageHash + ':' + symbolResolved;
+        }
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let orders: any = undefined;
         if (type === 'spot') {
             const channel = 'spot@private.orders.v3.api.pb';
-            orders = await this.watchSpotPrivate (channel, messageHash, params);
+            orders = await this.watchSpotPrivate (channel, messageHash, paramsMarketType);
         } else {
-            orders = await this.watchSwapPrivate (messageHash, params);
+            orders = await this.watchSwapPrivate (messageHash, paramsMarketType);
         }
         orders = this.requireValue (orders, 'watchOrders() orders is required');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         //
         // spot
         //    {
@@ -1389,7 +1412,7 @@ export default class mexc extends mexcRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let parsed: Order;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             parsed = this.parseWsOrder (data, market);
             const sendTime = this.safeInteger (message, 'sendTime');
             if (sendTime !== undefined) {
@@ -1517,7 +1540,7 @@ export default class mexc extends mexcRest {
         }, market);
     }
 
-    parseWsOrderStatus (status: any, market: Market = undefined) {
+    parseWsOrderStatus (status: Str, market: Market = undefined): Str {
         const statuses: Dict = {
             '0': 'open',     // new/pending (OCO orders)
             '1': 'open',     // new order
@@ -1533,7 +1556,7 @@ export default class mexc extends mexcRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrderType (type: any) {
+    parseWsOrderType (type: Str): Str {
         const types: Dict = {
             '1': 'limit',   // LIMIT_ORDER
             '2': 'limit', // POST_ONLY
@@ -1547,7 +1570,7 @@ export default class mexc extends mexcRest {
         return this.safeString (types, type);
     }
 
-    parseWsTimeInForce (timeInForce: any) {
+    parseWsTimeInForce (timeInForce: Str): Str {
         const timeInForceIds: Dict = {
             '1': 'GTC',   // LIMIT_ORDER
             '2': 'PO', // POST_ONLY
@@ -1570,22 +1593,21 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
         if (type === 'spot') {
             const channel = 'spot@private.account.v3.api.pb';
-            return await this.watchSpotPrivate (channel, messageHash, params);
+            return await this.watchSpotPrivate (channel, messageHash, paramsMarketType);
         } else {
-            return await this.watchSwapPrivate (messageHash, params);
+            return await this.watchSwapPrivate (messageHash, paramsMarketType);
         }
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         //
@@ -1621,7 +1643,10 @@ export default class mexc extends mexcRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
-        const type = (channel === 'spot@private.account.v3.api.pb') ? 'spot' : 'swap';
+        let type: Str = 'swap';
+        if (channel === 'spot@private.account.v3.api.pb') {
+            type = 'spot';
+        }
         const messageHash = 'balance:' + type;
         const data = this.safeDictN (message, [ 'data', 'privateAccount' ]);
         const futuresTimestamp = this.safeInteger2 (message, 'ts', 'createTime');
@@ -1653,7 +1678,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async watchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1675,7 +1700,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
+    override async unWatchFundingRate (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1693,7 +1718,7 @@ export default class mexc extends mexcRest {
         return undefined;
     }
 
-    handleFundingRate (client: Client, message: any) {
+    handleFundingRate (client: Client, message: Dict) {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -1732,7 +1757,7 @@ export default class mexc extends mexcRest {
         const messageHash = 'unsubscribe:ticker:' + market['symbol'];
         let url: Str = undefined;
         let channel: Str = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'];
             url = this.urls['api']['ws']['spot'];
             params['unsubscribed'] = true;
@@ -1758,19 +1783,18 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined);
         const messageHashes: List = [];
-        const firstSymbol = this.safeString (symbols, 0);
+        const firstSymbol = this.safeString (symbolsNormalized, 0);
         let market: Market = undefined;
         if (firstSymbol !== undefined) {
             market = this.market (firstSymbol);
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const isSpot = (type === 'spot');
         const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
         const request: Dict = {};
@@ -1808,7 +1832,7 @@ export default class mexc extends mexcRest {
             messageHashes.push ('unsubscribe:ticker');
         }
         const client = this.client (url);
-        this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        this.watchMultiple (url, messageHashes, this.extend (request, paramsMarketType), messageHashes);
         this.handleUnsubscriptions (client, messageHashes);
         return undefined;
     }
@@ -1821,29 +1845,28 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, false, true);
-        let marketType: Str = undefined;
-        if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, false, true);
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks required symbols argument');
         }
-        const markets = this.requireValue (this.marketsForSymbols (symbols), 'unWatchBidsAsks() markets is required');
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
+        const markets = this.requireValue (this.marketsForSymbols (symbolsNormalized), 'unWatchBidsAsks() markets is required');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
             throw new NotSupported (this.id + ' watchBidsAsks only support spot market');
         }
         const messageHashes: List = [];
         const topics: List = [];
-        for (let i = 0; i < symbols.length; i++) {
+        for (let i = 0; i < symbolsNormalized.length; i++) {
             if (isSpot) {
-                const market = this.market (symbols[i]);
+                const market = this.market (symbolsNormalized[i]);
                 topics.push ('spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id']);
             }
-            messageHashes.push ('unsubscribe:bidask:' + symbols[i]);
+            messageHashes.push ('unsubscribe:bidask:' + symbolsNormalized[i]);
         }
         const url = this.urls['api']['ws']['spot'];
         const request: Dict = {
@@ -1851,7 +1874,7 @@ export default class mexc extends mexcRest {
             'params': topics,
         };
         const client = this.client (url);
-        this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        this.watchMultiple (url, messageHashes, this.extend (request, paramsMarketType), messageHashes);
         this.handleUnsubscriptions (client, messageHashes);
         return undefined;
     }
@@ -1871,12 +1894,12 @@ export default class mexc extends mexcRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const symbolValue: string = market['symbol'];
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe);
-        const messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe;
+        const messageHash = 'unsubscribe:candles:' + symbolValue + ':' + timeframe;
         let url: Str = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId;
             params['unsubscribed'] = true;
@@ -1909,16 +1932,15 @@ export default class mexc extends mexcRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'unsubscribe:orderbook:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'unsubscribe:orderbook:' + symbolValue;
         let url: Str = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             url = this.urls['api']['ws']['spot'];
-            let frequency: Str = undefined;
-            [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
+            const [ frequency, paramsFrequency ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
-            params['unsubscribed'] = true;
-            this.spawn (this.watchSpotPublic, channel, messageHash, params);
+            paramsFrequency['unsubscribed'] = true;
+            this.spawn (this.watchSpotPublic, channel, messageHash, paramsFrequency);
         } else {
             url = this.urls['api']['ws']['swap'];
             const channel = 'unsub.depth';
@@ -1946,10 +1968,10 @@ export default class mexc extends mexcRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'unsubscribe:trades:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'unsubscribe:trades:' + symbolValue;
         let url: Str = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id'];
             params['unsubscribed'] = true;
@@ -2017,7 +2039,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    async authenticate (subscriptionHash: any, params = {}) {
+    async authenticate (subscriptionHash: Str, params: Dict = {}): Promise<Str> {
         // we only need one listenKey since ccxt shares connections
         let listenKey = this.safeString (this.options, 'listenKey');
         if (listenKey !== undefined) {
@@ -2030,13 +2052,13 @@ export default class mexc extends mexcRest {
         const client = this.client (this.urls['api']['ws']['spot']);
         const messageHash = 'authenticate:listenKey';
         const isFetching = this.safeBool (this.options, 'listenKeyFetching', false);
-        if (isFetching) {
+        if (isFetching === true) {
             await client.future (messageHash);
             return this.safeString (this.options, 'listenKey');
         }
         this.options['listenKeyFetching'] = true;
         client.future (messageHash); // created ahead of the request below, so concurrent callers can find it
-        let response = undefined;
+        let response: NullableDict = undefined;
         try {
             response = await this.spotPrivatePostUserDataStream (params);
         } catch (e) {
@@ -2058,7 +2080,7 @@ export default class mexc extends mexcRest {
         return listenKey;
     }
 
-    async keepAliveListenKey (listenKey: any, params = {}) {
+    async keepAliveListenKey (listenKey: Str, params: Dict = {}) {
         if (listenKey === undefined) {
             return;
         }
@@ -2070,7 +2092,11 @@ export default class mexc extends mexcRest {
             const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
         } catch (error) {
-            const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
+            const wsUrl = this.safeString (this.urls['api']['ws'], 'spot');
+            if (wsUrl === undefined) {
+                throw new ExchangeError (this.id + ' keepAliveListenKey() has no spot websocket url');
+            }
+            const url = wsUrl + '?listenKey=' + listenKey;
             const client = this.client (url);
             this.options['listenKey'] = undefined;
             client.reject (error);
@@ -2078,12 +2104,12 @@ export default class mexc extends mexcRest {
         }
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict) {
         //
         //    {
         //        "id": 0,
@@ -2108,7 +2134,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    handleProtobufMessage (client: Client, message: any) {
+    handleProtobufMessage (client: Client, message: Dict): boolean {
         // protobuf message decoded
         //  {
         //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
@@ -2157,8 +2183,8 @@ export default class mexc extends mexcRest {
             }
         }
         if (this.isBinaryMessage (message)) {
-            message = this.decodeProtoMsg (message);
-            this.handleProtobufMessage (client, message);
+            const decodedMessage = this.decodeProtoMsg (message);
+            this.handleProtobufMessage (client, decodedMessage);
             return;
         }
         if ('msg' in message) {

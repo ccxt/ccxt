@@ -237,7 +237,7 @@ class luno(Exchange, ImplicitAPI):
             },
             'fees': {
                 'trading': {
-                    # Luno prices by PAIR CATEGORY 30-day volume tier:
+                    # Luno prices by PAIR CATEGORY as well as by 30-day volume tier:
                     # crypto/fiat, stablecoin/fiat and crypto/crypto each have their own
                     # ladder, and the maker side is a charge in one category and a rebate
                     # in another at the same tier. A single scalar cannot represent that,
@@ -246,7 +246,7 @@ class luno(Exchange, ImplicitAPI):
                     # exchange-wide fallback: crypto/fiat at the entry tier, which is the
                     # dearest cell in the table and therefore the safe direction to quote
                     # for a caller who cannot reach the authenticated fetchTradingFee.
-                    'tierBased': True,  # based on volume from your primary currency(not the same for everyone)
+                    'tierBased': True,  # based on volume from your primary currency (not the same for everyone)
                     'percentage': True,
                     'taker': self.parse_number('0.006'),
                     'maker': self.parse_number('0.004'),
@@ -287,7 +287,7 @@ class luno(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     'ErrAccountIsMigrating': OperationRejected,  # Account migration in progress
-                    'ErrAccountLimit': OperationRejected,  # You can't add another wallet with self currency
+                    'ErrAccountLimit': OperationRejected,  # You can't add another wallet with this currency
                     'ErrAccountNotFound': ExchangeError,  # Cannot find that account
                     'ErrAccountsNotDifferent': BadRequest,  # Debit and credit accounts must be different
                     'ErrActiveCryptoRequestExists': OperationRejected,  # Send request pending. Please try again after it has completed.
@@ -297,11 +297,11 @@ class luno(Exchange, ImplicitAPI):
                     'ErrAmountTooSmall': BadRequest,  # The specified amount is lower than the minimum allowed.
                     'ErrApiKeyRevoked': AuthenticationError,  # Your API key has been revoked.
                     'ErrBeneficiaryNotFound': ExchangeError,  # Beneficiary not Found
-                    'ErrBlockedSendsCurrency': OperationRejected,  # Sends are currently disabled for self currency
+                    'ErrBlockedSendsCurrency': OperationRejected,  # Sends are currently disabled for this currency
                     'ErrCannotStopUnknownOrNonPendingOrder': InvalidOrder,  # Cannot stop unknown or non-pending order.
                     'ErrCannotTradeWhileQuoteActive': OperationRejected,  # Cannot trade while you have any active quotes.
                     'ErrConvertPairNotSupported': BadRequest,  # The requested pair is not supported for conversion.
-                    'ErrConvertRateLimited': RateLimitExceeded,  # You have exceeded the conversion rate limit for self pair. Please try again later.
+                    'ErrConvertRateLimited': RateLimitExceeded,  # You have exceeded the conversion rate limit for this pair. Please try again later.
                     'ErrCounterDenominationNotAllowed': InvalidOrder,  # Amount contains too many decimal places
                     'ErrCreditAccountNotTransactional': BadRequest,  # The specified credit-account must be transactional
                     'ErrCustomRefNotAllowed': BadRequest,  # Custom reference not allowed
@@ -316,19 +316,19 @@ class luno(Exchange, ImplicitAPI):
                     'ErrERC20AddressAlreadyAssigned': OperationRejected,  # You can only create 1 ERC-20 receive address per token
                     'ErrERC20AssignNonDefault': BadRequest,  # You can only assign ERC-20 receive addresses to your default account
                     'ErrFundsMoveNotFound': ExchangeError,  # Funds move not found
-                    'ErrIdempotencyKeyConflict': OperationRejected,  # A request with self idempotency_key has already been processed.
-                    'ErrIdempotencyKeyRequestMismatch': BadRequest,  # A request with self idempotency_key has a mismatched request
+                    'ErrIdempotencyKeyConflict': OperationRejected,  # A request with this idempotency_key has already been processed.
+                    'ErrIdempotencyKeyRequestMismatch': BadRequest,  # A request with this idempotency_key has a mismatched request
                     'ErrIncompatibleBeneficiary': BadRequest,  # Beneficiary is incompatible with the requested withdrawal.
                     'ErrIncorrectPin': AuthenticationError,  # Invalid pin specified
                     'ErrInsufficientBalance': InsufficientFunds,  # Insufficient balance.
                     'ErrInsufficientFunds': InsufficientFunds,  # Account has insufficient funds
-                    'ErrInsufficientPerms': PermissionDenied,  # You do not have the required permissions to perform self action
+                    'ErrInsufficientPerms': PermissionDenied,  # You do not have the required permissions to perform this action
                     'ErrInternal': ExchangeNotAvailable,  # Something went wrong. We're looking into it.
                     'ErrInvalidAccount': BadRequest,  # Account is invalid
                     'ErrInvalidAccountID': BadRequest,  # Invalid account ID specified
                     'ErrInvalidAccountNumber': BadRequest,  # Account number is invalid
                     'ErrInvalidAmount': BadRequest,  # Invalid amount specified
-                    'ErrInvalidArguments': BadRequest,  # If any request parameters have invalid values self error will be returned. This error should also include a list of the offending fields to help identify and fix any issues.
+                    'ErrInvalidArguments': BadRequest,  # If any request parameters have invalid values this error will be returned. This error should also include a list of the offending fields to help identify and fix any issues.
                     'ErrInvalidBaseVolume': InvalidOrder,  # Invalid base volume for sell order.
                     'ErrInvalidBranchCode': BadRequest,  # Bank branch code is invalid.
                     'ErrInvalidClientOrderId': InvalidOrder,  # Invalid client order id
@@ -357,7 +357,7 @@ class luno(Exchange, ImplicitAPI):
                     'ErrOrderCanceled': InvalidOrder,  # Your post-only order was cancelled before trading
                     'ErrOrderNotFound': OrderNotFound,  # Cannot find that order
                     'ErrPostOnlyMode': InvalidOrder,  # Market is in post-only mode
-                    'ErrPostOnlyNotAllowed': InvalidOrder,  # IOC and FOK time-in-force types are not supported-only orders
+                    'ErrPostOnlyNotAllowed': InvalidOrder,  # IOC and FOK time-in-force types are not supported as post-only orders
                     'ErrPriceDenominationNotAllowed': InvalidOrder,  # Price contains too many decimal places
                     'ErrPriceTooHigh': InvalidOrder,  # Price is above the maximum
                     'ErrPriceTooLow': InvalidOrder,  # Price is below the minimum
@@ -367,12 +367,12 @@ class luno(Exchange, ImplicitAPI):
                     'ErrStopPriceTooLow': InvalidOrder,  # Stop price is too low.
                     'ErrTooManyRequests': RateLimitExceeded,  # You are exceeding the allowed request rate limit
                     'ErrTooManyRowsRequested': BadRequest,  # Too many rows requested
-                    'ErrTravelRule': ManualInteractionNeeded,  # Please ensure that you've initiated a once-off crypto send for self specific wallet address via the website or mobile app and included relevant Travel Rule information before trying again via the send API. [Click here](https://www.luno.com/help/articles/421340781836897) for more information on the Travel Rule.
-                    'ErrUnauthorised': AuthenticationError,  # You are not authorised to access self route
+                    'ErrTravelRule': ManualInteractionNeeded,  # Please ensure that you've initiated a once-off crypto send for this specific wallet address via the website or mobile app and included relevant Travel Rule information before trying again via the send API. [Click here](https://www.luno.com/help/articles/421340781836897) for more information on the Travel Rule.
+                    'ErrUnauthorised': AuthenticationError,  # You are not authorised to access this route
                     'ErrUnderMaintenance': OnMaintenance,  # The market is currently undergoing maintenance
                     'ErrUpdateRequired': ExchangeError,  # Luno app update required
                     'ErrUserBlockedForCancelWithdrawal': PermissionDenied,  # User blocked from cancelling withdrawals
-                    'ErrUserNotVerifiedForCurrency': AccountNotEnabled,  # You are not verified for self currency
+                    'ErrUserNotVerifiedForCurrency': AccountNotEnabled,  # You are not verified for this currency
                     'ErrValueTooHigh': InvalidOrder,  # Order value too high
                     'ErrVerificationLevelTooLow': AccountNotEnabled,  # You must verify your identity using the Luno app before you can send crypto.
                     'ErrVolumeDenominationNotAllowed': InvalidOrder,  # Volume contains too many decimal places
@@ -467,7 +467,7 @@ class luno(Exchange, ImplicitAPI):
             'rollingWindowSize': 60000.0,
         })
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -496,12 +496,12 @@ class luno(Exchange, ImplicitAPI):
         values = list(grouped.values())
         return self.parse_currencies(values)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: list[dict]) -> CurrencyInterface:
         id = self.safe_string(rawCurrency[0], 'native_currency')  # first item is guaranteed
         code = self.safe_currency_code(id)
         networks = {}
         for i in range(0, len(rawCurrency)):
-            networkEntry = rawCurrency[i]
+            networkEntry = self.safe_dict(rawCurrency, i)
             networkId = self.safe_string(networkEntry, 'name')
             networkCode = self.network_id_to_code(networkId, code)
             if networkCode is not None:
@@ -549,7 +549,7 @@ class luno(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for luno
 
@@ -579,7 +579,7 @@ class luno(Exchange, ImplicitAPI):
         #     }
         #
         result = []
-        markets = self.safe_value(response, 'markets', [])
+        markets = self.safe_list(response, 'markets', [])
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'market_id')
@@ -587,6 +587,8 @@ class luno(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'counter_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             status = self.safe_string(market, 'trading_status')
             # Luno's published schedule is categorical, not a single pair. Entry-tier
             # rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -594,8 +596,8 @@ class luno(Exchange, ImplicitAPI):
             # exchange-wide default until their schedules are verified the same way.
             fiats = ['ZAR']
             # live-but-unverified counters, kept on the exchange-wide default; the market
-            # list is geo-filtered so self is a superset of any one region's view, and
-            # ZARU is Luno's tokenized rand("ZAR Universal"), not fiat, but equally unverified
+            # list is geo-filtered so this is a superset of any one region's view, and
+            # ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
             unverifiedQuotes = ['MYR', 'NGN', 'IDR', 'KES', 'UGX', 'AUD', 'GBP', 'EUR', 'USD', 'ZARU']
             stablecoins = ['USDT', 'USDC']
             taker = None
@@ -608,7 +610,7 @@ class luno(Exchange, ImplicitAPI):
                     taker = self.parse_number('0.006')
                     maker = self.parse_number('0.004')
             elif not self.in_array(quote, unverifiedQuotes):
-                # stablecoin-quoted(BTC/USDT) and crypto-quoted(ETH/BTC, SOL/ADA) books
+                # stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
                 # are both in Luno's crypto/crypto column
                 taker = self.parse_number('0.001')
                 maker = self.parse_number('0.0008')
@@ -665,7 +667,7 @@ class luno(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_accounts(self, params={}) -> list[Account]:
+    async def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -675,7 +677,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         response = await self.privateGetBalance(params)
-        wallets = self.safe_value(response, 'balance', [])
+        wallets = self.safe_list(response, 'balance', [])
         result = []
         for i in range(0, len(wallets)):
             account = wallets[i]
@@ -691,14 +693,14 @@ class luno(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response: object) -> Balances:
-        wallets = self.safe_value(response, 'balance', [])
+        wallets = self.safe_list(response, 'balance', [])
         result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
         }
         for i in range(0, len(wallets)):
-            wallet = wallets[i]
+            wallet = self.safe_dict(wallets, i)
             currencyId = self.safe_string(wallet, 'asset')
             code = self.safe_currency_code(currencyId)
             reserved = self.safe_string(wallet, 'reserved')
@@ -716,7 +718,7 @@ class luno(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -740,7 +742,7 @@ class luno(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -801,7 +803,7 @@ class luno(Exchange, ImplicitAPI):
         elif (orderType == 'BID') or (orderType == 'BUY'):
             side = 'buy'
         marketId = self.safe_string(order, 'pair')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         price = self.safe_string(order, 'limit_price')
         amount = self.safe_string(order, 'limit_volume')
         quoteFee = self.safe_number(order, 'fee_counter')
@@ -812,12 +814,12 @@ class luno(Exchange, ImplicitAPI):
         if quoteFee is not None:
             fee = {
                 'cost': quoteFee,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             }
         elif baseFee is not None:
             fee = {
                 'cost': baseFee,
-                'currency': market['base'],
+                'currency': marketResolved['base'],
             }
         id = self.safe_string(order, 'order_id')
         return self.safe_order({
@@ -827,7 +829,7 @@ class luno(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': None,
             'timeInForce': None,
             'postOnly': None,
@@ -842,9 +844,9 @@ class luno(Exchange, ImplicitAPI):
             'fee': fee,
             'info': order,
             'average': None,
-        }, market)
+        }, marketResolved)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -863,7 +865,7 @@ class luno(Exchange, ImplicitAPI):
         response = await self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
-    async def fetch_orders_by_state(self, state: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_state(self, state: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         request = {}
@@ -877,7 +879,7 @@ class luno(Exchange, ImplicitAPI):
         orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -891,7 +893,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state(None, symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -905,7 +907,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state('PENDING', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -956,7 +958,7 @@ class luno(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -968,7 +970,7 @@ class luno(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = await self.publicGetTickers(params)
         rawTickers = self.safe_list(response, 'tickers', [])
         tickers = self.index_by(rawTickers, 'pair')
@@ -980,9 +982,9 @@ class luno(Exchange, ImplicitAPI):
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1012,7 +1014,7 @@ class luno(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #      {
         #          "sequence":276989,
@@ -1022,7 +1024,7 @@ class luno(Exchange, ImplicitAPI):
         #          "is_buy":false
         #      }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #      {
         #          "pair":"LTCXBT",
@@ -1040,8 +1042,8 @@ class luno(Exchange, ImplicitAPI):
         #          "client_order_id":""
         #      }
         #
-        # For public trade data(is_buy is True) indicates 'buy' side but for private trade data
-        # is_buy indicates maker or taker. The value of "type"(ASK/BID) indicate sell/buy side.
+        # For public trade data (is_buy === True) indicates 'buy' side but for private trade data
+        # is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy side.
         # Private trade data includes ID field which public trade data does not.
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'sequence')
@@ -1053,14 +1055,14 @@ class luno(Exchange, ImplicitAPI):
                 side = 'sell'
             elif (type == 'BID') or (type == 'BUY'):
                 side = 'buy'
-            if side == 'sell' and trade['is_buy']:
+            if (side == 'sell') and (self.safe_bool(trade, 'is_buy', False)):
                 takerOrMaker = 'maker'
-            elif side == 'buy' and not trade['is_buy']:
+            elif (side == 'buy') and (not self.safe_bool(trade, 'is_buy', False)):
                 takerOrMaker = 'maker'
             else:
                 takerOrMaker = 'taker'
         else:
-            side = 'buy' if trade['is_buy'] else 'sell'
+            side = 'buy' if (self.safe_bool(trade, 'is_buy', False)) else 'sell'
         feeBaseString = self.safe_string(trade, 'fee_base')
         feeCounterString = self.safe_string(trade, 'fee_counter')
         feeCurrency = None
@@ -1094,7 +1096,7 @@ class luno(Exchange, ImplicitAPI):
             },
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1131,7 +1133,7 @@ class luno(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
@@ -1142,7 +1144,7 @@ class luno(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1194,7 +1196,7 @@ class luno(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1243,7 +1245,7 @@ class luno(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    async def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -1276,7 +1278,7 @@ class luno(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1298,11 +1300,10 @@ class luno(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = None
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         if type == 'market':
             request['type'] = side.upper()
-            # todo add createMarketBuyOrderRequires price logic is implemented in the other exchanges
+            # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if side == 'buy':
                 request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
             else:
@@ -1320,7 +1321,7 @@ class luno(Exchange, ImplicitAPI):
             'id': response['order_id'],
         }, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1339,27 +1340,25 @@ class luno(Exchange, ImplicitAPI):
         response = await self.privatePostStoporder(self.extend(request, params))
         #
         #    {
-        #        "success": True
+        #        "success": true
         #    }
         #
         return self.safe_order({
             'info': response,
         })
 
-    async def fetch_ledger_by_entries(self, code: Str = None, entry: object = None, limit: Int = None, params={}):
+    async def fetch_ledger_by_entries(self, code: Str = None, entry: object = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         # by default without entry number or limit number, return most recent entry
-        if entry is None:
-            entry = -1
-        if limit is None:
-            limit = 1
+        entryValue = -1 if (entry is None) else entry
+        limitValue = 1 if (limit is None) else limit
         since = None
         request = {
-            'min_row': entry,
-            'max_row': self.sum(entry, limit),
+            'min_row': entryValue,
+            'max_row': self.sum(entryValue, limitValue),
         }
-        return await self.fetch_ledger(code, since, limit, self.extend(request, params))
+        return await self.fetch_ledger(code, since, limitValue, self.extend(request, params))
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -1383,10 +1382,10 @@ class luno(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' fetchLedger() requires a currency code argument if no account id specified in params')
             currency = self.currency(code)
             accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
-            account = self.safe_value(accountsByCurrencyCode, code)
+            account = self.safe_dict(accountsByCurrencyCode, code)
             if account is None:
                 raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
-            id = account['id']
+            id = self.safe_string(account, 'id')
         if min_row is None and max_row is None:
             max_row = 0  # Default to most recent transactions
             min_row = -1000  # Maximum number of records supported
@@ -1405,7 +1404,7 @@ class luno(Exchange, ImplicitAPI):
             'max_row': max_row,
         }
         response = await self.privateGetAccountsIdTransactions(self.extend(params, request))
-        entries = self.safe_value(response, 'transactions', [])
+        entries = self.safe_list(response, 'transactions', [])
         return self.parse_ledger(entries, currency, since, limit)
 
     def parse_ledger_comment(self, comment: object):
@@ -1437,14 +1436,14 @@ class luno(Exchange, ImplicitAPI):
             'referenceId': referenceId,
         }
 
-    def parse_ledger_entry(self, entry: object, currency: Currency = None) -> LedgerEntry:
-        # details = self.safe_value(entry, 'details', {})
+    def parse_ledger_entry(self, entry: dict, currency: Currency = None) -> LedgerEntry:
+        # const details = this.safeValue (entry, 'details', {});
         id = self.safe_string(entry, 'row_index')
         account_id = self.safe_string(entry, 'account_id')
         timestamp = self.safe_integer(entry, 'timestamp')
         currencyId = self.safe_string(entry, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         available_delta = self.safe_string(entry, 'available_delta')
         balance_delta = self.safe_string(entry, 'balance_delta')
         after = self.safe_string(entry, 'balance')
@@ -1486,9 +1485,9 @@ class luno(Exchange, ImplicitAPI):
             'after': self.parse_to_numeric(after),
             'status': status,
             'fee': None,
-        }, currency)
+        }, currencyResolved)
 
-    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -1530,7 +1529,7 @@ class luno(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -1571,7 +1570,7 @@ class luno(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "account_id": "string",
@@ -1602,7 +1601,7 @@ class luno(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'name'),
         }
 
-    async def fetch_deposit_withdraw_fee(self, code: str, params={}) -> DepositWithdrawFee:
+    async def fetch_deposit_withdraw_fee(self, code: str, params: dict = {}) -> DepositWithdrawFee:
         """
         fetch the fee for sending(withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
 
@@ -1633,18 +1632,23 @@ class luno(Exchange, ImplicitAPI):
         result['withdraw']['percentage'] = False
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
-        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if query:
+        requestHeaders = None
+        if len(query) > 0:
             url += '?' + self.urlencode(query)
         if (api == 'private') or (api == 'exchangePrivate'):
             self.check_required_credentials()
             auth = self.string_to_base64(self.apiKey + ':' + self.secret)
-            headers = {
+            requestHeaders = {
                 'Authorization': 'Basic ' + auth,
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        return {'url': url, 'method': method, 'body': body, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

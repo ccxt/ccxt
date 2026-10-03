@@ -101,7 +101,7 @@ class hollaex extends hollaex$1["default"] {
         if (symbol === undefined) {
             return;
         }
-        const data = this.safeValue(message, 'data');
+        const data = this.safeDict(message, 'data');
         const timestamp = this.safeString(data, 'timestamp');
         const timestampMs = this.parse8601(timestamp);
         const snapshot = this.parseOrderBook(data, symbol, timestampMs);
@@ -117,8 +117,10 @@ class hollaex extends hollaex$1["default"] {
             }
             orderbook.reset(snapshot);
         }
-        const messageHash = channel + ':' + marketId;
-        client.resolve(orderbook, messageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + ':' + marketId;
+            client.resolve(orderbook, messageHash);
+        }
     }
     /**
      * @method
@@ -136,13 +138,14 @@ class hollaex extends hollaex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const messageHash = 'trade' + ':' + market['id'];
         const trades = await this.watchPublic(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -170,13 +173,15 @@ class hollaex extends hollaex$1["default"] {
             stored = new Cache.ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const parsedTrades = this.parseTrades(data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append(parsedTrades[j]);
         }
-        const messageHash = channel + ':' + marketId;
-        client.resolve(stored, messageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + ':' + marketId;
+            client.resolve(stored, messageHash);
+        }
         client.resolve(stored, channel);
     }
     /**
@@ -196,16 +201,18 @@ class hollaex extends hollaex$1["default"] {
         }
         let messageHash = 'usertrade';
         let market = undefined;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             messageHash += ':' + market['id'];
         }
         const trades = await this.watchPrivate(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
     }
     handleMyTrades(client, message, subscription = undefined) {
         //
@@ -260,8 +267,10 @@ class hollaex extends hollaex$1["default"] {
         const keys = Object.keys(marketIds);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
-            const messageHash = channel + ':' + marketId;
-            client.resolve(this.myTrades, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + ':' + marketId;
+                client.resolve(this.myTrades, messageHash);
+            }
         }
     }
     /**
@@ -281,16 +290,18 @@ class hollaex extends hollaex$1["default"] {
         }
         let messageHash = 'order';
         let market = undefined;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             messageHash += ':' + market['id'];
         }
         const orders = await this.watchPrivate(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     handleOrder(client, message, subscription = undefined) {
         //
@@ -386,8 +397,10 @@ class hollaex extends hollaex$1["default"] {
         const keys = Object.keys(marketIds);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
-            const messageHash = channel + ':' + marketId;
-            client.resolve(this.orders, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + ':' + marketId;
+                client.resolve(this.orders, messageHash);
+            }
         }
     }
     /**
@@ -589,7 +602,7 @@ class hollaex extends hollaex$1["default"] {
         //         }
         //     }
         //
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         const content = this.safeString(message, 'message');
@@ -604,7 +617,7 @@ class hollaex extends hollaex$1["default"] {
             'wallet': this.handleBalance,
             'usertrade': this.handleMyTrades,
         };
-        const topic = this.safeValue(message, 'topic');
+        const topic = this.safeString(message, 'topic');
         const method = this.safeValue(methods, topic);
         if (method !== undefined) {
             method.call(this, client, message);

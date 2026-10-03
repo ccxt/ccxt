@@ -151,6 +151,13 @@ public partial class apex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetV3Transfer",parameters);
     }
 
+    /// <summary>Calls the privateGetV3StockAccount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3StockAccount (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3StockAccount",parameters);
+    }
+
     /// <summary>Calls the privatePostV3DeleteOpenOrders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostV3DeleteOpenOrders (object parameters = null)
@@ -198,6 +205,34 @@ public partial class apex : Exchange
     public async Task<Dictionary<string, object>> privatePostV3ContractTransferOut (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostV3ContractTransferOut",parameters);
+    }
+
+    /// <summary>Calls the privatePostV3ContractTransferTo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV3ContractTransferTo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV3ContractTransferTo",parameters);
+    }
+
+    /// <summary>Calls the privatePostV3SubmitWithdrawClaim endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV3SubmitWithdrawClaim (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV3SubmitWithdrawClaim",parameters);
+    }
+
+    /// <summary>Calls the privatePostV3StockRegisterAccount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV3StockRegisterAccount (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV3StockRegisterAccount",parameters);
+    }
+
+    /// <summary>Calls the privatePostV3StockGenerateApi endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV3StockGenerateApi (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV3StockGenerateApi",parameters);
     }
 
 }

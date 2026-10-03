@@ -13,6 +13,7 @@ interface Exchange {
     zendeskGet360000292886 (params?: {}): Promise<Dict>;
     publicGetTime (params?: {}): Promise<Dict>;
     publicGetSystemStatus (params?: {}): Promise<Dict>;
+    publicGetMaintenanceSchedule (params?: {}): Promise<Dict>;
     publicGetAssets (params?: {}): Promise<Dict>;
     publicGetAssetPairs (params?: {}): Promise<Dict>;
     publicGetTicker (params?: {}): Promise<Dict>;
@@ -43,6 +44,7 @@ interface Exchange {
     privatePostRetrieveExport (params?: {}): Promise<Dict>;
     privatePostRemoveExport (params?: {}): Promise<Dict>;
     privatePostGetApiKeyInfo (params?: {}): Promise<Dict>;
+    privatePostListWalletAccounts (params?: {}): Promise<Dict>;
     privatePostAddOrder (params?: {}): Promise<Dict>;
     privatePostAmendOrder (params?: {}): Promise<Dict>;
     privatePostCancelOrder (params?: {}): Promise<Dict>;

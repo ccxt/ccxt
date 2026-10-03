@@ -353,6 +353,9 @@ export function csExprOf (idiom: string, recv: string, key: string, elem: string
     if (idiom === 'info') {
         return 'Helper.GetInfo(' + recv + ')';
     }
+    if (idiom === 'fees') {
+        return 'Helper.GetFees(' + recv + ')';
+    }
     if (idiom === 'safeBool') {
         return 'Exchange.SafeBool(' + recv + ', ' + k + ')';
     }
@@ -380,6 +383,9 @@ export function csExprOf (idiom: string, recv: string, key: string, elem: string
     }
     if (idiom === 'containsSelectToList') {
         return recv + '.ContainsKey(' + k + ') && ' + recv + '[' + k + '] != null ? ((IEnumerable<object>)' + recv + '[' + k + ']).Select(x => new ' + elem + '(x)).ToList() : null';
+    }
+    if (idiom === 'safeValueSelectToList') {
+        return 'Exchange.SafeValue(' + recv + ', ' + k + ') != null ? ((IEnumerable<object>)Exchange.SafeValue(' + recv + ', ' + k + ')).Select(x => new ' + elem + '(x)).ToList() : null';
     }
     if (idiom === 'stringList') {
         return recv + '.ContainsKey(' + k + ') && ' + recv + '[' + k + '] != null ? ((IEnumerable<object>)' + recv + '[' + k + ']).Select(x => (string)x).ToList() : null';
@@ -551,7 +557,10 @@ function renderWrapper (ir: TypesIR, spec: StructSpec): string {
         }
     }
     const bind = spec.b === undefined ? spec.p : spec.b;
-    const cast = spec.bc === undefined ? 'Dictionary<string, object>' : spec.bc;
+    // IDictionary, not Dictionary: ws venues resolve the live `this.tickers` /
+    // `this.bidsasks` cache (a ccxt.pro.CustomConcurrentDictionary) straight into the
+    // struct, and a concrete Dictionary cast throws InvalidCastException on it
+    const cast = spec.bc === undefined ? 'IDictionary<string, object>' : spec.bc;
     const lines: string[] = [];
     lines.push ('public struct ' + spec.n);
     lines.push ('{');
@@ -648,7 +657,8 @@ function renderStruct (ir: TypesIR, spec: StructSpec): string {
             throw new Error ('csharp emitter: ' + spec.n + ' assigns unknown field ' + body[i]);
         }
         const lhs = (field.cs === spec.p || field.cs === spec.b) ? 'this.' + field.cs : field.cs;
-        lines.push (INDENT.repeat (2) + lhs + ' = ' + csExprOf (field.idiom, recv, field.key, field.elem) + ';');
+        const rhs = csExprOf (field.idiom, recv, field.key, field.elem);
+        lines.push (INDENT.repeat (2) + lhs + ' = ' + rhs + ';');
     }
     lines.push (INDENT + '}');
     const tail = spec.t === undefined ? [] : spec.t;
@@ -732,7 +742,10 @@ export function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
                 'source': renderStruct (ir, effective),
             });
         }
-        const result: SpliceResult = spliceBlocks (before, blocks, findBraceBlockEnd);
+        // a spec with no existing anchor is a NEW struct: append it rather than
+        // silently skipping, which is how added types went missing from the port
+        const appendStruct = (block: EmittedBlock): string => '\n' + block.source + '\n';
+        const result: SpliceResult = spliceBlocks (before, blocks, findBraceBlockEnd, appendStruct);
         const contents = ensureGeneratedBanner (result.text, '//');
         const changed = result.replaced.concat (result.appended);
         if (contents !== result.text) {

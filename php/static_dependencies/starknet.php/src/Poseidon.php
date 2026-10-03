@@ -13,6 +13,7 @@ namespace StarkNet;
 
 use StarkNet\Utils;
 use StarkNet\Constants;
+use phpseclib\Math\BigInteger;
 
 class Poseidon
 {
@@ -25,32 +26,32 @@ class Poseidon
     private static $roundConstants = null;
     private static $mds = null;
 
+    // the permutation runs on raw GMP values; BigInteger is only used at the public boundary
     private static function fieldPrime()
     {
         if (self::$fieldPrime === null) {
-            self::$fieldPrime = Utils::toBn('0x' . Constants::FIELD_PRIME, 16);
+            self::$fieldPrime = gmp_init(Constants::FIELD_PRIME, 16);
         }
         return self::$fieldPrime;
     }
 
     private static function field($value)
     {
-        if (!($value instanceof BigInteger)) {
-            $value = Utils::toBn($value);
+        // gmp_mod always returns a non-negative remainder
+        return gmp_mod($value, self::fieldPrime());
+    }
+
+    private static function toGmp($value)
+    {
+        if ($value instanceof \GMP) {
+            return $value;
         }
-
-        list(, $remainder) = $value->divide(self::fieldPrime());
-
-        if ($remainder->is_negative) {
-            $remainder = $remainder->add(self::fieldPrime());
-        }
-
-        return $remainder;
+        return gmp_init(Utils::toBn($value)->toString(), 10);
     }
 
     private static function roundConstant($name, $index)
     {
-        return self::field(Utils::toBn('0x' . hash('sha256', $name . (string) $index)));
+        return self::field(gmp_init(hash('sha256', $name . (string) $index), 16));
     }
 
     private static function roundConstants()
@@ -84,33 +85,33 @@ class Poseidon
 
     private static function sbox($value)
     {
-        $cube = $value->multiply($value)->multiply($value);
-        return self::field($cube);
+        return gmp_powm($value, 3, self::fieldPrime());
     }
 
     private static function poseidonRound($values, $isFull, $index)
     {
         $roundConstants = self::roundConstants();
-        for ($i = 0; $i < count($values); $i++) {
-            $values[$i] = self::field($values[$i]->add($roundConstants[$index][$i]));
+        $prime = self::fieldPrime();
+        $count = count($values);
+        for ($i = 0; $i < $count; $i++) {
+            $values[$i] = gmp_mod(gmp_add($values[$i], $roundConstants[$index][$i]), $prime);
         }
         if ($isFull) {
-            for ($i = 0; $i < count($values); $i++) {
+            for ($i = 0; $i < $count; $i++) {
                 $values[$i] = self::sbox($values[$i]);
             }
         } else {
-            $last = count($values) - 1;
+            $last = $count - 1;
             $values[$last] = self::sbox($values[$last]);
         }
         $result = array();
         $mds = self::mds();
         foreach ($mds as $row) {
-            $acc = Utils::toBn(0);
-            for ($i = 0; $i < count($values); $i++) {
-                $product = $row[$i]->multiply($values[$i]);
-                $acc = $acc->add($product);
+            $acc = gmp_init(0);
+            for ($i = 0; $i < $count; $i++) {
+                $acc = gmp_add($acc, gmp_mul($row[$i], $values[$i]));
             }
-            $result[] = self::field($acc);
+            $result[] = gmp_mod($acc, $prime);
         }
         return $result;
     }
@@ -150,17 +151,17 @@ class Poseidon
         }
         
         $state = array(
-            Utils::toBn(0),
-            Utils::toBn(0),
-            Utils::toBn(0)
+            gmp_init(0),
+            gmp_init(0),
+            gmp_init(0)
         );
         
         for ($i = 0; $i < count($padded); $i += self::RATE) {
             for ($j = 0; $j < self::RATE; $j++) {
-                $state[$j] = $state[$j]->add(Utils::toBn($padded[$i + $j]));
+                $state[$j] = gmp_add($state[$j], self::toGmp($padded[$i + $j]));
             }
             $state = self::poseidonHash($state);
         }
-        return $state[0];
+        return new BigInteger(gmp_strval($state[0], 10), 10);
     }
 }

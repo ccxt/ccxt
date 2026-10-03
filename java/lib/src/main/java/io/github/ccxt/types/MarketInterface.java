@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public final class MarketInterface {
+public final class MarketInterface extends TypedMap {
     public String id;
     public Double numericId;
     public String uppercaseId;
@@ -25,6 +25,7 @@ public final class MarketInterface {
     public Boolean swap;
     public Boolean future;
     public Boolean option;
+    public Boolean index;
     public Boolean stock;
     public Boolean prediction;
     public Boolean contract;
@@ -47,11 +48,22 @@ public final class MarketInterface {
     public MarketMarginModes marginModes;
     public Limits limits;
     public Long created;
+    public String baseName;
+    public String id2;
+    public Long instIdCode;
+    public Map<String, Object> tiers;
     public List<PredictionOutcome> outcomes;
+    public String market;
+    public String marketType;
+    public String executionModel;
+    public String collateral;
+    public Boolean resolved;
+    public String resolvedOutcome;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
     public MarketInterface(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.numericId = TypeHelper.safeFloat(data, "numericId");
@@ -70,6 +82,7 @@ public final class MarketInterface {
         this.swap = TypeHelper.safeBool(data, "swap");
         this.future = TypeHelper.safeBool(data, "future");
         this.option = TypeHelper.safeBool(data, "option");
+        this.index = TypeHelper.safeBool(data, "index");
         this.stock = TypeHelper.safeBool(data, "stock");
         this.prediction = TypeHelper.safeBool(data, "prediction");
         this.contract = TypeHelper.safeBool(data, "contract");
@@ -95,10 +108,21 @@ public final class MarketInterface {
         Object limitsRaw = TypeHelper.safeValue(data, "limits");
         this.limits = limitsRaw != null ? new Limits(limitsRaw) : null;
         this.created = TypeHelper.safeInteger(data, "created");
+        this.baseName = TypeHelper.safeString(data, "baseName");
+        this.id2 = TypeHelper.safeString(data, "id2");
+        this.instIdCode = TypeHelper.safeInteger(data, "instIdCode");
+        Object tiersRaw = TypeHelper.safeValue(data, "tiers");
+        this.tiers = tiersRaw instanceof Map ? (Map<String, Object>) tiersRaw : null;
         Object outcomesRaw = TypeHelper.safeValue(data, "outcomes");
         if (outcomesRaw instanceof List<?> outcomesList) {
             this.outcomes = ((List<Object>) outcomesList).stream().map(PredictionOutcome::new).collect(Collectors.toList());
         }
+        this.market = TypeHelper.safeString(data, "market");
+        this.marketType = TypeHelper.safeString(data, "marketType");
+        this.executionModel = TypeHelper.safeString(data, "executionModel");
+        this.collateral = TypeHelper.safeString(data, "collateral");
+        this.resolved = TypeHelper.safeBool(data, "resolved");
+        this.resolvedOutcome = TypeHelper.safeString(data, "resolvedOutcome");
         this.info = TypeHelper.getInfo(data);
     }
 }

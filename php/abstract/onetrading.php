@@ -56,6 +56,24 @@ abstract class onetrading extends \ccxt\Exchange {
         return $this->request('time', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function public_get_funding_rate($params = array()) {
+        return $this->request('funding-rate', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_funding_rate_history($params = array()) {
+        return $this->request('funding-rate/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_get_funding_rate_settings($params = array()) {
+        return $this->request('funding-rate/settings', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function private_get_account_balances($params = array()) {
@@ -106,8 +124,50 @@ abstract class onetrading extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_account_futures_summary($params = array()) {
+        return $this->request('account/futures/summary', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_account_futures_positions($params = array()) {
+        return $this->request('account/futures/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_account_futures_positions_history($params = array()) {
+        return $this->request('account/futures/positions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_account_futures_positions_position_id_trades($params = array()) {
+        return $this->request('account/futures/positions/{position_id}/trades', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_account_futures_positions_position_id_funding_payments($params = array()) {
+        return $this->request('account/futures/positions/{position_id}/funding-payments', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_account_futures_funding_payments($params = array()) {
+        return $this->request('account/futures/funding-payments', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_account_orders($params = array()) {
         return $this->request('account/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_subaccounts_transfers($params = array()) {
+        return $this->request('subaccounts/transfers', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -176,6 +236,24 @@ abstract class onetrading extends \ccxt\Exchange {
         return $this->request('time', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function publicGetFundingRate($params = array()) {
+        return $this->request('funding-rate', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetFundingRateHistory($params = array()) {
+        return $this->request('funding-rate/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicGetFundingRateSettings($params = array()) {
+        return $this->request('funding-rate/settings', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function privateGetAccountBalances($params = array()) {
@@ -226,8 +304,50 @@ abstract class onetrading extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetAccountFuturesSummary($params = array()) {
+        return $this->request('account/futures/summary', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAccountFuturesPositions($params = array()) {
+        return $this->request('account/futures/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAccountFuturesPositionsHistory($params = array()) {
+        return $this->request('account/futures/positions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAccountFuturesPositionsPositionIdTrades($params = array()) {
+        return $this->request('account/futures/positions/{position_id}/trades', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAccountFuturesPositionsPositionIdFundingPayments($params = array()) {
+        return $this->request('account/futures/positions/{position_id}/funding-payments', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAccountFuturesFundingPayments($params = array()) {
+        return $this->request('account/futures/funding-payments', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostAccountOrders($params = array()) {
         return $this->request('account/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostSubaccountsTransfers($params = array()) {
+        return $this->request('subaccounts/transfers', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>

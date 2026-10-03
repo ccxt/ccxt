@@ -30,6 +30,10 @@ interface Exchange {
     privatePostWithdrawCoin (params?: {}): Promise<Dict>;
     v4PublicGetCoinCandle (params?: {}): Promise<Dict>;
     v4PublicNetGetCandles (params?: {}): Promise<Dict>;
+    v4PrivatePostAccounts (params?: {}): Promise<Dict>;
+    v4PrivatePostAccountsAccountIdSymbolTransfersInternal (params?: {}): Promise<Dict>;
+    v4PrivatePostOauth2Token (params?: {}): Promise<Dict>;
+    v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

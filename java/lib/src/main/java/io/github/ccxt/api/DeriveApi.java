@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class DeriveApi extends Exchange
 {
@@ -25,7 +27,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetAllCurrencies (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetGetAllCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetAllCurrencies", optionalArgs);
     }
@@ -36,7 +38,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostBuildRegisterSessionKeyTx (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostBuildRegisterSessionKeyTx (Object... optionalArgs)
     {
         return this.callAsync ("publicPostBuildRegisterSessionKeyTx", optionalArgs);
     }
@@ -47,7 +49,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostRegisterSessionKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostRegisterSessionKey (Object... optionalArgs)
     {
         return this.callAsync ("publicPostRegisterSessionKey", optionalArgs);
     }
@@ -58,9 +60,20 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostDeregisterSessionKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostDeregisterSessionKey (Object... optionalArgs)
     {
         return this.callAsync ("publicPostDeregisterSessionKey", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetWalletsFromSessionKey endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetWalletsFromSessionKey (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetWalletsFromSessionKey", optionalArgs);
     }
 
     /**
@@ -69,7 +82,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostLogin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostLogin (Object... optionalArgs)
     {
         return this.callAsync ("publicPostLogin", optionalArgs);
     }
@@ -80,9 +93,42 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostStatistics (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostStatistics (Object... optionalArgs)
     {
         return this.callAsync ("publicPostStatistics", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostAllStatistics endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostAllStatistics (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostAllStatistics", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostUserStatistics endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostUserStatistics (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostUserStatistics", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostAllUserStatistics endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostAllUserStatistics (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostAllUserStatistics", optionalArgs);
     }
 
     /**
@@ -91,7 +137,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetAllCurrencies (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetAllCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetAllCurrencies", optionalArgs);
     }
@@ -102,9 +148,31 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetCurrency", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetAsset endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetAsset (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetAsset", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetAssets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetAssets (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetAssets", optionalArgs);
     }
 
     /**
@@ -113,7 +181,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetInstrument (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetInstrument (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetInstrument", optionalArgs);
     }
@@ -124,7 +192,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetAllInstruments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetAllInstruments (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetAllInstruments", optionalArgs);
     }
@@ -135,7 +203,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetInstruments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetInstruments (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetInstruments", optionalArgs);
     }
@@ -146,9 +214,20 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetTicker", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetTickers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetTickers (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetTickers", optionalArgs);
     }
 
     /**
@@ -157,7 +236,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetLatestSignedFeeds (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetLatestSignedFeeds (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetLatestSignedFeeds", optionalArgs);
     }
@@ -168,7 +247,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetOptionSettlementPrices (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetOptionSettlementPrices (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetOptionSettlementPrices", optionalArgs);
     }
@@ -179,7 +258,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetSpotFeedHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetSpotFeedHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetSpotFeedHistory", optionalArgs);
     }
@@ -190,9 +269,31 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetSpotFeedHistoryCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetSpotFeedHistoryCandles (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetSpotFeedHistoryCandles", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetIndexChartData endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetIndexChartData (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetIndexChartData", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetTradingviewChartData endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetTradingviewChartData (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetTradingviewChartData", optionalArgs);
     }
 
     /**
@@ -201,7 +302,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetFundingRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetFundingRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetFundingRateHistory", optionalArgs);
     }
@@ -212,7 +313,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetTradeHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetTradeHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetTradeHistory", optionalArgs);
     }
@@ -223,7 +324,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetOptionSettlementHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetOptionSettlementHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetOptionSettlementHistory", optionalArgs);
     }
@@ -234,7 +335,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetLiquidationHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetLiquidationHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetLiquidationHistory", optionalArgs);
     }
@@ -245,9 +346,20 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetInterestRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetInterestRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetInterestRateHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetPerpImpactTwap endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetPerpImpactTwap (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetPerpImpactTwap", optionalArgs);
     }
 
     /**
@@ -256,7 +368,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetTransaction (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetTransaction (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetTransaction", optionalArgs);
     }
@@ -267,7 +379,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetMargin (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetMargin", optionalArgs);
     }
@@ -278,9 +390,20 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostMarginWatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostMarginWatch (Object... optionalArgs)
     {
         return this.callAsync ("publicPostMarginWatch", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostOrderQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostOrderQuote (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostOrderQuote", optionalArgs);
     }
 
     /**
@@ -289,7 +412,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostValidateInviteCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostValidateInviteCode (Object... optionalArgs)
     {
         return this.callAsync ("publicPostValidateInviteCode", optionalArgs);
     }
@@ -300,7 +423,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetPoints (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetPoints (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetPoints", optionalArgs);
     }
@@ -311,7 +434,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetAllPoints (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetAllPoints (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetAllPoints", optionalArgs);
     }
@@ -322,7 +445,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetPointsLeaderboard (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetPointsLeaderboard (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetPointsLeaderboard", optionalArgs);
     }
@@ -333,7 +456,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetDescendantTree (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetDescendantTree (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetDescendantTree", optionalArgs);
     }
@@ -344,7 +467,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetTreeRoots (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetTreeRoots (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetTreeRoots", optionalArgs);
     }
@@ -355,9 +478,20 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetSwellPercentPoints (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetSwellPercentPoints (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetSwellPercentPoints", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetStdrvSnapshots endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetStdrvSnapshots (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetStdrvSnapshots", optionalArgs);
     }
 
     /**
@@ -366,7 +500,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetVaultAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetVaultAssets (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetVaultAssets", optionalArgs);
     }
@@ -377,7 +511,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetEtherfiEffectiveBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetEtherfiEffectiveBalances (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetEtherfiEffectiveBalances", optionalArgs);
     }
@@ -388,7 +522,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetKelpEffectiveBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetKelpEffectiveBalances (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetKelpEffectiveBalances", optionalArgs);
     }
@@ -399,7 +533,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetBridgeBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetBridgeBalances (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetBridgeBalances", optionalArgs);
     }
@@ -410,7 +544,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetEthenaParticipants (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetEthenaParticipants (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetEthenaParticipants", optionalArgs);
     }
@@ -421,7 +555,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetVaultShare (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetVaultShare (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetVaultShare", optionalArgs);
     }
@@ -432,7 +566,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetVaultStatistics (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetVaultStatistics (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetVaultStatistics", optionalArgs);
     }
@@ -443,9 +577,31 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetVaultBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetVaultBalances (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetVaultBalances", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetVaultPools endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetVaultPools (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetVaultPools", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetVaultRates endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetVaultRates (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetVaultRates", optionalArgs);
     }
 
     /**
@@ -454,7 +610,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostEstimateIntegratorPoints (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostEstimateIntegratorPoints (Object... optionalArgs)
     {
         return this.callAsync ("publicPostEstimateIntegratorPoints", optionalArgs);
     }
@@ -465,9 +621,20 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostCreateSubaccountDebug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostCreateSubaccountDebug (Object... optionalArgs)
     {
         return this.callAsync ("publicPostCreateSubaccountDebug", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostCreateAccountWithSecret endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostCreateAccountWithSecret (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostCreateAccountWithSecret", optionalArgs);
     }
 
     /**
@@ -476,7 +643,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostDepositDebug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostDepositDebug (Object... optionalArgs)
     {
         return this.callAsync ("publicPostDepositDebug", optionalArgs);
     }
@@ -487,7 +654,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostWithdrawDebug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostWithdrawDebug (Object... optionalArgs)
     {
         return this.callAsync ("publicPostWithdrawDebug", optionalArgs);
     }
@@ -498,7 +665,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostSendQuoteDebug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostSendQuoteDebug (Object... optionalArgs)
     {
         return this.callAsync ("publicPostSendQuoteDebug", optionalArgs);
     }
@@ -509,7 +676,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostExecuteQuoteDebug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostExecuteQuoteDebug (Object... optionalArgs)
     {
         return this.callAsync ("publicPostExecuteQuoteDebug", optionalArgs);
     }
@@ -520,7 +687,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetInviteCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetInviteCode (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetInviteCode", optionalArgs);
     }
@@ -531,9 +698,31 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostRegisterInvite (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostRegisterInvite (Object... optionalArgs)
     {
         return this.callAsync ("publicPostRegisterInvite", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetAllReferralCodes endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetAllReferralCodes (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetAllReferralCodes", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetReferralPerformance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetReferralPerformance (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetReferralPerformance", optionalArgs);
     }
 
     /**
@@ -542,7 +731,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetTime (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetTime", optionalArgs);
     }
@@ -553,7 +742,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetLiveIncidents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetLiveIncidents (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetLiveIncidents", optionalArgs);
     }
@@ -564,7 +753,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetMakerPrograms (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetMakerPrograms (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetMakerPrograms", optionalArgs);
     }
@@ -575,9 +764,31 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostGetMakerProgramScores (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetMakerProgramScores (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetMakerProgramScores", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetDetailedMakerSnapshotHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetDetailedMakerSnapshotHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetDetailedMakerSnapshotHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetRateLimits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetRateLimits (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetRateLimits", optionalArgs);
     }
 
     /**
@@ -586,7 +797,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetAccount", optionalArgs);
     }
@@ -597,7 +808,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCreateSubaccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCreateSubaccount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCreateSubaccount", optionalArgs);
     }
@@ -608,7 +819,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetSubaccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetSubaccount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetSubaccount", optionalArgs);
     }
@@ -619,7 +830,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetSubaccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetSubaccounts (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetSubaccounts", optionalArgs);
     }
@@ -630,7 +841,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetAllPortfolios (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetAllPortfolios (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetAllPortfolios", optionalArgs);
     }
@@ -641,7 +852,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostChangeSubaccountLabel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostChangeSubaccountLabel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostChangeSubaccountLabel", optionalArgs);
     }
@@ -652,9 +863,20 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetNotificationsv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetNotificationsv (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetNotificationsv", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetNotifications endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetNotifications (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetNotifications", optionalArgs);
     }
 
     /**
@@ -663,7 +885,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUpdateNotifications (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUpdateNotifications (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUpdateNotifications", optionalArgs);
     }
@@ -674,7 +896,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeposit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeposit", optionalArgs);
     }
@@ -685,7 +907,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdraw", optionalArgs);
     }
@@ -696,7 +918,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransferErc20 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTransferErc20 (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransferErc20", optionalArgs);
     }
@@ -707,7 +929,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransferPosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTransferPosition (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransferPosition", optionalArgs);
     }
@@ -718,7 +940,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransferPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTransferPositions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransferPositions", optionalArgs);
     }
@@ -729,7 +951,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrder", optionalArgs);
     }
@@ -740,7 +962,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostReplace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostReplace (Object... optionalArgs)
     {
         return this.callAsync ("privatePostReplace", optionalArgs);
     }
@@ -751,7 +973,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderDebug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderDebug (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderDebug", optionalArgs);
     }
@@ -762,7 +984,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetOrder", optionalArgs);
     }
@@ -773,7 +995,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetOrders", optionalArgs);
     }
@@ -784,9 +1006,31 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetOpenOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetTriggerOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetTriggerOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetTriggerOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetAlgoOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetAlgoOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetAlgoOrders", optionalArgs);
     }
 
     /**
@@ -795,7 +1039,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancel", optionalArgs);
     }
@@ -806,7 +1050,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelByLabel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelByLabel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelByLabel", optionalArgs);
     }
@@ -817,7 +1061,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelByNonce (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelByNonce (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelByNonce", optionalArgs);
     }
@@ -828,7 +1072,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelByInstrument (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelByInstrument (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelByInstrument", optionalArgs);
     }
@@ -839,7 +1083,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelAll", optionalArgs);
     }
@@ -850,9 +1094,42 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelTriggerOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelTriggerOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelTriggerOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostCancelAlgoOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostCancelAlgoOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCancelAlgoOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostCancelAllAlgoOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostCancelAllAlgoOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCancelAllAlgoOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostCancelAllTriggerOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostCancelAllTriggerOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCancelAllTriggerOrders", optionalArgs);
     }
 
     /**
@@ -861,7 +1138,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetOrderHistory", optionalArgs);
     }
@@ -872,7 +1149,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetTradeHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetTradeHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetTradeHistory", optionalArgs);
     }
@@ -883,7 +1160,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetDepositHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetDepositHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetDepositHistory", optionalArgs);
     }
@@ -894,7 +1171,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetWithdrawalHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetWithdrawalHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetWithdrawalHistory", optionalArgs);
     }
@@ -905,7 +1182,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSendRfq (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSendRfq (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSendRfq", optionalArgs);
     }
@@ -916,7 +1193,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelRfq (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelRfq (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelRfq", optionalArgs);
     }
@@ -927,7 +1204,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelBatchRfqs (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelBatchRfqs (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelBatchRfqs", optionalArgs);
     }
@@ -938,7 +1215,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetRfqs (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetRfqs (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetRfqs", optionalArgs);
     }
@@ -949,7 +1226,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPollRfqs (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPollRfqs (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPollRfqs", optionalArgs);
     }
@@ -960,7 +1237,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSendQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSendQuote (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSendQuote", optionalArgs);
     }
@@ -971,7 +1248,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelQuote (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelQuote", optionalArgs);
     }
@@ -982,7 +1259,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelBatchQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelBatchQuotes (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelBatchQuotes", optionalArgs);
     }
@@ -993,7 +1270,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetQuotes (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetQuotes", optionalArgs);
     }
@@ -1004,7 +1281,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPollQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPollQuotes (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPollQuotes", optionalArgs);
     }
@@ -1015,9 +1292,31 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostExecuteQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostExecuteQuote (Object... optionalArgs)
     {
         return this.callAsync ("privatePostExecuteQuote", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostOrderQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostOrderQuote (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOrderQuote", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostReplaceQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostReplaceQuote (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostReplaceQuote", optionalArgs);
     }
 
     /**
@@ -1026,7 +1325,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRfqGetBestQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRfqGetBestQuote (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRfqGetBestQuote", optionalArgs);
     }
@@ -1037,7 +1336,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetMargin", optionalArgs);
     }
@@ -1048,7 +1347,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetCollaterals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetCollaterals (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetCollaterals", optionalArgs);
     }
@@ -1059,7 +1358,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetPositions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetPositions", optionalArgs);
     }
@@ -1070,7 +1369,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetOptionSettlementHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetOptionSettlementHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetOptionSettlementHistory", optionalArgs);
     }
@@ -1081,7 +1380,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetSubaccountValueHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetSubaccountValueHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetSubaccountValueHistory", optionalArgs);
     }
@@ -1092,7 +1391,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostExpiredAndCancelledHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostExpiredAndCancelledHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostExpiredAndCancelledHistory", optionalArgs);
     }
@@ -1103,7 +1402,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetFundingHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetFundingHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetFundingHistory", optionalArgs);
     }
@@ -1114,7 +1413,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetInterestHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetInterestHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetInterestHistory", optionalArgs);
     }
@@ -1125,7 +1424,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetErc20TransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetErc20TransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetErc20TransferHistory", optionalArgs);
     }
@@ -1136,7 +1435,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetLiquidationHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetLiquidationHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetLiquidationHistory", optionalArgs);
     }
@@ -1147,7 +1446,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLiquidate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLiquidate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLiquidate", optionalArgs);
     }
@@ -1158,7 +1457,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetLiquidatorHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetLiquidatorHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetLiquidatorHistory", optionalArgs);
     }
@@ -1169,7 +1468,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSessionKeys (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSessionKeys (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSessionKeys", optionalArgs);
     }
@@ -1180,9 +1479,20 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEditSessionKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEditSessionKey (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEditSessionKey", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostChangeSessionKeyLabel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostChangeSessionKeyLabel (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostChangeSessionKeyLabel", optionalArgs);
     }
 
     /**
@@ -1191,7 +1501,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRegisterScopedSessionKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRegisterScopedSessionKey (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRegisterScopedSessionKey", optionalArgs);
     }
@@ -1202,7 +1512,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetMmpConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetMmpConfig (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetMmpConfig", optionalArgs);
     }
@@ -1213,7 +1523,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSetMmpConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSetMmpConfig (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSetMmpConfig", optionalArgs);
     }
@@ -1224,7 +1534,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostResetMmp (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostResetMmp (Object... optionalArgs)
     {
         return this.callAsync ("privatePostResetMmp", optionalArgs);
     }
@@ -1235,7 +1545,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSetCancelOnDisconnect (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSetCancelOnDisconnect (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSetCancelOnDisconnect", optionalArgs);
     }
@@ -1246,7 +1556,7 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetInviteCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetInviteCode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetInviteCode", optionalArgs);
     }
@@ -1257,9 +1567,53 @@ public class DeriveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRegisterInvite (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRegisterInvite (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRegisterInvite", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetContactInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetContactInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetContactInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostCreateContactInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostCreateContactInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCreateContactInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostUpdateContactInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostUpdateContactInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostUpdateContactInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostDeleteContactInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostDeleteContactInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDeleteContactInfo", optionalArgs);
     }
 
 }

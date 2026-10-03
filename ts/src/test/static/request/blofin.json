@@ -3,6 +3,83 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "deposit address for USDT on TRC20",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=USDT&chain=Tron%20%28TRC20%29",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for USDT on OPTIMISM resolves the currency-scoped chain id",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=USDT&chain=Optimism%20%28USDT0%29",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "OPTIMISM"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for USDT with the legacy OP network alias",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=USDT&chain=Optimism%20%28USDT0%29",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "OP"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for ETH on OPTIMISM",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=ETH&chain=Optimism",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "OPTIMISM"
+                    }
+                ]
+            },
+            {
+                "description": "deposit address for BTC with the default network",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-address?currency=BTC&chain=Bitcoin",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "deposit and withdraw fees for USDT and BTC",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://openapi.blofin.com/api/v1/asset/currencies",
+                "input": [
+                    [
+                        "USDT",
+                        "BTC"
+                    ]
+                ]
+            }
+        ],
+        "fetchWithdrawal": [
+            {
+                "description": "fetch a withdrawal by id",
+                "method": "fetchWithdrawal",
+                "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-history?withdrawId=4925a43661d14db7b5a11c608d04ec8c",
+                "input": [
+                    "4925a43661d14db7b5a11c608d04ec8c"
+                ]
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "default",
@@ -216,7 +293,7 @@
                 "method": "cancelOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/cancel-algo",
                 "input": [
-                    61322087,
+                    "61322087",
                     "LTC/USDT:USDT",
                     {
                         "trigger": true
@@ -612,6 +689,29 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "on-chain withdrawal with a unified network code",
+                "method": "withdraw",
+                "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-apply",
+                "input": ["USDT", 50, "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", null, {"network": "TRC20", "clientId": "ccxt-test-0001"}],
+                "output": "{\"currency\":\"USDT\",\"address\":\"TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6\",\"amount\":\"50\",\"dest\":\"onchain\",\"addrType\":\"1\",\"chain\":\"Tron (TRC20)\",\"clientId\":\"ccxt-test-0001\"}"
+            },
+            {
+                "description": "internal transfer to a UID",
+                "method": "withdraw",
+                "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-apply",
+                "input": ["USDT", 25, "123456789", null, {"dest": "internal", "addrType": "2"}],
+                "output": "{\"currency\":\"USDT\",\"address\":\"123456789\",\"amount\":\"25\",\"dest\":\"internal\",\"addrType\":\"2\"}"
+            },
+            {
+                "description": "explicit chain takes precedence and the unified network key never reaches the wire",
+                "method": "withdraw",
+                "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-apply",
+                "input": ["USDT", 50, "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", null, {"network": "TRC20", "chain": "Tron", "clientId": "ccxt-test-0001"}],
+                "output": "{\"currency\":\"USDT\",\"address\":\"TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6\",\"amount\":\"50\",\"dest\":\"onchain\",\"addrType\":\"1\",\"chain\":\"Tron\",\"clientId\":\"ccxt-test-0001\"}"
             }
         ]
     }

@@ -19,7 +19,7 @@ public class FetchCurrencies {
 
         exchange.loadMarkets(false);
 
-        Currencies currencies = exchange.fetchCurrencies((Map<String, Object>) null);
+        Currencies currencies = exchange.fetchCurrenciesAsync((Map<String, Object>) null).join();
 
         if (currencies.currencies.isEmpty()) {
             System.out.println("No currencies returned (this exchange may require API keys for fetchCurrencies).");

@@ -8,6 +8,48 @@
     ],
     "options": {},
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [],
+                "output": "{\"incomeType\":\"position_funding\"}"
+            },
+            {
+                "description": "fetch funding history with since and until",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1786612835613,
+                    10,
+                    {
+                        "until": 1789204835613
+                    }
+                ],
+                "output": "{\"incomeType\":\"position_funding\",\"symbol\":\"ETHUSDT\",\"startTime\":1786612835613,\"limit\":10,\"endTime\":1789204835613}"
+            },
+            {
+                "description": "fetch funding history with since defaults the end time",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1786612835613
+                ],
+                "output": "{\"incomeType\":\"position_funding\",\"symbol\":\"ETHUSDT\",\"startTime\":1786612835613,\"endTime\":1789204839567}"
+            },
+            {
+                "description": "fetch funding history for a symbol",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"incomeType\":\"position_funding\",\"symbol\":\"ETHUSDT\"}"
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
@@ -361,6 +403,20 @@
             }
         ],
         "fetchLedger": [
+            {
+                "description": "fetch ledger for contract without a code",
+                "method": "fetchLedger",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{}"
+            },
             {
                 "description": "fetch ledger for funding",
                 "method": "fetchLedger",

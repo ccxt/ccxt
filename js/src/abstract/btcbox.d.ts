@@ -6,6 +6,7 @@ interface Exchange {
     publicGetTicker(params?: {}): Promise<Dict>;
     publicGetTickers(params?: {}): Promise<Dict>;
     privatePostBalance(params?: {}): Promise<Dict>;
+    privatePostOrderHistory(params?: {}): Promise<List>;
     privatePostTradeAdd(params?: {}): Promise<Dict>;
     privatePostTradeCancel(params?: {}): Promise<Dict>;
     privatePostTradeList(params?: {}): Promise<List>;

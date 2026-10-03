@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official htx API documentation:** [huobiapi.github.io](https://huobiapi.github.io/docs/spot/v1/en/) · [huobiapi.github.io](https://huobiapi.github.io/docs/dm/v1/en/) · [huobiapi.github.io](https://huobiapi.github.io/docs/coin_margined_swap/v1/en/) · [huobiapi.github.io](https://huobiapi.github.io/docs/usdt_swap/v1/en/) · [huobi.com](https://www.huobi.com/en-us/opend/newApiPages/)
 
-> 460 implicit endpoints across 6 access groups.
+> 477 implicit endpoints across 6 access groups.
 
 ## v2Public
 
@@ -263,6 +263,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotPrivateGetV2EtpTransactions` | GET | `v2/etp/transactions` | 5 |
 | `spotPrivateGetV2EtpTransaction` | GET | `v2/etp/transaction` | 5 |
 | `spotPrivateGetV2EtpLimit` | GET | `v2/etp/limit` | 1 |
+| `spotPrivateGetV2InviteeRebateReferrals` | GET | `v2/invitee/rebate/referrals` | 10 |
+| `spotPrivateGetV2InviteeRebateDetail` | GET | `v2/invitee/rebate/detail` | 1 |
+| `spotPrivateGetV2InviteeRebateHistory` | GET | `v2/invitee/rebate/history` | 1 |
+| `spotPrivateGetV2InviteeRebateAllRebateDetail` | GET | `v2/invitee/rebate/all_rebate/detail` | 1 |
+| `spotPrivateGetV2InviteeRebateBatcherRebateDetail` | GET | `v2/invitee/rebate/batcher_rebate/detail` | 1 |
 | `spotPrivatePostV1AccountTransfer` | POST | `v1/account/transfer` | 1 |
 | `spotPrivatePostV1FuturesTransfer` | POST | `v1/futures/transfer` | 1 |
 | `spotPrivatePostV2PointTransfer` | POST | `v2/point/transfer` | 5 |
@@ -303,6 +308,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotPrivatePostV2EtpRedemption` | POST | `v2/etp/redemption` | 5 |
 | `spotPrivatePostV2EtpTransactIdCancel` | POST | `v2/etp/{transactId}/cancel` | 10 |
 | `spotPrivatePostV2EtpBatchCancel` | POST | `v2/etp/batch-cancel` | 50 |
+| `spotPrivatePostV5AccountUniversalTransfer` | POST | `v5/account/universal_transfer` | 4 |
 
 ## contract
 
@@ -433,6 +439,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `contractPrivateGetV5AlgoOrderOpens` | GET | `v5/algo/order/opens` | 0.41679 |
 | `contractPrivateGetV5AlgoOrder` | GET | `v5/algo/order` | 0.41679 |
 | `contractPrivateGetV5AlgoOrderHistory` | GET | `v5/algo/order/history` | 0.41679 |
+| `contractPrivateGetApiV6CopyTradingTraderInstruments` | GET | `api/v6/copyTrading/trader/instruments` | 2 |
+| `contractPrivateGetApiV6CopyTradingTraderStatistics` | GET | `api/v6/copyTrading/trader/statistics` | 2 |
+| `contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory` | GET | `api/v6/copyTrading/trader/profit-sharing-history` | 2 |
+| `contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary` | GET | `api/v6/copyTrading/trader/profit-sharing-history-summary` | 2 |
+| `contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary` | GET | `api/v6/copyTrading/trader/unrealized-profit-sharing-summary` | 2 |
+| `contractPrivateGetApiV6CopyTradingTraderFollowers` | GET | `api/v6/copyTrading/trader/followers` | 2 |
 | `contractPrivatePostApiV1ContractBalanceValuation` | POST | `api/v1/contract_balance_valuation` | 1 |
 | `contractPrivatePostApiV1ContractAccountInfo` | POST | `api/v1/contract_account_info` | 1 |
 | `contractPrivatePostApiV1ContractPositionInfo` | POST | `api/v1/contract_position_info` | 1 |
@@ -558,4 +570,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `contractPrivatePostV5AccountFeeDeductionCurrency` | POST | `v5/account/fee_deduction_currency` | 0.20834 |
 | `contractPrivatePostV5AlgoOrder` | POST | `v5/algo/order` | 0.41679 |
 | `contractPrivatePostV5AlgoCancelOrders` | POST | `v5/algo/cancel_orders` | 0.41679 |
+| `contractPrivatePostApiV6CopyTradingTraderFollower` | POST | `api/v6/copyTrading/trader/follower` | 2 |
+| `contractPrivatePostApiV6CopyTradingTraderTransfer` | POST | `api/v6/copyTrading/trader/transfer` | 2 |
+| `contractPrivatePostApiV6CopyTradingTraderFollowerSettings` | POST | `api/v6/copyTrading/trader/follower-settings` | 2 |
+| `contractPrivatePostApiV6CopyTradingTraderConfig` | POST | `api/v6/copyTrading/trader/config` | 2 |
+| `contractPrivatePostApiV6CopyTradingTraderApikey` | POST | `api/v6/copyTrading/trader/apikey` | 2 |
 

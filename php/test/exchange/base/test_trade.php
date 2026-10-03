@@ -9,7 +9,7 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 
 
-function test_trade($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
+function test_trade($exchange, $skipped_properties, $method, $entry, $symbol, $now, $is_public_trade) {
     // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
     // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
     if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
@@ -44,7 +44,13 @@ function test_trade($exchange, $skipped_properties, $method, $entry, $symbol, $n
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
     //
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'side', ['buy', 'sell']);
-    assert_in_array($exchange, $skipped_properties, $method, $entry, 'takerOrMaker', ['taker', 'maker']);
+    if ($is_public_trade) {
+        // for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
+        assert_in_array($exchange, $skipped_properties, $method, $entry, 'takerOrMaker', ['taker', null]);
+    } else {
+        // for private trades (fetchMyTrades & watchMyTrades), it can be any
+        assert_in_array($exchange, $skipped_properties, $method, $entry, 'takerOrMaker', ['taker', 'maker', null]);
+    }
     assert_fee_structure($exchange, $skipped_properties, $method, $entry, 'fee');
     if (!(is_array($skipped_properties) && array_key_exists('fees', $skipped_properties))) {
         // todo: remove undefined check and probably non-empty array check later

@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import bitrueRest from '../bitrue.js';
-import { AuthenticationError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade, List, Endpoint } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, Str, Ticker, Trade, List, Endpoint } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         const url = await this.authenticate ();
         const messageHash = 'balance';
         const message: Dict = {
@@ -90,7 +90,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "e": "BALANCE",
@@ -136,13 +136,13 @@ export default class bitrue extends bitrueRest {
         //      "u": 2285311
         //    }
         //
-        const balances = this.safeValue (message, 'B', []);
+        const balances = this.safeList (message, 'B', []);
         this.parseWSBalances (balances);
         const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
     }
 
-    parseWSBalances (balances: any) {
+    parseWSBalances (balances: any[]) {
         //
         //    [{
         //         "a": "btc",
@@ -161,7 +161,7 @@ export default class bitrue extends bitrueRest {
         //
         this.balance['info'] = balances;
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -197,13 +197,14 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/?id=order-structure} indexed by market symbols
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         const url = await this.authenticate ();
         const messageHash = 'orders';
@@ -214,14 +215,15 @@ export default class bitrue extends bitrueRest {
             },
         };
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         //
         //    {
         //        "e": "ORDER",
@@ -256,7 +258,7 @@ export default class bitrue extends bitrueRest {
         client.resolve (this.orders, messageHash);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //    {
         //        "e": "ORDER",
@@ -286,7 +288,10 @@ export default class bitrue extends bitrueRest {
         const sideId = this.safeInteger (order, 'S');
         // 1: buy
         // 2: sell
-        const side = (sideId === 1) ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (sideId === 1) {
+            side = 'buy';
+        }
         const statusId = this.safeString (order, 'X');
         const feeCurrencyId = this.safeString (order, 'N');
         return this.safeOrder ({
@@ -316,17 +321,17 @@ export default class bitrue extends bitrueRest {
         }, market);
     }
 
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'orderbook:' + symbolValue;
         let url: Str = undefined;
         let channel: Str = undefined;
         let cbId: Str = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             const baseIdLower = this.safeStringLower (market, 'baseId');
             const quoteIdLower = this.safeStringLower (market, 'quoteId');
             const wsId = 'e_' + baseIdLower + quoteIdLower;
@@ -350,7 +355,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url as string, messageHash, request, messageHash);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "market_ethbtc_simple_depth_step0",
@@ -395,9 +400,9 @@ export default class bitrue extends bitrueRest {
             const marketId = this.safeStringUpper (parts, 1);
             market = this.safeMarket (marketId);
         }
-        const symbol = (market as Dict)['symbol'];
+        const symbol: string = (market as Dict)['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         let parseable = tick;
         if (isFutures) {
             const rawAsks = this.safeList (tick, 'asks', []);
@@ -425,22 +430,25 @@ export default class bitrue extends bitrueRest {
         const symbols = Object.keys (markets);
         for (let i = 0; i < symbols.length; i++) {
             const candidate = markets[symbols[i]];
-            if (!candidate['swap']) {
+            if (!this.safeBool (candidate, 'swap', false)) {
                 continue;
             }
-            const baseId = this.safeStringLower (candidate, 'baseId', '');
-            const quoteId = this.safeStringLower (candidate, 'quoteId', '');
-            if ((baseId as string) + quoteId === wsBaseQuote) {
+            const baseId = this.safeStringLower (candidate, 'baseId');
+            const quoteId = this.safeStringLower (candidate, 'quoteId');
+            if (baseId === undefined || quoteId === undefined) {
+                throw new ExchangeError (this.id + ' findSwapMarketByWsBaseQuote() market ' + symbols[i] + ' has no baseId or quoteId');
+            }
+            if (baseId + quoteId === wsBaseQuote) {
                 return candidate;
             }
         }
         return undefined;
     }
 
-    parseContractBidsAsks (bidsAsks: any, symbol: string) {
+    parseContractBidsAsks (bidsAsks: any[], symbol: string): List {
         const result: List = [];
         for (let i = 0; i < bidsAsks.length; i++) {
-            const level = bidsAsks[i];
+            const level = this.safeList (bidsAsks, i);
             const price = this.safeNumber (level, 0);
             const rawAmount = this.safeNumber (level, 1);
             const amount = this.convertFromRawQuantity (symbol, rawAmount);
@@ -449,12 +457,12 @@ export default class bitrue extends bitrueRest {
         return result;
     }
 
-    convertFromRawQuantity (symbol: string, rawQuantity: any) {
+    convertFromRawQuantity (symbol: string, rawQuantity: Num) {
         if (rawQuantity === undefined) {
             return undefined;
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             return rawQuantity;
         }
         const contractSize = this.safeNumber (market, 'contractSize', 1);
@@ -472,20 +480,20 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        if (!market['swap']) {
+        const symbolValue: string = market['symbol'];
+        if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchTrades is only supported for swap markets');
         }
         const baseIdLower = this.safeStringLower (market, 'baseId');
         const quoteIdLower = this.safeStringLower (market, 'quoteId');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_trade_ticker';
-        const messageHash = 'trades:' + symbol;
+        const messageHash = 'trades:' + symbolValue;
         const url = this.urls['api']['ws']['futurePublic'];
         const message: Dict = {
             'event': 'sub',
@@ -495,14 +503,15 @@ export default class bitrue extends bitrueRest {
             },
         };
         const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, messageHash);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "event_rep": "",
@@ -531,8 +540,8 @@ export default class bitrue extends bitrueRest {
             return;
         }
         const symbol = market['symbol'];
-        const tick = this.safeValue (message, 'tick', {});
-        const data = this.safeList (tick, 'data', []);
+        const tick = this.safeDict (message, 'tick', {});
+        const data: Dict[] = this.safeList (tick, 'data', []);
         let appended = false;
         let stored = this.safeValue (this.trades, symbol);
         for (let i = 0; i < data.length; i++) {
@@ -551,8 +560,8 @@ export default class bitrue extends bitrueRest {
         }
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
-        const symbol = (market as Dict)['symbol'];
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+        const symbol: string = (market as Dict)['symbol'];
         const timestamp = this.safeInteger (trade, 'ts');
         const sideLower = this.safeStringLower (trade, 'side');
         const priceString = this.safeString (trade, 'price');
@@ -587,13 +596,13 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        if (!market['swap']) {
+        const symbolValue: string = market['symbol'];
+        if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchOHLCV is only supported for swap markets');
         }
         const futuresTimeframes = this.safeDict (this.options, 'futuresTimeframes', {});
@@ -605,7 +614,7 @@ export default class bitrue extends bitrueRest {
         const quoteIdLower = this.safeStringLower (market, 'quoteId');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_kline_' + interval;
-        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
         const url = this.urls['api']['ws']['futurePublic'];
         const message: Dict = {
             'event': 'sub',
@@ -615,14 +624,15 @@ export default class bitrue extends bitrueRest {
             },
         };
         const request = this.deepExtend (message, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "market_e_btcusdt_kline_1min",
@@ -652,7 +662,7 @@ export default class bitrue extends bitrueRest {
         const wsInterval = this.safeString (parts, 4);
         const futuresTimeframes = this.safeDict (this.options, 'futuresTimeframes', {});
         const timeframe = this.findTimeframe (wsInterval, futuresTimeframes);
-        const tick = this.safeValue (message, 'tick');
+        const tick = this.safeDict (message, 'tick');
         if (tick === undefined) {
             return;
         }
@@ -671,7 +681,7 @@ export default class bitrue extends bitrueRest {
     }
 
     override parseWsOHLCV (tick: any, market: Market = undefined): OHLCV {
-        const symbol = (market as Dict)['symbol'];
+        const symbol: string = (market as Dict)['symbol'];
         const idSeconds = this.safeInteger (tick, 'id');
         const timestamp = (idSeconds === undefined) ? undefined : idSeconds * 1000;
         const open = this.safeNumber (tick, 'open');
@@ -692,20 +702,20 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        if (!market['swap']) {
+        const symbolValue: string = market['symbol'];
+        if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchTicker is only supported for swap markets');
         }
         const baseIdLower = this.safeStringLower (market, 'baseId');
         const quoteIdLower = this.safeStringLower (market, 'quoteId');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_ticker';
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbolValue;
         const url = this.urls['api']['ws']['futurePublic'];
         const message: Dict = {
             'event': 'sub',
@@ -718,7 +728,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "market_e_btcusdt_ticker",
@@ -743,7 +753,7 @@ export default class bitrue extends bitrueRest {
             return;
         }
         const symbol = market['symbol'];
-        const tick = this.safeValue (message, 'tick');
+        const tick = this.safeDict (message, 'tick');
         if (tick === undefined) {
             return;
         }
@@ -754,7 +764,7 @@ export default class bitrue extends bitrueRest {
         client.resolve (parsed, messageHash);
     }
 
-    parseWsTicker (tick: any, market: any, timestamp: Int = undefined): Ticker {
+    parseWsTicker (tick: Dict, market: any, timestamp: Int = undefined): Ticker {
         const symbol = market['symbol'];
         const rawVol = this.safeNumber (tick, 'vol');
         const rawAmount = this.safeNumber (tick, 'amount');
@@ -787,7 +797,7 @@ export default class bitrue extends bitrueRest {
         }, market);
     }
 
-    parseWsOrderType (typeId: any) {
+    parseWsOrderType (typeId: Str): Str {
         const types: Dict = {
             '1': 'limit',
             '2': 'market',
@@ -796,7 +806,7 @@ export default class bitrue extends bitrueRest {
         return this.safeString (types, typeId, typeId);
     }
 
-    parseWsOrderStatus (status: any) {
+    parseWsOrderStatus (status: Str): Str {
         const statuses: Dict = {
             '0': 'open', // The order has not been accepted by the engine.
             '1': 'open', // The order has been accepted by the engine.
@@ -808,11 +818,11 @@ export default class bitrue extends bitrueRest {
         return this.safeString (statuses, status, status);
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: Dict) {
         //
         //     {
         //         "ping": 1670057540627
@@ -825,7 +835,7 @@ export default class bitrue extends bitrueRest {
         await client.send (pong);
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         if ('channel' in message) {
             const channel = this.safeString (message, 'channel');
             if ((channel as string).indexOf ('_depth_step') > -1) {
@@ -852,8 +862,8 @@ export default class bitrue extends bitrueRest {
         }
     }
 
-    async authenticate (params = {}) {
-        const listenKey = this.safeValue (this.options, 'listenKey');
+    async authenticate (params: Dict = {}): Promise<Str> {
+        const listenKey: Str = this.safeString (this.options, 'listenKey');
         if (listenKey === undefined) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: the key rides the
@@ -869,7 +879,7 @@ export default class bitrue extends bitrueRest {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey url is then in the options
                 await client.future (messageHash);
-                return this.options['listenKeyUrl'];
+                return this.safeString (this.options, 'listenKeyUrl');
             }
             // register before the first await, so a concurrent caller entering
             // authenticate () while this one is inside the fetch sees the flight
@@ -885,7 +895,7 @@ export default class bitrue extends bitrueRest {
                 //         }
                 //     }
                 //
-                const data = this.safeValue (response, 'data', {});
+                const data = this.safeDict (response, 'data', {});
                 const key = this.safeString (data, 'listenKey');
                 if (key === undefined) {
                     // reject instead of caching an empty credential, so
@@ -893,7 +903,11 @@ export default class bitrue extends bitrueRest {
                     throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
                 }
                 this.options['listenKey'] = key;
-                this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
+                const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+                if (wsUrl === undefined) {
+                    throw new ExchangeError (this.id + ' authenticate() has no private websocket url');
+                }
+                this.options['listenKeyUrl'] = wsUrl + '/stream?listenKey=' + key;
                 client.resolve (key, messageHash);
             } catch (e) {
                 // reject the flight - all waiters throw and the next caller
@@ -914,10 +928,10 @@ export default class bitrue extends bitrueRest {
             const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
             this.delay (refreshTimeout, this.keepAliveListenKey);
         }
-        return this.options['listenKeyUrl'];
+        return this.safeString (this.options, 'listenKeyUrl');
     }
 
-    async keepAliveListenKey (params = {}) {
+    async keepAliveListenKey (params: Dict = {}) {
         const listenKey = this.safeString (this.options, 'listenKey');
         const request: Dict = {
             'listenKey': listenKey,

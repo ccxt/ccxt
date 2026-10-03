@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\independentreserve as Exchange;
+use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
@@ -144,6 +145,8 @@ class independentreserve extends Exchange {
                         'GetRecentTrades' => array( 'cost' => 1 ),
                         'GetFxRates' => array( 'cost' => 1 ),
                         'GetOrderMinimumVolumes' => array( 'cost' => 1 ),
+                        'GetDepositFees' => array( 'cost' => 1 ),
+                        'GetFiatWithdrawalFees' => array( 'cost' => 1 ),
                         'GetCryptoWithdrawalFees' => array( 'cost' => 1 ),
                         'GetCryptoWithdrawalFees2' => array( 'cost' => 1 ),
                         'GetNetworks' => array( 'cost' => 1 ),
@@ -164,11 +167,16 @@ class independentreserve extends Exchange {
                         'GetDigitalCurrencyDepositAddresses' => array( 'cost' => 1 ),
                         'GetDigitalCurrencyDepositAddresses2' => array( 'cost' => 1 ),
                         'GetTrades' => array( 'cost' => 1 ),
+                        'GetTradesByOrder' => array( 'cost' => 1 ),
                         'GetBrokerageFees' => array( 'cost' => 1 ),
                         'GetDigitalCurrencyWithdrawal' => array( 'cost' => 1 ),
+                        'GetFiatWithdrawal' => array( 'cost' => 1 ),
+                        'GetDepositLimits' => array( 'cost' => 1 ),
+                        'GetWithdrawalLimits' => array( 'cost' => 1 ),
                         'PlaceLimitOrder' => array( 'cost' => 1 ),
                         'PlaceMarketOrder' => array( 'cost' => 1 ),
                         'CancelOrder' => array( 'cost' => 1 ),
+                        'CancelOrders' => array( 'cost' => 1 ),
                         'SynchDigitalCurrencyDepositAddressWithBlockchain' => array( 'cost' => 1 ),
                         'RequestFiatWithdrawal' => array( 'cost' => 1 ),
                         'WithdrawFiatCurrency' => array( 'cost' => 1 ),
@@ -333,10 +341,10 @@ class independentreserve extends Exchange {
         list($baseCurrencies, $quoteCurrencies, $limits) = Async\await(Promise\all(array( $baseCurrenciesPromise, $quoteCurrenciesPromise, $limitsPromise )));
         //
         //     {
-        //         "Xbt" => 0.0001,
-        //         "Eth" => 0.001,
-        //         "Ltc" => 0.01,
-        //         "Xrp" => 1.0,
+        //         "Xbt": 0.0001,
+        //         "Eth": 0.001,
+        //         "Ltc": 0.01,
+        //         "Xrp": 1.0,
         //     }
         //
         $result = array();
@@ -349,6 +357,9 @@ class independentreserve extends Exchange {
             for ($j = 0; $j < count($quoteCurrencyIds); $j++) {
                 $quoteId = $quoteCurrencyIds[$j];
                 $quote = $this->safe_currency_code($quoteId);
+                if (($base === null) || ($quote === null)) {
+                    continue;
+                }
                 $id = $baseId . '/' . $quoteId;
                 $result[] = array(
                     'id' => $id,
@@ -407,7 +418,7 @@ class independentreserve extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'CurrencyCode');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -483,8 +494,8 @@ class independentreserve extends Exchange {
         if (($baseId !== null) && ($quoteId !== null)) {
             $defaultMarketId = $baseId . '/' . $quoteId;
         }
-        $market = $this->safe_market($defaultMarketId, $market, '/');
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($defaultMarketId, $market, '/');
+        $symbol = $marketResolved['symbol'];
         $last = $this->safe_string($ticker, 'LastPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -507,7 +518,7 @@ class independentreserve extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -551,50 +562,50 @@ class independentreserve extends Exchange {
         // fetchOrder
         //
         //     {
-        //         "OrderGuid" => "c7347e4c-b865-4c94-8f74-d934d4b0b177",
-        //         "CreatedTimestampUtc" => "2014-09-23T12:39:34.3817763Z",
-        //         "Type" => "MarketBid",
-        //         "VolumeOrdered" => 5.0,
-        //         "VolumeFilled" => 5.0,
-        //         "Price" => null,
-        //         "AvgPrice" => 100.0,
-        //         "ReservedAmount" => 0.0,
-        //         "Status" => "Filled",
-        //         "PrimaryCurrencyCode" => "Xbt",
-        //         "SecondaryCurrencyCode" => "Usd"
+        //         "OrderGuid": "c7347e4c-b865-4c94-8f74-d934d4b0b177",
+        //         "CreatedTimestampUtc": "2014-09-23T12:39:34.3817763Z",
+        //         "Type": "MarketBid",
+        //         "VolumeOrdered": 5.0,
+        //         "VolumeFilled": 5.0,
+        //         "Price": null,
+        //         "AvgPrice": 100.0,
+        //         "ReservedAmount": 0.0,
+        //         "Status": "Filled",
+        //         "PrimaryCurrencyCode": "Xbt",
+        //         "SecondaryCurrencyCode": "Usd"
         //     }
         //
         // fetchOpenOrders & fetchClosedOrders
         //
         //     {
-        //         "OrderGuid" => "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
-        //         "CreatedTimestampUtc" => "2020-09-08T03:04:18.616367Z",
-        //         "OrderType" => "LimitOffer",
-        //         "Volume" => 0.0005,
-        //         "Outstanding" => 0.0005,
-        //         "Price" => 113885.83,
-        //         "AvgPrice" => 113885.83,
-        //         "Value" => 56.94,
-        //         "Status" => "Open",
-        //         "PrimaryCurrencyCode" => "Xbt",
-        //         "SecondaryCurrencyCode" => "Usd",
-        //         "FeePercent" => 0.005,
+        //         "OrderGuid": "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
+        //         "CreatedTimestampUtc": "2020-09-08T03:04:18.616367Z",
+        //         "OrderType": "LimitOffer",
+        //         "Volume": 0.0005,
+        //         "Outstanding": 0.0005,
+        //         "Price": 113885.83,
+        //         "AvgPrice": 113885.83,
+        //         "Value": 56.94,
+        //         "Status": "Open",
+        //         "PrimaryCurrencyCode": "Xbt",
+        //         "SecondaryCurrencyCode": "Usd",
+        //         "FeePercent": 0.005,
         //     }
         //
         // cancelOrder
         //
         //    {
-        //        "AvgPrice" => 455.48,
-        //        "CreatedTimestampUtc" => "2022-08-05T06:42:11.3032208Z",
-        //        "OrderGuid" => "719c495c-a39e-4884-93ac-280b37245037",
-        //        "Price" => 485.76,
-        //        "PrimaryCurrencyCode" => "Xbt",
-        //        "ReservedAmount" => 0.358,
-        //        "SecondaryCurrencyCode" => "Usd",
-        //        "Status" => "Cancelled",
-        //        "Type" => "LimitOffer",
-        //        "VolumeFilled" => 0,
-        //        "VolumeOrdered" => 0.358
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
         //    }
         $symbol = null;
         $baseId = $this->safe_string($order, 'PrimaryCurrencyCode');
@@ -604,11 +615,13 @@ class independentreserve extends Exchange {
         if (($baseId !== null) && ($quoteId !== null)) {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+            if (($base !== null) && ($quote !== null)) {
+                $symbol = $base . '/' . $quote;
+            }
         } elseif ($market !== null) {
             $symbol = $market['symbol'];
             $base = $market['base'];
-            $quote = $market['quote'];
+            $quote = $this->safe_string($market, 'quote');
         }
         $orderType = $this->safe_string_2($order, 'Type', 'OrderType');
         $side = null;
@@ -684,7 +697,7 @@ class independentreserve extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -732,14 +745,15 @@ class independentreserve extends Exchange {
             $request['primaryCurrencyCode'] = $market['baseId'];
             $request['secondaryCurrencyCode'] = $market['quoteId'];
         }
-        if ($limit === null) {
-            $limit = 50;
+        $limitResolved = $limit;
+        if ($limitResolved === null) {
+            $limitResolved = 50;
         }
         $request['pageIndex'] = 1;
-        $request['pageSize'] = $limit;
+        $request['pageSize'] = $limitResolved;
         $response = Async\await($this->privatePostGetOpenOrders($this->extend($request, $params)));
         $data = $this->safe_list($response, 'Data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($data, $market, $since, $limitResolved);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -765,17 +779,18 @@ class independentreserve extends Exchange {
             $request['primaryCurrencyCode'] = $market['baseId'];
             $request['secondaryCurrencyCode'] = $market['quoteId'];
         }
-        if ($limit === null) {
-            $limit = 50;
+        $limitResolved = $limit;
+        if ($limitResolved === null) {
+            $limitResolved = 50;
         }
         $request['pageIndex'] = 1;
-        $request['pageSize'] = $limit;
+        $request['pageSize'] = $limitResolved;
         $response = Async\await($this->privatePostGetClosedOrders($this->extend($request, $params)));
         $data = $this->safe_list($response, 'Data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($data, $market, $since, $limitResolved);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 50, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 50, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -792,12 +807,13 @@ class independentreserve extends Exchange {
             Async\await($this->load_markets());
         }
         $pageIndex = $this->safe_integer($params, 'pageIndex', 1);
-        if ($limit === null) {
-            $limit = 50;
+        $limitResolved = $limit;
+        if ($limitResolved === null) {
+            $limitResolved = 50;
         }
         $request = array(
             'pageIndex' => $pageIndex,
-            'pageSize' => $limit,
+            'pageSize' => $limitResolved,
         );
         $response = Async\await($this->privatePostGetTrades($this->extend($request, $params)));
         $market = null;
@@ -805,7 +821,7 @@ class independentreserve extends Exchange {
             $market = $this->market($symbol);
         }
         $data = $this->safe_list($response, 'Data', array());
-        return $this->parse_trades($data, $market, $since, $limit);
+        return $this->parse_trades($data, $market, $since, $limitResolved);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -891,13 +907,13 @@ class independentreserve extends Exchange {
         }
         $response = Async\await($this->privatePostGetBrokerageFees($params));
         //
-        //     array(
+        //     [
         //         {
-        //             "CurrencyCode" => "Xbt",
-        //             "Fee" => 0.005
+        //             "CurrencyCode": "Xbt",
+        //             "Fee": 0.005
         //         }
         //         ...
-        //     )
+        //     ]
         //
         $fees = array();
         $rows = $this->to_array($response);
@@ -918,9 +934,9 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $fee = $this->safe_value($fees, $market['base'], array());
+            $fee = $this->safe_dict($fees, $market['base'], array());
             $result[$symbol] = array(
-                'info' => $this->safe_value($fee, 'info'),
+                'info' => $this->safe_dict($fee, 'info'),
                 'symbol' => $symbol,
                 'maker' => $this->safe_number($fee, 'fee'),
                 'taker' => $this->safe_number($fee, 'fee'),
@@ -931,7 +947,7 @@ class independentreserve extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -970,7 +986,7 @@ class independentreserve extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -994,17 +1010,17 @@ class independentreserve extends Exchange {
         $response = Async\await($this->privatePostCancelOrder($this->extend($request, $params)));
         //
         //    {
-        //        "AvgPrice" => 455.48,
-        //        "CreatedTimestampUtc" => "2022-08-05T06:42:11.3032208Z",
-        //        "OrderGuid" => "719c495c-a39e-4884-93ac-280b37245037",
-        //        "Price" => 485.76,
-        //        "PrimaryCurrencyCode" => "Xbt",
-        //        "ReservedAmount" => 0.358,
-        //        "SecondaryCurrencyCode" => "Usd",
-        //        "Status" => "Cancelled",
-        //        "Type" => "LimitOffer",
-        //        "VolumeFilled" => 0,
-        //        "VolumeOrdered" => 0.358
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
         //    }
         //
         return $this->parse_order($response);
@@ -1034,22 +1050,22 @@ class independentreserve extends Exchange {
         $response = Async\await($this->privatePostGetDigitalCurrencyDepositAddress($this->extend($request, $params)));
         //
         //    {
-        //        Tag => '3307446684',
-        //        DepositAddress => 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
-        //        LastCheckedTimestampUtc => '2024-02-20T11:13:35.6912985Z',
-        //        NextUpdateTimestampUtc => '2024-02-20T11:14:56.5112394Z'
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
         //    }
         //
         return $this->parse_deposit_address($response);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //    {
-        //        Tag => '3307446684',
-        //        DepositAddress => 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
-        //        LastCheckedTimestampUtc => '2024-02-20T11:13:35.6912985Z',
-        //        NextUpdateTimestampUtc => '2024-02-20T11:14:56.5112394Z'
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
         //    }
         //
         $address = $this->safe_string($depositAddress, 'DepositAddress');
@@ -1083,7 +1099,7 @@ class independentreserve extends Exchange {
          * @param {array} [$params->comment] withdrawal comment, should not exceed 500 characters
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1093,30 +1109,29 @@ class independentreserve extends Exchange {
             'withdrawalAddress' => $address,
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        if ($tag !== null) {
-            $request['destinationTag'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['destinationTag'] = $tagWithdrawTag;
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
-            throw new BadRequest($this->id . ' withdraw () does not accept $params["networkCode"]');
+            throw new BadRequest($this->id . ' withdraw () does not accept params["networkCode"]');
         }
-        $response = Async\await($this->privatePostWithdrawDigitalCurrency($this->extend($request, $params)));
+        $response = Async\await($this->privatePostWithdrawDigitalCurrency($this->extend($request, $paramsNetworkCode)));
         //
         //    {
-        //        "TransactionGuid" => "dc932e19-562b-4c50-821e-a73fd048b93b",
-        //        "PrimaryCurrencyCode" => "Bch",
-        //        "CreatedTimestampUtc" => "2020-04-01T05:26:30.5093622+00:00",
-        //        "Amount" => array(
-        //            "Total" => 0.1231,
-        //            "Fee" => 0.0001
-        //        ),
-        //        "Destination" => array(
-        //            "Address" => "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
-        //            "Tag" => null
-        //        ),
-        //        "Status" => "Pending",
-        //        "Transaction" => null
+        //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode": "Bch",
+        //        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount": {
+        //            "Total": 0.1231,
+        //            "Fee": 0.0001
+        //        },
+        //        "Destination": {
+        //            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag": null
+        //        },
+        //        "Status": "Pending",
+        //        "Transaction": null
         //    }
         //
         return $this->parse_transaction($response, $currency);
@@ -1125,19 +1140,19 @@ class independentreserve extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
-        //        "TransactionGuid" => "dc932e19-562b-4c50-821e-a73fd048b93b",
-        //        "PrimaryCurrencyCode" => "Bch",
-        //        "CreatedTimestampUtc" => "2020-04-01T05:26:30.5093622+00:00",
-        //        "Amount" => array(
-        //            "Total" => 0.1231,
-        //            "Fee" => 0.0001
-        //        ),
-        //        "Destination" => array(
-        //            "Address" => "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
-        //            "Tag" => null
-        //        ),
-        //        "Status" => "Pending",
-        //        "Transaction" => null
+        //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode": "Bch",
+        //        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount": {
+        //            "Total": 0.1231,
+        //            "Fee": 0.0001
+        //        },
+        //        "Destination": {
+        //            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag": null
+        //        },
+        //        "Status": "Pending",
+        //        "Transaction": null
         //    }
         //
         $amount = $this->safe_dict($transaction, 'Amount');
@@ -1175,15 +1190,25 @@ class independentreserve extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $path;
+    public function nonce(): float {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return $this->milliseconds();
+    }
+
+    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
+            // independentreserve requires an increasing nonce
+            $nonce = $this->incrementing_nonce();
             $auth = array(
                 $url,
                 'apiKey=' . $this->apiKey,
@@ -1205,8 +1230,9 @@ class independentreserve extends Exchange {
                 $key = $keys[$i];
                 $query[$key] = $params[$key];
             }
-            $body = $this->json($query);
-            $headers = array( 'Content-Type' => 'application/json' );
+            $signedBody = $this->json($query);
+            $signedHeaders = array( 'Content-Type' => 'application/json' );
+            return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

@@ -130,8 +130,20 @@ abstract class bitbns extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_post_userhistorynew($params = array()) {
+        return $this->request('userHistoryNew', 'v1', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_post_listopenorders_symbol($params = array()) {
         return $this->request('listOpenOrders/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_post_listopenordersother_symbol($params = array()) {
+        return $this->request('listOpenOrdersOther/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -154,8 +166,20 @@ abstract class bitbns extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_post_placesellorderother_symbol($params = array()) {
+        return $this->request('placeSellOrderOther/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_post_placebuyorder_symbol($params = array()) {
         return $this->request('placeBuyOrder/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_post_placebuyorderother_symbol($params = array()) {
+        return $this->request('placeBuyOrderOther/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -174,6 +198,12 @@ abstract class bitbns extends \ccxt\async\Exchange {
      */
     public function v1_post_cancelorder_symbol($params = array()) {
         return $this->request('cancelOrder/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_post_cancelorderother_symbol($params = array()) {
+        return $this->request('cancelOrderOther/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -346,8 +376,20 @@ abstract class bitbns extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1PostUserHistoryNew($params = array()) {
+        return $this->request('userHistoryNew', 'v1', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1PostListOpenOrdersSymbol($params = array()) {
         return $this->request('listOpenOrders/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PostListOpenOrdersOtherSymbol($params = array()) {
+        return $this->request('listOpenOrdersOther/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -370,8 +412,20 @@ abstract class bitbns extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1PostPlaceSellOrderOtherSymbol($params = array()) {
+        return $this->request('placeSellOrderOther/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1PostPlaceBuyOrderSymbol($params = array()) {
         return $this->request('placeBuyOrder/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PostPlaceBuyOrderOtherSymbol($params = array()) {
+        return $this->request('placeBuyOrderOther/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -390,6 +444,12 @@ abstract class bitbns extends \ccxt\async\Exchange {
      */
     public function v1PostCancelOrderSymbol($params = array()) {
         return $this->request('cancelOrder/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PostCancelOrderOtherSymbol($params = array()) {
+        return $this->request('cancelOrderOther/{symbol}', 'v1', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, Liquidation, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -170,16 +170,19 @@ class deribit(Exchange, ImplicitAPI):
                         # Account management
                         'get_announcements': {'cost': 1},
                         # Market data
+                        'get_apr_history': {'cost': 1},
                         'get_book_summary_by_currency': {'cost': 1},
                         'get_book_summary_by_instrument': {'cost': 1},
                         'get_contract_size': {'cost': 1},
                         'get_currencies': {'cost': 1},
                         'get_delivery_prices': {'cost': 1},
+                        'get_expirations': {'cost': 1},
                         'get_funding_chart_data': {'cost': 1},
                         'get_funding_rate_history': {'cost': 1},
                         'get_funding_rate_value': {'cost': 1},
                         'get_historical_volatility': {'cost': 1},
                         'get_index': {'cost': 1},
+                        'get_index_chart_data': {'cost': 1},
                         'get_index_price': {'cost': 1},
                         'get_index_price_names': {'cost': 1},
                         'get_instrument': {'cost': 1},
@@ -192,6 +195,7 @@ class deribit(Exchange, ImplicitAPI):
                         'get_last_trades_by_instrument_and_time': {'cost': 1},
                         'get_mark_price_history': {'cost': 1},
                         'get_order_book': {'cost': 1},
+                        'get_supported_index_names': {'cost': 1},
                         'get_trade_volumes': {'cost': 1},
                         'get_tradingview_chart_data': {'cost': 1},
                         'get_volatility_index_data': {'cost': 1},
@@ -224,6 +228,7 @@ class deribit(Exchange, ImplicitAPI):
                         'get_account_summary': {'cost': 1},
                         'get_account_summaries': {'cost': 1},
                         'get_affiliate_program_info': {'cost': 1},
+                        'get_currencies': {'cost': 1},
                         'get_email_language': {'cost': 1},
                         'get_new_announcements': {'cost': 1},
                         'get_portfolio_margins': {'cost': 1},
@@ -238,16 +243,23 @@ class deribit(Exchange, ImplicitAPI):
                         'reset_api_key': {'cost': 1},
                         'set_announcement_as_read': {'cost': 1},
                         'set_api_key_as_default': {'cost': 1},
+                        'set_disabled_trading_products': {'cost': 1},
                         'set_email_for_subaccount': {'cost': 1},
                         'set_email_language': {'cost': 1},
                         'set_password_for_subaccount': {'cost': 1},
+                        'simulate_portfolio': {'cost': 1},
                         'toggle_notifications_from_subaccount': {'cost': 1},
                         'toggle_subaccount_login': {'cost': 1},
                         # Block Trade
+                        'approve_block_trade': {'cost': 1},
                         'execute_block_trade': {'cost': 4},
                         'get_block_trade': {'cost': 1},
+                        'get_block_trade_requests': {'cost': 1},
+                        'get_block_trades': {'cost': 1},
                         'get_last_block_trades_by_currency': {'cost': 1},
                         'invalidate_block_trade_signature': {'cost': 1},
+                        'reject_block_trade': {'cost': 1},
+                        'simulate_block_trade': {'cost': 4},
                         'verify_block_trade': {'cost': 4},
                         # Trading
                         'buy': {'cost': 4},
@@ -259,15 +271,20 @@ class deribit(Exchange, ImplicitAPI):
                         'cancel_all_by_currency': {'cost': 4},
                         'cancel_all_by_instrument': {'cost': 4},
                         'cancel_by_label': {'cost': 4},
+                        'cancel_quotes': {'cost': 4},
                         'close_position': {'cost': 4},
                         'get_margins': {'cost': 1},
                         'get_mmp_config': {'cost': 1},
+                        'get_mmp_status': {'cost': 1},
+                        'get_open_orders': {'cost': 1},
                         'get_open_orders_by_currency': {'cost': 1},
                         'get_open_orders_by_instrument': {'cost': 1},
+                        'get_open_orders_by_label': {'cost': 1},
                         'get_order_history_by_currency': {'cost': 1},
                         'get_order_history_by_instrument': {'cost': 1},
                         'get_order_margin_by_ids': {'cost': 1},
                         'get_order_state': {'cost': 1},
+                        'get_order_state_by_label': {'cost': 1},
                         'get_stop_order_history': {'cost': 1},  # deprecated
                         'get_trigger_order_history': {'cost': 1},
                         'get_user_trades_by_currency': {'cost': 1},
@@ -275,20 +292,28 @@ class deribit(Exchange, ImplicitAPI):
                         'get_user_trades_by_instrument': {'cost': 1},
                         'get_user_trades_by_instrument_and_time': {'cost': 1},
                         'get_user_trades_by_order': {'cost': 1},
+                        'mass_quote': {'cost': 4},
+                        'move_positions': {'cost': 4},
                         'reset_mmp': {'cost': 1},
                         'set_mmp_config': {'cost': 1},
                         'get_settlement_history_by_instrument': {'cost': 1},
                         'get_settlement_history_by_currency': {'cost': 1},
                         # Wallet
+                        'add_to_address_book': {'cost': 1},
                         'cancel_transfer_by_id': {'cost': 1},
                         'cancel_withdrawal': {'cost': 1},
                         'create_deposit_address': {'cost': 1},
+                        'get_address_book': {'cost': 1},
                         'get_current_deposit_address': {'cost': 1},
                         'get_deposits': {'cost': 1},
+                        'get_reward_eligibility': {'cost': 1},
                         'get_transfers': {'cost': 1},
                         'get_withdrawals': {'cost': 1},
+                        'remove_from_address_book': {'cost': 1},
+                        'set_clearance_originator': {'cost': 1},
                         'submit_transfer_to_subaccount': {'cost': 1},
                         'submit_transfer_to_user': {'cost': 1},
+                        'update_in_address_book': {'cost': 1},
                         'withdraw': {'cost': 1},
                     },
                 },
@@ -404,16 +429,16 @@ class deribit(Exchange, ImplicitAPI):
                 '10019': PermissionDenied,  # 'locked_by_admin' Trading is temporary locked by admin.
                 '10020': ExchangeError,  # 'invalid_or_unsupported_instrument' Instrument name is not valid.
                 '10021': InvalidOrder,  # 'invalid_amount' Amount is not valid.
-                '10022': InvalidOrder,  # 'invalid_quantity' quantity was not recognized valid number(for API v1).
-                '10023': InvalidOrder,  # 'invalid_price' price was not recognized valid number.
-                '10024': InvalidOrder,  # 'invalid_max_show' max_show parameter was not recognized valid number.
-                '10025': InvalidOrder,  # 'invalid_order_id' Order id is missing or its format was not recognized.
+                '10022': InvalidOrder,  # 'invalid_quantity' quantity was not recognized as a valid number (for API v1).
+                '10023': InvalidOrder,  # 'invalid_price' price was not recognized as a valid number.
+                '10024': InvalidOrder,  # 'invalid_max_show' max_show parameter was not recognized as a valid number.
+                '10025': InvalidOrder,  # 'invalid_order_id' Order id is missing or its format was not recognized as valid.
                 '10026': InvalidOrder,  # 'price_precision_exceeded' Extra precision of the price is not supported.
-                '10027': InvalidOrder,  # 'non_integer_contract_amount' Futures contract amount was not recognized.
+                '10027': InvalidOrder,  # 'non_integer_contract_amount' Futures contract amount was not recognized as integer.
                 '10028': DDoSProtection,  # 'too_many_requests' Allowed request rate has been exceeded.
                 '10029': OrderNotFound,  # 'not_owner_of_order' Attempt to operate with not own order.
                 '10030': ExchangeError,  # 'must_be_websocket_request' REST request where Websocket is expected.
-                '10031': ExchangeError,  # 'invalid_args_for_instrument' Some of arguments are not recognized.
+                '10031': ExchangeError,  # 'invalid_args_for_instrument' Some of arguments are not recognized as valid.
                 '10032': InvalidOrder,  # 'whole_cost_too_low' Total cost is too low.
                 '10033': NotSupported,  # 'not_implemented' Method is not implemented yet.
                 '10034': InvalidOrder,  # 'stop_price_too_high' Stop price is too high.
@@ -426,13 +451,13 @@ class deribit(Exchange, ImplicitAPI):
                 '10045': InvalidOrder,  # 'can_not_cancel_liquidation_order' Liquidation order can't be canceled.
                 '10046': InvalidOrder,  # 'can_not_edit_liquidation_order' Liquidation order can't be edited.
                 '10047': DDoSProtection,  # 'matching_engine_queue_full' Reached limit of pending Matching Engine requests for user.
-                '10048': ExchangeError,  # 'not_on_self_server' The requested operation is not available on self server.
+                '10048': ExchangeError,  # 'not_on_this_server' The requested operation is not available on this server.
                 '11008': InvalidOrder,  # 'already_filled' This request is not allowed in regards to the filled order.
                 '11029': BadRequest,  # 'invalid_arguments' Some invalid input has been detected.
-                '11030': ExchangeError,  # 'other_reject <Reason>' Some rejects which are not considered often, more info may be specified in <Reason>.
-                '11031': ExchangeError,  # 'other_error <Error>' Some errors which are not considered often, more info may be specified in <Error>.
+                '11030': ExchangeError,  # 'other_reject <Reason>' Some rejects which are not considered as very often, more info may be specified in <Reason>.
+                '11031': ExchangeError,  # 'other_error <Error>' Some errors which are not considered as very often, more info may be specified in <Error>.
                 '11035': DDoSProtection,  # 'no_more_stops <Limit>' Allowed amount of stop orders has been exceeded.
-                '11036': InvalidOrder,  # 'invalid_stoppx_for_index_or_last' Invalid StopPx(too high or too low) current index or market.
+                '11036': InvalidOrder,  # 'invalid_stoppx_for_index_or_last' Invalid StopPx (too high or too low) as to current index or market.
                 '11037': BadRequest,  # 'outdated_instrument_for_IV_order' Instrument already not available for trading.
                 '11038': InvalidOrder,  # 'no_adv_for_futures' Advanced orders are not available for futures.
                 '11039': InvalidOrder,  # 'no_adv_postonly' Advanced post-only orders are not supported yet.
@@ -447,7 +472,7 @@ class deribit(Exchange, ImplicitAPI):
                 '11049': BadRequest,  # 'bad_arguments' Several bad arguments have been passed.
                 '11050': BadRequest,  # 'bad_request' Request has not been parsed properly.
                 '11051': OnMaintenance,  # 'system_maintenance' System is under maintenance.
-                '11052': ExchangeError,  # 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without self error, please check list of subscribed channels returned, channels can be not subscribed due to wrong input or lack of permissions.
+                '11052': ExchangeError,  # 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
                 '11053': ExchangeError,  # 'transfer_not_found' Specified transfer is not found.
                 '11090': InvalidAddress,  # 'invalid_addr' Invalid address.
                 '11091': InvalidAddress,  # 'invalid_transfer_address' Invalid addres for the transfer.
@@ -458,14 +483,14 @@ class deribit(Exchange, ImplicitAPI):
                 '11096': ExchangeError,  # 'address_belongs_to_user' Withdrawal instead of transfer.
                 '12000': AuthenticationError,  # 'bad_tfa' Wrong TFA code
                 '12001': DDoSProtection,  # 'too_many_subaccounts' Limit of subbacounts is reached.
-                '12002': ExchangeError,  # 'wrong_subaccount_name' The input is not allowed of subaccount.
+                '12002': ExchangeError,  # 'wrong_subaccount_name' The input is not allowed as name of subaccount.
                 '12998': AuthenticationError,  # 'tfa_over_limit' The number of failed TFA attempts is limited.
                 '12003': AuthenticationError,  # 'login_over_limit' The number of failed login attempts is limited.
                 '12004': AuthenticationError,  # 'registration_over_limit' The number of registration requests is limited.
-                '12005': AuthenticationError,  # 'country_is_banned' The country is banned(possibly via IP check).
+                '12005': AuthenticationError,  # 'country_is_banned' The country is banned (possibly via IP check).
                 '12100': ExchangeError,  # 'transfer_not_allowed' Transfer is not allowed. Possible wrong direction or other mistake.
                 '12999': AuthenticationError,  # 'tfa_used' TFA code is correct but it is already used. Please, use next code.
-                '13000': AuthenticationError,  # 'invalid_login' Login name is invalid(not allowed or it contains wrong characters).
+                '13000': AuthenticationError,  # 'invalid_login' Login name is invalid (not allowed or it contains wrong characters).
                 '13001': AuthenticationError,  # 'account_not_activated' Account must be activated.
                 '13002': PermissionDenied,  # 'account_blocked' Account is blocked by admin.
                 '13003': AuthenticationError,  # 'tfa_required' This action requires TFA authentication.
@@ -506,7 +531,7 @@ class deribit(Exchange, ImplicitAPI):
             },
         })
 
-    def create_expired_option_market(self, symbol: str):
+    def create_expired_option_market(self, symbol: str) -> MarketInterface:
         # support expired option contracts
         quote = 'USD'
         settle = None
@@ -591,7 +616,7 @@ class deribit(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(deribit, self).safe_market(marketId, market, delimiter, marketType)
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -608,12 +633,12 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583922446019955,
         #         "usOut": 1583922446019956,
         #         "usDiff": 1,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         return self.safe_integer(response, 'result')
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -638,13 +663,13 @@ class deribit(Exchange, ImplicitAPI):
         #                "withdrawal_priorities": [],
         #                "min_confirmations": "1",
         #                "currency_long": "XRP",
-        #                "in_cross_collateral_pool": False
+        #                "in_cross_collateral_pool": false
         #            },
         #        ],
         #        "usIn": "1760110326693923",
         #        "usOut": "1760110326944891",
         #        "usDiff": "250968",
-        #        "testnet": False
+        #        "testnet": false
         #    }
         #
         data = self.safe_list(response, 'result', [])
@@ -681,13 +706,13 @@ class deribit(Exchange, ImplicitAPI):
             'networks': None,
         })
 
-    def code_from_options(self, methodName: object, params={}):
-        defaultCode = self.safe_value(self.options, 'code', 'BTC')
-        options = self.safe_value(self.options, methodName, {})
-        code = self.safe_value(options, 'code', defaultCode)
-        return self.safe_value(params, 'code', code)
+    def code_from_options(self, methodName: Str, params: dict = {}) -> Str:
+        defaultCode = self.safe_string(self.options, 'code', 'BTC')
+        options = self.safe_dict(self.options, methodName, {})
+        code = self.safe_string(options, 'code', defaultCode)
+        return self.safe_string(params, 'code', code)
 
-    async def fetch_status(self, params={}) -> Status:
+    async def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -701,15 +726,15 @@ class deribit(Exchange, ImplicitAPI):
         #     {
         #         "jsonrpc": "2.0",
         #         "result": {
-        #             "locked": "false"  # True, partial, False
+        #             "locked": "false" // true, partial, false
         #         },
         #         "usIn": 1650641690226788,
         #         "usOut": 1650641690226836,
         #         "usDiff": 48,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_dict(response, 'result')
         locked = self.safe_string(result, 'locked')
         updateTime = self.safe_integer_product(response, 'usIn', 0.001, self.milliseconds())
         return {
@@ -720,7 +745,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_accounts(self, params={}) -> list[Account]:
+    async def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -739,11 +764,11 @@ class deribit(Exchange, ImplicitAPI):
         #                 "username": "someusername",
         #                 "type": "main",
         #                 "system_name": "someusername",
-        #                 "security_keys_enabled": False,
+        #                 "security_keys_enabled": false,
         #                 "security_keys_assignments": [],
-        #                 "receive_notifications": False,
-        #                 "login_enabled": True,
-        #                 "is_password": True,
+        #                 "receive_notifications": false,
+        #                 "login_enabled": true,
+        #                 "is_password": true,
         #                 "id": "238216",
         #                 "email": "pablo@abcdef.com"
         #             },
@@ -751,11 +776,11 @@ class deribit(Exchange, ImplicitAPI):
         #                 "username": "someusername_1",
         #                 "type": "subaccount",
         #                 "system_name": "someusername_1",
-        #                 "security_keys_enabled": False,
+        #                 "security_keys_enabled": false,
         #                 "security_keys_assignments": [],
-        #                 "receive_notifications": False,
-        #                 "login_enabled": False,
-        #                 "is_password": False,
+        #                 "receive_notifications": false,
+        #                 "login_enabled": false,
+        #                 "is_password": false,
         #                 "id": "245499",
         #                 "email": "pablo@abcdef.com"
         #             }
@@ -763,23 +788,23 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": "1652736468292006",
         #         "usOut": "1652736468292377",
         #         "usDiff": "371",
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_accounts(result)
 
-    def parse_account(self, account: object):
+    def parse_account(self, account: dict) -> Account:
         #
         #      {
         #          "username": "someusername_1",
         #          "type": "subaccount",
         #          "system_name": "someusername_1",
-        #          "security_keys_enabled": False,
+        #          "security_keys_enabled": false,
         #          "security_keys_assignments": [],
-        #          "receive_notifications": False,
-        #          "login_enabled": False,
-        #          "is_password": False,
+        #          "receive_notifications": false,
+        #          "login_enabled": false,
+        #          "is_password": false,
         #          "id": "245499",
         #          "email": "pablo@abcdef.com"
         #      }
@@ -791,7 +816,7 @@ class deribit(Exchange, ImplicitAPI):
             'code': None,
         }
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for deribit
 
@@ -804,21 +829,20 @@ class deribit(Exchange, ImplicitAPI):
         instrumentsResponses = []
         result = []
         parsedMarkets = {}
-        fetchAllMarkets = None
-        fetchAllMarkets, params = self.handle_option_and_params(params, 'fetchMarkets', 'fetchAllMarkets', True)
+        fetchAllMarkets, paramsFetchAllMarkets = self.handle_option_bool_and_params(params, 'fetchMarkets', 'fetchAllMarkets', True)
         if fetchAllMarkets:
-            instrumentsResponse = await self.publicGetGetInstruments(params)
+            instrumentsResponse = await self.publicGetGetInstruments(paramsFetchAllMarkets)
             instrumentsResponses.append(instrumentsResponse)
         else:
-            currenciesResponse = await self.publicGetGetCurrencies(params)
+            currenciesResponse = await self.publicGetGetCurrencies(paramsFetchAllMarkets)
             #
             #     {
             #         "jsonrpc": "2.0",
             #         "result": [
             #             {
             #                 "withdrawal_priorities": [
-            #                     {value: 0.15, name: "very_low"},
-            #                     {value: 1.5, name: "very_high"},
+            #                     { value: 0.15, name: "very_low" },
+            #                     { value: 1.5, name: "very_high" },
             #                 ],
             #                 "withdrawal_fee": 0.0005,
             #                 "min_withdrawal_fee": 0.0005,
@@ -832,16 +856,16 @@ class deribit(Exchange, ImplicitAPI):
             #         "usIn": 1583761588590479,
             #         "usOut": 1583761588590544,
             #         "usDiff": 65,
-            #         "testnet": False
+            #         "testnet": false
             #     }
             #
-            currenciesResult = self.safe_value(currenciesResponse, 'result', [])
+            currenciesResult = self.safe_list(currenciesResponse, 'result', [])
             for i in range(0, len(currenciesResult)):
                 currencyId = self.safe_string(currenciesResult[i], 'currency')
                 request = {
                     'currency': currencyId,
                 }
-                instrumentsResponse = await self.publicGetGetInstruments(self.extend(request, params))
+                instrumentsResponse = await self.publicGetGetInstruments(self.extend(request, paramsFetchAllMarkets))
                 #
                 #     {
                 #         "jsonrpc":"2.0",
@@ -853,7 +877,7 @@ class deribit(Exchange, ImplicitAPI):
                 #                 "settlement_period":"month",
                 #                 "settlement_currency":"BTC",
                 #                 "quote_currency":"BTC",
-                #                 "option_type":"put",  # put, call
+                #                 "option_type":"put", // put, call
                 #                 "min_trade_amount":0.1,
                 #                 "maker_commission":0.0003,
                 #                 "kind":"option",
@@ -869,7 +893,7 @@ class deribit(Exchange, ImplicitAPI):
                 #             {
                 #                 "tick_size":0.5,
                 #                 "taker_commission":0.0005,
-                #                 "settlement_period":"month",  # month, week
+                #                 "settlement_period":"month", // month, week
                 #                 "settlement_currency":"BTC",
                 #                 "quote_currency":"USD",
                 #                 "min_trade_amount":10.0,
@@ -917,7 +941,7 @@ class deribit(Exchange, ImplicitAPI):
                 #
                 instrumentsResponses.append(instrumentsResponse)
         for i in range(0, len(instrumentsResponses)):
-            instrumentsResult = self.safe_value(instrumentsResponses[i], 'result', [])
+            instrumentsResult = self.safe_list(instrumentsResponses[i], 'result', [])
             for k in range(0, len(instrumentsResult)):
                 market = instrumentsResult[k]
                 kind = self.safe_string(market, 'kind')
@@ -928,8 +952,10 @@ class deribit(Exchange, ImplicitAPI):
                 settleId = self.safe_string(market, 'settlement_currency')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
+                if (base is None) or (quote is None):
+                    continue
                 settle = self.safe_currency_code(settleId)
-                settlementPeriod = self.safe_value(market, 'settlement_period')
+                settlementPeriod = self.safe_string(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
                 if kind is None:
                     raise ExchangeError(self.id + ' method() missing kind')
@@ -966,8 +992,8 @@ class deribit(Exchange, ImplicitAPI):
                             symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
                     inverse = (quote != settle)
                     linear = (settle == quote)
-                parsedMarketValue = self.safe_value(parsedMarkets, symbol)
-                if parsedMarketValue:
+                parsedMarketValue = self.safe_bool(parsedMarkets, symbol)
+                if parsedMarketValue is not None:
                     continue
                 if symbol is not None:
                     parsedMarkets[symbol] = True
@@ -988,7 +1014,7 @@ class deribit(Exchange, ImplicitAPI):
                     'swap': swap,
                     'future': future,
                     'option': option,
-                    'active': self.safe_value(market, 'is_active'),
+                    'active': self.safe_bool(market, 'is_active'),
                     'contract': not isSpot,
                     'linear': linear,
                     'inverse': inverse,
@@ -1036,7 +1062,7 @@ class deribit(Exchange, ImplicitAPI):
         else:
             summaries = [balance]
         for i in range(0, len(summaries)):
-            data = summaries[i]
+            data = self.safe_dict(summaries, i)
             currencyId = self.safe_string(data, 'currency')
             currencyCode = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1047,7 +1073,7 @@ class deribit(Exchange, ImplicitAPI):
                 result[currencyCode] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1061,16 +1087,16 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         code = self.safe_string(params, 'code')
-        params = self.omit(params, 'code')
+        paramsOmitted = self.omit(params, 'code')
         request = {
         }
         if code is not None:
             request['currency'] = self.currency_id(code)
         response = None
         if code is None:
-            response = await self.privateGetGetAccountSummaries(params)
+            response = await self.privateGetGetAccountSummaries(paramsOmitted)
         else:
-            response = await self.privateGetGetAccountSummary(self.extend(request, params))
+            response = await self.privateGetGetAccountSummary(self.extend(request, paramsOmitted))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -1079,7 +1105,7 @@ class deribit(Exchange, ImplicitAPI):
         #             "session_upl": 0,
         #             "session_rpl": 0,
         #             "session_funding": 0,
-        #             "portfolio_margining_enabled": False,
+        #             "portfolio_margining_enabled": false,
         #             "options_vega": 0,
         #             "options_theta": 0,
         #             "options_session_upl": 0,
@@ -1110,13 +1136,13 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583775838115975,
         #         "usOut": 1583775838116520,
         #         "usDiff": 545,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_dict(response, 'result', {})
         return self.parse_balance(result)
 
-    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -1145,7 +1171,7 @@ class deribit(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         address = self.safe_string(result, 'address')
         self.check_address(address)
         return {
@@ -1156,7 +1182,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -1179,7 +1205,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "result": {
         #             "type": "deposit",
         #             "status": "ready",
-        #             "requires_confirmation": True,
+        #             "requires_confirmation": true,
         #             "currency": "BTC",
         #             "creation_timestamp": 1514694684651,
         #             "address": "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw"
@@ -1187,10 +1213,10 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583785137274288,
         #         "usOut": 1583785137274454,
         #         "usDiff": 166,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         address = self.safe_string(result, 'address')
         self.check_address(address)
         return {
@@ -1207,7 +1233,7 @@ class deribit(Exchange, ImplicitAPI):
         #
         #     {
         #         "timestamp": 1583778859480,
-        #         "stats": {volume: 60627.57263769, low: 7631.5, high: 8311.5},
+        #         "stats": { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
         #         "state": "open",
         #         "settlement_price": 7903.21,
         #         "open_interest": 111543850,
@@ -1252,7 +1278,7 @@ class deribit(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string_2(ticker, 'last_price', 'last')
-        stats = self.safe_value(ticker, 'stats', ticker)
+        stats = self.safe_dict(ticker, 'stats', ticker)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1278,7 +1304,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1300,7 +1326,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "jsonrpc": "2.0",
         #         "result": {
         #             "timestamp": 1583778859480,
-        #             "stats": {volume: 60627.57263769, low: 7631.5, high: 8311.5},
+        #             "stats": { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
         #             "state": "open",
         #             "settlement_price": 7903.21,
         #             "open_interest": 111543850,
@@ -1320,13 +1346,13 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583778859483941,
         #         "usOut": 1583778859484075,
         #         "usDiff": 134,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_dict(response, 'result', {})
         return self.parse_ticker(result, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1339,20 +1365,20 @@ class deribit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         code = self.safe_string_2(params, 'code', 'currency')
         type = None
-        params = self.omit(params, ['code'])
-        if symbols is not None:
-            for i in range(0, len(symbols)):
-                market = self.market(symbols[i])
+        paramsOmitted = self.omit(params, ['code'])
+        if symbolsNormalized is not None:
+            for i in range(0, len(symbolsNormalized)):
+                market = self.market(symbolsNormalized[i])
                 if code is not None and code != market['base']:
                     raise BadRequest(self.id + ' fetchTickers the base currency must be the same for all symbols, self endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency')
                 if code is None:
-                    code = market['base']
-                    type = market['type']
+                    code = self.safe_string(market, 'base')
+                    type = self.safe_string(market, 'type')
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code(eg: BTC/ETH/USDT) parameter to fetch tickers for')
+            raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -1367,7 +1393,7 @@ class deribit(Exchange, ImplicitAPI):
                 requestType = 'option'
             if requestType is not None:
                 request['kind'] = requestType
-        response = await self.publicGetGetBookSummaryByCurrency(self.extend(request, params))
+        response = await self.publicGetGetBookSummaryByCurrency(self.extend(request, paramsOmitted))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -1395,7 +1421,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583783678361966,
         #         "usOut": 1583783678372069,
         #         "usDiff": 10103,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_list(response, 'result', [])
@@ -1405,9 +1431,9 @@ class deribit(Exchange, ImplicitAPI):
             symbol = ticker['symbol']
             if symbol is not None:
                 tickers[symbol] = ticker
-        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbolsNormalized)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1420,14 +1446,13 @@ class deribit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: whether to paginate the results, set to False by default
         :param int [params.until]: the latest time in ms to fetch ohlcv for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 5000)
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
@@ -1435,49 +1460,50 @@ class deribit(Exchange, ImplicitAPI):
         }
         duration = self.parse_timeframe(timeframe)
         now = self.milliseconds()
+        # at max, it provides 5000 bars, but we set generous default here
+        windowLimit = 1000 if (limit is None) else limit
+        limitResolved = windowLimit if (since is None) else limit
+        sinceResolved = None if (since is None) else max(since - 1, 0)
         if since is None:
-            if limit is None:
-                limit = 1000  # at max, it provides 5000 bars, but we set generous default here
-            request['start_timestamp'] = now - (limit - 1) * duration * 1000
+            request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000
             request['end_timestamp'] = now
         else:
-            since = max(since - 1, 0)
-            request['start_timestamp'] = since
+            request['start_timestamp'] = sinceResolved
             if limit is None:
                 request['end_timestamp'] = now
             else:
-                request['end_timestamp'] = self.sum(since, limit * duration * 1000)
-        until = self.safe_integer(params, 'until')
+                request['end_timestamp'] = self.sum(sinceResolved, limit * duration * 1000)
+        until = self.safe_integer(paramsPaginate, 'until')
+        paramsOmitted = self.omit(paramsPaginate, 'until') if (until is not None) else paramsPaginate
         if until is not None:
-            params = self.omit(params, 'until')
             request['end_timestamp'] = until
-        response = await self.publicGetGetTradingviewChartData(self.extend(request, params))
+        response = await self.publicGetGetTradingviewChartData(self.extend(request, paramsOmitted))
         #
         #     {
         #         "jsonrpc": "2.0",
         #         "result": {
-        #             "volume": [3.6680847969999992, 22.682721123, 3.011587939, 0],
-        #             "ticks": [1583916960000, 1583917020000, 1583917080000, 1583917140000],
+        #             "volume": [ 3.6680847969999992, 22.682721123, 3.011587939, 0 ],
+        #             "ticks": [ 1583916960000, 1583917020000, 1583917080000, 1583917140000 ],
         #             "status": "ok",
-        #             "open": [7834, 7839, 7833.5, 7833],
-        #             "low": [7834, 7833.5, 7832.5, 7833],
-        #             "high": [7839.5, 7839, 7833.5, 7833],
-        #             "cost": [28740, 177740, 23590, 0],
-        #             "close": [7839.5, 7833.5, 7833, 7833]
+        #             "open": [ 7834, 7839, 7833.5, 7833 ],
+        #             "low": [ 7834, 7833.5, 7832.5, 7833 ],
+        #             "high": [ 7839.5, 7839, 7833.5, 7833 ],
+        #             "cost": [ 28740, 177740, 23590, 0 ],
+        #             "close": [ 7839.5, 7833.5, 7833, 7833 ]
         #         },
         #         "usIn": 1583917166709801,
         #         "usOut": 1583917166710175,
         #         "usDiff": 374,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         ohlcvs = self.convert_trading_view_to_ohlcv(result, 'ticks', 'open', 'high', 'low', 'close', 'volume', True)
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, sinceResolved, limitResolved)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #      {
         #          "trade_seq":132564271,
@@ -1493,7 +1519,7 @@ class deribit(Exchange, ImplicitAPI):
         #      }
         #
         #
-        # fetchMyTrades, fetchOrderTrades(private)
+        # fetchMyTrades, fetchOrderTrades (private)
         #
         #     {
         #         "trade_seq": 3,
@@ -1501,10 +1527,10 @@ class deribit(Exchange, ImplicitAPI):
         #         "timestamp": 1550219814585,
         #         "tick_direction": 1,
         #         "state": "open",
-        #         "self_trade": False,
-        #         "reduce_only": False,
+        #         "self_trade": false,
+        #         "reduce_only": false,
         #         "price": 0.04,
-        #         "post_only": False,
+        #         "post_only": false,
         #         "order_type": "limit",
         #         "order_id": "ETH-334607",
         #         "matching_id": null,
@@ -1524,12 +1550,12 @@ class deribit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'direction')
         priceString = self.safe_string(trade, 'price')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         # Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         # For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         amount = self.safe_string(trade, 'amount')
         cost = Precise.string_mul(amount, priceString)
-        if market['inverse']:
+        if marketResolved['inverse'] is True:
             cost = Precise.string_div(amount, priceString)
         liquidity = self.safe_string(trade, 'liquidity')
         takerOrMaker = None
@@ -1559,9 +1585,9 @@ class deribit(Exchange, ImplicitAPI):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://docs.deribit.com/#public-get_last_trades_by_instrument
@@ -1587,14 +1613,14 @@ class deribit(Exchange, ImplicitAPI):
         if limit is not None:
             request['count'] = min(limit, 1000)  # default 10
         until = self.safe_integer_2(params, 'until', 'end_timestamp')
+        paramsOmitted = self.omit(params, ['until']) if (until is not None) else params
         if until is not None:
-            params = self.omit(params, ['until'])
             request['end_timestamp'] = until
         response = None
         if (since is None) and not ('end_timestamp' in request):
-            response = await self.publicGetGetLastTradesByInstrument(self.extend(request, params))
+            response = await self.publicGetGetLastTradesByInstrument(self.extend(request, paramsOmitted))
         else:
-            response = await self.publicGetGetLastTradesByInstrumentAndTime(self.extend(request, params))
+            response = await self.publicGetGetLastTradesByInstrumentAndTime(self.extend(request, paramsOmitted))
         #
         #      {
         #          "jsonrpc":"2.0",
@@ -1620,11 +1646,11 @@ class deribit(Exchange, ImplicitAPI):
         #          "testnet":false
         #      }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -1650,7 +1676,7 @@ class deribit(Exchange, ImplicitAPI):
         #             "session_upl": 0,
         #             "session_rpl": 0,
         #             "session_funding": 0,
-        #             "portfolio_margining_enabled": False,
+        #             "portfolio_margining_enabled": false,
         #             "options_vega": 0,
         #             "options_theta": 0,
         #             "options_session_upl": 0,
@@ -1688,11 +1714,11 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583775838115975,
         #         "usOut": 1583775838116520,
         #         "usDiff": 545,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        fees = self.safe_value(result, 'fees', [])
+        result = self.safe_dict(response, 'result', {})
+        fees = self.safe_list(result, 'fees', [])
         perpetualFee = {}
         futureFee = {}
         optionFee = {}
@@ -1730,16 +1756,16 @@ class deribit(Exchange, ImplicitAPI):
                 'maker': market['maker'],
                 'taker': market['taker'],
             }
-            if market['swap']:
+            if market['swap'] is True:
                 fee = self.extend(fee, perpetualFee)
-            elif market['future']:
+            elif market['future'] is True:
                 fee = self.extend(fee, futureFee)
-            elif market['option']:
+            elif market['option'] is True:
                 fee = self.extend(fee, optionFee)
             parsedFees[symbol] = fee
         return parsedFees
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1764,7 +1790,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "jsonrpc": "2.0",
         #         "result": {
         #             "timestamp": 1583781354740,
-        #             "stats": {volume: 61249.66735634, low: 7631.5, high: 8311.5},
+        #             "stats": { volume: 61249.66735634, low: 7631.5, high: 8311.5 },
         #             "state": "open",
         #             "settlement_price": 7903.21,
         #             "open_interest": 111536690,
@@ -1795,10 +1821,10 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583781354745804,
         #         "usOut": 1583781354745932,
         #         "usDiff": 128,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         timestamp = self.safe_integer(result, 'timestamp')
         nonce = self.safe_integer(result, 'change_id')
         orderbook = self.parse_order_book(result, market['symbol'], timestamp)
@@ -1823,7 +1849,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order_type(self, orderType: object):
+    def parse_order_type(self, orderType: Str) -> Str:
         orderTypes = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
@@ -1838,30 +1864,30 @@ class deribit(Exchange, ImplicitAPI):
         #
         #     {
         #         "time_in_force": "good_til_cancelled",
-        #         "reduce_only": False,
+        #         "reduce_only": false,
         #         "profit_loss": 0,
         #         "price": "market_price",
-        #         "post_only": False,
+        #         "post_only": false,
         #         "order_type": "market",
         #         "order_state": "filled",
         #         "order_id": "ETH-349249",
         #         "max_show": 40,
         #         "last_update_timestamp": 1550657341322,
         #         "label": "market0000234",
-        #         "is_liquidation": False,
+        #         "is_liquidation": false,
         #         "instrument_name": "ETH-PERPETUAL",
         #         "filled_amount": 40,
         #         "direction": "buy",
         #         "creation_timestamp": 1550657341322,
         #         "commission": 0.000139,
         #         "average_price": 143.81,
-        #         "api": True,
+        #         "api": true,
         #         "amount": 40,
-        #         "trades": [],  # injected by createOrder
+        #         "trades": [], // injected by createOrder
         #     }
         #
         marketId = self.safe_string(order, 'instrument_name')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'creation_timestamp')
         lastUpdate = self.safe_integer(order, 'last_update_timestamp')
         id = self.safe_string(order, 'order_id')
@@ -1874,7 +1900,7 @@ class deribit(Exchange, ImplicitAPI):
         filledString = self.safe_string(order, 'filled_amount')
         amount = self.safe_string(order, 'amount')
         cost = Precise.string_mul(filledString, averageString)
-        if self.safe_bool(market, 'inverse'):
+        if self.safe_bool(marketResolved, 'inverse', False):
             if averageString != '0':
                 cost = Precise.string_div(amount, averageString)
         lastTradeTimestamp = None
@@ -1890,14 +1916,14 @@ class deribit(Exchange, ImplicitAPI):
             feeCostString = Precise.string_abs(feeCostString)
             fee = {
                 'cost': feeCostString,
-                'currency': market['base'],
+                'currency': marketResolved['base'],
             }
         rawType = self.safe_string(order, 'order_type')
         type = self.parse_order_type(rawType)
         # injected in createOrder
-        trades = self.safe_value(order, 'trades')
+        trades = self.safe_list(order, 'trades')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        postOnly = self.safe_value(order, 'post_only')
+        postOnly = self.safe_bool(order, 'post_only')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1905,13 +1931,13 @@ class deribit(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'triggerPrice': self.safe_value(order, 'stop_price'),
+            'triggerPrice': self.safe_number(order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': averageString,
@@ -1920,9 +1946,9 @@ class deribit(Exchange, ImplicitAPI):
             'status': status,
             'fee': fee,
             'trades': trades,
-        }, market)
+        }, marketResolved)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1948,24 +1974,24 @@ class deribit(Exchange, ImplicitAPI):
         #         "id": 4316,
         #         "result": {
         #             "time_in_force": "good_til_cancelled",
-        #             "reduce_only": False,
+        #             "reduce_only": false,
         #             "profit_loss": 0.051134,
         #             "price": 118.94,
-        #             "post_only": False,
+        #             "post_only": false,
         #             "order_type": "limit",
         #             "order_state": "filled",
         #             "order_id": "ETH-331562",
         #             "max_show": 37,
         #             "last_update_timestamp": 1550219810944,
         #             "label": "",
-        #             "is_liquidation": False,
+        #             "is_liquidation": false,
         #             "instrument_name": "ETH-PERPETUAL",
         #             "filled_amount": 37,
         #             "direction": "sell",
         #             "creation_timestamp": 1550219749176,
         #             "commission": 0.000031,
         #             "average_price": 118.94,
-        #             "api": False,
+        #             "api": false,
         #             "amount": 37
         #         }
         #     }
@@ -1973,7 +1999,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1997,20 +2023,20 @@ class deribit(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
             'type': type,  # limit, stop_limit, market, stop_market, default is limit
-            # 'label': 'string',  # user-defined label for the order(maximum 64 characters)
-            # 'price': self.price_to_precision(symbol, 123.45),  # only for limit and stop_limit orders
-            # 'time_in_force' : 'good_til_cancelled',  # fill_or_kill, immediate_or_cancel
-            # 'max_show': 123.45,  # max amount within an order to be shown to other customers, 0 for invisible order
-            # 'post_only': False,  # if the new price would cause the order to be filled immediately(as taker), the price will be changed to be just below the spread.
-            # 'reject_post_only': False,  # if True the order is put to order book unmodified or request is rejected
-            # 'reduce_only': False,  # if True, the order is intended to only reduce a current position
-            # 'stop_price': False,  # stop price, required for stop_limit orders
-            # 'trigger': 'index_price',  # mark_price, last_price, required for stop_limit orders
-            # 'advanced': 'usd',  # 'implv', advanced option order type, options only
+            # 'label': 'string', // user-defined label for the order (maximum 64 characters)
+            # 'price': this.priceToPrecision (symbol, 123.45), // only for limit and stop_limit orders
+            # 'time_in_force' : 'good_til_cancelled', // fill_or_kill, immediate_or_cancel
+            # 'max_show': 123.45, // max amount within an order to be shown to other customers, 0 for invisible order
+            # 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
+            # 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
+            # 'reduce_only': false, // if true, the order is intended to only reduce a current position
+            # 'stop_price': false, // stop price, required for stop_limit orders
+            # 'trigger': 'index_price', // mark_price, last_price, required for stop_limit orders
+            # 'advanced': 'usd', // 'implv', advanced option order type, options only
         }
         trigger = self.safe_string(params, 'trigger', 'last_price')
         timeInForce = self.safe_string_upper(params, 'timeInForce')
-        reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
+        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         # only stop loss sell orders are allowed when price crossed from above
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         # only take profit buy orders are allowed when price crossed from below
@@ -2024,7 +2050,7 @@ class deribit(Exchange, ImplicitAPI):
         isStopLossOrder = isStopLimit or isStopMarket or (stopLossPrice is not None)
         isTakeProfitOrder = isTakeLimit or isTakeMarket or (takeProfitPrice is not None)
         if isStopLossOrder and isTakeProfitOrder:
-            raise InvalidOrder(self.id + ' createOrder() only allows one of stopLossPrice or takeProfitPrice to be specified')
+            raise InvalidOrder(self.id + ' createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified')
         isStopOrder = isStopLossOrder or isTakeProfitOrder
         isLimitOrder = (type == 'limit') or isStopLimit or isTakeLimit
         isMarketOrder = (type == 'market') or isStopMarket or isTakeMarket
@@ -2045,19 +2071,19 @@ class deribit(Exchange, ImplicitAPI):
             request['trigger'] = trigger
             if isStopLossOrder:
                 if isMarketOrder:
-                    # stop_market(sell only)
+                    # stop_market (sell only)
                     request['type'] = 'stop_market'
                 else:
-                    # stop_limit(sell only)
+                    # stop_limit (sell only)
                     request['type'] = 'stop_limit'
             else:
                 if isMarketOrder:
-                    # take_market(buy only)
+                    # take_market (buy only)
                     request['type'] = 'take_market'
                 else:
-                    # take_limit(buy only)
+                    # take_limit (buy only)
                     request['type'] = 'take_limit'
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduce_only'] = True
         if postOnly:
             request['post_only'] = True
@@ -2069,12 +2095,12 @@ class deribit(Exchange, ImplicitAPI):
                 request['time_in_force'] = 'immediate_or_cancel'
             if timeInForce == 'FOK':
                 request['time_in_force'] = 'fill_or_kill'
-        params = self.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount'])
+        paramsOmitted = self.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount'])
         response = None
         if self.capitalize(side) == 'Buy':
-            response = await self.privateGetBuy(self.extend(request, params))
+            response = await self.privateGetBuy(self.extend(request, paramsOmitted))
         else:
-            response = await self.privateGetSell(self.extend(request, params))
+            response = await self.privateGetSell(self.extend(request, paramsOmitted))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2087,7 +2113,7 @@ class deribit(Exchange, ImplicitAPI):
         #                     "timestamp": 1550657341322,
         #                     "tick_direction": 2,
         #                     "state": "closed",
-        #                     "self_trade": False,
+        #                     "self_trade": false,
         #                     "price": 143.81,
         #                     "order_type": "market",
         #                     "order_id": "ETH-349249",
@@ -2104,36 +2130,36 @@ class deribit(Exchange, ImplicitAPI):
         #             ],
         #             "order": {
         #                 "time_in_force": "good_til_cancelled",
-        #                 "reduce_only": False,
+        #                 "reduce_only": false,
         #                 "profit_loss": 0,
         #                 "price": "market_price",
-        #                 "post_only": False,
+        #                 "post_only": false,
         #                 "order_type": "market",
         #                 "order_state": "filled",
         #                 "order_id": "ETH-349249",
         #                 "max_show": 40,
         #                 "last_update_timestamp": 1550657341322,
         #                 "label": "market0000234",
-        #                 "is_liquidation": False,
+        #                 "is_liquidation": false,
         #                 "instrument_name": "ETH-PERPETUAL",
         #                 "filled_amount": 40,
         #                 "direction": "buy",
         #                 "creation_timestamp": 1550657341322,
         #                 "commission": 0.000139,
         #                 "average_price": 143.81,
-        #                 "api": True,
+        #                 "api": true,
         #                 "amount": 40
         #             }
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         order = self.safe_value(result, 'order')
-        trades = self.safe_value(result, 'trades', [])
+        trades = self.safe_list(result, 'trades', [])
         order['trades'] = trades
         return self.parse_order(order, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -2156,27 +2182,29 @@ class deribit(Exchange, ImplicitAPI):
         request = {
             'order_id': id,
             'amount': self.amount_to_precision(symbol, amount),
-            # 'post_only': False,  # if the new price would cause the order to be filled immediately(as taker), the price will be changed to be just below the spread.
-            # 'reject_post_only': False,  # if True the order is put to order book unmodified or request is rejected
-            # 'reduce_only': False,  # if True, the order is intended to only reduce a current position
-            # 'stop_price': False,  # stop price, required for stop_limit orders
-            # 'advanced': 'usd',  # 'implv', advanced option order type, options only
+            # 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
+            # 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
+            # 'reduce_only': false, // if true, the order is intended to only reduce a current position
+            # 'stop_price': false, // stop price, required for stop_limit orders
+            # 'advanced': 'usd', // 'implv', advanced option order type, options only
         }
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trigger_offset')
         isTrailingAmountOrder = trailingAmount is not None
+        paramsOmitted = params
+        if isTrailingAmountOrder:
+            paramsOmitted = self.omit(params, 'trigger_offset')
         if isTrailingAmountOrder:
             request['trigger_offset'] = self.parse_to_numeric(trailingAmount)
-            params = self.omit(params, 'trigger_offset')
-        response = await self.privateGetEdit(self.extend(request, params))
-        result = self.safe_value(response, 'result', {})
+        response = await self.privateGetEdit(self.extend(request, paramsOmitted))
+        result = self.safe_dict(response, 'result', {})
         order = self.safe_value(result, 'order')
-        trades = self.safe_value(result, 'trades', [])
+        trades = self.safe_list(result, 'trades', [])
         order['trades'] = trades
         return self.parse_order(order)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -2196,7 +2224,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -2224,7 +2252,7 @@ class deribit(Exchange, ImplicitAPI):
         #        usIn: '1720508354127369',
         #        usOut: '1720508354133603',
         #        usDiff: '6234',
-        #        testnet: True
+        #        testnet: true
         #    }
         #
         return [
@@ -2233,7 +2261,7 @@ class deribit(Exchange, ImplicitAPI):
             }),
         ]
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2263,7 +2291,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2297,7 +2325,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -2328,10 +2356,10 @@ class deribit(Exchange, ImplicitAPI):
         #                     "timestamp": 1550219814585,
         #                     "tick_direction": 1,
         #                     "state": "open",
-        #                     "self_trade": False,
-        #                     "reduce_only": False,
+        #                     "self_trade": false,
+        #                     "reduce_only": false,
         #                     "price": 0.04,
-        #                     "post_only": False,
+        #                     "post_only": false,
         #                     "order_type": "limit",
         #                     "order_id": "ETH-334607",
         #                     "matching_id": null,
@@ -2345,14 +2373,14 @@ class deribit(Exchange, ImplicitAPI):
         #                     "amount": 11
         #                 },
         #             ],
-        #             "has_more": True
+        #             "has_more": true
         #         }
         #     }
         #
         result = self.safe_list(response, 'result', [])
         return self.parse_trades(result, None, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2405,10 +2433,10 @@ class deribit(Exchange, ImplicitAPI):
         #                     "timestamp": 1550219814585,
         #                     "tick_direction": 1,
         #                     "state": "open",
-        #                     "self_trade": False,
-        #                     "reduce_only": False,
+        #                     "self_trade": false,
+        #                     "reduce_only": false,
         #                     "price": 0.04,
-        #                     "post_only": False,
+        #                     "post_only": false,
         #                     "order_type": "limit",
         #                     "order_id": "ETH-334607",
         #                     "matching_id": null,
@@ -2422,15 +2450,15 @@ class deribit(Exchange, ImplicitAPI):
         #                     "amount": 11
         #                 },
         #             ],
-        #             "has_more": True
+        #             "has_more": true
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2473,11 +2501,11 @@ class deribit(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2524,7 +2552,7 @@ class deribit(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
@@ -2603,7 +2631,7 @@ class deribit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2631,7 +2659,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         contract = self.safe_string(position, 'instrument_name')
-        market = self.safe_market(contract, market)
+        marketResolved = self.safe_market(contract, market)
         side = self.safe_string(position, 'direction')
         side = 'long' if (side == 'buy') else 'short'
         unrealizedPnl = self.safe_string(position, 'floating_profit_loss')
@@ -2642,7 +2670,7 @@ class deribit(Exchange, ImplicitAPI):
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': self.safe_string(marketResolved, 'symbol'),
             'timestamp': None,
             'datetime': None,
             'lastUpdateTimestamp': None,
@@ -2670,7 +2698,7 @@ class deribit(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -2716,7 +2744,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_position(result)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2733,11 +2761,11 @@ class deribit(Exchange, ImplicitAPI):
             await self.load_markets()
         code = self.safe_string(params, 'currency')
         request = {}
+        paramsOmitted = self.omit(params, 'currency') if (code is not None) else params
         if code is not None:
-            params = self.omit(params, 'currency')
             currency = self.currency(code)
             request['currency'] = currency['id']
-        response = await self.privateGetGetPositions(self.extend(request, params))
+        response = await self.privateGetGetPositions(self.extend(request, paramsOmitted))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2770,7 +2798,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result')
         return self.parse_positions(result, symbols)
 
-    async def fetch_volatility_history(self, code: str, params={}):
+    async def fetch_volatility_history(self, code: str, params: dict = {}) -> list[dict]:
         """
         fetch the historical volatility of an option market based on an underlying asset
 
@@ -2798,12 +2826,12 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1641515379467734,
         #         "usOut": 1641515379468095,
         #         "usDiff": 361,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         return self.parse_volatility_history(response)
 
-    def parse_volatility_history(self, volatility: object):
+    def parse_volatility_history(self, volatility: dict) -> list:
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2815,10 +2843,10 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1641515379467734,
         #         "usOut": 1641515379468095,
         #         "usDiff": 361,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
-        volatilityResult = self.safe_value(volatility, 'result', [])
+        volatilityResult = self.safe_list(volatility, 'result', [])
         result = []
         for i in range(0, len(volatilityResult)):
             timestamp = self.safe_integer(volatilityResult[i], 0)
@@ -2831,7 +2859,7 @@ class deribit(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -2887,11 +2915,11 @@ class deribit(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         transfers = self.safe_list(result, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit, params)
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -2914,15 +2942,15 @@ class deribit(Exchange, ImplicitAPI):
             'destination': toAccount,
         }
         method = self.safe_string(params, 'method')
-        params = self.omit(params, 'method')
+        paramsOmitted = self.omit(params, 'method')
         if method is None:
-            transferOptions = self.safe_value(self.options, 'transfer', {})
+            transferOptions = self.safe_dict(self.options, 'transfer', {})
             method = self.safe_string(transferOptions, 'method', 'privateGetSubmitTransferToSubaccount')
         response = None
         if method == 'privateGetSubmitTransferToUser':
-            response = await self.privateGetSubmitTransferToUser(self.extend(request, params))
+            response = await self.privateGetSubmitTransferToUser(self.extend(request, paramsOmitted))
         else:
-            response = await self.privateGetSubmitTransferToSubaccount(self.extend(request, params))
+            response = await self.privateGetSubmitTransferToSubaccount(self.extend(request, paramsOmitted))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2983,7 +3011,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2996,7 +3024,8 @@ class deribit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagAndParams = self.handle_withdraw_tag_and_params(tag, params)
+        paramsWithdrawTag = tagAndParams[1]
         self.check_address(address)
         if self.markets is None:
             await self.load_markets()
@@ -3005,15 +3034,15 @@ class deribit(Exchange, ImplicitAPI):
             'currency': currency['id'],
             'address': address,  # must be in the address book
             'amount': amount,
-            # 'priority': 'high',  # low, mid, high, very_high, extreme_high, insane
-            # 'tfa': '123456',  # if enabled
+            # 'priority': 'high', // low, mid, high, very_high, extreme_high, insane
+            # 'tfa': '123456', // if enabled
         }
         if self.twofa is not None:
             request['tfa'] = self.totp(self.twofa)
-        response = await self.privateGetWithdraw(self.extend(request, params))
+        response = await self.privateGetWithdraw(self.extend(request, paramsWithdrawTag))
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         #    {
         #      "withdrawal_priorities": [],
@@ -3039,7 +3068,7 @@ class deribit(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -3071,13 +3100,13 @@ class deribit(Exchange, ImplicitAPI):
         #      "usIn": 1688652701456124,
         #      "usOut": 1688652701456390,
         #      "usDiff": 266,
-        #      "testnet": True
+        #      "testnet": true
         #    }
         #
         data = self.safe_list(response, 'result', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -3111,7 +3140,7 @@ class deribit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetch the current funding rate
 
@@ -3128,37 +3157,38 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         maxEntriesPerRequest = 744  # seems exchange returns max 744 items per request
         eachItemDuration = '1h'
         if paginate:
             # fix for: https://github.com/ccxt/ccxt/issues/25040
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, self.extend(params, {'isDeribitPaginationCall': True}), maxEntriesPerRequest)
+            paginationParams = self.extend(paramsPaginate, {'isDeribitPaginationCall': True})
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest)
         duration = self.parse_timeframe(eachItemDuration) * 1000
-        time = self.milliseconds()
+        now = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
-        if since is None:
-            since = time - month
-        else:
-            time = since + month
+        sinceResolved = now - month if (since is None) else since
+        time = now if (since is None) else since + month
         request = {
             'instrument_name': market['id'],
-            'start_timestamp': since - 1,
+            'start_timestamp': sinceResolved - 1,
         }
-        until = self.safe_integer_2(params, 'until', 'end_timestamp')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end_timestamp')
+        paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
         if until is not None:
-            params = self.omit(params, ['until'])
             request['end_timestamp'] = until
         else:
             request['end_timestamp'] = time
-        if 'isDeribitPaginationCall' in params:
-            params = self.omit(params, 'isDeribitPaginationCall')
+        isPaginationCall = ('isDeribitPaginationCall' in paramsUntil)
+        paramsOmitted = paramsUntil
+        if isPaginationCall:
+            paramsOmitted = self.omit(paramsUntil, 'isDeribitPaginationCall')
+        if isPaginationCall:
             if limit is None:
                 raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a limit argument')
-            maxUntil = self.sum(since, limit * duration)
+            maxUntil = self.sum(sinceResolved, limit * duration)
             request['end_timestamp'] = min(request['end_timestamp'], maxUntil)
-        response = await self.publicGetGetFundingRateHistory(self.extend(request, params))
+        response = await self.publicGetGetFundingRateHistory(self.extend(request, paramsOmitted))
         #
         #    {
         #        "jsonrpc": "2.0",
@@ -3175,12 +3205,12 @@ class deribit(Exchange, ImplicitAPI):
         #    }
         #
         rates = []
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         for i in range(0, len(result)):
-            fr = result[i]
+            fr = self.safe_dict(result, i)
             rate = self.parse_funding_rate(fr, market)
             rates.append(rate)
-        return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(rates, symbol, sinceResolved, limit)
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
@@ -3225,7 +3255,7 @@ class deribit(Exchange, ImplicitAPI):
             'interval': '8h',
         }
 
-    async def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         retrieves the public liquidations of a trading pair
 
@@ -3240,12 +3270,11 @@ class deribit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLiquidations', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLiquidations', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', None)
+            return await self.fetch_paginated_call_cursor('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', None)
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets')
         request = {
             'instrument_name': market['id'],
@@ -3255,7 +3284,7 @@ class deribit(Exchange, ImplicitAPI):
             request['search_start_timestamp'] = since
         if limit is not None:
             request['count'] = limit
-        response = await self.publicGetGetLastSettlementsByInstrument(self.extend(request, params))
+        response = await self.publicGetGetLastSettlementsByInstrument(self.extend(request, paramsPaginate))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -3277,16 +3306,16 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1696652052254890,
         #         "usOut": 1696652052255733,
         #         "usDiff": 843,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         cursor = self.safe_string(result, 'continuation')
-        settlements = self.safe_value(result, 'settlements', [])
+        settlements = self.safe_list(result, 'settlements', [])
         settlementsWithCursor = self.add_pagination_cursor_to_result(cursor, settlements)
         return self.parse_liquidations(settlementsWithCursor, market, since, limit)
 
-    def add_pagination_cursor_to_result(self, cursor: object, data: object):
+    def add_pagination_cursor_to_result(self, cursor: Str, data: list) -> list:
         if cursor is not None:
             dataLength = len(data)
             if dataLength > 0:
@@ -3298,7 +3327,7 @@ class deribit(Exchange, ImplicitAPI):
                 data[dataLength - 1] = last
         return data
 
-    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         retrieves the users liquidated positions
 
@@ -3315,7 +3344,7 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets')
         request = {
             'instrument_name': market['id'],
@@ -3347,14 +3376,14 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1696652052254890,
         #         "usOut": 1696652052255733,
         #         "usDiff": 843,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         settlements = self.safe_list(result, 'settlements', [])
         return self.parse_liquidations(settlements, market, since, limit)
 
-    def parse_liquidation(self, liquidation: object, market: Market = None):
+    def parse_liquidation(self, liquidation: object, market: Market = None) -> Liquidation:
         #
         #     {
         #         "type": "bankruptcy",
@@ -3380,7 +3409,7 @@ class deribit(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    async def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+    async def fetch_greeks(self, symbol: str, params: dict = {}) -> Greeks:
         """
         fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
@@ -3440,10 +3469,10 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1699578548308414,
         #         "usOut": 1699578548308606,
         #         "usDiff": 192,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_greeks(result, market)
 
     def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
@@ -3489,7 +3518,7 @@ class deribit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(greeks, 'timestamp')
         marketId = self.safe_string(greeks, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
-        stats = self.safe_value(greeks, 'greeks', {})
+        stats = self.safe_dict(greeks, 'greeks', {})
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -3512,7 +3541,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': greeks,
         }
 
-    async def fetch_option(self, symbol: str, params={}) -> Option:
+    async def fetch_option(self, symbol: str, params: dict = {}) -> Option:
         """
         fetches option data that is commonly found in an option chain
 
@@ -3558,14 +3587,14 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1711100949273223,
         #         "usOut": 1711100949273580,
         #         "usDiff": 357,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_list(response, 'result', [])
         chain = self.safe_dict(result, 0, {})
         return self.parse_option(chain, None, market)
 
-    async def fetch_option_chain(self, code: str, params={}) -> OptionChain:
+    async def fetch_option_chain(self, code: str, params: dict = {}) -> OptionChain:
         """
         fetches data for an underlying asset that is commonly found in an option chain
 
@@ -3612,7 +3641,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1711101594456388,
         #         "usOut": 1711101594484065,
         #         "usDiff": 27677,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_list(response, 'result', [])
@@ -3643,14 +3672,14 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(chain, 'instrument_name')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         currencyId = self.safe_string(chain, 'base_currency')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = self.safe_integer(chain, 'timestamp')
         return {
             'info': chain,
             'currency': code,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'impliedVolatility': None,
@@ -3667,7 +3696,7 @@ class deribit(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_number(chain, 'volume_usd'),
         }
 
-    async def fetch_open_interest(self, symbol: str, params={}):
+    async def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
         Retrieves the open interest of a symbol
 
@@ -3680,7 +3709,7 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         request = {
             'instrument_name': market['id'],
@@ -3715,14 +3744,14 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1763674177068845,
         #         "usOut": 1763674177068996,
         #         "usDiff": 151,
-        #         "testnet": True
+        #         "testnet": true
         #     }
         #
         result = self.safe_list(response, 'result', [])
         data = self.safe_dict(result, 0, {})
         return self.parse_open_interest(data, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "high": 93099.5,
@@ -3748,65 +3777,73 @@ class deribit(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(interest, 'creation_timestamp')
         marketId = self.safe_string(interest, 'instrument_name')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         openInterest = self.safe_number(interest, 'open_interest')
         openInterestAmount = None
         openInterestValue = None
-        if market['option'] or (market['future'] and market['linear']):
+        if (marketResolved['option'] is True) or ((marketResolved['future'] is True) and (marketResolved['linear'] is True)):
             openInterestAmount = openInterest
         else:
             openInterestValue = openInterest
         return self.safe_open_interest({
-            'symbol': self.safe_symbol(marketId, market),
+            'symbol': self.safe_symbol(marketId, marketResolved),
             'openInterestAmount': openInterestAmount,
             'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }, market)
+        }, marketResolved)
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         request = '/' + 'api/' + self.version + '/' + api + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 request += '?' + self.urlencode(params)
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             timestamp = str(self.milliseconds())
             requestBody = ''
-            if params:
+            if len(params) > 0:
                 request += '?' + self.urlencode(params)
             requestData = method + "\n" + request + "\n" + requestBody + "\n"  # eslint-disable-line quotes
             auth = timestamp + "\n" + nonce + "\n" + requestData  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            headers = {
+            signedHeaders = {
                 'Authorization': 'deri-hmac-sha256 id=' + self.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             }
-        url = self.urls['api']['rest'] + request
+            baseApiUrl = self.safe_string(self.urls['api'], 'rest')
+            if baseApiUrl is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            signedUrl = baseApiUrl + request
+            return {'url': signedUrl, 'method': method, 'body': body, 'headers': signedHeaders}
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         #     {
         #         "jsonrpc": "2.0",
         #         "error": {
         #             "message": "Invalid params",
-        #             "data": {reason: "invalid currency", param: "currency"},
+        #             "data": { reason: "invalid currency", param: "currency" },
         #             "code": -32602
         #         },
-        #         "testnet": False,
+        #         "testnet": false,
         #         "usIn": 1583763842150374,
         #         "usOut": 1583763842150410,
         #         "usDiff": 36
         #     }
         #
-        error = self.safe_value(response, 'error')
+        error = self.safe_dict(response, 'error')
         if error is not None:
             errorCode = self.safe_string(error, 'code')
             feedback = self.id + ' ' + body

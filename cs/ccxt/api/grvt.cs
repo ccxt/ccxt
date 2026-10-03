@@ -11,6 +11,55 @@ public partial class grvt : Exchange
 {
     public grvt (object args = null): base(args) {}
 
+    /// <summary>Calls the privateEdgeGetApiV1DepositAddresses endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEdgeGetApiV1DepositAddresses (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEdgeGetApiV1DepositAddresses",parameters);
+    }
+
+    /// <summary>Calls the privateEdgeGetApiV1BridgeWithdrawalInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEdgeGetApiV1BridgeWithdrawalInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEdgeGetApiV1BridgeWithdrawalInfo",parameters);
+    }
+
+    /// <summary>Calls the privateEdgeGetApiV1BridgeWithdrawalStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEdgeGetApiV1BridgeWithdrawalStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEdgeGetApiV1BridgeWithdrawalStatus",parameters);
+    }
+
+    /// <summary>Calls the privateEdgeGetApiV1ReferralEpochs endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEdgeGetApiV1ReferralEpochs (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEdgeGetApiV1ReferralEpochs",parameters);
+    }
+
+    /// <summary>Calls the privateEdgeGetApiV1ReferralPoints endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEdgeGetApiV1ReferralPoints (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEdgeGetApiV1ReferralPoints",parameters);
+    }
+
+    /// <summary>Calls the privateEdgeGetApiV1ReferralData endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEdgeGetApiV1ReferralData (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEdgeGetApiV1ReferralData",parameters);
+    }
+
+    /// <summary>Calls the privateEdgeGetApiV1ReferralIndirectData endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEdgeGetApiV1ReferralIndirectData (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEdgeGetApiV1ReferralIndirectData",parameters);
+    }
+
     /// <summary>Calls the privateEdgePostAuthApiKeyLogin endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateEdgePostAuthApiKeyLogin (object parameters = null)
@@ -23,6 +72,34 @@ public partial class grvt : Exchange
     public async Task<Dictionary<string, object>> privateEdgePostAuthWalletLogin (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateEdgePostAuthWalletLogin",parameters);
+    }
+
+    /// <summary>Calls the privateEdgePostAuthBuilderAuthorize endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEdgePostAuthBuilderAuthorize (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEdgePostAuthBuilderAuthorize",parameters);
+    }
+
+    /// <summary>Calls the privateEdgePostApiV1DepositGenerateAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEdgePostApiV1DepositGenerateAddress (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEdgePostApiV1DepositGenerateAddress",parameters);
+    }
+
+    /// <summary>Calls the privateEdgePostApiV1BridgeWithdrawalQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEdgePostApiV1BridgeWithdrawalQuote (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEdgePostApiV1BridgeWithdrawalQuote",parameters);
+    }
+
+    /// <summary>Calls the privateEdgePostApiV1BridgeWithdraw endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEdgePostApiV1BridgeWithdraw (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEdgePostApiV1BridgeWithdraw",parameters);
     }
 
     /// <summary>Calls the publicMarketPostFullV1Instrument endpoint.</summary>
@@ -107,6 +184,20 @@ public partial class grvt : Exchange
     public async Task<Dictionary<string, object>> publicMarketPostFullV1Funding (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicMarketPostFullV1Funding",parameters);
+    }
+
+    /// <summary>Calls the publicMarketPostFullV1SupportedAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicMarketPostFullV1SupportedAssets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicMarketPostFullV1SupportedAssets",parameters);
+    }
+
+    /// <summary>Calls the publicMarketPostFullV1GetAllCollateralAssetInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicMarketPostFullV1GetAllCollateralAssetInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicMarketPostFullV1GetAllCollateralAssetInfo",parameters);
     }
 
     /// <summary>Calls the privateTradingPostFullV1CreateOrder endpoint.</summary>
@@ -359,6 +450,76 @@ public partial class grvt : Exchange
     public async Task<Dictionary<string, object>> privateTradingPostFullV1BuilderFillHistory (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateTradingPostFullV1BuilderFillHistory",parameters);
+    }
+
+    /// <summary>Calls the privateTradingPostFullV1CreateRfq endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateTradingPostFullV1CreateRfq (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateTradingPostFullV1CreateRfq",parameters);
+    }
+
+    /// <summary>Calls the privateTradingPostFullV1CancelRfq endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateTradingPostFullV1CancelRfq (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateTradingPostFullV1CancelRfq",parameters);
+    }
+
+    /// <summary>Calls the privateTradingPostFullV1EcnFromBroker endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateTradingPostFullV1EcnFromBroker (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateTradingPostFullV1EcnFromBroker",parameters);
+    }
+
+    /// <summary>Calls the privateTradingPostFullV2BulkOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateTradingPostFullV2BulkOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateTradingPostFullV2BulkOrders",parameters);
+    }
+
+    /// <summary>Calls the privateTradingPostFullV1PositionHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateTradingPostFullV1PositionHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateTradingPostFullV1PositionHistory",parameters);
+    }
+
+    /// <summary>Calls the privateTradingPostFullV1InterestPaymentHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateTradingPostFullV1InterestPaymentHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateTradingPostFullV1InterestPaymentHistory",parameters);
+    }
+
+    /// <summary>Calls the privateTradingPostFullV1GetCollateralPreference endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateTradingPostFullV1GetCollateralPreference (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateTradingPostFullV1GetCollateralPreference",parameters);
+    }
+
+    /// <summary>Calls the privateTradingPostFullV1SpotAccountSummary endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateTradingPostFullV1SpotAccountSummary (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateTradingPostFullV1SpotAccountSummary",parameters);
+    }
+
+    /// <summary>Calls the privateTradingPostFullV1SetIndicativePrices endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateTradingPostFullV1SetIndicativePrices (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateTradingPostFullV1SetIndicativePrices",parameters);
+    }
+
+    /// <summary>Calls the privateTradingPostFullV1WithdrawalFee endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateTradingPostFullV1WithdrawalFee (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateTradingPostFullV1WithdrawalFee",parameters);
     }
 
 }

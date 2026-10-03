@@ -84,7 +84,7 @@ export default class PredictionExchange extends BaseExchange {
         });
     }
     isPrediction() {
-        return this.safeBool(this.has, 'prediction', false) === true;
+        return this.safeBool(this.has, 'prediction', false);
     }
     parseSearchQueries(params = {}) {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
@@ -375,7 +375,7 @@ export default class PredictionExchange extends BaseExchange {
         // note: the cache-hit shortcut ignores params, so events fetched under one scope are
         // returned for a later differently-scoped call. events are scoped (unlike global
         // markets), so prefer fetchEvents (params) directly when you need a specific scope
-        if (!reload && this.events) {
+        if (!reload && (this.events !== undefined && this.events !== null)) {
             return this.events;
         }
         const events = await this.fetchEvents(params);
@@ -440,11 +440,13 @@ export default class PredictionExchange extends BaseExchange {
         if (outcomeObj !== undefined) {
             return outcomeObj;
         }
-        return { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
+        // stub for an unknown handle; it only carries the identity keys, not the market fields
+        const outcomeObjValue = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
+        return outcomeObjValue;
     }
     safeOutcomeSymbol(outcomeIdOrSymbol, outcomeObj = undefined) {
-        outcomeObj = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
-        return outcomeObj['outcome'];
+        const outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
+        return outcomeObjValue['outcome'];
     }
     shortenSlug(slug) {
         const replacements = {
@@ -538,10 +540,8 @@ export default class PredictionExchange extends BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        if (outcome === undefined) {
-            outcome = '';
-        }
-        const upper = outcome.toUpperCase();
+        const outcomeValue = (outcome === undefined) ? '' : outcome;
+        const upper = outcomeValue.toUpperCase();
         const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const chars = this.stringToCharsArray(upper);
         let label = '';
@@ -695,7 +695,7 @@ export default class PredictionExchange extends BaseExchange {
             let missingLength = missing.length;
             const wasWarm = (this.outcomes !== undefined) && !this.isEmpty(this.outcomes);
             const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
-            if ((missingLength > 0) && loadAll && !wasWarm && !reload) {
+            if ((missingLength > 0) && (loadAll === true) && !wasWarm && !reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 await this.loadOutcomes();
@@ -760,7 +760,7 @@ export default class PredictionExchange extends BaseExchange {
                 }
             }
             const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
-            if (loadAll && !wasWarm) {
+            if ((loadAll === true) && !wasWarm) {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -1294,7 +1294,7 @@ export default class PredictionExchange extends BaseExchange {
             if (orderType === 'market') {
                 timeInForce = 'IOC';
             }
-            if (postOnly) {
+            if (postOnly === true) {
                 timeInForce = 'PO';
             }
         }
@@ -1462,11 +1462,13 @@ export default class PredictionExchange extends BaseExchange {
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         const fallback = this.safeString2(orderbook, 'outcome', 'symbol');
-        orderbook['outcome'] = (outcomeObj === undefined) ? fallback : this.safeString(outcomeObj, 'outcome', fallback);
-        orderbook['outcomeId'] = (outcomeObj === undefined) ? this.safeString(orderbook, 'outcomeId') : this.safeString(outcomeObj, 'outcomeId');
-        orderbook['market'] = (outcomeObj === undefined) ? this.safeString(orderbook, 'market') : this.safeString(outcomeObj, 'market');
+        const identity = {
+            'outcome': (outcomeObj === undefined) ? fallback : this.safeString(outcomeObj, 'outcome', fallback),
+            'outcomeId': (outcomeObj === undefined) ? this.safeString(orderbook, 'outcomeId') : this.safeString(outcomeObj, 'outcomeId'),
+            'market': (outcomeObj === undefined) ? this.safeString(orderbook, 'market') : this.safeString(outcomeObj, 'market'),
+        };
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
-        return this.omit(orderbook, 'symbol');
+        return this.extend(this.omit(orderbook, 'symbol'), identity);
     }
     parsePredictionTicker(ticker, market = undefined) {
         throw new NotSupported(this.id + ' parsePredictionTicker() is not supported yet');
@@ -1710,7 +1712,7 @@ export default class PredictionExchange extends BaseExchange {
         const start = this.milliseconds();
         while ((this.milliseconds() - start) < timeout) {
             const receipt = await this.ethRpc(rpcUrl, 'eth_getTransactionReceipt', [txHash]);
-            if (receipt) {
+            if ((receipt !== undefined) && (receipt !== null)) {
                 return receipt;
             }
             await this.sleep(2000);

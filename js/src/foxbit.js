@@ -9,7 +9,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class foxbit
@@ -100,7 +100,7 @@ export default class foxbit extends Exchange {
                     'https://docs.foxbit.com.br',
                 ],
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     // https://docs.foxbit.com.br/rest/v3/#tag/API-Codes/Errors
@@ -152,6 +152,8 @@ export default class foxbit extends Exchange {
                             'markets/{market}/candlesticks': { 'cost': 12 }, // 5 requests per 2 seconds
                             'markets/{market}/trades/history': { 'cost': 12 }, // 5 requests per 2 seconds
                             'markets/{market}/ticker/24hr': { 'cost': 15 }, // 4 requests per 2 seconds
+                            'markets/sparkline/{window}': { 'cost': 20 }, // 3 requests per 2 seconds
+                            'travel_rule/operation_reasons': { 'cost': 30 }, // 2 requests per 2 seconds
                         },
                     },
                     'private': {
@@ -165,12 +167,14 @@ export default class foxbit extends Exchange {
                             'deposits': { 'cost': 10 }, // 3 requests per second
                             'withdrawals': { 'cost': 10 }, // 3 requests per second
                             'me/fees/trading': { 'cost': 60 }, // 1 requests per 2 seconds
+                            'prime_desk/executions/{quote_id}': { 'cost': 10 }, // 6 requests per 2 seconds
                         },
                         'post': {
                             'orders': { 'cost': 2 }, // 30 requests per 2 seconds
                             'orders/batch': { 'cost': 7.5 }, // 8 requests per 2 seconds
                             'orders/cancel-replace': { 'cost': 3 }, // 20 requests per 2 seconds
                             'withdrawals': { 'cost': 10 }, // 3 requests per second
+                            'deposits/{deposit_sn}/travel_rule': { 'cost': 30 }, // 2 requests per 2 seconds
                         },
                         'put': {
                             'orders/cancel': { 'cost': 2 }, // 30 requests per 2 seconds
@@ -375,7 +379,6 @@ export default class foxbit extends Exchange {
         return this.parseCurrencies(data);
     }
     parseCurrency(rawCurrency) {
-        const precision = this.safeInteger(rawCurrency, 'precision');
         const currencyId = this.safeString(rawCurrency, 'symbol');
         const name = this.safeString(rawCurrency, 'name');
         const code = this.safeCurrencyCode(currencyId);
@@ -385,7 +388,7 @@ export default class foxbit extends Exchange {
         const type = this.safeStringLower(rawCurrency, 'type');
         const parsedNetworks = {};
         for (let j = 0; j < networks.length; j++) {
-            const network = networks[j];
+            const network = this.safeDict(networks, j);
             const networkId = this.safeString(network, 'code');
             const networkCode = this.networkIdToCode(networkId, code);
             const networkWithdrawInfo = this.safeDict(network, 'withdraw_info');
@@ -401,7 +404,7 @@ export default class foxbit extends Exchange {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'active': true,
-                    'precision': precision,
+                    'precision': undefined,
                     'fee': this.safeNumber(networkWithdrawInfo, 'fee'),
                     'limits': {
                         'amount': {
@@ -430,7 +433,7 @@ export default class foxbit extends Exchange {
             'deposit': this.safeBool(depositInfo, 'enabled', false),
             'withdraw': this.safeBool(withdrawInfo, 'enabled', false),
             'fee': this.safeNumber(withdrawInfo, 'fee'),
-            'precision': precision,
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision'))),
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -621,7 +624,7 @@ export default class foxbit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.v3PublicGetMarketsTicker24hr(params);
         //  {
         //    "data": [
@@ -645,7 +648,7 @@ export default class foxbit extends Exchange {
         //    ]
         //  }
         const data = this.safeList(response, 'data', []);
-        return this.parseTickers(data, symbols);
+        return this.parseTickers(data, symbolsNormalized);
     }
     /**
      * @method
@@ -841,7 +844,7 @@ export default class foxbit extends Exchange {
             'info': response,
         };
         for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
+            const account = this.safeDict(accounts, i);
             const currencyId = this.safeString(account, 'currency_symbol');
             const currencyCode = this.safeCurrencyCode(currencyId);
             const total = this.safeString(account, 'balance');
@@ -936,24 +939,22 @@ export default class foxbit extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        type = type.toUpperCase();
-        if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'STOP_LIMIT' && type !== 'INSTANT') {
-            throw new InvalidOrder('Invalid order type: ' + type + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
+        const typeValue = type.toUpperCase();
+        if (typeValue !== 'LIMIT' && typeValue !== 'MARKET' && typeValue !== 'STOP_MARKET' && typeValue !== 'STOP_LIMIT' && typeValue !== 'INSTANT') {
+            throw new InvalidOrder('Invalid order type: ' + typeValue + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
         }
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         const postOnly = this.safeBool(params, 'postOnly', false);
         const triggerPrice = this.safeNumber(params, 'triggerPrice');
-        if (side === undefined) {
-            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument('createOrder', side, 'side');
         const request = {
             'market_symbol': market['id'],
             'side': side.toUpperCase(),
-            'type': type,
+            'type': typeValue,
         };
-        if (type === 'STOP_MARKET' || type === 'STOP_LIMIT') {
+        if (typeValue === 'STOP_MARKET' || typeValue === 'STOP_LIMIT') {
             if (triggerPrice === undefined) {
-                throw new InvalidOrder('Invalid order type: ' + type + '. Must have triggerPrice.');
+                throw new InvalidOrder('Invalid order type: ' + typeValue + '. Must have triggerPrice.');
             }
         }
         if (timeInForce !== undefined) {
@@ -964,27 +965,27 @@ export default class foxbit extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (postOnly) {
+        if (postOnly === true) {
             request['post_only'] = true;
         }
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        if (type === 'INSTANT') {
+        if (typeValue === 'INSTANT') {
             request['amount'] = this.priceToPrecision(symbol, amount);
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
-        if (type === 'LIMIT' || type === 'STOP_LIMIT') {
+        if (typeValue === 'LIMIT' || typeValue === 'STOP_LIMIT') {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit(params, ['timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId']);
-        const response = await this.v3PrivatePostOrders(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId']);
+        const response = await this.v3PrivatePostOrders(this.extend(request, paramsOmitted));
         // {
         //     "id": 1234567890,
         //     "sn": "OKMAKSDHRVVREK",
@@ -1037,7 +1038,7 @@ export default class foxbit extends Exchange {
                 }
                 delete orderParams['timeInForce'];
             }
-            if (postOnly) {
+            if (postOnly === true) {
                 request['post_only'] = true;
                 delete orderParams['postOnly'];
             }
@@ -1509,20 +1510,16 @@ export default class foxbit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
-        }
-        type = type.toUpperCase();
-        if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'INSTANT') {
-            throw new InvalidOrder('Invalid order type: ' + type + '. Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.');
+        this.checkRequiredArgument('editOrder', symbol, 'symbol');
+        const typeValue = type.toUpperCase();
+        if (typeValue !== 'LIMIT' && typeValue !== 'MARKET' && typeValue !== 'STOP_MARKET' && typeValue !== 'INSTANT') {
+            throw new InvalidOrder('Invalid order type: ' + typeValue + '. Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (side === undefined) {
-            throw new ArgumentsRequired(this.id + ' editOrder() requires a side argument');
-        }
+        this.checkRequiredArgument('editOrder', side, 'side');
         const request = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
@@ -1530,22 +1527,22 @@ export default class foxbit extends Exchange {
                 'id': this.parseNumber(id),
             },
             'create': {
-                'type': type,
+                'type': typeValue,
                 'side': side.toUpperCase(),
                 'market_symbol': market['id'],
             },
         };
-        if (type === 'LIMIT' || type === 'MARKET') {
+        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
             request['create']['quantity'] = this.amountToPrecision(symbol, amount);
-            if (type === 'LIMIT') {
+            if (typeValue === 'LIMIT') {
                 request['create']['price'] = this.priceToPrecision(symbol, price);
             }
         }
-        if (type === 'STOP_MARKET') {
+        if (typeValue === 'STOP_MARKET') {
             request['create']['stop_price'] = this.priceToPrecision(symbol, price);
             request['create']['quantity'] = this.amountToPrecision(symbol, amount);
         }
-        if (type === 'INSTANT') {
+        if (typeValue === 'INSTANT') {
             request['create']['amount'] = this.priceToPrecision(symbol, amount);
         }
         const response = await this.v3PrivatePostOrdersCancelReplace(this.extend(request, params));
@@ -1574,7 +1571,7 @@ export default class foxbit extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1584,15 +1581,14 @@ export default class foxbit extends Exchange {
             'amount': this.numberToString(amount),
             'destination_address': address,
         };
-        if (tag !== undefined) {
-            request['destination_tag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destination_tag'] = tagWithdrawTag;
         }
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         if (networkCode !== undefined) {
             request['network_code'] = this.networkCodeToId(networkCode, code);
         }
-        const response = await this.v3PrivatePostWithdrawals(this.extend(request, params));
+        const response = await this.v3PrivatePostWithdrawals(this.extend(request, paramsNetworkCode));
         // {
         //     "amount": "2",
         //     "currency_symbol": "xrp",
@@ -1644,6 +1640,9 @@ export default class foxbit extends Exchange {
         const quoteId = this.safeString(quoteAssets, 'symbol');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const fees = this.safeDict(market, 'default_fees');
         return this.safeMarketStructure({
@@ -1676,9 +1675,8 @@ export default class foxbit extends Exchange {
             'tierBased': false,
             'feeSide': 'get',
             'precision': {
-                'price': this.safeInteger(quoteAssets, 'precision'),
-                'amount': this.safeInteger(baseAssets, 'precision'),
-                'cost': this.safeInteger(quoteAssets, 'precision'),
+                'price': this.safeNumber(market, 'price_increment'),
+                'amount': this.safeNumber(market, 'quantity_increment'),
             },
             'limits': {
                 'amount': {
@@ -1714,11 +1712,11 @@ export default class foxbit extends Exchange {
     parseTicker(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 'market_symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, 'spot');
-        const rolling_24h = ticker['rolling_24h'];
+        const rolling_24h = this.safeDict(ticker, 'rolling_24h');
         const best = this.safeDict(ticker, 'best');
         const bestAsk = this.safeDict(best, 'ask');
         const bestBid = this.safeDict(best, 'bid');
-        const lastTrade = ticker['last_trade'];
+        const lastTrade = this.safeDict(ticker, 'last_trade');
         const lastPrice = this.safeString(lastTrade, 'price');
         return this.safeTicker({
             'symbol': symbol,
@@ -1794,11 +1792,12 @@ export default class foxbit extends Exchange {
     }
     parseOrder(order, market = undefined) {
         let symbol = this.safeString(order, 'market_symbol');
-        if (market === undefined && symbol !== undefined) {
-            market = this.market(symbol);
+        let marketResolved = market;
+        if ((market === undefined) && (symbol !== undefined)) {
+            marketResolved = this.market(symbol);
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        if (marketResolved !== undefined) {
+            symbol = this.safeString(marketResolved, 'symbol');
         }
         const timestamp = this.parseDate(this.safeString(order, 'created_at'));
         const price = this.safeString(order, 'price');
@@ -1810,15 +1809,15 @@ export default class foxbit extends Exchange {
             amount = Precise.stringAdd(remaining, filled);
         }
         let cost = this.safeString(order, 'funds_received');
-        if (!cost) {
+        if ((cost === undefined) || (cost === '')) {
             const priceAverage = this.safeString(order, 'price_avg');
             const priceToCalculate = this.safeString(order, 'price', priceAverage);
             cost = Precise.stringMul(priceToCalculate, amount);
         }
         const side = this.safeStringLower(order, 'side');
-        let feeCurrency = this.safeStringUpper(market, 'quoteId');
+        let feeCurrency = this.safeStringUpper(marketResolved, 'quoteId');
         if (side === 'buy') {
-            feeCurrency = this.safeStringUpper(market, 'baseId');
+            feeCurrency = this.safeStringUpper(marketResolved, 'baseId');
         }
         return this.safeOrder({
             'id': this.safeString(order, 'id'),
@@ -1828,7 +1827,7 @@ export default class foxbit extends Exchange {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus(this.safeString(order, 'state')),
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'type': this.safeString(order, 'type'),
             'timeInForce': this.safeString(order, 'time_in_force'),
             'postOnly': this.safeBool(order, 'post_only'),
@@ -2012,21 +2011,25 @@ export default class foxbit extends Exchange {
             fullPath = '/status';
             urlPath = 'status';
         }
-        let url = this.urls['api'][urlPath] + fullPath;
-        params = this.omit(params, this.extractParams(path));
+        const apiUrl = this.safeString(this.urls['api'], urlPath);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + fullPath;
+        const paramsOmitted = this.omit(params, this.extractParams(path));
         const timestamp = this.milliseconds();
         let query = '';
         let signatureQuery = '';
         if (method === 'GET') {
-            const paramKeys = Object.keys(params);
+            const paramKeys = Object.keys(paramsOmitted);
             const paramKeysLength = paramKeys.length;
             if (paramKeysLength > 0) {
-                query = this.urlencode(params);
+                query = this.urlencode(paramsOmitted);
                 url += '?' + query;
             }
             for (let i = 0; i < paramKeys.length; i++) {
                 const key = paramKeys[i];
-                const value = this.safeString(params, key);
+                const value = this.safeString(paramsOmitted, key);
                 if (value !== undefined) {
                     signatureQuery += key + '=' + value;
                 }
@@ -2035,14 +2038,15 @@ export default class foxbit extends Exchange {
                 }
             }
         }
+        let requestBody = body;
         if (method === 'POST' || method === 'PUT') {
-            body = this.json(params);
+            requestBody = this.json(paramsOmitted);
         }
         let bodyToSignature = '';
-        if (body !== undefined) {
-            bodyToSignature = body;
+        if (requestBody !== undefined) {
+            bodyToSignature = requestBody;
         }
-        headers = {
+        const headersValue = {
             'Content-Type': 'application/json',
             'X-FB-CLIENT': 'ccxt',
             'X-FB-CLIENT-VERSION': this.getCcxtVersion(),
@@ -2051,11 +2055,11 @@ export default class foxbit extends Exchange {
             this.checkRequiredCredentials();
             const preHash = this.numberToString(timestamp) + method + fullPath + signatureQuery + bodyToSignature;
             const signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, 'hex');
-            headers['X-FB-ACCESS-KEY'] = this.apiKey;
-            headers['X-FB-ACCESS-TIMESTAMP'] = this.numberToString(timestamp);
-            headers['X-FB-ACCESS-SIGNATURE'] = signature;
+            headersValue['X-FB-ACCESS-KEY'] = this.apiKey;
+            headersValue['X-FB-ACCESS-TIMESTAMP'] = this.numberToString(timestamp);
+            headersValue['X-FB-ACCESS-SIGNATURE'] = signature;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -2066,7 +2070,7 @@ export default class foxbit extends Exchange {
         const details = this.safeList(error, 'details');
         const message = this.safeString(error, 'message');
         let detailsString = '';
-        if (details) {
+        if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
                 detailsString = detailsString + details[i] + ' ';
             }

@@ -33,6 +33,8 @@ interface Exchange {
     v1PublicGetClientPoints (params?: {}): Promise<Dict>;
     v1PublicGetPublicPointsEpoch (params?: {}): Promise<Dict>;
     v1PublicGetPublicPointsEpochDates (params?: {}): Promise<Dict>;
+    v1PublicGetPublicPointsRankings (params?: {}): Promise<Dict>;
+    v1PublicGetPublicPointsStages (params?: {}): Promise<Dict>;
     v1PublicGetPublicReferralCheckRefCode (params?: {}): Promise<Dict>;
     v1PublicGetPublicReferralVerifyRefCode (params?: {}): Promise<Dict>;
     v1PublicGetReferralAdminInfo (params?: {}): Promise<Dict>;
@@ -46,6 +48,7 @@ interface Exchange {
     v1PublicGetTvConfig (params?: {}): Promise<Dict>;
     v1PublicGetTvHistory (params?: {}): Promise<Dict>;
     v1PublicGetTvSymbolInfo (params?: {}): Promise<Dict>;
+    v1PublicGetTvKlineHistory (params?: {}): Promise<Dict>;
     v1PublicGetPublicFundingRateHistory (params?: {}): Promise<Dict>;
     v1PublicGetPublicFundingRateSymbol (params?: {}): Promise<Dict>;
     v1PublicGetPublicFundingRates (params?: {}): Promise<Dict>;
@@ -55,6 +58,9 @@ interface Exchange {
     v1PublicGetPublicToken (params?: {}): Promise<Dict>;
     v1PublicGetPublicFutures (params?: {}): Promise<Dict>;
     v1PublicGetPublicFuturesSymbol (params?: {}): Promise<Dict>;
+    v1PublicGetStakingValor2BatchInfo (params?: {}): Promise<Dict>;
+    v1PublicGetStakingValor2PoolInfo (params?: {}): Promise<Dict>;
+    v1PublicGetStakingValor2RevenueBuyback (params?: {}): Promise<Dict>;
     v1PublicPostRegisterAccount (params?: {}): Promise<Dict>;
     v1PrivateGetClientKeyInfo (params?: {}): Promise<Dict>;
     v1PrivateGetClientOrderlyKeyIpRestriction (params?: {}): Promise<Dict>;
@@ -73,6 +79,7 @@ interface Exchange {
     v1PrivateGetClientHolding (params?: {}): Promise<Dict>;
     v1PrivateGetWithdrawNonce (params?: {}): Promise<Dict>;
     v1PrivateGetSettleNonce (params?: {}): Promise<Dict>;
+    v1PrivateGetTransferNonce (params?: {}): Promise<Dict>;
     v1PrivateGetPnlSettlementHistory (params?: {}): Promise<Dict>;
     v1PrivateGetVolumeUserDaily (params?: {}): Promise<Dict>;
     v1PrivateGetVolumeUserStats (params?: {}): Promise<Dict>;
@@ -87,9 +94,22 @@ interface Exchange {
     v1PrivateGetVolumeBrokerDaily (params?: {}): Promise<Dict>;
     v1PrivateGetBrokerFeeRateDefault (params?: {}): Promise<Dict>;
     v1PrivateGetBrokerUserInfo (params?: {}): Promise<Dict>;
+    v1PrivateGetBrokerDailyFeeRevenue (params?: {}): Promise<Dict>;
     v1PrivateGetOrderbookSymbol (params?: {}): Promise<Dict>;
     v1PrivateGetKline (params?: {}): Promise<Dict>;
     v1PrivateGetClientMarginModes (params?: {}): Promise<Dict>;
+    v1PrivateGetClientLeverages (params?: {}): Promise<Dict>;
+    v1PrivateGetClientPointsUserStatistics (params?: {}): Promise<Dict>;
+    v1PrivateGetStakingValor2Redeem (params?: {}): Promise<Dict>;
+    v1PrivateGetReferralMultiLevelAdmin (params?: {}): Promise<Dict>;
+    v1PrivateGetReferralMultiLevelAdminInfo (params?: {}): Promise<Dict>;
+    v1PrivateGetReferralMultiLevelAdminRefereeList (params?: {}): Promise<Dict>;
+    v1PrivateGetReferralMultiLevelAdminSummary (params?: {}): Promise<Dict>;
+    v1PrivateGetReferralMultiLevelMaxRebateRate (params?: {}): Promise<Dict>;
+    v1PrivateGetReferralMultiLevelRebateInfo (params?: {}): Promise<Dict>;
+    v1PrivateGetReferralMultiLevelRefereeList (params?: {}): Promise<Dict>;
+    v1PrivateGetReferralMultiLevelStatistics (params?: {}): Promise<Dict>;
+    v1PrivateGetReferralMultiLevelVolumePrerequisite (params?: {}): Promise<Dict>;
     v1PrivatePostOrderlyKey (params?: {}): Promise<Dict>;
     v1PrivatePostClientSetOrderlyKeyIpRestriction (params?: {}): Promise<Dict>;
     v1PrivatePostClientResetOrderlyKeyIpRestriction (params?: {}): Promise<Dict>;
@@ -103,6 +123,7 @@ interface Exchange {
     v1PrivatePostNotificationInboxMarkRead (params?: {}): Promise<Dict>;
     v1PrivatePostNotificationInboxMarkReadAll (params?: {}): Promise<Dict>;
     v1PrivatePostClientLeverage (params?: {}): Promise<Dict>;
+    v1PrivatePostClientLeverages (params?: {}): Promise<Dict>;
     v1PrivatePostClientMarginMode (params?: {}): Promise<Dict>;
     v1PrivatePostPositionMargin (params?: {}): Promise<Dict>;
     v1PrivatePostClientMaintenanceConfig (params?: {}): Promise<Dict>;
@@ -117,6 +138,15 @@ interface Exchange {
     v1PrivatePostReferralUpdate (params?: {}): Promise<Dict>;
     v1PrivatePostReferralBind (params?: {}): Promise<Dict>;
     v1PrivatePostReferralEditSplit (params?: {}): Promise<Dict>;
+    v1PrivatePostReferralEditRefereeDescription (params?: {}): Promise<Dict>;
+    v1PrivatePostReferralMultiLevelAdmin (params?: {}): Promise<Dict>;
+    v1PrivatePostReferralMultiLevelAdminCreateAffiliate (params?: {}): Promise<Dict>;
+    v1PrivatePostReferralMultiLevelAdminResetAffiliate (params?: {}): Promise<Dict>;
+    v1PrivatePostReferralMultiLevelAdminUpdate (params?: {}): Promise<Dict>;
+    v1PrivatePostReferralMultiLevelAdminUpdateAffiliate (params?: {}): Promise<Dict>;
+    v1PrivatePostReferralMultiLevelClaimCode (params?: {}): Promise<Dict>;
+    v1PrivatePostReferralMultiLevelRebateRateSetDefault (params?: {}): Promise<Dict>;
+    v1PrivatePostReferralMultiLevelRebateRateUpdate (params?: {}): Promise<Dict>;
     v1PrivatePutOrder (params?: {}): Promise<Dict>;
     v1PrivatePutAlgoOrder (params?: {}): Promise<Dict>;
     v1PrivateDeleteOrder (params?: {}): Promise<Dict>;
@@ -127,6 +157,7 @@ interface Exchange {
     v1PrivateDeleteOrders (params?: {}): Promise<List>;
     v1PrivateDeleteBatchOrder (params?: {}): Promise<Dict>;
     v1PrivateDeleteClientBatchOrder (params?: {}): Promise<Dict>;
+    v2PrivatePostInternalTransfer (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

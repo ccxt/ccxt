@@ -886,6 +886,12 @@ abstract class coinex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v2_public_get_assets_info($params = array()) {
+        return $this->request('assets/info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v2_private_get_account_subs($params = array()) {
         return $this->request('account/subs', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1512,6 +1518,18 @@ abstract class coinex extends \ccxt\Exchange {
      */
     public function v2_private_post_futures_set_position_take_profit($params = array()) {
         return $this->request('futures/set-position-take-profit', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2_private_post_futures_modify_position_stop_loss($params = array()) {
+        return $this->request('futures/modify-position-stop-loss', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2_private_post_futures_modify_position_take_profit($params = array()) {
+        return $this->request('futures/modify-position-take-profit', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>
@@ -2392,6 +2410,12 @@ abstract class coinex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v2PublicGetAssetsInfo($params = array()) {
+        return $this->request('assets/info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v2PrivateGetAccountSubs($params = array()) {
         return $this->request('account/subs', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3018,5 +3042,17 @@ abstract class coinex extends \ccxt\Exchange {
      */
     public function v2PrivatePostFuturesSetPositionTakeProfit($params = array()) {
         return $this->request('futures/set-position-take-profit', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2PrivatePostFuturesModifyPositionStopLoss($params = array()) {
+        return $this->request('futures/modify-position-stop-loss', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2PrivatePostFuturesModifyPositionTakeProfit($params = array()) {
+        return $this->request('futures/modify-position-take-profit', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
     }
 }

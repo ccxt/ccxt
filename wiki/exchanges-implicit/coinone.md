@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official coinone API documentation:** [doc.coinone.co.kr](https://doc.coinone.co.kr)
 
-> 63 implicit endpoints across 5 access groups.
+> 65 implicit endpoints across 5 access groups.
 
 ## public
 
@@ -150,4 +150,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v2_1PrivatePostTransactionKrwHistory` | POST | `transaction/krw/history` | 1 |
 | `v2_1PrivatePostTransactionCoinHistory` | POST | `transaction/coin/history` | 1 |
 | `v2_1PrivatePostTransactionCoinWithdrawalLimit` | POST | `transaction/coin/withdrawal/limit` | 1 |
+| `v2_1PrivatePostEventOrderRewardPrograms` | POST | `event/order-reward/programs` | 1 |
+| `v2_1PrivatePostEventOrderRewardHistory` | POST | `event/order-reward/history` | 1 |
 

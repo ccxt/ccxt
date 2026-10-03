@@ -93,7 +93,7 @@ class foxbit extends Exchange {
                     'https://docs.foxbit.com.br',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     // https://docs.foxbit.com.br/rest/v3/#tag/API-Codes/Errors
@@ -127,7 +127,7 @@ class foxbit extends Exchange {
                     '5006' => '\\ccxt\\InvalidOrder', // Significant price deviation detected, exceeding acceptable limits. The order price is exceeding acceptable limits from market to complete your request.
                 ),
                 'broad' => array(
-                    // todo => add details messages that can be usefull here, like when market is not found
+                    // todo: add details messages that can be usefull here, like when market is not found
                 ),
             ),
             'requiredCredentials' => array(
@@ -145,6 +145,8 @@ class foxbit extends Exchange {
                             'markets/{market}/candlesticks' => array( 'cost' => 12 ), // 5 requests per 2 seconds
                             'markets/{market}/trades/history' => array( 'cost' => 12 ), // 5 requests per 2 seconds
                             'markets/{market}/ticker/24hr' => array( 'cost' => 15 ), // 4 requests per 2 seconds
+                            'markets/sparkline/{window}' => array( 'cost' => 20 ), // 3 requests per 2 seconds
+                            'travel_rule/operation_reasons' => array( 'cost' => 30 ), // 2 requests per 2 seconds
                         ),
                     ),
                     'private' => array(
@@ -158,12 +160,14 @@ class foxbit extends Exchange {
                             'deposits' => array( 'cost' => 10 ), // 3 requests per second
                             'withdrawals' => array( 'cost' => 10 ), // 3 requests per second
                             'me/fees/trading' => array( 'cost' => 60 ), // 1 requests per 2 seconds
+                            'prime_desk/executions/{quote_id}' => array( 'cost' => 10 ), // 6 requests per 2 seconds
                         ),
                         'post' => array(
                             'orders' => array( 'cost' => 2 ), // 30 requests per 2 seconds
                             'orders/batch' => array( 'cost' => 7.5 ), // 8 requests per 2 seconds
                             'orders/cancel-replace' => array( 'cost' => 3 ), // 20 requests per 2 seconds
                             'withdrawals' => array( 'cost' => 10 ), // 3 requests per second
+                            'deposits/{deposit_sn}/travel_rule' => array( 'cost' => 30 ), // 2 requests per 2 seconds
                         ),
                         'put' => array(
                             'orders/cancel' => array( 'cost' => 2 ), // 30 requests per 2 seconds
@@ -329,48 +333,47 @@ class foxbit extends Exchange {
     public function fetch_currencies($params = array()): array {
         $response = $this->v3PublicGetCurrencies($params);
         // {
-        //   "data" => array(
+        //   "data": [
         //     {
-        //       "symbol" => "btc",
-        //       "name" => "Bitcoin",
-        //       "type" => "CRYPTO",
-        //       "precision" => 8,
-        //       "deposit_info" => array(
-        //         "min_to_confirm" => "1",
-        //         "min_amount" => "0.0001"
-        //       ),
-        //       "withdraw_info" => array(
-        //         "enabled" => true,
-        //         "min_amount" => "0.0001",
-        //         "fee" => "0.0001"
-        //       ),
-        //       "category" => array(
-        //           "code" => "cripto",
-        //         "name" => "Cripto"
-        //       ),
-        //       "networks" => array(
+        //       "symbol": "btc",
+        //       "name": "Bitcoin",
+        //       "type": "CRYPTO",
+        //       "precision": 8,
+        //       "deposit_info": {
+        //         "min_to_confirm": "1",
+        //         "min_amount": "0.0001"
+        //       },
+        //       "withdraw_info": {
+        //         "enabled": true,
+        //         "min_amount": "0.0001",
+        //         "fee": "0.0001"
+        //       },
+        //       "category": {
+        //           "code": "cripto",
+        //         "name": "Cripto"
+        //       },
+        //       "networks": [
         //           {
-        //               "name" => "Bitcoin",
-        //               "code" => "btc",
-        //               "deposit_info" => array(
-        //                  status => "ENABLED",
-        //               ),
-        //               "withdraw_info" => array(
-        //                  "status" => "ENABLED",
-        //                  "fee" => "0.0001",
-        //               ),
-        //               "has_destination_tag" => false
+        //               "name": "Bitcoin",
+        //               "code": "btc",
+        //               "deposit_info": {
+        //                  status: "ENABLED",
+        //               },
+        //               "withdraw_info": {
+        //                  "status": "ENABLED",
+        //                  "fee": "0.0001",
+        //               },
+        //               "has_destination_tag": false
         //           }
-        //       )
+        //       ]
         //     }
-        //   )
+        //   ]
         // }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_currencies($data);
     }
 
     public function parse_currency(array $rawCurrency): array {
-        $precision = $this->safe_integer($rawCurrency, 'precision');
         $currencyId = $this->safe_string($rawCurrency, 'symbol');
         $name = $this->safe_string($rawCurrency, 'name');
         $code = $this->safe_currency_code($currencyId);
@@ -380,7 +383,7 @@ class foxbit extends Exchange {
         $type = $this->safe_string_lower($rawCurrency, 'type');
         $parsedNetworks = array();
         for ($j = 0; $j < count($networks); $j++) {
-            $network = $networks[$j];
+            $network = $this->safe_dict($networks, $j);
             $networkId = $this->safe_string($network, 'code');
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkWithdrawInfo = $this->safe_dict($network, 'withdraw_info');
@@ -396,7 +399,7 @@ class foxbit extends Exchange {
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
                     'active' => true,
-                    'precision' => $precision,
+                    'precision' => null,
                     'fee' => $this->safe_number($networkWithdrawInfo, 'fee'),
                     'limits' => array(
                         'amount' => array(
@@ -425,7 +428,7 @@ class foxbit extends Exchange {
             'deposit' => $this->safe_bool($depositInfo, 'enabled', false),
             'withdraw' => $this->safe_bool($withdrawInfo, 'enabled', false),
             'fee' => $this->safe_number($withdrawInfo, 'fee'),
-            'precision' => $precision,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision'))),
             'limits' => array(
                 'amount' => array(
                     'min' => null,
@@ -455,98 +458,98 @@ class foxbit extends Exchange {
          */
         $response = $this->v3PublicGetMarkets($params);
         // {
-        //     "data" => array(
+        //     "data": [
         //       {
-        //         "symbol" => "btcbrl",
-        //         "quantity_min" => "0.00000236",
-        //         "quantity_increment" => "0.00000001",
-        //         "quantity_precision" => 8,
-        //         "price_min" => "0.0001",
-        //         "price_increment" => "0.0001",
-        //         "price_precision" => 4,
-        //         "default_fees" => array(
-        //           "maker" => "0.001",
-        //           "taker" => "0.001"
-        //         ),
-        //         "base" => {
-        //           "symbol" => "btc",
-        //           "name" => "Bitcoin",
-        //           "type" => "CRYPTO",
-        //           "precision" => 8,
-        //           "category" => array(
-        //             "code" => "cripto",
-        //             "name" => "Cripto"
-        //           ),
-        //           "deposit_info" => array(
-        //             "min_to_confirm" => "1",
-        //             "min_amount" => "0.0001",
-        //             "enabled" => true
-        //           ),
-        //           "withdraw_info" => array(
-        //             "enabled" => true,
-        //             "min_amount" => "0.0001",
-        //             "fee" => "0.0001"
-        //           ),
-        //           "networks" => array(
-        //             array(
-        //               "name" => "Bitcoin",
-        //               "code" => "bitcoin",
-        //               "deposit_info" => array(
-        //                 "status" => "ENABLED"
-        //               ),
-        //               "withdraw_info" => array(
-        //                 "status" => "ENABLED",
-        //                 "fee" => "0.0001"
-        //               ),
-        //               "has_destination_tag" => false
+        //         "symbol": "btcbrl",
+        //         "quantity_min": "0.00000236",
+        //         "quantity_increment": "0.00000001",
+        //         "quantity_precision": 8,
+        //         "price_min": "0.0001",
+        //         "price_increment": "0.0001",
+        //         "price_precision": 4,
+        //         "default_fees": {
+        //           "maker": "0.001",
+        //           "taker": "0.001"
+        //         },
+        //         "base": {
+        //           "symbol": "btc",
+        //           "name": "Bitcoin",
+        //           "type": "CRYPTO",
+        //           "precision": 8,
+        //           "category": {
+        //             "code": "cripto",
+        //             "name": "Cripto"
+        //           },
+        //           "deposit_info": {
+        //             "min_to_confirm": "1",
+        //             "min_amount": "0.0001",
+        //             "enabled": true
+        //           },
+        //           "withdraw_info": {
+        //             "enabled": true,
+        //             "min_amount": "0.0001",
+        //             "fee": "0.0001"
+        //           },
+        //           "networks": [
+        //             {
+        //               "name": "Bitcoin",
+        //               "code": "bitcoin",
+        //               "deposit_info": {
+        //                 "status": "ENABLED"
+        //               },
+        //               "withdraw_info": {
+        //                 "status": "ENABLED",
+        //                 "fee": "0.0001"
+        //               },
+        //               "has_destination_tag": false
         //             }
-        //           ),
-        //           "default_network_code" => "bitcoin"
-        //         ),
-        //         "quote" => {
-        //           "symbol" => "btc",
-        //           "name" => "Bitcoin",
-        //           "type" => "CRYPTO",
-        //           "precision" => 8,
-        //           "category" => array(
-        //             "code" => "cripto",
-        //             "name" => "Cripto"
-        //           ),
-        //           "deposit_info" => array(
-        //             "min_to_confirm" => "1",
-        //             "min_amount" => "0.0001",
-        //             "enabled" => true
-        //           ),
-        //           "withdraw_info" => array(
-        //             "enabled" => true,
-        //             "min_amount" => "0.0001",
-        //             "fee" => "0.0001"
-        //           ),
-        //           "networks" => array(
-        //             array(
-        //               "name" => "Bitcoin",
-        //               "code" => "bitcoin",
-        //               "deposit_info" => array(
-        //                 "status" => "ENABLED"
-        //               ),
-        //               "withdraw_info" => array(
-        //                 "status" => "ENABLED",
-        //                 "fee" => "0.0001"
-        //               ),
-        //               "has_destination_tag" => false
+        //           ],
+        //           "default_network_code": "bitcoin"
+        //         },
+        //         "quote": {
+        //           "symbol": "btc",
+        //           "name": "Bitcoin",
+        //           "type": "CRYPTO",
+        //           "precision": 8,
+        //           "category": {
+        //             "code": "cripto",
+        //             "name": "Cripto"
+        //           },
+        //           "deposit_info": {
+        //             "min_to_confirm": "1",
+        //             "min_amount": "0.0001",
+        //             "enabled": true
+        //           },
+        //           "withdraw_info": {
+        //             "enabled": true,
+        //             "min_amount": "0.0001",
+        //             "fee": "0.0001"
+        //           },
+        //           "networks": [
+        //             {
+        //               "name": "Bitcoin",
+        //               "code": "bitcoin",
+        //               "deposit_info": {
+        //                 "status": "ENABLED"
+        //               },
+        //               "withdraw_info": {
+        //                 "status": "ENABLED",
+        //                 "fee": "0.0001"
+        //               },
+        //               "has_destination_tag": false
         //             }
-        //           ),
-        //           "default_network_code" => "bitcoin"
-        //         ),
-        //         "order_type" => array(
+        //           ],
+        //           "default_network_code": "bitcoin"
+        //         },
+        //         "order_type": [
         //           "LIMIT",
         //           "MARKET",
         //           "INSTANT",
         //           "STOP_LIMIT",
         //           "STOP_MARKET"
-        //         )
+        //         ]
         //       }
-        //     )
+        //     ]
         //   }
         $markets = $this->safe_list($response, 'data', array());
         return $this->parse_markets($markets);
@@ -571,35 +574,35 @@ class foxbit extends Exchange {
         );
         $response = $this->v3PublicGetMarketsMarketTicker24hr($this->extend($request, $params));
         //  {
-        //    "data" => array(
+        //    "data": [
         //      {
-        //        "market_symbol" => "btcbrl",
-        //        "last_trade" => array(
-        //          "price" => "358504.69340000",
-        //          "volume" => "0.00027893",
-        //          "date" => "2024-01-01T00:00:00.000Z"
-        //        ),
-        //        "rolling_24h" => array(
-        //          "price_change" => "3211.87290000",
-        //          "price_change_percent" => "0.90400726",
-        //          "volume" => "20.03206866",
-        //          "trades_count" => "4376",
-        //          "open" => "355292.82050000",
-        //          "high" => "362999.99990000",
-        //          "low" => "355002.88880000"
-        //        ),
-        //        "best" => {
-        //          "ask" => array(
-        //            "price" => "358504.69340000",
-        //            "volume" => "0.00027893"
-        //          ),
-        //          "bid" => {
-        //            "price" => "358504.69340000",
-        //            "volume" => "0.00027893"
+        //        "market_symbol": "btcbrl",
+        //        "last_trade": {
+        //          "price": "358504.69340000",
+        //          "volume": "0.00027893",
+        //          "date": "2024-01-01T00:00:00.000Z"
+        //        },
+        //        "rolling_24h": {
+        //          "price_change": "3211.87290000",
+        //          "price_change_percent": "0.90400726",
+        //          "volume": "20.03206866",
+        //          "trades_count": "4376",
+        //          "open": "355292.82050000",
+        //          "high": "362999.99990000",
+        //          "low": "355002.88880000"
+        //        },
+        //        "best": {
+        //          "ask": {
+        //            "price": "358504.69340000",
+        //            "volume": "0.00027893"
+        //          },
+        //          "bid": {
+        //            "price": "358504.69340000",
+        //            "volume": "0.00027893"
         //          }
         //        }
         //      }
-        //    )
+        //    ]
         //  }
         $data = $this->safe_list($response, 'data', array());
         $result = $this->safe_dict($data, 0, array());
@@ -619,31 +622,31 @@ class foxbit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = $this->v3PublicGetMarketsTicker24hr($params);
         //  {
-        //    "data" => array(
+        //    "data": [
         //      {
-        //        "market_symbol" => "btcbrl",
-        //        "last_trade" => array(
-        //          "price" => "358504.69340000",
-        //          "volume" => "0.00027893",
-        //          "date" => "2024-01-01T00:00:00.000Z"
-        //        ),
-        //        "rolling_24h" => array(
-        //          "price_change" => "3211.87290000",
-        //          "price_change_percent" => "0.90400726",
-        //          "volume" => "20.03206866",
-        //          "trades_count" => "4376",
-        //          "open" => "355292.82050000",
-        //          "high" => "362999.99990000",
-        //          "low" => "355002.88880000"
-        //        ),
+        //        "market_symbol": "btcbrl",
+        //        "last_trade": {
+        //          "price": "358504.69340000",
+        //          "volume": "0.00027893",
+        //          "date": "2024-01-01T00:00:00.000Z"
+        //        },
+        //        "rolling_24h": {
+        //          "price_change": "3211.87290000",
+        //          "price_change_percent": "0.90400726",
+        //          "volume": "20.03206866",
+        //          "trades_count": "4376",
+        //          "open": "355292.82050000",
+        //          "high": "362999.99990000",
+        //          "low": "355002.88880000"
+        //        },
         //      }
-        //    )
+        //    ]
         //  }
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_tickers($data, $symbols);
+        return $this->parse_tickers($data, $symbolsNormalized);
     }
 
     public function fetch_trading_fees($params = array()): array {
@@ -659,13 +662,13 @@ class foxbit extends Exchange {
             $this->load_markets();
         }
         $response = $this->v3PrivateGetMeFeesTrading($params);
-        // array(
+        // [
         //     {
-        //         "market_symbol" => "btcbrl",
-        //         "maker" => "0.0025",
-        //         "taker" => "0.005"
+        //         "market_symbol": "btcbrl",
+        //         "maker": "0.0025",
+        //         "taker": "0.005"
         //     }
-        // )
+        // ]
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -700,28 +703,28 @@ class foxbit extends Exchange {
         );
         $response = $this->v3PublicGetMarketsMarketOrderbook($this->extend($request, $params));
         //  {
-        //    "sequence_id" => 1234567890,
-        //    "timestamp" => 1713187921336,
-        //    "bids" => array(
-        //      array(
+        //    "sequence_id": 1234567890,
+        //    "timestamp": 1713187921336,
+        //    "bids": [
+        //      [
         //        "3.00000000",
         //        "300.00000000"
-        //      ),
-        //      array(
+        //      ],
+        //      [
         //        "1.70000000",
         //        "310.00000000"
-        //      )
-        //    ),
-        //    "asks" => array(
-        //      array(
+        //      ]
+        //    ],
+        //    "asks": [
+        //      [
         //        "3.00000000",
         //        "300.00000000"
-        //      ),
-        //      array(
+        //      ],
+        //      [
         //        "2.00000000",
         //        "321.00000000"
-        //      )
-        //    )
+        //      ]
+        //    ]
         //  }
         $timestamp = $this->safe_integer($response, 'timestamp');
         return $this->parse_order_book($response, $symbol, $timestamp);
@@ -752,15 +755,15 @@ class foxbit extends Exchange {
                 $request['page_size'] = 200;
             }
         }
-        // array(
+        // [
         //     {
-        //         "id" => 1,
-        //         "price" => "329248.74700000",
-        //         "volume" => "0.00100000",
-        //         "taker_side" => "BUY",
-        //         "created_at" => "2024-01-01T00:00:00Z"
+        //         "id": 1,
+        //         "price": "329248.74700000",
+        //         "volume": "0.00100000",
+        //         "taker_side": "BUY",
+        //         "created_at": "2024-01-01T00:00:00Z"
         //     }
-        // )
+        // ]
         $response = $this->v3PublicGetMarketsMarketTradesHistory($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -777,7 +780,7 @@ class foxbit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -798,8 +801,8 @@ class foxbit extends Exchange {
             }
         }
         $response = $this->v3PublicGetMarketsMarketCandlesticks($this->extend($request, $params));
-        // array(
-        //     array(
+        // [
+        //     [
         //         "1692918000000", // timestamp
         //         "127772.05150000", // open
         //         "128467.99980000", // high
@@ -811,8 +814,8 @@ class foxbit extends Exchange {
         //         66, // number of trades
         //         "0.12073605", // taker buy base volume
         //         "15466.34096391" // taker buy quote volume
-        //     )
-        // )
+        //     ]
+        // ]
         return $this->parse_ohlcvs($this->to_array($response), $market, $interval, $since, $limit);
     }
 
@@ -830,21 +833,21 @@ class foxbit extends Exchange {
         }
         $response = $this->v3PrivateGetAccounts($params);
         // {
-        //     "data" => array(
+        //     "data": [
         //         {
-        //         "currency_symbol" => "btc",
-        //         "balance" => "10000.0",
-        //         "balance_available" => "9000.0",
-        //         "balance_locked" => "1000.0"
+        //         "currency_symbol": "btc",
+        //         "balance": "10000.0",
+        //         "balance_available": "9000.0",
+        //         "balance_locked": "1000.0"
         //         }
-        //     )
+        //     ]
         // }
         $accounts = $this->safe_list($response, 'data', array());
         $result = array(
             'info' => $response,
         );
         for ($i = 0; $i < count($accounts); $i++) {
-            $account = $accounts[$i];
+            $account = $this->safe_dict($accounts, $i);
             $currencyId = $this->safe_string($account, 'currency_symbol');
             $currencyCode = $this->safe_currency_code($currencyId);
             $total = $this->safe_string($account, 'balance');
@@ -944,24 +947,22 @@ class foxbit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $type = strtoupper($type);
-        if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'STOP_LIMIT' && $type !== 'INSTANT') {
-            throw new InvalidOrder('Invalid order $type => ' . $type . '. Must be one of => limit, $market, stop_market, stop_limit, instant.');
+        $typeValue = strtoupper($type);
+        if ($typeValue !== 'LIMIT' && $typeValue !== 'MARKET' && $typeValue !== 'STOP_MARKET' && $typeValue !== 'STOP_LIMIT' && $typeValue !== 'INSTANT') {
+            throw new InvalidOrder('Invalid order type => ' . $typeValue . '. Must be one of => limit, market, stop_market, stop_limit, instant.');
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->safe_bool($params, 'postOnly', false);
         $triggerPrice = $this->safe_number($params, 'triggerPrice');
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'market_symbol' => $market['id'],
             'side' => strtoupper($side),
-            'type' => $type,
+            'type' => $typeValue,
         );
-        if ($type === 'STOP_MARKET' || $type === 'STOP_LIMIT') {
+        if ($typeValue === 'STOP_MARKET' || $typeValue === 'STOP_LIMIT') {
             if ($triggerPrice === null) {
-                throw new InvalidOrder('Invalid order $type => ' . $type . '. Must have $triggerPrice->');
+                throw new InvalidOrder('Invalid order type => ' . $typeValue . '. Must have triggerPrice.');
             }
         }
         if ($timeInForce !== null) {
@@ -971,35 +972,35 @@ class foxbit extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['post_only'] = true;
         }
         if ($triggerPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        if ($type === 'INSTANT') {
+        if ($typeValue === 'INSTANT') {
             $request['amount'] = $this->price_to_precision($symbol, $amount);
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
-        if ($type === 'LIMIT' || $type === 'STOP_LIMIT') {
+        if ($typeValue === 'LIMIT' || $typeValue === 'STOP_LIMIT') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId' ));
-        $response = $this->v3PrivatePostOrders($this->extend($request, $params));
+        $paramsOmitted = $this->omit($params, array( 'timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId' ));
+        $response = $this->v3PrivatePostOrders($this->extend($request, $paramsOmitted));
         // {
-        //     "id" => 1234567890,
-        //     "sn" => "OKMAKSDHRVVREK",
-        //     "client_order_id" => "451637946501"
+        //     "id": 1234567890,
+        //     "sn": "OKMAKSDHRVVREK",
+        //     "client_order_id": "451637946501"
         // }
         return $this->parse_order($response, $market);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): array {
         /**
          * create a list of trade $orders
          *
@@ -1020,7 +1021,7 @@ class foxbit extends Exchange {
             $type = $this->safe_string_upper($order, 'type');
             $orderParams = $this->safe_dict($order, 'params', array());
             if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'STOP_LIMIT' && $type !== 'INSTANT') {
-                throw new InvalidOrder('Invalid $order $type => ' . $type . '. Must be one of => limit, $market, stop_market, stop_limit, instant.');
+                throw new InvalidOrder('Invalid order type => ' . $type . '. Must be one of => limit, market, stop_market, stop_limit, instant.');
             }
             $timeInForce = $this->safe_string_upper($orderParams, 'timeInForce');
             $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
@@ -1032,7 +1033,7 @@ class foxbit extends Exchange {
             );
             if ($type === 'STOP_MARKET' || $type === 'STOP_LIMIT') {
                 if ($triggerPrice === null) {
-                    throw new InvalidOrder('Invalid $order $type => ' . $type . '. Must have $triggerPrice->');
+                    throw new InvalidOrder('Invalid order type => ' . $type . '. Must have triggerPrice.');
                 }
             }
             if ($timeInForce !== null) {
@@ -1043,7 +1044,7 @@ class foxbit extends Exchange {
                 }
                 unset($orderParams['timeInForce']);
             }
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $request['post_only'] = true;
                 unset($orderParams['postOnly']);
             }
@@ -1064,25 +1065,25 @@ class foxbit extends Exchange {
         $createOrdersRequest = array( 'data' => $ordersRequests );
         $response = $this->v3PrivatePostOrdersBatch($this->extend($createOrdersRequest, $params));
         // {
-        //     "data" => array(
+        //     "data": [
         //         {
-        //         "side" => "BUY",
-        //         "type" => "LIMIT",
-        //         "market_symbol" => "btcbrl",
-        //         "client_order_id" => "451637946501",
-        //         "remark" => "A remarkable note for the $order->",
-        //         "quantity" => "0.42",
-        //         "price" => "250000.0",
-        //         "post_only" => true,
-        //         "time_in_force" => "GTC"
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "market_symbol": "btcbrl",
+        //         "client_order_id": "451637946501",
+        //         "remark": "A remarkable note for the order.",
+        //         "quantity": "0.42",
+        //         "price": "250000.0",
+        //         "post_only": true,
+        //         "time_in_force": "GTC"
         //         }
-        //     )
+        //     ]
         // }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * Cancel open orders.
          *
@@ -1102,19 +1103,19 @@ class foxbit extends Exchange {
         );
         $response = $this->v3PrivatePutOrdersCancel($this->extend($request, $params));
         // {
-        //     "data" => array(
+        //     "data": [
         //         {
-        //         "sn" => "OKMAKSDHRVVREK",
-        //         "id" => 123456789
+        //         "sn": "OKMAKSDHRVVREK",
+        //         "id": 123456789
         //         }
-        //     )
+        //     ]
         // }
         $data = $this->safe_list($response, 'data', array());
         $result = $this->safe_dict($data, 0, array());
         return $this->parse_order($result);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * Cancel all open orders or all open orders for a specific $market->
          *
@@ -1137,12 +1138,12 @@ class foxbit extends Exchange {
         }
         $response = $this->v3PrivatePutOrdersCancel($this->extend($request, $params));
         // {
-        //     "data" => array(
+        //     "data": [
         //         {
-        //           "sn" => "OKMAKSDHRVVREK",
-        //           "id" => 123456789
+        //           "sn": "OKMAKSDHRVVREK",
+        //           "id": 123456789
         //         }
-        //     )
+        //     ]
         // }
         return array( $this->safe_order(array(
             'info' => $response,
@@ -1168,23 +1169,23 @@ class foxbit extends Exchange {
         );
         $response = $this->v3PrivateGetOrdersByOrderIdId($this->extend($request, $params));
         // {
-        //     "id" => "1234567890",
-        //     "sn" => "OKMAKSDHRVVREK",
-        //     "client_order_id" => "451637946501",
-        //     "market_symbol" => "btcbrl",
-        //     "side" => "BUY",
-        //     "type" => "LIMIT",
-        //     "state" => "ACTIVE",
-        //     "price" => "290000.0",
-        //     "price_avg" => "295333.3333",
-        //     "quantity" => "0.42",
-        //     "quantity_executed" => "0.41",
-        //     "instant_amount" => "290.0",
-        //     "instant_amount_executed" => "290.0",
-        //     "created_at" => "2021-02-15T22:06:32.999Z",
-        //     "trades_count" => "2",
-        //     "remark" => "A remarkable note for the order.",
-        //     "funds_received" => "290.0"
+        //     "id": "1234567890",
+        //     "sn": "OKMAKSDHRVVREK",
+        //     "client_order_id": "451637946501",
+        //     "market_symbol": "btcbrl",
+        //     "side": "BUY",
+        //     "type": "LIMIT",
+        //     "state": "ACTIVE",
+        //     "price": "290000.0",
+        //     "price_avg": "295333.3333",
+        //     "quantity": "0.42",
+        //     "quantity_executed": "0.41",
+        //     "instant_amount": "290.0",
+        //     "instant_amount_executed": "290.0",
+        //     "created_at": "2021-02-15T22:06:32.999Z",
+        //     "trades_count": "2",
+        //     "remark": "A remarkable note for the order.",
+        //     "funds_received": "290.0"
         // }
         return $this->parse_order($response);
     }
@@ -1223,27 +1224,27 @@ class foxbit extends Exchange {
         }
         $response = $this->v3PrivateGetOrders($this->extend($request, $params));
         // {
-        //     "data" => array(
+        //     "data": [
         //         {
-        //         "id" => "1234567890",
-        //         "sn" => "OKMAKSDHRVVREK",
-        //         "client_order_id" => "451637946501",
-        //         "market_symbol" => "btcbrl",
-        //         "side" => "BUY",
-        //         "type" => "LIMIT",
-        //         "state" => "ACTIVE",
-        //         "price" => "290000.0",
-        //         "price_avg" => "295333.3333",
-        //         "quantity" => "0.42",
-        //         "quantity_executed" => "0.41",
-        //         "instant_amount" => "290.0",
-        //         "instant_amount_executed" => "290.0",
-        //         "created_at" => "2021-02-15T22:06:32.999Z",
-        //         "trades_count" => "2",
-        //         "remark" => "A remarkable note for the order.",
-        //         "funds_received" => "290.0"
+        //         "id": "1234567890",
+        //         "sn": "OKMAKSDHRVVREK",
+        //         "client_order_id": "451637946501",
+        //         "market_symbol": "btcbrl",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "state": "ACTIVE",
+        //         "price": "290000.0",
+        //         "price_avg": "295333.3333",
+        //         "quantity": "0.42",
+        //         "quantity_executed": "0.41",
+        //         "instant_amount": "290.0",
+        //         "instant_amount_executed": "290.0",
+        //         "created_at": "2021-02-15T22:06:32.999Z",
+        //         "trades_count": "2",
+        //         "remark": "A remarkable note for the order.",
+        //         "funds_received": "290.0"
         //         }
-        //     )
+        //     ]
         // }
         $list = $this->safe_list($response, 'data', array());
         return $this->parse_orders($list, $market, $since, $limit);
@@ -1262,7 +1263,7 @@ class foxbit extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1282,18 +1283,18 @@ class foxbit extends Exchange {
         }
         $response = $this->v3PrivateGetTrades($this->extend($request, $params));
         // {
-        //     "data" => array(
-        //         "id" => 1234567890,
-        //         "sn" => "TC5JZVW2LLJ3IW",
-        //         "order_id" => 1234567890,
-        //         "market_symbol" => "btcbrl",
-        //         "side" => "BUY",
-        //         "price" => "290000.0",
-        //         "quantity" => "1.0",
-        //         "fee" => "0.01",
-        //         "fee_currency_symbol" => "btc",
-        //         "created_at" => "2021-02-15T22:06:32.999Z"
-        //     )
+        //     "data": [
+        //         "id": 1234567890,
+        //         "sn": "TC5JZVW2LLJ3IW",
+        //         "order_id": 1234567890,
+        //         "market_symbol": "btcbrl",
+        //         "side": "BUY",
+        //         "price": "290000.0",
+        //         "quantity": "1.0",
+        //         "fee": "0.01",
+        //         "fee_currency_symbol": "btc",
+        //         "created_at": "2021-02-15T22:06:32.999Z"
+        //     ]
         // }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -1323,13 +1324,13 @@ class foxbit extends Exchange {
         }
         $response = $this->v3PrivateGetDepositsAddress($this->extend($request, $paramsOmited));
         // {
-        //     "currency_symbol" => "btc",
-        //     "address" => "2N9sS8LgrY19rvcCWDmE1ou1tTVmqk4KQAB",
-        //     "message" => "Address was retrieved successfully",
-        //     "destination_tag" => "string",
-        //     "network" => {
-        //         "name" => "Bitcoin Network",
-        //         "code" => "btc"
+        //     "currency_symbol": "btc",
+        //     "address": "2N9sS8LgrY19rvcCWDmE1ou1tTVmqk4KQAB",
+        //     "message": "Address was retrieved successfully",
+        //     "destination_tag": "string",
+        //     "network": {
+        //         "name": "Bitcoin Network",
+        //         "code": "btc"
         //     }
         // }
         return $this->parse_deposit_address($response, $currency);
@@ -1366,20 +1367,20 @@ class foxbit extends Exchange {
         }
         $response = $this->v3PrivateGetDeposits($this->extend($request, $params));
         // {
-        //     "data" => array(
+        //     "data": [
         //         {
-        //             "sn" => "OKMAKSDHRVVREK",
-        //             "state" => "ACCEPTED",
-        //             "currency_symbol" => "btc",
-        //             "amount" => "1.0",
-        //             "fee" => "0.1",
-        //             "created_at" => "2022-02-18T22:06:32.999Z",
-        //             "details_crypto" => {
-        //                 "transaction_id" => "e20f035387020c5d5ea18ad53244f09f3",
-        //                 "receiving_address" => "2N2rTrnKEFcyJjEJqvVjgWZ3bKvKT7Aij61"
+        //             "sn": "OKMAKSDHRVVREK",
+        //             "state": "ACCEPTED",
+        //             "currency_symbol": "btc",
+        //             "amount": "1.0",
+        //             "fee": "0.1",
+        //             "created_at": "2022-02-18T22:06:32.999Z",
+        //             "details_crypto": {
+        //                 "transaction_id": "e20f035387020c5d5ea18ad53244f09f3",
+        //                 "receiving_address": "2N2rTrnKEFcyJjEJqvVjgWZ3bKvKT7Aij61"
         //             }
         //         }
-        //     )
+        //     ]
         // }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
@@ -1416,35 +1417,35 @@ class foxbit extends Exchange {
         }
         $response = $this->v3PrivateGetWithdrawals($this->extend($request, $params));
         // {
-        //     "data" => array(
+        //     "data": [
         //         {
-        //             "sn" => "OKMAKSDHRVVREK",
-        //             "state" => "ACCEPTED",
-        //             "rejection_reason" => "monthly_limit_exceeded",
-        //             "currency_symbol" => "btc",
-        //             "amount" => "1.0",
-        //             "fee" => "0.1",
-        //             "created_at" => "2022-02-18T22:06:32.999Z",
-        //             "details_crypto" => array(
-        //                 "transaction_id" => "e20f035387020c5d5ea18ad53244f09f3",
-        //                 "destination_address" => "2N2rTrnKEFcyJjEJqvVjgWZ3bKvKT7Aij61"
-        //             ),
-        //             "details_fiat" => {
-        //                 "bank" => {
-        //                     "code" => "1",
-        //                     "branch" => array(
-        //                         "number" => "1234567890",
-        //                         "digit" => "1"
-        //                     ),
-        //                     "account" => {
-        //                         "number" => "1234567890",
-        //                         "digit" => "1",
-        //                         "type" => "CHECK"
+        //             "sn": "OKMAKSDHRVVREK",
+        //             "state": "ACCEPTED",
+        //             "rejection_reason": "monthly_limit_exceeded",
+        //             "currency_symbol": "btc",
+        //             "amount": "1.0",
+        //             "fee": "0.1",
+        //             "created_at": "2022-02-18T22:06:32.999Z",
+        //             "details_crypto": {
+        //                 "transaction_id": "e20f035387020c5d5ea18ad53244f09f3",
+        //                 "destination_address": "2N2rTrnKEFcyJjEJqvVjgWZ3bKvKT7Aij61"
+        //             },
+        //             "details_fiat": {
+        //                 "bank": {
+        //                     "code": "1",
+        //                     "branch": {
+        //                         "number": "1234567890",
+        //                         "digit": "1"
+        //                     },
+        //                     "account": {
+        //                         "number": "1234567890",
+        //                         "digit": "1",
+        //                         "type": "CHECK"
         //                     }
         //                 }
         //             }
         //         }
-        //     )
+        //     ]
         // }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
@@ -1481,17 +1482,17 @@ class foxbit extends Exchange {
          */
         $response = $this->statusPublicGetStatus($params);
         // {
-        //     "data" => {
-        //       "id" => 1,
-        //       "attributes" => array(
-        //         "status" => "NORMAL",
-        //         "createdAt" => "2023-05-17T18:37:05.934Z",
-        //         "updatedAt" => "2024-04-17T02:33:50.945Z",
-        //         "publishedAt" => "2023-05-17T18:37:07.653Z",
-        //         "locale" => "pt-BR"
+        //     "data": {
+        //       "id": 1,
+        //       "attributes": {
+        //         "status": "NORMAL",
+        //         "createdAt": "2023-05-17T18:37:05.934Z",
+        //         "updatedAt": "2024-04-17T02:33:50.945Z",
+        //         "publishedAt": "2023-05-17T18:37:07.653Z",
+        //         "locale": "pt-BR"
         //       }
-        //     ),
-        //     "meta" => {
+        //     },
+        //     "meta": {
         //     }
         // }
         $data = $this->safe_dict($response, 'data', array());
@@ -1521,24 +1522,20 @@ class foxbit extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders, used on stop $market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders, used as stop_price on stop $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
-        }
-        $type = strtoupper($type);
-        if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'INSTANT') {
-            throw new InvalidOrder('Invalid order $type => ' . $type . '. Must be one of => LIMIT, MARKET, STOP_MARKET, INSTANT.');
+        $this->check_required_argument('editOrder', $symbol, 'symbol');
+        $typeValue = strtoupper($type);
+        if ($typeValue !== 'LIMIT' && $typeValue !== 'MARKET' && $typeValue !== 'STOP_MARKET' && $typeValue !== 'INSTANT') {
+            throw new InvalidOrder('Invalid order type => ' . $typeValue . '. Must be one of => LIMIT, MARKET, STOP_MARKET, INSTANT.');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $side argument');
-        }
+        $this->check_required_argument('editOrder', $side, 'side');
         $request = array(
             'mode' => 'ALLOW_FAILURE',
             'cancel' => array(
@@ -1546,32 +1543,32 @@ class foxbit extends Exchange {
                 'id' => $this->parse_number($id),
             ),
             'create' => array(
-                'type' => $type,
+                'type' => $typeValue,
                 'side' => strtoupper($side),
                 'market_symbol' => $market['id'],
             ),
         );
-        if ($type === 'LIMIT' || $type === 'MARKET') {
+        if ($typeValue === 'LIMIT' || $typeValue === 'MARKET') {
             $request['create']['quantity'] = $this->amount_to_precision($symbol, $amount);
-            if ($type === 'LIMIT') {
+            if ($typeValue === 'LIMIT') {
                 $request['create']['price'] = $this->price_to_precision($symbol, $price);
             }
         }
-        if ($type === 'STOP_MARKET') {
+        if ($typeValue === 'STOP_MARKET') {
             $request['create']['stop_price'] = $this->price_to_precision($symbol, $price);
             $request['create']['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
-        if ($type === 'INSTANT') {
+        if ($typeValue === 'INSTANT') {
             $request['create']['amount'] = $this->price_to_precision($symbol, $amount);
         }
         $response = $this->v3PrivatePostOrdersCancelReplace($this->extend($request, $params));
         // {
-        //     "cancel" => array(
-        //         "id" => 123456789
-        //     ),
-        //     "create" => {
-        //         "id" => 1234567890,
-        //         "client_order_id" => "451637946501"
+        //     "cancel": {
+        //         "id": 123456789
+        //     },
+        //     "create": {
+        //         "id": 1234567890,
+        //         "client_order_id": "451637946501"
         //     }
         // }
         $created = $this->safe_dict($response, 'create', array());
@@ -1591,7 +1588,7 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1601,26 +1598,25 @@ class foxbit extends Exchange {
             'amount' => $this->number_to_string($amount),
             'destination_address' => $address,
         );
-        if ($tag !== null) {
-            $request['destination_tag'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['destination_tag'] = $tagWithdrawTag;
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
             $request['network_code'] = $this->network_code_to_id($networkCode, $code);
         }
-        $response = $this->v3PrivatePostWithdrawals($this->extend($request, $params));
+        $response = $this->v3PrivatePostWithdrawals($this->extend($request, $paramsNetworkCode));
         // {
-        //     "amount" => "2",
-        //     "currency_symbol" => "xrp",
-        //     "network_code" => "ripple",
-        //     "destination_address" => "0x1234567890123456789012345678",
-        //     "destination_tag" => "123456"
+        //     "amount": "2",
+        //     "currency_symbol": "xrp",
+        //     "network_code": "ripple",
+        //     "destination_address": "0x1234567890123456789012345678",
+        //     "destination_tag": "123456"
         // }
         return $this->parse_transaction($response);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          *
@@ -1637,7 +1633,7 @@ class foxbit extends Exchange {
         }
         $request = array();
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a code argument');
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -1663,6 +1659,9 @@ class foxbit extends Exchange {
         $quoteId = $this->safe_string($quoteAssets, 'symbol');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $fees = $this->safe_dict($market, 'default_fees');
         return $this->safe_market_structure(array(
@@ -1695,9 +1694,8 @@ class foxbit extends Exchange {
             'tierBased' => false,
             'feeSide' => 'get',
             'precision' => array(
-                'price' => $this->safe_integer($quoteAssets, 'precision'),
-                'amount' => $this->safe_integer($baseAssets, 'precision'),
-                'cost' => $this->safe_integer($quoteAssets, 'precision'),
+                'price' => $this->safe_number($market, 'price_increment'),
+                'amount' => $this->safe_number($market, 'quantity_increment'),
             ),
             'limits' => array(
                 'amount' => array(
@@ -1735,11 +1733,11 @@ class foxbit extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'market_symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'spot');
-        $rolling_24h = $ticker['rolling_24h'];
+        $rolling_24h = $this->safe_dict($ticker, 'rolling_24h');
         $best = $this->safe_dict($ticker, 'best');
         $bestAsk = $this->safe_dict($best, 'ask');
         $bestBid = $this->safe_dict($best, 'bid');
-        $lastTrade = $ticker['last_trade'];
+        $lastTrade = $this->safe_dict($ticker, 'last_trade');
         $lastPrice = $this->safe_string($lastTrade, 'price');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1776,7 +1774,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_trade(mixed $trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->parse_date($this->safe_string($trade, 'created_at'));
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'volume', $this->safe_string($trade, 'quantity'));
@@ -1819,31 +1817,32 @@ class foxbit extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         $symbol = $this->safe_string($order, 'market_symbol');
-        if ($market === null && $symbol !== null) {
-            $market = $this->market($symbol);
+        $marketResolved = $market;
+        if (($market === null) && ($symbol !== null)) {
+            $marketResolved = $this->market($symbol);
         }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
+        if ($marketResolved !== null) {
+            $symbol = $this->safe_string($marketResolved, 'symbol');
         }
         $timestamp = $this->parse_date($this->safe_string($order, 'created_at'));
         $price = $this->safe_string($order, 'price');
         $filled = $this->safe_string($order, 'quantity_executed');
         $remaining = $this->safe_string($order, 'quantity');
-        // TODO => validate logic of $amount here, should this be calculated?
+        // TODO: validate logic of amount here, should this be calculated?
         $amount = null;
         if ($remaining !== null && $filled !== null) {
             $amount = Precise::string_add($remaining, $filled);
         }
         $cost = $this->safe_string($order, 'funds_received');
-        if (!$cost) {
+        if (($cost === null) || ($cost === '')) {
             $priceAverage = $this->safe_string($order, 'price_avg');
             $priceToCalculate = $this->safe_string($order, 'price', $priceAverage);
             $cost = Precise::string_mul($priceToCalculate, $amount);
         }
         $side = $this->safe_string_lower($order, 'side');
-        $feeCurrency = $this->safe_string_upper($market, 'quoteId');
+        $feeCurrency = $this->safe_string_upper($marketResolved, 'quoteId');
         if ($side === 'buy') {
-            $feeCurrency = $this->safe_string_upper($market, 'baseId');
+            $feeCurrency = $this->safe_string_upper($marketResolved, 'baseId');
         }
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
@@ -1853,7 +1852,7 @@ class foxbit extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $this->parse_order_status($this->safe_string($order, 'state')),
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'type' => $this->safe_string($order, 'type'),
             'timeInForce' => $this->safe_string($order, 'time_in_force'),
             'postOnly' => $this->safe_bool($order, 'post_only'),
@@ -1876,7 +1875,7 @@ class foxbit extends Exchange {
         ));
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         $network = $this->safe_dict($depositAddress, 'network');
         $networkId = $this->safe_string($network, 'code');
         $currencyCode = $this->safe_currency_code(null, $currency);
@@ -1929,7 +1928,7 @@ class foxbit extends Exchange {
         $timestamp = $this->parse_date($created_at);
         $datetime = $this->iso8601($timestamp);
         if ($fee !== null && $amount !== null) {
-            // $actualAmount = $amount - $fee;
+            // actualAmount = amount - fee;
             $actualAmount = Precise::string_sub($amount, $fee);
         }
         $feeRate = Precise::string_div($fee, $actualAmount);
@@ -1962,7 +1961,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'DEPOSITING' => 'transaction',
             'WITHDRAWING' => 'transaction',
@@ -1973,17 +1972,17 @@ class foxbit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         // {
-        //     "uuid" => "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
-        //     "amount" => "0.0001",
-        //     "balance" => "0.0002",
-        //     "created_at" => "2021-07-01T12:00:00Z",
-        //     "currency_symbol" => "btc",
-        //     "fee" => "0.0001",
-        //     "locked" => "0.0001",
-        //     "locked_amount" => "0.0001",
-        //     "reason_type" => "DEPOSITING"
+        //     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
+        //     "amount": "0.0001",
+        //     "balance": "0.0002",
+        //     "created_at": "2021-07-01T12:00:00Z",
+        //     "currency_symbol": "btc",
+        //     "fee": "0.0001",
+        //     "locked": "0.0001",
+        //     "locked_amount": "0.0001",
+        //     "reason_type": "DEPOSITING"
         // }
         $id = $this->safe_string($item, 'uuid');
         $createdAt = $this->safe_string($item, 'created_at');
@@ -2001,12 +2000,12 @@ class foxbit extends Exchange {
             'currency' => $currencySymbol,
         );
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
         }
         if ($amount < 0) {
             $direction = 'out';
             if ($amount === null) {
-                throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+                throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
             }
             $realAmount = $amount * -1;
         }
@@ -2014,7 +2013,7 @@ class foxbit extends Exchange {
             throw new ExchangeError($this->id . ' parseLedgerEntry() missing balance');
         }
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
         }
         return array(
             'id' => $id,
@@ -2035,7 +2034,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);
@@ -2043,21 +2042,25 @@ class foxbit extends Exchange {
             $fullPath = '/status';
             $urlPath = 'status';
         }
-        $url = $this->urls['api'][$urlPath] . $fullPath;
-        $params = $this->omit($params, $this->extract_params($path));
+        $apiUrl = $this->safe_string($this->urls['api'], $urlPath);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $fullPath;
+        $paramsOmitted = $this->omit($params, $this->extract_params($path));
         $timestamp = $this->milliseconds();
         $query = '';
         $signatureQuery = '';
         if ($method === 'GET') {
-            $paramKeys = is_array($params) ? array_keys($params) : array();
+            $paramKeys = is_array($paramsOmitted) ? array_keys($paramsOmitted) : array();
             $paramKeysLength = count($paramKeys);
             if ($paramKeysLength > 0) {
-                $query = $this->urlencode($params);
+                $query = $this->urlencode($paramsOmitted);
                 $url .= '?' . $query;
             }
             for ($i = 0; $i < count($paramKeys); $i++) {
                 $key = $paramKeys[$i];
-                $value = $this->safe_string($params, $key);
+                $value = $this->safe_string($paramsOmitted, $key);
                 if ($value !== null) {
                     $signatureQuery .= $key . '=' . $value;
                 }
@@ -2066,14 +2069,15 @@ class foxbit extends Exchange {
                 }
             }
         }
+        $requestBody = $body;
         if ($method === 'POST' || $method === 'PUT') {
-            $body = $this->json($params);
+            $requestBody = $this->json($paramsOmitted);
         }
         $bodyToSignature = '';
-        if ($body !== null) {
-            $bodyToSignature = $body;
+        if ($requestBody !== null) {
+            $bodyToSignature = $requestBody;
         }
-        $headers = array(
+        $headersValue = array(
             'Content-Type' => 'application/json',
             'X-FB-CLIENT' => 'ccxt',
             'X-FB-CLIENT-VERSION' => $this->get_ccxt_version(),
@@ -2082,11 +2086,11 @@ class foxbit extends Exchange {
             $this->check_required_credentials();
             $preHash = $this->number_to_string($timestamp) . $method . $fullPath . $signatureQuery . $bodyToSignature;
             $signature = $this->hmac($this->encode($preHash), $this->encode($this->secret), 'sha256', 'hex');
-            $headers['X-FB-ACCESS-KEY'] = $this->apiKey;
-            $headers['X-FB-ACCESS-TIMESTAMP'] = $this->number_to_string($timestamp);
-            $headers['X-FB-ACCESS-SIGNATURE'] = $signature;
+            $headersValue['X-FB-ACCESS-KEY'] = $this->apiKey;
+            $headersValue['X-FB-ACCESS-TIMESTAMP'] = $this->number_to_string($timestamp);
+            $headersValue['X-FB-ACCESS-SIGNATURE'] = $signature;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $headersValue );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -2098,13 +2102,13 @@ class foxbit extends Exchange {
         $details = $this->safe_list($error, 'details');
         $message = $this->safe_string($error, 'message');
         $detailsString = '';
-        if ($details) {
+        if ($details !== null) {
             for ($i = 0; $i < count($details); $i++) {
                 $detailsString = $detailsString . $details[$i] . ' ';
             }
         }
         if ($error !== null) {
-            $feedback = $this->id . ' ' . $message . ' $details => ' . $detailsString;
+            $feedback = $this->id . ' ' . $message . ' details => ' . $detailsString;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $detailsString, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);

@@ -68,6 +68,8 @@ class ImplicitAPI:
     private_post_openapi_fiat_v1_support_channel = privatePostOpenapiFiatV1SupportChannel = Entry[_Dict]('openapi/fiat/v1/support-channel', 'private', 'POST', {'cost': 1})
     private_post_openapi_fiat_v1_cash_out = privatePostOpenapiFiatV1CashOut = Entry[_Dict]('openapi/fiat/v1/cash-out', 'private', 'POST', {'cost': 1})
     private_post_openapi_fiat_v1_history = privatePostOpenapiFiatV1History = Entry[_Dict]('openapi/fiat/v1/history', 'private', 'POST', {'cost': 1})
+    private_post_openapi_fiat_v2_history = privatePostOpenapiFiatV2History = Entry[_Dict]('openapi/fiat/v2/history', 'private', 'POST', {'cost': 1})
+    private_post_openapi_fiat_v1_cancel_qr_code = privatePostOpenapiFiatV1CancelQrCode = Entry[_Dict]('openapi/fiat/v1/cancel_qr_code', 'private', 'POST', {'cost': 1})
     private_post_openapi_migration_v4_sellorder = privatePostOpenapiMigrationV4Sellorder = Entry[_Dict]('openapi/migration/v4/sellorder', 'private', 'POST', {'cost': 1})
     private_post_openapi_migration_v4_validate_field = privatePostOpenapiMigrationV4ValidateField = Entry[_Dict]('openapi/migration/v4/validate-field', 'private', 'POST', {'cost': 1})
     private_post_openapi_transfer_v3_transfers = privatePostOpenapiTransferV3Transfers = Entry[_Dict]('openapi/transfer/v3/transfers', 'private', 'POST', {'cost': 1})

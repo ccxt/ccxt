@@ -1071,7 +1071,7 @@
                         ]
                     },
                     "symbol": "BTC/USDT:USDT",
-                    "marginMode": "CROSS",
+                    "marginMode": "cross",
                     "longLeverage": 20,
                     "shortLeverage": 20
                 }
@@ -1877,7 +1877,6 @@
                 },
                 "parsedResponse": {
                     "ETH/USDT:USDT": {
-                        "id": "ETH_USDT_PERP",
                         "symbol": "ETH/USDT:USDT",
                         "timestamp": 1741118171233,
                         "datetime": "2025-03-04T19:56:11.233Z",
@@ -1921,7 +1920,6 @@
                         "last": 2170.89
                     },
                     "BTC/USDT:USDT": {
-                        "id": "BTC_USDT_PERP",
                         "symbol": "BTC/USDT:USDT",
                         "timestamp": 1741118169158,
                         "datetime": "2025-03-04T19:56:09.158Z",
@@ -2392,7 +2390,6 @@
                     ]
                 },
                 "parsedResponse": {
-                    "id": "BTC_USDT_PERP",
                     "symbol": "BTC/USDT:USDT",
                     "timestamp": 1741117912439,
                     "datetime": "2025-03-04T19:51:52.439Z",
@@ -2462,7 +2459,6 @@
                     "markPrice": "73370.07"
                 },
                 "parsedResponse": {
-                    "id": "BTC_USDT",
                     "symbol": "BTC/USDT",
                     "timestamp": 1710328238600,
                     "datetime": "2024-03-13T11:10:38.600Z",

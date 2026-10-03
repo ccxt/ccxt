@@ -56,7 +56,7 @@ func TestDeepExtend() {
 		"other2": "y",
 	}
 	// deepExtend
-	var deepExtended any = exchange.DeepExtend(obj1, obj2)
+	var deepExtended map[string]any = exchange.DeepExtend(obj1, obj2)
 	var compareTo map[string]any = map[string]any{
 		"a": 2,
 		"b": []any{3, 4},

@@ -8,7 +8,7 @@ export type Bool = boolean | undefined;
 export type IndexType = number | string;
 // nullable dict/list key for safe* lookups (undefined short-circuits in prop)
 export type NullableIndexType = IndexType | undefined;
-export type OrderSide = 'buy' | 'sell' | string | undefined;
+export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
 export type SubType = 'linear' | 'inverse' | undefined;
@@ -29,20 +29,11 @@ export type NullableDict = Dict | undefined;
 export type List = Array<any>;
 export type NullableList = List | undefined;
 
-// One endpoint leaf of an exchange's describe()['api'] tree. `Returns` is a
-// phantom type parameter: it carries the TypeScript type that endpoint answers
-// with, without adding any runtime value to the leaf, so the object the rate
-// limiter sees is still exactly the cost-carrying keys it always was.
-//
-//     'klines': { 'cost': 1 } as Endpoint<List>,
-//
-// build/generateImplicitAPI.ts resolves that type argument from the source with
-// the TypeScript compiler API and emits `Promise<List>` for the corresponding
-// generated method. A leaf with no assertion declares no shape and falls back
-// to the generator's permissive default. `Returns` is constrained to the three
-// shapes a decoded JSON body can take, so a type argument the generated file
-// could not import fails here, where it is written, rather than as a dangling
-// reference in a generated one.
+// One endpoint leaf of an exchange's describe()['api'] tree. `Returns` is a phantom type parameter
+// (e.g. `'klines': { 'cost': 1 } as Endpoint<List>`) with no runtime value, so the rate limiter still
+// sees only the cost keys. build/generateImplicitAPI.ts reads it via the TypeScript compiler API to
+// emit `Promise<List>` on the generated method; unannotated leaves use the permissive default. `Returns`
+// is constrained to the decoded-JSON shapes so an unimportable type argument fails here, not in generated code.
 export interface Endpoint<Returns extends Dict | List | string> {
     cost?: number;
     // never read at runtime — only the declared type of this member matters
@@ -78,6 +69,9 @@ export interface TradingFeeInterface {
     taker: Num;
     percentage: Bool;
     tierBased: Bool;
+    // volume-tier fee schedule where the venue publishes one (cryptomus, onetrading):
+    // { 'maker': [[volume, fee], ...], 'taker': [[volume, fee], ...] }, see wiki/Manual.md "Trading Fees"
+    tiers?: Dict;
 }
 
 export type Fee = FeeInterface | undefined;
@@ -93,6 +87,8 @@ export interface Precision {
     amount: Num
     price: Num
     cost?: Num
+    base?: Num
+    quote?: Num
 }
 
 export interface MarketInterface {
@@ -113,6 +109,7 @@ export interface MarketInterface {
     swap: Bool;
     future: Bool;
     option: Bool;
+    index?: Bool;
     stock?: Bool;
     prediction?: Bool;
     contract: Bool;
@@ -141,7 +138,18 @@ export interface MarketInterface {
         market?: MinMax,
     };
     created: Int;
+    baseName?: Str;               // venue coin name used on the wire (dydx, hyperliquid)
+    id2?: Str;                    // venue alternate market id (apex)
+    instIdCode?: Int;             // venue numeric instrument code (okx)
+    tiers?: Dict;                 // fee tiers (weex)
     info: any;
+    // prediction venues: fetchMarkets rows are PredictionMarket-shaped
+    market?: Str;
+    marketType?: Str;
+    executionModel?: Str;
+    collateral?: Str;
+    resolved?: Bool;
+    resolvedOutcome?: Str;
     outcomes?: PredictionOutcome[];
 }
 
@@ -178,6 +186,9 @@ export interface PredictionEvent {
     endDatetime?: Str;
     image?: Str;
     url?: Str;
+    resolutionSource?: Str;
+    lastUpdatedAt?: Int;
+    lastUpdatedAtDatetime?: Str;
 }
 
 export interface PredictionMarket {
@@ -212,6 +223,34 @@ export interface PredictionMarket {
     fees?: PredictionFees;
     resolutionSource?: Str;
     image?: Str;
+    // market-row keys: parseMarket rows are cached in this.markets next to regular markets
+    base?: Str;
+    quote?: Str;
+    settle?: Str;
+    baseId?: Str;
+    quoteId?: Str;
+    settleId?: Str;
+    type?: MarketType;
+    spot?: Bool;
+    margin?: Bool;
+    swap?: Bool;
+    future?: Bool;
+    option?: Bool;
+    prediction?: Bool;
+    contract?: Bool;
+    linear?: Bool;
+    inverse?: Bool;
+    contractSize?: Num;
+    expiry?: Int;
+    expiryDatetime?: Str;
+    strike?: Num;
+    optionType?: Str;
+    taker?: Num;
+    maker?: Num;
+    percentage?: Bool;
+    tierBased?: Bool;
+    feeSide?: Str;
+    precision?: Precision;
 }
 
 export interface PredictionOutcome {
@@ -229,6 +268,19 @@ export interface PredictionOutcome {
     winner?: Bool;               // resolved true (the settleFraction === 1 case)
     settleFraction?: Num;        // 0..1 fractional settlement
     precision?: Precision;       // outcome-level price/amount precision
+    id?: Str;                    // same value as outcomeId, read by order/trade parsers
+    negRisk?: Bool;              // polymarket neg-risk exchange flag, read by createOrder
+}
+
+// a cached outcome token as held in ex.outcomes: market-shaped so it can be passed where a
+// Market is expected, plus the outcome identity keys
+export interface PredictionOutcomeMarket extends MarketInterface {
+    outcome: string;
+    outcomeId: string;
+    label?: Str;
+    market?: Str;
+    marketId?: Str;
+    event?: Str;
 }
 
 // Prediction trading structures are standalone — they do NOT extend the base unified
@@ -431,6 +483,7 @@ export interface Trade {
     takerOrMaker: 'taker' | 'maker' | Str; // string, 'taker' or 'maker'
     cost: Num;                    // total cost (including fees), `price * amount`
     fee: Fee;
+    fees?: Fee[];                 // every fee paid, when in several currencies
 }
 
 export interface Order {
@@ -457,8 +510,12 @@ export interface Order {
     cost: Num;
     trades: Trade[];
     fee: Fee;
+    fees?: Fee[];
     reduceOnly: Bool;
     postOnly: Bool;
+    marginMode?: Str;
+    leverage?: Num;
+    hedged?: Bool;
     info: any;
 }
 
@@ -512,10 +569,10 @@ export interface Transaction {
     tag: Str;
     tagFrom: Str;
     tagTo: Str;
-    type: 'deposit' | 'withdrawal' | Str;
+    type: 'deposit' | 'withdrawal' | 'transfer' | Str;
     amount: Num;
     currency: Str;
-    status: 'pending' | 'ok' | Str;
+    status: 'pending' | 'ok' | 'failed' | 'canceled' | Str;
     updated: Int;
     fee: Fee;
     network: Str;
@@ -549,6 +606,8 @@ export interface CurrencyInterface {
         },
     },
     networks: Dictionary<any>,
+    fees?: Dict;
+    valueScale?: Int;             // venue integer scale of currency values (phemex)
     info: any;
 }
 
@@ -573,6 +632,7 @@ export interface Account {
     type: Str,
     code: Str,
     info: any,
+    name?: Str,
 }
 
 export interface PartialBalances extends Dictionary<number> {
@@ -590,6 +650,11 @@ export interface DepositAddress {
     network?: Str;
     address: Str;
     tag?: Str;
+    note?: Str;
+}
+
+/** fetchDepositAddressesByNetwork: address structures indexed by unified network code */
+export interface DepositAddresses extends Dictionary<DepositAddress> {
 }
 
 export interface WithdrawalResponse {
@@ -650,6 +715,8 @@ export interface Position {
     stopLossPrice?: Num;
     takeProfitPrice?: Num;
     percentage?: Num;
+    isolated?: Bool;
+    exitPrice?: Num;
 }
 
 export interface BorrowInterest {
@@ -811,6 +878,8 @@ export interface FundingHistory {
     datetime?: Str;
     id: Str;
     amount: Num;
+    rate?: Num;
+    type?: Str;
 }
 
 export interface MarginMode {
@@ -842,6 +911,10 @@ export interface Greeks {
     lastPrice: Num;
     underlyingPrice: Num;
     info: any;
+}
+
+/** fetchAllGreeks: greeks structures indexed by unified market symbol */
+export interface AllGreeks extends Dictionary<Greeks> {
 }
 
 export interface Conversion {

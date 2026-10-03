@@ -1,0 +1,41 @@
+import { Dict, List } from '../../base/types.js';
+import { default as _Exchange } from '../../base/PredictionExchange.js';
+interface Exchange {
+    sxbetPublicGetMetadataObv3(params?: {}): Promise<Dict>;
+    sxbetPublicGetOrderbookV3Snapshot(params?: {}): Promise<Dict>;
+    sxbetPublicGetTradesV3Public(params?: {}): Promise<Dict>;
+    sxbetPublicGetMarketsActive(params?: {}): Promise<Dict>;
+    sxbetPublicGetMarketsFind(params?: {}): Promise<Dict | List>;
+    sxbetPublicGetMarketsPopular(params?: {}): Promise<Dict | List>;
+    sxbetPublicGetTradesConsolidated(params?: {}): Promise<Dict | List>;
+    sxbetPublicGetTradesOrders(params?: {}): Promise<Dict | List>;
+    sxbetPublicGetTradesPortfolioRefunds(params?: {}): Promise<Dict | List>;
+    sxbetPublicGetFixtureActive(params?: {}): Promise<Dict | List>;
+    sxbetPublicGetFixtureStatus(params?: {}): Promise<Dict | List>;
+    sxbetPublicGetSports(params?: {}): Promise<Dict | List>;
+    sxbetPublicGetLeagues(params?: {}): Promise<Dict | List>;
+    sxbetPublicGetLeaguesActive(params?: {}): Promise<Dict | List>;
+    sxbetPublicGetTeams(params?: {}): Promise<Dict | List>;
+    sxbetPublicGetLiveScores(params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetUserRealtimeTokenV3ApiKey(params?: {}): Promise<Dict>;
+    sxbetPrivateGetUserProxy(params?: {}): Promise<Dict>;
+    sxbetPrivateGetUserBalanceV3(params?: {}): Promise<Dict>;
+    sxbetPrivateGetUserTransferToProxyPending(params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetUserTransferToProxyStatus(params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetOrdersV3(params?: {}): Promise<Dict>;
+    sxbetPrivateGetOrdersV3OrderId(params?: {}): Promise<Dict>;
+    sxbetPrivateGetOrdersV3OddsBest(params?: {}): Promise<Dict>;
+    sxbetPrivateGetTradesV3(params?: {}): Promise<Dict>;
+    sxbetPrivateGetFillsV3(params?: {}): Promise<Dict>;
+    sxbetPrivateGetPositionsV3(params?: {}): Promise<Dict>;
+    sxbetPrivateDeleteOrdersV3(params?: {}): Promise<Dict>;
+    sxbetPrivateDeleteOrdersV3Event(params?: {}): Promise<Dict>;
+    sxbetPrivateDeleteOrdersV3All(params?: {}): Promise<Dict>;
+    sxbetPrivatePostOrdersV3(params?: {}): Promise<Dict>;
+    sxbetPrivatePostUserDeployProxy(params?: {}): Promise<Dict | List>;
+    sxbetPrivatePostUserTransferToProxy(params?: {}): Promise<Dict>;
+    sxbetPrivatePostHeartbeatV3(params?: {}): Promise<Dict | List>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

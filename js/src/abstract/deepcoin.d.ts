@@ -8,15 +8,24 @@ interface Exchange {
     publicGetDeepcoinMarketIndexCandles(params?: {}): Promise<Dict>;
     publicGetDeepcoinMarketTrades(params?: {}): Promise<Dict>;
     publicGetDeepcoinMarketMarkPriceCandles(params?: {}): Promise<Dict>;
+    publicGetDeepcoinMarketMarkPrice(params?: {}): Promise<Dict>;
+    publicGetDeepcoinMarketOpenInterestVolume(params?: {}): Promise<Dict>;
+    publicGetDeepcoinMarketLongShortRatio(params?: {}): Promise<Dict>;
+    publicGetDeepcoinMarketTakerVolume(params?: {}): Promise<Dict>;
     publicGetDeepcoinMarketStepMargin(params?: {}): Promise<Dict>;
     publicGetDeepcoinTradeFundingRate(params?: {}): Promise<Dict>;
     publicGetDeepcoinTradeFundRateCurrentFundingRate(params?: {}): Promise<Dict>;
     publicGetDeepcoinTradeFundRateHistory(params?: {}): Promise<Dict>;
     privateGetDeepcoinAccountBalances(params?: {}): Promise<Dict>;
+    privateGetDeepcoinAccountAllBalances(params?: {}): Promise<Dict>;
     privateGetDeepcoinAccountBills(params?: {}): Promise<Dict>;
     privateGetDeepcoinAccountPositions(params?: {}): Promise<Dict>;
+    privateGetDeepcoinAccountTradeFee(params?: {}): Promise<Dict>;
+    privateGetDeepcoinAccountLeverageInfo(params?: {}): Promise<Dict>;
+    privateGetDeepcoinAccountPositionsHistory(params?: {}): Promise<Dict>;
     privateGetDeepcoinTradeFills(params?: {}): Promise<Dict>;
     privateGetDeepcoinTradeOrderByID(params?: {}): Promise<Dict>;
+    privateGetDeepcoinTradeOrder(params?: {}): Promise<Dict>;
     privateGetDeepcoinTradeFinishOrderByID(params?: {}): Promise<Dict>;
     privateGetDeepcoinTradeOrdersHistory(params?: {}): Promise<Dict>;
     privateGetDeepcoinTradeV2OrdersPending(params?: {}): Promise<Dict>;
@@ -38,6 +47,7 @@ interface Exchange {
     privateGetDeepcoinAssetRechargeChainList(params?: {}): Promise<Dict>;
     privateGetDeepcoinListenkeyAcquire(params?: {}): Promise<Dict>;
     privateGetDeepcoinListenkeyExtend(params?: {}): Promise<Dict>;
+    privateGetDeepcoinSubAccountSubAccountApikey(params?: {}): Promise<Dict>;
     privatePostDeepcoinAccountSetLeverage(params?: {}): Promise<Dict>;
     privatePostDeepcoinTradeOrder(params?: {}): Promise<Dict>;
     privatePostDeepcoinTradeReplaceOrder(params?: {}): Promise<Dict>;
@@ -46,14 +56,20 @@ interface Exchange {
     privatePostDeepcoinTradeCancelTriggerOrder(params?: {}): Promise<Dict>;
     privatePostDeepcoinTradeSwapCancelAll(params?: {}): Promise<Dict>;
     privatePostDeepcoinTradeTriggerOrder(params?: {}): Promise<Dict>;
+    privatePostDeepcoinTradeAmendTriggerOrder(params?: {}): Promise<Dict>;
     privatePostDeepcoinTradeBatchClosePosition(params?: {}): Promise<Dict>;
     privatePostDeepcoinTradeReplaceOrderSltp(params?: {}): Promise<Dict>;
     privatePostDeepcoinTradeClosePositionByIds(params?: {}): Promise<Dict>;
+    privatePostDeepcoinTradeIncreasePosition(params?: {}): Promise<Dict>;
+    privatePostDeepcoinTradeMergePositions(params?: {}): Promise<Dict>;
     privatePostDeepcoinCopytradingLeaderSettings(params?: {}): Promise<Dict>;
     privatePostDeepcoinCopytradingSetContracts(params?: {}): Promise<Dict>;
     privatePostDeepcoinInternalTransfer(params?: {}): Promise<Dict>;
     privatePostDeepcoinRebateConfig(params?: {}): Promise<Dict>;
     privatePostDeepcoinAssetTransfer(params?: {}): Promise<Dict>;
+    privatePostDeepcoinSubAccountCreateSubAccount(params?: {}): Promise<Dict>;
+    privatePostDeepcoinSubAccountSubAccountApikey(params?: {}): Promise<Dict>;
+    privatePostDeepcoinSubAccountDeleteSubAccountApikey(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

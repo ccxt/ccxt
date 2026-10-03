@@ -185,7 +185,9 @@ export default class coinspot extends Exchange {
                             'my/sell': { 'cost': 1 },
                             'my/sell/edit': { 'cost': 1 },
                             'my/buy/now': { 'cost': 1 },
+                            'my/buy/now/coinlist': { 'cost': 1 },
                             'my/sell/now': { 'cost': 1 },
+                            'my/sell/now/coinlist': { 'cost': 1 },
                             'my/swap/now': { 'cost': 1 },
                             'my/buy/cancel': { 'cost': 1 },
                             'my/buy/cancel/all': { 'cost': 1 },
@@ -193,6 +195,8 @@ export default class coinspot extends Exchange {
                             'my/sell/cancel/all': { 'cost': 1 },
                             'my/coin/withdraw/senddetails': { 'cost': 1 },
                             'my/coin/withdraw/send': { 'cost': 1 },
+                            'my/coin/withdraw/send/async': { 'cost': 1 },
+                            'my/coin/withdraw/send/status': { 'cost': 1 },
                             'ro/status': { 'cost': 1 },
                             'ro/orders/market/open': { 'cost': 1 },
                             'ro/orders/market/completed': { 'cost': 1 },
@@ -296,7 +300,7 @@ export default class coinspot extends Exchange {
                 const currencyIds = Object.keys(currencies);
                 for (let j = 0; j < currencyIds.length; j++) {
                     const currencyId = currencyIds[j];
-                    const balance = currencies[currencyId];
+                    const balance = this.safeDict(currencies, currencyId);
                     const code = this.safeCurrencyCode(currencyId);
                     const account = this.account();
                     account['total'] = this.safeString(balance, 'balance');
@@ -484,7 +488,7 @@ export default class coinspot extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket(id);
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 const symbol = market['symbol'];
                 const ticker = prices[id];
                 result[symbol] = this.parseTicker(ticker, market);
@@ -671,9 +675,7 @@ export default class coinspot extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        if (side === undefined) {
-            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument('createOrder', side, 'side');
         const sideUpper = side.toUpperCase();
         if (type === 'market') {
             throw new ExchangeError(this.id + ' createOrder() allows limit orders only');
@@ -717,16 +719,16 @@ export default class coinspot extends Exchange {
         if (side !== 'buy' && side !== 'sell') {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');
         }
-        params = this.omit(params, 'side');
+        const paramsOmitted = this.omit(params, 'side');
         const request = {
             'id': id,
         };
         let response;
         if (side === 'buy') {
-            response = await this.privatePostMyBuyCancel(this.extend(request, params));
+            response = await this.privatePostMyBuyCancel(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privatePostMySellCancel(this.extend(request, params));
+            response = await this.privatePostMySellCancel(this.extend(request, paramsOmitted));
         }
         //
         // status - ok, error
@@ -736,7 +738,7 @@ export default class coinspot extends Exchange {
         });
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         const status = this.safeString(response, 'status');
@@ -746,23 +748,37 @@ export default class coinspot extends Exchange {
         }
         return undefined;
     }
+    nonce() {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let requestHeaders = headers;
+        let requestBody = body;
         const isVersionedApi = Array.isArray(api);
         const version = isVersionedApi ? api[0] : undefined;
         const accessType = isVersionedApi ? api[1] : api;
         const endpoint = '/' + this.implodeParams(path, params);
-        const fullPath = (version !== undefined) ? '/' + version + endpoint : endpoint;
-        const url = this.urls['api'][accessType] + fullPath;
+        let fullPath = endpoint;
+        if (version !== undefined) {
+            fullPath = '/' + version + endpoint;
+        }
+        const apiUrl = this.safeString(this.urls['api'], accessType);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + fullPath;
         if (accessType === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce();
-            body = this.json(this.extend({ 'nonce': nonce }, params));
-            headers = {
+            // coinspot requires an increasing nonce
+            const nonce = this.incrementingNonce();
+            requestBody = this.json(this.extend({ 'nonce': nonce }, params));
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
-                'sign': this.hmac(this.encode(body), this.encode(this.secret), sha512),
+                'sign': this.hmac(this.encode(requestBody), this.encode(this.secret), sha512),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }

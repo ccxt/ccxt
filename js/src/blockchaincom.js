@@ -109,6 +109,7 @@ export default class blockchaincom extends Exchange {
                 'private': {
                     'get': {
                         'fees': { 'cost': 1 }, // fetchFees
+                        'internal/orders': { 'cost': 1 }, // getOrdersInternal
                         'orders': { 'cost': 1 }, // fetchOpenOrders, fetchClosedOrders
                         'orders/{orderId}': { 'cost': 1 }, // fetchOrder(id)
                         'trades': { 'cost': 1 },
@@ -331,11 +332,14 @@ export default class blockchaincom extends Exchange {
         const result = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeValue(markets, marketId);
+            const market = this.safeDict(markets, marketId);
             const baseId = this.safeString(market, 'base_currency');
             const quoteId = this.safeString(market, 'counter_currency');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const numericId = this.safeNumber(market, 'id');
             let active = undefined;
             const marketState = this.safeString(market, 'status');
@@ -635,10 +639,8 @@ export default class blockchaincom extends Exchange {
         const orderType = this.safeString(params, 'ordType', type);
         const uppercaseOrderType = orderType.toUpperCase();
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clOrdId', this.uuid16());
-        params = this.omit(params, ['ordType', 'clientOrderId', 'clOrdId']);
-        if (side === undefined) {
-            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
-        }
+        const paramsOmitted = this.omit(params, ['ordType', 'clientOrderId', 'clOrdId']);
+        this.checkRequiredArgument('createOrder', side, 'side');
         const request = {
             // 'stopPx' : limit price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
@@ -650,8 +652,8 @@ export default class blockchaincom extends Exchange {
             'orderQty': this.amountToPrecision(symbol, amount),
             'clOrdId': clientOrderId,
         };
-        const triggerPrice = this.safeValueN(params, ['triggerPrice', 'stopPx', 'stopPrice']);
-        params = this.omit(params, ['triggerPrice', 'stopPx', 'stopPrice']);
+        const triggerPrice = this.safeValueN(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice']);
+        const paramsOmitted2 = this.omit(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice']);
         if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
             if (triggerPrice === undefined) {
                 throw new ArgumentsRequired(this.id + ' createOrder() requires a stopPx or triggerPrice param for a ' + uppercaseOrderType + ' order');
@@ -665,12 +667,13 @@ export default class blockchaincom extends Exchange {
                 request['ordType'] = 'STOPLIMIT';
             }
         }
+        const ordType = this.safeString(request, 'ordType');
         let priceRequired = false;
         let stopPriceRequired = false;
-        if (request['ordType'] === 'LIMIT' || request['ordType'] === 'STOPLIMIT') {
+        if (ordType === 'LIMIT' || ordType === 'STOPLIMIT') {
             priceRequired = true;
         }
-        if (request['ordType'] === 'STOP' || request['ordType'] === 'STOPLIMIT') {
+        if (ordType === 'STOP' || ordType === 'STOPLIMIT') {
             stopPriceRequired = true;
         }
         if (priceRequired) {
@@ -679,7 +682,7 @@ export default class blockchaincom extends Exchange {
         if (stopPriceRequired) {
             request['stopPx'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        const response = await this.privatePostOrders(this.extend(request, params));
+        const response = await this.privatePostOrders(this.extend(request, paramsOmitted2));
         return this.parseOrder(response, market);
     }
     /**
@@ -854,12 +857,12 @@ export default class blockchaincom extends Exchange {
         const amountString = this.safeString(trade, 'qty');
         const timestamp = this.safeInteger(trade, 'timestamp');
         const datetime = this.iso8601(timestamp);
-        market = this.safeMarket(marketId, market, '-');
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, '-');
+        const symbol = marketResolved['symbol'];
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrency = market['quote'];
+            const feeCurrency = marketResolved['quote'];
             fee = { 'cost': feeCostString, 'currency': feeCurrency };
         }
         return this.safeTrade({
@@ -876,7 +879,7 @@ export default class blockchaincom extends Exchange {
             'cost': undefined,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1170,11 +1173,11 @@ export default class blockchaincom extends Exchange {
             await this.loadMarkets();
         }
         const accountName = this.safeString(params, 'account', 'primary');
-        params = this.omit(params, 'account');
+        const paramsOmitted = this.omit(params, 'account');
         const request = {
             'account': accountName,
         };
-        const response = await this.privateGetAccounts(this.extend(request, params));
+        const response = await this.privateGetAccounts(this.extend(request, paramsOmitted));
         //
         //     {
         //         "primary": [
@@ -1190,13 +1193,13 @@ export default class blockchaincom extends Exchange {
         //         ]
         //     }
         //
-        const balances = this.safeValue(response, accountName);
+        const balances = this.safeList(response, accountName);
         if (balances === undefined) {
             throw new ExchangeError(this.id + ' fetchBalance() could not find the "' + accountName + '" account');
         }
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
+            const entry = this.safeDict(balances, i);
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -1248,29 +1251,42 @@ export default class blockchaincom extends Exchange {
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const requestPath = '/' + this.implodeParams(path, params);
-        let url = this.urls['api'][api] + requestPath;
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + requestPath;
         const query = this.omit(params, this.extractParams(path));
+        const isPrivate = (api === 'private');
+        const privateHeaders = {
+            'X-API-Token': this.secret,
+        };
+        let requestHeaders = headers;
+        if (isPrivate) {
+            requestHeaders = privateHeaders;
+        }
+        const isPrivatePost = isPrivate && (method !== 'GET');
+        let requestBody = body;
+        if (isPrivatePost) {
+            requestBody = this.json(query);
+        }
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (isPrivate) {
             this.checkRequiredCredentials();
-            headers = {
-                'X-API-Token': this.secret,
-            };
             if ((method === 'GET')) {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
             else {
-                body = this.json(query);
-                headers['Content-Type'] = 'application/json';
+                privateHeaders['Content-Type'] = 'application/json';
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"

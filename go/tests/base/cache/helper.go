@@ -136,6 +136,13 @@ func IsEqual(a any, b any) bool {
 	return base.IsEqual(a, b)
 }
 
+// the printer's bounds-checked element read wraps its result in DerefScalar() (the
+// go/v4 helper of that name); the test packages keep the emitted code free of the
+// `ccxt.` qualifier through this local set of wrappers
+func DerefScalar(v any) any {
+	return ccxt.DerefScalar(v)
+}
+
 func Multiply(a any, b any) any {
 	return base.Multiply(a, b)
 }

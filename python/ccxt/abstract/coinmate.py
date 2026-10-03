@@ -67,3 +67,5 @@ class ImplicitAPI:
     private_post_soldepositaddresses = privatePostSolDepositAddresses = Entry[_Dict]('solDepositAddresses', 'private', 'POST', {'cost': 1})
     private_post_unconfirmedsoldeposits = privatePostUnconfirmedSolDeposits = Entry[_Dict]('unconfirmedSolDeposits', 'private', 'POST', {'cost': 1})
     private_post_bankwirewithdrawal = privatePostBankWireWithdrawal = Entry[_Dict]('bankWireWithdrawal', 'private', 'POST', {'cost': 1})
+    private_post_lightningdeposit = privatePostLightningDeposit = Entry[_Dict]('lightningDeposit', 'private', 'POST', {'cost': 1})
+    private_post_lightningwithdraw = privatePostLightningWithdraw = Entry[_Dict]('lightningWithdraw', 'private', 'POST', {'cost': 1})

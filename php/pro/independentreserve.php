@@ -6,11 +6,16 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
+
+use const ccxt\ROUND;
+use const ccxt\DECIMAL_PLACES;
+use const ccxt\PAD_WITH_ZERO;
 
 class independentreserve extends \ccxt\async\independentreserve {
     public function describe(): mixed {
@@ -34,7 +39,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             ),
             'options' => array(
                 'watchOrderBook' => array(
-                    'checksum' => true, // TODO => currently only working for snapshot
+                    'checksum' => true, // TODO: currently only working for snapshot
                 ),
             ),
             'streaming' => array(
@@ -61,33 +66,37 @@ class independentreserve extends \ccxt\async\independentreserve {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $url = $this->urls['api']['ws'] . '?subscribe=ticker-' . $market['base'] . '-' . $market['quote'];
-        $messageHash = 'trades:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchTrades() has no websocket url');
+        }
+        $url = $wsUrl . '?subscribe=ticker-' . $market['base'] . '-' . $market['quote'];
+        $messageHash = 'trades:' . $symbolValue;
         $trades = Async\await($this->watch($url, $messageHash, null, $messageHash));
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //    {
-        //        "Channel" => "ticker-btc-usd",
-        //        "Nonce" => 130,
-        //        "Data" => array(
-        //          "TradeGuid" => "7a669f2a-d564-472b-8493-6ef982eb1e96",
-        //          "Pair" => "btc-aud",
-        //          "TradeDate" => "2023-02-12T10:04:13.0804889+11:00",
-        //          "Price" => 31640,
-        //          "Volume" => 0.00079029,
-        //          "BidGuid" => "ba8a78b5-be69-4d33-92bb-9df0daa6314e",
-        //          "OfferGuid" => "27d20270-f21f-4c25-9905-152e70b2f6ec",
-        //          "Side" => "Buy"
-        //        ),
-        //        "Time" => 1676156653111,
-        //        "Event" => "Trade"
+        //        "Channel": "ticker-btc-usd",
+        //        "Nonce": 130,
+        //        "Data": {
+        //          "TradeGuid": "7a669f2a-d564-472b-8493-6ef982eb1e96",
+        //          "Pair": "btc-aud",
+        //          "TradeDate": "2023-02-12T10:04:13.0804889+11:00",
+        //          "Price": 31640,
+        //          "Volume": 0.00079029,
+        //          "BidGuid": "ba8a78b5-be69-4d33-92bb-9df0daa6314e",
+        //          "OfferGuid": "27d20270-f21f-4c25-9905-152e70b2f6ec",
+        //          "Side": "Buy"
+        //        },
+        //        "Time": 1676156653111,
+        //        "Event": "Trade"
         //    }
         //
-        $data = $this->safe_value($message, 'Data', array());
+        $data = $this->safe_dict($message, 'Data', array());
         $marketId = $this->safe_string($data, 'Pair');
         $symbol = $this->safe_symbol($marketId, null, '-');
         $messageHash = 'trades:' . $symbol;
@@ -103,17 +112,17 @@ class independentreserve extends \ccxt\async\independentreserve {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //    {
-        //        "TradeGuid" => "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
-        //        "Pair" => "xbt-aud",
-        //        "TradeDate" => "2023-02-12T09:22:35.4207494+11:00",
-        //        "Price" => 31573.8,
-        //        "Volume" => 0.05,
-        //        "BidGuid" => "adb63d74-4c02-47f9-9cc3-f287e3b48ab6",
-        //        "OfferGuid" => "b94d9bc4-addd-4633-a18f-69cf7e1b6f47",
-        //        "Side" => "Buy"
+        //        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
+        //        "Pair": "xbt-aud",
+        //        "TradeDate": "2023-02-12T09:22:35.4207494+11:00",
+        //        "Price": 31573.8,
+        //        "Volume": 0.05,
+        //        "BidGuid": "adb63d74-4c02-47f9-9cc3-f287e3b48ab6",
+        //        "OfferGuid": "b94d9bc4-addd-4633-a18f-69cf7e1b6f47",
+        //        "Side": "Buy"
         //    }
         //
         $datetime = $this->safe_string($trade, 'TradeDate');
@@ -151,13 +160,15 @@ class independentreserve extends \ccxt\async\independentreserve {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        if ($limit === null) {
-            $limit = 100;
+        $symbolValue = $market['symbol'];
+        $limitResolved = ($limit === null) ? 100 : $limit;
+        $limitString = $this->number_to_string($limitResolved);
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchOrderBook() has no websocket url');
         }
-        $limitString = $this->number_to_string($limit);
-        $url = $this->urls['api']['ws'] . '/orderbook/' . $limitString . '?subscribe=' . $market['base'] . '-' . $market['quote'];
-        $messageHash = 'orderbook:' . $symbol . ':' . $limitString;
+        $url = $wsUrl . '/orderbook/' . $limitString . '?subscribe=' . $market['base'] . '-' . $market['quote'];
+        $messageHash = 'orderbook:' . $symbolValue . ':' . $limitString;
         $subscription = array(
             'receivedSnapshot' => false,
         );
@@ -165,27 +176,27 @@ class independentreserve extends \ccxt\async\independentreserve {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //    {
-        //        "Channel" => "orderbook/1/eth/aud",
-        //        "Data" => array(
-        //          "Bids" => array(
-        //            array(
-        //              "Price" => 2198.09,
-        //              "Volume" => 0.16143952,
-        //            ),
-        //          ),
-        //          "Offers" => array(
-        //            array(
-        //              "Price" => 2201.25,
-        //              "Volume" => 15,
-        //            ),
-        //          ),
-        //          "Crc32" => 1519697650,
-        //        ),
-        //        "Time" => 1676150558254,
-        //        "Event" => "OrderBookSnapshot",
+        //        "Channel": "orderbook/1/eth/aud",
+        //        "Data": {
+        //          "Bids": [
+        //            {
+        //              "Price": 2198.09,
+        //              "Volume": 0.16143952,
+        //            },
+        //          ],
+        //          "Offers": [
+        //            {
+        //              "Price": 2201.25,
+        //              "Volume": 15,
+        //            },
+        //          ],
+        //          "Crc32": 1519697650,
+        //        },
+        //        "Time": 1676150558254,
+        //        "Event": "OrderBookSnapshot",
         //    }
         //
         $event = $this->safe_string($message, 'Event');
@@ -199,13 +210,16 @@ class independentreserve extends \ccxt\async\independentreserve {
         $quoteId = $this->safe_string($parts, 3);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return;
+        }
         $symbol = $base . '/' . $quote;
         $orderBook = $this->safe_dict($message, 'Data', array());
         $messageHash = 'orderbook:' . $symbol . ':' . $depth;
-        $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+        $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $receivedSnapshot = $this->safe_bool($subscription, 'receivedSnapshot', false);
         $timestamp = $this->safe_integer($message, 'Time');
-        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array());
         }
@@ -213,7 +227,11 @@ class independentreserve extends \ccxt\async\independentreserve {
         if ($event === 'OrderBookSnapshot') {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             $orderbook->reset($snapshot);
-            $subscription['receivedSnapshot'] = true;
+            // write through the parent index: php copies arrays by value, so
+            // mutating the local bind would not persist the flag
+            $client->subscriptions[$messageHash] = $this->extend($subscription, array(
+                'receivedSnapshot' => true,
+            ));
         } else {
             $asks = $this->safe_list($orderBook, 'Offers', array());
             $bids = $this->safe_list($orderBook, 'Bids', array());
@@ -223,7 +241,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
         $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
-        if ($checksum && $receivedSnapshot) {
+        if (($checksum === true) && ($receivedSnapshot === true)) {
             $storedAsks = $orderbook['asks'];
             $storedBids = $orderbook['bids'];
             $asksLength = count($storedAsks);
@@ -239,7 +257,7 @@ class independentreserve extends \ccxt\async\independentreserve {
                     $payload = $payload . $this->value_to_checksum($storedAsks[$i][0]) . $this->value_to_checksum($storedAsks[$i][1]);
                 }
             }
-            $calculatedChecksum = $this->crc32($payload, true);
+            $calculatedChecksum = $this->crc32($payload, false);
             $responseChecksum = $this->safe_integer($orderBook, 'Crc32');
             if ($calculatedChecksum !== $responseChecksum) {
                 $error = new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
@@ -249,13 +267,16 @@ class independentreserve extends \ccxt\async\independentreserve {
                 return;
             }
         }
-        if ($receivedSnapshot) {
+        if ($receivedSnapshot === true) {
             $client->resolve($orderbook, $messageHash);
         }
     }
 
-    public function value_to_checksum(mixed $value) {
-        $result = sprintf('%.8f', $value);
+    public function value_to_checksum(?float $value): string {
+        // toFixed returns a zero-padded *string* in js but a *number* in
+        // go/c#/java, dropping trailing zeros. decimalToPrecision with
+        // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+        $result = $this->decimal_to_precision($value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
         $result = str_replace('.', '', $result);
         // remove leading zeros
         $result = $this->parse_number($result);
@@ -274,28 +295,28 @@ class independentreserve extends \ccxt\async\independentreserve {
         }
     }
 
-    public function handle_heartbeat(Client $client, mixed $message) {
+    public function handle_heartbeat(Client $client, array $message): array {
         //
         //    {
-        //        "Time" => 1676156208182,
-        //        "Event" => "Heartbeat"
+        //        "Time": 1676156208182,
+        //        "Event": "Heartbeat"
         //    }
         //
         return $message;
     }
 
-    public function handle_subscriptions(Client $client, mixed $message) {
+    public function handle_subscriptions(Client $client, array $message): array {
         //
         //    {
-        //        "Data" => array( "ticker-btc-sgd" ),
-        //        "Time" => 1676157556223,
-        //        "Event" => "Subscriptions"
+        //        "Data": [ "ticker-btc-sgd" ],
+        //        "Time": 1676157556223,
+        //        "Event": "Subscriptions"
         //    }
         //
         return $message;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $event = $this->safe_string($message, 'Event');
         $handlers = array(
             'Subscriptions' => array($this, 'handle_subscriptions'),
@@ -309,6 +330,6 @@ class independentreserve extends \ccxt\async\independentreserve {
             $handler($client, $message);
             return;
         }
-        throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
+        throw new NotSupported($this->id . ' received an unsupported message => ' . $this->json($message));
     }
 }

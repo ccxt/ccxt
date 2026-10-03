@@ -36,7 +36,7 @@ public partial class BaseExchange
         return lighterSigner;
     }
 
-    public async Task<LighterSigner.Signer> lighterCreateClient(object signer, object chainId, object privateKey, object apiKeyIndex, object accountIndex)
+    public LighterSigner.Signer lighterCreateClient(object signer, object chainId, object privateKey, object apiKeyIndex, object accountIndex)
     {
         string url = (string)this.implodeHostname(getValue(getValue(this.urls, "api"), "public"));
         ((LighterSigner.Signer)signer).CreateClient(
@@ -49,16 +49,18 @@ public partial class BaseExchange
         return (LighterSigner.Signer)signer;
     }
 
-    private object formatSignedLighterTx(LighterSigner.Signer.SignedTx signedTx)
+    // every path hands back the 3-element list the generated lighter destructuring reads
+    // by index, so the signature names the box the value already has
+    private List<object> formatSignedLighterTx(LighterSigner.Signer.SignedTx signedTx)
     {
-        object res = new List<object>() { };
+        List<object> res = new List<object>() { };
         ((IList<object>)res).Add(signedTx.TxType);
         ((IList<object>)res).Add(signedTx.TxInfo);
         ((IList<object>)res).Add(signedTx.MessageToSign);
         return res;
     }
 
-    public object lighterSignCreateGroupedOrders(object signer, object request)
+    public List<object> lighterSignCreateGroupedOrders(object signer, object request)
     {
         List<LighterSigner.Signer.CreateOrderTxReq> ordersArr = new List<LighterSigner.Signer.CreateOrderTxReq>() { };
         var ordersList = (IList<object>)getValue(request, "orders");
@@ -66,7 +68,7 @@ public partial class BaseExchange
         {
             ordersArr.Add(new LighterSigner.Signer.CreateOrderTxReq
             {
-                MarketIndex = Convert.ToByte(getValue(order, "market_index")),
+                MarketIndex = Convert.ToInt16(getValue(order, "market_index")),
                 ClientOrderIndex = Convert.ToInt64(getValue(order, "client_order_index")),
                 BaseAmount = Convert.ToInt64(getValue(order, "base_amount")),
                 Price = Convert.ToUInt32(getValue(order, "avg_execution_price")),
@@ -83,13 +85,15 @@ public partial class BaseExchange
             Convert.ToInt64(getValue(request, "integrator_account_index")),
             Convert.ToInt32(getValue(request, "integrator_taker_fee")),
             Convert.ToInt32(getValue(request, "integrator_maker_fee")),
+            Convert.ToByte(this.safeInteger(request, "self_trade_behavior_mode", 0)), // SelfTradeBehaviorExpireMaker
+            Convert.ToByte(this.safeInteger(request, "self_trade_equality_mode", 0)), // SelfTradeEqualityAccountIndex
             0x1, // skip nonce
             Convert.ToInt64(getValue(request, "nonce")), Convert.ToInt32(getValue(request, "api_key_index")), Convert.ToInt64(getValue(request, "account_index"))
         );
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public object lighterSignCreateOrder(object signer, object request)
+    public List<object> lighterSignCreateOrder(object signer, object request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignCreateOrder(
             Convert.ToInt32(getValue(request, "market_index")),
@@ -105,6 +109,8 @@ public partial class BaseExchange
             Convert.ToInt64(getValue(request, "integrator_account_index")),
             Convert.ToInt32(getValue(request, "integrator_taker_fee")),
             Convert.ToInt32(getValue(request, "integrator_maker_fee")),
+            Convert.ToByte(this.safeInteger(request, "self_trade_behavior_mode", 0)), // SelfTradeBehaviorExpireMaker
+            Convert.ToByte(this.safeInteger(request, "self_trade_equality_mode", 0)), // SelfTradeEqualityAccountIndex
             0x1, // skip nonce
             Convert.ToInt64(getValue(request, "nonce")),
             Convert.ToInt32(getValue(request, "api_key_index")),
@@ -113,7 +119,7 @@ public partial class BaseExchange
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public object lighterSignCancelOrder(object signer, object request)
+    public List<object> lighterSignCancelOrder(object signer, object request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignCancelOrder(
             Convert.ToInt32(getValue(request, "market_index")),
@@ -126,7 +132,7 @@ public partial class BaseExchange
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public object lighterSignWithdraw(object signer, object request)
+    public List<object> lighterSignWithdraw(object signer, object request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignWithdraw(
             Convert.ToInt32(getValue(request, "asset_index")),
@@ -140,7 +146,7 @@ public partial class BaseExchange
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public object lighterSignCreateSubAccount(object signer, object request)
+    public List<object> lighterSignCreateSubAccount(object signer, object request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignCreateSubAccount(
             0x1, // skip nonce
@@ -151,11 +157,12 @@ public partial class BaseExchange
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public object lighterSignCancelAllOrders(object signer, object request)
+    public List<object> lighterSignCancelAllOrders(object signer, object request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignCancelAllOrders(
             Convert.ToInt32(getValue(request, "time_in_force")),
             Convert.ToInt64(getValue(request, "time")),
+            Convert.ToInt32(this.safeInteger(request, "cancel_all_market_index", 255)), // NilMarketIndex, every market
             0x1, // skip nonce
             Convert.ToInt64(getValue(request, "nonce")),
             Convert.ToInt32(getValue(request, "api_key_index")),
@@ -164,23 +171,29 @@ public partial class BaseExchange
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public object lighterSignModifyOrder(object signer, object request)
+    public List<object> lighterSignModifyOrder(object signer, object request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignModifyOrder(
             Convert.ToInt32(getValue(request, "market_index")),
             Convert.ToInt64(getValue(request, "index")),
             Convert.ToInt64(getValue(request, "base_amount")),
-            Convert.ToInt32(getValue(request, "price")),
-            Convert.ToInt32(getValue(request, "trigger_price")),
+            Convert.ToInt64(getValue(request, "price")),
+            Convert.ToInt64(getValue(request, "trigger_price")),
+            Convert.ToInt64(this.safeInteger(request, "integrator_account_index", 0)),
+            Convert.ToInt32(this.safeInteger(request, "integrator_taker_fee", 0)),
+            Convert.ToInt32(this.safeInteger(request, "integrator_maker_fee", 0)),
+            Convert.ToByte(this.safeInteger(request, "self_trade_behavior_mode", 0)), // SelfTradeBehaviorExpireMaker
+            Convert.ToByte(this.safeInteger(request, "self_trade_equality_mode", 0)), // SelfTradeEqualityAccountIndex
             0x1, // skip nonce
             Convert.ToInt64(getValue(request, "nonce")),
+            Convert.ToInt64(this.safeInteger(request, "order_version", 0)), // NilOrderVersion
             Convert.ToInt32(getValue(request, "api_key_index")),
             Convert.ToInt64(getValue(request, "account_index"))
         );
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public object lighterSignTransfer(object signer, object request)
+    public List<object> lighterSignTransfer(object signer, object request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignTransfer(
             Convert.ToInt32(getValue(request, "to_account_index")),
@@ -198,7 +211,7 @@ public partial class BaseExchange
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public object lighterSignUpdateLeverage(object signer, object request)
+    public List<object> lighterSignUpdateLeverage(object signer, object request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignUpdateLeverage(
             Convert.ToInt32(getValue(request, "market_index")),
@@ -222,7 +235,7 @@ public partial class BaseExchange
         return authToken;
     }
 
-    public object lighterSignUpdateMargin(object signer, object request)
+    public List<object> lighterSignUpdateMargin(object signer, object request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignUpdateMargin(
             Convert.ToInt32(getValue(request, "market_index")),
@@ -236,7 +249,7 @@ public partial class BaseExchange
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public object lighterSignApproveIntegrator(object signer, object request)
+    public List<object> lighterSignApproveIntegrator(object signer, object request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignApproveIntegrator(
             Convert.ToInt64(getValue(request, "integrator_account_index")),
@@ -251,16 +264,17 @@ public partial class BaseExchange
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public object lighterGenerateApiKey(object signer)
+    // same shape as formatSignedLighterTx: { privateKey, publicKey } list, every path a list
+    public List<object> lighterGenerateApiKey(object signer)
     {
         var (PrivateKey, PublicKey) = ((LighterSigner.Signer)signer).GenerateAPIKey();
-        object res = new List<object>() { };
+        List<object> res = new List<object>() { };
         ((IList<object>)res).Add(PrivateKey);
         ((IList<object>)res).Add(PublicKey);
         return res;
     }
 
-    public object lighterSignChangePubkey(object signer, object request)
+    public List<object> lighterSignChangePubkey(object signer, object request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignChangePubKey(
             getValue(request, "pubkey").ToString(),

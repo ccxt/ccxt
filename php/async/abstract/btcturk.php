@@ -22,6 +22,12 @@ abstract class btcturk extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_ticker_currency($params = array()) {
+        return $this->request('ticker/currency', 'public', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_get_trades($params = array()) {
         return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -58,8 +64,32 @@ abstract class btcturk extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_order_orderid($params = array()) {
+        return $this->request('order/{orderId}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_users_transactions_trade($params = array()) {
         return $this->request('users/transactions/trade', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_users_transactions_crypto($params = array()) {
+        return $this->request('users/transactions/crypto', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_users_transactions_fiat($params = array()) {
+        return $this->request('users/transactions/fiat', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_crypto_deposit_declarations($params = array()) {
+        return $this->request('crypto-deposit-declarations', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -84,6 +114,12 @@ abstract class btcturk extends \ccxt\async\Exchange {
      */
     public function private_post_cancelorder($params = array()) {
         return $this->request('cancelOrder', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_crypto_deposit_declarations_confirm($params = array()) {
+        return $this->request('crypto-deposit-declarations/confirm', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -114,6 +150,12 @@ abstract class btcturk extends \ccxt\async\Exchange {
      */
     public function publicGetTicker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetTickerCurrency($params = array()) {
+        return $this->request('ticker/currency', 'public', 'GET', $params, null, null, array("cost" => 0.1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -154,8 +196,32 @@ abstract class btcturk extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetOrderOrderId($params = array()) {
+        return $this->request('order/{orderId}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetUsersTransactionsTrade($params = array()) {
         return $this->request('users/transactions/trade', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetUsersTransactionsCrypto($params = array()) {
+        return $this->request('users/transactions/crypto', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetUsersTransactionsFiat($params = array()) {
+        return $this->request('users/transactions/fiat', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetCryptoDepositDeclarations($params = array()) {
+        return $this->request('crypto-deposit-declarations', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -180,6 +246,12 @@ abstract class btcturk extends \ccxt\async\Exchange {
      */
     public function privatePostCancelOrder($params = array()) {
         return $this->request('cancelOrder', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostCryptoDepositDeclarationsConfirm($params = array()) {
+        return $this->request('crypto-deposit-declarations/confirm', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

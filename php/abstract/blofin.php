@@ -16,6 +16,12 @@ abstract class blofin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_market_instruments_history($params = array()) {
+        return $this->request('market/instruments-history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_market_tickers($params = array()) {
         return $this->request('market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -76,6 +82,36 @@ abstract class blofin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_spot_market_instruments($params = array()) {
+        return $this->request('spot/market/instruments', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_spot_market_tickers($params = array()) {
+        return $this->request('spot/market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_spot_market_books($params = array()) {
+        return $this->request('spot/market/books', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_spot_market_trades($params = array()) {
+        return $this->request('spot/market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_spot_market_candles($params = array()) {
+        return $this->request('spot/market/candles', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_asset_balances($params = array()) {
         return $this->request('asset/balances', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -96,6 +132,12 @@ abstract class blofin extends \ccxt\Exchange {
      */
     public function private_get_asset_deposit_history($params = array()) {
         return $this->request('asset/deposit-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_asset_deposit_address($params = array()) {
+        return $this->request('asset/deposit-address', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -130,6 +172,12 @@ abstract class blofin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_account_funding_fees($params = array()) {
+        return $this->request('account/funding-fees', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_account_margin_mode($params = array()) {
         return $this->request('account/margin-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -155,61 +203,61 @@ abstract class blofin extends \ccxt\Exchange {
      * @return array<string, mixed>
      */
     public function private_get_trade_orders_pending($params = array()) {
-        return $this->request('trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_order_detail($params = array()) {
-        return $this->request('trade/order-detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order-detail', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_orders_tpsl_pending($params = array()) {
-        return $this->request('trade/orders-tpsl-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-tpsl-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_order_tpsl_detail($params = array()) {
-        return $this->request('trade/order-tpsl-detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order-tpsl-detail', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_orders_algo_pending($params = array()) {
-        return $this->request('trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_orders_history($params = array()) {
-        return $this->request('trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_orders_tpsl_history($params = array()) {
-        return $this->request('trade/orders-tpsl-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-tpsl-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_orders_algo_history($params = array()) {
-        return $this->request('trade/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_fills_history($params = array()) {
-        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_order_price_range($params = array()) {
-        return $this->request('trade/order/price-range', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order/price-range', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
@@ -299,31 +347,31 @@ abstract class blofin extends \ccxt\Exchange {
      * @return array<string, mixed>
      */
     public function private_get_copytrading_trade_orders_pending($params = array()) {
-        return $this->request('copytrading/trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_copytrading_trade_pending_tpsl_by_contract($params = array()) {
-        return $this->request('copytrading/trade/pending-tpsl-by-contract', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/pending-tpsl-by-contract', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_copytrading_trade_position_history_by_order($params = array()) {
-        return $this->request('copytrading/trade/position-history-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/position-history-by-order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_copytrading_trade_orders_history($params = array()) {
-        return $this->request('copytrading/trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_copytrading_trade_pending_tpsl_by_order($params = array()) {
-        return $this->request('copytrading/trade/pending-tpsl-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/pending-tpsl-by-order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
@@ -340,6 +388,42 @@ abstract class blofin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_spot_trade_orders_pending($params = array()) {
+        return $this->request('spot/trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_spot_trade_order_detail($params = array()) {
+        return $this->request('spot/trade/order-detail', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_spot_trade_orders_algo_pending($params = array()) {
+        return $this->request('spot/trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_spot_trade_orders_history($params = array()) {
+        return $this->request('spot/trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_spot_trade_orders_algo_history($params = array()) {
+        return $this->request('spot/trade/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_spot_trade_order_price_range($params = array()) {
+        return $this->request('spot/trade/order/price-range', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_asset_transfer($params = array()) {
         return $this->request('asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -352,140 +436,212 @@ abstract class blofin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_asset_withdrawal_apply($params = array()) {
+        return $this->request('asset/withdrawal-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_account_set_margin_mode($params = array()) {
-        return $this->request('account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_account_set_position_mode($params = array()) {
-        return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_account_set_leverage($params = array()) {
-        return $this->request('account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_order($params = array()) {
-        return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_batch_orders($params = array()) {
-        return $this->request('trade/batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_order_tpsl($params = array()) {
-        return $this->request('trade/order-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_order_algo($params = array()) {
-        return $this->request('trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_cancel_order($params = array()) {
-        return $this->request('trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_cancel_batch_orders($params = array()) {
-        return $this->request('trade/cancel-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/cancel-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_cancel_tpsl($params = array()) {
-        return $this->request('trade/cancel-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/cancel-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_cancel_algo($params = array()) {
-        return $this->request('trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_trade_amend_order($params = array()) {
+        return $this->request('trade/amend-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_trade_amend_batch_orders($params = array()) {
+        return $this->request('trade/amend-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_trade_amend_tpsl($params = array()) {
+        return $this->request('trade/amend-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_trade_amend_algo($params = array()) {
+        return $this->request('trade/amend-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_close_position($params = array()) {
-        return $this->request('trade/close-position', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/close-position', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_spot_trade_order($params = array()) {
+        return $this->request('spot/trade/order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_spot_trade_batch_orders($params = array()) {
+        return $this->request('spot/trade/batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_spot_trade_order_algo($params = array()) {
+        return $this->request('spot/trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_spot_trade_cancel_order($params = array()) {
+        return $this->request('spot/trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_spot_trade_cancel_batch_orders($params = array()) {
+        return $this->request('spot/trade/cancel-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_spot_trade_cancel_algo($params = array()) {
+        return $this->request('spot/trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_copytrading_account_set_position_mode($params = array()) {
-        return $this->request('copytrading/account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_copytrading_account_set_leverage($params = array()) {
-        return $this->request('copytrading/account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_copytrading_trade_place_order($params = array()) {
-        return $this->request('copytrading/trade/place-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/place-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_copytrading_trade_cancel_order($params = array()) {
-        return $this->request('copytrading/trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_copytrading_trade_place_tpsl_by_contract($params = array()) {
-        return $this->request('copytrading/trade/place-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/place-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_copytrading_trade_cancel_tpsl_by_contract($params = array()) {
-        return $this->request('copytrading/trade/cancel-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/cancel-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_copytrading_trade_place_tpsl_by_order($params = array()) {
-        return $this->request('copytrading/trade/place-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/place-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_copytrading_trade_cancel_tpsl_by_order($params = array()) {
-        return $this->request('copytrading/trade/cancel-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/cancel-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_copytrading_trade_close_position_by_order($params = array()) {
-        return $this->request('copytrading/trade/close-position-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/close-position-by-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_copytrading_trade_close_position_by_contract($params = array()) {
-        return $this->request('copytrading/trade/close-position-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/close-position-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetMarketInstruments($params = array()) {
         return $this->request('market/instruments', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetMarketInstrumentsHistory($params = array()) {
+        return $this->request('market/instruments-history', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -550,6 +706,36 @@ abstract class blofin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function publicGetSpotMarketInstruments($params = array()) {
+        return $this->request('spot/market/instruments', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetSpotMarketTickers($params = array()) {
+        return $this->request('spot/market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetSpotMarketBooks($params = array()) {
+        return $this->request('spot/market/books', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetSpotMarketTrades($params = array()) {
+        return $this->request('spot/market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetSpotMarketCandles($params = array()) {
+        return $this->request('spot/market/candles', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetAssetBalances($params = array()) {
         return $this->request('asset/balances', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -570,6 +756,12 @@ abstract class blofin extends \ccxt\Exchange {
      */
     public function privateGetAssetDepositHistory($params = array()) {
         return $this->request('asset/deposit-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAssetDepositAddress($params = array()) {
+        return $this->request('asset/deposit-address', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -604,6 +796,12 @@ abstract class blofin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetAccountFundingFees($params = array()) {
+        return $this->request('account/funding-fees', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetAccountMarginMode($params = array()) {
         return $this->request('account/margin-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -629,61 +827,61 @@ abstract class blofin extends \ccxt\Exchange {
      * @return array<string, mixed>
      */
     public function privateGetTradeOrdersPending($params = array()) {
-        return $this->request('trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeOrderDetail($params = array()) {
-        return $this->request('trade/order-detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order-detail', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeOrdersTpslPending($params = array()) {
-        return $this->request('trade/orders-tpsl-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-tpsl-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeOrderTpslDetail($params = array()) {
-        return $this->request('trade/order-tpsl-detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order-tpsl-detail', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeOrdersAlgoPending($params = array()) {
-        return $this->request('trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeOrdersHistory($params = array()) {
-        return $this->request('trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeOrdersTpslHistory($params = array()) {
-        return $this->request('trade/orders-tpsl-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-tpsl-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeOrdersAlgoHistory($params = array()) {
-        return $this->request('trade/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeFillsHistory($params = array()) {
-        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeOrderPriceRange($params = array()) {
-        return $this->request('trade/order/price-range', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order/price-range', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
@@ -773,31 +971,31 @@ abstract class blofin extends \ccxt\Exchange {
      * @return array<string, mixed>
      */
     public function privateGetCopytradingTradeOrdersPending($params = array()) {
-        return $this->request('copytrading/trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetCopytradingTradePendingTpslByContract($params = array()) {
-        return $this->request('copytrading/trade/pending-tpsl-by-contract', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/pending-tpsl-by-contract', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetCopytradingTradePositionHistoryByOrder($params = array()) {
-        return $this->request('copytrading/trade/position-history-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/position-history-by-order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetCopytradingTradeOrdersHistory($params = array()) {
-        return $this->request('copytrading/trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetCopytradingTradePendingTpslByOrder($params = array()) {
-        return $this->request('copytrading/trade/pending-tpsl-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/pending-tpsl-by-order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
@@ -814,6 +1012,42 @@ abstract class blofin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetSpotTradeOrdersPending($params = array()) {
+        return $this->request('spot/trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetSpotTradeOrderDetail($params = array()) {
+        return $this->request('spot/trade/order-detail', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetSpotTradeOrdersAlgoPending($params = array()) {
+        return $this->request('spot/trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetSpotTradeOrdersHistory($params = array()) {
+        return $this->request('spot/trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetSpotTradeOrdersAlgoHistory($params = array()) {
+        return $this->request('spot/trade/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetSpotTradeOrderPriceRange($params = array()) {
+        return $this->request('spot/trade/order/price-range', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostAssetTransfer($params = array()) {
         return $this->request('asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -826,133 +1060,199 @@ abstract class blofin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatePostAssetWithdrawalApply($params = array()) {
+        return $this->request('asset/withdrawal-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostAccountSetMarginMode($params = array()) {
-        return $this->request('account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostAccountSetPositionMode($params = array()) {
-        return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostAccountSetLeverage($params = array()) {
-        return $this->request('account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeOrder($params = array()) {
-        return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeBatchOrders($params = array()) {
-        return $this->request('trade/batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeOrderTpsl($params = array()) {
-        return $this->request('trade/order-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeOrderAlgo($params = array()) {
-        return $this->request('trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeCancelOrder($params = array()) {
-        return $this->request('trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeCancelBatchOrders($params = array()) {
-        return $this->request('trade/cancel-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/cancel-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeCancelTpsl($params = array()) {
-        return $this->request('trade/cancel-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/cancel-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeCancelAlgo($params = array()) {
-        return $this->request('trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostTradeAmendOrder($params = array()) {
+        return $this->request('trade/amend-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostTradeAmendBatchOrders($params = array()) {
+        return $this->request('trade/amend-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostTradeAmendTpsl($params = array()) {
+        return $this->request('trade/amend-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostTradeAmendAlgo($params = array()) {
+        return $this->request('trade/amend-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeClosePosition($params = array()) {
-        return $this->request('trade/close-position', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/close-position', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostSpotTradeOrder($params = array()) {
+        return $this->request('spot/trade/order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostSpotTradeBatchOrders($params = array()) {
+        return $this->request('spot/trade/batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostSpotTradeOrderAlgo($params = array()) {
+        return $this->request('spot/trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostSpotTradeCancelOrder($params = array()) {
+        return $this->request('spot/trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostSpotTradeCancelBatchOrders($params = array()) {
+        return $this->request('spot/trade/cancel-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostSpotTradeCancelAlgo($params = array()) {
+        return $this->request('spot/trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostCopytradingAccountSetPositionMode($params = array()) {
-        return $this->request('copytrading/account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostCopytradingAccountSetLeverage($params = array()) {
-        return $this->request('copytrading/account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostCopytradingTradePlaceOrder($params = array()) {
-        return $this->request('copytrading/trade/place-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/place-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostCopytradingTradeCancelOrder($params = array()) {
-        return $this->request('copytrading/trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostCopytradingTradePlaceTpslByContract($params = array()) {
-        return $this->request('copytrading/trade/place-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/place-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostCopytradingTradeCancelTpslByContract($params = array()) {
-        return $this->request('copytrading/trade/cancel-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/cancel-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostCopytradingTradePlaceTpslByOrder($params = array()) {
-        return $this->request('copytrading/trade/place-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/place-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostCopytradingTradeCancelTpslByOrder($params = array()) {
-        return $this->request('copytrading/trade/cancel-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/cancel-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostCopytradingTradeClosePositionByOrder($params = array()) {
-        return $this->request('copytrading/trade/close-position-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/close-position-by-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostCopytradingTradeClosePositionByContract($params = array()) {
-        return $this->request('copytrading/trade/close-position-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('copytrading/trade/close-position-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
 }

@@ -165,6 +165,48 @@ public partial class bydfi : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetV1FapiTradePositions",parameters);
     }
 
+    /// <summary>Calls the privateGetV2FapiTradeOpenOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV2FapiTradeOpenOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV2FapiTradeOpenOrder",parameters);
+    }
+
+    /// <summary>Calls the privateGetV2FapiTradePlanOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV2FapiTradePlanOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV2FapiTradePlanOrder",parameters);
+    }
+
+    /// <summary>Calls the privateGetV2FapiTradeHistoryOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV2FapiTradeHistoryOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV2FapiTradeHistoryOrder",parameters);
+    }
+
+    /// <summary>Calls the privateGetV2FapiTradeHistoryTrade endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV2FapiTradeHistoryTrade (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV2FapiTradeHistoryTrade",parameters);
+    }
+
+    /// <summary>Calls the privateGetV2FapiTradePositionHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV2FapiTradePositionHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV2FapiTradePositionHistory",parameters);
+    }
+
+    /// <summary>Calls the privateGetV2FapiTradePositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV2FapiTradePositions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV2FapiTradePositions",parameters);
+    }
+
     /// <summary>Calls the privateGetV1FapiAccountBalance endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetV1FapiAccountBalance (object parameters = null)
@@ -303,6 +345,55 @@ public partial class bydfi : Exchange
     public async Task<Dictionary<string, object>> privatePostV1FapiTradeBatchLeverageMargin (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostV1FapiTradeBatchLeverageMargin",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2FapiTradePlaceOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV2FapiTradePlaceOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV2FapiTradePlaceOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2FapiTradeBatchPlaceOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV2FapiTradeBatchPlaceOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV2FapiTradeBatchPlaceOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2FapiTradeEditOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV2FapiTradeEditOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV2FapiTradeEditOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2FapiTradeBatchEditOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV2FapiTradeBatchEditOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV2FapiTradeBatchEditOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2FapiTradeCancelOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV2FapiTradeCancelOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV2FapiTradeCancelOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2FapiTradeBatchCancelOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV2FapiTradeBatchCancelOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV2FapiTradeBatchCancelOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2FapiTradeCancelAllOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV2FapiTradeCancelAllOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV2FapiTradeCancelAllOrder",parameters);
     }
 
     /// <summary>Calls the privatePostV1FapiUserDataMarginType endpoint.</summary>

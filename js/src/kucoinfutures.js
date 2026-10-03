@@ -54,7 +54,8 @@ export default class kucoinfutures extends kucoin {
         const request = {
             'method': 'futuresPublicGetAllTickers',
         };
-        return await this.fetchTickers(symbols, this.extend(request, params));
+        const extendedRequest = this.extend(request, params);
+        return await this.fetchTickers(symbols, extendedRequest);
     }
     /**
      * @method
@@ -78,7 +79,7 @@ export default class kucoinfutures extends kucoin {
             'amount': amountToPrecision,
         };
         const toAccountString = this.parseTransferType(toAccount);
-        let response = undefined;
+        let response;
         if (toAccountString === 'TRADE' || toAccountString === 'MAIN') {
             request['recAccountType'] = toAccountString;
             response = await this.futuresPrivatePostTransferOut(this.extend(request, params));

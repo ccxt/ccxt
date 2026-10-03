@@ -388,6 +388,18 @@ abstract class coinone extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v2_1private_post_event_order_reward_programs($params = array()) {
+        return $this->request('event/order-reward/programs', 'v2_1Private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v2_1private_post_event_order_reward_history($params = array()) {
+        return $this->request('event/order-reward/history', 'v2_1Private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicGetOrderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -762,5 +774,17 @@ abstract class coinone extends \ccxt\async\Exchange {
      */
     public function v2_1PrivatePostTransactionCoinWithdrawalLimit($params = array()) {
         return $this->request('transaction/coin/withdrawal/limit', 'v2_1Private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v2_1PrivatePostEventOrderRewardPrograms($params = array()) {
+        return $this->request('event/order-reward/programs', 'v2_1Private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v2_1PrivatePostEventOrderRewardHistory($params = array()) {
+        return $this->request('event/order-reward/history', 'v2_1Private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

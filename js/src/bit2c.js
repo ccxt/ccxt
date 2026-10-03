@@ -134,6 +134,7 @@ export default class bit2c extends Exchange {
                     'get': {
                         'Exchanges/{pair}/Ticker': { 'cost': 1 },
                         'Exchanges/{pair}/orderbook': { 'cost': 1 },
+                        'Exchanges/{pair}/orderbook-top': { 'cost': 1 },
                         'Exchanges/{pair}/trades': { 'cost': 1 },
                         'Exchanges/{pair}/lasttrades': { 'cost': 1 },
                     },
@@ -142,6 +143,7 @@ export default class bit2c extends Exchange {
                     'post': {
                         'Merchant/CreateCheckout': { 'cost': 1 },
                         'Funds/AddCoinFundsRequest': { 'cost': 1 },
+                        'Funds/WithdrawCoin': { 'cost': 1 },
                         'Order/AddFund': { 'cost': 1 },
                         'Order/AddOrder': { 'cost': 1 },
                         'Order/GetById': { 'cost': 1 },
@@ -161,6 +163,7 @@ export default class bit2c extends Exchange {
                         'Order/GetById': { 'cost': 1 },
                         'Order/AccountHistory': { 'cost': 1 },
                         'Order/OrderHistory': { 'cost': 1 },
+                        'Order/HistoryByOrderId': { 'cost': 1 },
                     },
                 },
             },
@@ -540,13 +543,13 @@ export default class bit2c extends Exchange {
         //         }
         //     }
         //
-        const fees = this.safeValue(response, 'Fees', {});
+        const fees = this.safeDict(response, 'Fees', {});
         const keys = Object.keys(fees);
         const result = {};
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const symbol = this.safeSymbol(marketId);
-            const fee = this.safeValue(fees, marketId);
+            const fee = this.safeDict(fees, marketId);
             const makerString = this.safeString(fee, 'FeeMaker');
             const takerString = this.safeString(fee, 'FeeTaker');
             const maker = this.parseNumber(Precise.stringDiv(makerString, '100'));
@@ -643,8 +646,8 @@ export default class bit2c extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privateGetOrderMyOrders(this.extend(request, params));
-        const orders = this.safeValue(response, market['id'], {});
-        const asks = this.safeValue(orders, 'ask', []);
+        const orders = this.safeDict(response, market['id'], {});
+        const asks = this.safeList(orders, 'ask', []);
         const bids = this.safeList(orders, 'bid', []);
         return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
     }
@@ -926,20 +929,23 @@ export default class bit2c extends Exchange {
         let fee = undefined;
         let side;
         let makerOrTaker = undefined;
+        let tradeMarket = undefined;
         const reference = this.safeString(trade, 'reference');
         if (reference !== undefined) {
             id = reference;
             timestamp = this.safeTimestamp(trade, 'ticks');
-            price = this.safeString(trade, 'price');
-            price = this.removeCommaFromValue(price);
+            const rawPrice = this.safeString(trade, 'price');
+            if (rawPrice !== undefined) {
+                price = this.removeCommaFromValue(rawPrice);
+            }
             amount = this.safeString(trade, 'firstAmount');
             const reference_parts = reference.split('|'); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             const marketId = this.safeString(trade, 'pair');
-            market = this.safeMarket(marketId, market);
-            market = this.safeMarket(reference_parts[0], market);
-            const isMaker = this.safeValue(trade, 'isMaker');
-            makerOrTaker = isMaker ? 'maker' : 'taker';
-            orderId = isMaker ? reference_parts[2] : reference_parts[1];
+            const marketByPair = this.safeMarket(marketId, market);
+            tradeMarket = this.safeMarket(reference_parts[0], marketByPair);
+            const isMaker = this.safeBool(trade, 'isMaker');
+            makerOrTaker = (isMaker === true) ? 'maker' : 'taker';
+            orderId = (isMaker === true) ? reference_parts[2] : reference_parts[1];
             const action = this.safeInteger(trade, 'action');
             if (action === 0) {
                 side = 'buy';
@@ -960,9 +966,10 @@ export default class bit2c extends Exchange {
             id = this.safeString(trade, 'tid');
             price = this.safeString(trade, 'price');
             amount = this.safeString(trade, 'amount');
+            tradeMarket = this.safeMarket(undefined, market);
             side = this.safeValue(trade, 'isBid');
             if (side !== undefined) {
-                if (side) {
+                if ((side !== undefined) && (side !== '')) {
                     side = 'buy';
                 }
                 else {
@@ -970,13 +977,13 @@ export default class bit2c extends Exchange {
                 }
             }
         }
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, tradeMarket);
         return this.safeTrade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -985,7 +992,7 @@ export default class bit2c extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     isFiat(code) {
         return code === 'NIS';
@@ -1041,33 +1048,42 @@ export default class bit2c extends Exchange {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/' + this.implodeParams(path, params);
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.implodeParams(path, params);
+        let requestBody = undefined;
+        let requestHeaders = undefined;
         if (api === 'public') {
             url += '.json';
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce();
+            // bit2c requires an increasing nonce per key
+            const nonce = this.incrementingNonce();
             const query = this.extend({
                 'nonce': nonce,
             }, params);
             const auth = this.urlencode(query);
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + auth;
                 }
             }
             else {
-                body = auth;
+                requestBody = auth;
             }
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, 'base64');
-            headers = {
+            requestHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
                 'sign': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResult = (requestBody === undefined) ? body : requestBody;
+        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

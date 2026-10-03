@@ -2,7 +2,7 @@
 
 import Exchange from './abstract/alpaca.js';
 import { Precise } from './base/Precise.js';
-import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type{ Dict, Fee, Int, List, Market, NullableDict, NullableList, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances, Bool, Endpoint } from './base/types.js';
 
@@ -155,6 +155,29 @@ export default class alpaca extends Exchange {
             },
             'api': {
                 'broker': {
+                    'private': {
+                        'get': {
+                            'v1/accounts/{account_id}/tokenization/requests': { 'cost': 1 } as Endpoint<List>,
+                            'v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/accounts/{account_id}/tokenization/requests:by_client_request_id': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/fpsl/analytics/{account_id}/loans': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/ipos': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/ipos/{offering_reference}': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/wallets/travel-rule/vasps': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1beta1/acats': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1beta1/acats/contrabrokers': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1beta1/acats/{account_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1beta1/acats/{account_id}/{acats_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1beta1/acats/{account_id}/{acats_id}/assets': { 'cost': 1 } as Endpoint<List>,
+                        },
+                        'post': {
+                            'v1beta1/acats/{account_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'patch': {
+                            'v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                    },
                 },
                 'trader': {
                     'private': {
@@ -179,6 +202,13 @@ export default class alpaca extends Exchange {
                             'v2/corporate_actions/announcements': { 'cost': 1 } as Endpoint<List>,
                             'v2/wallets': { 'cost': 1 } as Endpoint<Dict>,
                             'v2/wallets/transfers': { 'cost': 1 } as Endpoint<List>,
+                            'v1/locates': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/locates/{locate_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/locates/quotes': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/tokenization/requests': { 'cost': 1 } as Endpoint<List>,
+                            'v2/tokenization/requests/{tokenization_request_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/tokenization/requests:by_client_request_id': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/wallets/travel-rule/vasps': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'v2/orders': { 'cost': 1 } as Endpoint<Dict>,
@@ -186,6 +216,7 @@ export default class alpaca extends Exchange {
                             'v2/watchlists/{watchlist_id}': { 'cost': 1 } as Endpoint<Dict>,
                             'v2/watchlists:by_name': { 'cost': 1 } as Endpoint<Dict>,
                             'v2/wallets/transfers': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/locates': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'put': {
                             'v2/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
@@ -195,6 +226,7 @@ export default class alpaca extends Exchange {
                         'patch': {
                             'v2/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
                             'v2/account/configurations': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
                             'v2/orders': { 'cost': 1 } as Endpoint<List>,
@@ -223,6 +255,8 @@ export default class alpaca extends Exchange {
                     'private': {
                         'get': {
                             'v1beta1/corporate-actions': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1beta1/fixed_income/latest/prices': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1beta1/fixed_income/latest/quotes': { 'cost': 1 } as Endpoint<Dict>,
                             'v1beta1/forex/latest/rates': { 'cost': 1 } as Endpoint<Dict>,
                             'v1beta1/forex/rates': { 'cost': 1 } as Endpoint<Dict>,
                             'v1beta1/logos/{symbol}': { 'cost': 1 } as Endpoint<string>,
@@ -307,6 +341,7 @@ export default class alpaca extends Exchange {
                 'APCA-PARTNER-ID': 'ccxt',
             },
             'options': {
+                'minCostUSD': 10, // alpaca floors USD-quoted crypto buy orders at 10 USD notional, a venue parameter that has changed before
                 'defaultExchange': 'CBSE',
                 'exchanges': [
                     'CBSE', // Coinbase
@@ -339,8 +374,8 @@ export default class alpaca extends Exchange {
                         },
                         'timeInForce': {
                             'IOC': true,
-                            'FOK': true,
-                            'PO': true,
+                            'FOK': false, // {"code":42210000,"message":"invalid crypto time_in_force"} — verified live 2026-09-13
+                            'PO': false, // {"code":40010001,"message":"invalid time_in_force for crypto order"} — verified live 2026-09-13
                             'GTD': false,
                         },
                         'hedged': false,
@@ -410,12 +445,15 @@ export default class alpaca extends Exchange {
                     '40410000': InvalidOrder, // { "code": 40410000, "message": "order is not found."}
                     '40010001': BadRequest, // {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000': PermissionDenied, // { "code": 40110000, "message": "request is not authorized"}
-                    '40310000': InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
+                    '42210000': BadRequest, // {"code":42210000,"message":"invalid crypto time_in_force"}
                     '42910000': RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
                     'Invalid format for parameter': BadRequest, // {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': BadSymbol, // {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
+                    'cost basis must be': InvalidOrder, // {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+                    'insufficient balance for': InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
+                    'orders are rejected by user request': PermissionDenied, // {"code":40310000,"message":"new orders are rejected by user request"} — the account has suspend_trade enabled
                 },
             },
         });
@@ -428,7 +466,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.traderPrivateGetV2Clock (params);
         //
         //     {
@@ -438,25 +476,11 @@ export default class alpaca extends Exchange {
         //         next_close: '2023-11-22T16:00:00-05:00'
         //     }
         //
-        const timestamp = this.safeString (response, 'timestamp');
+        const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
         if (timestamp === undefined) {
             throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
         }
-        const localTime = timestamp.slice (0, 23);
-        if (timestamp === undefined) {
-            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
-        }
-        const jetlagStrStart = timestamp.length - 6;
-        if (timestamp === undefined) {
-            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
-        }
-        const jetlagStrEnd = timestamp.length - 3;
-        if (timestamp === undefined) {
-            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
-        }
-        const jetlag = timestamp.slice (jetlagStrStart, jetlagStrEnd);
-        const iso = this.parseToInt (this.parse8601 (localTime)) - this.parseToNumeric (jetlag) * 3600 * 1000;
-        return iso;
+        return timestamp;
     }
 
     /**
@@ -467,7 +491,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const request: Dict = {
             'asset_class': 'crypto',
             'status': 'active',
@@ -519,20 +543,23 @@ export default class alpaca extends Exchange {
         //         "price_increment": "1"
         //     }
         //
-        const marketId = this.safeString (asset, 'symbol');
+        const marketId: Str = this.safeString (asset, 'symbol');
         if (marketId === undefined) {
             throw new ExchangeError (this.id + ' parseMarket() missing marketId');
         }
         const parts = marketId.split ('/');
-        const assetClass = this.safeString (asset, 'class');
-        const baseId = this.safeString (parts, 0);
-        const quoteId = this.safeString (parts, 1);
-        const base = this.safeCurrencyCode (baseId);
-        let quote = this.safeCurrencyCode (quoteId);
+        const assetClass: Str = this.safeString (asset, 'class');
+        const baseId: Str = this.safeString (parts, 0);
+        const quoteId: Str = this.safeString (parts, 1);
+        const base: Str = this.safeCurrencyCode (baseId);
+        let quote: Str = this.safeCurrencyCode (quoteId);
         // Us equity markets do not include quote in symbol.
         // We can safely coerce us_equity quote to USD
         if (quote === undefined && assetClass === 'us_equity') {
             quote = 'USD';
+        }
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
         }
         const symbol = base + '/' + quote;
         const status = this.safeString (asset, 'status');
@@ -540,6 +567,12 @@ export default class alpaca extends Exchange {
         const minAmount = this.safeNumber (asset, 'min_order_size');
         const amount = this.safeNumber (asset, 'min_trade_increment');
         const price = this.safeNumber (asset, 'price_increment');
+        let minCost: Num = undefined;
+        if ((assetClass === 'crypto') && (quote === 'USD')) {
+            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+            // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            minCost = this.safeNumber (this.options, 'minCostUSD', this.parseNumber ('10'));
+        }
         return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
@@ -582,7 +615,7 @@ export default class alpaca extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': minCost,
                     'max': undefined,
                 },
             },
@@ -605,7 +638,7 @@ export default class alpaca extends Exchange {
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -617,7 +650,7 @@ export default class alpaca extends Exchange {
             'symbols': marketId,
             'loc': loc,
         };
-        params = this.omit (params, [ 'loc', 'method' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'loc', 'method' ]);
         let symbolTrades: NullableList = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
             if (since !== undefined) {
@@ -626,7 +659,7 @@ export default class alpaca extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await this.marketPublicGetV1beta3CryptoLocTrades (this.extend (request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocTrades (this.extend (request, paramsOmitted));
             //
             //    {
             //        "next_page_token": null,
@@ -646,7 +679,7 @@ export default class alpaca extends Exchange {
             const trades = this.safeDict (response, 'trades', {});
             symbolTrades = this.safeList (trades, marketId, []);
         } else if (method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
-            const response = await this.marketPublicGetV1beta3CryptoLocLatestTrades (this.extend (request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocLatestTrades (this.extend (request, paramsOmitted));
             //
             //    {
             //       "trades": {
@@ -684,7 +717,7 @@ export default class alpaca extends Exchange {
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -750,33 +783,46 @@ export default class alpaca extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
-        const marketId = market['id'];
-        const loc = this.safeString (params, 'loc', 'us');
-        const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
+        const market: Market = this.market (symbol);
+        const marketId: Str = market['id'];
+        const loc: Str = this.safeString (params, 'loc', 'us');
+        const method: Str = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
+        let paginate = false;
+        let query = undefined;
+        [ paginate, query ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
+        let paginationCalls = 10;
+        [ paginationCalls, query ] = this.handleOptionIntegerAndParams (query, 'fetchOHLCV', 'paginationCalls', 10);
         const request: Dict = {
             'symbols': marketId,
             'loc': loc,
         };
-        params = this.omit (params, [ 'loc', 'method' ]);
+        query = this.omit (query, [ 'loc', 'method' ]);
         let ohlcvs: NullableList = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocBars') {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
             if (since !== undefined) {
-                request['start'] = this.yyyymmdd (since);
+                request['start'] = this.iso8601 (since);
+            }
+            const until = this.safeInteger (query, 'until');
+            if (until !== undefined) {
+                query = this.omit (query, 'until');
+                request['end'] = this.iso8601 (until);
             }
             request['timeframe'] = this.safeString (this.timeframes, timeframe, timeframe);
-            const response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));
+            let response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, query));
             //
             //    {
             //        "bars": {
@@ -806,10 +852,30 @@ export default class alpaca extends Exchange {
             //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
             //     }
             //
-            const bars = this.safeDict (response, 'bars', {});
+            let bars = this.safeDict (response, 'bars', {});
             ohlcvs = this.safeList (bars, marketId, []);
+            if (paginate) {
+                // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                let pageToken = this.safeString (response, 'next_page_token');
+                for (let i = 1; i < paginationCalls; i++) {
+                    const ohlcvsLength = ohlcvs.length;
+                    if ((pageToken === undefined) || ((limit !== undefined) && (ohlcvsLength >= limit))) {
+                        break;
+                    }
+                    request['page_token'] = pageToken;
+                    response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, query));
+                    bars = this.safeDict (response, 'bars', {});
+                    const page = this.safeList (bars, marketId, []);
+                    const pageLength = page.length;
+                    if (pageLength === 0) {
+                        break;
+                    }
+                    ohlcvs = this.arrayConcat (ohlcvs, page);
+                    pageToken = this.safeString (response, 'next_page_token');
+                }
+            }
         } else if (method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
-            const response = await this.marketPublicGetV1beta3CryptoLocLatestBars (this.extend (request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocLatestBars (this.extend (request, query));
             //
             //    {
             //        "bars": {
@@ -870,13 +936,14 @@ export default class alpaca extends Exchange {
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeDict (tickers, symbol) as Ticker;
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.fetchTickers ([ symbolValue ], params);
+        const ticker = this.safeDict (tickers, symbolValue);
+        return ticker as Ticker;
     }
 
     /**
@@ -884,27 +951,27 @@ export default class alpaca extends Exchange {
      * @name alpaca#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
-     * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch tickers for, defaults to all markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument');
-        }
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+        // symbol iteration order differs per language
+        const symbolsSorted: string[] = (symbols === undefined) ? this.sort (this.symbols) : symbols;
+        const symbolsNormalized: string[] = this.marketSymbols (symbolsSorted);
         const loc = this.safeString (params, 'loc', 'us');
-        const ids = this.marketIds (symbols);
+        const ids = this.marketIds (symbolsNormalized);
         const request = {
             'symbols': ids.join (','),
             'loc': loc,
         };
-        params = this.omit (params, 'loc');
-        const response = await this.marketPublicGetV1beta3CryptoLocSnapshots (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'loc');
+        const response = await this.marketPublicGetV1beta3CryptoLocSnapshots (this.extend (request, paramsOmitted));
         //
         //     {
         //         "snapshots": {
@@ -958,14 +1025,14 @@ export default class alpaca extends Exchange {
         //     }
         //
         const results: Ticker[] = [];
-        const snapshots = this.safeDict (response, 'snapshots', {});
-        const marketIds = Object.keys (snapshots);
+        const snapshots: Dict = this.safeDict (response, 'snapshots', {});
+        const marketIds: Strings = Object.keys (snapshots);
         for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
-            const entry = this.safeDict (snapshots, marketId);
-            const dailyBar = this.safeDict (entry, 'dailyBar', {});
-            const prevDailyBar = this.safeDict (entry, 'prevDailyBar', {});
+            const marketId: Str = marketIds[i];
+            const market: Market = this.safeMarket (marketId);
+            const entry: NullableDict = this.safeDict (snapshots, marketId);
+            const dailyBar: Dict = this.safeDict (entry, 'dailyBar', {});
+            const prevDailyBar: Dict = this.safeDict (entry, 'prevDailyBar', {});
             const latestQuote = this.safeDict (entry, 'latestQuote', {});
             const latestTrade = this.safeDict (entry, 'latestTrade', {});
             const datetime = this.safeString (latestQuote, 't');
@@ -994,10 +1061,10 @@ export default class alpaca extends Exchange {
             }, market);
             results.push (ticker);
         }
-        return this.filterByArray (results, 'symbol', symbols);
+        return this.filterByArray (results, 'symbol', symbolsNormalized);
     }
 
-    generateClientOrderId (params: any) {
+    generateClientOrderId (params: Dict): Str {
         const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
@@ -1018,7 +1085,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
+    override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1038,7 +1105,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1058,7 +1125,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1080,15 +1147,16 @@ export default class alpaca extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
-        const id = market['id'];
+        const market: Market = this.market (symbol);
+        const id: Str = market['id'];
         const request: Dict = {
             'symbol': id,
             'side': side,
@@ -1096,7 +1164,7 @@ export default class alpaca extends Exchange {
         };
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
-            let newType: string;
+            let newType: Str = undefined;
             if (type.indexOf ('limit') >= 0) {
                 newType = 'stop_limit';
             } else {
@@ -1110,18 +1178,17 @@ export default class alpaca extends Exchange {
         }
         const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
-            params = this.omit (params, 'cost');
             request['notional'] = this.costToPrecision (symbol, cost);
         } else {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
-        let defaultTIF: Str = undefined;
-        [ defaultTIF, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
-        request['time_in_force'] = defaultTIF;
-        params = this.omit (params, [ 'timeInForce', 'triggerPrice' ]);
-        request['client_order_id'] = this.generateClientOrderId (params);
-        params = this.omit (params, [ 'clientOrderId' ]);
-        const order = await this.traderPrivatePostV2Orders (this.extend (request, params));
+        const paramsCost = (cost !== undefined) ? this.omit (params, 'cost') : params;
+        const [ defaultTIF, paramsTimeInForce ] = this.handleOptionStringAndParams (paramsCost, 'createOrder', 'timeInForce');
+        // the venue only accepts lowercase values, normalize the unified uppercase spellings
+        request['time_in_force'] = (defaultTIF !== undefined) ? defaultTIF.toLowerCase () : defaultTIF;
+        const paramsOmitted = this.omit (paramsTimeInForce, [ 'timeInForce', 'triggerPrice' ]);
+        request['client_order_id'] = this.generateClientOrderId (paramsOmitted);
+        const order = await this.traderPrivatePostV2Orders (this.extend (request, this.omit (paramsOmitted, [ 'clientOrderId' ])));
         //
         //   {
         //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -1171,7 +1238,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const request: Dict = {
             'order_id': id,
         };
@@ -1194,7 +1261,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1220,7 +1287,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1243,9 +1310,10 @@ export default class alpaca extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1259,16 +1327,21 @@ export default class alpaca extends Exchange {
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
-            request['endTime'] = this.iso8601 (until);
+            request['until'] = this.iso8601 (until);
         }
+        const paramsOmitted = (until !== undefined) ? this.omit (params, 'until') : params;
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
+            const direction = this.safeString (paramsOmitted, 'direction');
+            if (direction === undefined) {
+                // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
+                request['direction'] = 'asc';
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.traderPrivateGetV2Orders (this.extend (request, params));
+        const response = await this.traderPrivateGetV2Orders (this.extend (request, paramsOmitted));
         //
         //     [
         //         {
@@ -1322,9 +1395,10 @@ export default class alpaca extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const request: Dict = {
             'status': 'open',
         };
@@ -1341,9 +1415,10 @@ export default class alpaca extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const request: Dict = {
             'status': 'closed',
         };
@@ -1363,11 +1438,11 @@ export default class alpaca extends Exchange {
      * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.triggerPrice] the price to trigger a stop order
-     * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1384,19 +1459,18 @@ export default class alpaca extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
-            params = this.omit (params, 'triggerPrice');
         }
+        const paramsTrigger = (triggerPrice !== undefined) ? this.omit (params, 'triggerPrice') : params;
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'editOrder', 'timeInForce', 'gtc');
+        const [ timeInForce, paramsTimeInForce ] = this.handleOptionStringAndParams (paramsTrigger, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
-            request['time_in_force'] = timeInForce;
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            request['time_in_force'] = timeInForce.toLowerCase ();
         }
-        request['client_order_id'] = this.generateClientOrderId (params);
-        params = this.omit (params, [ 'clientOrderId' ]);
-        const response = await this.traderPrivatePatchV2OrdersOrderId (this.extend (request, params));
+        request['client_order_id'] = this.generateClientOrderId (paramsTimeInForce);
+        const response = await this.traderPrivatePatchV2OrdersOrderId (this.extend (request, this.omit (paramsTimeInForce, [ 'clientOrderId' ])));
         return this.parseOrder (response, market);
     }
 
@@ -1440,8 +1514,8 @@ export default class alpaca extends Exchange {
         //    }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const alpacaStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (alpacaStatus);
         const feeValue = this.safeString (order, 'commission');
@@ -1449,7 +1523,7 @@ export default class alpaca extends Exchange {
         if (feeValue !== undefined) {
             fee = {
                 'cost': feeValue,
-                'currency': 'USD',
+                'currency': 'USD', // commission is denominated per the account currency; crypto fills omit the field entirely — their fee is taken from the received asset, verified live 2026-09-15
             };
         }
         let orderType = this.safeString (order, 'order_type');
@@ -1466,7 +1540,7 @@ export default class alpaca extends Exchange {
             'clientOrderId': this.safeString (order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'lastTradeTimeStamp': undefined,
+            'lastTradeTimestamp': this.parse8601 (this.safeString (order, 'filled_at')), // set on complete fills only — per-fill timestamps for partials come from the account activities used by fetchMyTrades, and updated_at also moves on non-fill transitions so it is no substitute
             'status': status,
             'symbol': symbol,
             'type': orderType,
@@ -1483,24 +1557,39 @@ export default class alpaca extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'pending_new': 'open',
             'accepted': 'open',
+            'accepted_for_bidding': 'open',
             'new': 'open',
             'partially_filled': 'open',
             'activated': 'open',
+            'done_for_day': 'open', // no more executions on that day, the order itself stays live
+            'stopped': 'open', // a fill is guaranteed at a stated price but has not occurred yet
+            'suspended': 'open',
+            'held': 'open',
+            'pending_replace': 'open',
+            'pending_cancel': 'canceling',
             'filled': 'closed',
+            'calculated': 'closed', // completed for the day, settlement calculations are pending
+            'canceled': 'canceled',
+            'replaced': 'canceled', // the venue closes the replaced id and opens a new order id for the replacement
+            'expired': 'expired',
+            'rejected': 'rejected',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
-            'day': 'Day',
+            'day': 'Day', // equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
+            'gtc': 'GTC',
+            'ioc': 'IOC',
+            'fok': 'FOK',
         };
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
@@ -1518,12 +1607,12 @@ export default class alpaca extends Exchange {
      * @param {string} [params.page_token] page_token - used for paging
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
-        let request: Dict = {
+        const request: Dict = {
             'activity_type': 'FILL',
         };
         if (symbol !== undefined) {
@@ -1531,17 +1620,17 @@ export default class alpaca extends Exchange {
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['until'] = this.iso8601 (until);
         }
+        const paramsOmitted = (until !== undefined) ? this.omit (params, 'until') : params;
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('until', request, params);
-        const response = await this.traderPrivateGetV2AccountActivitiesActivityType (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('until', request, paramsOmitted);
+        const response = await this.traderPrivateGetV2AccountActivitiesActivityType (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -1634,7 +1723,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1653,7 +1742,7 @@ export default class alpaca extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1663,7 +1752,7 @@ export default class alpaca extends Exchange {
         //
         let parsedCurrency: Str = undefined;
         if (currency !== undefined) {
-            parsedCurrency = currency['id'];
+            parsedCurrency = this.safeString (currency, 'id');
         }
         return {
             'info': depositAddress,
@@ -1686,22 +1775,23 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        if (tag) {
-            address = address + ':' + tag;
+        let addressValue: string = address;
+        if ((tagWithdrawTag !== undefined) && (tagWithdrawTag !== '')) {
+            addressValue = address + ':' + tagWithdrawTag;
         }
         const request: Dict = {
             'asset': currency['id'],
-            'address': address,
+            'address': addressValue,
             'amount': this.numberToString (amount),
         };
-        const response = await this.traderPrivatePostV2WalletsTransfers (this.extend (request, params));
+        const response = await this.traderPrivatePostV2WalletsTransfers (this.extend (request, paramsWithdrawTag));
         //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -1727,7 +1817,7 @@ export default class alpaca extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]> {
+    async fetchTransactionsHelper (type: string, code: Str, since: any, limit: any, params: any): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1736,7 +1826,7 @@ export default class alpaca extends Exchange {
             currency = this.currency (code);
         }
         const sandboxMode = this.isSandboxModeEnabled || this.safeBool (this.options, 'sandboxMode', false);
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -1765,7 +1855,10 @@ export default class alpaca extends Exchange {
                 const activityType = this.safeString (entry, 'activity_type');
                 const amount = this.safeString (entry, 'net_amount');
                 const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (amount, '0'));
-                const entryDirection = isIncoming ? 'INCOMING' : 'OUTGOING';
+                let entryDirection: Str = 'OUTGOING';
+                if (isIncoming) {
+                    entryDirection = 'INCOMING';
+                }
                 if ((type === 'BOTH') || (entryDirection === type)) {
                     filtered.push (entry);
                 }
@@ -1818,7 +1911,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         return await this.fetchTransactionsHelper ('BOTH', code, since, limit, params);
     }
 
@@ -1833,7 +1926,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         return await this.fetchTransactionsHelper ('INCOMING', code, since, limit, params);
     }
 
@@ -1848,7 +1941,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         return await this.fetchTransactionsHelper ('OUTGOING', code, since, limit, params);
     }
 
@@ -1977,7 +2070,7 @@ export default class alpaca extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransactionType (type: any) {
+    parseTransactionType (type: Str): Str {
         const types: Dict = {
             'INCOMING': 'deposit',
             'OUTGOING': 'withdrawal',
@@ -1990,14 +2083,20 @@ export default class alpaca extends Exchange {
      * @name alpaca#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.alpaca.markets/reference/getaccount-1
+     * @see https://docs.alpaca.markets/reference/getallopenpositions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}. note that `info` is
+     * the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+     * before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const response = await this.traderPrivateGetV2Account (params);
+        // the two calls stay sequential deliberately — the static request harness records one request per case,
+        // and concurrent calls make the recorded url nondeterministic per language
+        const account = await this.traderPrivateGetV2Account (params);
+        const positions = await this.traderPrivateGetV2Positions ();
         //
         //     {
         //         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -2046,42 +2145,108 @@ export default class alpaca extends Exchange {
         //         "pending_reg_taf_fees": "0"
         //     }
         //
+        const response: Dict = {
+            'account': account,
+            'positions': positions,
+        };
         return this.parseBalance (response);
     }
 
     override parseBalance (response: any): Balances {
+        //
+        // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
+        //
+        //     "positions": [
+        //         {
+        //             "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+        //             "symbol": "BTCUSD",
+        //             "exchange": "CRYPTO",
+        //             "asset_class": "crypto",
+        //             "asset_marginable": false,
+        //             "qty": "0.000207296",
+        //             "avg_entry_price": "80037",
+        //             "side": "long",
+        //             "market_value": "16.592345",
+        //             "cost_basis": "16.59135",
+        //             "unrealized_pl": "0.000995",
+        //             "unrealized_plpc": "0.00006",
+        //             "current_price": "80041.8",
+        //             "qty_available": "0.000207296"
+        //         }
+        //     ]
+        //
+        const account = this.safeDict (response, 'account', {});
+        const positions: Dict[] = this.safeList (response, 'positions', []);
         const result: Dict = { 'info': response };
-        const account = this.account ();
-        const currencyId = this.safeString (response, 'currency');
+        const currencyId = this.safeString (account, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        account['free'] = this.safeString (response, 'cash');
-        account['total'] = this.safeString (response, 'equity');
         if (code !== undefined) {
-            result[code] = account;
+            const cashAccount = this.account ();
+            cashAccount['free'] = this.safeString (account, 'cash'); // cash already excludes the amounts held for open orders, verified live 2026-09-16
+            const equity = this.safeString (account, 'equity');
+            const positionsValue = this.safeString (account, 'position_market_value');
+            cashAccount['total'] = Precise.stringSub (equity, positionsValue); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            result[code] = cashAccount;
+        }
+        for (let i = 0; i < positions.length; i++) {
+            const position = this.safeDict (positions, i);
+            const positionSymbol = this.safeString (position, 'symbol');
+            if (positionSymbol === undefined) {
+                continue;
+            }
+            let baseId: Str = undefined;
+            if (positionSymbol.indexOf ('/') >= 0) {
+                const parts = positionSymbol.split ('/');
+                baseId = this.safeString (parts, 0);
+            } else {
+                // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
+                const baseLength = positionSymbol.length - 3;
+                if ((baseLength > 0) && (positionSymbol.slice (baseLength) === 'USD')) {
+                    baseId = positionSymbol.slice (0, baseLength);
+                }
+            }
+            if (baseId === undefined) {
+                continue; // an unrecognized position symbol shape must not break the whole balance
+            }
+            const positionCode = this.safeCurrencyCode (baseId);
+            if ((positionCode !== undefined) && !(positionCode in result)) {
+                const positionAccount = this.account ();
+                positionAccount['free'] = this.safeString (position, 'qty_available');
+                positionAccount['total'] = this.safeString (position, 'qty');
+                result[positionCode] = positionAccount;
+            }
         }
         return this.safeBalance (result);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let endpoint = '/' + this.implodeParams (path, params);
-        let url = this.implodeHostname (this.urls['api'][api[0]]);
-        headers = (headers !== undefined) ? headers : {};
+        const baseApiUrl = this.safeString (this.urls['api'], api[0]);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let headersValue: NullableDict = {};
+        if (headers !== undefined) {
+            headersValue = headers;
+        }
         if (api[1] === 'private') {
             this.checkRequiredCredentials ();
-            headers['APCA-API-KEY-ID'] = this.apiKey;
-            headers['APCA-API-SECRET-KEY'] = this.secret;
+            headersValue['APCA-API-KEY-ID'] = this.apiKey;
+            headersValue['APCA-API-SECRET-KEY'] = this.secret;
         }
         const query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length) {
+        let bodyJson: Str = undefined;
+        if (Object.keys (query).length > 0) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.urlencode (query);
             } else {
-                body = this.json (query);
-                headers['Content-Type'] = 'application/json';
+                bodyJson = this.json (query);
+                headersValue['Content-Type'] = 'application/json';
             }
         }
-        url = url + endpoint;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const url = this.implodeHostname (baseApiUrl) + endpoint;
+        const bodyResolved: Str = (bodyJson === undefined) ? body : bodyJson;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -2097,11 +2262,16 @@ export default class alpaca extends Exchange {
         if (code !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
-        const message = this.safeValue (response, 'message');
+        const message = this.safeString (response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            throw new ExchangeError (feedback);
+            const codeAsString = code.toString ();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
+                throw new ExchangeError (feedback);
+            }
+            // unmapped messages on the remaining error statuses fall through to the default http-status handler
         }
         return undefined;
     }

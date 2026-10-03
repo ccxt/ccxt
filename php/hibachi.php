@@ -259,9 +259,9 @@ class hibachi extends Exchange {
             'commonCurrencies' => array(),
             'exceptions' => array(
                 'exact' => array(
-                    '2' => '\\ccxt\\BadRequest', // array("errorCode":2,"message":"Invalid signature => Failed to verify signature")
-                    '3' => '\\ccxt\\OrderNotFound', // array("errorCode":3,"message":"Not found => order ID 33","status":"failed")
-                    '4' => '\\ccxt\\BadRequest', // array("errorCode":4,"message":"Missing accountId","status":"failed")
+                    '2' => '\\ccxt\\BadRequest', // {"errorCode":2,"message":"Invalid signature: Failed to verify signature"}
+                    '3' => '\\ccxt\\OrderNotFound', // {"errorCode":3,"message":"Not found: order ID 33","status":"failed"}
+                    '4' => '\\ccxt\\BadRequest', // {"errorCode":4,"message":"Missing accountId","status":"failed"}
                 ),
                 'broad' => array(
                 ),
@@ -284,6 +284,9 @@ class hibachi extends Exchange {
         $quoteId = $this->safe_string($market, 'settlementSymbol');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settleId = $this->safe_string($market, 'settlementSymbol');
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
@@ -350,31 +353,31 @@ class hibachi extends Exchange {
          * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetMarketExchangeInfo($params);
-        // array(
-        //     "displayName" => "ETH/USDT Perps",
-        //     "id" => 1,
-        //     "maintenanceFactorForPositions" => "0.030000",
-        //     "marketCloseTimestamp" => null,
-        //     "marketOpenTimestamp" => null,
-        //     "minNotional" => "1",
-        //     "minOrderSize" => "0.000000001",
-        //     "orderbookGranularities" => array(
+        // {
+        //     "displayName": "ETH/USDT Perps",
+        //     "id": 1,
+        //     "maintenanceFactorForPositions": "0.030000",
+        //     "marketCloseTimestamp": null,
+        //     "marketOpenTimestamp": null,
+        //     "minNotional": "1",
+        //     "minOrderSize": "0.000000001",
+        //     "orderbookGranularities": [
         //         "0.01",
         //         "0.1",
         //         "1",
         //         "10"
-        //     ),
-        //     "riskFactorForOrders" => "0.066667",
-        //     "riskFactorForPositions" => "0.030000",
-        //     "settlementDecimals" => 6,
-        //     "settlementSymbol" => "USDT",
-        //     "status" => "LIVE",
-        //     "stepSize" => "0.000000001",
-        //     "symbol" => "ETH/USDT-P",
-        //     "tickSize" => "0.000001",
-        //     "underlyingDecimals" => 9,
-        //     "underlyingSymbol" => "ETH"
-        // ),
+        //     ],
+        //     "riskFactorForOrders": "0.066667",
+        //     "riskFactorForPositions": "0.030000",
+        //     "settlementDecimals": 6,
+        //     "settlementSymbol": "USDT",
+        //     "status": "LIVE",
+        //     "stepSize": "0.000000001",
+        //     "symbol": "ETH/USDT-P",
+        //     "tickSize": "0.000001",
+        //     "underlyingDecimals": 9,
+        //     "underlyingSymbol": "ETH"
+        // },
         $rows = $this->safe_list($response, 'futureContracts');
         return $this->parse_markets($rows);
     }
@@ -462,18 +465,18 @@ class hibachi extends Exchange {
         $response = $this->privateGetTradeAccountInfo($this->extend($request, $params));
         //
         // {
-        //     assets => array( array( quantity => '3.000000', symbol => 'USDT' ) ),
-        //     balance => '3.000000',
-        //     maximalWithdraw => '3.000000',
-        //     numFreeTransfersRemaining => '100',
-        //     positions => array(),
-        //     totalOrderNotional => '0.000000',
-        //     totalPositionNotional => '0.000000',
-        //     totalUnrealizedFundingPnl => '0.000000',
-        //     totalUnrealizedPnl => '0.000000',
-        //     totalUnrealizedTradingPnl => '0.000000',
-        //     tradeMakerFeeRate => '0.00000000',
-        //     tradeTakerFeeRate => '0.00020000'
+        //     assets: [ { quantity: '3.000000', symbol: 'USDT' } ],
+        //     balance: '3.000000',
+        //     maximalWithdraw: '3.000000',
+        //     numFreeTransfersRemaining: '100',
+        //     positions: [],
+        //     totalOrderNotional: '0.000000',
+        //     totalPositionNotional: '0.000000',
+        //     totalUnrealizedFundingPnl: '0.000000',
+        //     totalUnrealizedPnl: '0.000000',
+        //     totalUnrealizedTradingPnl: '0.000000',
+        //     tradeMakerFeeRate: '0.00000000',
+        //     tradeTakerFeeRate: '0.00020000'
         // }
         //
         return $this->parse_balance($response);
@@ -515,31 +518,31 @@ class hibachi extends Exchange {
     public function parse_trade(array $trade, ?array $market = null): array {
         // public fetchTrades:
         //      {
-        //          "price" => "3512.431902",
-        //          "quantity" => "1.414780098",
-        //          "takerSide" => "Buy",
-        //          "timestamp" => 1712692147
+        //          "price": "3512.431902",
+        //          "quantity": "1.414780098",
+        //          "takerSide": "Buy",
+        //          "timestamp": 1712692147
         //      }
         //
         // private fetchMyTrades:
         //      {
-        //          "askAccountId" => 221,
-        //          "askOrderId" => 589168494921909200,
-        //          "bidAccountId" => 132,
-        //          "bidOrderId" => 589168494829895700,
-        //          "fee" => "0.000477",
-        //          "id" => 199511136,
-        //          "orderType" => "MARKET",
-        //          "price" => "119257.90000",
-        //          "quantity" => "0.0000200000",
-        //          "realizedPnl" => "-0.000352",
-        //          "side" => "Sell",
-        //          "symbol" => "BTC/USDT-P",
-        //          "timestamp" => 1752543391
+        //          "askAccountId": 221,
+        //          "askOrderId": 589168494921909200,
+        //          "bidAccountId": 132,
+        //          "bidOrderId": 589168494829895700,
+        //          "fee": "0.000477",
+        //          "id": 199511136,
+        //          "orderType": "MARKET",
+        //          "price": "119257.90000",
+        //          "quantity": "0.0000200000",
+        //          "realizedPnl": "-0.000352",
+        //          "side": "Sell",
+        //          "symbol": "BTC/USDT-P",
+        //          "timestamp": 1752543391
         //      }
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $id = $this->safe_string($trade, 'id');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'quantity');
@@ -579,7 +582,7 @@ class hibachi extends Exchange {
             'type' => $orderType,
             'fee' => $fee,
             'info' => $trade,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -604,14 +607,14 @@ class hibachi extends Exchange {
         $response = $this->publicGetMarketDataTrades($this->extend($request, $params));
         //
         // {
-        //     "trades" => array(
-        //         array(
-        //             "price" => "111091.38352",
-        //             "quantity" => "0.0090090093",
-        //             "takerSide" => "Buy",
-        //             "timestamp" => 1752095479
-        //         ),
-        //     )
+        //     "trades": [
+        //         {
+        //             "price": "111091.38352",
+        //             "quantity": "0.0090090093",
+        //             "takerSide": "Buy",
+        //             "timestamp": 1752095479
+        //         },
+        //     ]
         // }
         //
         $trades = $this->safe_list($response, 'trades', array());
@@ -647,23 +650,23 @@ class hibachi extends Exchange {
         $promises = $rawPromises;
         $pricesResponse = $promises[0];
         // {
-        //     "askPrice" => "3514.650296",
-        //     "bidPrice" => "3513.596112",
-        //     "fundingRateEstimation" => array(
-        //         "estimatedFundingRate" => "0.000001",
-        //         "nextFundingTimestamp" => 1712707200
-        //     ),
-        //     "markPrice" => "3514.288858",
-        //     "spotPrice" => "3514.715000",
-        //     "symbol" => "ETH/USDT-P",
-        //     "tradePrice" => "2372.746570"
+        //     "askPrice": "3514.650296",
+        //     "bidPrice": "3513.596112",
+        //     "fundingRateEstimation": {
+        //         "estimatedFundingRate": "0.000001",
+        //         "nextFundingTimestamp": 1712707200
+        //     },
+        //     "markPrice": "3514.288858",
+        //     "spotPrice": "3514.715000",
+        //     "symbol": "ETH/USDT-P",
+        //     "tradePrice": "2372.746570"
         // }
         $statsResponse = $promises[1];
         // {
-        //     "high24h" => "3819.507827",
-        //     "low24h" => "3754.474162",
-        //     "symbol" => "ETH/USDT-P",
-        //     "volume24h" => "23554.858590416"
+        //     "high24h": "3819.507827",
+        //     "low24h": "3754.474162",
+        //     "symbol": "ETH/USDT-P",
+        //     "volume24h": "23554.858590416"
         // }
         $ticker = array(
             'prices' => $pricesResponse,
@@ -690,7 +693,7 @@ class hibachi extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $status = $this->safe_string($order, 'status');
         $type = $this->safe_string_lower($order, 'orderType');
         $price = $this->safe_string_2($order, 'price', 'avgFillPrice');
@@ -714,7 +717,7 @@ class hibachi extends Exchange {
             $remainingString = Precise::string_sub($totalQuantity, $filled);
         }
         $timeInForce = 'GTC';
-        $orderFlags = $this->safe_value($order, 'orderFlags');
+        $orderFlags = $this->safe_string($order, 'orderFlags');
         $postOnly = false;
         $reduceOnly = false;
         if ($orderFlags === 'POST_ONLY') {
@@ -739,7 +742,7 @@ class hibachi extends Exchange {
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'status' => $this->parse_order_status($status),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'timeInForce' => $timeInForce,
             'side' => $side,
@@ -754,7 +757,7 @@ class hibachi extends Exchange {
             'reduceOnly' => $reduceOnly,
             'postOnly' => $postOnly,
             'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -799,10 +802,10 @@ class hibachi extends Exchange {
             'accountId' => $this->get_account_id(),
         );
         $response = $this->privateGetTradeAccountInfo($this->extend($request, $params));
-        //    array(
-        //        "tradeMakerFeeRate" => "0.00000000",
-        //        "tradeTakerFeeRate" => "0.00020000"
-        //    ),
+        //    {
+        //        "tradeMakerFeeRate": "0.00000000",
+        //        "tradeTakerFeeRate": "0.00020000"
+        //    },
         $makerFeeRate = $this->safe_number($response, 'tradeMakerFeeRate');
         $takerFeeRate = $this->safe_number($response, 'tradeTakerFeeRate');
         $result = array();
@@ -820,12 +823,12 @@ class hibachi extends Exchange {
         return $result;
     }
 
-    public function order_message(mixed $market, float $nonce, float $feeRate, ?string $type, ?string $side, ?float $amount, ?float $price = null) {
+    public function order_message(array $market, float $nonce, float $feeRate, ?string $type, ?string $side, ?float $amount, ?float $price = null) {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $sideInternal = 0;
         if ($side === 'sell') {
@@ -834,9 +837,9 @@ class hibachi extends Exchange {
             $sideInternal = 1;
         }
         // Converting them to internal representation:
-        // - Quantity => Internal = External * (10^underlyingDecimals)
-        // - Price => Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
-        // - FeeRate => Internal = External * (10^8)
+        // - Quantity: Internal = External * (10^underlyingDecimals)
+        // - Price: Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
+        // - FeeRate: Internal = External * (10^8)
         $amountStr = $this->amount_to_precision($this->safe_string($market, 'symbol'), $amount);
         $feeRateStr = $this->number_to_string($feeRate);
         $info = $this->safe_dict($market, 'info');
@@ -876,12 +879,12 @@ class hibachi extends Exchange {
         return $message;
     }
 
-    public function create_order_request(float $nonce, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(float $nonce, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $takerFee = $this->safe_number($market, 'taker', $this->safe_number($this->options, 'defaultTakerFee', 0.00045));
@@ -896,7 +899,7 @@ class hibachi extends Exchange {
             $sideInternal = 'BID';
         }
         $priceInternal = '';
-        if ($price) {
+        if (($price !== null) && ($price !== 0)) {
             $priceInternal = $this->price_to_precision($symbol, $price);
         }
         $message = $this->order_message($market, $nonce, $feeRate, $type, $side, $amount, $price);
@@ -919,17 +922,17 @@ class hibachi extends Exchange {
             $request['orderFlags'] = 'POST_ONLY';
         } elseif ($timeInForce === 'ioc') {
             $request['orderFlags'] = 'IOC';
-        } elseif ($reduceOnly) {
+        } elseif ($reduceOnly === true) {
             $request['orderFlags'] = 'REDUCE_ONLY';
         }
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $triggerPrice;
         }
-        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ));
-        return $this->extend($request, $params);
+        $paramsOmitted = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ));
+        return $this->extend($request, $paramsOmitted);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -946,13 +949,13 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $request = $this->create_order_request($nonce, $symbol, $type, $side, $amount, $price, $params);
         $request['accountId'] = $this->get_account_id();
         $response = $this->privatePostTradeOrder($request);
         //
         // {
-        //     "orderId" => "578721673790138368"
+        //     "orderId": "578721673790138368"
         // }
         //
         return $this->safe_order(array(
@@ -974,15 +977,15 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_order_request($nonce . $i, $symbol, $type, $side, $amount, $price, $orderParams);
             $orderRequest['action'] = 'place';
@@ -994,7 +997,7 @@ class hibachi extends Exchange {
         );
         $response = $this->privatePostTradeOrders($this->extend($request, $params));
         //
-        // array( "orders" => array( array( $nonce => '1754349993908', orderId => '589642085255349248' ) ) )
+        // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         $ret = array();
         $responseOrders = $this->safe_list($response, 'orders', array());
@@ -1009,12 +1012,12 @@ class hibachi extends Exchange {
         return $ret;
     }
 
-    public function edit_order_request(float $nonce, ?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_request(float $nonce, ?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $takerFee = $this->safe_number($market, 'taker', 0);
@@ -1035,7 +1038,7 @@ class hibachi extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a limit order that is not matched
          *
@@ -1053,13 +1056,13 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $request = $this->edit_order_request($nonce, $id, $symbol, $type, $side, $amount, $price, $params);
         $request['accountId'] = $this->get_account_id();
         $this->privatePutTradeOrder($request);
-        // At this time the response body is empty. A 200 response means the update $request is accepted and sent to process
+        // At this time the response body is empty. A 200 response means the update request is accepted and sent to process
         //
-        // array()
+        // {}
         //
         return $this->safe_order(array(
             'id' => $id,
@@ -1080,16 +1083,16 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $id = $this->safe_string($rawOrder, 'id');
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->edit_order_request($nonce . $i, $id, $symbol, $type, $side, $amount, $price, $orderParams);
             $orderRequest['action'] = 'modify';
@@ -1101,7 +1104,7 @@ class hibachi extends Exchange {
         );
         $response = $this->privatePostTradeOrders($this->extend($request, $params));
         //
-        // array( "orders" => array( array( "orderId" => "589636801329628160" ) ) )
+        // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         $ret = array();
         $responseOrders = $this->safe_list($response, 'orders', array());
@@ -1128,7 +1131,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://api-doc.hibachi.xyz/#e99c4f48-e610-4b7c-b7f6-1b4bb7af0271
@@ -1142,9 +1145,9 @@ class hibachi extends Exchange {
         $request = $this->cancel_order_request($id);
         $request['accountId'] = $this->get_account_id();
         $response = $this->privateDeleteTradeOrder($this->extend($request, $params));
-        // At this time the $response body is empty. A 200 $response means the cancel $request is accepted and sent to cancel
+        // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
         //
-        // array()
+        // {}
         //
         return $this->safe_order(array(
             'info' => $response,
@@ -1153,7 +1156,7 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple $orders
          *
@@ -1176,7 +1179,7 @@ class hibachi extends Exchange {
         );
         $response = $this->privatePostTradeOrders($this->extend($request, $params));
         //
-        // array( "orders" => array( array( "orderId" => "589636801329628160" ) ) )
+        // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         $ret = array();
         $responseOrders = $this->safe_list($response, 'orders', array());
@@ -1191,7 +1194,7 @@ class hibachi extends Exchange {
         return $ret;
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
@@ -1204,7 +1207,7 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $nonce16 = $this->int_to_base16($nonce);
         $noncePadded = str_pad($nonce16, 16, '0', STR_PAD_LEFT);
         $message = $this->base16_to_binary($noncePadded);
@@ -1219,9 +1222,9 @@ class hibachi extends Exchange {
             $request['contractId'] = $this->safe_integer($market, 'numericId');
         }
         $response = $this->privateDeleteTradeOrders($this->extend($request, $params));
-        // At this time the $response body is empty. A 200 $response means the cancel $request is accepted and sent to process
+        // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to process
         //
-        // array()
+        // {}
         //
         return array(
             $this->safe_order(array(
@@ -1232,9 +1235,9 @@ class hibachi extends Exchange {
 
     public function encode_withdraw_message(?float $amount, ?float $maxFees, string $address) {
         // Converting them to internal representation:
-        // - Quantity => Internal = External * (10^6)
-        // - $maxFees => Internal = External * (10^6)
-        // We only have USDT currency time
+        // - Quantity: Internal = External * (10^6)
+        // - maxFees: Internal = External * (10^6)
+        // We only have USDT as our currency as this time
         $USDTAssetId = 1;
         $USDTFactor = '1000000';
         $amountStr = $this->number_to_string($amount);
@@ -1274,17 +1277,17 @@ class hibachi extends Exchange {
         // Get the withdraw fees
         $exchangeInfo = $this->publicGetMarketExchangeInfo($params);
         // {
-        //      "feeConfig" => array(
-        //          "depositFees" => "0.004518",
-        //          "tradeMakerFeeRate" => "0.00000000",
-        //          "tradeTakerFeeRate" => "0.00020000",
-        //          "transferFeeRate" => "0.00010000",
-        //          "withdrawalFees" => "0.012050"
-        //    ),
+        //      "feeConfig": {
+        //          "depositFees": "0.004518",
+        //          "tradeMakerFeeRate": "0.00000000",
+        //          "tradeTakerFeeRate": "0.00020000",
+        //          "transferFeeRate": "0.00010000",
+        //          "withdrawalFees": "0.012050"
+        //    },
         // }
         $feeConfig = $this->safe_dict($exchangeInfo, 'feeConfig');
         $maxFees = $this->safe_number($feeConfig, 'withdrawalFees');
-        // Generate the $signature
+        // Generate the signature
         $message = $this->encode_withdraw_message($amount, $maxFees, $withdrawAddress);
         $signature = $this->sign_message($message, $this->privateKey);
         $request = array(
@@ -1298,9 +1301,9 @@ class hibachi extends Exchange {
             'signature' => $signature,
         );
         $this->privatePostCapitalWithdraw($this->extend($request, $params));
-        // At this time the response body is empty. A 200 response means the withdraw $request is accepted and sent to process
+        // At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
         //
-        // array()
+        // {}
         //
         return array(
             'info' => null,
@@ -1326,16 +1329,16 @@ class hibachi extends Exchange {
         );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, string $privateKey): string {
         if (strlen($privateKey) === 44) {
-            // For Exchange Managed account, the key length is 44 and we use HMAC to sign the $message
+            // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
             return $this->hmac($message, $this->encode($privateKey), 'sha256', 'hex');
         } else {
-            // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the $message
+            // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             $hash = $this->hash($message, 'sha256', 'hex');
             $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
             $r = $signature['r'];
@@ -1368,47 +1371,47 @@ class hibachi extends Exchange {
         $formattedResponse['ask'] = $this->safe_list($this->safe_dict($response, 'ask'), 'levels');
         $formattedResponse['bid'] = $this->safe_list($this->safe_dict($response, 'bid'), 'levels');
         // {
-        //     "ask" => {
-        //         "endPrice" => "3512.63",
-        //         "levels" => array(
-        //             array(
-        //                 "price" => "3511.93",
-        //                 "quantity" => "0.284772482"
-        //             ),
-        //             array(
-        //                 "price" => "3512.28",
-        //                 "quantity" => "0.569544964"
-        //             ),
-        //             array(
-        //                 "price" => "3512.63",
-        //                 "quantity" => "0.854317446"
-        //             }
-        //         ),
-        //         "startPrice" => "3511.93"
-        //     ),
-        //     "bid" => {
-        //         "endPrice" => "3510.87",
-        //         "levels" => array(
-        //             array(
-        //                 "price" => "3515.39",
-        //                 "quantity" => "2.345153070"
-        //             ),
-        //             array(
-        //                 "price" => "3511.22",
-        //                 "quantity" => "0.284772482"
-        //             ),
+        //     "ask": {
+        //         "endPrice": "3512.63",
+        //         "levels": [
         //             {
-        //                 "price" => "3510.87",
-        //                 "quantity" => "0.569544964"
+        //                 "price": "3511.93",
+        //                 "quantity": "0.284772482"
+        //             },
+        //             {
+        //                 "price": "3512.28",
+        //                 "quantity": "0.569544964"
+        //             },
+        //             {
+        //                 "price": "3512.63",
+        //                 "quantity": "0.854317446"
         //             }
-        //         ),
-        //         "startPrice" => "3515.39"
+        //         ],
+        //         "startPrice": "3511.93"
+        //     },
+        //     "bid": {
+        //         "endPrice": "3510.87",
+        //         "levels": [
+        //             {
+        //                 "price": "3515.39",
+        //                 "quantity": "2.345153070"
+        //             },
+        //             {
+        //                 "price": "3511.22",
+        //                 "quantity": "0.284772482"
+        //             },
+        //             {
+        //                 "price": "3510.87",
+        //                 "quantity": "0.569544964"
+        //             }
+        //         ],
+        //         "startPrice": "3515.39"
         //     }
         // }
         return $this->parse_order_book($formattedResponse, $symbol, $this->milliseconds(), 'bid', 'ask', 'price', 'quantity');
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://api-doc.hibachi.xyz/#0adbf143-189f-40e0-afdc-88af4cba3c79
@@ -1431,23 +1434,23 @@ class hibachi extends Exchange {
         $response = $this->privateGetTradeAccountTrades($this->extend($request, $params));
         //
         // {
-        //     "trades" => array(
+        //     "trades": [
         //         {
-        //             "askAccountId" => 221,
-        //             "askOrderId" => 589168494921909200,
-        //             "bidAccountId" => 132,
-        //             "bidOrderId" => 589168494829895700,
-        //             "fee" => "0.000477",
-        //             "id" => 199511136,
-        //             "orderType" => "MARKET",
-        //             "price" => "119257.90000",
-        //             "quantity" => "0.0000200000",
-        //             "realizedPnl" => "-0.000352",
-        //             "side" => "Sell",
-        //             "symbol" => "BTC/USDT-P",
-        //             "timestamp" => 1752543391
+        //             "askAccountId": 221,
+        //             "askOrderId": 589168494921909200,
+        //             "bidAccountId": 132,
+        //             "bidOrderId": 589168494829895700,
+        //             "fee": "0.000477",
+        //             "id": 199511136,
+        //             "orderType": "MARKET",
+        //             "price": "119257.90000",
+        //             "quantity": "0.0000200000",
+        //             "realizedPnl": "-0.000352",
+        //             "side": "Sell",
+        //             "symbol": "BTC/USDT-P",
+        //             "timestamp": 1752543391
         //         }
-        //     )
+        //     ]
         // }
         //
         $trades = $this->safe_list($response, 'trades');
@@ -1460,17 +1463,17 @@ class hibachi extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        // array(
+        // [
         //     {
-        //       "close" => "3704.751036",
-        //       "high" => "3716.530378",
-        //       "interval" => "1h",
-        //       "low" => "3699.627883",
-        //       "open" => "3716.406894",
-        //       "timestamp" => 1712628000,
-        //       "volumeNotional" => "1637355.846362"
+        //       "close": "3704.751036",
+        //       "high": "3716.530378",
+        //       "interval": "1h",
+        //       "low": "3699.627883",
+        //       "open": "3716.406894",
+        //       "timestamp": 1712628000,
+        //       "volumeNotional": "1637355.846362"
         //     }
-        //   )
+        //   ]
         //
         return array(
             $this->safe_integer_product($ohlcv, 'timestamp', 1000),
@@ -1489,7 +1492,7 @@ class hibachi extends Exchange {
          * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
          *
          * @param {string} [$symbol] unified $market $symbol to filter by
-         * @param {int} [$since] milisecond timestamp of the earliest order
+         * @param {int} [$since] millisecond timestamp of the earliest order
          * @param {int} [$limit] the maximum number of open orders to return
          * @param {array} [$params] extra parameters
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -1505,34 +1508,34 @@ class hibachi extends Exchange {
             'accountId' => $this->get_account_id(),
         );
         $response = $this->privateGetTradeOrders($this->extend($request, $params));
-        // array(
-        //     array(
-        //         "accountId" => 12452,
-        //         "availableQuantity" => "0.0000230769",
-        //         "contractId" => 2,
-        //         "creationTime" => 1752684501,
-        //         "orderId" => "589205486123876352",
-        //         "orderType" => "LIMIT",
-        //         "price" => "130000.00000",
-        //         "side" => "ASK",
-        //         "status" => "PLACED",
-        //         "symbol" => "BTC/USDT-P",
-        //         "totalQuantity" => "0.0000230769"
-        //     ),
+        // [
         //     {
-        //         "accountId" => 12452,
-        //         "availableQuantity" => "1.234000000",
-        //         "contractId" => 1,
-        //         "creationTime" => 1752240682,
-        //         "orderId" => "589089141754429441",
-        //         "orderType" => "LIMIT",
-        //         "price" => "1.234000",
-        //         "side" => "BID",
-        //         "status" => "PLACED",
-        //         "symbol" => "ETH/USDT-P",
-        //         "totalQuantity" => "1.234000000"
+        //         "accountId": 12452,
+        //         "availableQuantity": "0.0000230769",
+        //         "contractId": 2,
+        //         "creationTime": 1752684501,
+        //         "orderId": "589205486123876352",
+        //         "orderType": "LIMIT",
+        //         "price": "130000.00000",
+        //         "side": "ASK",
+        //         "status": "PLACED",
+        //         "symbol": "BTC/USDT-P",
+        //         "totalQuantity": "0.0000230769"
+        //     },
+        //     {
+        //         "accountId": 12452,
+        //         "availableQuantity": "1.234000000",
+        //         "contractId": 1,
+        //         "creationTime": 1752240682,
+        //         "orderId": "589089141754429441",
+        //         "orderType": "LIMIT",
+        //         "price": "1.234000",
+        //         "side": "BID",
+        //         "status": "PLACED",
+        //         "symbol": "ETH/USDT-P",
+        //         "totalQuantity": "1.234000000"
         //     }
-        // )
+        // ]
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -1568,36 +1571,35 @@ class hibachi extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOrdersByStatus', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchOrdersByStatus', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->privateGetTradeOrdersHistory($this->extend($request, $params));
+        $response = $this->privateGetTradeOrdersHistory($this->extend($request, $paramsUntil));
         //
         //     {
-        //         "hasMore" => false,
-        //         "orders" => array(
+        //         "hasMore": false,
+        //         "orders": [
         //             {
-        //                 "accountId" => 128,
-        //                 "avgFillPrice" => "2900.000000",
-        //                 "closedAt" => 1777811627000,
-        //                 "createdAt" => 1777811620000,
-        //                 "filledQuantity" => "1.200000000",
-        //                 "orderFlags" => null,
-        //                 "orderId" => "596002791293190100",
-        //                 "orderType" => "MARKET",
-        //                 "parentOrderId" => null,
-        //                 "price" => null,
-        //                 "side" => "BID",
-        //                 "sourceType" => "regular",
-        //                 "status" => "Filled",
-        //                 "symbol" => "ETH/USDT-P",
-        //                 "totalQuantity" => "1.200000000",
-        //                 "triggerDirection" => null,
-        //                 "triggerPrice" => null
+        //                 "accountId": 128,
+        //                 "avgFillPrice": "2900.000000",
+        //                 "closedAt": 1777811627000,
+        //                 "createdAt": 1777811620000,
+        //                 "filledQuantity": "1.200000000",
+        //                 "orderFlags": null,
+        //                 "orderId": "596002791293190100",
+        //                 "orderType": "MARKET",
+        //                 "parentOrderId": null,
+        //                 "price": null,
+        //                 "side": "BID",
+        //                 "sourceType": "regular",
+        //                 "status": "Filled",
+        //                 "symbol": "ETH/USDT-P",
+        //                 "totalQuantity": "1.200000000",
+        //                 "triggerDirection": null,
+        //                 "triggerPrice": null
         //             }
-        //         )
+        //         ]
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
@@ -1655,41 +1657,40 @@ class hibachi extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $timeframe = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $timeframeValue = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'symbol' => $market['id'],
-            'interval' => $timeframe,
+            'interval' => $timeframeValue,
         );
         if ($since !== null) {
             $request['fromMs'] = $since;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'until');
         if ($until !== null) {
             $request['toMs'] = $until;
         }
-        $response = $this->publicGetMarketDataKlines($this->extend($request, $params));
+        $response = $this->publicGetMarketDataKlines($this->extend($request, $paramsUntil));
         //
-        // array(
+        // [
         //     {
-        //       "close" => "3704.751036",
-        //       "high" => "3716.530378",
-        //       "interval" => "1h",
-        //       "low" => "3699.627883",
-        //       "open" => "3716.406894",
-        //       "timestamp" => 1712628000,
-        //       "volumeNotional" => "1637355.846362"
+        //       "close": "3704.751036",
+        //       "high": "3716.530378",
+        //       "interval": "1h",
+        //       "low": "3699.627883",
+        //       "open": "3716.406894",
+        //       "timestamp": 1712628000,
+        //       "volumeNotional": "1637355.846362"
         //     }
-        //   )
+        //   ]
         //
         $klines = $this->safe_list($response, 'klines', array());
-        return $this->parse_ohlcvs($klines, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($klines, $market, $timeframeValue, $since, $limit);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): array {
@@ -1705,72 +1706,72 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
             'accountId' => $this->get_account_id(),
         );
         $response = $this->privateGetTradeAccountInfo($this->extend($request, $params));
         //
         // {
-        //     "assets" => array(
+        //     "assets": [
         //       {
-        //         "quantity" => "14.130626",
-        //         "symbol" => "USDT"
+        //         "quantity": "14.130626",
+        //         "symbol": "USDT"
         //       }
-        //     ),
-        //     "balance" => "14.186087",
-        //     "maximalWithdraw" => "4.152340",
-        //     "numFreeTransfersRemaining" => 96,
-        //     "positions" => array(
-        //       array(
-        //         "direction" => "Short",
-        //         "entryNotional" => "10.302213",
-        //         "notionalValue" => "10.225008",
-        //         "quantity" => "0.004310550",
-        //         "symbol" => "ETH/USDT-P",
-        //         "unrealizedFundingPnl" => "0.000000",
-        //         "unrealizedTradingPnl" => "0.077204"
-        //       ),
-        //       array(
-        //         "direction" => "Short",
-        //         "entryNotional" => "2.000016",
-        //         "notionalValue" => "1.999390",
-        //         "quantity" => "0.0000328410",
-        //         "symbol" => "BTC/USDT-P",
-        //         "unrealizedFundingPnl" => "0.000000",
-        //         "unrealizedTradingPnl" => "0.000625"
-        //       ),
+        //     ],
+        //     "balance": "14.186087",
+        //     "maximalWithdraw": "4.152340",
+        //     "numFreeTransfersRemaining": 96,
+        //     "positions": [
         //       {
-        //         "direction" => "Short",
-        //         "entryNotional" => "2.000015",
-        //         "notionalValue" => "2.022384",
-        //         "quantity" => "0.01470600",
-        //         "symbol" => "SOL/USDT-P",
-        //         "unrealizedFundingPnl" => "0.000000",
-        //         "unrealizedTradingPnl" => "-0.022369"
+        //         "direction": "Short",
+        //         "entryNotional": "10.302213",
+        //         "notionalValue": "10.225008",
+        //         "quantity": "0.004310550",
+        //         "symbol": "ETH/USDT-P",
+        //         "unrealizedFundingPnl": "0.000000",
+        //         "unrealizedTradingPnl": "0.077204"
+        //       },
+        //       {
+        //         "direction": "Short",
+        //         "entryNotional": "2.000016",
+        //         "notionalValue": "1.999390",
+        //         "quantity": "0.0000328410",
+        //         "symbol": "BTC/USDT-P",
+        //         "unrealizedFundingPnl": "0.000000",
+        //         "unrealizedTradingPnl": "0.000625"
+        //       },
+        //       {
+        //         "direction": "Short",
+        //         "entryNotional": "2.000015",
+        //         "notionalValue": "2.022384",
+        //         "quantity": "0.01470600",
+        //         "symbol": "SOL/USDT-P",
+        //         "unrealizedFundingPnl": "0.000000",
+        //         "unrealizedTradingPnl": "-0.022369"
         //       }
-        //     ),
+        //     ],
         //   }
         //
         $data = $this->safe_list($response, 'positions', array());
-        return $this->parse_positions($data, $symbols);
+        return $this->parse_positions($data, $symbolsNormalized);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
-        //     "direction" => "Short",
-        //     "entryNotional" => "10.302213",
-        //     "notionalValue" => "10.225008",
-        //     "quantity" => "0.004310550",
-        //     "symbol" => "ETH/USDT-P",
-        //     "unrealizedFundingPnl" => "0.000000",
-        //     "unrealizedTradingPnl" => "0.077204"
+        //     "direction": "Short",
+        //     "entryNotional": "10.302213",
+        //     "notionalValue": "10.225008",
+        //     "quantity": "0.004310550",
+        //     "symbol": "ETH/USDT-P",
+        //     "unrealizedFundingPnl": "0.000000",
+        //     "unrealizedTradingPnl": "0.077204"
         // }
         //
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $side = $this->safe_string_lower($position, 'direction');
         $quantity = $this->safe_string($position, 'quantity');
         $unrealizedFunding = $this->safe_string($position, 'unrealizedFundingPnl', '0');
@@ -1803,10 +1804,14 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'][$api] . $endpoint;
-        $headers = array( 'Hibachi-Client' => 'HibachiCCXT/unversioned' );
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $endpoint;
+        $headersValue = array( 'Hibachi-Client' => 'HibachiCCXT/unversioned' );
         if ($method === 'GET') {
             $request = $this->omit($params, $this->extract_params($path));
             $query = $this->urlencode($request);
@@ -1814,15 +1819,19 @@ class hibachi extends Exchange {
                 $url .= '?' . $query;
             }
         }
-        if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
-            $headers['Content-Type'] = 'application/json';
-            $body = $this->json($params);
+        $hasJsonBody = ($method === 'POST' || $method === 'PUT' || $method === 'DELETE');
+        if ($hasJsonBody) {
+            $headersValue['Content-Type'] = 'application/json';
+        }
+        $bodyResult = $body;
+        if ($hasJsonBody) {
+            $bodyResult = $this->json($params);
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $headers['Authorization'] = $this->apiKey;
+            $headersValue['Authorization'] = $this->apiKey;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersValue );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -1831,7 +1840,7 @@ class hibachi extends Exchange {
         }
         if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
-            //     array("errorCode":4,"message":"Invalid input => Invalid quantity => 0","status":"failed")
+            //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
             //
             $status = $this->safe_string($response, 'status');
             if ($status === 'failed') {
@@ -1847,7 +1856,7 @@ class hibachi extends Exchange {
         return null;
     }
 
-    public function parse_transaction_type(mixed $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'deposit' => 'transaction',
             'withdrawal' => 'transaction',
@@ -1946,86 +1955,86 @@ class hibachi extends Exchange {
             $this->privateGetTradeAccountTradingHistory($this->extend($request, $params)),
         );
         $promises = $rawPromises;
-        $responseCapitalHistory = $promises[0];
+        $responseCapitalHistory = $this->safe_dict($promises, 0);
         //
         // {
-        //     "transactions" => array(
-        //         array(
-        //             "assetId" => 1,
-        //             "blockNumber" => 358396669,
-        //             "chain" => "Arbitrum",
-        //             "etaTsSec" => null,
-        //             "id" => 358396669,
-        //             "quantity" => "0.999500",
-        //             "status" => "pending",
-        //             "timestampSec" => 1752692872,
-        //             "token" => "USDT",
-        //             "transactionHash" => "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
-        //             "transactionType" => "deposit"
-        //         ),
-        //         array(
-        //             "assetId" => 1,
-        //             "etaTsSec" => null,
-        //             "id" => 13116,
-        //             "instantWithdrawalChain" => null,
-        //             "instantWithdrawalToken" => null,
-        //             "isInstantWithdrawal" => false,
-        //             "quantity" => "0.040000",
-        //             "status" => "completed",
-        //             "timestampSec" => 1752542708,
-        //             "transactionHash" => "0xe89cf90b2408d1a273dc9427654145def102d9449e5e2cfc10690ccffc3d7e28",
-        //             "transactionType" => "withdrawal",
-        //             "withdrawalAddress" => "0x23625d5fc6a6e32638d908eb4c3a3415e5121f76"
-        //         ),
-        //         array(
-        //             "assetId" => 1,
-        //             "id" => 167,
-        //             "quantity" => "10.000000",
-        //             "srcAccountId" => 175,
-        //             "srcAddress" => "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
-        //             "status" => "completed",
-        //             "timestampSec" => 1732224729,
-        //             "transactionType" => "transfer-in"
-        //         ),
-        //         array(
-        //             "assetId" => 1,
-        //             "id" => 170,
-        //             "quantity" => "10.000000",
-        //             "receivingAccountId" => 175,
-        //             "receivingAddress" => "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
-        //             "status" => "completed",
-        //             "timestampSec" => 1732225631,
-        //             "transactionType" => "transfer-out"
-        //         ),
-        //     )
+        //     "transactions": [
+        //         {
+        //             "assetId": 1,
+        //             "blockNumber": 358396669,
+        //             "chain": "Arbitrum",
+        //             "etaTsSec": null,
+        //             "id": 358396669,
+        //             "quantity": "0.999500",
+        //             "status": "pending",
+        //             "timestampSec": 1752692872,
+        //             "token": "USDT",
+        //             "transactionHash": "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
+        //             "transactionType": "deposit"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "etaTsSec": null,
+        //             "id": 13116,
+        //             "instantWithdrawalChain": null,
+        //             "instantWithdrawalToken": null,
+        //             "isInstantWithdrawal": false,
+        //             "quantity": "0.040000",
+        //             "status": "completed",
+        //             "timestampSec": 1752542708,
+        //             "transactionHash": "0xe89cf90b2408d1a273dc9427654145def102d9449e5e2cfc10690ccffc3d7e28",
+        //             "transactionType": "withdrawal",
+        //             "withdrawalAddress": "0x23625d5fc6a6e32638d908eb4c3a3415e5121f76"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "id": 167,
+        //             "quantity": "10.000000",
+        //             "srcAccountId": 175,
+        //             "srcAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
+        //             "status": "completed",
+        //             "timestampSec": 1732224729,
+        //             "transactionType": "transfer-in"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "id": 170,
+        //             "quantity": "10.000000",
+        //             "receivingAccountId": 175,
+        //             "receivingAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
+        //             "status": "completed",
+        //             "timestampSec": 1732225631,
+        //             "transactionType": "transfer-out"
+        //         },
+        //     ]
         // }
         //
         $rowsCapitalHistory = $this->safe_list($responseCapitalHistory, 'transactions', array());
-        $responseTradingHistory = $promises[1];
+        $responseTradingHistory = $this->safe_dict($promises, 1);
         //
         // {
-        //     "tradingHistory" => array(
-        //         array(
-        //             "eventType" => "MARKET",
-        //             "fee" => "0.000008",
-        //             "priceOrFundingRate" => "119687.82481",
-        //             "quantity" => "0.0000003727",
-        //             "realizedPnl" => "0.004634",
-        //             "side" => "Sell",
-        //             "symbol" => "BTC/USDT-P",
-        //             "timestamp" => 1752522571
-        //         ),
-        //         array(
-        //             "eventType" => "FundingEvent",
-        //             "fee" => "0",
-        //             "priceOrFundingRate" => "0.000203",
-        //             "quantity" => "0.0000003727",
-        //             "realizedPnl" => "-0.000009067899008751979",
-        //             "side" => "Long",
-        //             "symbol" => "BTC/USDT-P",
-        //             "timestamp" => 1752508800
-        //         ),
-        //     )
+        //     "tradingHistory": [
+        //         {
+        //             "eventType": "MARKET",
+        //             "fee": "0.000008",
+        //             "priceOrFundingRate": "119687.82481",
+        //             "quantity": "0.0000003727",
+        //             "realizedPnl": "0.004634",
+        //             "side": "Sell",
+        //             "symbol": "BTC/USDT-P",
+        //             "timestamp": 1752522571
+        //         },
+        //         {
+        //             "eventType": "FundingEvent",
+        //             "fee": "0",
+        //             "priceOrFundingRate": "0.000203",
+        //             "quantity": "0.0000003727",
+        //             "realizedPnl": "-0.000009067899008751979",
+        //             "side": "Long",
+        //             "symbol": "BTC/USDT-P",
+        //             "timestamp": 1752508800
+        //         },
+        //     ]
         // }
         //
         $rowsTradingHistory = $this->safe_list($responseTradingHistory, 'tradingHistory', array());
@@ -2050,7 +2059,7 @@ class hibachi extends Exchange {
         );
         $response = $this->privateGetCapitalDepositInfo($this->extend($request, $params));
         // {
-        //     "depositAddressEvm" => "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
+        //     "depositAddressEvm": "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
         // }
         return array(
             'info' => $response,
@@ -2110,35 +2119,35 @@ class hibachi extends Exchange {
         );
         $response = $this->privateGetCapitalHistory($this->extend($request, $params));
         // {
-        //     "transactions" => array(
-        //         array(
-        //             "assetId" => 1,
-        //             "blockNumber" => 0,
-        //             "chain" => null,
-        //             "etaTsSec" => 1752758789,
-        //             "id" => 42688,
-        //             "quantity" => "6.130000",
-        //             "status" => "completed",
-        //             "timestampSec" => 1752758788,
-        //             "token" => null,
-        //             "transactionHash" => "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
-        //             "transactionType" => "deposit"
-        //         ),
-        //         array(
-        //             "assetId" => 1,
-        //             "etaTsSec" => null,
-        //             "id" => 12993,
-        //             "instantWithdrawalChain" => null,
-        //             "instantWithdrawalToken" => null,
-        //             "isInstantWithdrawal" => false,
-        //             "quantity" => "0.111930",
-        //             "status" => "completed",
-        //             "timestampSec" => 1752387891,
-        //             "transactionHash" => "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
-        //             "transactionType" => "withdrawal",
-        //             "withdrawalAddress" => "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
-        //         ),
-        //     )
+        //     "transactions": [
+        //         {
+        //             "assetId": 1,
+        //             "blockNumber": 0,
+        //             "chain": null,
+        //             "etaTsSec": 1752758789,
+        //             "id": 42688,
+        //             "quantity": "6.130000",
+        //             "status": "completed",
+        //             "timestampSec": 1752758788,
+        //             "token": null,
+        //             "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
+        //             "transactionType": "deposit"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "etaTsSec": null,
+        //             "id": 12993,
+        //             "instantWithdrawalChain": null,
+        //             "instantWithdrawalToken": null,
+        //             "isInstantWithdrawal": false,
+        //             "quantity": "0.111930",
+        //             "status": "completed",
+        //             "timestampSec": 1752387891,
+        //             "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
+        //             "transactionType": "withdrawal",
+        //             "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
+        //         },
+        //     ]
         // }
         $transactions = $this->safe_list($response, 'transactions', array());
         return $this->parse_transactions($transactions, $currency, $since, $limit, $params);
@@ -2178,16 +2187,16 @@ class hibachi extends Exchange {
         return $this->filter_by_since_limit($withdrawals, $since, $limit, 'timestamp');
     }
 
-    public function parse_settlement(mixed $settlement, ?array $market = null) {
+    public function parse_settlement(array $settlement, ?array $market = null): array {
         //
         //     {
-        //         "direction" => "Long",
-        //         "indexPrice" => "81.8781761",
-        //         "quantity" => "0.10000000",
-        //         "settledAmount" => "0.00005994405060281047",
-        //         "symbol" => "SOL/USDT-P",
-        //         "timestamp" => 1783389600,
-        //         "timestampNsPartial" => 0
+        //         "direction": "Long",
+        //         "indexPrice": "81.8781761",
+        //         "quantity": "0.10000000",
+        //         "settledAmount": "0.00005994405060281047",
+        //         "symbol": "SOL/USDT-P",
+        //         "timestamp": 1783389600,
+        //         "timestampNsPartial": 0
         //     }
         //
         $timestamp = $this->safe_timestamp($settlement, 'timestamp');
@@ -2201,7 +2210,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function parse_settlements(mixed $settlements, ?array $market = null) {
+    public function parse_settlements(array $settlements, ?array $market = null): array {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);
@@ -2209,7 +2218,7 @@ class hibachi extends Exchange {
         return $result;
     }
 
-    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical settlement records of the user
          *
@@ -2227,10 +2236,11 @@ class hibachi extends Exchange {
         $request = array(
             'accountId' => $this->get_account_id(),
         );
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['contractId'] = $market['numericId'];
-            $symbol = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         if ($since !== null) {
             $request['startTime'] = $this->parse_to_int($since / 1000);
@@ -2238,31 +2248,30 @@ class hibachi extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchMySettlementHistory', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchMySettlementHistory', 'until');
         if ($until !== null) {
             $request['endTime'] = $this->parse_to_int($until / 1000);
         }
-        $response = $this->privateGetTradeAccountSettlementsHistory($this->extend($request, $params));
+        $response = $this->privateGetTradeAccountSettlementsHistory($this->extend($request, $paramsUntil));
         //
         //     {
-        //         "settlements" => array(
+        //         "settlements": [
         //             {
-        //                 "direction" => "Long",
-        //                 "indexPrice" => "81.8781761",
-        //                 "quantity" => "0.10000000",
-        //                 "settledAmount" => "0.00005994405060281047",
-        //                 "symbol" => "SOL/USDT-P",
-        //                 "timestamp" => 1783389600,
-        //                 "timestampNsPartial" => 0
+        //                 "direction": "Long",
+        //                 "indexPrice": "81.8781761",
+        //                 "quantity": "0.10000000",
+        //                 "settledAmount": "0.00005994405060281047",
+        //                 "symbol": "SOL/USDT-P",
+        //                 "timestamp": 1783389600,
+        //                 "timestampNsPartial": 0
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'settlements', array());
         $settlements = $this->parse_settlements($data, $market);
         $sorted = $this->sort_by($settlements, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $symbolResolved, $since, $limit);
     }
 
     public function fetch_time($params = array()): ?int {
@@ -2276,12 +2285,12 @@ class hibachi extends Exchange {
          */
         $response = $this->publicGetExchangeUtcTimestamp($params);
         //
-        //     array( "timestampMs":1754077574040 )
+        //     { "timestampMs":1754077574040 }
         //
         return $this->safe_integer($response, 'timestampMs');
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open interest of a contract trading pair
          *
@@ -2300,7 +2309,7 @@ class hibachi extends Exchange {
         );
         $response = $this->publicGetMarketDataOpenInterest($this->extend($request, $params));
         //
-        //   array( "totalQuantity" : "2.3299770166" )
+        //   { "totalQuantity" : "2.3299770166" }
         //
         $timestamp = $this->milliseconds();
         return $this->safe_open_interest(array(
@@ -2333,16 +2342,16 @@ class hibachi extends Exchange {
         $response = $this->publicGetMarketDataPrices($this->extend($request, $params));
         //
         // {
-        //     "askPrice" => "3514.650296",
-        //     "bidPrice" => "3513.596112",
-        //     "fundingRateEstimation" => array(
-        //         "estimatedFundingRate" => "0.000001",
-        //         "nextFundingTimestamp" => 1712707200
-        //     ),
-        //     "markPrice" => "3514.288858",
-        //     "spotPrice" => "3514.715000",
-        //     "symbol" => "ETH/USDT-P",
-        //     "tradePrice" => "2372.746570"
+        //     "askPrice": "3514.650296",
+        //     "bidPrice": "3513.596112",
+        //     "fundingRateEstimation": {
+        //         "estimatedFundingRate": "0.000001",
+        //         "nextFundingTimestamp": 1712707200
+        //     },
+        //     "markPrice": "3514.288858",
+        //     "spotPrice": "3514.715000",
+        //     "symbol": "ETH/USDT-P",
+        //     "tradePrice": "2372.746570"
         // }
         //
         $funding = $this->safe_dict($response, 'fundingRateEstimation', array());
@@ -2370,7 +2379,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -2392,14 +2401,14 @@ class hibachi extends Exchange {
         $response = $this->publicGetMarketDataFundingRates($this->extend($request, $params));
         //
         // {
-        //     "data" => array(
+        //     "data": [
         //         {
-        //             "contractId" => 2,
-        //             "fundingTimestamp" => 1753488000,
-        //             "fundingRate" => "0.000137",
-        //             "indexPrice" => "117623.65010"
+        //             "contractId": 2,
+        //             "fundingTimestamp": 1753488000,
+        //             "fundingRate": "0.000137",
+        //             "indexPrice": "117623.65010"
         //         }
-        //     )
+        //     ]
         // }
         //
         $data = $this->safe_list($response, 'data', array());

@@ -173,7 +173,9 @@ export default class indodax extends Exchange {
                         'openOrders': { 'cost': 4 },
                         'orderHistory': { 'cost': 4 },
                         'getOrder': { 'cost': 4 },
+                        'getOrderByClientOrderId': { 'cost': 4 },
                         'cancelOrder': { 'cost': 4 },
+                        'cancelByClientOrderId': { 'cost': 4 },
                         'withdrawFee': { 'cost': 4 },
                         'withdrawCoin': { 'cost': 4 },
                         'listDownline': { 'cost': 4 },
@@ -311,7 +313,7 @@ export default class indodax extends Exchange {
         });
     }
     nonce() {
-        return this.milliseconds() - this.options['timeDifference'];
+        return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
     /**
      * @method
@@ -376,7 +378,11 @@ export default class indodax extends Exchange {
             const quoteId = this.safeString(market, 'base_currency');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const isMaintenance = this.safeInteger(market, 'is_maintenance');
+            const inMaintenance = (isMaintenance !== undefined) && (isMaintenance !== 0);
             result.push({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -392,7 +398,7 @@ export default class indodax extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': isMaintenance ? false : true,
+                'active': inMaintenance ? false : true,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -433,9 +439,9 @@ export default class indodax extends Exchange {
         return result;
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'return', {});
-        const free = this.safeValue(balances, 'balance', {});
-        const used = this.safeValue(balances, 'balance_hold', {});
+        const balances = this.safeDict(response, 'return', {});
+        const free = this.safeDict(balances, 'balance', {});
+        const used = this.safeDict(balances, 'balance_hold', {});
         const timestamp = this.safeTimestamp(balances, 'server_time');
         const result = {
             'info': response,
@@ -720,23 +726,21 @@ export default class indodax extends Exchange {
         const selectedTimeframe = this.safeString(this.timeframes, timeframe, timeframe);
         const now = this.seconds();
         const until = this.safeInteger(params, 'until', now);
-        params = this.omit(params, ['until']);
+        const paramsOmitted = this.omit(params, ['until']);
         const request = {
             'to': until,
             'tf': selectedTimeframe,
             'symbol': market['id'],
         };
-        if (limit === undefined) {
-            limit = 1000;
-        }
+        const limitResolved = (limit === undefined) ? 1000 : limit;
         if (since !== undefined) {
             request['from'] = Math.floor(since / 1000);
         }
         else {
             const duration = this.parseTimeframe(timeframe);
-            request['from'] = now - limit * duration - 1;
+            request['from'] = now - limitResolved * duration - 1;
         }
-        const response = await this.publicGetTradingviewHistoryV2(this.extend(request, params));
+        const response = await this.publicGetTradingviewHistoryV2(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -749,7 +753,7 @@ export default class indodax extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limitResolved);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -803,7 +807,7 @@ export default class indodax extends Exchange {
         //
         let side = undefined;
         if ('type' in order) {
-            side = order['type'];
+            side = this.safeString(order, 'type');
         }
         const status = this.parseOrderStatus(this.safeString(order, 'status', 'open'));
         let symbol = undefined;
@@ -813,15 +817,15 @@ export default class indodax extends Exchange {
         let remaining = undefined;
         let filled = undefined;
         const marketId = this.safeString(order, 'pair');
-        market = this.safeMarket(marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            let quoteId = market['quoteId'];
-            let baseId = market['baseId'];
-            if ((market['quoteId'] === 'idr') && ('order_rp' in order)) {
+        const marketResolved = this.safeMarket(marketId, market);
+        if (marketResolved !== undefined) {
+            symbol = marketResolved['symbol'];
+            let quoteId = marketResolved['quoteId'];
+            let baseId = marketResolved['baseId'];
+            if ((marketResolved['quoteId'] === 'idr') && ('order_rp' in order)) {
                 quoteId = 'rp';
             }
-            if ((market['baseId'] === 'idr') && ('remain_rp' in order)) {
+            if ((marketResolved['baseId'] === 'idr') && ('remain_rp' in order)) {
                 baseId = 'rp';
             }
             cost = this.safeString(order, 'order_' + quoteId);
@@ -911,7 +915,7 @@ export default class indodax extends Exchange {
         const openOrdersResult = this.safeDict(response, 'return', {});
         const rawOrders = openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
-        if (!rawOrders) {
+        if ((rawOrders === undefined) || (rawOrders === null)) {
             return [];
         }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
@@ -983,11 +987,15 @@ export default class indodax extends Exchange {
         };
         let priceIsRequired = false;
         let quantityIsRequired = false;
+        const isMarketBuy = (type === 'market') && (side === 'buy');
+        let paramsOmitted = params;
+        if (isMarketBuy) {
+            paramsOmitted = this.omit(params, 'cost');
+        }
         if (type === 'market') {
             if (side === 'buy') {
                 let quoteAmount = undefined;
                 const cost = this.safeNumber(params, 'cost');
-                params = this.omit(params, 'cost');
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 }
@@ -1022,8 +1030,8 @@ export default class indodax extends Exchange {
         if (quantityIsRequired) {
             request[market['baseId']] = this.amountToPrecision(symbol, amount);
         }
-        const result = await this.privatePostTrade(this.extend(request, params));
-        const data = this.safeValue(result, 'return', {});
+        const result = await this.privatePostTrade(this.extend(request, paramsOmitted));
+        const data = this.safeDict(result, 'return', {});
         const id = this.safeString(data, 'order_id');
         return this.safeOrder({
             'info': result,
@@ -1044,7 +1052,7 @@ export default class indodax extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        const side = this.safeValue(params, 'side');
+        const side = this.safeString(params, 'side');
         if (side === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires an extra "side" param');
         }
@@ -1108,7 +1116,7 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'return', {});
+        const data = this.safeDict(response, 'return', {});
         const currencyId = this.safeString(data, 'currency');
         return {
             'info': response,
@@ -1229,9 +1237,9 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'return', {});
-        const withdraw = this.safeValue(data, 'withdraw', {});
-        const deposit = this.safeValue(data, 'deposit', {});
+        const data = this.safeDict(response, 'return', {});
+        const withdraw = this.safeDict(data, 'withdraw', {});
+        const deposit = this.safeDict(data, 'deposit', {});
         let transactions = [];
         let currency = undefined;
         if (code === undefined) {
@@ -1248,8 +1256,8 @@ export default class indodax extends Exchange {
         }
         else {
             currency = this.currency(code);
-            const withdraws = this.safeValue(withdraw, currency['id'], []);
-            const deposits = this.safeValue(deposit, currency['id'], []);
+            const withdraws = this.safeList(withdraw, currency['id'], []);
+            const deposits = this.safeList(deposit, currency['id'], []);
             transactions = this.arrayConcat(withdraws, deposits);
         }
         return this.parseTransactions(transactions, currency, since, limit);
@@ -1267,7 +1275,7 @@ export default class indodax extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1286,10 +1294,10 @@ export default class indodax extends Exchange {
             'withdraw_address': address,
             'request_id': requestId.toString(),
         };
-        if (tag) {
-            request['withdraw_memo'] = tag;
+        if ((tagWithdrawTag !== undefined) && (tagWithdrawTag !== '')) {
+            request['withdraw_memo'] = tagWithdrawTag;
         }
-        const response = await this.privatePostWithdrawCoin(this.extend(request, params));
+        const response = await this.privatePostWithdrawCoin(this.extend(request, paramsWithdrawTag));
         //
         //     {
         //         "success": 1,
@@ -1493,29 +1501,44 @@ export default class indodax extends Exchange {
         return result;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
-        if (api === 'public') {
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl;
+        let privateBody = undefined;
+        let privateHeaders = undefined;
+        const isPublic = (api === 'public');
+        if (isPublic) {
             const query = this.omit(params, this.extractParams(path));
             const requestPath = '/' + this.implodeParams(path, params);
-            url = url + requestPath;
-            if (Object.keys(query).length) {
+            url += requestPath;
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
         else {
             this.checkRequiredCredentials();
-            body = this.urlencode(this.extend({
+            privateBody = this.urlencode(this.extend({
                 'method': path,
                 'timestamp': this.nonce(),
                 'recvWindow': this.options['recvWindow'],
             }, params));
-            headers = {
+            privateHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac(this.encode(body), this.encode(this.secret), sha512),
+                'Sign': this.hmac(this.encode(privateBody), this.encode(this.secret), sha512),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        let requestBody = privateBody;
+        if (isPublic) {
+            requestBody = body;
+        }
+        let requestHeaders = privateHeaders;
+        if (isPublic) {
+            requestHeaders = headers;
+        }
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -1528,7 +1551,7 @@ export default class indodax extends Exchange {
         if (Array.isArray(response)) {
             return undefined; // public endpoints may return []-arrays
         }
-        const error = this.safeValue(response, 'error', '');
+        const error = this.safeString(response, 'error', '');
         if (!('success' in response) && error === '') {
             return undefined; // no 'success' property on public responses
         }

@@ -172,6 +172,9 @@ export default class onetrading extends Exchange {
                         'market-ticker': { 'cost': 1 } as Endpoint<List>,
                         'market-ticker/{instrument_code}': { 'cost': 1 } as Endpoint<Dict>,
                         'time': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding-rate': { 'cost': 1 } as Endpoint<List>,
+                        'funding-rate/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding-rate/settings': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
@@ -184,9 +187,16 @@ export default class onetrading extends Exchange {
                         'account/orders/{order_id}/trades': { 'cost': 1 } as Endpoint<Dict>,
                         'account/trades': { 'cost': 1 } as Endpoint<Dict>,
                         'account/trade/{trade_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/summary': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/positions-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/positions/{position_id}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/positions/{position_id}/funding-payments': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/funding-payments': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'account/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccounts/transfers': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
                         'account/orders': { 'cost': 1 } as Endpoint<List>,
@@ -356,7 +366,7 @@ export default class onetrading extends Exchange {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 100000, // todo
-                        'untilDays': 100000, // todo
+                        'untilDays': 30, // days between start-end
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -368,6 +378,7 @@ export default class onetrading extends Exchange {
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
+                        'untilDays': 30, // days between start-end
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -378,7 +389,7 @@ export default class onetrading extends Exchange {
                         'limit': 100,
                         'daysBack': 100000, // todo
                         'daysBackCanceled': 1 / 12, // todo
-                        'untilDays': 100000, // todo
+                        'untilDays': 30, // days between start-end
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -407,7 +418,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicGetTime (params);
         //
         //     {
@@ -426,7 +437,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicGetCurrencies (params);
         //
         //     [
@@ -471,7 +482,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetInstruments (params);
         //
         //     [
@@ -536,6 +547,9 @@ export default class onetrading extends Exchange {
         const id = this.safeString (market, 'id');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const state = this.safeString (market, 'state');
         const type = this.safeString (market, 'type');
         const isPerp = type === 'PERP';
@@ -604,23 +618,23 @@ export default class onetrading extends Exchange {
      * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         let method = this.safeString (params, 'method');
-        params = this.omit (params, 'method');
+        const paramsOmitted: Dict = this.omit (params, 'method');
         if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchTradingFees', {});
+            const options = this.safeDict (this.options, 'fetchTradingFees', {});
             method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
         }
         if (method === 'fetchPrivateTradingFees') {
-            return await this.fetchPrivateTradingFees (params);
+            return await this.fetchPrivateTradingFees (paramsOmitted);
         } else if (method === 'fetchPublicTradingFees') {
-            return await this.fetchPublicTradingFees (params);
+            return await this.fetchPublicTradingFees (paramsOmitted);
         } else {
             throw new NotSupported (this.id + ' fetchTradingFees() does not support ' + method + ', fetchPrivateTradingFees and fetchPublicTradingFees are supported');
         }
     }
 
-    async fetchPublicTradingFees (params = {}) {
+    async fetchPublicTradingFees (params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -680,7 +694,7 @@ export default class onetrading extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const tierObject = (market['spot']) ? firstSpotTier : firstFuturesTier;
+            const tierObject = (market['spot'] === true) ? firstSpotTier : firstFuturesTier;
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -694,7 +708,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    async fetchPrivateTradingFees (params = {}) {
+    async fetchPrivateTradingFees (params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -748,8 +762,8 @@ export default class onetrading extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const makerFee = (market['spot']) ? spotMakerFee : futuresMakerFee;
-            const takerFee = (market['spot']) ? spotTakerFee : futuresTakerFee;
+            const makerFee = (market['spot'] === true) ? spotMakerFee : futuresMakerFee;
+            const takerFee = (market['spot'] === true) ? spotTakerFee : futuresTakerFee;
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -763,11 +777,11 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    parseFeeTiers (feeTiers: any, market: Market = undefined) {
+    parseFeeTiers (feeTiers: Dict[], market: Market = undefined): Dict {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
-            const tier = feeTiers[i];
+            const tier = this.safeDict (feeTiers, i);
             const volume = this.safeNumber (tier, 'volume');
             let taker = this.safeString (tier, 'taker_fee');
             let maker = this.safeString (tier, 'maker_fee');
@@ -844,7 +858,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -883,11 +897,11 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetMarketTicker (params);
         //
         //     [
@@ -918,7 +932,7 @@ export default class onetrading extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -931,7 +945,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1023,7 +1037,7 @@ export default class onetrading extends Exchange {
         //         "last_sequence":461123
         //     }
         //
-        const granularity = this.safeValue (ohlcv, 'granularity');
+        const granularity = this.safeDict (ohlcv, 'granularity');
         const unit = this.safeString (granularity, 'unit');
         const period = this.safeString (granularity, 'period');
         const units: Dict = {
@@ -1045,7 +1059,7 @@ export default class onetrading extends Exchange {
             throw new ExchangeError (this.id + ' parseOHLCV() missing timestamp');
         }
         const alignedTimestamp = duration * this.parseToInt (timestamp / duration);
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString (options, 'volume', 'total_amount');
         return [
             alignedTimestamp,
@@ -1069,7 +1083,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1081,9 +1095,7 @@ export default class onetrading extends Exchange {
         const [ period, unit ] = periodUnit.split ('/');
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
-        if (limit === undefined) {
-            limit = 1500;
-        }
+        const limitResolved = (limit === undefined) ? 1500 : limit;
         const request: Dict = {
             'instrument_code': market['id'],
             // 'from': this.iso8601 (since),
@@ -1094,10 +1106,10 @@ export default class onetrading extends Exchange {
         if (since === undefined) {
             const now = this.milliseconds ();
             request['to'] = this.iso8601 (now);
-            request['from'] = this.iso8601 (now - limit * duration);
+            request['from'] = this.iso8601 (now - limitResolved * duration);
         } else {
             request['from'] = this.iso8601 (since);
-            request['to'] = this.iso8601 (this.sum (since, limit * duration));
+            request['to'] = this.iso8601 (this.sum (since, limitResolved * duration));
         }
         const response = await this.publicGetCandlesticksInstrumentCode (this.extend (request, params));
         //
@@ -1108,7 +1120,7 @@ export default class onetrading extends Exchange {
         //     ]
         //
         const ohlcv = this.safeList (response, 'candlesticks') as List;
-        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcv, market, timeframe, since, limitResolved);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1150,17 +1162,17 @@ export default class onetrading extends Exchange {
         //         }
         //     }
         //
-        const feeInfo = this.safeValue (trade, 'fee', {});
-        trade = this.safeValue (trade, 'trade', trade);
-        let timestamp = this.safeInteger (trade, 'trade_timestamp');
+        const feeInfo = this.safeDict (trade, 'fee', {});
+        const tradeValue: Dict = this.safeDict (trade, 'trade', trade);
+        let timestamp = this.safeInteger (tradeValue, 'trade_timestamp');
         if (timestamp === undefined) {
-            timestamp = this.parse8601 (this.safeString (trade, 'time'));
+            timestamp = this.parse8601 (this.safeString (tradeValue, 'time'));
         }
-        const side = this.safeStringLower2 (trade, 'side', 'taker_side');
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
-        const costString = this.safeString (trade, 'volume');
-        const marketId = this.safeString (trade, 'instrument_code');
+        const side = this.safeStringLower2 (tradeValue, 'side', 'taker_side');
+        const priceString = this.safeString (tradeValue, 'price');
+        const amountString = this.safeString (tradeValue, 'amount');
+        const costString = this.safeString (tradeValue, 'volume');
+        const marketId = this.safeString (tradeValue, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
         const feeCostString = this.safeString (feeInfo, 'fee_amount');
         let takerOrMaker: Str = undefined;
@@ -1177,8 +1189,8 @@ export default class onetrading extends Exchange {
             takerOrMaker = this.safeStringLower (feeInfo, 'fee_type');
         }
         return this.safeTrade ({
-            'id': this.safeString2 (trade, 'trade_id', 'sequence'),
-            'order': this.safeString (trade, 'order_id'),
+            'id': this.safeString2 (tradeValue, 'trade_id', 'sequence'),
+            'order': this.safeString (tradeValue, 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -1189,15 +1201,15 @@ export default class onetrading extends Exchange {
             'cost': costString,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-            'info': trade,
+            'info': tradeValue,
         }, market);
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeValue (response, 'balances', []);
+        const balances: Dict[] = this.safeList (response, 'balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1218,7 +1230,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1244,16 +1256,17 @@ export default class onetrading extends Exchange {
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
-            'FILLED': 'open',
+            'OPEN': 'open',
+            'BOOKED': 'open',
+            'FILL': 'open',
+            'MOVED': 'open',
             'FILLED_FULLY': 'closed',
             'FILLED_CLOSED': 'canceled',
             'FILLED_REJECTED': 'rejected',
-            'OPEN': 'open',
-            'REJECTED': 'rejected',
-            'CLOSED': 'canceled',
-            'FAILED': 'failed',
-            'STOP_TRIGGERED': 'triggered',
-            'DONE': 'closed',
+            'CANCELLED': 'canceled',
+            'INSUFFICIENT_FUNDS': 'rejected',
+            'INSUFFICIENT_LIQUIDITY': 'rejected',
+            'RISK_FAILED_OVER_MAX_POSITION': 'rejected',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1325,12 +1338,11 @@ export default class onetrading extends Exchange {
         //         ]
         //     }
         //
-        const rawOrder = this.safeValue (order, 'order', order);
+        const rawOrder = this.safeDict (order, 'order', order);
         const id = this.safeString (rawOrder, 'order_id');
         const clientOrderId = this.safeString (rawOrder, 'client_id');
         const timestamp = this.parse8601 (this.safeString (rawOrder, 'time'));
-        const rawStatus = this.parseOrderStatus (this.safeString (rawOrder, 'status'));
-        const status = this.parseOrderStatus (rawStatus);
+        const status = this.parseOrderStatus (this.safeString (rawOrder, 'status'));
         const marketId = this.safeString (rawOrder, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeString (rawOrder, 'price');
@@ -1339,8 +1351,8 @@ export default class onetrading extends Exchange {
         const side = this.safeStringLower (rawOrder, 'side');
         const type = this.safeStringLower (rawOrder, 'type');
         const timeInForce = this.parseTimeInForce (this.safeString (rawOrder, 'time_in_force'));
-        const postOnly = this.safeValue (rawOrder, 'is_post_only');
-        const rawTrades = this.safeValue (order, 'trades', []);
+        const postOnly = this.safeBool (rawOrder, 'is_post_only');
+        const rawTrades = this.safeList (order, 'trades', []);
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1349,7 +1361,7 @@ export default class onetrading extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': this.parseOrderType (type),
+            'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -1366,19 +1378,13 @@ export default class onetrading extends Exchange {
         }, market);
     }
 
-    parseOrderType (type: Str) {
-        const types: Dict = {
-            'booked': 'limit',
-        };
-        return this.safeString (types, (type as string), type);
-    }
-
     parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
             'IMMEDIATE_OR_CANCELLED': 'IOC',
             'FILL_OR_KILL': 'FOK',
+            'POST_ONLY': 'PO',
         };
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
@@ -1397,15 +1403,13 @@ export default class onetrading extends Exchange {
      * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             'instrument_code': market['id'],
             'type': uppercaseType, // LIMIT, MARKET, STOP
@@ -1429,7 +1433,6 @@ export default class onetrading extends Exchange {
             }
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['type'] = 'STOP';
-            params = this.omit (params, [ 'triggerPrice', 'trigger_price', 'stopPrice' ]);
         } else if (uppercaseType === 'STOP') {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice param for ' + type + ' orders');
         }
@@ -1439,12 +1442,13 @@ export default class onetrading extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         }
+        const triggerKeys: string[] = (triggerPrice !== undefined) ? [ 'triggerPrice', 'trigger_price', 'stopPrice' ] : [];
+        const clientOrderIdKeys: string[] = (clientOrderId !== undefined) ? [ 'clientOrderId', 'client_id' ] : [];
+        const paramsOmitted: Dict = this.omit (params, this.arrayConcat (this.arrayConcat (triggerKeys, clientOrderIdKeys), [ 'timeInForce' ]));
         const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
-        params = this.omit (params, 'timeInForce');
         request['time_in_force'] = timeInForce;
-        const response = await this.privatePostAccountOrders (this.extend (request, params));
+        const response = await this.privatePostAccountOrders (this.extend (request, paramsOmitted));
         //
         //     {
         //         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1474,12 +1478,12 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
-        params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         let method = 'privateDeleteAccountOrdersOrderId';
         const request: Dict = {};
         if (clientOrderId !== undefined) {
@@ -1490,9 +1494,9 @@ export default class onetrading extends Exchange {
         }
         let response: NullableDict = undefined;
         if (method === 'privateDeleteAccountOrdersOrderId') {
-            response = await this.privateDeleteAccountOrdersOrderId (this.extend (request, params));
+            response = await this.privateDeleteAccountOrdersOrderId (this.extend (request, paramsOmitted));
         } else {
-            response = await this.privateDeleteAccountOrdersClientClientId (this.extend (request, params));
+            response = await this.privateDeleteAccountOrdersClientClientId (this.extend (request, paramsOmitted));
         }
         //
         // responds with an empty body
@@ -1509,7 +1513,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1537,7 +1541,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1564,7 +1568,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1622,18 +1626,19 @@ export default class onetrading extends Exchange {
      * @description fetch all unfilled currently open orders
      * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [since] the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const request: Dict = {
             // 'from': this.iso8601 (since),
-            // 'to': this.iso8601 (this.milliseconds ()), // max range is 100 days
+            // 'to': this.iso8601 (this.milliseconds ()), // max range is 30 days
             // 'instrument_code': market['id'],
             // 'with_cancelled_and_rejected': false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             // 'with_just_filled_inactive': false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
@@ -1647,16 +1652,17 @@ export default class onetrading extends Exchange {
             request['instrument_code'] = market['id'];
         }
         if (since !== undefined) {
-            const to = this.safeString (params, 'to');
-            if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
-            }
             request['from'] = this.iso8601 (since);
+        }
+        const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+        if (until !== undefined) {
+            request['to'] = this.iso8601 (until);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await this.privateGetAccountOrders (this.extend (request, params));
+        const response = await this.privateGetAccountOrders (this.extend (request, paramsOmitted));
         //
         //     {
         //         "order_history": [
@@ -1746,12 +1752,13 @@ export default class onetrading extends Exchange {
      * @description fetches information on multiple closed orders made by the user
      * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [since] the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const request: Dict = {
             'with_cancelled_and_rejected': true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         };
@@ -1770,7 +1777,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1813,7 +1820,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory = this.safeValue (response, 'trade_history', []);
+        const tradeHistory: Dict[] = this.safeList (response, 'trade_history', []);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1827,18 +1834,19 @@ export default class onetrading extends Exchange {
      * @description fetch all trades made by the user
      * @see https://docs.onetrading.com/rest/trading/get-trades
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const request: Dict = {
             // 'from': this.iso8601 (since),
-            // 'to': this.iso8601 (this.milliseconds ()), // max range is 100 days
+            // 'to': this.iso8601 (this.milliseconds ()), // max range is 30 days
             // 'instrument_code': market['id'],
             // 'max_page_size': 100,
             // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
@@ -1849,16 +1857,17 @@ export default class onetrading extends Exchange {
             request['instrument_code'] = market['id'];
         }
         if (since !== undefined) {
-            const to = this.safeString (params, 'to');
-            if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
-            }
             request['from'] = this.iso8601 (since);
+        }
+        const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+        if (until !== undefined) {
+            request['to'] = this.iso8601 (until);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await this.privateGetAccountTrades (this.extend (request, params));
+        const response = await this.privateGetAccountTrades (this.extend (request, paramsOmitted));
         //
         //     {
         //         "trade_history": [
@@ -1893,27 +1902,32 @@ export default class onetrading extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            headers = {
+            const headersSigned: NullableDict = {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + this.apiKey,
             };
+            const bodyJson = (method === 'POST') ? this.json (query) : body;
             if (method === 'POST') {
-                body = this.json (query);
-                headers['Content-Type'] = 'application/json';
+                headersSigned['Content-Type'] = 'application/json';
             } else {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             }
+            return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

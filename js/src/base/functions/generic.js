@@ -100,7 +100,7 @@ const filterBy = (x, k, value = undefined, out = []) => {
     }
     return out;
 };
-const sortBy = (array, key, descending = false, defaultValue = 0, direction = descending ? -1 : 1) => array.sort((a, b) => {
+const sortBy = (array, key, descending = false, defaultValue = 0, direction = descending ? -1 : 1) => array.slice().sort((a, b) => {
     const first = (key in a) ? a[key] : defaultValue;
     const second = (key in b) ? b[key] : defaultValue;
     if (first < second) {
@@ -113,7 +113,7 @@ const sortBy = (array, key, descending = false, defaultValue = 0, direction = de
         return 0;
     }
 });
-const sortBy2 = (array, key1, key2, descending = false, direction = descending ? -1 : 1) => array.sort((a, b) => {
+const sortBy2 = (array, key1, key2, descending = false, direction = descending ? -1 : 1) => array.slice().sort((a, b) => {
     if (a[key1] < b[key1]) {
         return -direction;
     }
@@ -202,7 +202,6 @@ const deepExtend = function (...args) {
     }
     return result;
 };
-// better "merge" func resides in static_dependencies/qs/utils.js
 const merge = (target, ...args) => {
     // doesn't overwrite defined keys with undefined
     const overwrite = {};

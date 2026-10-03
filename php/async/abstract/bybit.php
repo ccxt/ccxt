@@ -412,6 +412,36 @@ abstract class bybit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_v5_spot_x_launchpool_project_list($params = array()) {
+        return $this->request('v5/spot-x/launchpool/project/list', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v5_spot_x_puzzle_project_list($params = array()) {
+        return $this->request('v5/spot-x/puzzle/project/list', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v5_spot_x_token_splash_project_list($params = array()) {
+        return $this->request('v5/spot-x/token-splash/project/list', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v5_event_instruments_info($params = array()) {
+        return $this->request('v5/event/instruments-info', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v5_event_orderbook($params = array()) {
+        return $this->request('v5/event/orderbook', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_v5_market_instruments_info($params = array()) {
         return $this->request('v5/market/instruments-info', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1216,6 +1246,12 @@ abstract class bybit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_v5_user_invitation_code($params = array()) {
+        return $this->request('v5/user/invitation/code', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_v5_affiliate_aff_user_list($params = array()) {
         return $this->request('v5/affiliate/aff-user-list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1236,6 +1272,12 @@ abstract class bybit extends \ccxt\async\Exchange {
      */
     public function private_get_v5_spot_margin_trade_flexible_available_inventory($params = array()) {
         return $this->request('v5/spot-margin-trade/flexible-available-inventory', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_spot_margin_trade_fixed_available_inventory($params = array()) {
+        return $this->request('v5/spot-margin-trade/fixed-available-inventory', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1444,6 +1486,18 @@ abstract class bybit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_v5_crypto_loan_fixed_available_inventory($params = array()) {
+        return $this->request('v5/crypto-loan-fixed/available-inventory', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_crypto_loan_flexible_available_inventory($params = array()) {
+        return $this->request('v5/crypto-loan-flexible/available-inventory', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_v5_ins_loan_product_infos($params = array()) {
         return $this->request('v5/ins-loan/product-infos', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1560,6 +1614,72 @@ abstract class bybit extends \ccxt\async\Exchange {
      */
     public function private_get_v5_earn_hourly_yield($params = array()) {
         return $this->request('v5/earn/hourly-yield', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_event_order_realtime($params = array()) {
+        return $this->request('v5/event/order-realtime', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_event_order_list($params = array()) {
+        return $this->request('v5/event/order-list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_event_positions($params = array()) {
+        return $this->request('v5/event/positions', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_event_trades($params = array()) {
+        return $this->request('v5/event/trades', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_event_settlements($params = array()) {
+        return $this->request('v5/event/settlements', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_spot_x_launchpool_user_current_staking($params = array()) {
+        return $this->request('v5/spot-x/launchpool/user/current-staking', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_spot_x_token_splash_user_activity_params($params = array()) {
+        return $this->request('v5/spot-x/token-splash/user/activity-params', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_rfq_rfq_detail_list($params = array()) {
+        return $this->request('v5/rfq/rfq-detail-list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_alpha_prediction_engine_status($params = array()) {
+        return $this->request('v5/alpha/prediction/engine-status', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_alpha_prediction_pay_token_list($params = array()) {
+        return $this->request('v5/alpha/prediction/pay-token-list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v5_alpha_prediction_sports_timeline_stages($params = array()) {
+        return $this->request('v5/alpha/prediction/sports/timeline-stages', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -2434,6 +2554,114 @@ abstract class bybit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_v5_event_quotes($params = array()) {
+        return $this->request('v5/event/quotes', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_event_cancel($params = array()) {
+        return $this->request('v5/event/cancel', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_spot_x_launchpool_user_activity_log($params = array()) {
+        return $this->request('v5/spot-x/launchpool/user/activity-log', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_spot_x_launchpool_user_history($params = array()) {
+        return $this->request('v5/spot-x/launchpool/user/history', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_event_detail($params = array()) {
+        return $this->request('v5/alpha/prediction/event-detail', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_order_estimate($params = array()) {
+        return $this->request('v5/alpha/prediction/order-estimate', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_buy($params = array()) {
+        return $this->request('v5/alpha/prediction/buy', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_sell($params = array()) {
+        return $this->request('v5/alpha/prediction/sell', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_order_list($params = array()) {
+        return $this->request('v5/alpha/prediction/order-list', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_order_book($params = array()) {
+        return $this->request('v5/alpha/prediction/order-book', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_token_price($params = array()) {
+        return $this->request('v5/alpha/prediction/token-price', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_price_history($params = array()) {
+        return $this->request('v5/alpha/prediction/price-history', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_position_list($params = array()) {
+        return $this->request('v5/alpha/prediction/position-list', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_position_history($params = array()) {
+        return $this->request('v5/alpha/prediction/position-history', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_portfolio_summary($params = array()) {
+        return $this->request('v5/alpha/prediction/portfolio-summary', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_side_market_list($params = array()) {
+        return $this->request('v5/alpha/prediction/side-market-list', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_sports_match_list($params = array()) {
+        return $this->request('v5/alpha/prediction/sports/match-list', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v5_alpha_prediction_sports_group_stage_detail($params = array()) {
+        return $this->request('v5/alpha/prediction/sports/group-stage-detail', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicGetSpotV3PublicSymbols($params = array()) {
         return $this->request('spot/v3/public/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2832,6 +3060,36 @@ abstract class bybit extends \ccxt\async\Exchange {
      */
     public function publicGetV5EarnProduct($params = array()) {
         return $this->request('v5/earn/product', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV5SpotXLaunchpoolProjectList($params = array()) {
+        return $this->request('v5/spot-x/launchpool/project/list', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV5SpotXPuzzleProjectList($params = array()) {
+        return $this->request('v5/spot-x/puzzle/project/list', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV5SpotXTokenSplashProjectList($params = array()) {
+        return $this->request('v5/spot-x/token-splash/project/list', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV5EventInstrumentsInfo($params = array()) {
+        return $this->request('v5/event/instruments-info', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV5EventOrderbook($params = array()) {
+        return $this->request('v5/event/orderbook', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -3640,6 +3898,12 @@ abstract class bybit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetV5UserInvitationCode($params = array()) {
+        return $this->request('v5/user/invitation/code', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetV5AffiliateAffUserList($params = array()) {
         return $this->request('v5/affiliate/aff-user-list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -3660,6 +3924,12 @@ abstract class bybit extends \ccxt\async\Exchange {
      */
     public function privateGetV5SpotMarginTradeFlexibleAvailableInventory($params = array()) {
         return $this->request('v5/spot-margin-trade/flexible-available-inventory', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5SpotMarginTradeFixedAvailableInventory($params = array()) {
+        return $this->request('v5/spot-margin-trade/fixed-available-inventory', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -3868,6 +4138,18 @@ abstract class bybit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetV5CryptoLoanFixedAvailableInventory($params = array()) {
+        return $this->request('v5/crypto-loan-fixed/available-inventory', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5CryptoLoanFlexibleAvailableInventory($params = array()) {
+        return $this->request('v5/crypto-loan-flexible/available-inventory', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetV5InsLoanProductInfos($params = array()) {
         return $this->request('v5/ins-loan/product-infos', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -3984,6 +4266,72 @@ abstract class bybit extends \ccxt\async\Exchange {
      */
     public function privateGetV5EarnHourlyYield($params = array()) {
         return $this->request('v5/earn/hourly-yield', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5EventOrderRealtime($params = array()) {
+        return $this->request('v5/event/order-realtime', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5EventOrderList($params = array()) {
+        return $this->request('v5/event/order-list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5EventPositions($params = array()) {
+        return $this->request('v5/event/positions', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5EventTrades($params = array()) {
+        return $this->request('v5/event/trades', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5EventSettlements($params = array()) {
+        return $this->request('v5/event/settlements', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5SpotXLaunchpoolUserCurrentStaking($params = array()) {
+        return $this->request('v5/spot-x/launchpool/user/current-staking', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5SpotXTokenSplashUserActivityParams($params = array()) {
+        return $this->request('v5/spot-x/token-splash/user/activity-params', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5RfqRfqDetailList($params = array()) {
+        return $this->request('v5/rfq/rfq-detail-list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5AlphaPredictionEngineStatus($params = array()) {
+        return $this->request('v5/alpha/prediction/engine-status', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5AlphaPredictionPayTokenList($params = array()) {
+        return $this->request('v5/alpha/prediction/pay-token-list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV5AlphaPredictionSportsTimelineStages($params = array()) {
+        return $this->request('v5/alpha/prediction/sports/timeline-stages', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -4854,5 +5202,113 @@ abstract class bybit extends \ccxt\async\Exchange {
      */
     public function privatePostV5EarnPlaceOrder($params = array()) {
         return $this->request('v5/earn/place-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5EventQuotes($params = array()) {
+        return $this->request('v5/event/quotes', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5EventCancel($params = array()) {
+        return $this->request('v5/event/cancel', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5SpotXLaunchpoolUserActivityLog($params = array()) {
+        return $this->request('v5/spot-x/launchpool/user/activity-log', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5SpotXLaunchpoolUserHistory($params = array()) {
+        return $this->request('v5/spot-x/launchpool/user/history', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionEventDetail($params = array()) {
+        return $this->request('v5/alpha/prediction/event-detail', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionOrderEstimate($params = array()) {
+        return $this->request('v5/alpha/prediction/order-estimate', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionBuy($params = array()) {
+        return $this->request('v5/alpha/prediction/buy', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionSell($params = array()) {
+        return $this->request('v5/alpha/prediction/sell', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionOrderList($params = array()) {
+        return $this->request('v5/alpha/prediction/order-list', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionOrderBook($params = array()) {
+        return $this->request('v5/alpha/prediction/order-book', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionTokenPrice($params = array()) {
+        return $this->request('v5/alpha/prediction/token-price', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionPriceHistory($params = array()) {
+        return $this->request('v5/alpha/prediction/price-history', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionPositionList($params = array()) {
+        return $this->request('v5/alpha/prediction/position-list', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionPositionHistory($params = array()) {
+        return $this->request('v5/alpha/prediction/position-history', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionPortfolioSummary($params = array()) {
+        return $this->request('v5/alpha/prediction/portfolio-summary', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionSideMarketList($params = array()) {
+        return $this->request('v5/alpha/prediction/side-market-list', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionSportsMatchList($params = array()) {
+        return $this->request('v5/alpha/prediction/sports/match-list', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV5AlphaPredictionSportsGroupStageDetail($params = array()) {
+        return $this->request('v5/alpha/prediction/sports/group-stage-detail', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
 }

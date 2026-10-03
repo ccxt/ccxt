@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class okxus { public okxus(object args = null) : base(args) { } }
 public partial class okxus : okx
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "okxus" },
@@ -16,7 +16,7 @@ public partial class okxus : okx
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://{hostname}" },
-                    { "ws", "wss://wsus.okx.com:8443/ws/v5" },
+                    { "ws", "wss://wsus.okx.com:443/ws/v5" },
                 } },
                 { "www", "https://app.okx.com" },
                 { "doc", "https://app.okx.com/docs-v5/en/#overview" },
@@ -26,7 +26,7 @@ public partial class okxus : okx
                     { "discount", 0.2 },
                 } },
                 { "test", new Dictionary<string, object>() {
-                    { "ws", "wss://wsuspap.okx.com:8443/ws/v5" },
+                    { "ws", "wss://wsuspap.okx.com:443/ws/v5" },
                 } },
             } },
             { "has", new Dictionary<string, object>() {

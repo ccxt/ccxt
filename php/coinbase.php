@@ -17,7 +17,7 @@ class coinbase extends Exchange {
             'pro' => true,
             'certified' => false,
             // rate-limits:
-            // ADVANCED API => https://docs.cdp.coinbase.com/advanced-trade/docs/rest-api-rate-limits
+            // ADVANCED API: https://docs.cdp.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
             // DATA API    : https://docs.cdp.coinbase.com/coinbase-app/api-architecture/rate-limiting
             // - max 10000 req/hour (to prevent userland mistakes we apply ~3 req/second RL per call
@@ -211,6 +211,7 @@ class coinbase extends Exchange {
                             'payment-methods/{payment_method_id}' => array( 'cost' => 10.6 ),
                             'user' => array( 'cost' => 10.6 ),
                             'user/auth' => array( 'cost' => 10.6 ),
+                            'subscriptions/coinbase-one' => array( 'cost' => 10.6 ),
                         ),
                         'post' => array(
                             'accounts' => array( 'cost' => 10.6 ),
@@ -270,6 +271,9 @@ class coinbase extends Exchange {
                             'brokerage/cfm/positions' => array( 'cost' => 1 ),
                             'brokerage/cfm/positions/{product_id}' => array( 'cost' => 1 ),
                             'brokerage/cfm/sweeps' => array( 'cost' => 1 ),
+                            'brokerage/cfm/intraday/current_margin_window' => array( 'cost' => 1 ),
+                            'brokerage/cfm/intraday/margin_setting' => array( 'cost' => 1 ),
+                            'brokerage/intx/balances/{portfolio_uuid}' => array( 'cost' => 1 ),
                             'brokerage/intx/portfolio/{portfolio_uuid}' => array( 'cost' => 1 ),
                             'brokerage/intx/positions/{portfolio_uuid}' => array( 'cost' => 1 ),
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}' => array( 'cost' => 1 ),
@@ -288,7 +292,9 @@ class coinbase extends Exchange {
                             'brokerage/convert/quote' => array( 'cost' => 1 ),
                             'brokerage/convert/trade/{trade_id}' => array( 'cost' => 1 ),
                             'brokerage/cfm/sweeps/schedule' => array( 'cost' => 1 ),
+                            'brokerage/cfm/intraday/margin_setting' => array( 'cost' => 1 ),
                             'brokerage/intx/allocate' => array( 'cost' => 1 ),
+                            'brokerage/intx/multi_asset_collateral' => array( 'cost' => 1 ),
                             // futures
                             'brokerage/orders/close_position' => array( 'cost' => 1 ),
                         ),
@@ -305,7 +311,7 @@ class coinbase extends Exchange {
             'fees' => array(
                 'trading' => array(
                     'taker' => $this->parse_number('0.012'),
-                    'maker' => $this->parse_number('0.006'), // array("pricing_tier":"Advanced 1","usd_from":"0","usd_to":"1000","taker_fee_rate":"0.012","maker_fee_rate":"0.006","aop_from":"","aop_to":"")
+                    'maker' => $this->parse_number('0.006'), // {"pricing_tier":"Advanced 1","usd_from":"0","usd_to":"1000","taker_fee_rate":"0.012","maker_fee_rate":"0.006","aop_from":"","aop_to":""}
                     'tierBased' => true,
                     'percentage' => true,
                     'tiers' => array(
@@ -366,8 +372,8 @@ class coinbase extends Exchange {
                 ),
                 'broad' => array(
                     'Insufficient balance in source account' => '\\ccxt\\InsufficientFunds',
-                    'request timestamp expired' => '\\ccxt\\InvalidNonce', // array("errors":[array("id":"authentication_error","message":"request timestamp expired")])
-                    'order with this orderID was not found' => '\\ccxt\\OrderNotFound', // array("error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found")
+                    'request timestamp expired' => '\\ccxt\\InvalidNonce', // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
+                    'order with this orderID was not found' => '\\ccxt\\OrderNotFound', // {"error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found"}
                 ),
             ),
             'timeframes' => array(
@@ -517,26 +523,26 @@ class coinbase extends Exchange {
          */
         $defaultMethod = $this->safe_string($this->options, 'fetchTime', 'v2PublicGetTime');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $params = $this->omit($params, 'method');
+        $paramsOmitted = $this->omit($params, 'method');
         $response = null;
         if ($method === 'v2PublicGetTime') {
-            $response = $this->v2PublicGetTime($params);
+            $response = $this->v2PublicGetTime($paramsOmitted);
             //
             //     {
-            //         "data" => {
-            //             "epoch" => 1589295679,
-            //             "iso" => "2020-05-12T15:01:19Z"
+            //         "data": {
+            //             "epoch": 1589295679,
+            //             "iso": "2020-05-12T15:01:19Z"
             //         }
             //     }
             //
             $response = $this->safe_dict($response, 'data', array());
         } else {
-            $response = $this->v3PublicGetBrokerageTime($params);
+            $response = $this->v3PublicGetBrokerageTime($paramsOmitted);
             //
             //     {
-            //         "iso" => "2024-02-27T03:37:14Z",
-            //         "epochSeconds" => "1709005034",
-            //         "epochMillis" => "1709005034333"
+            //         "iso": "2024-02-27T03:37:14Z",
+            //         "epochSeconds": "1709005034",
+            //         "epochMillis": "1709005034333"
             //     }
             //
         }
@@ -565,57 +571,56 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchAccounts', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $params, 'next_starting_after', 'starting_after', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $paramsPaginate, 'next_starting_after', 'starting_after', null, 100);
         }
         $request = array(
             'limit' => 100,
         );
-        $response = $this->v2PrivateGetAccounts($this->extend($request, $params));
+        $response = $this->v2PrivateGetAccounts($this->extend($request, $paramsPaginate));
         //
         //     {
-        //         "pagination" => array(
-        //             "ending_before" => null,
-        //             "starting_after" => null,
-        //             "previous_ending_before" => null,
-        //             "next_starting_after" => null,
-        //             "limit" => 244,
-        //             "order" => "desc",
-        //             "previous_uri" => null,
-        //             "next_uri" => null
-        //         ),
-        //         "data" => array(
-        //             array(
-        //                 "id" => "XLM",
-        //                 "name" => "XLM Wallet",
-        //                 "primary" => false,
-        //                 "type" => "wallet",
-        //                 "currency" => array(
-        //                     "code" => "XLM",
-        //                     "name" => "Stellar Lumens",
-        //                     "color" => "#000000",
-        //                     "sort_index" => 127,
-        //                     "exponent" => 7,
-        //                     "type" => "crypto",
-        //                     "address_regex" => "^G[A-Z2-7]{55}$",
-        //                     "asset_id" => "13b83335-5ede-595b-821e-5bcdfa80560f",
-        //                     "destination_tag_name" => "XLM Memo ID",
-        //                     "destination_tag_regex" => "^[ -~]array(1,28)$"
-        //                 ),
-        //                 "balance" => array(
-        //                     "amount" => "0.0000000",
-        //                     "currency" => "XLM"
-        //                 ),
-        //                 "created_at" => null,
-        //                 "updated_at" => null,
-        //                 "resource" => "account",
-        //                 "resource_path" => "/v2/accounts/XLM",
-        //                 "allow_deposits" => true,
-        //                 "allow_withdrawals" => true
-        //             ),
-        //         )
+        //         "pagination": {
+        //             "ending_before": null,
+        //             "starting_after": null,
+        //             "previous_ending_before": null,
+        //             "next_starting_after": null,
+        //             "limit": 244,
+        //             "order": "desc",
+        //             "previous_uri": null,
+        //             "next_uri": null
+        //         },
+        //         "data": [
+        //             {
+        //                 "id": "XLM",
+        //                 "name": "XLM Wallet",
+        //                 "primary": false,
+        //                 "type": "wallet",
+        //                 "currency": {
+        //                     "code": "XLM",
+        //                     "name": "Stellar Lumens",
+        //                     "color": "#000000",
+        //                     "sort_index": 127,
+        //                     "exponent": 7,
+        //                     "type": "crypto",
+        //                     "address_regex": "^G[A-Z2-7]{55}$",
+        //                     "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //                     "destination_tag_name": "XLM Memo ID",
+        //                     "destination_tag_regex": "^[ -~]{1,28}$"
+        //                 },
+        //                 "balance": {
+        //                     "amount": "0.0000000",
+        //                     "currency": "XLM"
+        //                 },
+        //                 "created_at": null,
+        //                 "updated_at": null,
+        //                 "resource": "account",
+        //                 "resource_path": "/v2/accounts/XLM",
+        //                 "allow_deposits": true,
+        //                 "allow_withdrawals": true
+        //             },
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -629,50 +634,49 @@ class coinbase extends Exchange {
             $last['next_starting_after'] = $cursor;
             $accounts[$lastIndex] = $last;
         }
-        return $this->parse_accounts($data, $params);
+        return $this->parse_accounts($data, $paramsPaginate);
     }
 
     public function fetch_accounts_v3($params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchAccounts', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $params, 'cursor', 'cursor', null, 250);
+            return $this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $paramsPaginate, 'cursor', 'cursor', null, 250);
         }
         $request = array(
             'limit' => 250,
         );
-        $response = $this->v3PrivateGetBrokerageAccounts($this->extend($request, $params));
+        $response = $this->v3PrivateGetBrokerageAccounts($this->extend($request, $paramsPaginate));
         //
         //     {
-        //         "accounts" => array(
+        //         "accounts": [
         //             {
-        //                 "uuid" => "11111111-1111-1111-1111-111111111111",
-        //                 "name" => "USDC Wallet",
-        //                 "currency" => "USDC",
-        //                 "available_balance" => array(
-        //                     "value" => "0.0000000000000000",
-        //                     "currency" => "USDC"
-        //                 ),
-        //                 "default" => true,
-        //                 "active" => true,
-        //                 "created_at" => "2023-01-04T06:20:06.456Z",
-        //                 "updated_at" => "2023-01-04T06:20:07.181Z",
-        //                 "deleted_at" => null,
-        //                 "type" => "ACCOUNT_TYPE_CRYPTO",
-        //                 "ready" => false,
-        //                 "hold" => array(
-        //                     "value" => "0.0000000000000000",
-        //                     "currency" => "USDC"
+        //                 "uuid": "11111111-1111-1111-1111-111111111111",
+        //                 "name": "USDC Wallet",
+        //                 "currency": "USDC",
+        //                 "available_balance": {
+        //                     "value": "0.0000000000000000",
+        //                     "currency": "USDC"
+        //                 },
+        //                 "default": true,
+        //                 "active": true,
+        //                 "created_at": "2023-01-04T06:20:06.456Z",
+        //                 "updated_at": "2023-01-04T06:20:07.181Z",
+        //                 "deleted_at": null,
+        //                 "type": "ACCOUNT_TYPE_CRYPTO",
+        //                 "ready": false,
+        //                 "hold": {
+        //                     "value": "0.0000000000000000",
+        //                     "currency": "USDC"
         //                 }
-        //             ),
+        //             },
         //             ...
-        //         ),
-        //         "has_next" => false,
-        //         "cursor" => "",
-        //         "size" => 9
+        //         ],
+        //         "has_next": false,
+        //         "cursor": "",
+        //         "size": 9
         //     }
         //
         $accounts = $this->safe_list($response, 'accounts', array());
@@ -684,7 +688,7 @@ class coinbase extends Exchange {
             $last['cursor'] = $cursor;
             $accounts[$lastIndex] = $last;
         }
-        return $this->parse_accounts($accounts, $params);
+        return $this->parse_accounts($accounts, $paramsPaginate);
     }
 
     public function fetch_portfolios($params = array()): array {
@@ -711,59 +715,59 @@ class coinbase extends Exchange {
         return $result;
     }
 
-    public function parse_account(mixed $account) {
+    public function parse_account(array $account): array {
         //
         // fetchAccountsV2
         //
         //     {
-        //         "id" => "XLM",
-        //         "name" => "XLM Wallet",
-        //         "primary" => false,
-        //         "type" => "wallet",
-        //         "currency" => array(
-        //             "code" => "XLM",
-        //             "name" => "Stellar Lumens",
-        //             "color" => "#000000",
-        //             "sort_index" => 127,
-        //             "exponent" => 7,
-        //             "type" => "crypto",
-        //             "address_regex" => "^G[A-Z2-7]{55}$",
-        //             "asset_id" => "13b83335-5ede-595b-821e-5bcdfa80560f",
-        //             "destination_tag_name" => "XLM Memo ID",
-        //             "destination_tag_regex" => "^[ -~]array(1,28)$"
-        //         ),
-        //         "balance" => array(
-        //             "amount" => "0.0000000",
-        //             "currency" => "XLM"
-        //         ),
-        //         "created_at" => null,
-        //         "updated_at" => null,
-        //         "resource" => "account",
-        //         "resource_path" => "/v2/accounts/XLM",
-        //         "allow_deposits" => true,
-        //         "allow_withdrawals" => true
+        //         "id": "XLM",
+        //         "name": "XLM Wallet",
+        //         "primary": false,
+        //         "type": "wallet",
+        //         "currency": {
+        //             "code": "XLM",
+        //             "name": "Stellar Lumens",
+        //             "color": "#000000",
+        //             "sort_index": 127,
+        //             "exponent": 7,
+        //             "type": "crypto",
+        //             "address_regex": "^G[A-Z2-7]{55}$",
+        //             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //             "destination_tag_name": "XLM Memo ID",
+        //             "destination_tag_regex": "^[ -~]{1,28}$"
+        //         },
+        //         "balance": {
+        //             "amount": "0.0000000",
+        //             "currency": "XLM"
+        //         },
+        //         "created_at": null,
+        //         "updated_at": null,
+        //         "resource": "account",
+        //         "resource_path": "/v2/accounts/XLM",
+        //         "allow_deposits": true,
+        //         "allow_withdrawals": true
         //     }
         //
         // fetchAccountsV3
         //
         //     {
-        //         "uuid" => "11111111-1111-1111-1111-111111111111",
-        //         "name" => "USDC Wallet",
-        //         "currency" => "USDC",
-        //         "available_balance" => array(
-        //             "value" => "0.0000000000000000",
-        //             "currency" => "USDC"
-        //         ),
-        //         "default" => true,
-        //         "active" => true,
-        //         "created_at" => "2023-01-04T06:20:06.456Z",
-        //         "updated_at" => "2023-01-04T06:20:07.181Z",
-        //         "deleted_at" => null,
-        //         "type" => "ACCOUNT_TYPE_CRYPTO",
-        //         "ready" => false,
-        //         "hold" => {
-        //             "value" => "0.0000000000000000",
-        //             "currency" => "USDC"
+        //         "uuid": "11111111-1111-1111-1111-111111111111",
+        //         "name": "USDC Wallet",
+        //         "currency": "USDC",
+        //         "available_balance": {
+        //             "value": "0.0000000000000000",
+        //             "currency": "USDC"
+        //         },
+        //         "default": true,
+        //         "active": true,
+        //         "created_at": "2023-01-04T06:20:06.456Z",
+        //         "updated_at": "2023-01-04T06:20:07.181Z",
+        //         "deleted_at": null,
+        //         "type": "ACCOUNT_TYPE_CRYPTO",
+        //         "ready": false,
+        //         "hold": {
+        //             "value": "0.0000000000000000",
+        //             "currency": "USDC"
         //         }
         //     }
         //
@@ -793,57 +797,57 @@ class coinbase extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
          */
         $accountId = $this->safe_string($params, 'account_id');
-        $params = $this->omit($params, 'account_id');
+        $paramsOmitted = $this->omit($params, 'account_id');
         if ($accountId === null) {
             $this->load_accounts();
             for ($i = 0; $i < count($this->accounts); $i++) {
                 $account = $this->accounts[$i];
                 if ($account['code'] === $code && $account['type'] === 'wallet') {
-                    $accountId = $account['id'];
+                    $accountId = $this->safe_string($account, 'id');
                     break;
                 }
             }
         }
         if ($accountId === null) {
-            throw new ExchangeError($this->id . ' createDepositAddress() could not find the $account with matching currency $code ' . $code . ', specify an `account_id` extra param to target specific wallet');
+            throw new ExchangeError($this->id . ' createDepositAddress() could not find the account with matching currency code ' . $code . ', specify an `account_id` extra param to target specific wallet');
         }
         $request = array(
             'account_id' => $accountId,
         );
-        $response = $this->v2PrivatePostAccountsAccountIdAddresses($this->extend($request, $params));
+        $response = $this->v2PrivatePostAccountsAccountIdAddresses($this->extend($request, $paramsOmitted));
         //
         //     {
-        //         "data" => {
-        //             "id" => "05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
-        //             "address" => "coinbasebase",
-        //             "address_info" => array(
-        //                 "address" => "coinbasebase",
-        //                 "destination_tag" => "287594668"
-        //             ),
-        //             "name" => null,
-        //             "created_at" => "2019-07-01T14:39:29Z",
-        //             "updated_at" => "2019-07-01T14:39:29Z",
-        //             "network" => "eosio",
-        //             "uri_scheme" => "eosio",
-        //             "resource" => "address",
-        //             "resource_path" => "/v2/accounts/14cfc769-e852-52f3-b831-711c104d194c/addresses/05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
-        //             "warnings" => array(
-        //                 array(
-        //                     "title" => "Only send EOS (EOS) to this $address",
-        //                     "details" => "Sending any other cryptocurrency will result in permanent loss.",
-        //                     "image_url" => "https://dynamic-assets.coinbase.com/deaca3d47b10ed4a91a872e9618706eec34081127762d88f2476ac8e99ada4b48525a9565cf2206d18c04053f278f693434af4d4629ca084a9d01b7a286a7e26/asset_icons/1f8489bb280fb0a0fd643c1161312ba49655040e9aaaced5f9ad3eeaf868eadc.png"
-        //                 ),
+        //         "data": {
+        //             "id": "05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
+        //             "address": "coinbasebase",
+        //             "address_info": {
+        //                 "address": "coinbasebase",
+        //                 "destination_tag": "287594668"
+        //             },
+        //             "name": null,
+        //             "created_at": "2019-07-01T14:39:29Z",
+        //             "updated_at": "2019-07-01T14:39:29Z",
+        //             "network": "eosio",
+        //             "uri_scheme": "eosio",
+        //             "resource": "address",
+        //             "resource_path": "/v2/accounts/14cfc769-e852-52f3-b831-711c104d194c/addresses/05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
+        //             "warnings": [
         //                 {
-        //                     "title" => "Both an $address and EOS memo are required to receive EOS",
-        //                     "details" => "If you send funds without an EOS memo or with an incorrect EOS memo, your funds cannot be credited to your $account->",
-        //                     "image_url" => "https://www.coinbase.com/assets/receive-warning-2f3269d83547a7748fb39d6e0c1c393aee26669bfea6b9f12718094a1abff155.png"
+        //                     "title": "Only send EOS (EOS) to this address",
+        //                     "details": "Sending any other cryptocurrency will result in permanent loss.",
+        //                     "image_url": "https://dynamic-assets.coinbase.com/deaca3d47b10ed4a91a872e9618706eec34081127762d88f2476ac8e99ada4b48525a9565cf2206d18c04053f278f693434af4d4629ca084a9d01b7a286a7e26/asset_icons/1f8489bb280fb0a0fd643c1161312ba49655040e9aaaced5f9ad3eeaf868eadc.png"
+        //                 },
+        //                 {
+        //                     "title": "Both an address and EOS memo are required to receive EOS",
+        //                     "details": "If you send funds without an EOS memo or with an incorrect EOS memo, your funds cannot be credited to your account.",
+        //                     "image_url": "https://www.coinbase.com/assets/receive-warning-2f3269d83547a7748fb39d6e0c1c393aee26669bfea6b9f12718094a1abff155.png"
         //                 }
-        //             ),
-        //             "warning_title" => "Only send EOS (EOS) to this $address",
-        //             "warning_details" => "Sending any other cryptocurrency will result in permanent loss.",
-        //             "destination_tag" => "287594668",
-        //             "deposit_uri" => "eosio:coinbasebase?dt=287594668",
-        //             "callback_url" => null
+        //             ],
+        //             "warning_title": "Only send EOS (EOS) to this address",
+        //             "warning_details": "Sending any other cryptocurrency will result in permanent loss.",
+        //             "destination_tag": "287594668",
+        //             "deposit_uri": "eosio:coinbasebase?dt=287594668",
+        //             "callback_url": null
         //         }
         //     }
         //
@@ -859,7 +863,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * @ignore
          * fetch $sells
@@ -883,7 +887,7 @@ class coinbase extends Exchange {
         return $this->parse_trades($sellsData, null, $since, $limit);
     }
 
-    public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * @ignore
          * fetch $buys
@@ -907,19 +911,18 @@ class coinbase extends Exchange {
         return $this->parse_trades($buysData, null, $since, $limit);
     }
 
-    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        $request = null;
-        list($request, $params) = $this->prepare_account_request_with_currency_code($code, $limit, $params);
+    public function fetch_transactions_with_method(string $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        list($request, $paramsValue) = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
         $response = null;
         if ($method === 'v2PrivateGetAccountsAccountIdTransactions') {
-            $response = $this->v2PrivateGetAccountsAccountIdTransactions($this->extend($request, $params));
+            $response = $this->v2PrivateGetAccountsAccountIdTransactions($this->extend($request, $paramsValue));
         } elseif ($method === 'v2PrivateGetAccountsAccountIdWithdrawals') {
-            $response = $this->v2PrivateGetAccountsAccountIdWithdrawals($this->extend($request, $params));
+            $response = $this->v2PrivateGetAccountsAccountIdWithdrawals($this->extend($request, $paramsValue));
         } else {
-            $response = $this->v2PrivateGetAccountsAccountIdDeposits($this->extend($request, $params));
+            $response = $this->v2PrivateGetAccountsAccountIdDeposits($this->extend($request, $paramsValue));
         }
         return $this->parse_transactions($response['data'], null, $since, $limit);
     }
@@ -938,13 +941,12 @@ class coinbase extends Exchange {
          * @param {string} [$params->currencyType] "fiat" or "crypto"
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $currencyType = null;
-        list($currencyType, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'currencyType');
+        list($currencyType, $paramsCurrencyType) = $this->handle_option_string_and_params($params, 'fetchWithdrawals', 'currencyType');
         if ($currencyType === 'crypto') {
-            $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params);
+            $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $paramsCurrencyType);
             return $this->filter_by_array($results, 'type', 'withdrawal', false);
         }
-        return $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $params);
+        return $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $paramsCurrencyType);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -961,13 +963,12 @@ class coinbase extends Exchange {
          * @param {string} [$params->currencyType] "fiat" or "crypto"
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $currencyType = null;
-        list($currencyType, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'currencyType');
+        list($currencyType, $paramsCurrencyType) = $this->handle_option_string_and_params($params, 'fetchDeposits', 'currencyType');
         if ($currencyType === 'crypto') {
-            $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params);
+            $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $paramsCurrencyType);
             return $this->filter_by_array($results, 'type', 'deposit', false);
         }
-        return $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', $code, $since, $limit, $params);
+        return $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', $code, $since, $limit, $paramsCurrencyType);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1003,153 +1004,153 @@ class coinbase extends Exchange {
         // fiat deposit
         //
         //     {
-        //         "id" => "f34c19f3-b730-5e3d-9f72",
-        //         "status" => "completed",
-        //         "payment_method" => array(
-        //             "id" => "a022b31d-f9c7-5043-98f2",
-        //             "resource" => "payment_method",
-        //             "resource_path" => "/v2/payment-methods/a022b31d-f9c7-5043-98f2"
-        //         ),
-        //         "transaction" => array(
-        //             "id" => "04ed4113-3732-5b0c-af86-b1d2146977d0",
-        //             "resource" => "transaction",
-        //             "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86"
-        //         ),
-        //         "user_reference" => "2VTYTH",
-        //         "created_at" => "2017-02-09T07:01:18Z",
-        //         "updated_at" => "2017-02-09T07:01:26Z",
-        //         "resource" => "deposit",
-        //         "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72",
-        //         "committed" => true,
-        //         "payout_at" => "2017-02-12T07:01:17Z",
-        //         "instant" => false,
-        //         "fee" => array( "amount" => "0.00", "currency" => "EUR" ),
-        //         "amount" => array( "amount" => "114.02", "currency" => "EUR" ),
-        //         "subtotal" => array( "amount" => "114.02", "currency" => "EUR" ),
-        //         "hold_until" => null,
-        //         "hold_days" => 0,
-        //         "hold_business_days" => 0,
-        //         "next_step" => null
+        //         "id": "f34c19f3-b730-5e3d-9f72",
+        //         "status": "completed",
+        //         "payment_method": {
+        //             "id": "a022b31d-f9c7-5043-98f2",
+        //             "resource": "payment_method",
+        //             "resource_path": "/v2/payment-methods/a022b31d-f9c7-5043-98f2"
+        //         },
+        //         "transaction": {
+        //             "id": "04ed4113-3732-5b0c-af86-b1d2146977d0",
+        //             "resource": "transaction",
+        //             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86"
+        //         },
+        //         "user_reference": "2VTYTH",
+        //         "created_at": "2017-02-09T07:01:18Z",
+        //         "updated_at": "2017-02-09T07:01:26Z",
+        //         "resource": "deposit",
+        //         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72",
+        //         "committed": true,
+        //         "payout_at": "2017-02-12T07:01:17Z",
+        //         "instant": false,
+        //         "fee": { "amount": "0.00", "currency": "EUR" },
+        //         "amount": { "amount": "114.02", "currency": "EUR" },
+        //         "subtotal": { "amount": "114.02", "currency": "EUR" },
+        //         "hold_until": null,
+        //         "hold_days": 0,
+        //         "hold_business_days": 0,
+        //         "next_step": null
         //     }
         //
         // fiat_withdrawal
         //
         //     {
-        //         "id" => "cfcc3b4a-eeb6-5e8c-8058",
-        //         "status" => "completed",
-        //         "payment_method" => array(
-        //             "id" => "8b94cfa4-f7fd-5a12-a76a",
-        //             "resource" => "payment_method",
-        //             "resource_path" => "/v2/payment-methods/8b94cfa4-f7fd-5a12-a76a"
-        //         ),
-        //         "transaction" => array(
-        //             "id" => "fcc2550b-5104-5f83-a444",
-        //             "resource" => "transaction",
-        //             "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/fcc2550b-5104-5f83-a444"
-        //         ),
-        //         "user_reference" => "MEUGK",
-        //         "created_at" => "2018-07-26T08:55:12Z",
-        //         "updated_at" => "2018-07-26T08:58:18Z",
-        //         "resource" => "withdrawal",
-        //         "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/cfcc3b4a-eeb6-5e8c-8058",
-        //         "committed" => true,
-        //         "payout_at" => "2018-07-31T08:55:12Z",
-        //         "instant" => false,
-        //         "fee" => array( "amount" => "0.15", "currency" => "EUR" ),
-        //         "amount" => array( "amount" => "13130.69", "currency" => "EUR" ),
-        //         "subtotal" => array( "amount" => "13130.84", "currency" => "EUR" ),
-        //         "idem" => "e549dee5-63ed-4e79-8a96",
-        //         "next_step" => null
+        //         "id": "cfcc3b4a-eeb6-5e8c-8058",
+        //         "status": "completed",
+        //         "payment_method": {
+        //             "id": "8b94cfa4-f7fd-5a12-a76a",
+        //             "resource": "payment_method",
+        //             "resource_path": "/v2/payment-methods/8b94cfa4-f7fd-5a12-a76a"
+        //         },
+        //         "transaction": {
+        //             "id": "fcc2550b-5104-5f83-a444",
+        //             "resource": "transaction",
+        //             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/fcc2550b-5104-5f83-a444"
+        //         },
+        //         "user_reference": "MEUGK",
+        //         "created_at": "2018-07-26T08:55:12Z",
+        //         "updated_at": "2018-07-26T08:58:18Z",
+        //         "resource": "withdrawal",
+        //         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/cfcc3b4a-eeb6-5e8c-8058",
+        //         "committed": true,
+        //         "payout_at": "2018-07-31T08:55:12Z",
+        //         "instant": false,
+        //         "fee": { "amount": "0.15", "currency": "EUR" },
+        //         "amount": { "amount": "13130.69", "currency": "EUR" },
+        //         "subtotal": { "amount": "13130.84", "currency": "EUR" },
+        //         "idem": "e549dee5-63ed-4e79-8a96",
+        //         "next_step": null
         //     }
         //
         // withdraw
         //
         //     {
-        //         "id" => "a1794ecf-5693-55fa-70cf-ef731748ed82",
-        //         "type" => "send",
-        //         "status" => "pending",
-        //         "amount" => array(
-        //             "amount" => "-14.008308",
-        //             "currency" => "USDC"
-        //         ),
-        //         "native_amount" => array(
-        //             "amount" => "-18.74",
-        //             "currency" => "CAD"
-        //         ),
-        //         "description" => null,
-        //         "created_at" => "2024-01-12T01:27:31Z",
-        //         "updated_at" => "2024-01-12T01:27:31Z",
-        //         "resource" => "transaction",
-        //         "resource_path" => "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
-        //         "instant_exchange" => false,
-        //         "network" => array(
-        //             "status" => "pending",
-        //             "status_description" => "Pending (est. less than 10 minutes)",
-        //             "transaction_fee" => array(
-        //                 "amount" => "4.008308",
-        //                 "currency" => "USDC"
-        //             ),
-        //             "transaction_amount" => array(
-        //                 "amount" => "10.000000",
-        //                 "currency" => "USDC"
-        //             ),
-        //             "confirmations" => 0
-        //         ),
-        //         "to" => {
-        //             "resource" => "ethereum_address",
-        //             "address" => "0x9...",
-        //             "currency" => "USDC",
-        //             "address_info" => array(
-        //                 "address" => "0x9..."
+        //         "id": "a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //         "type": "send",
+        //         "status": "pending",
+        //         "amount": {
+        //             "amount": "-14.008308",
+        //             "currency": "USDC"
+        //         },
+        //         "native_amount": {
+        //             "amount": "-18.74",
+        //             "currency": "CAD"
+        //         },
+        //         "description": null,
+        //         "created_at": "2024-01-12T01:27:31Z",
+        //         "updated_at": "2024-01-12T01:27:31Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //         "instant_exchange": false,
+        //         "network": {
+        //             "status": "pending",
+        //             "status_description": "Pending (est. less than 10 minutes)",
+        //             "transaction_fee": {
+        //                 "amount": "4.008308",
+        //                 "currency": "USDC"
+        //             },
+        //             "transaction_amount": {
+        //                 "amount": "10.000000",
+        //                 "currency": "USDC"
+        //             },
+        //             "confirmations": 0
+        //         },
+        //         "to": {
+        //             "resource": "ethereum_address",
+        //             "address": "0x9...",
+        //             "currency": "USDC",
+        //             "address_info": {
+        //                 "address": "0x9..."
         //             }
-        //         ),
-        //         "idem" => "748d8591-dg9a-7831-a45b-crd61dg78762",
-        //         "details" => array(
-        //             "title" => "Sent USDC",
-        //             "subtitle" => "To USDC address on Ethereum $network",
-        //             "header" => "Sent 14.008308 USDC ($18.74)",
-        //             "health" => "warning"
-        //         ),
-        //         "hide_native_amount" => false
+        //         },
+        //         "idem": "748d8591-dg9a-7831-a45b-crd61dg78762",
+        //         "details": {
+        //             "title": "Sent USDC",
+        //             "subtitle": "To USDC address on Ethereum network",
+        //             "header": "Sent 14.008308 USDC ($18.74)",
+        //             "health": "warning"
+        //         },
+        //         "hide_native_amount": false
         //     }
         //
         //
         // crypto deposit & withdrawal (using `/transactions` endpoint)
         //    {
-        //        "amount" => array(
-        //            "amount" => "0.00014200", (negative for withdrawal)
-        //            "currency" => "BTC"
-        //        ),
-        //        "created_at" => "2024-03-29T15:48:30Z",
-        //        "id" => "0031a605-241d-514d-a97b-d4b99f3225d3",
-        //        "idem" => "092a979b-017e-4403-940a-2ca57811f442", // field present only in case of withdrawal
-        //        "native_amount" => array(
-        //            "amount" => "9.85", (negative for withdrawal)
-        //            "currency" => "USD"
-        //        ),
-        //        "network" => {
-        //            "status" => "pending", // if $status is `off_blockchain` then no more other fields are property_exists($this, present) object
-        //            "hash" => "5jYuvrNsvX2DZoMnzGYzVpYxJLfYu4GSK3xetG1H5LHrSovsuFCFYdFMwNRoiht3s6fBk92MM8QLLnz65xuEFTrE",
-        //            "network_name" => "solana",
-        //            "transaction_fee" => array(
-        //                "amount" => "0.000100000",
-        //                "currency" => "SOL"
+        //        "amount": {
+        //            "amount": "0.00014200", (negative for withdrawal)
+        //            "currency": "BTC"
+        //        },
+        //        "created_at": "2024-03-29T15:48:30Z",
+        //        "id": "0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "idem": "092a979b-017e-4403-940a-2ca57811f442", // field present only in case of withdrawal
+        //        "native_amount": {
+        //            "amount": "9.85", (negative for withdrawal)
+        //            "currency": "USD"
+        //        },
+        //        "network": {
+        //            "status": "pending", // if status is `off_blockchain` then no more other fields are present in this object
+        //            "hash": "5jYuvrNsvX2DZoMnzGYzVpYxJLfYu4GSK3xetG1H5LHrSovsuFCFYdFMwNRoiht3s6fBk92MM8QLLnz65xuEFTrE",
+        //            "network_name": "solana",
+        //            "transaction_fee": {
+        //                "amount": "0.000100000",
+        //                "currency": "SOL"
         //            }
-        //        ),
-        //        "resource" => "transaction",
-        //        "resource_path" => "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
-        //        "status" => "completed",
-        //        "type" => "send",
-        //        "from" => array( // in some cases, field might be present for deposit
-        //            "id" => "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
-        //            "name" => "Coinbase",
-        //            "resource" => "user"
-        //        ),
-        //        "to" => array( // field only present for withdrawal
-        //            "address" => "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
-        //            "resource" => "address"
-        //        ),
-        //        "description" => "C3 - One Time BTC Credit . Reference Case # 123.", //  in some cases, field might be present for deposit
+        //        },
+        //        "resource": "transaction",
+        //        "resource_path": "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "status": "completed",
+        //        "type": "send",
+        //        "from": { // in some cases, field might be present for deposit
+        //            "id": "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
+        //            "name": "Coinbase",
+        //            "resource": "user"
+        //        },
+        //        "to": { // field only present for withdrawal
+        //            "address": "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
+        //            "resource": "address"
+        //        },
+        //        "description": "C3 - One Time BTC Credit . Reference Case # 123.", //  in some cases, field might be present for deposit
         //    }
         //
         $transactionType = $this->safe_string($transaction, 'type');
@@ -1171,7 +1172,7 @@ class coinbase extends Exchange {
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         if ($status === null) {
             $committed = $this->safe_bool($transaction, 'committed');
-            $status = $committed ? 'ok' : 'pending';
+            $status = ($committed === true) ? 'ok' : 'pending';
         }
         $id = $this->safe_string($transaction, 'id');
         $currencyId = $this->safe_string($amountAndCurrencyObject, 'currency');
@@ -1220,61 +1221,61 @@ class coinbase extends Exchange {
         // fetchMyBuys, fetchMySells
         //
         //     {
-        //         "id" => "67e0eaec-07d7-54c4-a72c-2e92826897df",
-        //         "status" => "completed",
-        //         "payment_method" => array(
-        //             "id" => "83562370-3e5c-51db-87da-752af5ab9559",
-        //             "resource" => "payment_method",
-        //             "resource_path" => "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
-        //         ),
-        //         "transaction" => array(
-        //             "id" => "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
-        //             "resource" => "transaction",
-        //             "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
-        //         ),
-        //         "amount" => array( "amount" => "1.00000000", "currency" => "BTC" ),
-        //         "total" => array( "amount" => "10.25", "currency" => "USD" ),
-        //         "subtotal" => array( "amount" => "10.10", "currency" => "USD" ),
-        //         "created_at" => "2015-01-31T20:49:02Z",
-        //         "updated_at" => "2015-02-11T16:54:02-08:00",
-        //         "resource" => "buy",
-        //         "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/67e0eaec-07d7-54c4-a72c-2e92826897df",
-        //         "committed" => true,
-        //         "instant" => false,
-        //         "fee" => array( "amount" => "0.15", "currency" => "USD" ),
-        //         "payout_at" => "2015-02-18T16:54:00-08:00"
+        //         "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //         "status": "completed",
+        //         "payment_method": {
+        //             "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //             "resource": "payment_method",
+        //             "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //         },
+        //         "transaction": {
+        //             "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //             "resource": "transaction",
+        //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //         },
+        //         "amount": { "amount": "1.00000000", "currency": "BTC" },
+        //         "total": { "amount": "10.25", "currency": "USD" },
+        //         "subtotal": { "amount": "10.10", "currency": "USD" },
+        //         "created_at": "2015-01-31T20:49:02Z",
+        //         "updated_at": "2015-02-11T16:54:02-08:00",
+        //         "resource": "buy",
+        //         "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //         "committed": true,
+        //         "instant": false,
+        //         "fee": { "amount": "0.15", "currency": "USD" },
+        //         "payout_at": "2015-02-18T16:54:00-08:00"
         //     }
         //
         // fetchTrades
         //
         //     {
-        //         "trade_id" => "10092327",
-        //         "product_id" => "BTC-USDT",
-        //         "price" => "17488.12",
-        //         "size" => "0.0000623",
-        //         "time" => "2023-01-11T00:52:37.557001Z",
-        //         "side" => "BUY",
-        //         "bid" => "",
-        //         "ask" => ""
+        //         "trade_id": "10092327",
+        //         "product_id": "BTC-USDT",
+        //         "price": "17488.12",
+        //         "size": "0.0000623",
+        //         "time": "2023-01-11T00:52:37.557001Z",
+        //         "side": "BUY",
+        //         "bid": "",
+        //         "ask": ""
         //     }
         //
         // fetchMyTrades
         //
         //     {
-        //         "entry_id" => "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
-        //         "trade_id" => "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
-        //         "order_id" => "813a53c5-3e39-47bb-863d-2faf685d22d8",
-        //         "trade_time" => "2023-01-18T01:37:38.091377090Z",
-        //         "trade_type" => "FILL",
-        //         "price" => "21220.64",
-        //         "size" => "0.0046830664333996",
-        //         "commission" => "0.0000280983986004",
-        //         "product_id" => "BTC-USDT",
-        //         "sequence_timestamp" => "2023-01-18T01:37:38.092520Z",
-        //         "liquidity_indicator" => "UNKNOWN_LIQUIDITY_INDICATOR",
-        //         "size_in_quote" => true,
-        //         "user_id" => "1111111-1111-1111-1111-111111111111",
-        //         "side" => "BUY"
+        //         "entry_id": "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
+        //         "trade_id": "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
+        //         "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        //         "trade_time": "2023-01-18T01:37:38.091377090Z",
+        //         "trade_type": "FILL",
+        //         "price": "21220.64",
+        //         "size": "0.0046830664333996",
+        //         "commission": "0.0000280983986004",
+        //         "product_id": "BTC-USDT",
+        //         "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
+        //         "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
+        //         "size_in_quote": true,
+        //         "user_id": "1111111-1111-1111-1111-111111111111",
+        //         "side": "BUY"
         //     }
         //
         $symbol = null;
@@ -1283,9 +1284,9 @@ class coinbase extends Exchange {
         $subtotalObject = $this->safe_dict($trade, 'subtotal', array());
         $feeObject = $this->safe_dict($trade, 'fee', array());
         $marketId = $this->safe_string($trade, 'product_id');
-        $market = $this->safe_market($marketId, $market, '-');
-        if ($market !== null) {
-            $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market, '-');
+        if ($marketResolved !== null) {
+            $symbol = $marketResolved['symbol'];
         } else {
             $baseId = $this->safe_string($amountObject, 'currency');
             $quoteId = $this->safe_string($totalObject, 'currency');
@@ -1299,8 +1300,8 @@ class coinbase extends Exchange {
         $v3Price = $this->safe_string($trade, 'price');
         $v3Cost = null;
         $v3Amount = $this->safe_string($trade, 'size');
-        if ($sizeInQuote) {
-            // calculate $base size
+        if ($sizeInQuote === true) {
+            // calculate base size
             $v3Cost = $v3Amount;
             $v3Amount = Precise::string_div($v3Amount, $v3Price);
         }
@@ -1321,8 +1322,8 @@ class coinbase extends Exchange {
         }
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
         $feeCost = $this->safe_number($feeObject, 'amount', $this->parse_number($v3FeeCost));
-        if (($feeCurrencyId === null) && ($market !== null) && ($feeCost !== null)) {
-            $feeCurrencyId = $market['quote'];
+        if (($feeCurrencyId === null) && ($marketResolved !== null) && ($feeCost !== null)) {
+            $feeCurrencyId = $this->safe_string($marketResolved, 'quote');
         }
         $datetime = $this->safe_string_n($trade, array( 'created_at', 'trade_time', 'time' ));
         $side = $this->safe_string_lower_2($trade, 'resource', 'side');
@@ -1360,7 +1361,7 @@ class coinbase extends Exchange {
          * @param {boolean} [$params->usePrivate] use private endpoint for fetching markets
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             $this->load_time_difference();
         }
         $method = $this->safe_string($this->options, 'fetchMarkets', 'fetchMarketsV3');
@@ -1382,13 +1383,22 @@ class coinbase extends Exchange {
         for ($i = 0; $i < count($baseIds); $i++) {
             $baseId = $baseIds[$i];
             $base = $this->safe_currency_code($baseId);
-            $type = (is_array($dataById) && array_key_exists($baseId ?? '', $dataById)) ? 'fiat' : 'crypto';
+            if ($base === null) {
+                continue;
+            }
+            $type = 'crypto';
+            if (is_array($dataById) && array_key_exists($baseId ?? '', $dataById)) {
+                $type = 'fiat';
+            }
             // https://github.com/ccxt/ccxt/issues/6066
             if ($type === 'crypto') {
                 for ($j = 0; $j < count($data); $j++) {
                     $quoteCurrency = $data[$j];
                     $quoteId = $this->safe_string($quoteCurrency, 'id');
                     $quote = $this->safe_currency_code($quoteId);
+                    if ($quote === null) {
+                        continue;
+                    }
                     $result[] = $this->safe_market_structure(array(
                         'id' => $baseId . '-' . $quoteId,
                         'symbol' => $base . '/' . $quote,
@@ -1444,91 +1454,90 @@ class coinbase extends Exchange {
     }
 
     public function fetch_markets_v3($params = array()): array {
-        $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'usePrivate', false);
+        list($usePrivate, $paramsUsePrivate) = $this->handle_option_bool_and_params($params, 'fetchMarkets', 'usePrivate', false);
         $spotUnresolvedPromises = array();
         if ($usePrivate) {
-            $spotUnresolvedPromises[] = $this->v3PrivateGetBrokerageProducts($params);
+            $spotUnresolvedPromises[] = $this->v3PrivateGetBrokerageProducts($paramsUsePrivate);
         } else {
-            $spotUnresolvedPromises[] = $this->v3PublicGetBrokerageMarketProducts($params);
+            $spotUnresolvedPromises[] = $this->v3PublicGetBrokerageMarketProducts($paramsUsePrivate);
         }
         //
         //    {
-        //        products => array(
-        //            array(
-        //                product_id => 'BTC-USD',
-        //                price => '67060',
-        //                price_percentage_change_24h => '3.30054960636883',
-        //                volume_24h => '10967.87426597',
-        //                volume_percentage_change_24h => '141.73048325503036',
-        //                base_increment => '0.00000001',
-        //                quote_increment => '0.01',
-        //                quote_min_size => '1',
-        //                quote_max_size => '150000000',
-        //                base_min_size => '0.00000001',
-        //                base_max_size => '3400',
-        //                base_name => 'Bitcoin',
-        //                quote_name => 'US Dollar',
-        //                watched => false,
-        //                is_disabled => false,
-        //                new => false,
-        //                status => 'online',
-        //                cancel_only => false,
-        //                limit_only => false,
-        //                post_only => false,
-        //                trading_disabled => false,
-        //                auction_mode => false,
-        //                product_type => 'SPOT',
-        //                quote_currency_id => 'USD',
-        //                base_currency_id => 'BTC',
-        //                fcm_trading_session_details => null,
-        //                mid_market_price => '',
-        //                alias => '',
-        //                alias_to => array( 'BTC-USDC' ),
-        //                base_display_symbol => 'BTC',
-        //                quote_display_symbol => 'USD',
-        //                view_only => false,
-        //                price_increment => '0.01',
-        //                display_name => 'BTC-USD',
-        //                product_venue => 'CBE'
-        //            ),
+        //        products: [
+        //            {
+        //                product_id: 'BTC-USD',
+        //                price: '67060',
+        //                price_percentage_change_24h: '3.30054960636883',
+        //                volume_24h: '10967.87426597',
+        //                volume_percentage_change_24h: '141.73048325503036',
+        //                base_increment: '0.00000001',
+        //                quote_increment: '0.01',
+        //                quote_min_size: '1',
+        //                quote_max_size: '150000000',
+        //                base_min_size: '0.00000001',
+        //                base_max_size: '3400',
+        //                base_name: 'Bitcoin',
+        //                quote_name: 'US Dollar',
+        //                watched: false,
+        //                is_disabled: false,
+        //                new: false,
+        //                status: 'online',
+        //                cancel_only: false,
+        //                limit_only: false,
+        //                post_only: false,
+        //                trading_disabled: false,
+        //                auction_mode: false,
+        //                product_type: 'SPOT',
+        //                quote_currency_id: 'USD',
+        //                base_currency_id: 'BTC',
+        //                fcm_trading_session_details: null,
+        //                mid_market_price: '',
+        //                alias: '',
+        //                alias_to: [ 'BTC-USDC' ],
+        //                base_display_symbol: 'BTC',
+        //                quote_display_symbol: 'USD',
+        //                view_only: false,
+        //                price_increment: '0.01',
+        //                display_name: 'BTC-USD',
+        //                product_venue: 'CBE'
+        //            },
         //            ...
-        //        ),
-        //        num_products => '646'
+        //        ],
+        //        num_products: '646'
         //    }
         //
         if ($this->check_required_credentials(false)) {
-            $spotUnresolvedPromises[] = $this->v3PrivateGetBrokerageTransactionSummary($params);
+            $spotUnresolvedPromises[] = $this->v3PrivateGetBrokerageTransactionSummary($paramsUsePrivate);
         }
         //
         //    {
-        //        total_volume => '9.995989116664404',
-        //        total_fees => '0.07996791093331522',
-        //        fee_tier => array(
-        //            pricing_tier => 'Advanced 1',
-        //            usd_from => '0',
-        //            usd_to => '1000',
-        //            taker_fee_rate => '0.008',
-        //            maker_fee_rate => '0.006',
-        //            aop_from => '',
-        //            aop_to => ''
-        //        ),
-        //        margin_rate => null,
-        //        goods_and_services_tax => null,
-        //        advanced_trade_only_volume => '9.995989116664404',
-        //        advanced_trade_only_fees => '0.07996791093331522',
-        //        coinbase_pro_volume => '0',
-        //        coinbase_pro_fees => '0',
-        //        total_balance => '',
-        //        has_promo_fee => false
+        //        total_volume: '9.995989116664404',
+        //        total_fees: '0.07996791093331522',
+        //        fee_tier: {
+        //            pricing_tier: 'Advanced 1',
+        //            usd_from: '0',
+        //            usd_to: '1000',
+        //            taker_fee_rate: '0.008',
+        //            maker_fee_rate: '0.006',
+        //            aop_from: '',
+        //            aop_to: ''
+        //        },
+        //        margin_rate: null,
+        //        goods_and_services_tax: null,
+        //        advanced_trade_only_volume: '9.995989116664404',
+        //        advanced_trade_only_fees: '0.07996791093331522',
+        //        coinbase_pro_volume: '0',
+        //        coinbase_pro_fees: '0',
+        //        total_balance: '',
+        //        has_promo_fee: false
         //    }
         //
         $promises = $spotUnresolvedPromises;
         $unresolvedContractPromises = array();
         try {
             $unresolvedContractPromises = array(
-                $this->v3PublicGetBrokerageMarketProducts($this->extend($params, array( 'product_type' => 'FUTURE' ))),
-                $this->v3PublicGetBrokerageMarketProducts($this->extend($params, array( 'product_type' => 'FUTURE', 'contract_expiry_type' => 'PERPETUAL' ))),
+                $this->v3PublicGetBrokerageMarketProducts($this->extend($paramsUsePrivate, array( 'product_type' => 'FUTURE' ))),
+                $this->v3PublicGetBrokerageMarketProducts($this->extend($paramsUsePrivate, array( 'product_type' => 'FUTURE', 'contract_expiry_type' => 'PERPETUAL' ))),
             );
         } catch (Exception $e) {
             $unresolvedContractPromises = array(); // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
@@ -1547,21 +1556,21 @@ class coinbase extends Exchange {
         $perpetualFees = $this->safe_dict($contractPromises, 1, array());
         //
         //     {
-        //         "total_volume" => 0,
-        //         "total_fees" => 0,
-        //         "fee_tier" => array(
-        //             "pricing_tier" => "",
-        //             "usd_from" => "0",
-        //             "usd_to" => "10000",
-        //             "taker_fee_rate" => "0.006",
-        //             "maker_fee_rate" => "0.004"
-        //         ),
-        //         "margin_rate" => null,
-        //         "goods_and_services_tax" => null,
-        //         "advanced_trade_only_volume" => 0,
-        //         "advanced_trade_only_fees" => 0,
-        //         "coinbase_pro_volume" => 0,
-        //         "coinbase_pro_fees" => 0
+        //         "total_volume": 0,
+        //         "total_fees": 0,
+        //         "fee_tier": {
+        //             "pricing_tier": "",
+        //             "usd_from": "0",
+        //             "usd_to": "10000",
+        //             "taker_fee_rate": "0.006",
+        //             "maker_fee_rate": "0.004"
+        //         },
+        //         "margin_rate": null,
+        //         "goods_and_services_tax": null,
+        //         "advanced_trade_only_volume": 0,
+        //         "advanced_trade_only_fees": 0,
+        //         "coinbase_pro_volume": 0,
+        //         "coinbase_pro_fees": 0
         //     }
         //
         $feeTier = $this->safe_dict($fees, 'fee_tier', array());
@@ -1570,20 +1579,29 @@ class coinbase extends Exchange {
         $data = $this->safe_list($spot, 'products', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $result[] = $this->parse_spot_market($data[$i], $feeTier);
+            $spotMarket = $this->parse_spot_market($data[$i], $feeTier);
+            if ($spotMarket !== null) {
+                $result[] = $spotMarket;
+            }
         }
         $futureData = $this->safe_list($expiringFutures, 'products', array());
         for ($i = 0; $i < count($futureData); $i++) {
-            $result[] = $this->parse_contract_market($futureData[$i], $expiringFeeTier);
+            $futureMarket = $this->parse_contract_market($futureData[$i], $expiringFeeTier);
+            if ($futureMarket !== null) {
+                $result[] = $futureMarket;
+            }
         }
         $perpetualData = $this->safe_list($perpetualFutures, 'products', array());
         for ($i = 0; $i < count($perpetualData); $i++) {
-            $result[] = $this->parse_contract_market($perpetualData[$i], $perpetualFeeTier);
+            $perpetualMarket = $this->parse_contract_market($perpetualData[$i], $perpetualFeeTier);
+            if ($perpetualMarket !== null) {
+                $result[] = $perpetualMarket;
+            }
         }
         $newMarkets = array();
         for ($i = 0; $i < count($result); $i++) {
             $market = $result[$i];
-            $info = $this->safe_value($market, 'info', array());
+            $info = $this->safe_dict($market, 'info', array());
             $realMarketIds = $this->safe_list($info, 'alias_to', array());
             $length = count($realMarketIds);
             if ($length > 0) {
@@ -1596,36 +1614,36 @@ class coinbase extends Exchange {
         return $newMarkets;
     }
 
-    public function parse_spot_market(mixed $market, mixed $feeTier): array {
+    public function parse_spot_market(array $market, array $feeTier): array {
         //
         //         {
-        //             "product_id" => "TONE-USD",
-        //             "price" => "0.01523",
-        //             "price_percentage_change_24h" => "1.94109772423025",
-        //             "volume_24h" => "19773129",
-        //             "volume_percentage_change_24h" => "437.0170530929949",
-        //             "base_increment" => "1",
-        //             "quote_increment" => "0.00001",
-        //             "quote_min_size" => "1",
-        //             "quote_max_size" => "10000000",
-        //             "base_min_size" => "26.7187147229469674",
-        //             "base_max_size" => "267187147.2294696735908216",
-        //             "base_name" => "TE-FOOD",
-        //             "quote_name" => "US Dollar",
-        //             "watched" => false,
-        //             "is_disabled" => false,
-        //             "new" => false,
-        //             "status" => "online",
-        //             "cancel_only" => false,
-        //             "limit_only" => false,
-        //             "post_only" => false,
-        //             "trading_disabled" => false,
-        //             "auction_mode" => false,
-        //             "product_type" => "SPOT",
-        //             "quote_currency_id" => "USD",
-        //             "base_currency_id" => "TONE",
-        //             "fcm_trading_session_details" => null,
-        //             "mid_market_price" => ""
+        //             "product_id": "TONE-USD",
+        //             "price": "0.01523",
+        //             "price_percentage_change_24h": "1.94109772423025",
+        //             "volume_24h": "19773129",
+        //             "volume_percentage_change_24h": "437.0170530929949",
+        //             "base_increment": "1",
+        //             "quote_increment": "0.00001",
+        //             "quote_min_size": "1",
+        //             "quote_max_size": "10000000",
+        //             "base_min_size": "26.7187147229469674",
+        //             "base_max_size": "267187147.2294696735908216",
+        //             "base_name": "TE-FOOD",
+        //             "quote_name": "US Dollar",
+        //             "watched": false,
+        //             "is_disabled": false,
+        //             "new": false,
+        //             "status": "online",
+        //             "cancel_only": false,
+        //             "limit_only": false,
+        //             "post_only": false,
+        //             "trading_disabled": false,
+        //             "auction_mode": false,
+        //             "product_type": "SPOT",
+        //             "quote_currency_id": "USD",
+        //             "base_currency_id": "TONE",
+        //             "fcm_trading_session_details": null,
+        //             "mid_market_price": ""
         //         }
         //
         $id = $this->safe_string($market, 'product_id');
@@ -1633,6 +1651,9 @@ class coinbase extends Exchange {
         $quoteId = $this->safe_string($market, 'quote_currency_id');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $marketType = $this->safe_string_lower($market, 'product_type');
         $tradingDisabled = $this->safe_bool($market, 'trading_disabled');
         $stablePairs = $this->safe_list($this->options, 'stablePairs', array());
@@ -1655,7 +1676,7 @@ class coinbase extends Exchange {
             'swap' => false,
             'future' => false,
             'option' => false,
-            'active' => !$tradingDisabled,
+            'active' => $tradingDisabled !== true,
             'contract' => false,
             'linear' => null,
             'inverse' => null,
@@ -1693,7 +1714,7 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function parse_contract_market(mixed $market, mixed $feeTier): array {
+    public function parse_contract_market(array $market, array $feeTier): array {
         // expiring
         //
         //        {
@@ -1722,15 +1743,15 @@ class coinbase extends Exchange {
         //           "product_type":"FUTURE",
         //           "quote_currency_id":"USD",
         //           "base_currency_id":"",
-        //           "fcm_trading_session_details":array(
+        //           "fcm_trading_session_details":{
         //              "is_session_open":true,
         //              "open_time":"2024-04-08T22:00:00Z",
         //              "close_time":"2024-04-09T21:00:00Z"
-        //           ),
+        //           },
         //           "mid_market_price":"71105",
         //           "alias":"",
-        //           "alias_to":array(
-        //           ),
+        //           "alias_to":[
+        //           ],
         //           "base_display_symbol":"",
         //           "quote_display_symbol":"USD",
         //           "view_only":false,
@@ -1783,7 +1804,7 @@ class coinbase extends Exchange {
         //           "fcm_trading_session_details":null,
         //           "mid_market_price":"3630.975",
         //           "alias":"",
-        //           "alias_to":array(),
+        //           "alias_to":[],
         //           "base_display_symbol":"",
         //           "quote_display_symbol":"USDC",
         //           "view_only":false,
@@ -1801,12 +1822,12 @@ class coinbase extends Exchange {
         //              "group_short_description":"",
         //              "risk_managed_by":"MANAGED_BY_VENUE",
         //              "contract_expiry_type":"PERPETUAL",
-        //              "perpetual_details":array(
+        //              "perpetual_details":{
         //                 "open_interest":"0",
         //                 "funding_rate":"0.000016",
         //                 "funding_time":"2024-04-09T09:00:00.000008Z",
         //                 "max_leverage":"10"
-        //              ),
+        //              },
         //              "contract_display_name":"ETH PERPETUAL"
         //           }
         //        }
@@ -1823,6 +1844,9 @@ class coinbase extends Exchange {
         $quoteId = $this->safe_string($market, 'quote_currency_id');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $tradingDisabled = $this->safe_bool($market, 'is_disabled');
         $symbol = $base . '/' . $quote;
         $type = null;
@@ -1835,8 +1859,8 @@ class coinbase extends Exchange {
         }
         $takerFeeRate = $this->safe_number($feeTier, 'taker_fee_rate');
         $makerFeeRate = $this->safe_number($feeTier, 'maker_fee_rate');
-        $taker = $takerFeeRate ? $takerFeeRate : $this->parse_number('0.06');
-        $maker = $makerFeeRate ? $makerFeeRate : $this->parse_number('0.04');
+        $taker = ($takerFeeRate !== null && $takerFeeRate !== null && $takerFeeRate !== 0) ? $takerFeeRate : $this->parse_number('0.06');
+        $maker = ($makerFeeRate !== null && $makerFeeRate !== null && $makerFeeRate !== 0) ? $makerFeeRate : $this->parse_number('0.04');
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1852,7 +1876,7 @@ class coinbase extends Exchange {
             'swap' => $isSwap,
             'future' => !$isSwap,
             'option' => false,
-            'active' => !$tradingDisabled,
+            'active' => $tradingDisabled !== true,
             'contract' => true,
             'linear' => true,
             'inverse' => false,
@@ -1890,7 +1914,7 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function fetch_currencies_from_cache($params = array()) {
+    public function fetch_currencies_from_cache($params = array()): array {
         $options = $this->safe_dict($this->options, 'fetchCurrencies', array());
         $timestamp = $this->safe_integer($options, 'timestamp');
         $expires = $this->safe_integer($options, 'expires', 1000);
@@ -1903,26 +1927,26 @@ class coinbase extends Exchange {
             $promisesResult = $promises;
             $fiatResponse = $this->safe_dict($promisesResult, 0, array());
             //
-            //    array(
-            //        "data" => array(
-            //            id => 'IMP',
-            //            name => 'Isle of Man Pound',
-            //            min_size => '0.01'
-            //        ),
+            //    [
+            //        "data": {
+            //            id: 'IMP',
+            //            name: 'Isle of Man Pound',
+            //            min_size: '0.01'
+            //        },
             //        ...
-            //    )
+            //    ]
             //
             $cryptoResponse = $this->safe_dict($promisesResult, 1, array());
             //
             //    {
-            //        asset_id => '9476e3be-b731-47fa-82be-347fabc573d9',
-            //        code => 'AERO',
-            //        name => 'Aerodrome Finance',
-            //        color => '#0433FF',
-            //        sort_index => '340',
-            //        exponent => '8',
-            //        type => 'crypto',
-            //        address_regex => '^(?:0x)?[0-9a-fA-F]{40}$'
+            //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+            //        code: 'AERO',
+            //        name: 'Aerodrome Finance',
+            //        color: '#0433FF',
+            //        sort_index: '340',
+            //        exponent: '8',
+            //        type: 'crypto',
+            //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
             //    }
             //
             $fiatData = $this->safe_list($fiatResponse, 'data', array());
@@ -1956,28 +1980,28 @@ class coinbase extends Exchange {
         $fiatResponse = $this->safe_dict($promisesResult, 0, array());
         //
         //    [
-        //        "data" => [
-        //            array(
-        //                $id => 'IMP',
-        //                $name => 'Isle of Man Pound',
-        //                min_size => '0.01'
-        //            ),
+        //        "data": [
+        //            {
+        //                id: 'IMP',
+        //                name: 'Isle of Man Pound',
+        //                min_size: '0.01'
+        //            },
         //        ...
         //
         $cryptoResponse = $this->safe_dict($promisesResult, 1, array());
         //
         //     [
-        //        "data" => [
-        //           array(
-        //              asset_id => '9476e3be-b731-47fa-82be-347fabc573d9',
-        //              $code => 'AERO',
-        //              $name => 'Aerodrome Finance',
-        //              color => '#0433FF',
-        //              sort_index => '340',
-        //              exponent => '8',
-        //              $type => 'crypto',
-        //              address_regex => '^(?:0x)?[0-9a-fA-F]{40}$'
-        //           ),
+        //        "data": [
+        //           {
+        //              asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        //              code: 'AERO',
+        //              name: 'Aerodrome Finance',
+        //              color: '#0433FF',
+        //              sort_index: '340',
+        //              exponent: '8',
+        //              type: 'crypto',
+        //              address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        //           },
         //          ...
         //
         $ratesResponse = $this->safe_dict($promisesResult, 2, array());
@@ -2002,7 +2026,10 @@ class coinbase extends Exchange {
             if ($code !== null) {
                 $this->options['networksById'][$code] = strtolower($name);
             }
-            $type = ($assetId !== null) ? 'crypto' : 'fiat';
+            $type = 'fiat';
+            if ($assetId !== null) {
+                $type = 'crypto';
+            }
             if ($code !== null) {
                 $result[$code] = $this->safe_currency_structure(array(
                     'info' => $currency,
@@ -2036,7 +2063,7 @@ class coinbase extends Exchange {
                 $networksById[$lowerCaseName] = $code;
             }
         }
-        // we have to add other $currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
+        // we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
         for ($i = 0; $i < count($ratesIds); $i++) {
             $currencyId = $ratesIds[$i];
             $code = $this->safe_currency_code($currencyId);
@@ -2081,9 +2108,9 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
-            // 'currency' => 'USD',
+            // 'currency': 'USD',
         );
         $response = $this->v2PublicGetExchangeRates($this->extend($request, $params));
         //
@@ -2111,66 +2138,64 @@ class coinbase extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($rates[$baseId], $market);
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_tickers_v3(?array $symbols = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array();
-        if ($symbols !== null) {
-            $request['product_ids'] = $this->market_ids($symbols);
+        if ($symbolsNormalized !== null) {
+            $request['product_ids'] = $this->market_ids($symbolsNormalized);
         }
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $this->get_market_from_symbols($symbols), $params, 'default');
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', $this->get_market_from_symbols($symbolsNormalized), $params, 'default');
         if ($marketType !== null && $marketType !== 'default') {
             $request['product_type'] = ($marketType === 'swap') ? 'FUTURE' : 'SPOT';
         }
         $response = null;
-        $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'usePrivate', false);
+        list($usePrivate, $paramsUsePrivate) = $this->handle_option_bool_and_params($paramsMarketType, 'fetchTickers', 'usePrivate', false);
         if ($usePrivate) {
-            $response = $this->v3PrivateGetBrokerageProducts($this->extend($request, $params));
+            $response = $this->v3PrivateGetBrokerageProducts($this->extend($request, $paramsUsePrivate));
         } else {
-            $response = $this->v3PublicGetBrokerageMarketProducts($this->extend($request, $params));
+            $response = $this->v3PublicGetBrokerageMarketProducts($this->extend($request, $paramsUsePrivate));
         }
         //
         //     {
-        //         "products" => array(
-        //             array(
-        //                 "product_id" => "TONE-USD",
-        //                 "price" => "0.01523",
-        //                 "price_percentage_change_24h" => "1.94109772423025",
-        //                 "volume_24h" => "19773129",
-        //                 "volume_percentage_change_24h" => "437.0170530929949",
-        //                 "base_increment" => "1",
-        //                 "quote_increment" => "0.00001",
-        //                 "quote_min_size" => "1",
-        //                 "quote_max_size" => "10000000",
-        //                 "base_min_size" => "26.7187147229469674",
-        //                 "base_max_size" => "267187147.2294696735908216",
-        //                 "base_name" => "TE-FOOD",
-        //                 "quote_name" => "US Dollar",
-        //                 "watched" => false,
-        //                 "is_disabled" => false,
-        //                 "new" => false,
-        //                 "status" => "online",
-        //                 "cancel_only" => false,
-        //                 "limit_only" => false,
-        //                 "post_only" => false,
-        //                 "trading_disabled" => false,
-        //                 "auction_mode" => false,
-        //                 "product_type" => "SPOT",
-        //                 "quote_currency_id" => "USD",
-        //                 "base_currency_id" => "TONE",
-        //                 "fcm_trading_session_details" => null,
-        //                 "mid_market_price" => ""
-        //             ),
+        //         "products": [
+        //             {
+        //                 "product_id": "TONE-USD",
+        //                 "price": "0.01523",
+        //                 "price_percentage_change_24h": "1.94109772423025",
+        //                 "volume_24h": "19773129",
+        //                 "volume_percentage_change_24h": "437.0170530929949",
+        //                 "base_increment": "1",
+        //                 "quote_increment": "0.00001",
+        //                 "quote_min_size": "1",
+        //                 "quote_max_size": "10000000",
+        //                 "base_min_size": "26.7187147229469674",
+        //                 "base_max_size": "267187147.2294696735908216",
+        //                 "base_name": "TE-FOOD",
+        //                 "quote_name": "US Dollar",
+        //                 "watched": false,
+        //                 "is_disabled": false,
+        //                 "new": false,
+        //                 "status": "online",
+        //                 "cancel_only": false,
+        //                 "limit_only": false,
+        //                 "post_only": false,
+        //                 "trading_disabled": false,
+        //                 "auction_mode": false,
+        //                 "product_type": "SPOT",
+        //                 "quote_currency_id": "USD",
+        //                 "base_currency_id": "TONE",
+        //                 "fcm_trading_session_details": null,
+        //                 "mid_market_price": ""
+        //             },
         //             ...
-        //         ),
-        //         "num_products" => 549
+        //         ],
+        //         "num_products": 549
         //     }
         //
         $data = $this->safe_list($response, 'products', array());
@@ -2182,7 +2207,7 @@ class coinbase extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($entry, $market);
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
@@ -2205,7 +2230,7 @@ class coinbase extends Exchange {
         return $this->fetch_ticker_v2($symbol, $params);
     }
 
-    public function fetch_ticker_v2(string $symbol, $params = array()) {
+    public function fetch_ticker_v2(string $symbol, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2215,15 +2240,15 @@ class coinbase extends Exchange {
         ), $params);
         $spot = $this->v2PublicGetPricesSymbolSpot($request);
         //
-        //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
+        //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
         $ask = $this->v2PublicGetPricesSymbolBuy($request);
         //
-        //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
+        //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
         $bid = $this->v2PublicGetPricesSymbolSell($request);
         //
-        //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
+        //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
         $spotData = $this->safe_dict($spot, 'data', array());
         $askData = $this->safe_dict($ask, 'data', array());
@@ -2236,7 +2261,7 @@ class coinbase extends Exchange {
         return $this->parse_ticker($bidAskLast, $market);
     }
 
-    public function fetch_ticker_v3(string $symbol, $params = array()) {
+    public function fetch_ticker_v3(string $symbol, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2245,30 +2270,29 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'limit' => 1,
         );
-        $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTicker', 'usePrivate', false);
+        list($usePrivate, $paramsUsePrivate) = $this->handle_option_bool_and_params($params, 'fetchTicker', 'usePrivate', false);
         $response = null;
         if ($usePrivate) {
-            $response = $this->v3PrivateGetBrokerageProductsProductIdTicker($this->extend($request, $params));
+            $response = $this->v3PrivateGetBrokerageProductsProductIdTicker($this->extend($request, $paramsUsePrivate));
         } else {
-            $response = $this->v3PublicGetBrokerageMarketProductsProductIdTicker($this->extend($request, $params));
+            $response = $this->v3PublicGetBrokerageMarketProductsProductIdTicker($this->extend($request, $paramsUsePrivate));
         }
         //
         //     {
-        //         "trades" => array(
+        //         "trades": [
         //             {
-        //                 "trade_id" => "518078013",
-        //                 "product_id" => "BTC-USD",
-        //                 "price" => "28208.1",
-        //                 "size" => "0.00659179",
-        //                 "time" => "2023-04-04T23:05:34.492746Z",
-        //                 "side" => "BUY",
-        //                 "bid" => "",
-        //                 "ask" => ""
+        //                 "trade_id": "518078013",
+        //                 "product_id": "BTC-USD",
+        //                 "price": "28208.1",
+        //                 "size": "0.00659179",
+        //                 "time": "2023-04-04T23:05:34.492746Z",
+        //                 "side": "BUY",
+        //                 "bid": "",
+        //                 "ask": ""
         //             }
-        //         ),
-        //         "best_bid" => "28208.61",
-        //         "best_ask" => "28208.62"
+        //         ],
+        //         "best_bid": "28208.61",
+        //         "best_ask": "28208.62"
         //     }
         //
         $data = $this->safe_list($response, 'trades', array());
@@ -2284,22 +2308,22 @@ class coinbase extends Exchange {
         // fetchTickerV2
         //
         //     {
-        //         "bid" => 20713.37,
-        //         "ask" => 20924.65,
-        //         "price" => 20809.83
+        //         "bid": 20713.37,
+        //         "ask": 20924.65,
+        //         "price": 20809.83
         //     }
         //
         // fetchTickerV3
         //
         //     {
-        //         "trade_id" => "10209805",
-        //         "product_id" => "BTC-USDT",
-        //         "price" => "19381.27",
-        //         "size" => "0.1",
-        //         "time" => "2023-01-13T20:35:41.865970Z",
-        //         "side" => "BUY",
-        //         "bid" => "",
-        //         "ask" => ""
+        //         "trade_id": "10209805",
+        //         "product_id": "BTC-USDT",
+        //         "price": "19381.27",
+        //         "size": "0.1",
+        //         "time": "2023-01-13T20:35:41.865970Z",
+        //         "side": "BUY",
+        //         "bid": "",
+        //         "ask": ""
         //     }
         //
         // fetchTickersV2
@@ -2308,66 +2332,66 @@ class coinbase extends Exchange {
         //
         // fetchTickersV3
         //
-        //     array(
-        //        array(
-        //            "product_id" => "ETH-USD",
-        //            "price" => "4471.59",
-        //            "price_percentage_change_24h" => "0.14243387238731",
-        //            "volume_24h" => "87329.92990204",
-        //            "volume_percentage_change_24h" => "-60.7789801794578",
-        //            "base_increment" => "0.00000001",
-        //            "quote_increment" => "0.01",
-        //            "quote_min_size" => "1",
-        //            "quote_max_size" => "150000000",
-        //            "base_min_size" => "0.00000001",
-        //            "base_max_size" => "42000",
-        //            "base_name" => "Ethereum",
-        //            "quote_name" => "US Dollar",
-        //            "watched" => false,
-        //            "is_disabled" => false,
-        //            "new" => false,
-        //            "status" => "online",
-        //            "cancel_only" => false,
-        //            "limit_only" => false,
-        //            "post_only" => false,
-        //            "trading_disabled" => false,
-        //            "auction_mode" => false,
-        //            "product_type" => "SPOT",
-        //            "quote_currency_id" => "USD",
-        //            "base_currency_id" => "ETH",
-        //            "fcm_trading_session_details" => null,
-        //            "mid_market_price" => "",
-        //            "alias" => "",
-        //            "alias_to" => array( "ETH-USDC" ),
-        //            "base_display_symbol" => "ETH",
-        //            "quote_display_symbol" => "USD",
-        //            "view_only" => false,
-        //            "price_increment" => "0.01",
-        //            "display_name" => "ETH-USD",
-        //            "product_venue" => "CBE",
-        //            "approximate_quote_24h_volume" => "390503641.25",
-        //            "new_at" => "2023-01-01T00:00:00Z"
-        //         ),
+        //     [
+        //        {
+        //            "product_id": "ETH-USD",
+        //            "price": "4471.59",
+        //            "price_percentage_change_24h": "0.14243387238731",
+        //            "volume_24h": "87329.92990204",
+        //            "volume_percentage_change_24h": "-60.7789801794578",
+        //            "base_increment": "0.00000001",
+        //            "quote_increment": "0.01",
+        //            "quote_min_size": "1",
+        //            "quote_max_size": "150000000",
+        //            "base_min_size": "0.00000001",
+        //            "base_max_size": "42000",
+        //            "base_name": "Ethereum",
+        //            "quote_name": "US Dollar",
+        //            "watched": false,
+        //            "is_disabled": false,
+        //            "new": false,
+        //            "status": "online",
+        //            "cancel_only": false,
+        //            "limit_only": false,
+        //            "post_only": false,
+        //            "trading_disabled": false,
+        //            "auction_mode": false,
+        //            "product_type": "SPOT",
+        //            "quote_currency_id": "USD",
+        //            "base_currency_id": "ETH",
+        //            "fcm_trading_session_details": null,
+        //            "mid_market_price": "",
+        //            "alias": "",
+        //            "alias_to": [ "ETH-USDC" ],
+        //            "base_display_symbol": "ETH",
+        //            "quote_display_symbol": "USD",
+        //            "view_only": false,
+        //            "price_increment": "0.01",
+        //            "display_name": "ETH-USD",
+        //            "product_venue": "CBE",
+        //            "approximate_quote_24h_volume": "390503641.25",
+        //            "new_at": "2023-01-01T00:00:00Z"
+        //         },
         //         ...
-        //     )
+        //     ]
         //
         // fetchBidsAsks
         //
         //     {
-        //         "product_id" => "TRAC-EUR",
-        //         "bids" => array(
+        //         "product_id": "TRAC-EUR",
+        //         "bids": [
         //             {
-        //                 "price" => "0.2384",
-        //                 "size" => "386.1"
+        //                 "price": "0.2384",
+        //                 "size": "386.1"
         //             }
-        //         ),
-        //         "asks" => array(
+        //         ],
+        //         "asks": [
         //             {
-        //                 "price" => "0.2406",
-        //                 "size" => "672"
+        //                 "price": "0.2406",
+        //                 "size": "672"
         //             }
-        //         ),
-        //         "time" => "2023-06-30T07:15:24.656044Z"
+        //         ],
+        //         "time": "2023-06-30T07:15:24.656044Z"
         //     }
         //
         $bid = $this->safe_number($ticker, 'bid');
@@ -2385,11 +2409,11 @@ class coinbase extends Exchange {
             $askVolume = $this->safe_number($firstAsk, 'size');
         }
         $marketId = $this->safe_string($ticker, 'product_id');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $last = $this->safe_number($ticker, 'price');
         $datetime = $this->safe_string($ticker, 'time');
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'bid' => $bid,
@@ -2409,16 +2433,16 @@ class coinbase extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'volume_24h'),
             'quoteVolume' => $this->safe_number($ticker, 'approximate_quote_24h_volume'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function parse_custom_balance(mixed $response, $params = array()) {
+    public function parse_custom_balance(array $response, $params = array()): array {
         $balances = $this->safe_list_2($response, 'data', 'accounts', array());
         $accounts = $this->safe_list($params, 'type', $this->options['accounts']);
         $v3Accounts = $this->safe_list($params, 'type', $this->options['v3Accounts']);
         $result = array( 'info' => $response );
         for ($b = 0; $b < count($balances); $b++) {
-            $balance = $balances[$b];
+            $balance = $this->safe_dict($balances, $b);
             $type = $this->safe_string($balance, 'type');
             if ($this->in_array($type, $accounts)) {
                 $value = $this->safe_dict($balance, 'balance');
@@ -2489,23 +2513,22 @@ class coinbase extends Exchange {
         $request = array();
         $response = null;
         $isV3 = $this->safe_bool($params, 'v3', false);
-        $params = $this->omit($params, array( 'v3' ));
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $paramsOmitted = $this->omit($params, array( 'v3' ));
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $paramsOmitted);
         $method = $this->safe_string($this->options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if ($marketType === 'future') {
-            $response = $this->v3PrivateGetBrokerageCfmBalanceSummary($this->extend($request, $params));
-        } elseif (($isV3) || ($method === 'v3PrivateGetBrokerageAccounts')) {
+            $response = $this->v3PrivateGetBrokerageCfmBalanceSummary($this->extend($request, $paramsMarketType));
+        } elseif (($isV3 === true) || ($method === 'v3PrivateGetBrokerageAccounts')) {
             $request['limit'] = 250;
-            $response = $this->v3PrivateGetBrokerageAccounts($this->extend($request, $params));
+            $response = $this->v3PrivateGetBrokerageAccounts($this->extend($request, $paramsMarketType));
         } else {
             $request['limit'] = 250;
-            $response = $this->v2PrivateGetAccounts($this->extend($request, $params));
+            $response = $this->v2PrivateGetAccounts($this->extend($request, $paramsMarketType));
         }
         //
         // v2PrivateGetAccounts
         //     {
-        //         "pagination":array(
+        //         "pagination":{
         //             "ending_before":null,
         //             "starting_after":null,
         //             "previous_ending_before":null,
@@ -2514,14 +2537,14 @@ class coinbase extends Exchange {
         //             "order":"desc",
         //             "previous_uri":null,
         //             "next_uri":"/v2/accounts?limit=100\u0026starting_after=6b17acd6-2e68-5eb0-9f45-72d67cef578b"
-        //         ),
-        //         "data":array(
-        //             array(
+        //         },
+        //         "data":[
+        //             {
         //                 "id":"94ad58bc-0f15-5309-b35a-a4c86d7bad60",
         //                 "name":"MINA Wallet",
         //                 "primary":false,
         //                 "type":"wallet",
-        //                 "currency":array(
+        //                 "currency":{
         //                     "code":"MINA",
         //                     "name":"Mina",
         //                     "color":"#EA6B48",
@@ -2531,50 +2554,50 @@ class coinbase extends Exchange {
         //                     "address_regex":"^(B62)[A-Za-z0-9]{52}$",
         //                     "asset_id":"a4ffc575-942c-5e26-b70c-cb3befdd4229",
         //                     "slug":"mina"
-        //                 ),
-        //                 "balance":array("amount":"0.000000000","currency":"MINA"),
+        //                 },
+        //                 "balance":{"amount":"0.000000000","currency":"MINA"},
         //                 "created_at":"2022-03-25T00:36:16Z",
         //                 "updated_at":"2022-03-25T00:36:16Z",
         //                 "resource":"account",
         //                 "resource_path":"/v2/accounts/94ad58bc-0f15-5309-b35a-a4c86d7bad60",
         //                 "allow_deposits":true,
         //                 "allow_withdrawals":true
-        //             ),
-        //         )
+        //             },
+        //         ]
         //     }
         //
         // v3PrivateGetBrokerageAccounts
         //     {
-        //         "accounts" => array(
+        //         "accounts": [
         //             {
-        //                 "uuid" => "11111111-1111-1111-1111-111111111111",
-        //                 "name" => "USDC Wallet",
-        //                 "currency" => "USDC",
-        //                 "available_balance" => array(
-        //                     "value" => "0.0000000000000000",
-        //                     "currency" => "USDC"
-        //                 ),
-        //                 "default" => true,
-        //                 "active" => true,
-        //                 "created_at" => "2023-01-04T06:20:06.456Z",
-        //                 "updated_at" => "2023-01-04T06:20:07.181Z",
-        //                 "deleted_at" => null,
-        //                 "type" => "ACCOUNT_TYPE_CRYPTO",
-        //                 "ready" => false,
-        //                 "hold" => array(
-        //                     "value" => "0.0000000000000000",
-        //                     "currency" => "USDC"
+        //                 "uuid": "11111111-1111-1111-1111-111111111111",
+        //                 "name": "USDC Wallet",
+        //                 "currency": "USDC",
+        //                 "available_balance": {
+        //                     "value": "0.0000000000000000",
+        //                     "currency": "USDC"
+        //                 },
+        //                 "default": true,
+        //                 "active": true,
+        //                 "created_at": "2023-01-04T06:20:06.456Z",
+        //                 "updated_at": "2023-01-04T06:20:07.181Z",
+        //                 "deleted_at": null,
+        //                 "type": "ACCOUNT_TYPE_CRYPTO",
+        //                 "ready": false,
+        //                 "hold": {
+        //                     "value": "0.0000000000000000",
+        //                     "currency": "USDC"
         //                 }
-        //             ),
+        //             },
         //             ...
-        //         ),
-        //         "has_next" => false,
-        //         "cursor" => "",
-        //         "size" => 9
+        //         ],
+        //         "has_next": false,
+        //         "cursor": "",
+        //         "size": 9
         //     }
         //
-        $params['type'] = $marketType;
-        return $this->parse_custom_balance($response, $params);
+        $paramsMarketType['type'] = $marketType;
+        return $this->parse_custom_balance($response, $paramsMarketType);
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2593,21 +2616,19 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $params, 'next_starting_after', 'starting_after', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $paramsPaginate, 'next_starting_after', 'starting_after', null, 100);
         }
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $request = null;
-        list($request, $params) = $this->prepare_account_request_with_currency_code($code, $limit, $params);
-        // for $pagination use parameter 'starting_after'
+        list($request, $paramsValue) = $this->prepare_account_request_with_currency_code($code, $limit, $paramsPaginate);
+        // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg => instance.last_http_response -> $pagination->next_starting_after
-        $response = $this->v2PrivateGetAccountsAccountIdTransactions($this->extend($request, $params));
+        // eg: instance.last_http_response -> pagination.next_starting_after
+        $response = $this->v2PrivateGetAccountsAccountIdTransactions($this->extend($request, $paramsValue));
         $data = $this->safe_list($response, 'data', array());
         $ledger = $this->parse_ledger($data, $currency, $since, $limit);
         $length = count($ledger);
@@ -2625,14 +2646,14 @@ class coinbase extends Exchange {
         return $ledger;
     }
 
-    public function parse_ledger_entry_status(mixed $status) {
+    public function parse_ledger_entry_status(?string $status): ?string {
         $types = array(
             'completed' => 'ok',
         );
         return $this->safe_string($types, $status, $status);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'buy' => 'trade',
             'sell' => 'trade',
@@ -2652,242 +2673,242 @@ class coinbase extends Exchange {
         // crypto deposit transaction
         //
         //     {
-        //         "id" => "34e4816b-4c8c-5323-a01c-35a9fa26e490",
-        //         "type" => "send",
-        //         "status" => "completed",
-        //         "amount" => array( $amount => "28.31976528", $currency => "BCH" ),
-        //         "native_amount" => array( $amount => "2799.65", $currency => "GBP" ),
-        //         "description" => null,
-        //         "created_at" => "2019-02-28T12:35:20Z",
-        //         "updated_at" => "2019-02-28T12:43:24Z",
-        //         "resource" => "transaction",
-        //         "resource_path" => "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490",
-        //         "instant_exchange" => false,
-        //         "network" => array(
-        //             "status" => "confirmed",
-        //             "hash" => "56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701",
-        //             "transaction_url" => "https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701"
-        //         ),
-        //         "from" => array( resource => "bitcoin_cash_network", $currency => "BCH" ),
-        //         "details" => array( title => 'Received Bitcoin Cash', subtitle => "From Bitcoin Cash $address" )
+        //         "id": "34e4816b-4c8c-5323-a01c-35a9fa26e490",
+        //         "type": "send",
+        //         "status": "completed",
+        //         "amount": { amount: "28.31976528", currency: "BCH" },
+        //         "native_amount": { amount: "2799.65", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2019-02-28T12:35:20Z",
+        //         "updated_at": "2019-02-28T12:43:24Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490",
+        //         "instant_exchange": false,
+        //         "network": {
+        //             "status": "confirmed",
+        //             "hash": "56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701",
+        //             "transaction_url": "https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701"
+        //         },
+        //         "from": { resource: "bitcoin_cash_network", currency: "BCH" },
+        //         "details": { title: 'Received Bitcoin Cash', subtitle: "From Bitcoin Cash address" }
         //     }
         //
         // crypto withdrawal transaction
         //
         //     {
-        //         "id" => "459aad99-2c41-5698-ac71-b6b81a05196c",
-        //         "type" => "send",
-        //         "status" => "completed",
-        //         "amount" => array( $amount => "-0.36775642", $currency => "BTC" ),
-        //         "native_amount" => array( $amount => "-1111.65", $currency => "GBP" ),
-        //         "description" => null,
-        //         "created_at" => "2019-03-20T08:37:07Z",
-        //         "updated_at" => "2019-03-20T08:49:33Z",
-        //         "resource" => "transaction",
-        //         "resource_path" => "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c",
-        //         "instant_exchange" => false,
-        //         "network" => array(
-        //             "status" => "confirmed",
-        //             "hash" => "2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
-        //             "transaction_url" => "https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
-        //             "transaction_fee" => array( $amount => "0.00000000", $currency => "BTC" ),
-        //             "transaction_amount" => array( $amount => "0.36775642", $currency => "BTC" ),
-        //             "confirmations" => 15682
-        //         ),
-        //         "to" => array(
-        //             "resource" => "bitcoin_address",
-        //             "address" => "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX",
-        //             "currency" => "BTC",
-        //             "address_info" => array( $address => "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX" )
-        //         ),
-        //         "idem" => "da0a2f14-a2af-4c5a-a37e-d4484caf582bsend",
-        //         "application" => array(
-        //             "id" => "5756ab6e-836b-553b-8950-5e389451225d",
-        //             "resource" => "application",
-        //             "resource_path" => "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
-        //         ),
-        //         "details" => array( title => 'Sent Bitcoin', subtitle => "To Bitcoin $address" )
+        //         "id": "459aad99-2c41-5698-ac71-b6b81a05196c",
+        //         "type": "send",
+        //         "status": "completed",
+        //         "amount": { amount: "-0.36775642", currency: "BTC" },
+        //         "native_amount": { amount: "-1111.65", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2019-03-20T08:37:07Z",
+        //         "updated_at": "2019-03-20T08:49:33Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c",
+        //         "instant_exchange": false,
+        //         "network": {
+        //             "status": "confirmed",
+        //             "hash": "2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
+        //             "transaction_url": "https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
+        //             "transaction_fee": { amount: "0.00000000", currency: "BTC" },
+        //             "transaction_amount": { amount: "0.36775642", currency: "BTC" },
+        //             "confirmations": 15682
+        //         },
+        //         "to": {
+        //             "resource": "bitcoin_address",
+        //             "address": "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX",
+        //             "currency": "BTC",
+        //             "address_info": { address: "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX" }
+        //         },
+        //         "idem": "da0a2f14-a2af-4c5a-a37e-d4484caf582bsend",
+        //         "application": {
+        //             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        //             "resource": "application",
+        //             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
+        //         },
+        //         "details": { title: 'Sent Bitcoin', subtitle: "To Bitcoin address" }
         //     }
         //
         // withdrawal transaction from coinbase to coinbasepro
         //
         //     {
-        //         "id" => "5b1b9fb8-5007-5393-b923-02903b973fdc",
-        //         "type" => "pro_deposit",
-        //         "status" => "completed",
-        //         "amount" => array( $amount => "-0.00001111", $currency => "BCH" ),
-        //         "native_amount" => array( $amount => "0.00", $currency => "GBP" ),
-        //         "description" => null,
-        //         "created_at" => "2019-02-28T13:31:58Z",
-        //         "updated_at" => "2019-02-28T13:31:58Z",
-        //         "resource" => "transaction",
-        //         "resource_path" => "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc",
-        //         "instant_exchange" => false,
-        //         "application" => array(
-        //             "id" => "5756ab6e-836b-553b-8950-5e389451225d",
-        //             "resource" => "application",
-        //             "resource_path" => "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
-        //         ),
-        //         "details" => array( title => 'Transferred Bitcoin Cash', subtitle => "To Coinbase Pro" )
+        //         "id": "5b1b9fb8-5007-5393-b923-02903b973fdc",
+        //         "type": "pro_deposit",
+        //         "status": "completed",
+        //         "amount": { amount: "-0.00001111", currency: "BCH" },
+        //         "native_amount": { amount: "0.00", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2019-02-28T13:31:58Z",
+        //         "updated_at": "2019-02-28T13:31:58Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc",
+        //         "instant_exchange": false,
+        //         "application": {
+        //             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        //             "resource": "application",
+        //             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
+        //         },
+        //         "details": { title: 'Transferred Bitcoin Cash', subtitle: "To Coinbase Pro" }
         //     }
         //
         // withdrawal transaction from coinbase to gdax
         //
         //     {
-        //         "id" => "badb7313-a9d3-5c07-abd0-00f8b44199b1",
-        //         "type" => "exchange_deposit",
-        //         "status" => "completed",
-        //         "amount" => array( $amount => "-0.43704149", $currency => "BCH" ),
-        //         "native_amount" => array( $amount => "-51.90", $currency => "GBP" ),
-        //         "description" => null,
-        //         "created_at" => "2019-03-19T10:30:40Z",
-        //         "updated_at" => "2019-03-19T10:30:40Z",
-        //         "resource" => "transaction",
-        //         "resource_path" => "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1",
-        //         "instant_exchange" => false,
-        //         "details" => array( title => 'Transferred Bitcoin Cash', subtitle => "To GDAX" )
+        //         "id": "badb7313-a9d3-5c07-abd0-00f8b44199b1",
+        //         "type": "exchange_deposit",
+        //         "status": "completed",
+        //         "amount": { amount: "-0.43704149", currency: "BCH" },
+        //         "native_amount": { amount: "-51.90", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2019-03-19T10:30:40Z",
+        //         "updated_at": "2019-03-19T10:30:40Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1",
+        //         "instant_exchange": false,
+        //         "details": { title: 'Transferred Bitcoin Cash', subtitle: "To GDAX" }
         //     }
         //
         // deposit transaction from gdax to coinbase
         //
         //     {
-        //         "id" => "9c4b642c-8688-58bf-8962-13cef64097de",
-        //         "type" => "exchange_withdrawal",
-        //         "status" => "completed",
-        //         "amount" => array( $amount => "0.57729420", $currency => "BTC" ),
-        //         "native_amount" => array( $amount => "4418.72", $currency => "GBP" ),
-        //         "description" => null,
-        //         "created_at" => "2018-02-17T11:33:33Z",
-        //         "updated_at" => "2018-02-17T11:33:33Z",
-        //         "resource" => "transaction",
-        //         "resource_path" => "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de",
-        //         "instant_exchange" => false,
-        //         "details" => array( title => 'Transferred Bitcoin', subtitle => "From GDAX" )
+        //         "id": "9c4b642c-8688-58bf-8962-13cef64097de",
+        //         "type": "exchange_withdrawal",
+        //         "status": "completed",
+        //         "amount": { amount: "0.57729420", currency: "BTC" },
+        //         "native_amount": { amount: "4418.72", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2018-02-17T11:33:33Z",
+        //         "updated_at": "2018-02-17T11:33:33Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de",
+        //         "instant_exchange": false,
+        //         "details": { title: 'Transferred Bitcoin', subtitle: "From GDAX" }
         //     }
         //
         // deposit transaction from coinbasepro to coinbase
         //
         //     {
-        //         "id" => "8d6dd0b9-3416-568a-889d-8f112fae9e81",
-        //         "type" => "pro_withdrawal",
-        //         "status" => "completed",
-        //         "amount" => array( $amount => "0.40555386", $currency => "BTC" ),
-        //         "native_amount" => array( $amount => "1140.27", $currency => "GBP" ),
-        //         "description" => null,
-        //         "created_at" => "2019-03-04T19:41:58Z",
-        //         "updated_at" => "2019-03-04T19:41:58Z",
-        //         "resource" => "transaction",
-        //         "resource_path" => "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81",
-        //         "instant_exchange" => false,
-        //         "application" => array(
-        //             "id" => "5756ab6e-836b-553b-8950-5e389451225d",
-        //             "resource" => "application",
-        //             "resource_path" => "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
-        //         ),
-        //         "details" => array( title => 'Transferred Bitcoin', subtitle => "From Coinbase Pro" )
+        //         "id": "8d6dd0b9-3416-568a-889d-8f112fae9e81",
+        //         "type": "pro_withdrawal",
+        //         "status": "completed",
+        //         "amount": { amount: "0.40555386", currency: "BTC" },
+        //         "native_amount": { amount: "1140.27", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2019-03-04T19:41:58Z",
+        //         "updated_at": "2019-03-04T19:41:58Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81",
+        //         "instant_exchange": false,
+        //         "application": {
+        //             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        //             "resource": "application",
+        //             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
+        //         },
+        //         "details": { title: 'Transferred Bitcoin', subtitle: "From Coinbase Pro" }
         //     }
         //
         // sell trade
         //
         //     {
-        //         "id" => "a9409207-df64-585b-97ab-a50780d2149e",
-        //         "type" => "sell",
-        //         "status" => "completed",
-        //         "amount" => array( $amount => "-9.09922880", $currency => "BTC" ),
-        //         "native_amount" => array( $amount => "-7285.73", $currency => "GBP" ),
-        //         "description" => null,
-        //         "created_at" => "2017-03-27T15:38:34Z",
-        //         "updated_at" => "2017-03-27T15:38:34Z",
-        //         "resource" => "transaction",
-        //         "resource_path" => "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e",
-        //         "instant_exchange" => false,
-        //         "sell" => array(
-        //             "id" => "e3550b4d-8ae6-5de3-95fe-1fb01ba83051",
-        //             "resource" => "sell",
-        //             "resource_path" => "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/sells/e3550b4d-8ae6-5de3-95fe-1fb01ba83051"
-        //         ),
-        //         "details" => {
-        //             "title" => "Sold Bitcoin",
-        //             "subtitle" => "Using EUR Wallet",
-        //             "payment_method_name" => "EUR Wallet"
+        //         "id": "a9409207-df64-585b-97ab-a50780d2149e",
+        //         "type": "sell",
+        //         "status": "completed",
+        //         "amount": { amount: "-9.09922880", currency: "BTC" },
+        //         "native_amount": { amount: "-7285.73", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2017-03-27T15:38:34Z",
+        //         "updated_at": "2017-03-27T15:38:34Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e",
+        //         "instant_exchange": false,
+        //         "sell": {
+        //             "id": "e3550b4d-8ae6-5de3-95fe-1fb01ba83051",
+        //             "resource": "sell",
+        //             "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/sells/e3550b4d-8ae6-5de3-95fe-1fb01ba83051"
+        //         },
+        //         "details": {
+        //             "title": "Sold Bitcoin",
+        //             "subtitle": "Using EUR Wallet",
+        //             "payment_method_name": "EUR Wallet"
         //         }
         //     }
         //
         // buy trade
         //
         //     {
-        //         "id" => "63eeed67-9396-5912-86e9-73c4f10fe147",
-        //         "type" => "buy",
-        //         "status" => "completed",
-        //         "amount" => array( $amount => "2.39605772", $currency => "ETH" ),
-        //         "native_amount" => array( $amount => "98.31", $currency => "GBP" ),
-        //         "description" => null,
-        //         "created_at" => "2017-03-27T09:07:56Z",
-        //         "updated_at" => "2017-03-27T09:07:57Z",
-        //         "resource" => "transaction",
-        //         "resource_path" => "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147",
-        //         "instant_exchange" => false,
-        //         "buy" => array(
-        //             "id" => "20b25b36-76c6-5353-aa57-b06a29a39d82",
-        //             "resource" => "buy",
-        //             "resource_path" => "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/buys/20b25b36-76c6-5353-aa57-b06a29a39d82"
-        //         ),
-        //         "details" => {
-        //             "title" => "Bought Ethereum",
-        //             "subtitle" => "Using EUR Wallet",
-        //             "payment_method_name" => "EUR Wallet"
+        //         "id": "63eeed67-9396-5912-86e9-73c4f10fe147",
+        //         "type": "buy",
+        //         "status": "completed",
+        //         "amount": { amount: "2.39605772", currency: "ETH" },
+        //         "native_amount": { amount: "98.31", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2017-03-27T09:07:56Z",
+        //         "updated_at": "2017-03-27T09:07:57Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147",
+        //         "instant_exchange": false,
+        //         "buy": {
+        //             "id": "20b25b36-76c6-5353-aa57-b06a29a39d82",
+        //             "resource": "buy",
+        //             "resource_path": "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/buys/20b25b36-76c6-5353-aa57-b06a29a39d82"
+        //         },
+        //         "details": {
+        //             "title": "Bought Ethereum",
+        //             "subtitle": "Using EUR Wallet",
+        //             "payment_method_name": "EUR Wallet"
         //         }
         //     }
         //
         // fiat deposit transaction
         //
         //     {
-        //         "id" => "04ed4113-3732-5b0c-af86-b1d2146977d0",
-        //         "type" => "fiat_deposit",
-        //         "status" => "completed",
-        //         "amount" => array( $amount => "114.02", $currency => "EUR" ),
-        //         "native_amount" => array( $amount => "97.23", $currency => "GBP" ),
-        //         "description" => null,
-        //         "created_at" => "2017-02-09T07:01:21Z",
-        //         "updated_at" => "2017-02-09T07:01:22Z",
-        //         "resource" => "transaction",
-        //         "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0",
-        //         "instant_exchange" => false,
-        //         "fiat_deposit" => array(
-        //             "id" => "f34c19f3-b730-5e3d-9f72-96520448677a",
-        //             "resource" => "fiat_deposit",
-        //             "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72-96520448677a"
-        //         ),
-        //         "details" => {
-        //             "title" => "Deposited funds",
-        //             "subtitle" => "From SEPA Transfer (GB47 BARC 20..., reference CBADVI)",
-        //             "payment_method_name" => "SEPA Transfer (GB47 BARC 20..., reference CBADVI)"
+        //         "id": "04ed4113-3732-5b0c-af86-b1d2146977d0",
+        //         "type": "fiat_deposit",
+        //         "status": "completed",
+        //         "amount": { amount: "114.02", currency: "EUR" },
+        //         "native_amount": { amount: "97.23", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2017-02-09T07:01:21Z",
+        //         "updated_at": "2017-02-09T07:01:22Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0",
+        //         "instant_exchange": false,
+        //         "fiat_deposit": {
+        //             "id": "f34c19f3-b730-5e3d-9f72-96520448677a",
+        //             "resource": "fiat_deposit",
+        //             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72-96520448677a"
+        //         },
+        //         "details": {
+        //             "title": "Deposited funds",
+        //             "subtitle": "From SEPA Transfer (GB47 BARC 20..., reference CBADVI)",
+        //             "payment_method_name": "SEPA Transfer (GB47 BARC 20..., reference CBADVI)"
         //         }
         //     }
         //
         // fiat withdrawal transaction
         //
         //     {
-        //         "id" => "957d98e2-f80e-5e2f-a28e-02945aa93079",
-        //         "type" => "fiat_withdrawal",
-        //         "status" => "completed",
-        //         "amount" => array( $amount => "-11000.00", $currency => "EUR" ),
-        //         "native_amount" => array( $amount => "-9698.22", $currency => "GBP" ),
-        //         "description" => null,
-        //         "created_at" => "2017-12-06T13:19:19Z",
-        //         "updated_at" => "2017-12-06T13:19:19Z",
-        //         "resource" => "transaction",
-        //         "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079",
-        //         "instant_exchange" => false,
-        //         "fiat_withdrawal" => array(
-        //             "id" => "f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7",
-        //             "resource" => "fiat_withdrawal",
-        //             "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7"
-        //         ),
-        //         "details" => {
-        //             "title" => "Withdrew funds",
-        //             "subtitle" => "To HSBC BANK PLC (GB74 MIDL...)",
-        //             "payment_method_name" => "HSBC BANK PLC (GB74 MIDL...)"
+        //         "id": "957d98e2-f80e-5e2f-a28e-02945aa93079",
+        //         "type": "fiat_withdrawal",
+        //         "status": "completed",
+        //         "amount": { amount: "-11000.00", currency: "EUR" },
+        //         "native_amount": { amount: "-9698.22", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2017-12-06T13:19:19Z",
+        //         "updated_at": "2017-12-06T13:19:19Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079",
+        //         "instant_exchange": false,
+        //         "fiat_withdrawal": {
+        //             "id": "f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7",
+        //             "resource": "fiat_withdrawal",
+        //             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7"
+        //         },
+        //         "details": {
+        //             "title": "Withdrew funds",
+        //             "subtitle": "To HSBC BANK PLC (GB74 MIDL...)",
+        //             "payment_method_name": "HSBC BANK PLC (GB74 MIDL...)"
         //         }
         //     }
         //
@@ -2902,23 +2923,23 @@ class coinbase extends Exchange {
         }
         $currencyId = $this->safe_string($amountInfo, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         //
-        // the $address and $txid do not belong to the unified ledger structure
+        // the address and txid do not belong to the unified ledger structure
         //
-        //     $address = null;
-        //     if ($item['to']) {
-        //         $address = $this->safe_string($item['to'], 'address');
+        //     let address = undefined;
+        //     if (item['to']) {
+        //         address = this.safeString (item['to'], 'address');
         //     }
-        //     $txid = null;
+        //     let txid = undefined;
         //
         $fee = null;
         $networkInfo = $this->safe_dict($item, 'network', array());
-        // $txid = network['hash']; // $txid does not belong to the unified ledger structure
+        // txid = network['hash']; // txid does not belong to the unified ledger structure
         $feeInfo = $this->safe_dict($networkInfo, 'transaction_fee');
         if ($feeInfo !== null) {
             $feeCurrencyId = $this->safe_string($feeInfo, 'currency');
-            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId, $currency);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId, $currencyResolved);
             $feeAmount = $this->safe_number($feeInfo, 'amount');
             $fee = array(
                 'cost' => $feeAmount,
@@ -2954,10 +2975,10 @@ class coinbase extends Exchange {
             'after' => null,
             'status' => $status,
             'fee' => $fee,
-        ), $currency);
+        ), $currencyResolved);
     }
 
-    public function find_account_id(mixed $code, $params = array()) {
+    public function find_account_id(?string $code, $params = array()): ?string {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2971,10 +2992,10 @@ class coinbase extends Exchange {
         return null;
     }
 
-    public function prepare_account_request(?int $limit = null, $params = array()) {
+    public function prepare_account_request(?int $limit = null, $params = array()): array {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
-            throw new ArgumentsRequired($this->id . ' prepareAccountRequest() method requires an account_id (or $accountId) parameter');
+            throw new ArgumentsRequired($this->id . ' prepareAccountRequest() method requires an account_id (or accountId) parameter');
         }
         $request = array(
             'account_id' => $accountId,
@@ -2985,14 +3006,14 @@ class coinbase extends Exchange {
         return $request;
     }
 
-    public function prepare_account_request_with_currency_code(?string $code = null, ?int $limit = null, $params = array()) {
+    public function prepare_account_request_with_currency_code(?string $code = null, ?int $limit = null, $params = array()): array {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
-        $params = $this->omit($params, array( 'account_id', 'accountId' ));
+        $paramsOmitted = $this->omit($params, array( 'account_id', 'accountId' ));
         if ($accountId === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or $accountId) parameter OR a currency $code argument');
+                throw new ArgumentsRequired($this->id . ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            $accountId = $this->find_account_id($code, $params);
+            $accountId = $this->find_account_id($code, $paramsOmitted);
             if ($accountId === null) {
                 throw new ExchangeError($this->id . ' prepareAccountRequestWithCurrencyCode() could not find account id for ' . $code . '. You might try to generate the deposit address in the website for that coin first.');
             }
@@ -3003,10 +3024,10 @@ class coinbase extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        return array( $request, $params );
+        return array( $request, $paramsOmitted );
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
          * create a $market buy order by providing the $symbol and $cost
          *
@@ -3021,14 +3042,14 @@ class coinbase extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -3048,7 +3069,7 @@ class coinbase extends Exchange {
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
          * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {boolean} [$params->preview] default to false, wether to use the test/preview endpoint or not
          * @param {float} [$params->leverage] default to 1, the leverage to use for the order
          * @param {string} [$params->marginMode] 'cross' or 'isolated'
@@ -3069,11 +3090,12 @@ class coinbase extends Exchange {
             'side' => strtoupper($side),
         );
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-        if ($reduceOnly) {
-            $params = $this->omit($params, 'reduceOnly');
-            $params['amount'] = $amount;
-            return $this->close_position($symbol, $side, $params);
+        if ($reduceOnly === true) {
+            $paramsClose = $this->omit($params, 'reduceOnly');
+            $paramsClose['amount'] = $amount;
+            return $this->close_position($symbol, $side, $paramsClose);
         }
+        $paramsMarketBuy = null;
         $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
         $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
@@ -3081,7 +3103,12 @@ class coinbase extends Exchange {
         $isStopLoss = $stopLossPrice !== null;
         $isTakeProfit = $takeProfitPrice !== null;
         $timeInForce = $this->safe_string($params, 'timeInForce');
-        $postOnly = ($timeInForce === 'PO') ? true : $this->safe_bool_2($params, 'postOnly', 'post_only', false);
+        $postOnly = null;
+        if ($timeInForce === 'PO') {
+            $postOnly = true;
+        } else {
+            $postOnly = $this->safe_bool_2($params, 'postOnly', 'post_only', false);
+        }
         $endTime = $this->safe_string($params, 'end_time');
         $stopDirection = $this->safe_string($params, 'stop_direction');
         if ($type === 'limit') {
@@ -3174,17 +3201,16 @@ class coinbase extends Exchange {
             if ($isStop || $isStopLoss || $isTakeProfit) {
                 throw new NotSupported($this->id . ' createOrder() only stop limit orders are supported');
             }
-            if ($market['spot'] && ($side === 'buy')) {
+            if (($market['spot'] === true) && ($side === 'buy')) {
                 $total = null;
-                $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                $cost = $this->safe_number($params, 'cost');
-                $params = $this->omit($params, 'cost');
+                list($createMarketBuyOrderRequiresPrice, $paramsRequiresPrice) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($paramsRequiresPrice, 'cost');
+                $paramsMarketBuy = $this->omit($paramsRequiresPrice, 'cost');
                 if ($cost !== null) {
                     $total = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the $total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -3207,7 +3233,8 @@ class coinbase extends Exchange {
                 );
             }
         }
-        $marginMode = $this->safe_string($params, 'marginMode');
+        $paramsBase = ($paramsMarketBuy === null) ? $params : $paramsMarketBuy;
+        $marginMode = $this->safe_string($paramsBase, 'marginMode');
         if ($marginMode !== null) {
             if ($marginMode === 'isolated') {
                 $request['margin_type'] = 'ISOLATED';
@@ -3215,49 +3242,48 @@ class coinbase extends Exchange {
                 $request['margin_type'] = 'CROSS';
             }
         }
-        $params = $this->omit($params, array( 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode' ));
-        $preview = $this->safe_bool_2($params, 'preview', 'test', false);
+        $paramsOmitted = $this->omit($paramsBase, array( 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode' ));
+        $preview = $this->safe_bool_2($paramsOmitted, 'preview', 'test', false);
         $response = null;
-        if ($preview) {
-            $params = $this->omit($params, array( 'preview', 'test' ));
+        if ($preview === true) {
             $request = $this->omit($request, 'client_order_id');
-            $response = $this->v3PrivatePostBrokerageOrdersPreview($this->extend($request, $params));
+            $response = $this->v3PrivatePostBrokerageOrdersPreview($this->extend($request, $this->omit($paramsOmitted, array( 'preview', 'test' ))));
         } else {
-            $response = $this->v3PrivatePostBrokerageOrders($this->extend($request, $params));
+            $response = $this->v3PrivatePostBrokerageOrders($this->extend($request, $paramsOmitted));
         }
         //
         // successful order
         //
         //     {
-        //         "success" => true,
-        //         "failure_reason" => "UNKNOWN_FAILURE_REASON",
-        //         "order_id" => "52cfe5e2-0b29-4c19-a245-a6a773de5030",
-        //         "success_response" => array(
-        //             "order_id" => "52cfe5e2-0b29-4c19-a245-a6a773de5030",
-        //             "product_id" => "LTC-BTC",
-        //             "side" => "SELL",
-        //             "client_order_id" => "4d760580-6fca-4094-a70b-ebcca8626288"
-        //         ),
-        //         "order_configuration" => null
+        //         "success": true,
+        //         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        //         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //         "success_response": {
+        //             "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //             "product_id": "LTC-BTC",
+        //             "side": "SELL",
+        //             "client_order_id": "4d760580-6fca-4094-a70b-ebcca8626288"
+        //         },
+        //         "order_configuration": null
         //     }
         //
         // failed order
         //
         //     {
-        //         "success" => false,
-        //         "failure_reason" => "UNKNOWN_FAILURE_REASON",
-        //         "order_id" => "",
-        //         "error_response" => array(
-        //             "error" => "UNSUPPORTED_ORDER_CONFIGURATION",
-        //             "message" => "source is not enabled for trading",
-        //             "error_details" => "",
-        //             "new_order_failure_reason" => "UNSUPPORTED_ORDER_CONFIGURATION"
-        //         ),
-        //         "order_configuration" => {
-        //             "limit_limit_gtc" => {
-        //                 "base_size" => "100",
-        //                 "limit_price" => "40000",
-        //                 "post_only" => false
+        //         "success": false,
+        //         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        //         "order_id": "",
+        //         "error_response": {
+        //             "error": "UNSUPPORTED_ORDER_CONFIGURATION",
+        //             "message": "source is not enabled for trading",
+        //             "error_details": "",
+        //             "new_order_failure_reason": "UNSUPPORTED_ORDER_CONFIGURATION"
+        //         },
+        //         "order_configuration": {
+        //             "limit_limit_gtc": {
+        //                 "base_size": "100",
+        //                 "limit_price": "40000",
+        //                 "post_only": false
         //             }
         //         }
         //     }
@@ -3282,69 +3308,67 @@ class coinbase extends Exchange {
         // createOrder
         //
         //     {
-        //         "order_id" => "52cfe5e2-0b29-4c19-a245-a6a773de5030",
-        //         "product_id" => "LTC-BTC",
-        //         "side" => "SELL",
-        //         "client_order_id" => "4d760580-6fca-4094-a70b-ebcca8626288"
+        //         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //         "product_id": "LTC-BTC",
+        //         "side": "SELL",
+        //         "client_order_id": "4d760580-6fca-4094-a70b-ebcca8626288"
         //     }
         //
         // cancelOrder, cancelOrders
         //
         //     {
-        //         "success" => true,
-        //         "failure_reason" => "UNKNOWN_CANCEL_FAILURE_REASON",
-        //         "order_id" => "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        //         "success": true,
+        //         "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
+        //         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         //     }
         //
         // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
-        //         "order_id" => "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
-        //         "product_id" => "LTC-BTC",
-        //         "user_id" => "1111111-1111-1111-1111-111111111111",
-        //         "order_configuration" => {
-        //             "limit_limit_gtc" => array(
-        //                 "base_size" => "0.2",
-        //                 "limit_price" => "0.006",
-        //                 "post_only" => false
-        //             ),
-        //             "stop_limit_stop_limit_gtc" => array(
-        //                 "base_size" => "48.54",
-        //                 "limit_price" => "6.998",
-        //                 "stop_price" => "7.0687",
-        //                 "stop_direction" => "STOP_DIRECTION_STOP_DOWN"
+        //         "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+        //         "product_id": "LTC-BTC",
+        //         "user_id": "1111111-1111-1111-1111-111111111111",
+        //         "order_configuration": {
+        //             "limit_limit_gtc": {
+        //                 "base_size": "0.2",
+        //                 "limit_price": "0.006",
+        //                 "post_only": false
+        //             },
+        //             "stop_limit_stop_limit_gtc": {
+        //                 "base_size": "48.54",
+        //                 "limit_price": "6.998",
+        //                 "stop_price": "7.0687",
+        //                 "stop_direction": "STOP_DIRECTION_STOP_DOWN"
         //             }
-        //         ),
-        //         "side" => "SELL",
-        //         "client_order_id" => "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
-        //         "status" => "OPEN",
-        //         "time_in_force" => "GOOD_UNTIL_CANCELLED",
-        //         "created_time" => "2023-01-16T23:37:23.947030Z",
-        //         "completion_percentage" => "0",
-        //         "filled_size" => "0",
-        //         "average_filled_price" => "0",
-        //         "fee" => "",
-        //         "number_of_fills" => "0",
-        //         "filled_value" => "0",
-        //         "pending_cancel" => false,
-        //         "size_in_quote" => false,
-        //         "total_fees" => "0",
-        //         "size_inclusive_of_fees" => false,
-        //         "total_value_after_fees" => "0",
-        //         "trigger_status" => "INVALID_ORDER_TYPE",
-        //         "order_type" => "LIMIT",
-        //         "reject_reason" => "REJECT_REASON_UNSPECIFIED",
-        //         "settled" => false,
-        //         "product_type" => "SPOT",
-        //         "reject_message" => "",
-        //         "cancel_message" => ""
+        //         },
+        //         "side": "SELL",
+        //         "client_order_id": "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+        //         "status": "OPEN",
+        //         "time_in_force": "GOOD_UNTIL_CANCELLED",
+        //         "created_time": "2023-01-16T23:37:23.947030Z",
+        //         "completion_percentage": "0",
+        //         "filled_size": "0",
+        //         "average_filled_price": "0",
+        //         "fee": "",
+        //         "number_of_fills": "0",
+        //         "filled_value": "0",
+        //         "pending_cancel": false,
+        //         "size_in_quote": false,
+        //         "total_fees": "0",
+        //         "size_inclusive_of_fees": false,
+        //         "total_value_after_fees": "0",
+        //         "trigger_status": "INVALID_ORDER_TYPE",
+        //         "order_type": "LIMIT",
+        //         "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //         "settled": false,
+        //         "product_type": "SPOT",
+        //         "reject_message": "",
+        //         "cancel_message": ""
         //     }
         //
         $marketId = $this->safe_string($order, 'product_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        if ($symbol !== null) {
-            $market = $this->safe_market($symbol, $market);
-        }
+        $marketResolved = ($symbol !== null) ? $this->safe_market($symbol, $market) : $market;
         $orderConfiguration = $this->safe_dict($order, 'order_configuration', array());
         $limitGTC = $this->safe_dict($orderConfiguration, 'limit_limit_gtc');
         $limitGTD = $this->safe_dict($orderConfiguration, 'limit_limit_gtd');
@@ -3382,8 +3406,8 @@ class coinbase extends Exchange {
         $datetime = $this->safe_string($order, 'created_time');
         $totalFees = $this->safe_string($order, 'total_fees');
         $currencyFee = null;
-        if (($totalFees !== null) && ($market !== null)) {
-            $currencyFee = $market['quote'];
+        if (($totalFees !== null) && ($marketResolved !== null)) {
+            $currencyFee = $this->safe_string($marketResolved, 'quote');
         }
         return $this->safe_order(array(
             'info' => $order,
@@ -3410,7 +3434,7 @@ class coinbase extends Exchange {
                 'currency' => $currencyFee,
             ),
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_order_status(?string $status) {
@@ -3449,25 +3473,26 @@ class coinbase extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
-         * cancels an open order
+         * cancels an open $order
          *
          * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-$orders
          *
-         * @param {string} $id order $id
+         * @param {string} $id $order $id
          * @param {string} $symbol not used by cancelOrder()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $orders = $this->cancel_orders(array( $id ), $symbol, $params);
-        return $this->safe_dict($orders, 0, array());
+        $order = $this->safe_dict($orders, 0, array());
+        return $order;
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple $orders
          *
@@ -3491,13 +3516,13 @@ class coinbase extends Exchange {
         $response = $this->v3PrivatePostBrokerageOrdersBatchCancel($this->extend($request, $params));
         //
         //     {
-        //         "results" => array(
+        //         "results": [
         //             {
-        //                 "success" => true,
-        //                 "failure_reason" => "UNKNOWN_CANCEL_FAILURE_REASON",
-        //                 "order_id" => "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        //                 "success": true,
+        //                 "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
+        //                 "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $orders = $this->safe_list($response, 'results', array());
@@ -3510,7 +3535,7 @@ class coinbase extends Exchange {
         return $this->parse_orders($orders, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade order
          *
@@ -3541,25 +3566,24 @@ class coinbase extends Exchange {
         }
         $preview = $this->safe_bool_2($params, 'preview', 'test', false);
         $response = null;
-        if ($preview) {
-            $params = $this->omit($params, array( 'preview', 'test' ));
-            $response = $this->v3PrivatePostBrokerageOrdersEditPreview($this->extend($request, $params));
+        if ($preview === true) {
+            $response = $this->v3PrivatePostBrokerageOrdersEditPreview($this->extend($request, $this->omit($params, array( 'preview', 'test' ))));
         } else {
             $response = $this->v3PrivatePostBrokerageOrdersEdit($this->extend($request, $params));
         }
         //
         //     {
-        //         "success" => true,
-        //         "errors" => {
-        //           "edit_failure_reason" => "UNKNOWN_EDIT_ORDER_FAILURE_REASON",
-        //           "preview_failure_reason" => "UNKNOWN_PREVIEW_FAILURE_REASON"
+        //         "success": true,
+        //         "errors": {
+        //           "edit_failure_reason": "UNKNOWN_EDIT_ORDER_FAILURE_REASON",
+        //           "preview_failure_reason": "UNKNOWN_PREVIEW_FAILURE_REASON"
         //         }
         //     }
         //
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an $order made by the user
          *
@@ -3583,40 +3607,40 @@ class coinbase extends Exchange {
         $response = $this->v3PrivateGetBrokerageOrdersHistoricalOrderId($this->extend($request, $params));
         //
         //     {
-        //         "order" => {
-        //             "order_id" => "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
-        //             "product_id" => "LTC-BTC",
-        //             "user_id" => "1111111-1111-1111-1111-111111111111",
-        //             "order_configuration" => {
-        //                 "limit_limit_gtc" => array(
-        //                     "base_size" => "0.2",
-        //                     "limit_price" => "0.006",
-        //                     "post_only" => false
+        //         "order": {
+        //             "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+        //             "product_id": "LTC-BTC",
+        //             "user_id": "1111111-1111-1111-1111-111111111111",
+        //             "order_configuration": {
+        //                 "limit_limit_gtc": {
+        //                     "base_size": "0.2",
+        //                     "limit_price": "0.006",
+        //                     "post_only": false
         //                 }
-        //             ),
-        //             "side" => "SELL",
-        //             "client_order_id" => "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
-        //             "status" => "OPEN",
-        //             "time_in_force" => "GOOD_UNTIL_CANCELLED",
-        //             "created_time" => "2023-01-16T23:37:23.947030Z",
-        //             "completion_percentage" => "0",
-        //             "filled_size" => "0",
-        //             "average_filled_price" => "0",
-        //             "fee" => "",
-        //             "number_of_fills" => "0",
-        //             "filled_value" => "0",
-        //             "pending_cancel" => false,
-        //             "size_in_quote" => false,
-        //             "total_fees" => "0",
-        //             "size_inclusive_of_fees" => false,
-        //             "total_value_after_fees" => "0",
-        //             "trigger_status" => "INVALID_ORDER_TYPE",
-        //             "order_type" => "LIMIT",
-        //             "reject_reason" => "REJECT_REASON_UNSPECIFIED",
-        //             "settled" => false,
-        //             "product_type" => "SPOT",
-        //             "reject_message" => "",
-        //             "cancel_message" => ""
+        //             },
+        //             "side": "SELL",
+        //             "client_order_id": "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+        //             "status": "OPEN",
+        //             "time_in_force": "GOOD_UNTIL_CANCELLED",
+        //             "created_time": "2023-01-16T23:37:23.947030Z",
+        //             "completion_percentage": "0",
+        //             "filled_size": "0",
+        //             "average_filled_price": "0",
+        //             "fee": "",
+        //             "number_of_fills": "0",
+        //             "filled_value": "0",
+        //             "pending_cancel": false,
+        //             "size_in_quote": false,
+        //             "total_fees": "0",
+        //             "size_inclusive_of_fees": false,
+        //             "total_value_after_fees": "0",
+        //             "trigger_status": "INVALID_ORDER_TYPE",
+        //             "order_type": "LIMIT",
+        //             "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //             "settled": false,
+        //             "product_type": "SPOT",
+        //             "reject_message": "",
+        //             "cancel_message": ""
         //         }
         //     }
         //
@@ -3641,10 +3665,9 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 1000);
+            return $this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 1000);
         }
         $market = null;
         if ($symbol !== null) {
@@ -3660,52 +3683,52 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer($params, 'until');
+        $until = $this->safe_integer($paramsPaginate, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
         }
-        $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch($this->extend($request, $params));
+        $paramsOmitted = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
+        $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch($this->extend($request, $paramsOmitted));
         //
         //     {
-        //         "orders" => array(
+        //         "orders": [
         //             {
-        //                 "order_id" => "813a53c5-3e39-47bb-863d-2faf685d22d8",
-        //                 "product_id" => "BTC-USDT",
-        //                 "user_id" => "1111111-1111-1111-1111-111111111111",
-        //                 "order_configuration" => array(
-        //                     "market_market_ioc" => array(
-        //                         "quote_size" => "6.36"
+        //                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        //                 "product_id": "BTC-USDT",
+        //                 "user_id": "1111111-1111-1111-1111-111111111111",
+        //                 "order_configuration": {
+        //                     "market_market_ioc": {
+        //                         "quote_size": "6.36"
         //                     }
-        //                 ),
-        //                 "side" => "BUY",
-        //                 "client_order_id" => "18eb9947-db49-4874-8e7b-39b8fe5f4317",
-        //                 "status" => "FILLED",
-        //                 "time_in_force" => "IMMEDIATE_OR_CANCEL",
-        //                 "created_time" => "2023-01-18T01:37:37.975552Z",
-        //                 "completion_percentage" => "100",
-        //                 "filled_size" => "0.000297920684505",
-        //                 "average_filled_price" => "21220.6399999973697697",
-        //                 "fee" => "",
-        //                 "number_of_fills" => "2",
-        //                 "filled_value" => "6.3220675944333996",
-        //                 "pending_cancel" => false,
-        //                 "size_in_quote" => true,
-        //                 "total_fees" => "0.0379324055666004",
-        //                 "size_inclusive_of_fees" => true,
-        //                 "total_value_after_fees" => "6.36",
-        //                 "trigger_status" => "INVALID_ORDER_TYPE",
-        //                 "order_type" => "MARKET",
-        //                 "reject_reason" => "REJECT_REASON_UNSPECIFIED",
-        //                 "settled" => true,
-        //                 "product_type" => "SPOT",
-        //                 "reject_message" => "",
-        //                 "cancel_message" => "Internal error"
-        //             ),
-        //         ),
-        //         "sequence" => "0",
-        //         "has_next" => false,
-        //         "cursor" => ""
+        //                 },
+        //                 "side": "BUY",
+        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        //                 "status": "FILLED",
+        //                 "time_in_force": "IMMEDIATE_OR_CANCEL",
+        //                 "created_time": "2023-01-18T01:37:37.975552Z",
+        //                 "completion_percentage": "100",
+        //                 "filled_size": "0.000297920684505",
+        //                 "average_filled_price": "21220.6399999973697697",
+        //                 "fee": "",
+        //                 "number_of_fills": "2",
+        //                 "filled_value": "6.3220675944333996",
+        //                 "pending_cancel": false,
+        //                 "size_in_quote": true,
+        //                 "total_fees": "0.0379324055666004",
+        //                 "size_inclusive_of_fees": true,
+        //                 "total_value_after_fees": "6.36",
+        //                 "trigger_status": "INVALID_ORDER_TYPE",
+        //                 "order_type": "MARKET",
+        //                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //                 "settled": true,
+        //                 "product_type": "SPOT",
+        //                 "reject_message": "",
+        //                 "cancel_message": "Internal error"
+        //             },
+        //         ],
+        //         "sequence": "0",
+        //         "has_next": false,
+        //         "cursor": ""
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
@@ -3718,7 +3741,7 @@ class coinbase extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3732,59 +3755,57 @@ class coinbase extends Exchange {
         if ($market !== null) {
             $request['product_id'] = $market['id'];
         }
-        if ($limit === null) {
-            $limit = 100;
-        }
-        $request['limit'] = $limit;
+        $limitResolved = ($limit === null) ? 100 : $limit;
+        $request['limit'] = $limitResolved;
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
         }
-        $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch($this->extend($request, $params));
+        $paramsOmitted = ($until !== null) ? $this->omit($params, array( 'until' )) : $params;
+        $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch($this->extend($request, $paramsOmitted));
         //
         //     {
-        //         "orders" => array(
+        //         "orders": [
         //             {
-        //                 "order_id" => "813a53c5-3e39-47bb-863d-2faf685d22d8",
-        //                 "product_id" => "BTC-USDT",
-        //                 "user_id" => "1111111-1111-1111-1111-111111111111",
-        //                 "order_configuration" => array(
-        //                     "market_market_ioc" => array(
-        //                         "quote_size" => "6.36"
+        //                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        //                 "product_id": "BTC-USDT",
+        //                 "user_id": "1111111-1111-1111-1111-111111111111",
+        //                 "order_configuration": {
+        //                     "market_market_ioc": {
+        //                         "quote_size": "6.36"
         //                     }
-        //                 ),
-        //                 "side" => "BUY",
-        //                 "client_order_id" => "18eb9947-db49-4874-8e7b-39b8fe5f4314",
-        //                 "status" => "FILLED",
-        //                 "time_in_force" => "IMMEDIATE_OR_CANCEL",
-        //                 "created_time" => "2023-01-18T01:37:37.975552Z",
-        //                 "completion_percentage" => "100",
-        //                 "filled_size" => "0.000297920684505",
-        //                 "average_filled_price" => "21220.6399999973697697",
-        //                 "fee" => "",
-        //                 "number_of_fills" => "2",
-        //                 "filled_value" => "6.3220675944333996",
-        //                 "pending_cancel" => false,
-        //                 "size_in_quote" => true,
-        //                 "total_fees" => "0.0379324055666004",
-        //                 "size_inclusive_of_fees" => true,
-        //                 "total_value_after_fees" => "6.36",
-        //                 "trigger_status" => "INVALID_ORDER_TYPE",
-        //                 "order_type" => "MARKET",
-        //                 "reject_reason" => "REJECT_REASON_UNSPECIFIED",
-        //                 "settled" => true,
-        //                 "product_type" => "SPOT",
-        //                 "reject_message" => "",
-        //                 "cancel_message" => "Internal error"
-        //             ),
-        //         ),
-        //         "sequence" => "0",
-        //         "has_next" => false,
-        //         "cursor" => ""
+        //                 },
+        //                 "side": "BUY",
+        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4314",
+        //                 "status": "FILLED",
+        //                 "time_in_force": "IMMEDIATE_OR_CANCEL",
+        //                 "created_time": "2023-01-18T01:37:37.975552Z",
+        //                 "completion_percentage": "100",
+        //                 "filled_size": "0.000297920684505",
+        //                 "average_filled_price": "21220.6399999973697697",
+        //                 "fee": "",
+        //                 "number_of_fills": "2",
+        //                 "filled_value": "6.3220675944333996",
+        //                 "pending_cancel": false,
+        //                 "size_in_quote": true,
+        //                 "total_fees": "0.0379324055666004",
+        //                 "size_inclusive_of_fees": true,
+        //                 "total_value_after_fees": "6.36",
+        //                 "trigger_status": "INVALID_ORDER_TYPE",
+        //                 "order_type": "MARKET",
+        //                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //                 "settled": true,
+        //                 "product_type": "SPOT",
+        //                 "reject_message": "",
+        //                 "cancel_message": "Internal error"
+        //             },
+        //         ],
+        //         "sequence": "0",
+        //         "has_next": false,
+        //         "cursor": ""
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
@@ -3794,7 +3815,7 @@ class coinbase extends Exchange {
             $first['cursor'] = $cursor;
             $orders[0] = $first;
         }
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return $this->parse_orders($orders, $market, $since, $limitResolved);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3814,12 +3835,11 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchOpenOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchOpenOrders', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 100);
         }
-        return $this->fetch_orders_by_status('OPEN', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status('OPEN', $symbol, $since, $limit, $paramsPaginate);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3839,15 +3859,14 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchClosedOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 1000);
+            return $this->fetch_paginated_call_cursor('fetchClosedOrders', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 1000);
         }
-        return $this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $paramsPaginate);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled orders made by the user
          *
@@ -3877,27 +3896,26 @@ class coinbase extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {boolean} [$params->usePrivate] default false, when true will use the private endpoint to fetch the $candles
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $maxLimit = 300;
-        $limit = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $limitValue = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit - 1);
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limitValue, $timeframe, $paramsPaginate, $maxLimit - 1);
         }
         $market = $this->market($symbol);
         $request = array(
             'product_id' => $market['id'],
             'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $until = $this->safe_integer_2($params, 'until', 'end');
-        $params = $this->omit($params, array( 'until' ));
+        $until = $this->safe_integer_2($paramsPaginate, 'until', 'end');
+        $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
         $duration = $this->parse_timeframe($timeframe);
-        $requestedDuration = $limit * $duration;
+        $requestedDuration = $limitValue * $duration;
         $sinceString = null;
         if ($since !== null) {
             $sinceString = $this->number_to_string($this->parse_to_int($since / 1000));
@@ -3909,47 +3927,46 @@ class coinbase extends Exchange {
         if ($until !== null) {
             $request['end'] = $this->number_to_string($this->parse_to_int($until / 1000));
         } else {
-            // 300 $candles max
+            // 300 candles max
             $request['end'] = Precise::string_add($sinceString, (string) $requestedDuration);
         }
         $response = null;
-        $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'usePrivate', false);
+        list($usePrivate, $paramsUsePrivate) = $this->handle_option_bool_and_params($paramsOmitted, 'fetchOHLCV', 'usePrivate', false);
         if ($usePrivate) {
-            $response = $this->v3PrivateGetBrokerageProductsProductIdCandles($this->extend($request, $params));
+            $response = $this->v3PrivateGetBrokerageProductsProductIdCandles($this->extend($request, $paramsUsePrivate));
         } else {
-            $response = $this->v3PublicGetBrokerageMarketProductsProductIdCandles($this->extend($request, $params));
+            $response = $this->v3PublicGetBrokerageMarketProductsProductIdCandles($this->extend($request, $paramsUsePrivate));
         }
         //
         //     {
-        //         "candles" => array(
-        //             array(
-        //                 "start" => "1673391780",
-        //                 "low" => "17414.36",
-        //                 "high" => "17417.99",
-        //                 "open" => "17417.74",
-        //                 "close" => "17417.38",
-        //                 "volume" => "1.87780853"
-        //             ),
-        //         )
+        //         "candles": [
+        //             {
+        //                 "start": "1673391780",
+        //                 "low": "17414.36",
+        //                 "high": "17417.99",
+        //                 "open": "17417.74",
+        //                 "close": "17417.38",
+        //                 "volume": "1.87780853"
+        //             },
+        //         ]
         //     }
         //
         $candles = $this->safe_list($response, 'candles', array());
-        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limitValue);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
-        //         array(
-        //             "start" => "1673391780",
-        //             "low" => "17414.36",
-        //             "high" => "17417.99",
-        //             "open" => "17417.74",
-        //             "close" => "17417.38",
-        //             "volume" => "1.87780853"
-        //         ),
-        //     )
+        //     [
+        //         {
+        //             "start": "1673391780",
+        //             "low": "17414.36",
+        //             "high": "17417.99",
+        //             "open": "17417.74",
+        //             "close": "17417.38",
+        //             "volume": "1.87780853"
+        //         },
+        //     ]
         //
         return array(
             $this->safe_timestamp($ohlcv, 'start'),
@@ -3988,42 +4005,40 @@ class coinbase extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchTrades', 'until');
         if ($until !== null) {
             $request['end'] = $this->number_to_string($this->parse_to_int($until / 1000));
         } elseif ($since !== null) {
-            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a `$until` parameter when you use `$since` argument');
+            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a `until` parameter when you use `since` argument');
         }
         $response = null;
-        $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'usePrivate', false);
+        list($usePrivate, $paramsUsePrivate) = $this->handle_option_bool_and_params($paramsUntil, 'fetchTrades', 'usePrivate', false);
         if ($usePrivate) {
-            $response = $this->v3PrivateGetBrokerageProductsProductIdTicker($this->extend($request, $params));
+            $response = $this->v3PrivateGetBrokerageProductsProductIdTicker($this->extend($request, $paramsUsePrivate));
         } else {
-            $response = $this->v3PublicGetBrokerageMarketProductsProductIdTicker($this->extend($request, $params));
+            $response = $this->v3PublicGetBrokerageMarketProductsProductIdTicker($this->extend($request, $paramsUsePrivate));
         }
         //
         //     {
-        //         "trades" => array(
-        //             array(
-        //                 "trade_id" => "10092327",
-        //                 "product_id" => "BTC-USDT",
-        //                 "price" => "17488.12",
-        //                 "size" => "0.0000623",
-        //                 "time" => "2023-01-11T00:52:37.557001Z",
-        //                 "side" => "BUY",
-        //                 "bid" => "",
-        //                 "ask" => ""
-        //             ),
-        //         )
+        //         "trades": [
+        //             {
+        //                 "trade_id": "10092327",
+        //                 "product_id": "BTC-USDT",
+        //                 "price": "17488.12",
+        //                 "size": "0.0000623",
+        //                 "time": "2023-01-11T00:52:37.557001Z",
+        //                 "side": "BUY",
+        //                 "bid": "",
+        //                 "ask": ""
+        //             },
+        //         ]
         //     }
         //
         $trades = $this->safe_list($response, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $trades made by the user
          *
@@ -4040,10 +4055,9 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 250);
+            return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 250);
         }
         $market = null;
         if ($symbol !== null) {
@@ -4059,33 +4073,33 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_sequence_timestamp'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer($params, 'until');
+        $until = $this->safe_integer($paramsPaginate, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until' ));
             $request['end_sequence_timestamp'] = $this->iso8601($until);
         }
-        $response = $this->v3PrivateGetBrokerageOrdersHistoricalFills($this->extend($request, $params));
+        $paramsOmitted = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
+        $response = $this->v3PrivateGetBrokerageOrdersHistoricalFills($this->extend($request, $paramsOmitted));
         //
         //     {
-        //         "fills" => array(
-        //             array(
-        //                 "entry_id" => "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
-        //                 "trade_id" => "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
-        //                 "order_id" => "813a53c5-3e39-47bb-863d-2faf685d22d8",
-        //                 "trade_time" => "2023-01-18T01:37:38.091377090Z",
-        //                 "trade_type" => "FILL",
-        //                 "price" => "21220.64",
-        //                 "size" => "0.0046830664333996",
-        //                 "commission" => "0.0000280983986004",
-        //                 "product_id" => "BTC-USDT",
-        //                 "sequence_timestamp" => "2023-01-18T01:37:38.092520Z",
-        //                 "liquidity_indicator" => "UNKNOWN_LIQUIDITY_INDICATOR",
-        //                 "size_in_quote" => true,
-        //                 "user_id" => "1111111-1111-1111-1111-111111111111",
-        //                 "side" => "BUY"
-        //             ),
-        //         ),
-        //         "cursor" => ""
+        //         "fills": [
+        //             {
+        //                 "entry_id": "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
+        //                 "trade_id": "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
+        //                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        //                 "trade_time": "2023-01-18T01:37:38.091377090Z",
+        //                 "trade_type": "FILL",
+        //                 "price": "21220.64",
+        //                 "size": "0.0046830664333996",
+        //                 "commission": "0.0000280983986004",
+        //                 "product_id": "BTC-USDT",
+        //                 "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
+        //                 "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
+        //                 "size_in_quote": true,
+        //                 "user_id": "1111111-1111-1111-1111-111111111111",
+        //                 "side": "BUY"
+        //             },
+        //         ],
+        //         "cursor": ""
         //     }
         //
         $trades = $this->safe_list($response, 'fills', array());
@@ -4122,30 +4136,29 @@ class coinbase extends Exchange {
             $request['limit'] = $limit;
         }
         $response = null;
-        $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'usePrivate', false);
+        list($usePrivate, $paramsUsePrivate) = $this->handle_option_bool_and_params($params, 'fetchOrderBook', 'usePrivate', false);
         if ($usePrivate) {
-            $response = $this->v3PrivateGetBrokerageProductBook($this->extend($request, $params));
+            $response = $this->v3PrivateGetBrokerageProductBook($this->extend($request, $paramsUsePrivate));
         } else {
-            $response = $this->v3PublicGetBrokerageMarketProductBook($this->extend($request, $params));
+            $response = $this->v3PublicGetBrokerageMarketProductBook($this->extend($request, $paramsUsePrivate));
         }
         //
         //     {
-        //         "pricebook" => {
-        //             "product_id" => "BTC-USDT",
-        //             "bids" => array(
-        //                 array(
-        //                     "price" => "30757.85",
-        //                     "size" => "0.115"
-        //                 ),
-        //             ),
-        //             "asks" => array(
-        //                 array(
-        //                     "price" => "30759.07",
-        //                     "size" => "0.04877659"
-        //                 ),
-        //             ),
-        //             "time" => "2023-06-30T04:02:40.533606Z"
+        //         "pricebook": {
+        //             "product_id": "BTC-USDT",
+        //             "bids": [
+        //                 {
+        //                     "price": "30757.85",
+        //                     "size": "0.115"
+        //                 },
+        //             ],
+        //             "asks": [
+        //                 {
+        //                     "price": "30759.07",
+        //                     "size": "0.04877659"
+        //                 },
+        //             ],
+        //             "time": "2023-06-30T04:02:40.533606Z"
         //         }
         //     }
         //
@@ -4155,7 +4168,7 @@ class coinbase extends Exchange {
         return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'size');
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
@@ -4168,36 +4181,36 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array();
-        if ($symbols !== null) {
-            $request['product_ids'] = $this->market_ids($symbols);
+        if ($symbolsNormalized !== null) {
+            $request['product_ids'] = $this->market_ids($symbolsNormalized);
         }
         $response = $this->v3PrivateGetBrokerageBestBidAsk($this->extend($request, $params));
         //
         //     {
-        //         "pricebooks" => array(
+        //         "pricebooks": [
         //             {
-        //                 "product_id" => "TRAC-EUR",
-        //                 "bids" => array(
+        //                 "product_id": "TRAC-EUR",
+        //                 "bids": [
         //                     {
-        //                         "price" => "0.2384",
-        //                         "size" => "386.1"
+        //                         "price": "0.2384",
+        //                         "size": "386.1"
         //                     }
-        //                 ),
-        //                 "asks" => array(
-        //                     array(
-        //                         "price" => "0.2406",
-        //                         "size" => "672"
+        //                 ],
+        //                 "asks": [
+        //                     {
+        //                         "price": "0.2406",
+        //                         "size": "672"
         //                     }
-        //                 ),
-        //                 "time" => "2023-06-30T07:15:24.656044Z"
-        //             ),
-        //         )
+        //                 ],
+        //                 "time": "2023-06-30T07:15:24.656044Z"
+        //             },
+        //         ]
         //     }
         //
         $tickers = $this->safe_list($response, 'pricebooks', array());
-        return $this->parse_tickers($tickers, $symbols);
+        return $this->parse_tickers($tickers, $symbolsNormalized);
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
@@ -4215,7 +4228,7 @@ class coinbase extends Exchange {
          * @param {array} [$params->travel_rule_data] some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         if ($this->markets === null) {
             $this->load_markets();
@@ -4227,13 +4240,13 @@ class coinbase extends Exchange {
             'amount' => $this->number_to_string($amount),
             'currency' => $currency['id'],
         );
-        $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
-        $params = $this->omit($params, array( 'account_id', 'accountId' ));
+        $accountId = $this->safe_string_2($paramsWithdrawTag, 'account_id', 'accountId');
+        $paramsOmitted = $this->omit($paramsWithdrawTag, array( 'account_id', 'accountId' ));
         if ($accountId === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires an account_id (or $accountId) parameter OR a $currency $code argument');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            $accountId = $this->find_account_id($code, $params);
+            $accountId = $this->find_account_id($code, $paramsOmitted);
             if ($accountId === null) {
                 throw new ExchangeError($this->id . ' withdraw() could not find account id for ' . $code);
             }
@@ -4241,59 +4254,59 @@ class coinbase extends Exchange {
         } else {
             $request['account_id'] = $accountId;
         }
-        if ($tag !== null) {
-            $request['destination_tag'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['destination_tag'] = $tagWithdrawTag;
         }
-        $response = $this->v2PrivatePostAccountsAccountIdTransactions($this->extend($request, $params));
+        $response = $this->v2PrivatePostAccountsAccountIdTransactions($this->extend($request, $paramsOmitted));
         //
         //     {
-        //         "data" => {
-        //             "id" => "a1794ecf-5693-55fa-70cf-ef731748ed82",
-        //             "type" => "send",
-        //             "status" => "pending",
-        //             "amount" => array(
-        //                 "amount" => "-14.008308",
-        //                 "currency" => "USDC"
-        //             ),
-        //             "native_amount" => array(
-        //                 "amount" => "-18.74",
-        //                 "currency" => "CAD"
-        //             ),
-        //             "description" => null,
-        //             "created_at" => "2024-01-12T01:27:31Z",
-        //             "updated_at" => "2024-01-12T01:27:31Z",
-        //             "resource" => "transaction",
-        //             "resource_path" => "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
-        //             "instant_exchange" => false,
-        //             "network" => array(
-        //                 "status" => "pending",
-        //                 "status_description" => "Pending (est. less than 10 minutes)",
-        //                 "transaction_fee" => array(
-        //                     "amount" => "4.008308",
-        //                     "currency" => "USDC"
-        //                 ),
-        //                 "transaction_amount" => array(
-        //                     "amount" => "10.000000",
-        //                     "currency" => "USDC"
-        //                 ),
-        //                 "confirmations" => 0
-        //             ),
-        //             "to" => {
-        //                 "resource" => "ethereum_address",
-        //                 "address" => "0x9...",
-        //                 "currency" => "USDC",
-        //                 "address_info" => array(
-        //                     "address" => "0x9..."
+        //         "data": {
+        //             "id": "a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //             "type": "send",
+        //             "status": "pending",
+        //             "amount": {
+        //                 "amount": "-14.008308",
+        //                 "currency": "USDC"
+        //             },
+        //             "native_amount": {
+        //                 "amount": "-18.74",
+        //                 "currency": "CAD"
+        //             },
+        //             "description": null,
+        //             "created_at": "2024-01-12T01:27:31Z",
+        //             "updated_at": "2024-01-12T01:27:31Z",
+        //             "resource": "transaction",
+        //             "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //             "instant_exchange": false,
+        //             "network": {
+        //                 "status": "pending",
+        //                 "status_description": "Pending (est. less than 10 minutes)",
+        //                 "transaction_fee": {
+        //                     "amount": "4.008308",
+        //                     "currency": "USDC"
+        //                 },
+        //                 "transaction_amount": {
+        //                     "amount": "10.000000",
+        //                     "currency": "USDC"
+        //                 },
+        //                 "confirmations": 0
+        //             },
+        //             "to": {
+        //                 "resource": "ethereum_address",
+        //                 "address": "0x9...",
+        //                 "currency": "USDC",
+        //                 "address_info": {
+        //                     "address": "0x9..."
         //                 }
-        //             ),
-        //             "idem" => "748d8591-dg9a-7831-a45b-crd61dg78762",
-        //             "details" => array(
-        //                 "title" => "Sent USDC",
-        //                 "subtitle" => "To USDC $address on Ethereum network",
-        //                 "header" => "Sent 14.008308 USDC ($18.74)",
-        //                 "health" => "warning"
-        //             ),
-        //             "hide_native_amount" => false
+        //             },
+        //             "idem": "748d8591-dg9a-7831-a45b-crd61dg78762",
+        //             "details": {
+        //                 "title": "Sent USDC",
+        //                 "subtitle": "To USDC address on Ethereum network",
+        //                 "header": "Sent 14.008308 USDC ($18.74)",
+        //                 "health": "warning"
+        //             },
+        //             "hide_native_amount": false
         //         }
         //     }
         //
@@ -4315,62 +4328,61 @@ class coinbase extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        $request = null;
-        list($request, $params) = $this->prepare_account_request_with_currency_code($currency['code'], null, $params);
-        $response = $this->v2PrivateGetAccountsAccountIdAddresses($this->extend($request, $params));
+        list($request, $paramsValue) = $this->prepare_account_request_with_currency_code($this->safe_string($currency, 'code'), null, $params);
+        $response = $this->v2PrivateGetAccountsAccountIdAddresses($this->extend($request, $paramsValue));
         //
         //    {
-        //        pagination => array(
-        //            ending_before => null,
-        //            starting_after => null,
-        //            previous_ending_before => null,
-        //            next_starting_after => null,
-        //            limit => '25',
-        //            order => 'desc',
-        //            previous_uri => null,
-        //            next_uri => null
-        //        ),
-        //        $data => array(
+        //        pagination: {
+        //            ending_before: null,
+        //            starting_after: null,
+        //            previous_ending_before: null,
+        //            next_starting_after: null,
+        //            limit: '25',
+        //            order: 'desc',
+        //            previous_uri: null,
+        //            next_uri: null
+        //        },
+        //        data: [
         //            {
-        //                id => '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
-        //                address => '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
-        //                address_info => array( address => '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk' ),
-        //                name => null,
-        //                created_at => '2023-05-29T21:12:12Z',
-        //                updated_at => '2023-05-29T21:12:12Z',
-        //                network => 'solana',
-        //                uri_scheme => 'solana',
-        //                resource => 'address',
-        //                resource_path => '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
-        //                warnings => array(
+        //                id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                address_info: { address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk' },
+        //                name: null,
+        //                created_at: '2023-05-29T21:12:12Z',
+        //                updated_at: '2023-05-29T21:12:12Z',
+        //                network: 'solana',
+        //                uri_scheme: 'solana',
+        //                resource: 'address',
+        //                resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                warnings: [
         //                    {
-        //                    type => 'correct_address_warning',
-        //                    title => 'This is an ERC20 USDC address.',
-        //                    details => 'Only send ERC20 USD Coin (USDC) to this address.',
-        //                    image_url => 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
-        //                    options => array( array( text => 'I understand', style => 'primary', id => 'dismiss' ) )
+        //                    type: 'correct_address_warning',
+        //                    title: 'This is an ERC20 USDC address.',
+        //                    details: 'Only send ERC20 USD Coin (USDC) to this address.',
+        //                    image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //                    options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
         //                    }
-        //                ),
-        //                qr_code_image_url => 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
-        //                address_label => 'USDC address (Solana)',
-        //                default_receive => true,
-        //                deposit_uri => 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        //                callback_url => null,
-        //                share_address_copy => array(
-        //                    line1 => '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
-        //                    line2 => 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
-        //                ),
-        //                receive_subtitle => 'ERC-20',
-        //                inline_warning => {
-        //                    text => 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
-        //                    tooltip => array(
-        //                    title => 'USDC (Solana)',
-        //                    subtitle => 'This address can only receive USDC-SPL from Solana network.'
+        //                ],
+        //                qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //                address_label: 'USDC address (Solana)',
+        //                default_receive: true,
+        //                deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //                callback_url: null,
+        //                share_address_copy: {
+        //                    line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                    line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //                },
+        //                receive_subtitle: 'ERC-20',
+        //                inline_warning: {
+        //                    text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //                    tooltip: {
+        //                    title: 'USDC (Solana)',
+        //                    subtitle: 'This address can only receive USDC-SPL from Solana network.'
         //                    }
         //                }
-        //            ),
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -4378,46 +4390,46 @@ class coinbase extends Exchange {
         return $this->index_by($addressStructures, 'network');
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //    {
-        //        id => '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
-        //        $address => '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
-        //        address_info => array(
-        //            $address => 'GCF74576I7AQ56SLMKBQAP255EGUOWCRVII3S44KEXVNJEOIFVBDMXVL',
-        //            destination_tag => '3722061866'
-        //        ),
-        //        name => null,
-        //        created_at => '2023-05-29T21:12:12Z',
-        //        updated_at => '2023-05-29T21:12:12Z',
-        //        network => 'solana',
-        //        uri_scheme => 'solana',
-        //        resource => 'address',
-        //        resource_path => '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
-        //        warnings => array(
+        //        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //        address_info: {
+        //            address: 'GCF74576I7AQ56SLMKBQAP255EGUOWCRVII3S44KEXVNJEOIFVBDMXVL',
+        //            destination_tag: '3722061866'
+        //        },
+        //        name: null,
+        //        created_at: '2023-05-29T21:12:12Z',
+        //        updated_at: '2023-05-29T21:12:12Z',
+        //        network: 'solana',
+        //        uri_scheme: 'solana',
+        //        resource: 'address',
+        //        resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        warnings: [
         //            {
-        //            type => 'correct_address_warning',
-        //            title => 'This is an ERC20 USDC $address->',
-        //            details => 'Only send ERC20 USD Coin (USDC) to this $address->',
-        //            image_url => 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
-        //            options => array( array( text => 'I understand', style => 'primary', id => 'dismiss' ) )
+        //            type: 'correct_address_warning',
+        //            title: 'This is an ERC20 USDC address.',
+        //            details: 'Only send ERC20 USD Coin (USDC) to this address.',
+        //            image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //            options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
         //            }
-        //        ),
-        //        qr_code_image_url => 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
-        //        address_label => 'USDC $address (Solana)',
-        //        default_receive => true,
-        //        deposit_uri => 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        //        callback_url => null,
-        //        share_address_copy => array(
-        //            line1 => '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
-        //            line2 => 'This $address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
-        //        ),
-        //        receive_subtitle => 'ERC-20',
-        //        inline_warning => {
-        //            text => 'This $address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
-        //            tooltip => {
-        //            title => 'USDC (Solana)',
-        //            subtitle => 'This $address can only receive USDC-SPL from Solana network.'
+        //        ],
+        //        qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //        address_label: 'USDC address (Solana)',
+        //        default_receive: true,
+        //        deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //        callback_url: null,
+        //        share_address_copy: {
+        //            line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //            line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //        },
+        //        receive_subtitle: 'ERC-20',
+        //        inline_warning: {
+        //            text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //            tooltip: {
+        //            title: 'USDC (Solana)',
+        //            subtitle: 'This address can only receive USDC-SPL from Solana network.'
         //            }
         //        }
         //    }
@@ -4457,7 +4469,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function deposit(string $code, float $amount, string $id, $params = array()) {
+    public function deposit(string $code, float $amount, string $id, $params = array()): array {
         /**
          * make a deposit
          *
@@ -4474,57 +4486,57 @@ class coinbase extends Exchange {
             $this->load_markets();
         }
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
-        $params = $this->omit($params, array( 'account_id', 'accountId' ));
+        $paramsOmitted = $this->omit($params, array( 'account_id', 'accountId' ));
         if ($accountId === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' deposit() requires an account_id (or $accountId) parameter OR a currency $code argument');
+                throw new ArgumentsRequired($this->id . ' deposit() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            $accountId = $this->find_account_id($code, $params);
+            $accountId = $this->find_account_id($code, $paramsOmitted);
             if ($accountId === null) {
-                throw new ExchangeError($this->id . ' deposit() could not find account $id for ' . $code);
+                throw new ExchangeError($this->id . ' deposit() could not find account id for ' . $code);
             }
         }
         $request = array(
             'account_id' => $accountId,
             'amount' => $this->number_to_string($amount),
-            'currency' => strtoupper($code), // need to use $code in case depositing USD etc.
+            'currency' => strtoupper($code), // need to use code in case depositing USD etc.
             'payment_method' => $id,
             'commit' => true, // otherwise the deposit does not go through
         );
-        $response = $this->v2PrivatePostAccountsAccountIdDeposits($this->extend($request, $params));
+        $response = $this->v2PrivatePostAccountsAccountIdDeposits($this->extend($request, $paramsOmitted));
         //
         //     {
-        //         "data" => {
-        //             "id" => "67e0eaec-07d7-54c4-a72c-2e92826897df",
-        //             "status" => "created",
-        //             "payment_method" => array(
-        //                 "id" => "83562370-3e5c-51db-87da-752af5ab9559",
-        //                 "resource" => "payment_method",
-        //                 "resource_path" => "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
-        //             ),
-        //             "transaction" => array(
-        //                 "id" => "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
-        //                 "resource" => "transaction",
-        //                 "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
-        //             ),
-        //             "amount" => array(
-        //                 "amount" => "10.00",
-        //                 "currency" => "USD"
-        //             ),
-        //             "subtotal" => array(
-        //                 "amount" => "10.00",
-        //                 "currency" => "USD"
-        //             ),
-        //             "created_at" => "2015-01-31T20:49:02Z",
-        //             "updated_at" => "2015-02-11T16:54:02-08:00",
-        //             "resource" => "deposit",
-        //             "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
-        //             "committed" => true,
-        //             "fee" => array(
-        //                 "amount" => "0.00",
-        //                 "currency" => "USD"
-        //             ),
-        //             "payout_at" => "2015-02-18T16:54:00-08:00"
+        //         "data": {
+        //             "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "status": "created",
+        //             "payment_method": {
+        //                 "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //                 "resource": "payment_method",
+        //                 "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //             },
+        //             "transaction": {
+        //                 "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //                 "resource": "transaction",
+        //                 "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //             },
+        //             "amount": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "subtotal": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "created_at": "2015-01-31T20:49:02Z",
+        //             "updated_at": "2015-02-11T16:54:02-08:00",
+        //             "resource": "deposit",
+        //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "committed": true,
+        //             "fee": {
+        //                 "amount": "0.00",
+        //                 "currency": "USD"
+        //             },
+        //             "payout_at": "2015-02-18T16:54:00-08:00"
         //         }
         //     }
         //
@@ -4533,7 +4545,7 @@ class coinbase extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
          *
@@ -4549,54 +4561,54 @@ class coinbase extends Exchange {
             $this->load_markets();
         }
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
-        $params = $this->omit($params, array( 'account_id', 'accountId' ));
+        $paramsOmitted = $this->omit($params, array( 'account_id', 'accountId' ));
         if ($accountId === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDeposit() requires an account_id (or $accountId) parameter OR a currency $code argument');
+                throw new ArgumentsRequired($this->id . ' fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            $accountId = $this->find_account_id($code, $params);
+            $accountId = $this->find_account_id($code, $paramsOmitted);
             if ($accountId === null) {
-                throw new ExchangeError($this->id . ' fetchDeposit() could not find account $id for ' . $code);
+                throw new ExchangeError($this->id . ' fetchDeposit() could not find account id for ' . $code);
             }
         }
         $request = array(
             'account_id' => $accountId,
             'deposit_id' => $id,
         );
-        $response = $this->v2PrivateGetAccountsAccountIdDepositsDepositId($this->extend($request, $params));
+        $response = $this->v2PrivateGetAccountsAccountIdDepositsDepositId($this->extend($request, $paramsOmitted));
         //
         //     {
-        //         "data" => {
-        //             "id" => "67e0eaec-07d7-54c4-a72c-2e92826897df",
-        //             "status" => "completed",
-        //             "payment_method" => array(
-        //                 "id" => "83562370-3e5c-51db-87da-752af5ab9559",
-        //                 "resource" => "payment_method",
-        //                 "resource_path" => "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
-        //             ),
-        //             "transaction" => array(
-        //                 "id" => "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
-        //                 "resource" => "transaction",
-        //                 "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
-        //             ),
-        //             "amount" => array(
-        //                 "amount" => "10.00",
-        //                 "currency" => "USD"
-        //             ),
-        //             "subtotal" => array(
-        //                 "amount" => "10.00",
-        //                 "currency" => "USD"
-        //             ),
-        //             "created_at" => "2015-01-31T20:49:02Z",
-        //             "updated_at" => "2015-02-11T16:54:02-08:00",
-        //             "resource" => "deposit",
-        //             "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
-        //             "committed" => true,
-        //             "fee" => array(
-        //                 "amount" => "0.00",
-        //                 "currency" => "USD"
-        //             ),
-        //             "payout_at" => "2015-02-18T16:54:00-08:00"
+        //         "data": {
+        //             "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "status": "completed",
+        //             "payment_method": {
+        //                 "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //                 "resource": "payment_method",
+        //                 "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //             },
+        //             "transaction": {
+        //                 "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //                 "resource": "transaction",
+        //                 "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //             },
+        //             "amount": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "subtotal": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "created_at": "2015-01-31T20:49:02Z",
+        //             "updated_at": "2015-02-11T16:54:02-08:00",
+        //             "resource": "deposit",
+        //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "committed": true,
+        //             "fee": {
+        //                 "amount": "0.00",
+        //                 "currency": "USD"
+        //             },
+        //             "payout_at": "2015-02-18T16:54:00-08:00"
         //         }
         //     }
         //
@@ -4605,7 +4617,7 @@ class coinbase extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function fetch_deposit_method_ids($params = array()) {
+    public function fetch_deposit_method_ids($params = array()): array {
         /**
          * fetch the deposit id for a fiat currency associated with this account
          *
@@ -4620,28 +4632,28 @@ class coinbase extends Exchange {
         $response = $this->v3PrivateGetBrokeragePaymentMethods($params);
         //
         //     {
-        //         "payment_methods" => array(
+        //         "payment_methods": [
         //             {
-        //                 "id" => "21b39a5d-f7b46876fb2e",
-        //                 "type" => "COINBASE_FIAT_ACCOUNT",
-        //                 "name" => "CAD Wallet",
-        //                 "currency" => "CAD",
-        //                 "verified" => true,
-        //                 "allow_buy" => false,
-        //                 "allow_sell" => true,
-        //                 "allow_deposit" => false,
-        //                 "allow_withdraw" => false,
-        //                 "created_at" => "2023-06-29T19:58:46Z",
-        //                 "updated_at" => "2023-10-30T20:25:01Z"
+        //                 "id": "21b39a5d-f7b46876fb2e",
+        //                 "type": "COINBASE_FIAT_ACCOUNT",
+        //                 "name": "CAD Wallet",
+        //                 "currency": "CAD",
+        //                 "verified": true,
+        //                 "allow_buy": false,
+        //                 "allow_sell": true,
+        //                 "allow_deposit": false,
+        //                 "allow_withdraw": false,
+        //                 "created_at": "2023-06-29T19:58:46Z",
+        //                 "updated_at": "2023-10-30T20:25:01Z"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $result = $this->safe_list($response, 'payment_methods', array());
         return $this->parse_deposit_method_ids($result);
     }
 
-    public function fetch_deposit_method_id(string $id, $params = array()) {
+    public function fetch_deposit_method_id(string $id, $params = array()): array {
         /**
          * fetch the deposit $id for a fiat currency associated with this account
          *
@@ -4660,18 +4672,18 @@ class coinbase extends Exchange {
         $response = $this->v3PrivateGetBrokeragePaymentMethodsPaymentMethodId($this->extend($request, $params));
         //
         //     {
-        //         "payment_method" => {
-        //             "id" => "21b39a5d-f7b46876fb2e",
-        //             "type" => "COINBASE_FIAT_ACCOUNT",
-        //             "name" => "CAD Wallet",
-        //             "currency" => "CAD",
-        //             "verified" => true,
-        //             "allow_buy" => false,
-        //             "allow_sell" => true,
-        //             "allow_deposit" => false,
-        //             "allow_withdraw" => false,
-        //             "created_at" => "2023-06-29T19:58:46Z",
-        //             "updated_at" => "2023-10-30T20:25:01Z"
+        //         "payment_method": {
+        //             "id": "21b39a5d-f7b46876fb2e",
+        //             "type": "COINBASE_FIAT_ACCOUNT",
+        //             "name": "CAD Wallet",
+        //             "currency": "CAD",
+        //             "verified": true,
+        //             "allow_buy": false,
+        //             "allow_sell": true,
+        //             "allow_deposit": false,
+        //             "allow_withdraw": false,
+        //             "created_at": "2023-06-29T19:58:46Z",
+        //             "updated_at": "2023-10-30T20:25:01Z"
         //         }
         //     }
         //
@@ -4679,7 +4691,7 @@ class coinbase extends Exchange {
         return $this->parse_deposit_method_id($result);
     }
 
-    public function parse_deposit_method_ids(mixed $ids, $params = array()) {
+    public function parse_deposit_method_ids(array $ids, $params = array()): array {
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $this->extend($this->parse_deposit_method_id($ids[$i]), $params);
@@ -4688,7 +4700,7 @@ class coinbase extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_method_id(mixed $depositId) {
+    public function parse_deposit_method_id(array $depositId): array {
         return array(
             'info' => $depositId,
             'id' => $this->safe_string($depositId, 'id'),
@@ -4768,19 +4780,19 @@ class coinbase extends Exchange {
             $this->load_markets();
         }
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a code argument');
         }
         $toCode = $this->safe_string($params, 'toCode');
         if ($toCode === null) {
-            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a $toCode parameter');
+            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a toCode parameter');
         }
-        $params = $this->omit($params, 'toCode');
+        $paramsOmitted = $this->omit($params, 'toCode');
         $request = array(
             'trade_id' => $id,
             'from_account' => $code,
             'to_account' => $toCode,
         );
-        $response = $this->v3PrivateGetBrokerageConvertTradeTradeId($this->extend($request, $params));
+        $response = $this->v3PrivateGetBrokerageConvertTradeTradeId($this->extend($request, $paramsOmitted));
         $data = $this->safe_dict($response, 'trade', array());
         return $this->parse_conversion($data);
     }
@@ -4833,8 +4845,8 @@ class coinbase extends Exchange {
         $response = $this->v3PrivatePostBrokeragePortfoliosMoveFunds($this->extend($request, $params));
         //
         //     {
-        //         "source_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
-        //         "target_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
         //     }
         //
         $transfer = $this->parse_transfer($response, $currency);
@@ -4846,8 +4858,8 @@ class coinbase extends Exchange {
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
-        //         "source_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
-        //         "target_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
         //     }
         //
         $currencyCode = $this->safe_currency_code(null, $currency);
@@ -4882,15 +4894,15 @@ class coinbase extends Exchange {
         }
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
-        $params = $this->omit($params, 'clientOrderId');
+        $paramsOmitted = $this->omit($params, 'clientOrderId');
         $request = array(
             'product_id' => $market['id'],
         );
         if ($clientOrderId === null) {
-            throw new ArgumentsRequired($this->id . ' closePosition() requires a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' closePosition() requires a clientOrderId parameter');
         }
         $request['client_order_id'] = $clientOrderId;
-        $response = $this->v3PrivatePostBrokerageOrdersClosePosition($this->extend($request, $params));
+        $response = $this->v3PrivatePostBrokerageOrdersClosePosition($this->extend($request, $paramsOmitted));
         $order = $this->safe_dict($response, 'success_response', array());
         return $this->parse_order($order);
     }
@@ -4910,32 +4922,30 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $market = null;
-        if ($symbols !== null) {
-            $market = $this->market($symbols[0]);
+        if ($symbolsNormalized !== null) {
+            $market = $this->market($symbolsNormalized[0]);
         }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
         $response = null;
-        if ($type === 'future') {
-            $response = $this->v3PrivateGetBrokerageCfmPositions($params);
+        if ($marketType === 'future') {
+            $response = $this->v3PrivateGetBrokerageCfmPositions($paramsMarketType);
         } else {
-            $portfolio = null;
-            list($portfolio, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'portfolio');
+            list($portfolio, $paramsPortfolio) = $this->handle_option_string_and_params($paramsMarketType, 'fetchPositions', 'portfolio');
             if ($portfolio === null) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions() requires a "portfolio" value in $params (eg => dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
+                throw new ArgumentsRequired($this->id . ' fetchPositions() requires a "portfolio" value in params (eg => dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
             $request = array(
                 'portfolio_uuid' => $portfolio,
             );
-            $response = $this->v3PrivateGetBrokerageIntxPositionsPortfolioUuid($this->extend($request, $params));
+            $response = $this->v3PrivateGetBrokerageIntxPositionsPortfolioUuid($this->extend($request, $paramsPortfolio));
         }
         $positions = $this->safe_list($response, 'positions', array());
-        return $this->parse_positions($positions, $symbols);
+        return $this->parse_positions($positions, $symbolsNormalized);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on a single open contract trade $position
          *
@@ -4953,7 +4963,7 @@ class coinbase extends Exchange {
         }
         $market = $this->market($symbol);
         $response = null;
-        if ($market['future']) {
+        if ($market['future'] === true) {
             $productId = $this->safe_string($market, 'product_id');
             if ($productId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchPosition() requires a "product_id" in params');
@@ -4963,113 +4973,112 @@ class coinbase extends Exchange {
             );
             $response = $this->v3PrivateGetBrokerageCfmPositionsProductId($this->extend($futureRequest, $params));
         } else {
-            $portfolio = null;
-            list($portfolio, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'portfolio');
+            list($portfolio, $paramsPortfolio) = $this->handle_option_string_and_params($params, 'fetchPositions', 'portfolio');
             if ($portfolio === null) {
-                throw new ArgumentsRequired($this->id . ' fetchPosition() requires a "portfolio" value in $params (eg => dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
+                throw new ArgumentsRequired($this->id . ' fetchPosition() requires a "portfolio" value in params (eg => dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
             $request = array(
                 'symbol' => $market['id'],
                 'portfolio_uuid' => $portfolio,
             );
-            $response = $this->v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol($this->extend($request, $params));
+            $response = $this->v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol($this->extend($request, $paramsPortfolio));
         }
         $position = $this->safe_dict($response, 'position', array());
         return $this->parse_position($position, $market);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
-        //     "product_id" => "1r4njf84-0-0",
-        //     "product_uuid" => "cd34c18b-3665-4ed8-9305-3db277c49fc5",
-        //     "symbol" => "ADA-PERP-INTX",
-        //     "vwap" => array(
-        //        "value" => "0.6171",
-        //        "currency" => "USDC"
-        //     ),
-        //     "position_side" => "POSITION_SIDE_LONG",
-        //     "net_size" => "20",
-        //     "buy_order_size" => "0",
-        //     "sell_order_size" => "0",
-        //     "im_contribution" => "0.1",
-        //     "unrealized_pnl" => array(
-        //        "value" => "0.074",
-        //        "currency" => "USDC"
-        //     ),
-        //     "mark_price" => array(
-        //        "value" => "0.6208",
-        //        "currency" => "USDC"
-        //     ),
-        //     "liquidation_price" => array(
-        //        "value" => "0",
-        //        "currency" => "USDC"
-        //     ),
-        //     "leverage" => "1",
-        //     "im_notional" => array(
-        //        "value" => "12.342",
-        //        "currency" => "USDC"
-        //     ),
-        //     "mm_notional" => array(
-        //        "value" => "0.814572",
-        //        "currency" => "USDC"
-        //     ),
-        //     "position_notional" => array(
-        //        "value" => "12.342",
-        //        "currency" => "USDC"
-        //     ),
-        //     "margin_type" => "MARGIN_TYPE_CROSS",
-        //     "liquidation_buffer" => "19.677828",
-        //     "liquidation_percentage" => "4689.3506",
-        //     "portfolio_summary" => {
-        //        "portfolio_uuid" => "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
-        //        "collateral" => "20.4184",
-        //        "position_notional" => "12.342",
-        //        "open_position_notional" => "12.342",
-        //        "pending_fees" => "0",
-        //        "borrow" => "0",
-        //        "accrued_interest" => "0",
-        //        "rolling_debt" => "0",
-        //        "portfolio_initial_margin" => "0.1",
-        //        "portfolio_im_notional" => array(
-        //           "value" => "12.342",
-        //           "currency" => "USDC"
-        //        ),
-        //        "portfolio_maintenance_margin" => "0.066",
-        //        "portfolio_mm_notional" => array(
-        //           "value" => "0.814572",
-        //           "currency" => "USDC"
-        //        ),
-        //        "liquidation_percentage" => "4689.3506",
-        //        "liquidation_buffer" => "19.677828",
-        //        "margin_type" => "MARGIN_TYPE_CROSS",
-        //        "margin_flags" => "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
-        //        "liquidation_status" => "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
-        //        "unrealized_pnl" => array(
-        //           "value" => "0.074",
-        //           "currency" => "USDC"
-        //        ),
-        //        "buying_power" => array(
-        //           "value" => "8.1504",
-        //           "currency" => "USDC"
-        //        ),
-        //        "total_balance" => array(
-        //           "value" => "20.4924",
-        //           "currency" => "USDC"
-        //        ),
-        //        "max_withdrawal" => array(
-        //           "value" => "8.0764",
-        //           "currency" => "USDC"
+        //     "product_id": "1r4njf84-0-0",
+        //     "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
+        //     "symbol": "ADA-PERP-INTX",
+        //     "vwap": {
+        //        "value": "0.6171",
+        //        "currency": "USDC"
+        //     },
+        //     "position_side": "POSITION_SIDE_LONG",
+        //     "net_size": "20",
+        //     "buy_order_size": "0",
+        //     "sell_order_size": "0",
+        //     "im_contribution": "0.1",
+        //     "unrealized_pnl": {
+        //        "value": "0.074",
+        //        "currency": "USDC"
+        //     },
+        //     "mark_price": {
+        //        "value": "0.6208",
+        //        "currency": "USDC"
+        //     },
+        //     "liquidation_price": {
+        //        "value": "0",
+        //        "currency": "USDC"
+        //     },
+        //     "leverage": "1",
+        //     "im_notional": {
+        //        "value": "12.342",
+        //        "currency": "USDC"
+        //     },
+        //     "mm_notional": {
+        //        "value": "0.814572",
+        //        "currency": "USDC"
+        //     },
+        //     "position_notional": {
+        //        "value": "12.342",
+        //        "currency": "USDC"
+        //     },
+        //     "margin_type": "MARGIN_TYPE_CROSS",
+        //     "liquidation_buffer": "19.677828",
+        //     "liquidation_percentage": "4689.3506",
+        //     "portfolio_summary": {
+        //        "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+        //        "collateral": "20.4184",
+        //        "position_notional": "12.342",
+        //        "open_position_notional": "12.342",
+        //        "pending_fees": "0",
+        //        "borrow": "0",
+        //        "accrued_interest": "0",
+        //        "rolling_debt": "0",
+        //        "portfolio_initial_margin": "0.1",
+        //        "portfolio_im_notional": {
+        //           "value": "12.342",
+        //           "currency": "USDC"
+        //        },
+        //        "portfolio_maintenance_margin": "0.066",
+        //        "portfolio_mm_notional": {
+        //           "value": "0.814572",
+        //           "currency": "USDC"
+        //        },
+        //        "liquidation_percentage": "4689.3506",
+        //        "liquidation_buffer": "19.677828",
+        //        "margin_type": "MARGIN_TYPE_CROSS",
+        //        "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
+        //        "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
+        //        "unrealized_pnl": {
+        //           "value": "0.074",
+        //           "currency": "USDC"
+        //        },
+        //        "buying_power": {
+        //           "value": "8.1504",
+        //           "currency": "USDC"
+        //        },
+        //        "total_balance": {
+        //           "value": "20.4924",
+        //           "currency": "USDC"
+        //        },
+        //        "max_withdrawal": {
+        //           "value": "8.0764",
+        //           "currency": "USDC"
         //        }
-        //     ),
-        //     "entry_vwap" => {
-        //        "value" => "0.6091",
-        //        "currency" => "USDC"
+        //     },
+        //     "entry_vwap": {
+        //        "value": "0.6091",
+        //        "currency": "USDC"
         //     }
         // }
         //
         $marketId = $this->safe_string($position, 'symbol', '');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $rawMargin = $this->safe_string($position, 'margin_type');
         $marginMode = null;
         if ($rawMargin !== null) {
@@ -5077,7 +5086,10 @@ class coinbase extends Exchange {
         }
         $notionalObject = $this->safe_dict($position, 'position_notional', array());
         $positionSide = $this->safe_string($position, 'position_side');
-        $side = ($positionSide === 'POSITION_SIDE_LONG') ? 'long' : 'short';
+        $side = 'short';
+        if ($positionSide === 'POSITION_SIDE_LONG') {
+            $side = 'long';
+        }
         $unrealizedPNLObject = $this->safe_dict($position, 'unrealized_pnl', array());
         $liquidationPriceObject = $this->safe_dict($position, 'liquidation_price', array());
         $liquidationPrice = $this->safe_number($liquidationPriceObject, 'value');
@@ -5086,7 +5098,7 @@ class coinbase extends Exchange {
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'product_id'),
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $this->safe_symbol($marketId, $marketResolved),
             'notional' => $this->safe_number($notionalObject, 'value'),
             'marginMode' => $marginMode,
             'liquidationPrice' => $liquidationPrice,
@@ -5095,7 +5107,7 @@ class coinbase extends Exchange {
             'realizedPnl' => null,
             'percentage' => null,
             'contracts' => $this->safe_number($position, 'net_size'),
-            'contractSize' => $market['contractSize'],
+            'contractSize' => $marketResolved['contractSize'],
             'markPrice' => null,
             'lastPrice' => null,
             'side' => $side,
@@ -5128,35 +5140,37 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
         $isSpot = ($type === 'spot');
-        $productType = $isSpot ? 'SPOT' : 'FUTURE';
+        $productType = 'FUTURE';
+        if ($isSpot) {
+            $productType = 'SPOT';
+        }
         $request = array(
             'product_type' => $productType,
         );
-        $response = $this->v3PrivateGetBrokerageTransactionSummary($this->extend($request, $params));
+        $response = $this->v3PrivateGetBrokerageTransactionSummary($this->extend($request, $paramsMarketType));
         //
         // {
-        //     total_volume => '0',
-        //     total_fees => '0',
-        //     fee_tier => array(
-        //       pricing_tier => 'Advanced 1',
-        //       usd_from => '0',
-        //       usd_to => '1000',
-        //       taker_fee_rate => '0.008',
-        //       maker_fee_rate => '0.006',
-        //       aop_from => '',
-        //       aop_to => ''
-        //     ),
-        //     margin_rate => null,
-        //     goods_and_services_tax => null,
-        //     advanced_trade_only_volume => '0',
-        //     advanced_trade_only_fees => '0',
-        //     coinbase_pro_volume => '0',
-        //     coinbase_pro_fees => '0',
-        //     total_balance => '',
-        //     has_promo_fee => false
+        //     total_volume: '0',
+        //     total_fees: '0',
+        //     fee_tier: {
+        //       pricing_tier: 'Advanced 1',
+        //       usd_from: '0',
+        //       usd_to: '1000',
+        //       taker_fee_rate: '0.008',
+        //       maker_fee_rate: '0.006',
+        //       aop_from: '',
+        //       aop_to: ''
+        //     },
+        //     margin_rate: null,
+        //     goods_and_services_tax: null,
+        //     advanced_trade_only_volume: '0',
+        //     advanced_trade_only_fees: '0',
+        //     coinbase_pro_volume: '0',
+        //     coinbase_pro_fees: '0',
+        //     total_balance: '',
+        //     has_promo_fee: false
         // }
         //
         $data = $this->safe_dict($response, 'fee_tier', array());
@@ -5166,7 +5180,7 @@ class coinbase extends Exchange {
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
             $market = $this->market($symbol);
-            if (($isSpot && $market['spot']) || (!$isSpot && !$market['spot'])) {
+            if (($isSpot && ($market['spot'] === true)) || (!$isSpot && ($market['spot'] !== true))) {
                 $result[$symbol] = array(
                     'info' => $response,
                     'symbol' => $symbol,
@@ -5201,7 +5215,7 @@ class coinbase extends Exchange {
     }
 
     public function parse_portfolio_details(array $portfolioData) {
-        $breakdown = $portfolioData['breakdown'];
+        $breakdown = $this->safe_dict($portfolioData, 'breakdown');
         $portfolioInfo = $this->safe_dict($breakdown, 'portfolio', array());
         $portfolioName = $this->safe_string($portfolioInfo, 'name', 'Unknown');
         $portfolioUuid = $this->safe_string($portfolioInfo, 'uuid', '');
@@ -5255,16 +5269,22 @@ class coinbase extends Exchange {
         if ($url !== null) {
             $uri = $method . ' ' . str_replace('https://', '', $url);
             $quesPos = mb_strpos($uri, '?');
-            // Due to we use mb_strpos, $quesPos could be false in php. In that case, the $quesPos >= 0 is true
+            // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if ($quesPos > 0) {
                 $uri = mb_substr($uri, 0, $quesPos - 0);
             }
         }
-        // $this->eddsaarray("sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"])
+        // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         $nonce = $this->random_bytes(16);
-        $aud = $useEddsa ? 'cdp_service' : 'retail_rest_api_proxy';
-        $iss = $useEddsa ? 'cdp' : 'coinbase-cloud';
+        $aud = 'retail_rest_api_proxy';
+        if ($useEddsa) {
+            $aud = 'cdp_service';
+        }
+        $iss = 'coinbase-cloud';
+        if ($useEddsa) {
+            $iss = 'cdp';
+        }
         $request = array(
             'aud' => array( $aud ),
             'iss' => $iss,
@@ -5285,83 +5305,96 @@ class coinbase extends Exchange {
             $seed = $this->array_slice($byteArray, 0, 32);
             return $this->jwt($request, $seed, 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'EdDSA' ));
         } else {
-            // $this->ecdsawith p256
+            // ecdsa with p256
             return $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
         }
     }
 
-    public function nonce() {
-        return $this->milliseconds() - $this->options['timeDifference'];
+    public function nonce(): float {
+        $timeDifference = $this->safe_integer($this->options, 'timeDifference');
+        if ($timeDifference === null) {
+            throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
-        $version = $api[0];
-        $signed = $api[1] === 'private';
+    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestBody = null;
+        $requestHeaders = null;
+        $version = $this->safe_string($api, 0);
+        $signed = $this->safe_string($api, 1) === 'private';
         $isV3 = $version === 'v3';
-        $pathPart = ($isV3) ? 'api/v3' : 'v2';
+        $pathPart = 'v2';
+        if ($isV3) {
+            $pathPart = 'api/v3';
+        }
         $fullPath = '/' . $pathPart . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $savedPath = $fullPath;
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $fullPath .= '?' . $this->urlencode_with_array_repeat($query);
             }
         }
-        $url = $this->urls['api']['rest'] . $fullPath;
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $fullPath;
         if ($signed) {
             $authorization = $this->safe_string($this->headers, 'Authorization');
             $authorizationString = null;
             if ($authorization !== null) {
                 $authorizationString = $authorization;
-            } elseif ($this->token && !$this->check_required_credentials(false)) {
+            } elseif (($this->token !== '') && !$this->check_required_credentials(false)) {
                 $authorizationString = 'Bearer ' . $this->token;
             } else {
                 $this->check_required_credentials();
                 $seconds = $this->seconds();
                 $payload = '';
                 if ($method !== 'GET') {
-                    if ($query) {
-                        $body = $this->json($query);
-                        $payload = $body;
+                    if (count($query) > 0) {
+                        $requestBody = $this->json($query);
+                        $payload = $requestBody;
                     }
                 } else {
                     if (!$isV3) {
-                        if ($query) {
+                        if (count($query) > 0) {
                             $payload .= '?' . $this->urlencode($query);
                         }
                     }
                 }
-                // v3 => 'GET' doesn't need $payload in the $signature-> inside $url is enough
+                // v3: 'GET' doesn't need payload in the signature. inside url is enough
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
-                // v2 => 'GET' require $payload in the $signature
+                // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
-                // using the size might be fragile, so we add an option to force v2 cloud $api key if needed
+                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
                 $isV2CloudAPiKey = strlen($this->secret) === 88 || $this->safe_bool($this->options, 'v2CloudAPiKey', false) || str_ends_with($this->secret, '=');
                 if ($isCloudAPiKey || $isV2CloudAPiKey) {
                     if ($isCloudAPiKey && str_starts_with($this->apiKey, '-----BEGIN')) {
                         throw new ArgumentsRequired($this->id . ' apiKey should contain the name (eg => organizations/3b910e93....) and not the public key');
                     }
                     // // it may not work for v2
-                    // $uri = $method . ' ' . str_replace('https://', '', $url);
-                    // $quesPos = mb_strpos($uri, '?');
-                    // // Due to we use mb_strpos, $quesPos could be false in php. In that case, the $quesPos >= 0 is true
+                    // let uri = method + ' ' + url.replace ('https://', '');
+                    // const quesPos = uri.indexOf ('?');
+                    // // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
                     // // Also it's not possible that the question mark is first character, only check > 0 here.
-                    // if ($quesPos > 0) {
-                    //     $uri = mb_substr($uri, 0, $quesPos - 0);
+                    // if (quesPos > 0) {
+                    //     uri = uri.slice (0, quesPos);
                     // }
-                    // $nonce = $this->random_bytes(16);
-                    // $request = array(
-                    //     'aud' => array( 'retail_rest_api_proxy' ),
-                    //     'iss' => 'coinbase-cloud',
-                    //     'nbf' => $seconds,
-                    //     'exp' => $seconds + 120,
-                    //     'sub' => $this->apiKey,
-                    //     'uri' => $uri,
-                    //     'iat' => $seconds,
-                    // );
+                    // const nonce = this.randomBytes (16);
+                    // const request: Dict = {
+                    //     'aud': [ 'retail_rest_api_proxy' ],
+                    //     'iss': 'coinbase-cloud',
+                    //     'nbf': seconds,
+                    //     'exp': seconds + 120,
+                    //     'sub': this.apiKey,
+                    //     'uri': uri,
+                    //     'iat': seconds,
+                    // };
                     $token = $this->create_auth_token($seconds, $method, $url, $isV2CloudAPiKey);
-                    // $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
+                    // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     $authorizationString = 'Bearer ' . $token;
                 } else {
                     $nonce = $this->nonce();
@@ -5369,7 +5402,7 @@ class coinbase extends Exchange {
                     $timestampString = (string) $timestamp;
                     $auth = $timestampString . $method . $savedPath . $payload;
                     $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-                    $headers = array(
+                    $requestHeaders = array(
                         'CB-ACCESS-KEY' => $this->apiKey,
                         'CB-ACCESS-SIGN' => $signature,
                         'CB-ACCESS-TIMESTAMP' => $timestampString,
@@ -5378,18 +5411,20 @@ class coinbase extends Exchange {
                 }
             }
             if ($authorizationString !== null) {
-                $headers = array(
+                $requestHeaders = array(
                     'Authorization' => $authorizationString,
                     'Content-Type' => 'application/json',
                 );
                 if ($method !== 'GET') {
-                    if ($query) {
-                        $body = $this->json($query);
+                    if (count($query) > 0) {
+                        $requestBody = $this->json($query);
                     }
                 }
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
+        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -5398,34 +5433,34 @@ class coinbase extends Exchange {
         }
         $feedback = $this->id . ' ' . $body;
         //
-        //    array("error" => "invalid_request", "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.")
+        //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
         //
         // or
         //
         //    {
-        //      "errors" => array(
+        //      "errors": [
         //        {
-        //          "id" => "not_found",
-        //          "message" => "Not found"
+        //          "id": "not_found",
+        //          "message": "Not found"
         //        }
-        //      )
+        //      ]
         //    }
         // or
         // {
-        //     "success" => false,
-        //     "error_response" => array(
-        //       "error" => "UNKNOWN_FAILURE_REASON",
-        //       "message" => "",
-        //       "error_details" => "",
-        //       "preview_failure_reason" => "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
-        //     ),
-        //     "order_configuration" => {
-        //       "stop_limit_stop_limit_gtc" => {
-        //         "base_size" => "0.0001",
-        //         "limit_price" => "2000",
-        //         "stop_price" => "2005",
-        //         "stop_direction" => "STOP_DIRECTION_STOP_DOWN",
-        //         "reduce_only" => false
+        //     "success": false,
+        //     "error_response": {
+        //       "error": "UNKNOWN_FAILURE_REASON",
+        //       "message": "",
+        //       "error_details": "",
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
+        //     },
+        //     "order_configuration": {
+        //       "stop_limit_stop_limit_gtc": {
+        //         "base_size": "0.0001",
+        //         "limit_price": "2000",
+        //         "stop_price": "2005",
+        //         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
+        //         "reduce_only": false
         //       }
         //     }
         // }
@@ -5459,9 +5494,9 @@ class coinbase extends Exchange {
                 }
             }
         }
-        $advancedTrade = $this->options['advanced'];
-        if (!(is_array($response) && array_key_exists('data' ?? '', $response)) && (!$advancedTrade)) {
-            throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json($response));
+        $advancedTrade = $this->safe_bool($this->options, 'advanced');
+        if (!(is_array($response) && array_key_exists('data' ?? '', $response)) && ($advancedTrade !== true)) {
+            throw new ExchangeError($this->id . ' failed due to a malformed response ' . $this->json($response));
         }
         return null;
     }

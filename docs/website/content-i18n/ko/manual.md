@@ -48,7 +48,7 @@ ccxt 라이브러리는 이용 가능한 암호화폐 *거래소* 또는 거래�
     +=============================================================+
 ```
 
-모든 거래소의 완전한 공개 및 비공개 HTTP REST API는 JavaScript, Python, PHP, C#, Go, Java로 구현되어 있습니다. WebSocket 구현은 [CCXT Pro](https://ccxt.pro)에서 이용 가능하며, WebSocket 스트림을 지원합니다.
+모든 거래소의 완전한 공개 및 비공개 HTTP REST API는 JavaScript, Python, PHP, C#, Go, Java, Rust로 구현되어 있습니다. WebSocket 구현은 [CCXT Pro](https://ccxt.pro)에서 이용 가능하며, WebSocket 스트림을 지원합니다.
 
 - [**거래소**](#exchanges)
 - [**마켓**](#markets)

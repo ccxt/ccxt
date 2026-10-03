@@ -75,34 +75,34 @@ export default class opinion extends Exchange {
                 'opinion': {
                     'public': {
                         'get': {
-                            'market': 1,
-                            'market/{marketId}': 1,
-                            'market/categorical/{marketId}': 1,
-                            'market/slug/{slug}': 1,
+                            'market': { 'cost': 1 },
+                            'market/{marketId}': { 'cost': 1 },
+                            'market/categorical/{marketId}': { 'cost': 1 },
+                            'market/slug/{slug}': { 'cost': 1 },
                             'label': 1,
-                            'token/latest-price': 1,
-                            'token/orderbook': 1,
-                            'token/price-history': 1,
-                            'quoteToken': 1,
+                            'token/latest-price': { 'cost': 1 },
+                            'token/orderbook': { 'cost': 1 },
+                            'token/price-history': { 'cost': 1 },
+                            'quoteToken': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'order': 1,
-                            'order/{orderId}': 1,
-                            'positions/user/{walletAddress}': 1,
-                            'trade/user/{walletAddress}': 1,
-                            'auth/api-key': 1,
-                            'user/auth': 1,
-                            'user/balance': 1,
+                            'order': { 'cost': 1 },
+                            'order/{orderId}': { 'cost': 1 },
+                            'positions/user/{walletAddress}': { 'cost': 1 },
+                            'trade/user/{walletAddress}': { 'cost': 1 },
+                            'auth/api-key': { 'cost': 1 },
+                            'user/auth': { 'cost': 1 },
+                            'user/balance': { 'cost': 1 },
                         },
                         'post': {
-                            'auth/api-key': 1,
-                            'order': 1,
-                            'order/cancel': 1,
+                            'auth/api-key': { 'cost': 1 },
+                            'order': { 'cost': 1 },
+                            'order/cancel': { 'cost': 1 },
                         },
                         'delete': {
-                            'auth/api-key': 1,
+                            'auth/api-key': { 'cost': 1 },
                         },
                     },
                 },
@@ -603,7 +603,13 @@ export default class opinion extends Exchange {
         const eventId = this.safeString(rawEvent, 'marketId');
         const slug = this.safeString(rawEvent, 'slug');
         const title = this.safeString(rawEvent, 'marketTitle');
-        const eventHandle = (title !== undefined) ? this.shortenSlug(title) : this.shortenSlug(slug);
+        let eventHandle = undefined;
+        if (title !== undefined) {
+            eventHandle = this.shortenSlug(title);
+        }
+        else {
+            eventHandle = this.shortenSlug(slug);
+        }
         const rawChildren = this.safeList(rawEvent, 'childMarkets', []);
         const rawChildrenLength = rawChildren.length;
         const marketsList = [];
@@ -693,7 +699,10 @@ export default class opinion extends Exchange {
         const bestBid = this.safeDict(bids, 0, {});
         const bestAsk = this.safeDict(asks, 0, {});
         const last = this.safeNumber(priceResult, 'price');
-        const timestamp = this.safeInteger(priceResult, 'timestamp', this.milliseconds());
+        let timestamp = this.safeInteger(priceResult, 'timestamp');
+        if (timestamp === 0) {
+            timestamp = undefined; // the venue reports timestamp 0 for outcomes that have not traded yet
+        }
         return this.safePredictionTicker({
             'outcome': this.safeString(marketAny, 'outcome'),
             'outcomeId': this.safeString2(marketAny, 'outcomeId', 'id'),
@@ -833,7 +842,7 @@ export default class opinion extends Exchange {
         const candles = [];
         const historyLength = history.length;
         for (let i = 0; i < historyLength; i++) {
-            const point = history[i];
+            const point = this.safeDict(history, i);
             const price = this.safeNumber(point, 'p');
             const timestamp = this.safeTimestamp(point, 't');
             if ((price !== undefined) && (timestamp !== undefined)) {
@@ -1099,7 +1108,7 @@ export default class opinion extends Exchange {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        const status = (canceled) ? 'canceled' : undefined;
+        const status = (canceled === true) ? 'canceled' : undefined;
         return this.safePredictionOrder({ 'id': id, 'status': status, 'info': response });
     }
     /**
@@ -1403,7 +1412,7 @@ export default class opinion extends Exchange {
         const balances = this.safeList(data, 'balances', []);
         const balancesLength = balances.length;
         for (let i = 0; i < balancesLength; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const code = this.safeString(balance, 'symbol', 'USDT');
             result[code] = {
                 'free': this.safeNumber(balance, 'availableBalance'),
@@ -1700,7 +1709,7 @@ export default class opinion extends Exchange {
         const marketKeys = Object.keys(this.markets);
         const marketKeysLength = marketKeys.length;
         for (let i = 0; i < marketKeysLength; i++) {
-            const market = this.markets[marketKeys[i]];
+            const market = this.safeDict(this.markets, marketKeys[i]);
             const info = this.safeDict(market, 'info', {});
             if (this.safeInteger(info, 'marketId') === marketId) {
                 const outcomes = this.safeList(market, 'outcomes', []);
@@ -1783,9 +1792,8 @@ export default class opinion extends Exchange {
         const price = this.safeNumber(message, 'price');
         const size = this.safeNumber(message, 'size');
         bookSide.storeArray([price, size]);
-        const now = this.milliseconds();
-        orderbook['timestamp'] = now;
-        orderbook['datetime'] = this.iso8601(now);
+        orderbook['timestamp'] = undefined;
+        orderbook['datetime'] = undefined;
         client.resolve(orderbook, 'orderbook::' + sym);
     }
     /**
@@ -1821,15 +1829,14 @@ export default class opinion extends Exchange {
         if (sym === undefined) {
             return;
         }
-        const now = this.milliseconds();
         const last = this.safeNumber(message, 'price');
         const ticker = this.safePredictionTicker({
             'outcome': sym,
             'outcomeId': tokenId,
             'label': this.safeString(outcomeObj, 'label'),
             'market': this.safeString(outcomeObj, 'market'),
-            'timestamp': now,
-            'datetime': this.iso8601(now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'close': last,
             'last': last,
             'info': message,
@@ -1876,12 +1883,11 @@ export default class opinion extends Exchange {
         if (sym === undefined) {
             return;
         }
-        const now = this.milliseconds();
         const trade = this.safePredictionTrade({
             'id': undefined,
             'info': message,
-            'timestamp': now,
-            'datetime': this.iso8601(now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'outcome': sym,
             'outcomeId': tokenId,
             'label': this.safeString(outcomeObj, 'label'),
@@ -1986,9 +1992,15 @@ export default class opinion extends Exchange {
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
         const sideInt = this.safeInteger(message, 'side');
-        const side = (sideInt === 1) ? 'buy' : 'sell';
+        let side = 'sell';
+        if (sideInt === 1) {
+            side = 'buy';
+        }
         const tradingMethod = this.safeInteger(message, 'tradingMethod');
-        const type = (tradingMethod === 1) ? 'market' : 'limit';
+        let type = 'limit';
+        if (tradingMethod === 1) {
+            type = 'market';
+        }
         const order = this.safePredictionOrder({
             'id': this.safeString(message, 'orderId'),
             'clientOrderId': undefined,
@@ -2132,7 +2144,7 @@ export default class opinion extends Exchange {
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const existingHeaders = (headers !== undefined) ? headers : {};
-        headers = this.extend({
+        const headersExtended = this.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
@@ -2145,9 +2157,9 @@ export default class opinion extends Exchange {
                 const actionByMethod = { 'POST': 'create', 'GET': 'get', 'DELETE': 'delete' };
                 const action = this.safeString(actionByMethod, method, 'get');
                 const timestamp = this.numberToString(this.seconds());
-                headers['OPINION_ADDRESS'] = this.walletAddress;
-                headers['OPINION_SIGNATURE'] = this.signApiKeyAuth(this.walletAddress, action, timestamp);
-                headers['OPINION_TIMESTAMP'] = timestamp;
+                headersExtended['OPINION_ADDRESS'] = this.walletAddress;
+                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth(this.walletAddress, action, timestamp);
+                headersExtended['OPINION_TIMESTAMP'] = timestamp;
             }
             else {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
@@ -2157,17 +2169,18 @@ export default class opinion extends Exchange {
                 if (apiKey === undefined) {
                     throw new AuthenticationError(this.id + ' ' + path + ' requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first');
                 }
-                headers['apikey'] = apiKey;
+                headersExtended['apikey'] = apiKey;
             }
         }
+        let bodyValue = body;
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
         else {
-            body = this.json(query);
+            bodyValue = this.json(query);
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
     }
 }

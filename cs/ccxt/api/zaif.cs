@@ -67,6 +67,27 @@ public partial class zaif : Exchange
         return await this.callAsync<List<object>> ("publicGetTradesPair",parameters);
     }
 
+    /// <summary>Calls the publicGetVaspInfoVaspMasterId endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetVaspInfoVaspMasterId (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetVaspInfoVaspMasterId",parameters);
+    }
+
+    /// <summary>Calls the publicGetCountryInfoCode endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetCountryInfoCode (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetCountryInfoCode",parameters);
+    }
+
+    /// <summary>Calls the publicGetCorpTypeIdInfoId endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetCorpTypeIdInfoId (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetCorpTypeIdInfoId",parameters);
+    }
+
     /// <summary>Calls the privatePostActiveOrders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostActiveOrders (object parameters = null)

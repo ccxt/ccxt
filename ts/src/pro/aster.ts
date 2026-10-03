@@ -3,10 +3,11 @@
 
 import asterRest from '../aster.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
-import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, FeeString, List } from '../base/types.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
+import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface, FeeString } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -112,9 +113,9 @@ export default class aster extends asterRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.safeSymbol (symbol);
-        const tickers = await this.watchTickers ([ symbol ], params);
-        return tickers[symbol];
+        const symbolValue: string = this.safeSymbol (symbol);
+        const tickers = await this.watchTickers ([ symbolValue ], params);
+        return tickers[symbolValue];
     }
 
     /**
@@ -150,43 +151,46 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        if (symbols === undefined) {
-            symbols = [];
-        }
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
+        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbols.length;
-        let methodName: Str = undefined;
-        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTickers');
-        params = this.omit (params, 'callerMethodName');
+        const symbolsLength = symbolsList.length;
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchTickers');
+        const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         };
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsList.length; i++) {
+            const symbol = symbolsList[i];
             const market = this.market (symbol);
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@ticker');
             messageHashes.push ('ticker:' + market['symbol']);
         }
-        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsList);
     }
 
     /**
@@ -201,37 +205,37 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        if (symbols === undefined) {
-            symbols = [];
-        }
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
+        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbols.length;
-        let methodName: Str = undefined;
-        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchTickers');
-        params = this.omit (params, 'callerMethodName');
+        const symbolsLength = symbolsList.length;
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchTickers');
+        const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         };
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsList.length; i++) {
+            const symbol = symbolsList[i];
             const market = this.market (symbol);
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@ticker');
             messageHashes.push ('unsubscribe:ticker:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
     }
 
     /**
@@ -250,9 +254,9 @@ export default class aster extends asterRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.safeSymbol (symbol);
-        const tickers = await this.watchMarkPrices ([ symbol ], params);
-        return tickers[symbol];
+        const symbolValue: string = this.safeSymbol (symbol);
+        const tickers = await this.watchMarkPrices ([ symbolValue ], params);
+        return tickers[symbolValue];
     }
 
     /**
@@ -282,45 +286,51 @@ export default class aster extends asterRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        if (symbols === undefined) {
-            symbols = [];
-        }
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
+        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbols.length;
-        let methodName: Str = undefined;
-        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchMarkPrices');
-        params = this.omit (params, 'callerMethodName');
+        const symbolsLength = symbolsList.length;
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchMarkPrices');
+        const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         };
-        const use1sFreq = this.safeBool (params, 'use1sFreq', true);
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const use1sFreq = this.safeBool (paramsOmitted, 'use1sFreq', true);
+        for (let i = 0; i < symbolsList.length; i++) {
+            const symbol = symbolsList[i];
             const market = this.market (symbol);
-            const suffix = (use1sFreq) ? '@1s' : '';
+            let suffix: Str = '';
+            if (use1sFreq === true) {
+                suffix = '@1s';
+            }
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
             messageHashes.push ('ticker:' + market['symbol']);
         }
-        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsList);
     }
 
     /**
@@ -334,42 +344,45 @@ export default class aster extends asterRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        if (symbols === undefined) {
-            symbols = [];
-        }
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
+        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbols.length;
-        let methodName: Str = undefined;
-        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchMarkPrices');
-        params = this.omit (params, 'callerMethodName');
+        const symbolsLength = symbolsList.length;
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchMarkPrices');
+        const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         };
-        const use1sFreq = this.safeBool (params, 'use1sFreq', true);
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const use1sFreq = this.safeBool (paramsOmitted, 'use1sFreq', true);
+        for (let i = 0; i < symbolsList.length; i++) {
+            const symbol = symbolsList[i];
             const market = this.market (symbol);
-            const suffix = (use1sFreq) ? '@1s' : '';
+            let suffix: Str = '';
+            if (use1sFreq === true) {
+                suffix = '@1s';
+            }
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
             messageHashes.push ('unsubscribe:ticker:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //             "e": "24hrTicker",
@@ -413,7 +426,7 @@ export default class aster extends asterRest {
         }
     }
 
-    parseWsTicker (message: any, marketType: any) {
+    parseWsTicker (message: Dict, marketType: Str): Ticker {
         const event = this.safeString (message, 'e');
         const marketId = this.safeString (message, 's');
         const timestamp = this.safeInteger (message, 'E');
@@ -465,29 +478,30 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        if (symbols === undefined) {
-            symbols = [];
-        }
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
+        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbols.length;
+        const symbolsLength = symbolsList.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         };
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsList.length; i++) {
+            const symbol = symbolsList[i];
             const market = this.market (symbol);
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@bookTicker');
             messageHashes.push ('bidask:' + market['symbol']);
@@ -495,10 +509,13 @@ export default class aster extends asterRest {
         const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
-        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsList);
     }
 
     /**
@@ -513,29 +530,30 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        if (symbols === undefined) {
-            symbols = [];
-        }
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
+        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbols.length;
+        const symbolsLength = symbolsList.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         };
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsList.length; i++) {
+            const symbol = symbolsList[i];
             const market = this.market (symbol);
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@bookTicker');
             messageHashes.push ('unsubscribe:bidask:' + market['symbol']);
@@ -543,7 +561,7 @@ export default class aster extends asterRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
-    handleBidAsk (client: Client, message: any) {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //             "e": "bookTicker",
@@ -570,9 +588,12 @@ export default class aster extends asterRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseWsBidAsk (message: any, market: Market = undefined) {
+    parseWsBidAsk (message: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (message, 'T');
-        const bidAskSymbol = (market !== undefined) ? market['symbol'] : undefined;
+        let bidAskSymbol: Str = undefined;
+        if (market !== undefined) {
+            bidAskSymbol = market['symbol'];
+        }
         return this.safeTicker ({
             'symbol': bidAskSymbol,
             'timestamp': timestamp,
@@ -632,21 +653,23 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbols.length;
-        let methodName: Str = undefined;
-        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
-        params = this.omit (params, 'callerMethodName');
+        const symbolsLength = symbolsNormalized.length;
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
+        const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -654,20 +677,24 @@ export default class aster extends asterRest {
             'params': subscriptionArgs,
             'id': 1,
         };
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId = this.safeStringLower (market, 'id');
+            if (marketId === undefined) {
+                continue;
+            }
             subscriptionArgs.push (marketId + '@aggTrade');
             messageHashes.push ('trade::' + market['symbol']);
         }
-        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -680,37 +707,39 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbols.length;
-        let methodName: Str = undefined;
-        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchTradesForSymbols');
-        params = this.omit (params, 'callerMethodName');
+        const symbolsLength = symbolsNormalized.length;
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchTradesForSymbols');
+        const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         };
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@aggTrade');
             messageHashes.push ('unsubscribe:trade:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict) {
         //
         //     {
         //         "e": "aggTrade",
@@ -743,7 +772,7 @@ export default class aster extends asterRest {
         client.resolve (stored, 'trade::' + symbol);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined): Trade {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public watchTrades (spot)
         //
@@ -853,16 +882,21 @@ export default class aster extends asterRest {
             }
         }
         const marketId = this.safeString (trade, 's');
-        const defaultType = (market === undefined) ? this.safeString (this.options, 'defaultType', 'spot') : market['type'];
+        let defaultType: Str = undefined;
+        if (market === undefined) {
+            defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        } else {
+            defaultType = this.safeString (market, 'type');
+        }
         const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         let side = this.safeStringLower (trade, 'S');
         let takerOrMaker: Str = undefined;
         const orderId = this.safeString (trade, 'i');
         if ('m' in trade) {
             if (side === undefined) {
-                side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+                side = (this.safeBool (trade, 'm', false)) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            takerOrMaker = trade['m'] ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool (trade, 'm', false)) ? 'maker' : 'taker';
         }
         let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'n');
@@ -941,37 +975,40 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbols.length;
-        let methodName: Str = undefined;
-        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
-        params = this.omit (params, 'callerMethodName');
+        const symbolsLength = symbolsNormalized.length;
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
+        const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         };
-        if (limit === undefined || (limit !== 5 && limit !== 10 && limit !== 20)) {
-            limit = 20;
+        let limitResolved: number = 20;
+        if (limit === 5 || limit === 10 || limit === 20) {
+            limitResolved = limit;
         }
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth' + limit.toString ());
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth' + limitResolved.toString ());
             messageHashes.push ('orderbook:' + market['symbol']);
         }
-        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
         return orderbook.limit ();
     }
 
@@ -988,42 +1025,44 @@ export default class aster extends asterRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbols.length;
-        let methodName: Str = undefined;
-        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
-        params = this.omit (params, 'callerMethodName');
+        const symbolsLength = symbolsNormalized.length;
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
+        const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         };
-        let limit = this.safeNumber (params, 'limit');
-        params = this.omit (params, 'limit');
+        let limit = this.safeNumber (paramsOmitted, 'limit');
+        const paramsOmitted2 = this.omit (paramsOmitted, 'limit');
         if (limit === undefined || (limit !== 5 && limit !== 10 && limit !== 20)) {
             limit = 20;
         }
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth' + limit);
             messageHashes.push ('unsubscribe:orderbook:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted2), messageHashes);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //             "e": "depthUpdate",
@@ -1082,9 +1121,9 @@ export default class aster extends asterRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.safeSymbol (symbol);
-        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
-        return result[symbol][timeframe];
+        const symbolValue: string = this.safeSymbol (symbol);
+        const result = await this.watchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], since, limit, params);
+        return result[symbolValue][timeframe];
     }
 
     /**
@@ -1115,14 +1154,13 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsLength = symbolsAndTimeframes.length;
-        let methodName: Str = undefined;
-        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOHLCVForSymbols');
-        params = this.omit (params, 'callerMethodName');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchOHLCVForSymbols');
+        const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
@@ -1130,7 +1168,10 @@ export default class aster extends asterRest {
         const marketSymbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (marketSymbols[0]);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -1138,23 +1179,29 @@ export default class aster extends asterRest {
             'params': subscriptionArgs,
         };
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
+            const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
             if (symbolString === undefined) {
                 continue;
             }
             const market = this.market (symbolString);
-            symbolString = market['symbol'];
+            symbolString = this.safeString (market, 'symbol');
             const unfiedTimeframe = this.safeString (data, 1);
-            const timeframeId = (unfiedTimeframe === undefined) ? undefined : this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            let timeframeId: Str = undefined;
+            if (unfiedTimeframe === undefined) {
+                timeframeId = undefined;
+            } else {
+                timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            }
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
             messageHashes.push ('ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
-        const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
+            limitResolved = stored.getLimit (symbol, limit);
         }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -1168,14 +1215,13 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsLength = symbolsAndTimeframes.length;
-        let methodName: Str = undefined;
-        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchOHLCVForSymbols');
-        params = this.omit (params, 'callerMethodName');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchOHLCVForSymbols');
+        const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
@@ -1183,7 +1229,10 @@ export default class aster extends asterRest {
         const marketSymbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (marketSymbols[0]);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -1191,22 +1240,27 @@ export default class aster extends asterRest {
             'params': subscriptionArgs,
         };
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
+            const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
             if (symbolString === undefined) {
                 continue;
             }
             const market = this.market (symbolString);
-            symbolString = market['symbol'];
+            symbolString = this.safeString (market, 'symbol');
             const unfiedTimeframe = this.safeString (data, 1);
-            const timeframeId = (unfiedTimeframe === undefined) ? undefined : this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            let timeframeId: Str = undefined;
+            if (unfiedTimeframe === undefined) {
+                timeframeId = undefined;
+            } else {
+                timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            }
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
             messageHashes.push ('unsubscribe:ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //             "e": "kline",
@@ -1244,7 +1298,7 @@ export default class aster extends asterRest {
         if (timeframe === undefined) {
             return;
         }
-        const ohlcvsByTimeframe = this.safeValue (this.ohlcvs, symbol);
+        const ohlcvsByTimeframe = this.safeDict (this.ohlcvs, symbol);
         if (ohlcvsByTimeframe === undefined) {
             this.ohlcvs[symbol] = {};
         }
@@ -1271,7 +1325,7 @@ export default class aster extends asterRest {
         ];
     }
 
-    async authenticate (type = 'spot', params = {}) {
+    async authenticate (type: string = 'spot', params: Dict = {}) {
         const time = this.milliseconds ();
         const lastAuthenticatedTimeOptions = this.safeDict (this.options, 'lastAuthenticatedTime', {});
         const lastAuthenticatedTime = this.safeInteger (lastAuthenticatedTimeOptions, type, 0);
@@ -1314,8 +1368,8 @@ export default class aster extends asterRest {
                 }
                 this.options['listenKey'][type] = listenKey;
                 this.options['lastAuthenticatedTime'][type] = time;
-                params = this.extend ({ 'type': type }, params);
-                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                const keepAliveParams = this.extend ({ 'type': type }, params);
+                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, keepAliveParams);
                 // settle the flight: client.resolve () removes the future from
                 // client.futures and wakes every waiter
                 client.resolve (listenKey, messageHash);
@@ -1329,7 +1383,7 @@ export default class aster extends asterRest {
         }
     }
 
-    async keepAliveListenKey (params = {}) {
+    async keepAliveListenKey (params: Dict = {}) {
         const type = this.safeString (params, 'type', 'spot');
         const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
         const listenKey = this.safeString (listenKeyOptions, type);
@@ -1343,7 +1397,7 @@ export default class aster extends asterRest {
                 await this.fapiPrivatePutV3ListenKey (); // extend the expiry
             }
         } catch (error) {
-            const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
+            const url = this.safeString (this.urls['api']['ws']['private'], type) + '/' + listenKey;
             const client = this.client (url);
             const messageHashes = Object.keys (client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
@@ -1360,10 +1414,10 @@ export default class aster extends asterRest {
         this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
 
-    getPrivateUrl (type = 'spot') {
+    getPrivateUrl (type: string = 'spot'): string {
         const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
         const listenKey = this.safeString (listenKeyOptions, type);
-        const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
+        const url = this.safeString (this.urls['api']['ws']['private'], type) + '/' + listenKey;
         return url;
     }
 
@@ -1377,34 +1431,37 @@ export default class aster extends asterRest {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
-        await this.authenticate (type, params);
-        const url = this.getPrivateUrl (type);
+        const type: Str = undefined;
+        const [ typeMarketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchBalance() requires a market type');
+        }
+        await this.authenticate (typeMarketType, paramsMarketType);
+        const url = this.getPrivateUrl (typeMarketType);
         const client = this.client (url);
-        this.setBalanceCache (client, type);
+        this.setBalanceCache (client, typeMarketType);
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
-            await client.future (type + ':fetchBalanceSnapshot');
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+            await client.future (typeMarketType + ':fetchBalanceSnapshot');
         }
-        const messageHash = type + ':balance';
+        const messageHash = typeMarketType + ':balance';
         const message = undefined;
-        return await this.watch (url, messageHash, message, type);
+        return await this.watch (url, messageHash, message, typeMarketType);
     }
 
-    setBalanceCache (client: Client, type: any) {
+    setBalanceCache (client: Client, type: string) {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
-        const options = this.safeValue (this.options, 'watchBalance');
+        const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1415,12 +1472,12 @@ export default class aster extends asterRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: any, type: any) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string) {
         const params: Dict = {
             'type': type,
         };
         const response = await this.fetchBalance (params);
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1429,7 +1486,7 @@ export default class aster extends asterRest {
         }
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot balance update
         //     {
@@ -1489,8 +1546,8 @@ export default class aster extends asterRest {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
-        message = this.safeDict (message, 'a', message);
-        const B = this.safeList (message, 'B', []);
+        const messageValue: Dict = this.safeDict (message, 'a', message);
+        const B: Dict[] = this.safeList (messageValue, 'B', []);
         const wallet = this.safeString (this.options, 'wallet', 'wb');
         for (let i = 0; i < B.length; i++) {
             const entry = B[i];
@@ -1504,7 +1561,7 @@ export default class aster extends asterRest {
                 this.balance[accountType][code] = account;
             }
         }
-        const timestamp = this.safeInteger (message, 'E');
+        const timestamp = this.safeInteger (messageValue, 'E');
         this.balance[accountType]['timestamp'] = timestamp;
         this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
         this.balance[accountType] = this.safeBalance (this.balance[accountType]);
@@ -1522,7 +1579,7 @@ export default class aster extends asterRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1533,27 +1590,27 @@ export default class aster extends asterRest {
         this.setPositionsCache (client);
         const messageHashes: string[] = [];
         const messageHash = 'positions';
-        symbols = this.marketSymbols (symbols, 'swap', true, true);
-        if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, 'swap', true, true);
+        if (symbolsNormalized === undefined) {
             messageHashes.push (messageHash);
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push (messageHash + '::' + symbol);
             }
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.positions;
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
+        const cache: ArrayCacheBySymbolBySide = this.positions;
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const newPositions = await this.watchMultiple (url, messageHashes, undefined, [ type ]);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (cache, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client) {
@@ -1561,7 +1618,7 @@ export default class aster extends asterRest {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1572,10 +1629,10 @@ export default class aster extends asterRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -1591,7 +1648,7 @@ export default class aster extends asterRest {
         }
     }
 
-    handlePositions (client: any, message: any) {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",
@@ -1627,10 +1684,10 @@ export default class aster extends asterRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const data = this.safeDict (message, 'a', {});
-        const rawPositions = this.safeList (data, 'P', []);
-        const newPositions: List = [];
+        const rawPositions: Dict[] = this.safeList (data, 'P', []);
+        const newPositions: Dict[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parseWsPosition (rawPosition);
@@ -1644,7 +1701,7 @@ export default class aster extends asterRest {
         if (!this.isEmpty (messageHashes)) {
             for (let i = 0; i < newPositions.length; i++) {
                 const position = newPositions[i];
-                const symbol = position['symbol'];
+                const symbol = this.safeString (position, 'symbol');
                 const symbolMessageHash = messageHash + '::' + symbol;
                 client.resolve (position, symbolMessageHash);
             }
@@ -1652,7 +1709,7 @@ export default class aster extends asterRest {
         }
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
@@ -1720,30 +1777,35 @@ export default class aster extends asterRest {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         let messageHash = 'orders';
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params, type);
-        await this.authenticate (type, params);
+        const type: Str = undefined;
+        const [ typeMarketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params, type);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a market type');
+        }
+        await this.authenticate (typeMarketType, paramsMarketType);
         if (market !== undefined) {
-            messageHash += '::' + symbol;
+            messageHash += '::' + symbolResolved;
         }
-        const url = this.getPrivateUrl (type);
+        const url = this.getPrivateUrl (typeMarketType);
         const client = this.client (url);
-        this.setBalanceCache (client, type);
-        const orders = await this.watchMultiple (url, [ messageHash ], undefined, [ type ]);
+        this.setBalanceCache (client, typeMarketType);
+        const orders: ArrayCache = await this.watchMultiple (url, [ messageHash ], undefined, [ typeMarketType ]);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1759,48 +1821,58 @@ export default class aster extends asterRest {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         let messageHash = 'myTrades';
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, type);
-        await this.authenticate (type, params);
+        const type: Str = undefined;
+        const [ typeMarketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, type);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a market type');
+        }
+        await this.authenticate (typeMarketType, paramsMarketType);
         if (market !== undefined) {
-            messageHash += '::' + symbol;
+            messageHash += '::' + symbolResolved;
         }
-        const url = this.getPrivateUrl (type);
+        const url = this.getPrivateUrl (typeMarketType);
         const client = this.client (url);
-        this.setBalanceCache (client, type);
-        const trades = await this.watchMultiple (url, [ messageHash ], undefined, [ type ]);
+        this.setBalanceCache (client, typeMarketType);
+        const trades: ArrayCache = await this.watchMultiple (url, [ messageHash ], undefined, [ typeMarketType ]);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
-    handleOrderUpdate (client: Client, message: any) {
+    handleOrderUpdate (client: Client, message: Dict) {
         const rawOrder = this.safeDict (message, 'o', message);
         const e = this.safeString (message, 'e');
-        if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
-            message = this.safeDict (message, 'o', message);
+        const isOrderUpdate = (e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE');
+        let tradeMessage = message;
+        if (isOrderUpdate) {
+            tradeMessage = rawOrder;
         }
         this.handleOrder (client, rawOrder);
-        this.handleMyTrade (client, message);
+        this.handleMyTrade (client, tradeMessage);
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict) {
         const messageHash = 'myTrades';
         const executionType = this.safeString (message, 'x');
         if (executionType === 'TRADE') {
             const isSwap = client.url.indexOf ('fstream') >= 0;
-            const type = isSwap ? 'swap' : 'spot';
+            let type: Str = 'spot';
+            if (isSwap) {
+                type = 'swap';
+            }
             const fakeMarket = this.safeMarketStructure ({ 'type': type });
             const trade = this.parseWsTrade (message, fakeMarket);
             const orderId = this.safeString (trade, 'order');
@@ -1810,17 +1882,17 @@ export default class aster extends asterRest {
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
                 if (cachedOrders !== undefined) {
-                    const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-                    const order = this.safeValue (orders, orderId);
+                    const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
+                    const order = this.safeDict (orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
-                        const fees = this.safeValue (order, 'fees');
-                        const fee = this.safeValue (order, 'fee');
+                        const fees = this.safeList (order, 'fees', []);
+                        const fee = this.safeDict (order, 'fee');
                         if (!this.isEmpty (fees)) {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {
                                 const orderFee = fees[i];
-                                if (orderFee['currency'] === tradeFee['currency']) {
+                                if (this.safeString (orderFee, 'currency') === this.safeString (tradeFee, 'currency')) {
                                     const feeCost = this.sum (tradeFee['cost'], orderFee['cost']);
                                     const feeCostString = this.currencyToPrecision (tradeFee['currency'], feeCost);
                                     order['fees'][i]['cost'] = (feeCostString === undefined) ? undefined : parseFloat (feeCostString);
@@ -1832,11 +1904,11 @@ export default class aster extends asterRest {
                                 order['fees'].push (tradeFee);
                             }
                         } else if (fee !== undefined) {
-                            if (fee['currency'] === tradeFee['currency']) {
+                            if (this.safeString (fee, 'currency') === this.safeString (tradeFee, 'currency')) {
                                 const feeCost = this.sum (fee['cost'], tradeFee['cost']);
                                 const feeCostString = this.currencyToPrecision (tradeFee['currency'], feeCost);
                                 order['fee']['cost'] = (feeCostString === undefined) ? undefined : parseFloat (feeCostString);
-                            } else if (fee['currency'] === undefined) {
+                            } else if (this.safeString (fee, 'currency') === undefined) {
                                 order['fee'] = tradeFee;
                             } else {
                                 order['fees'] = [ fee, tradeFee ];
@@ -1866,7 +1938,7 @@ export default class aster extends asterRest {
         }
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         //
         // spot
         //     {
@@ -1959,10 +2031,10 @@ export default class aster extends asterRest {
         }
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         const executionType = this.safeString (order, 'x');
         const marketId = this.safeString (order, 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let timestamp = this.safeInteger (order, 'O');
         const T = this.safeInteger (order, 'T');
         let lastTradeTimestamp: Int = undefined;
@@ -1998,7 +2070,7 @@ export default class aster extends asterRest {
         }
         return this.safeOrder ({
             'info': order,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': this.safeString2 (order, 'i', 'aid'),
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
@@ -2024,18 +2096,18 @@ export default class aster extends asterRest {
         });
     }
 
-    getMarketFromOrder (client: Client, order: any) {
+    getMarketFromOrder (client: Client, order: Dict): MarketInterface {
         const marketId = this.safeString (order, 's');
         const marketType = this.getAccountTypeFromUrl (client.url);
         return this.safeMarket (marketId, undefined, undefined, marketType);
     }
 
-    handleBalanceAndPosition (client: Client, message: any) {
+    handleBalanceAndPosition (client: Client, message: Dict) {
         this.handleBalance (client, message);
         this.handlePositions (client, message);
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         const messageInner = this.safeDict (message, 'data', message); // can be either wrapped in 'data' or full object itself
         const event = this.safeString (messageInner, 'e');
         const methods: Dict = {

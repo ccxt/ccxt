@@ -15,7 +15,7 @@ async function testFetchOrderBooks(exchange, skippedProperties) {
     const orderBooks = await exchange.fetchOrderBooks([symbol]);
     testSharedMethods.assertDictionaryResponse(exchange, method, orderBooks);
     const orderBookKeys = Object.keys(orderBooks);
-    assert(orderBookKeys.length, exchange.id + ' ' + method + ' returned 0 length data');
+    assert(orderBookKeys.length > 0, exchange.id + ' ' + method + ' returned 0 length data');
     for (let i = 0; i < orderBookKeys.length; i++) {
         const symbolInner = orderBookKeys[i];
         testOrderBook(exchange, skippedProperties, method, orderBooks[symbolInner], symbolInner);

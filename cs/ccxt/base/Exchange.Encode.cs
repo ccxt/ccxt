@@ -13,7 +13,9 @@ using list = List<object>;
 public partial class BaseExchange
 {
 
-    public object base16ToBinary(object str2)
+    // every return path hands back ConvertHexStringToByteArray's byte[] (the two stubs above
+    // are comments only), so the declared type names the box the value already has
+    public byte[] base16ToBinary(object str2)
     {
         // return (string)str; // stub
         // return Convert.FromHexString((string)str);
@@ -38,7 +40,10 @@ public partial class BaseExchange
         return bytes;
     }
 
-    public virtual object remove0xPrefix(object str2)
+    // U33: both return paths hand back `str`, the `(string)str2` unbox taken at the top of the
+    // body (a non-string argument throws there, before either return), so the signature names
+    // the box the value already has.
+    public virtual string remove0xPrefix(object str2)
     {
         var str = (string)str2;
         if (str.StartsWith("0x"))
@@ -72,7 +77,9 @@ public partial class BaseExchange
     }
 
 
-    public object binaryConcat(params object[] parts)
+    // every return path is a byte[] box (the List<byte> builder's ToArray); the return type
+    // names the box the runtime value already has, so no call site changes
+    public byte[] binaryConcat(params object[] parts)
     {
         var resultList = new List<byte>();
 
@@ -122,7 +129,7 @@ public partial class BaseExchange
     //     // return (string)a + (string)b; // stub
     // }
 
-    public object binaryConcatArray(object arrays2)
+    public byte[] binaryConcatArray(object arrays2)
     {
         // if (byteArrays is not IList arrays)
         // {
@@ -173,7 +180,8 @@ public partial class BaseExchange
         return result;
     }
 
-    public object numberToBE(object n2, object size2 = null)
+    // BitConverter.GetBytes + range slice → byte[] on the only return path
+    public byte[] numberToBE(object n2, object size2 = null)
     {
         var n = Convert.ToInt64(n2);
         var size = size2 == null ? 0 : Convert.ToInt32(size2);
@@ -270,7 +278,8 @@ public partial class BaseExchange
         return n.ToString("x");
     }
 
-    public object packb(object data)
+    // MiniMessagePacker.Pack (cs/ccxt/static/MiniMessagePack) already returns byte[]
+    public byte[] packb(object data)
     {
         var packer = new MiniMessagePacker();
         return packer.Pack(data);
