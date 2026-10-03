@@ -31,7 +31,7 @@ func TestRemoveRepeatedElementsFromArray() {
 	}}
 	var res1 any = exchange.RemoveRepeatedElementsFromArray(array1, false)
 	var res1Length int = ccxt.GetArrayLength(res1)
-	Assert(ccxt.IsEqual(res1Length, 3))
+	Assert((res1Length == 3))
 	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res1, 0), "uniq"), "x1"))
 	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res1, 1), "uniq"), "x2"))
 	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res1, 2), "uniq"), "x4"))
@@ -55,14 +55,14 @@ func TestRemoveRepeatedElementsFromArray() {
 	}}
 	var res2 any = exchange.RemoveRepeatedElementsFromArray(array2, true)
 	var res2Length int = ccxt.GetArrayLength(res2)
-	Assert(ccxt.IsEqual(res2Length, 3))
+	Assert((res2Length == 3))
 	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res2, 0), "uniq"), "x1"))
 	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res2, 1), "uniq"), "x2"))
 	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res2, 2), "uniq"), "x4"))
 	// CASE 3: by timestamp index (used in ohlcv)
 	var array3 []any = []any{[]any{555, 1, 1, "x1"}, []any{666, 1, 1, "x2"}, []any{555, 1, 1, "x3"}}
 	var res3 any = exchange.RemoveRepeatedElementsFromArray(array3, true)
-	Assert(ccxt.IsEqual(ccxt.GetArrayLength(res3), 2))
+	Assert((ccxt.IsEqual(ccxt.GetArrayLength(res3), 2)))
 	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res3, 0), 3), "x1"))
 	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res3, 1), 3), "x2"))
 }

@@ -75,13 +75,17 @@ export default class hitbtc extends hitbtcRest {
     watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
-     * @name hitbtc#watchTicker
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @param {string[]} [symbols]
-     * @param {object} params extra parameters specific to the exchange API endpoint
-     * @param {string} params.method 'ticker/{speed}' ,'ticker/price/{speed}', 'ticker/{speed}/batch' (default), or 'ticker/{speed}/price/batch''
-     * @param {string} params.speed '1s' (default), or '3s'
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     * @name hitbtc#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://api.hitbtc.com/#subscribe-to-ticker
+     * @see https://api.hitbtc.com/#subscribe-to-ticker-in-batches
+     * @see https://api.hitbtc.com/#subscribe-to-mini-ticker
+     * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the tickers for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'ticker/{speed}' (default), 'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/price/{speed}/batch'
+     * @param {string} [params.speed] '1s' (default), or '3s'
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     handleTicker(client: Client, message: Dict): void;
@@ -93,7 +97,7 @@ export default class hitbtc extends hitbtcRest {
      * @see https://api.hitbtc.com/#subscribe-to-top-of-book
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch (default)'
+     * @param {string} [params.method] 'orderbook/top/{speed}' (default) or 'orderbook/top/{speed}/batch'
      * @param {string} [params.speed] '100ms' (default) or '500ms' or '1000ms'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */

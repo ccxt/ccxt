@@ -1893,17 +1893,6 @@ public class BingxApi extends Exchange
     }
 
     /**
-     * Calls the copyTradingV1PrivateGetSwapTraceCurrentTrack endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  copyTradingV1PrivateGetSwapTraceCurrentTrack (Object... optionalArgs)
-    {
-        return this.callAsync ("copyTradingV1PrivateGetSwapTraceCurrentTrack", optionalArgs);
-    }
-
-    /**
      * Calls the copyTradingV1PrivateGetPFuturesTraderDetail endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1989,17 +1978,6 @@ public class BingxApi extends Exchange
     public CompletableFuture<Map<String, Object>>  copyTradingV1PrivateGetSpotHistoryOrder (Object... optionalArgs)
     {
         return this.callAsync ("copyTradingV1PrivateGetSpotHistoryOrder", optionalArgs);
-    }
-
-    /**
-     * Calls the copyTradingV1PrivatePostSwapTraceCloseTrackOrder endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  copyTradingV1PrivatePostSwapTraceCloseTrackOrder (Object... optionalArgs)
-    {
-        return this.callAsync ("copyTradingV1PrivatePostSwapTraceCloseTrackOrder", optionalArgs);
     }
 
     /**

@@ -473,12 +473,15 @@ class bitvavo extends bitvavo$1["default"] {
         const result = [];
         const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+            const market = this.safeDict(markets, i);
             const id = this.safeString(market, 'market');
             const baseId = this.safeString(market, 'base');
             const quoteId = this.safeString(market, 'quote');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const status = this.safeString(market, 'status');
             result.push(this.safeMarketStructure({
                 'id': id,
@@ -814,12 +817,11 @@ class bitvavo extends bitvavo$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, paramsPaginate);
         }
-        let request = {
+        const request = {
             'market': market['id'],
             // "limit": 500, // default 500, max 1000
             // "start": since,
@@ -833,8 +835,8 @@ class bitvavo extends bitvavo$1["default"] {
         if (since !== undefined) {
             request['start'] = since;
         }
-        [request, params] = this.handleUntilOption('end', request, params);
-        const response = await this.publicGetMarketTrades(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, paramsPaginate);
+        const response = await this.publicGetMarketTrades(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -1097,7 +1099,7 @@ class bitvavo extends bitvavo$1["default"] {
     }
     fetchOHLCVRequest(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'market': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
             // "limit": 1440, // default 1440, max 1440
@@ -1108,19 +1110,18 @@ class bitvavo extends bitvavo$1["default"] {
             // https://github.com/ccxt/ccxt/issues/9227
             const duration = this.parseTimeframe(timeframe);
             request['start'] = since;
-            if (limit === undefined) {
-                limit = 1440;
-            }
-            else {
-                limit = Math.min(limit, 1440);
-            }
-            request['end'] = this.sum(since, limit * duration * 1000);
+            const sinceLimit = (limit === undefined) ? 1440 : Math.min(limit, 1440);
+            request['end'] = this.sum(since, sinceLimit * duration * 1000);
         }
-        [request, params] = this.handleUntilOption('end', request, params);
-        if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 1440); // default 1440, max 1440
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params);
+        let limitResolved = limit;
+        if ((since !== undefined) && (limit === undefined)) {
+            limitResolved = 1440;
         }
-        return this.extend(request, params);
+        if (limitResolved !== undefined) {
+            requestUntil['limit'] = Math.min(limitResolved, 1440); // default 1440, max 1440
+        }
+        return this.extend(requestUntil, paramsUntil);
     }
     /**
      * @method
@@ -1141,12 +1142,11 @@ class bitvavo extends bitvavo$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1440);
         }
-        const request = this.fetchOHLCVRequest(symbol, timeframe, since, limit, params);
+        const request = this.fetchOHLCVRequest(symbol, timeframe, since, limit, paramsPaginate);
         const response = await this.publicGetMarketCandles(request);
         //
         //     [
@@ -1164,7 +1164,7 @@ class bitvavo extends bitvavo$1["default"] {
             'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const currencyId = this.safeString(balance, 'symbol');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -1259,7 +1259,7 @@ class bitvavo extends bitvavo$1["default"] {
         }
         const currency = this.currency(code);
         let subaccountId = this.safeString(params, 'subaccountId');
-        params = this.omit(params, 'subaccountId');
+        const paramsOmitted = this.omit(params, 'subaccountId');
         let direction = undefined;
         if ((fromAccount === 'master') && (toAccount === 'master')) {
             throw new errors.ArgumentsRequired(this.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)');
@@ -1288,7 +1288,7 @@ class bitvavo extends bitvavo$1["default"] {
             'symbol': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        const response = await this.privatePostSubaccountsTransfers(this.extend(request, params));
+        const response = await this.privatePostSubaccountsTransfers(this.extend(request, paramsOmitted));
         //
         //     {
         //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -1320,7 +1320,7 @@ class bitvavo extends bitvavo$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let request = {};
+        const request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -1336,8 +1336,8 @@ class bitvavo extends bitvavo$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [request, params] = this.handleUntilOption('end', request, params);
-        const response = await this.privateGetSubaccountsTransfers(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params);
+        const response = await this.privateGetSubaccountsTransfers(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "items": [
@@ -1490,7 +1490,11 @@ class bitvavo extends bitvavo$1["default"] {
         const postOnly = this.isPostOnly(isMarketOrder, false, params);
         const stopLossPrice = this.safeString(params, 'stopLossPrice'); // trigger when price crosses from above to below this value
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
-        params = this.omit(params, ['timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice']);
+        const paramsOmitted = this.omit(params, ['timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice']);
+        let paramsCost = paramsOmitted;
+        if (isMarketOrder) {
+            paramsCost = this.omit(paramsOmitted, ['cost']);
+        }
         if (isMarketOrder) {
             let cost = undefined;
             if (price !== undefined) {
@@ -1500,7 +1504,7 @@ class bitvavo extends bitvavo$1["default"] {
                 cost = this.parseNumber(quoteAmount);
             }
             else {
-                cost = this.safeNumber(params, 'cost');
+                cost = this.safeNumber(paramsOmitted, 'cost');
             }
             if (cost !== undefined) {
                 const precision = this.currency(market['quote'])['precision'];
@@ -1509,7 +1513,6 @@ class bitvavo extends bitvavo$1["default"] {
             else {
                 request['amount'] = this.amountToPrecision(symbol, amount);
             }
-            params = this.omit(params, ['cost']);
         }
         else if (isLimitOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
@@ -1540,16 +1543,14 @@ class bitvavo extends bitvavo$1["default"] {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        let operatorId = undefined;
-        [operatorId, params] = this.handleOptionAndParams(params, 'createOrder', 'operatorId');
+        const [operatorId, paramsOperatorId] = this.handleOptionAndParams(paramsCost, 'createOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
         else {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
-        let selfTradePrevention = undefined;
-        [selfTradePrevention, params] = this.handleOptionAndParams(params, 'createOrder', 'selfTradePrevention');
+        const [selfTradePrevention, paramsSelfTradePrevention] = this.handleOptionStringAndParams(paramsOperatorId, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (selfTradePrevention === 'EXPIRE_BOTH') {
                 request['selfTradePrevention'] = 'cancelBoth';
@@ -1558,7 +1559,7 @@ class bitvavo extends bitvavo$1["default"] {
                 request['selfTradePrevention'] = selfTradePrevention;
             }
         }
-        return this.extend(request, params);
+        return this.extend(request, paramsSelfTradePrevention);
     }
     /**
      * @method
@@ -1638,7 +1639,7 @@ class bitvavo extends bitvavo$1["default"] {
         const market = this.market(symbol);
         const amountRemaining = this.safeNumber(params, 'amountRemaining');
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'triggerAmount']);
-        params = this.omit(params, ['amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount']);
+        const paramsOmitted = this.omit(params, ['amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount']);
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
@@ -1651,16 +1652,15 @@ class bitvavo extends bitvavo$1["default"] {
         if (triggerPrice !== undefined) {
             request['triggerAmount'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        request = this.extend(request, params);
+        request = this.extend(request, paramsOmitted);
         if (this.isEmpty(request)) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params');
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const clientOrderId = this.safeString(paramsOmitted, 'clientOrderId');
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        let operatorId = undefined;
-        [operatorId, params] = this.handleOptionAndParams(params, 'editOrder', 'operatorId');
+        const operatorId = this.handleOptionAndParams(paramsOmitted, 'editOrder', 'operatorId')[0];
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
@@ -1705,15 +1705,14 @@ class bitvavo extends bitvavo$1["default"] {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        let operatorId = undefined;
-        [operatorId, params] = this.handleOptionAndParams(params, 'cancelOrder', 'operatorId');
+        const [operatorId, paramsOperatorId] = this.handleOptionAndParams(params, 'cancelOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
         else {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
-        return this.extend(request, params);
+        return this.extend(request, paramsOperatorId);
     }
     /**
      * @method
@@ -1758,15 +1757,14 @@ class bitvavo extends bitvavo$1["default"] {
             market = this.market(symbol);
             request['market'] = market['id'];
         }
-        let operatorId = undefined;
-        [operatorId, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'operatorId');
+        const [operatorId, paramsOperatorId] = this.handleOptionAndParams(params, 'cancelAllOrders', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
         else {
             throw new errors.ArgumentsRequired(this.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
-        const response = await this.privateDeleteOrders(this.extend(request, params));
+        const response = await this.privateDeleteOrders(this.extend(request, paramsOperatorId));
         //
         //     [
         //         {
@@ -1796,13 +1794,12 @@ class bitvavo extends bitvavo$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let codGroupId = undefined;
-        [codGroupId, params] = this.handleOptionAndParams(params, 'cancelAllOrdersAfter', 'codGroupId', 1);
+        const [codGroupId, paramsCodGroupId] = this.handleOptionIntegerAndParams(params, 'cancelAllOrdersAfter', 'codGroupId', 1);
         const request = {
             'codGroupId': codGroupId,
             'expiryAfterSeconds': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
         };
-        const response = await this.privatePostCancelOrdersAfter(this.extend(request, params));
+        const response = await this.privatePostCancelOrdersAfter(this.extend(request, paramsCodGroupId));
         //
         //     {
         //         "codGroupId": 1,
@@ -1875,7 +1872,7 @@ class bitvavo extends bitvavo$1["default"] {
     }
     fetchOrdersRequest(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'market': market['id'],
             // "limit": 500,
             // "start": since,
@@ -1889,8 +1886,8 @@ class bitvavo extends bitvavo$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        [request, params] = this.handleUntilOption('end', request, params);
-        return this.extend(request, params);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params);
+        return this.extend(requestUntil, paramsUntil);
     }
     /**
      * @method
@@ -1912,13 +1909,12 @@ class bitvavo extends bitvavo$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrders', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, paramsPaginate);
         }
         const market = this.market(symbol);
-        const request = this.fetchOrdersRequest(symbol, since, limit, params);
+        const request = this.fetchOrdersRequest(symbol, since, limit, paramsPaginate);
         const response = await this.privateGetOrders(request);
         //
         //     [
@@ -2087,8 +2083,8 @@ class bitvavo extends bitvavo$1["default"] {
         const id = this.safeString(order, 'orderId');
         const timestamp = this.safeInteger(order, 'created');
         const marketId = this.safeString(order, 'market');
-        market = this.safeMarket(marketId, market, '-');
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, '-');
+        const symbol = marketResolved['symbol'];
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const side = this.safeString(order, 'side');
         const type = this.safeString(order, 'orderType');
@@ -2114,7 +2110,7 @@ class bitvavo extends bitvavo$1["default"] {
         }
         const rawTrades = this.safeList(order, 'fills', []);
         const timeInForce = this.safeString(order, 'timeInForce');
-        const postOnly = this.safeValue(order, 'postOnly');
+        const postOnly = this.safeBool(order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         return this.safeOrder({
             'info': order,
@@ -2138,11 +2134,11 @@ class bitvavo extends bitvavo$1["default"] {
             'status': status,
             'fee': fee,
             'trades': rawTrades,
-        }, market);
+        }, marketResolved);
     }
     fetchMyTradesRequest(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'market': market['id'],
             // "limit": 500,
             // "start": since,
@@ -2156,8 +2152,8 @@ class bitvavo extends bitvavo$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        [request, params] = this.handleUntilOption('end', request, params);
-        return this.extend(request, params);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params);
+        return this.extend(requestUntil, paramsUntil);
     }
     /**
      * @method
@@ -2179,13 +2175,12 @@ class bitvavo extends bitvavo$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, paramsPaginate);
         }
         const market = this.market(symbol);
-        const request = this.fetchMyTradesRequest(symbol, since, limit, params);
+        const request = this.fetchMyTradesRequest(symbol, since, limit, paramsPaginate);
         const response = await this.privateGetTrades(request);
         //
         //     [
@@ -2223,7 +2218,7 @@ class bitvavo extends bitvavo$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let request = {};
+        const request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2234,8 +2229,8 @@ class bitvavo extends bitvavo$1["default"] {
         if (limit !== undefined) {
             request['maxItems'] = Math.min(limit, 100);
         }
-        [request, params] = this.handleUntilOption('toDate', request, params);
-        const response = await this.privateGetAccountHistory(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('toDate', request, params);
+        const response = await this.privateGetAccountHistory(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "items": [
@@ -2286,7 +2281,7 @@ class bitvavo extends bitvavo$1["default"] {
             direction = 'out';
         }
         const code = this.safeCurrencyCode(currencyId);
-        currency = this.safeCurrency(currencyId, currency);
+        const currencyResolved = this.safeCurrency(currencyId, currency);
         const timestamp = this.parse8601(this.safeString(item, 'executedAt'));
         let fee = undefined;
         const feeCost = this.safeString(item, 'feesAmount');
@@ -2314,7 +2309,7 @@ class bitvavo extends bitvavo$1["default"] {
             'after': undefined,
             'status': 'ok',
             'fee': fee,
-        }, currency);
+        }, currencyResolved);
     }
     withdrawRequest(code, amount, address, tag = undefined, params = {}) {
         const currency = this.currency(code);
@@ -2343,13 +2338,13 @@ class bitvavo extends bitvavo$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const request = this.withdrawRequest(code, amount, address, tag, params);
+        const request = this.withdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag);
         const response = await this.privatePostWithdrawal(request);
         //
         //     {
@@ -2648,6 +2643,8 @@ class bitvavo extends bitvavo$1["default"] {
         return this.parseDepositWithdrawFees(response, codes, 'symbol');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let requestHeaders = headers;
+        let requestBody = body;
         const query = this.omit(params, this.extractParams(path));
         let url = '/' + this.version + '/' + this.implodeParams(path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
@@ -2661,26 +2658,30 @@ class bitvavo extends bitvavo$1["default"] {
             let payload = '';
             if (!getOrDelete) {
                 if (Object.keys(query).length > 0) {
-                    body = this.json(query);
-                    payload = body;
+                    requestBody = this.json(query);
+                    payload = requestBody;
                 }
             }
             const timestamp = this.milliseconds().toString();
             const auth = timestamp + method + url + payload;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             const accessWindow = this.safeString2(this.options, 'recvWindow', 'BITVAVO-ACCESS-WINDOW', '10000');
-            headers = {
+            requestHeaders = {
                 'BITVAVO-ACCESS-KEY': this.apiKey,
                 'BITVAVO-ACCESS-SIGNATURE': signature,
                 'BITVAVO-ACCESS-TIMESTAMP': timestamp,
                 'BITVAVO-ACCESS-WINDOW': accessWindow,
             };
             if (!getOrDelete) {
-                headers['Content-Type'] = 'application/json';
+                requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        url = this.urls['api'][api] + url;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const fullUrl = apiUrl + url;
+        return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -2705,7 +2706,7 @@ class bitvavo extends bitvavo$1["default"] {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }
-        return this.safeNumber(config, 'cost', 1);
+        return this.safeValue(config, 'cost', 1);
     }
 }
 

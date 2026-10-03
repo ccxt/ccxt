@@ -222,6 +222,13 @@ public partial class BaseExchange
         return JsonHelper.Deserialize((string)json);
     }
 
+    // S58 identity twin: normalizeIntIfNeeded leaves a bool alone and the object overload then
+    // returns `(bool)value` unchanged, so a statically `bool` argument is this same value.
+    public static bool isTrue(bool value)
+    {
+        return value;
+    }
+
     public static bool isTrue(object value)
     {
         if (value == null)
@@ -433,6 +440,24 @@ public partial class BaseExchange
         // return add(a, b);
     }
 
+    // mod's twins mirror its numeric branch exactly -- the DOUBLE modulo converted with
+    // Convert.ToInt64 (`x % 0.0` is NaN -> OverflowException, not DivideByZeroException)
+    // -- plus the object overload's null operand -> null for the nullable twin.
+    public static Int64 mod(Int64 a, Int64 b)
+    {
+        return Convert.ToInt64(Convert.ToDouble(a) % Convert.ToDouble(b));
+    }
+
+    public static Int64 mod(double a, double b)
+    {
+        return Convert.ToInt64(Convert.ToDouble(a) % Convert.ToDouble(b));
+    }
+
+    public static Int64? mod(Int64? a, Int64? b)
+    {
+        return (a == null || b == null) ? null : Convert.ToInt64(Convert.ToDouble(a) % Convert.ToDouble(b));
+    }
+
     public static object add(object a, object b)
     {
         a = normalizeIntIfNeeded(a);
@@ -475,6 +500,20 @@ public partial class BaseExchange
     public static string add(string a, object b)
     {
         return add(a, b?.ToString());
+    }
+
+    // S57 owns these two overloads (identical definitions expected from that unit); S31 binds
+    // them for generated locals whose `a + b` operands are all provably Int64/int/uint/double.
+    // The value is the same unchecked sum add(object, object) computes for those operands
+    // (its Int64/double branches), and a non-nullable operand can never take the null-left path.
+    public static Int64 add(Int64 a, Int64 b)
+    {
+        return a + b;
+    }
+
+    public static double add(double a, double b)
+    {
+        return a + b;
     }
 
     // public static string add(object a, string b)
@@ -538,6 +577,14 @@ public partial class BaseExchange
         return a - b;
     }
 
+    // subtract(double, double): the object overload's double branch for a (double,
+    // int-like/double) pair, so the box, the value and the exception are identical;
+    // its mixed (int-like, double) class is pinned at 0 sites by the bind audit.
+    public static double subtract(double a, double b)
+    {
+        return a - b;
+    }
+
     // public static float subtract(float a, float b)
     // {
     //     return a - b;
@@ -555,27 +602,36 @@ public partial class BaseExchange
     //   multiply(Int64, Int64): the object overload normalizes every int / uint / long /
     //     Int64 operand to Int64 and takes its Int64 branch, so this is the same unchecked
     //     `a * b` boxed Int64.
-    //   divide(Int64, Int64): the object overload's Int64 branch — the same truncating
-    //     Int64 division (JS `/` does not truncate; that divergence predates these
-    //     overloads and is unchanged by them, because these only bind where the object
-    //     path already computed the very same division).
+    //   divide(Int64, Int64): the object overload's Int64 branch — the same double
+    //     division `(double)a / b` (JS `/`, no truncation).
     //   divide(double, double): whenever either operand is a double the object overload
     //     falls through to its else branch, `Convert.ToDouble(a) / Convert.ToDouble(b)`,
     //     which is exactly `a / b` on the converted operands.
-    // multiply(double, double) and subtract(double, double) are deliberately absent. An
-    // integer-valued double product comes back from the object multiply as an Int64 box
-    // (IsInteger), which a `double` return could not reproduce; and a subtract double twin
-    // would capture (int / long / uint, double) pairs whose object path runs the Int64
-    // branch's `(Int64)b` unboxing — an InvalidCastException at runtime the twin would
-    // replace with a computed value (both verified by the harness).
+    // multiply(double, double) is deliberately absent: the object overload re-boxes an
+    // integer-valued double product as Int64, which a `double` return cannot reproduce.
+    // subtract(double, double) exists (above); the audit pins its mixed class at 0 sites.
     public static Int64 multiply(Int64 a, Int64 b)
     {
         return a * b;
     }
 
-    public static Int64 divide(Int64 a, Int64 b)
+    // Nullable twins: the object overload maps a null operand to null for multiply /
+    // divide / mod, so these lifted forms are the identical box; subtract has none
+    // (the object overload dereferences a null operand instead of returning null).
+    public static Int64? multiply(Int64? a, Int64? b)
     {
-        return a / b;
+        return a * b;
+    }
+
+    // integer operands divide as doubles (JS `/`): 20 / 15 is 1.333, never truncated
+    public static double? divide(Int64? a, Int64? b)
+    {
+        return (double?)a / b;
+    }
+
+    public static double divide(Int64 a, Int64 b)
+    {
+        return (double)a / b;
     }
 
     public static double divide(double a, double b)
@@ -595,7 +651,7 @@ public partial class BaseExchange
 
         if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64))
         {
-            return (Int64)a / (Int64)b;
+            return (double)(Int64)a / (Int64)b;
         }
         else if (a.GetType() == typeof(double) && b.GetType() == typeof(double))
         {
@@ -633,6 +689,18 @@ public partial class BaseExchange
         {
             return res;
         }
+    }
+
+    // S58 identity twins: a variable statically typed List<object>/IList<object> holds only such
+    // a list or null, so this is exactly the object overload's IList<object> branch (null -> 0).
+    public static int getArrayLength(List<object> value)
+    {
+        return (value == null) ? 0 : value.Count;
+    }
+
+    public static int getArrayLength(IList<object> value)
+    {
+        return (value == null) ? 0 : value.Count;
     }
 
     public static int getArrayLength(object value)
@@ -794,18 +862,24 @@ public partial class BaseExchange
         }
     }
 
-    public static object parseInt(object a)
+    // cs90 U35: every return path of this helper is the Convert.ToInt64 box or null (the
+    // catch), so the signature names that single box instead of `object`. A call site that
+    // keeps the value in an object context (a dict slot, a request value, an object local)
+    // is unchanged — the same box, only the static type is named. Retyping the signature
+    // lets the classifier name `Int64?` at the ~10 generated declarations it feeds
+    // (build/csharp-local-types.js CSHARP_LOCAL_BARE_RETURN_TYPES) and is what makes
+    // convertToBigIntCustom (`return parseInt (x)`) provable.
+    public static Int64? parseInt(object a)
     {
-        object parsedValue = null;
         try
         {
             var floored = Math.Floor(Convert.ToDouble(a));
-            parsedValue = (Convert.ToInt64(floored));
+            return Convert.ToInt64(floored);
         }
         catch (Exception e)
         {
+            return null;
         }
-        return parsedValue;
     }
 
     public static object parseFloat(object a)
@@ -824,6 +898,23 @@ public partial class BaseExchange
 
     // generic getValue to replace elementAccesses
     public object getValue(object a, object b) => GetValue(a, b);
+    // typed twin of GetValue(object, object) for a receiver the C# printer proved is a
+    // string-keyed dictionary (see build/csharp-local-types.js): its string/array branches are
+    // unreachable for such a receiver, and this is the same null-safe ContainsKey-then-indexer read.
+    public static object GetValue(IDictionary<string, object> value2, string key)
+    {
+        if (value2 == null || key == null)
+        {
+            return null;
+        }
+
+        if (value2.ContainsKey(key))
+        {
+            return value2[key];
+        }
+
+        return null;
+    }
     public static object GetValue(object value2, object key)
     {
         if (value2 == null || key == null)
@@ -1121,12 +1212,15 @@ public partial class BaseExchange
 
     // the generated helpers (getValue / getArrayLength / safeString) already read
     // List<string> by index, so the reverse is a pass-through
-    public static object FromStringList(object values)
+    public static List<string> FromStringList(List<string> values)
     {
         return values;
     }
 
-    public static object FromDict(object value)
+    // typed-core boundary identities: the printer only emits these five names from
+    // typedCoreFromHelper (build/csharpTranspiler.ts), keyed on the exact core type, so every
+    // call site passes the box the signature names (108 sites audited, tools/S56)
+    public static Dictionary<string, object> FromDict(Dictionary<string, object> value)
     {
         return value;
     }
@@ -1143,12 +1237,20 @@ public partial class BaseExchange
         return values;
     }
 
-    public static object FromInt64(object value)
+    // the typed funnel twin: the printer emits FromDictList only for a typed core declared
+    // List<Dictionary<string, object>> (typedCoreFromHelper), so the argument is always that list
+    // and the object overload reboxes it — a null argument passes through as null
+    public static List<object> FromDictList(List<Dictionary<string, object>> values)
+    {
+        return (List<object>)FromDictList((object)values);
+    }
+
+    public static Int64 FromInt64(Int64 value)
     {
         return value;
     }
 
-    public static object FromStringValue(object value)
+    public static string FromStringValue(string value)
     {
         return value;
     }
@@ -1330,6 +1432,10 @@ public partial class BaseExchange
         return await AsTaskOfObject(res);
     }
 
+    // S58 identity twin: a Dictionary<string, object> is not an IList, so the object overload
+    // reaches its IDictionary branch — ContainsKey(key) behind the same null -> false guards.
+    public bool inOp(Dictionary<string, object> obj, string key) => (obj != null) && (key != null) && obj.ContainsKey(key);
+
     public bool inOp(object obj, object key) => InOp(obj, key);
 
     public static bool InOp(object obj, object key)
@@ -1468,6 +1574,13 @@ public partial class BaseExchange
         return result;
     }
 
+    // the typed funnel twin: FromOHLCVList is emitted only for a small OHLCV[] core, so the
+    // argument is always that candle list — null passes through as null
+    public static List<object> FromOHLCVList(List<OHLCV> candles)
+    {
+        return (List<object>)FromOHLCVList((object)candles);
+    }
+
     // watchOHLCVForSymbols: `{ symbol: { timeframe: OHLCV[] } }`. Not a types.ts struct, so the
     // generator has no To*/From* pair for it — these two are the hand-written equivalents,
     // built on ToOHLCVList / FromOHLCVList (see OHLCV_DICT_TYPE in build/csharpTranspiler.ts)
@@ -1515,5 +1628,12 @@ public partial class BaseExchange
             result[symbolEntry.Key] = byTimeframe;
         }
         return result;
+    }
+
+    // the typed funnel twin: FromOHLCVDict is emitted only for the `{ symbol: { timeframe:
+    // OHLCV[] } }` core shape the dictionary's own type names — null passes through as null
+    public static Dictionary<string, object> FromOHLCVDict(Dictionary<string, Dictionary<string, List<OHLCV>>> value)
+    {
+        return (Dictionary<string, object>)FromOHLCVDict((object)value);
     }
 }

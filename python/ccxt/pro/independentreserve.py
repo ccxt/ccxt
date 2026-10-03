@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 from ccxt.base.types import Int, Market, Num, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ChecksumError
 from ccxt.base.decimal_to_precision import ROUND
@@ -58,9 +59,12 @@ class independentreserve(ccxt.async_support.independentreserve):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        url = self.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote']
-        messageHash = 'trades:' + symbol
+        symbolValue = market['symbol']
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchTrades() has no websocket url')
+        url = wsUrl + '?subscribe=ticker-' + market['base'] + '-' + market['quote']
+        messageHash = 'trades:' + symbolValue
         trades = await self.watch(url, messageHash, None, messageHash)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
@@ -139,12 +143,14 @@ class independentreserve(ccxt.async_support.independentreserve):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        if limit is None:
-            limit = 100
-        limitString = self.number_to_string(limit)
-        url = self.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote']
-        messageHash = 'orderbook:' + symbol + ':' + limitString
+        symbolValue = market['symbol']
+        limitResolved = 100 if (limit is None) else limit
+        limitString = self.number_to_string(limitResolved)
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchOrderBook() has no websocket url')
+        url = wsUrl + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote']
+        messageHash = 'orderbook:' + symbolValue + ':' + limitString
         subscription = {
             'receivedSnapshot': False,
         }
@@ -184,6 +190,8 @@ class independentreserve(ccxt.async_support.independentreserve):
         quoteId = self.safe_string(parts, 3)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return
         symbol = base + '/' + quote
         orderBook = self.safe_dict(message, 'Data', {})
         messageHash = 'orderbook:' + symbol + ':' + depth

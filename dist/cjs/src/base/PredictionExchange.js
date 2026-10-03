@@ -439,11 +439,13 @@ class PredictionExchange extends Exchange.BaseExchange {
         if (outcomeObj !== undefined) {
             return outcomeObj;
         }
-        return { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
+        // stub for an unknown handle; it only carries the identity keys, not the market fields
+        const outcomeObjValue = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
+        return outcomeObjValue;
     }
     safeOutcomeSymbol(outcomeIdOrSymbol, outcomeObj = undefined) {
-        outcomeObj = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
-        return outcomeObj['outcome'];
+        const outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
+        return outcomeObjValue['outcome'];
     }
     shortenSlug(slug) {
         const replacements = {
@@ -537,10 +539,8 @@ class PredictionExchange extends Exchange.BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        if (outcome === undefined) {
-            outcome = '';
-        }
-        const upper = outcome.toUpperCase();
+        const outcomeValue = (outcome === undefined) ? '' : outcome;
+        const upper = outcomeValue.toUpperCase();
         const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const chars = this.stringToCharsArray(upper);
         let label = '';
@@ -1461,11 +1461,13 @@ class PredictionExchange extends Exchange.BaseExchange {
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         const fallback = this.safeString2(orderbook, 'outcome', 'symbol');
-        orderbook['outcome'] = (outcomeObj === undefined) ? fallback : this.safeString(outcomeObj, 'outcome', fallback);
-        orderbook['outcomeId'] = (outcomeObj === undefined) ? this.safeString(orderbook, 'outcomeId') : this.safeString(outcomeObj, 'outcomeId');
-        orderbook['market'] = (outcomeObj === undefined) ? this.safeString(orderbook, 'market') : this.safeString(outcomeObj, 'market');
+        const identity = {
+            'outcome': (outcomeObj === undefined) ? fallback : this.safeString(outcomeObj, 'outcome', fallback),
+            'outcomeId': (outcomeObj === undefined) ? this.safeString(orderbook, 'outcomeId') : this.safeString(outcomeObj, 'outcomeId'),
+            'market': (outcomeObj === undefined) ? this.safeString(orderbook, 'market') : this.safeString(outcomeObj, 'market'),
+        };
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
-        return this.omit(orderbook, 'symbol');
+        return this.extend(this.omit(orderbook, 'symbol'), identity);
     }
     parsePredictionTicker(ticker, market = undefined) {
         throw new errors.NotSupported(this.id + ' parsePredictionTicker() is not supported yet');

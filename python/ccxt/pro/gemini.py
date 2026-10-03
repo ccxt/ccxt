@@ -73,11 +73,15 @@ class gemini(ccxt.async_support.gemini):
             ],
         }
         subscribeHash = 'l2:' + market['symbol']
-        url = self.urls['api']['ws'] + '/v2/marketdata'
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchTrades() has no websocket url')
+        url = wsUrl + '/v2/marketdata'
         trades = await self.watch(url, messageHash, request, subscribeHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(market['symbol'], limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(market['symbol'], limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -92,11 +96,12 @@ class gemini(ccxt.async_support.gemini):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         trades = await self.helper_for_watch_multiple_construct('trades', symbols, params)
+        first = self.safe_list(trades, 0)
+        tradeSymbol = self.safe_string(first, 'symbol')
+        limitResolved = limit
         if self.newUpdates:
-            first = self.safe_list(trades, 0)
-            tradeSymbol = self.safe_string(first, 'symbol')
-            limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -283,11 +288,15 @@ class gemini(ccxt.async_support.gemini):
             ],
         }
         messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId
-        url = self.urls['api']['ws'] + '/v2/marketdata'
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchOHLCV() has no websocket url')
+        url = wsUrl + '/v2/marketdata'
         ohlcv = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
     def handle_ohlcv(self, client: Client, message: dict) -> dict:
         #
@@ -373,7 +382,10 @@ class gemini(ccxt.async_support.gemini):
             ],
         }
         subscribeHash = 'l2:' + market['symbol']
-        url = self.urls['api']['ws'] + '/v2/marketdata'
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchOrderBook() has no websocket url')
+        url = wsUrl + '/v2/marketdata'
         orderbook = await self.watch(url, messageHash, request, subscribeHash)
         return orderbook.limit()
 
@@ -397,7 +409,7 @@ class gemini(ccxt.async_support.gemini):
             delta = changes[i]
             price = self.safe_number(delta, 1)
             size = self.safe_number(delta, 2)
-            side = 'bids' if (delta[0] == 'buy') else 'asks'
+            side = 'bids' if (self.safe_string(delta, 0) == 'buy') else 'asks'
             bookside = orderbook[side]
             bookside.store(price, size)
             orderbook[side] = bookside
@@ -469,7 +481,7 @@ class gemini(ccxt.async_support.gemini):
         messageHash = 'bidsasks:' + symbol
         # last update always overwrites the previous state and is the latest state
         for i in range(0, len(rawBidAskChanges)):
-            entry = rawBidAskChanges[i]
+            entry = self.safe_dict(rawBidAskChanges, i)
             rawSide = self.safe_string(entry, 'side')
             price = self.safe_number(entry, 'price')
             sizeString = self.safe_string(entry, 'remaining')
@@ -495,20 +507,23 @@ class gemini(ccxt.async_support.gemini):
             await self.load_markets()
         if symbols is None:
             raise NotSupported(self.id + ' watchMultiple requires at least one symbol')
-        symbols = self.market_symbols(symbols, None, False, True, True)
-        firstMarket = self.market(symbols[0])
+        symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
+        firstMarket = self.market(symbolsNormalized[0])
         if (firstMarket['spot'] is not True) and (firstMarket['linear'] is not True):
             raise NotSupported(self.id + ' watchMultiple supports only spot or linear-swap symbols')
         messageHashes = []
         marketIds = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             messageHash = itemHashName + ':' + symbol
             messageHashes.append(messageHash)
             market = self.market(symbol)
             marketIds.append(market['id'])
         queryStr = ','.join(marketIds)
-        url = self.urls['api']['ws'] + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&'
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' helperForWatchMultipleConstruct() has no websocket url')
+        url = wsUrl + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&'
         if itemHashName == 'orderbook':
             url += 'trades=false&bids=true&offers=true'
         elif itemHashName == 'bidsasks':
@@ -544,7 +559,7 @@ class gemini(ccxt.async_support.gemini):
         bids = orderbook['bids']
         asks = orderbook['asks']
         for i in range(0, len(rawOrderBookChanges)):
-            entry = rawOrderBookChanges[i]
+            entry = self.safe_dict(rawOrderBookChanges, i)
             price = self.safe_number(entry, 'price')
             size = self.safe_number(entry, 'remaining')
             rawSide = self.safe_string(entry, 'side')
@@ -614,21 +629,26 @@ class gemini(ccxt.async_support.gemini):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        url = self.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked'
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchOrders() has no websocket url')
+        url = wsUrl + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked'
         if self.markets is None:
             await self.load_markets()
         authParams = {
             'url': url,
         }
         await self.authenticate(authParams)
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         messageHash = 'orders'
         orders = await self.watch(url, messageHash, None, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
     def handle_heartbeat(self, client: Client, message: dict) -> dict:
         #

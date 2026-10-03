@@ -884,7 +884,7 @@ export default class bit2c extends Exchange {
         return this.parseTrades (responseList, market, since, limit);
     }
 
-    removeCommaFromValue (str: any) {
+    removeCommaFromValue (str: string) {
         let newString = '';
         const strParts = str.split (',');
         for (let i = 0; i < strParts.length; i++) {
@@ -934,17 +934,20 @@ export default class bit2c extends Exchange {
         let fee: FeeString = undefined;
         let side: string;
         let makerOrTaker: Str = undefined;
+        let tradeMarket: Market = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
             id = reference;
             timestamp = this.safeTimestamp (trade, 'ticks');
-            price = this.safeString (trade, 'price');
-            price = this.removeCommaFromValue (price);
+            const rawPrice = this.safeString (trade, 'price');
+            if (rawPrice !== undefined) {
+                price = this.removeCommaFromValue (rawPrice);
+            }
             amount = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             const marketId = this.safeString (trade, 'pair');
-            market = this.safeMarket (marketId, market);
-            market = this.safeMarket (reference_parts[0], market);
+            const marketByPair = this.safeMarket (marketId, market);
+            tradeMarket = this.safeMarket (reference_parts[0], marketByPair);
             const isMaker = this.safeBool (trade, 'isMaker');
             makerOrTaker = (isMaker === true) ? 'maker' : 'taker';
             orderId = (isMaker === true) ? reference_parts[2] : reference_parts[1];
@@ -966,6 +969,7 @@ export default class bit2c extends Exchange {
             id = this.safeString (trade, 'tid');
             price = this.safeString (trade, 'price');
             amount = this.safeString (trade, 'amount');
+            tradeMarket = this.safeMarket (undefined, market);
             side = this.safeValue (trade, 'isBid');
             if (side !== undefined) {
                 if ((side !== undefined) && (side !== '')) {
@@ -975,13 +979,13 @@ export default class bit2c extends Exchange {
                 }
             }
         }
-        market = this.safeMarket (undefined, market);
+        const marketResolved = this.safeMarket (undefined, tradeMarket);
         return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -990,7 +994,7 @@ export default class bit2c extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     isFiat (code: Str): boolean {
@@ -1027,7 +1031,7 @@ export default class bit2c extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -1050,8 +1054,14 @@ export default class bit2c extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.implodeParams (path, params);
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (api === 'public') {
             url += '.json';
         } else {
@@ -1067,16 +1077,18 @@ export default class bit2c extends Exchange {
                     url += '?' + auth;
                 }
             } else {
-                body = auth;
+                requestBody = auth;
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512, 'base64');
-            headers = {
+            requestHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
                 'sign': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResult = (requestBody === undefined) ? body : requestBody;
+        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
