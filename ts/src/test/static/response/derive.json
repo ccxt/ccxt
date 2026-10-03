@@ -4511,6 +4511,70 @@
                 }
             }
         ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers with until",
+                "method": "fetchTransfers",
+                "input": [
+                    "USDC",
+                    null,
+                    null,
+                    {
+                        "subaccount_id": 86815,
+                        "until": 1791030000000
+                    }
+                ],
+                "httpResponse": {
+                    "id": "ac139668-a0d7-47af-9fbd-140707372921",
+                    "result": {
+                        "transfers": [
+                            {
+                                "operation_id": "01a0f7f7-506f-7612-bae6-4ace90124224",
+                                "is_outgoing": true,
+                                "from_subaccount_id": 86815,
+                                "to_subaccount_id": 86820,
+                                "from_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                                "to_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                                "asset": "USDC",
+                                "amount": "4000",
+                                "fee": "0",
+                                "timestamp": 1790866575000,
+                                "batch_uuid": "01a0f7f7-1010-7c33-8bcf-7fef764d7fc5",
+                                "batch_status": "Settled",
+                                "tx_hash": "0xf3816e5953b6b32693959ffa6c96b233c49226d80995bc945217a906c93e6756"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "operation_id": "01a0f7f7-506f-7612-bae6-4ace90124224",
+                            "is_outgoing": true,
+                            "from_subaccount_id": 86815,
+                            "to_subaccount_id": 86820,
+                            "from_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                            "to_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                            "asset": "USDC",
+                            "amount": "4000",
+                            "fee": "0",
+                            "timestamp": 1790866575000,
+                            "batch_uuid": "01a0f7f7-1010-7c33-8bcf-7fef764d7fc5",
+                            "batch_status": "Settled",
+                            "tx_hash": "0xf3816e5953b6b32693959ffa6c96b233c49226d80995bc945217a906c93e6756"
+                        },
+                        "id": "01a0f7f7-506f-7612-bae6-4ace90124224",
+                        "timestamp": 1790866575000,
+                        "datetime": "2026-10-01T14:56:15.000Z",
+                        "currency": "USDC",
+                        "amount": 4000,
+                        "fromAccount": "86815",
+                        "toAccount": "86820",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "fetchDeposits testnet",

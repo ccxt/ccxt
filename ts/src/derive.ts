@@ -119,7 +119,7 @@ export default class derive extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -3669,28 +3669,106 @@ export default class derive extends Exchange {
             'signature_expiry_sec': signatureExpiry,
         };
         const response = await this.privatePostTransferSpot (this.extend (request, paramsDeriveWalletAddress)); // todo: check on main-net
+        //
+        //     {
+        //         "id": "cc745aff-d485-464d-bc2f-cd99f821ea52",
+        //         "result": {
+        //             "operation_id": 4724036,
+        //             "op_uuid": "01a101be-1291-7e22-b3b4-9cc6ebc71904"
+        //         }
+        //     }
+        //
         const result = this.safeDict (response, 'result', {});
         const transferEntry = this.parseTransfer (result, currency);
-        // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
-        transferEntry['fromAccount'] = this.numberToString (fromId);
-        transferEntry['toAccount'] = (toId !== 0) ? this.numberToString (toId) : undefined;
-        transferEntry['amount'] = this.parseNumber (amountString);
+        const transferOptions = this.safeDict (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
+            transferEntry['fromAccount'] = this.numberToString (fromId);
+            transferEntry['toAccount'] = (toId !== 0) ? this.numberToString (toId) : undefined;
+            transferEntry['amount'] = this.parseNumber (amountString);
+        }
         return transferEntry;
     }
 
     override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         const timestamp = this.safeInteger (transfer, 'timestamp');
+        const currencyId = this.safeString (transfer, 'asset');
         return {
             'info': transfer,
             'id': this.safeString2 (transfer, 'transaction_id', 'operation_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': this.safeCurrencyCode (undefined, currency),
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': this.parseTransactionStatus (this.safeString (transfer, 'status')),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'from_subaccount_id'),
+            'toAccount': this.safeString (transfer, 'to_subaccount_id'),
+            'status': this.parseTransactionStatus (this.safeString2 (transfer, 'batch_status', 'status')),
         };
+    }
+
+    /**
+     * @method
+     * @name derive#fetchTransfers
+     * @description fetch the spot transfer history of a subaccount
+     * @see https://docs.derive.xyz/api-reference/history/privateget_erc20_transfer_history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest transfer to fetch
+     * @param {int} [limit] the maximum number of transfers to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest transfer to fetch
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('fetchTransfers', params);
+        const request: Dict = {
+            'subaccount_id': subaccountId,
+        };
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        const until = this.safeInteger (paramsDeriveSubaccountId, 'until');
+        const paramsOmitted: Dict = this.omit (paramsDeriveSubaccountId, [ 'until' ]);
+        if (until !== undefined) {
+            request['end_timestamp'] = until;
+        }
+        const response = await this.privatePostGetErc20TransferHistory (this.extend (request, paramsOmitted)); // todo: check on main-net
+        //
+        //     {
+        //         "id": "6475ec25-b0ac-4f38-a5d6-6fc8f7cc5611",
+        //         "result": {
+        //             "transfers": [
+        //                 {
+        //                     "operation_id": "01a101be-28a1-7a81-967e-56e51d48752b",
+        //                     "is_outgoing": false,
+        //                     "from_subaccount_id": 86820,
+        //                     "to_subaccount_id": 86815,
+        //                     "from_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "to_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "asset": "USDC",
+        //                     "amount": "10",
+        //                     "fee": "0",
+        //                     "timestamp": 1791030601000,
+        //                     "batch_uuid": "01a101b9-c803-71b3-be01-626934f9995b",
+        //                     "batch_status": "Settled",
+        //                     "tx_hash": "0x2609daf9ae76a4289326b6ce8a1b06df6edc77bab5b01689eb535dd3a1067296"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const transfers = this.safeList (result, 'transfers', []);
+        const parsed = [];
+        for (let i = 0; i < transfers.length; i++) {
+            parsed.push (this.parseTransfer (this.safeDict (transfers, i, {})));
+        }
+        const sorted = this.sortBy (parsed, 'timestamp');
+        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
     }
 
     /**
