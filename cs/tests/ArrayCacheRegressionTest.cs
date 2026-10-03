@@ -48,6 +48,7 @@ public partial class BaseTest
         testArrayCacheByTimestampShorterUpdateDropsTail();
         testArrayCacheUnboundedWhenMaxSizeFalsy();
         testArrayCacheGetLimitMissingSymbol();
+        testArrayCacheGetLimitSnapshotAtomicity();
         testArrayCacheClearResetsBookkeeping();
         testArrayCacheBySymbolByIdMutatesStoredReference();
         testArrayCacheBySymbolBySideMutatesStoredReference();
@@ -202,6 +203,29 @@ public partial class BaseTest
         var threw = false;
         try { BaseCache.getLimitOf(new List<object>(), "BTC/USDT", 5); } catch (NullReferenceException) { threw = true; }
         Assert(threw, "getLimitOf on a non-cache must throw NullReferenceException");
+    }
+
+    private void testArrayCacheGetLimitSnapshotAtomicity()
+    {
+        var exchange = new ccxt.BaseExchange(new Dictionary<string, object>());
+        var cache = new ArrayCache();
+        cache.append(orderRow("BTC/USDT", "a1", "timestamp", 1));
+        cache.append(orderRow("BTC/USDT", "a2", "timestamp", 2));
+
+        var firstLimit = cache.getLimit("BTC/USDT", null);
+        cache.append(orderRow("BTC/USDT", "a3", "timestamp", 3));
+        var first = exchange.filterBySinceLimit(cache, null, firstLimit, "timestamp", true);
+
+        cache.append(orderRow("BTC/USDT", "a4", "timestamp", 4));
+        var secondLimit = cache.getLimit("BTC/USDT", null);
+        var second = exchange.filterBySinceLimit(cache, null, secondLimit, "timestamp", true);
+
+        Assert(first.Count == 2, "first new-update window must contain two rows, got " + first.Count);
+        Assert(Convert.ToString(((Dictionary<string, object>)first[0])["id"]) == "a1", "first window must use the cache snapshot from getLimit");
+        Assert(Convert.ToString(((Dictionary<string, object>)first[1])["id"]) == "a2", "the racing append must remain for the next window");
+        Assert(second.Count == 2, "second new-update window must contain two rows, got " + second.Count);
+        Assert(Convert.ToString(((Dictionary<string, object>)second[0])["id"]) == "a3", "second window must include the racing append");
+        Assert(Convert.ToString(((Dictionary<string, object>)second[1])["id"]) == "a4", "second window must include the later append");
     }
 
     // 5. clear() dropped the rows but kept the hashmap, so the next append of a

@@ -897,7 +897,8 @@ public partial class BaseExchange
             return new List<object>() {};
         }
         bool sinceIsDefined = this.valueIsDefined(since);
-        object parsedArray = ((object)this.toArray(array));
+        object snapshot = ccxt.pro.BaseCache.consumeReadSnapshot(array);
+        object parsedArray = ((object)this.toArray(tail == true ? snapshot : array));
         object result = parsedArray;
         if (sinceIsDefined)
         {
@@ -8023,4 +8024,3 @@ public partial class BaseExchange
         return false;  // stub
     }
 }
-

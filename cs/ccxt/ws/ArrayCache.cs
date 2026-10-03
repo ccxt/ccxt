@@ -33,6 +33,35 @@ public abstract class BaseCache : SlimConcurrentList<object>
     public int? maxSize;
 
     protected readonly object lockObject = new object();
+    // getLimit and tail filtering are separate calls, so retain each caller's matching snapshot.
+    private readonly Dictionary<int, object[]> pendingReadSnapshots = new Dictionary<int, object[]>();
+
+    protected void captureReadSnapshot()
+    {
+        this.pendingReadSnapshots[Environment.CurrentManagedThreadId] = this.ToArray();
+    }
+
+    protected void clearReadSnapshots()
+    {
+        this.pendingReadSnapshots.Clear();
+    }
+
+    internal static object consumeReadSnapshot(object array)
+    {
+        if (array is BaseCache cache)
+        {
+            lock (cache.lockObject)
+            {
+                int threadId = Environment.CurrentManagedThreadId;
+                if (cache.pendingReadSnapshots.TryGetValue(threadId, out object[] snapshot))
+                {
+                    cache.pendingReadSnapshots.Remove(threadId);
+                    return snapshot;
+                }
+            }
+        }
+        return array;
+    }
 
     // public int? length;
     public BaseCache(object maxCapacity = null) : base()
@@ -129,6 +158,7 @@ public abstract class BaseCache : SlimConcurrentList<object>
         lock (this.lockObject)
         {
             this.Clear();
+            this.clearReadSnapshots();
         }
     }
 }
@@ -175,6 +205,7 @@ public class ArrayCache : BaseCache
         {
             this.Clear();
             this.hashmap.Clear();
+            this.clearReadSnapshots();
             this.newUpdatesBySymbol.Clear();
             this.seenUpdatesBySymbol.Clear();
             this.seenUpdatesAll.Clear();
@@ -191,7 +222,9 @@ public class ArrayCache : BaseCache
     {
         lock (this.lockObject)
         {
-            return _getLimit(symbol2, limit2);
+            Int64? limit = _getLimit(symbol2, limit2);
+            this.captureReadSnapshot();
+            return limit;
         }
     }
 
