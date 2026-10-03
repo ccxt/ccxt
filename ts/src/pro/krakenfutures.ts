@@ -513,7 +513,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] can be either 'futures' or 'flex_futures'
-     * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure} of the account type the message updated ('cash', 'futures' margin, or 'flex_futures')
      */
     override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
@@ -574,11 +574,14 @@ export default class krakenfutures extends krakenfuturesRest {
             const market = this.market (marketId);
             const symbol = market['symbol'];
             const messageHash = this.getMessageHash ('trade', undefined, symbol);
-            if (this.safeList (this.trades, symbol) === undefined) {
+            // safeValue, not safeList: the values are ArrayCache instances, and
+            // the typed accessor casts them to a plain list in c#, which throws
+            let tradesArray = this.safeValue (this.trades, symbol);
+            if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                this.trades[symbol] = new ArrayCache (tradesLimit);
+                tradesArray = new ArrayCache (tradesLimit);
+                this.trades[symbol] = tradesArray;
             }
-            const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
                 const trades: Dict[] = this.safeList (message, 'trades', []);
                 const length = trades.length;
@@ -924,8 +927,12 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         const orders = this.safeList (message, 'orders', []);
-        const limit = this.safeInteger (this.options, 'ordersLimit');
-        this.orders = new ArrayCacheBySymbolById (limit);
+        // reuse the existing cache: replacing it would orphan consumers holding
+        // a reference to the old one across a reconnect snapshot
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit');
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
         const feed = this.safeString (message, 'feed');
         let messageHash = 'orders';
         if (feed === 'open_orders_verbose_snapshot') {
@@ -933,6 +940,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         const symbols: Dict = {};
         const cachedOrders = this.orders;
+        const snapshotIds: Dict = {};
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const parsed = this.parseWsOrder (order);
@@ -940,7 +948,39 @@ export default class krakenfutures extends krakenfuturesRest {
             if (symbol !== undefined) {
                 symbols[symbol] = true;
             }
+            const parsedId = this.safeString (parsed, 'id');
+            if (parsedId !== undefined) {
+                snapshotIds[parsedId] = true;
+            }
             cachedOrders.append (parsed);
+        }
+        // reconcile the reused cache with the snapshot: the snapshot lists every
+        // currently open order, so an order cached as open but missing from it is
+        // no longer open on the venue - it filled or was cancelled while we were
+        // disconnected. the snapshot does not say which, so mark it canceled
+        // instead of leaving it open in the cache forever
+        const cachedSymbols = Object.keys (cachedOrders.hashmap);
+        for (let i = 0; i < cachedSymbols.length; i++) {
+            const cachedSymbol = cachedSymbols[i];
+            const ordersById = this.safeDict (cachedOrders.hashmap, cachedSymbol, {});
+            const cachedIds = Object.keys (ordersById);
+            for (let j = 0; j < cachedIds.length; j++) {
+                const cachedId = cachedIds[j];
+                if (!(cachedId in snapshotIds)) {
+                    const cachedOrder = this.safeDict (ordersById, cachedId, {});
+                    const cachedStatus = this.safeString (cachedOrder, 'status');
+                    // parseWsOrder leaves status undefined for snapshot and
+                    // non-cancel updates, so undefined means open here
+                    if ((cachedStatus === undefined) || (cachedStatus === 'open')) {
+                        cachedOrder['status'] = 'canceled';
+                        // write the updated order back through append: the cache
+                        // rows are copies in the value-type runtimes (php), and
+                        // append also feeds the newUpdates accounting
+                        cachedOrders.append (cachedOrder);
+                        symbols[cachedSymbol] = true;
+                    }
+                }
+            }
         }
         const length = this.orders.length;
         if (length > 0) {
@@ -1434,38 +1474,49 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "seq": 2
         //    }
         //
+        // merge updates into the existing per-account balance objects instead of
+        // building fresh ones: a consumer awakened by an earlier message holds a
+        // reference to this.balance['cash'/'margin'/'flex'], and Client.resolve
+        // is a no-op while nobody is awaiting, so a replaced object would make
+        // updates landing in that window invisible to the consumer forever
+        // (same class of bug as kraken issue #26773)
         const holding = this.safeDict (message, 'holding');
         const futures = this.safeDict (message, 'futures');
         const flexFutures = this.safeDict (message, 'flex_futures');
         const messageHash = 'balances';
         const timestamp = this.safeInteger (message, 'timestamp');
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        let updatedBalance = undefined;
         if (holding !== undefined) {
             const holdingKeys = Object.keys (holding);                  // cashAccount
-            const holdingResult: Dict = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
+            this.balance['cash'] = this.safeDict (this.balance, 'cash', {});
+            this.balance['cash']['info'] = message;
+            this.balance['cash']['timestamp'] = timestamp;
+            this.balance['cash']['datetime'] = this.iso8601 (timestamp);
+            const holdingCodes: Dict = {};
             for (let i = 0; i < holdingKeys.length; i++) {
                 const key = holdingKeys[i];
                 const code = this.safeCurrencyCode (key);
                 const newAccount = this.account ();
                 newAccount['total'] = this.safeString (holding, key);
                 if (code !== undefined) {
-                    holdingResult[code] = newAccount;
+                    holdingCodes[code] = true;
+                    this.balance['cash'][code] = newAccount;
                 }
             }
-            this.balance['cash'] = holdingResult;
+            this.pruneStaleBalanceKeys (this.balance['cash'], holdingCodes);
             this.balance['cash'] = this.safeBalance (this.balance['cash']);
-            client.resolve (holdingResult, messageHash);
+            updatedBalance = this.balance['cash'];
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys (futures);                  // marginAccount
-            const futuresResult: Dict = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
+            this.balance['margin'] = this.safeDict (this.balance, 'margin', {});
+            this.balance['margin']['info'] = message;
+            this.balance['margin']['timestamp'] = timestamp;
+            this.balance['margin']['datetime'] = this.iso8601 (timestamp);
+            const futuresSymbols: Dict = {};
             for (let i = 0; i < futuresKeys.length; i++) {
                 const key = futuresKeys[i];
                 const symbol = this.safeSymbol (key);
@@ -1476,23 +1527,27 @@ export default class krakenfutures extends krakenfuturesRest {
                 newAccount['free'] = this.safeString (future, 'available');
                 newAccount['used'] = this.safeString (future, 'initial_margin');
                 newAccount['total'] = this.safeString (future, 'balance');
-                futuresResult[symbol] = {};
+                this.balance['margin'][symbol] = {};
                 if ((symbol !== undefined) && (code !== undefined)) {
-                    futuresResult[symbol][code] = newAccount;
+                    futuresSymbols[symbol] = true;
+                    this.balance['margin'][symbol][code] = newAccount;
                 }
             }
-            this.balance['margin'] = futuresResult;
+            this.pruneStaleBalanceKeys (this.balance['margin'], futuresSymbols);
             this.balance['margin'] = this.safeBalance (this.balance['margin']);
-            client.resolve (this.balance['margin'], messageHash + 'futures');
+            client.resolve (this.balance['margin'], messageHash + ':futures');
+            if (updatedBalance === undefined) {
+                updatedBalance = this.balance['margin'];
+            }
         }
         if (flexFutures !== undefined) {
             const flexFutureCurrencies = this.safeDict (flexFutures, 'currencies', {});
             const flexFuturesKeys = Object.keys (flexFutureCurrencies); // multi-collateral margin account
-            const flexFuturesResult: Dict = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
+            this.balance['flex'] = this.safeDict (this.balance, 'flex', {});
+            this.balance['flex']['info'] = message;
+            this.balance['flex']['timestamp'] = timestamp;
+            this.balance['flex']['datetime'] = this.iso8601 (timestamp);
+            const flexCodes: Dict = {};
             for (let i = 0; i < flexFuturesKeys.length; i++) {
                 const key = flexFuturesKeys[i];
                 const flexFuture = this.safeDict (flexFutureCurrencies, key);
@@ -1502,14 +1557,42 @@ export default class krakenfutures extends krakenfuturesRest {
                 newAccount['used'] = this.safeString (flexFuture, 'collateral_value');
                 newAccount['total'] = this.safeString (flexFuture, 'quantity');
                 if (code !== undefined) {
-                    flexFuturesResult[code] = newAccount;
+                    flexCodes[code] = true;
+                    this.balance['flex'][code] = newAccount;
                 }
             }
-            this.balance['flex'] = flexFuturesResult;
+            this.pruneStaleBalanceKeys (this.balance['flex'], flexCodes);
             this.balance['flex'] = this.safeBalance (this.balance['flex']);
-            client.resolve (this.balance['flex'], messageHash + 'flex_futures');
+            client.resolve (this.balance['flex'], messageHash + ':flex_futures');
+            if (updatedBalance === undefined) {
+                updatedBalance = this.balance['flex'];
+            }
         }
-        client.resolve (this.balance, messageHash);
+        // resolve the plain hash exactly once per message, with the unified
+        // balance of the account the message updated (cash first, matching the
+        // legacy behaviour): a second resolve on the same hash is not portable
+        // (the rust client hands the consumer the LAST resolved value)
+        if (updatedBalance !== undefined) {
+            client.resolve (updatedBalance, messageHash);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description removes currency/symbol keys that disappeared from a full-state balance message, keeping the cached object itself alive for consumers holding a reference to it
+     * @param {object} balanceObject the cached per-account balance object, mutated in place
+     * @param {object} seenKeys the currency codes / symbols present in the current message
+     */
+    pruneStaleBalanceKeys (balanceObject: Dict, seenKeys: Dict) {
+        const reserved = [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' ];
+        const keys = Object.keys (balanceObject);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!(key in seenKeys) && !this.inArray (key, reserved)) {
+                delete balanceObject[key];
+            }
+        }
     }
 
     handleMyTrades (client: Client, message: Dict) {
