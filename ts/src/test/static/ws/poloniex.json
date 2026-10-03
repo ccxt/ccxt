@@ -321,7 +321,6 @@
                 ],
                 "parsedResponses": [
                     {
-                        "id": "BTC_USDT",
                         "symbol": "BTC/USDT",
                         "timestamp": 1786614216233,
                         "datetime": "2026-08-13T09:43:36.233Z",

@@ -3,7 +3,9 @@
 
 package io.github.ccxt.types;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class Trade extends TypedMap {
     public Double amount;
@@ -18,6 +20,7 @@ public final class Trade extends TypedMap {
     public String side;
     public String takerOrMaker;
     public Fee fee;
+    public List<Fee> fees;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -37,6 +40,10 @@ public final class Trade extends TypedMap {
         this.takerOrMaker = TypeHelper.safeString(data, "takerOrMaker");
         Object feeRaw = TypeHelper.safeValue(data, "fee");
         this.fee = feeRaw != null ? new Fee(feeRaw) : null;
+        Object feesRaw = TypeHelper.safeValue(data, "fees");
+        if (feesRaw instanceof List<?> feesList) {
+            this.fees = ((List<Object>) feesList).stream().map(Fee::new).collect(Collectors.toList());
+        }
         this.info = TypeHelper.getInfo(data);
     }
 }

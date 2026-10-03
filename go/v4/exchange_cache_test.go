@@ -22,12 +22,12 @@ func TestArrayCacheSeenUpdatesBySymbolById(t *testing.T) {
 	if cache.newUpdatesBySymbol[symbol] != 2 {
 		t.Fatalf("two ids: newUpdatesBySymbol = %d, want 2", cache.newUpdatesBySymbol[symbol])
 	}
-	if got := cache.GetLimit(symbol, nil); got != 2 {
+	if got := cache.GetLimit(symbol, nil); got == nil || *got != 2 {
 		t.Fatalf("two ids: GetLimit = %v, want 2", got)
 	}
 	// deferred reset: next append of an already-seen id starts a new window of 1
 	cache.Append(map[string]any{"symbol": symbol, "id": "1", "price": 4})
-	if got := cache.GetLimit(symbol, nil); got != 1 {
+	if got := cache.GetLimit(symbol, nil); got == nil || *got != 1 {
 		t.Fatalf("after getLimit reset + same id: GetLimit = %v, want 1", got)
 	}
 }
@@ -37,7 +37,7 @@ func TestArrayCachePlainIncrementsEveryAppend(t *testing.T) {
 	symbol := "ETH/USDT"
 	cache.Append(map[string]any{"symbol": symbol, "price": 1})
 	cache.Append(map[string]any{"symbol": symbol, "price": 2})
-	if got := cache.GetLimit(symbol, nil); got != 2 {
+	if got := cache.GetLimit(symbol, nil); got == nil || *got != 2 {
 		t.Fatalf("plain ArrayCache counts every append: GetLimit = %v, want 2", got)
 	}
 	if cache.seenUpdatesBySymbol[symbol] != nil {
@@ -54,12 +54,18 @@ func TestArrayCacheSeenUpdatesBySymbolBySide(t *testing.T) {
 		t.Fatalf("same side twice: newUpdatesBySymbol = %d, want 1", cache.newUpdatesBySymbol[symbol])
 	}
 	cache.Append(map[string]any{"symbol": symbol, "side": "short", "contracts": 1})
-	if got := cache.GetLimit(symbol, nil); got != 2 {
+	if got := cache.GetLimit(symbol, nil); got == nil || *got != 2 {
 		t.Fatalf("two sides: GetLimit = %v, want 2", got)
 	}
 }
 
 func TestArrayCacheRemoveSymbolPollingScopes(t *testing.T) {
+	limitOf := func(p *int64) any {
+		if p == nil {
+			return nil
+		}
+		return *p
+	}
 	for _, global := range []bool{false, true} {
 		for _, scoped := range []bool{false, true} {
 			c := NewArrayCacheBySymbolBySide()
@@ -76,11 +82,11 @@ func TestArrayCacheRemoveSymbolPollingScopes(t *testing.T) {
 			c.Append(row("LTC", "long", 2))
 			c.Append(row("ETH", "short", 5))
 			if global {
-				check(c.GetLimit(nil, nil), 3)
+				check(limitOf(c.GetLimit(nil, nil)), int64(3))
 			}
 			if scoped {
-				check(c.GetLimit("ETH", nil), 2)
-				check(c.GetLimit("LTC", nil), 1)
+				check(limitOf(c.GetLimit("ETH", nil)), int64(2))
+				check(limitOf(c.GetLimit("LTC", nil)), int64(1))
 			}
 			c.Remove("MISSING")
 			check(len(c.Data), 3)
@@ -88,21 +94,57 @@ func TestArrayCacheRemoveSymbolPollingScopes(t *testing.T) {
 			check(len(c.Data), 2)
 			check(GetValue(c.Data[0], "contracts"), 4)
 			check(GetValue(c.Data[1], "contracts"), 5)
-			check(c.GetLimit("LTC", nil), 0)
+			check(limitOf(c.GetLimit("LTC", nil)), int64(0))
 			c.Remove("LTC")
 			c.Append(row("LTC", "both", 0))
-			want := 3
+			want := int64(3)
 			if global {
 				want = 1
 			}
-			check(c.GetLimit(nil, nil), want)
+			check(limitOf(c.GetLimit(nil, nil)), want)
 			c.Append(row("ETH", "long", 6))
 			want = 2
 			if scoped {
 				want = 1
 			}
-			check(c.GetLimit("ETH", nil), want)
+			check(limitOf(c.GetLimit("ETH", nil)), want)
 			check(len(c.Data), 3)
 		}
+	}
+}
+
+// GetLimit is typed *int64 (Cache.ts `Int`): an absent answer is nil, a count or a cap is an int64.
+func TestArrayCacheGetLimitTyped(t *testing.T) {
+	var limit int64 = 5
+	cache := NewArrayCache(nil)
+	if got := cache.GetLimit("BTC/USDT", nil); got != nil {
+		t.Fatalf("unseen symbol, no limit: GetLimit = %v, want nil", *got)
+	}
+	if got := cache.GetLimit("BTC/USDT", &limit); got == nil || *got != 5 {
+		t.Fatalf("unseen symbol: GetLimit should answer the caller's limit")
+	}
+	cache.Append(map[string]any{"symbol": "BTC/USDT", "price": 1})
+	cache.Append(map[string]any{"symbol": "BTC/USDT", "price": 2})
+	if got := cache.GetLimit("BTC/USDT", &limit); got == nil || *got != 2 {
+		t.Fatalf("min(2, 5): GetLimit should be 2")
+	}
+	var one int64 = 1
+	if got := cache.GetLimit(nil, &one); got == nil || *got != 1 {
+		t.Fatalf("global min(2, 1): GetLimit should be 1")
+	}
+	ohlcv := NewArrayCacheByTimestamp(nil)
+	if got := ohlcv.GetLimit(nil, nil); got == nil || *got != 0 {
+		t.Fatalf("empty timestamp cache: GetLimit should be 0")
+	}
+	ohlcv.Append([]any{int64(100), 1.0})
+	ohlcv.Append([]any{int64(200), 2.0})
+	if got := ohlcv.GetLimit("BTC/USDT", &one); got == nil || *got != 1 {
+		t.Fatalf("timestamp min(2, 1): GetLimit should be 1")
+	}
+	if got := ToGetsLimit([]any{}).GetLimit("BTC/USDT", nil); got != nil {
+		t.Fatalf("a plain list answers the absent limit")
+	}
+	if got := AsArrayCache([]any{}).GetLimit(nil, 7); got == nil || *got != 7 {
+		t.Fatalf("a plain list answers the caller's limit")
 	}
 }

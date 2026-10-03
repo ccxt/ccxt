@@ -302,10 +302,10 @@ export default class paymium extends Exchange {
     parseTrade(trade, market = undefined) {
         const timestamp = this.safeTimestamp(trade, 'created_at_int');
         const id = this.safeString(trade, 'uuid');
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         const side = this.safeString(trade, 'side');
         const price = this.safeString(trade, 'price');
-        const amountField = 'traded_' + market['base'].toLowerCase();
+        const amountField = 'traded_' + marketResolved['base'].toLowerCase();
         const amount = this.safeString(trade, amountField);
         return this.safeTrade({
             'info': trade,
@@ -313,7 +313,7 @@ export default class paymium extends Exchange {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -321,7 +321,7 @@ export default class paymium extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -620,7 +620,12 @@ export default class paymium extends Exchange {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams(path, params);
+        const baseApiUrl = this.safeString(this.urls['api'], 'rest');
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = baseApiUrl;
+        let url = baseUrl + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
             if (Object.keys(query).length > 0) {
@@ -632,25 +637,30 @@ export default class paymium extends Exchange {
             // paymium requires an increasing nonce
             const nonce = this.incrementingNonce().toString();
             let auth = nonce + url;
-            headers = {
+            const signedHeaders = {
                 'Api-Key': this.apiKey,
                 'Api-Nonce': nonce,
             };
+            const hasQuery = Object.keys(query).length > 0;
+            let signedBody = body;
+            if (method === 'POST' && hasQuery) {
+                signedBody = this.json(query);
+            }
             if (method === 'POST') {
-                if (Object.keys(query).length > 0) {
-                    body = this.json(query);
-                    auth += body;
-                    headers['Content-Type'] = 'application/json';
+                if (hasQuery) {
+                    auth += signedBody;
+                    signedHeaders['Content-Type'] = 'application/json';
                 }
             }
             else {
-                if (Object.keys(query).length > 0) {
+                if (hasQuery) {
                     const queryString = this.urlencode(query);
                     auth += queryString;
                     url += '?' + queryString;
                 }
             }
-            headers['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            signedHeaders['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

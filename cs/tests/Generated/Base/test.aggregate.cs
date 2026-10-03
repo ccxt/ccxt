@@ -12,7 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            Assert(isGreaterThan(exchange.milliseconds(), 0), "go transpiler workaround");
+            Assert((exchange.milliseconds() > 0), "go transpiler workaround");
             // @SKIP_START_GO
             List<object> bids = new List<object>() {new List<object>() {789.1, 111.05}, new List<object>() {789.1, 111.05}, new List<object>() {123.3, 456.2}, new List<object>() {784.2, 111.05}, new List<object>() {789.1, 111.05}};
             List<object> expectedBids = new List<object>() {new List<object>() {123.3, 456.2}, new List<object>() {784.2, 111.05}, new List<object>() {789.1, 333.15}};

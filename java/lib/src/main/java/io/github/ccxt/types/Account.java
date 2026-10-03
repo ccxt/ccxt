@@ -9,6 +9,7 @@ public final class Account extends TypedMap {
     public String id;
     public String type;
     public String code;
+    public String name;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -18,6 +19,7 @@ public final class Account extends TypedMap {
         this.id = TypeHelper.safeString(data, "id");
         this.type = TypeHelper.safeString(data, "type");
         this.code = TypeHelper.safeString(data, "code");
+        this.name = TypeHelper.safeString(data, "name");
         this.info = TypeHelper.getInfo(data);
     }
 }

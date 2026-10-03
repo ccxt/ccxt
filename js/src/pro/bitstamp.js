@@ -68,8 +68,8 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'orderbook:' + symbolValue;
         const channel = 'diff_order_book_' + market['id'];
         const url = this.urls['api']['ws'];
         const request = {
@@ -96,10 +96,10 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const channel = 'diff_order_book_' + market['id'];
-        const subHash = 'orderbook:' + symbol;
-        return await this.unWatchChannel(channel, subHash, 'orderbook', [symbol], params);
+        const subHash = 'orderbook:' + symbolValue;
+        return await this.unWatchChannel(channel, subHash, 'orderbook', [symbolValue], params);
     }
     /**
      * @ignore
@@ -181,10 +181,10 @@ export default class bitstamp extends bitstampRest {
         else if (nonce >= deltaNonce) {
             return;
         }
-        this.handleDelta(storedOrderBook, delta);
+        this.handleBookDelta(storedOrderBook, delta);
         client.resolve(storedOrderBook, messageHash);
     }
-    handleDelta(orderbook, delta) {
+    handleBookDelta(orderbook, delta) {
         const timestamp = this.safeTimestamp(delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
@@ -204,7 +204,7 @@ export default class bitstamp extends bitstampRest {
     }
     getCacheIndex(orderbook, deltas) {
         // we will consider it a fail
-        const firstElement = deltas[0];
+        const firstElement = this.safeDict(deltas, 0);
         const firstElementNonce = this.safeInteger(firstElement, 'microtimestamp');
         if (firstElementNonce === undefined) {
             return -1;
@@ -214,7 +214,7 @@ export default class bitstamp extends bitstampRest {
             return -1;
         }
         for (let i = 0; i < deltas.length; i++) {
-            const delta = deltas[i];
+            const delta = this.safeDict(deltas, i);
             const deltaNonce = this.safeInteger(delta, 'microtimestamp');
             if (deltaNonce === nonce) {
                 return i + 1;
@@ -237,8 +237,8 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trades:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'trades:' + symbolValue;
         const url = this.urls['api']['ws'];
         const channel = 'live_trades_' + market['id'];
         const request = {
@@ -249,10 +249,11 @@ export default class bitstamp extends bitstampRest {
         };
         const message = this.extend(request, params);
         const trades = await this.watch(url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -268,10 +269,10 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const channel = 'live_trades_' + market['id'];
-        const subHash = 'trades:' + symbol;
-        return await this.unWatchChannel(channel, subHash, 'trades', [symbol], params);
+        const subHash = 'trades:' + symbolValue;
+        return await this.unWatchChannel(channel, subHash, 'trades', [symbolValue], params);
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -293,12 +294,13 @@ export default class bitstamp extends bitstampRest {
         const timestamp = this.parseToInt(microtimestamp / 1000);
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'amount');
-        if (market === undefined) {
-            market = this.safeMarket(undefined, market);
-        }
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(undefined, market);
+        const symbol = marketResolved['symbol'];
         const sideRaw = this.safeInteger(trade, 'type');
-        const side = (sideRaw === 0) ? 'buy' : 'sell';
+        let side = 'sell';
+        if (sideRaw === 0) {
+            side = 'buy';
+        }
         return this.safeTrade({
             'info': trade,
             'timestamp': timestamp,
@@ -313,7 +315,7 @@ export default class bitstamp extends bitstampRest {
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
     handleTrade(client, message) {
         //
@@ -345,7 +347,7 @@ export default class bitstamp extends bitstampRest {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
-        const data = this.safeValue(message, 'data');
+        const data = this.safeDict(message, 'data');
         const trade = this.parseWsTrade(data, market);
         let tradesArray = this.safeValue(this.trades, symbol);
         if (tradesArray === undefined) {
@@ -370,8 +372,8 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'fundingRate:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'fundingRate:' + symbolValue;
         const url = this.urls['api']['ws'];
         const channel = 'funding_rate_' + market['id'];
         const request = {
@@ -429,20 +431,21 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const channel = 'private-my_orders';
         const messageHash = channel + '_' + market['id'];
         const subscription = {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'limit': limit,
             'type': channel,
             'params': params,
         };
         const orders = await this.subscribePrivate(subscription, messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(orders, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -461,10 +464,14 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         await this.authenticate();
-        const channel = 'private-my_orders_' + market['id'] + '-' + this.options['userId'];
-        return await this.unWatchChannel(channel, channel, 'orders', [symbol], params);
+        const userId = this.safeString(this.options, 'userId');
+        if (userId === undefined) {
+            throw new AuthenticationError(this.id + ' unWatchOrders() requires a userId from authenticate()');
+        }
+        const channel = 'private-my_orders_' + market['id'] + '-' + userId;
+        return await this.unWatchChannel(channel, channel, 'orders', [symbolValue], params);
     }
     /**
      * @method
@@ -485,20 +492,21 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const channel = 'private-my_trades';
         const messageHash = channel + '_' + market['id'];
         const subscription = {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'limit': limit,
             'type': channel,
             'params': params,
         };
         const trades = await this.subscribePrivate(subscription, messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true);
     }
     /**
      * @method
@@ -517,10 +525,14 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         await this.authenticate();
-        const channel = 'private-my_trades_' + market['id'] + '-' + this.options['userId'];
-        return await this.unWatchChannel(channel, channel, 'myTrades', [symbol], params);
+        const userId = this.safeString(this.options, 'userId');
+        if (userId === undefined) {
+            throw new AuthenticationError(this.id + ' unWatchMyTrades() requires a userId from authenticate()');
+        }
+        const channel = 'private-my_trades_' + market['id'] + '-' + userId;
+        return await this.unWatchChannel(channel, channel, 'myTrades', [symbolValue], params);
     }
     handleMyTrades(client, message) {
         //
@@ -579,14 +591,14 @@ export default class bitstamp extends bitstampRest {
         //
         const microtimestamp = this.safeInteger(trade, 'microtimestamp', 0);
         const timestamp = this.parseToInt(microtimestamp / 1000);
-        market = this.safeMarket(undefined, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(undefined, market);
+        const symbol = marketResolved['symbol'];
         const feeCost = this.safeString(trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         return this.safeTrade({
@@ -603,7 +615,7 @@ export default class bitstamp extends bitstampRest {
             'amount': this.safeString(trade, 'amount'),
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     handleOrders(client, message) {
         //
@@ -677,7 +689,10 @@ export default class bitstamp extends bitstampRest {
         //
         const id = this.safeString(order, 'id_str');
         const orderTypeRaw = this.safeStringLower(order, 'order_type');
-        const side = (orderTypeRaw === '1') ? 'sell' : 'buy';
+        let side = 'buy';
+        if (orderTypeRaw === '1') {
+            side = 'sell';
+        }
         const orderSubTypeRaw = this.safeStringLower(order, 'order_subtype'); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         let orderType = undefined;
         let timeInForce = undefined;
@@ -722,8 +737,8 @@ export default class bitstamp extends bitstampRest {
         }
         const triggerPrice = this.safeString(order, 'stop_price');
         const timestamp = this.safeTimestamp(order, 'datetime');
-        market = this.safeMarket(undefined, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(undefined, market);
+        const symbol = marketResolved['symbol'];
         return this.safeOrder({
             'info': order,
             'symbol': symbol,
@@ -747,7 +762,7 @@ export default class bitstamp extends bitstampRest {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     handleOrderBookSubscription(client, message) {
         const channel = this.safeString(message, 'channel');
@@ -1022,15 +1037,19 @@ export default class bitstamp extends bitstampRest {
     async subscribePrivate(subscription, messageHash, params = {}) {
         const url = this.urls['api']['ws'];
         await this.authenticate();
-        messageHash += '-' + this.options['userId'];
+        const userId = this.safeString(this.options, 'userId');
+        if (userId === undefined) {
+            throw new AuthenticationError(this.id + ' subscribePrivate() requires a userId from authenticate()');
+        }
+        const messageHashValue = messageHash + ('-' + userId);
         const request = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': messageHash,
+                'channel': messageHashValue,
                 'auth': this.options['wsSessionToken'],
             },
         };
-        subscription['messageHash'] = messageHash;
-        return await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
+        subscription['messageHash'] = messageHashValue;
+        return await this.watch(url, messageHashValue, this.extend(request, params), messageHashValue, subscription);
     }
 }

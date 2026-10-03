@@ -2969,7 +2969,7 @@ abstract class binanceus extends \ccxt\binance {
      * @return list<mixed>
      */
     public function dapipublic_get_historicaltrades($params = array()) {
-        return $this->request('historicalTrades', 'dapiPublic', 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('historicalTrades', 'dapiPublic', 'GET', $params, null, null, array("cost" => 200));
     }
     /**
      * @return list<mixed>
@@ -3132,6 +3132,18 @@ abstract class binanceus extends \ccxt\binance {
      */
     public function dapiprivate_get_openalgoorders($params = array()) {
         return $this->request('openAlgoOrders', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function dapiprivate_get_algoorder($params = array()) {
+        return $this->request('algoOrder', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function dapiprivate_get_allalgoorders($params = array()) {
+        return $this->request('allAlgoOrders', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return list<mixed>
@@ -3332,6 +3344,12 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('algoOrder', 'dapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function dapiprivate_delete_algoopenorders($params = array()) {
+        return $this->request('algoOpenOrders', 'dapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return list<mixed>
      */
     public function dapiprivate_delete_allopenorders($params = array()) {
@@ -3353,7 +3371,7 @@ abstract class binanceus extends \ccxt\binance {
      * @return list<mixed>
      */
     public function dapiprivatev2_get_leveragebracket($params = array()) {
-        return $this->request('leverageBracket', 'dapiPrivateV2', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('leverageBracket', 'dapiPrivateV2', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
     }
     /**
      * @return array<string, mixed>
@@ -3395,7 +3413,7 @@ abstract class binanceus extends \ccxt\binance {
      * @return list<mixed>
      */
     public function fapipublic_get_historicaltrades($params = array()) {
-        return $this->request('historicalTrades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('historicalTrades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 200));
     }
     /**
      * @return list<mixed>
@@ -8219,7 +8237,7 @@ abstract class binanceus extends \ccxt\binance {
      * @return list<mixed>
      */
     public function dapiPublicGetHistoricalTrades($params = array()) {
-        return $this->request('historicalTrades', 'dapiPublic', 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('historicalTrades', 'dapiPublic', 'GET', $params, null, null, array("cost" => 200));
     }
     /**
      * @return list<mixed>
@@ -8382,6 +8400,18 @@ abstract class binanceus extends \ccxt\binance {
      */
     public function dapiPrivateGetOpenAlgoOrders($params = array()) {
         return $this->request('openAlgoOrders', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function dapiPrivateGetAlgoOrder($params = array()) {
+        return $this->request('algoOrder', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function dapiPrivateGetAllAlgoOrders($params = array()) {
+        return $this->request('allAlgoOrders', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return list<mixed>
@@ -8582,6 +8612,12 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('algoOrder', 'dapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function dapiPrivateDeleteAlgoOpenOrders($params = array()) {
+        return $this->request('algoOpenOrders', 'dapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return list<mixed>
      */
     public function dapiPrivateDeleteAllOpenOrders($params = array()) {
@@ -8603,7 +8639,7 @@ abstract class binanceus extends \ccxt\binance {
      * @return list<mixed>
      */
     public function dapiPrivateV2GetLeverageBracket($params = array()) {
-        return $this->request('leverageBracket', 'dapiPrivateV2', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('leverageBracket', 'dapiPrivateV2', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
     }
     /**
      * @return array<string, mixed>
@@ -8645,7 +8681,7 @@ abstract class binanceus extends \ccxt\binance {
      * @return list<mixed>
      */
     public function fapiPublicGetHistoricalTrades($params = array()) {
-        return $this->request('historicalTrades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('historicalTrades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 200));
     }
     /**
      * @return list<mixed>

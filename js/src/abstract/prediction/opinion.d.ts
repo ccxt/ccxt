@@ -1,26 +1,26 @@
 import { Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 interface Exchange {
-    opinionPublicGetMarket(params?: {}): Promise<Dict | List>;
-    opinionPublicGetMarketMarketId(params?: {}): Promise<Dict | List>;
-    opinionPublicGetMarketCategoricalMarketId(params?: {}): Promise<Dict | List>;
-    opinionPublicGetMarketSlugSlug(params?: {}): Promise<Dict | List>;
+    opinionPublicGetMarket(params?: {}): Promise<Dict>;
+    opinionPublicGetMarketMarketId(params?: {}): Promise<Dict>;
+    opinionPublicGetMarketCategoricalMarketId(params?: {}): Promise<Dict>;
+    opinionPublicGetMarketSlugSlug(params?: {}): Promise<Dict>;
     opinionPublicGetLabel(params?: {}): Promise<Dict | List>;
-    opinionPublicGetTokenLatestPrice(params?: {}): Promise<Dict | List>;
-    opinionPublicGetTokenOrderbook(params?: {}): Promise<Dict | List>;
-    opinionPublicGetTokenPriceHistory(params?: {}): Promise<Dict | List>;
-    opinionPublicGetQuoteToken(params?: {}): Promise<Dict | List>;
-    opinionPrivateGetOrder(params?: {}): Promise<Dict | List>;
-    opinionPrivateGetOrderOrderId(params?: {}): Promise<Dict | List>;
-    opinionPrivateGetPositionsUserWalletAddress(params?: {}): Promise<Dict | List>;
-    opinionPrivateGetTradeUserWalletAddress(params?: {}): Promise<Dict | List>;
-    opinionPrivateGetAuthApiKey(params?: {}): Promise<Dict | List>;
-    opinionPrivateGetUserAuth(params?: {}): Promise<Dict | List>;
-    opinionPrivateGetUserBalance(params?: {}): Promise<Dict | List>;
-    opinionPrivatePostAuthApiKey(params?: {}): Promise<Dict | List>;
-    opinionPrivatePostOrder(params?: {}): Promise<Dict | List>;
-    opinionPrivatePostOrderCancel(params?: {}): Promise<Dict | List>;
-    opinionPrivateDeleteAuthApiKey(params?: {}): Promise<Dict | List>;
+    opinionPublicGetTokenLatestPrice(params?: {}): Promise<Dict>;
+    opinionPublicGetTokenOrderbook(params?: {}): Promise<Dict>;
+    opinionPublicGetTokenPriceHistory(params?: {}): Promise<Dict>;
+    opinionPublicGetQuoteToken(params?: {}): Promise<Dict>;
+    opinionPrivateGetOrder(params?: {}): Promise<Dict>;
+    opinionPrivateGetOrderOrderId(params?: {}): Promise<Dict>;
+    opinionPrivateGetPositionsUserWalletAddress(params?: {}): Promise<Dict>;
+    opinionPrivateGetTradeUserWalletAddress(params?: {}): Promise<Dict>;
+    opinionPrivateGetAuthApiKey(params?: {}): Promise<Dict>;
+    opinionPrivateGetUserAuth(params?: {}): Promise<Dict>;
+    opinionPrivateGetUserBalance(params?: {}): Promise<Dict>;
+    opinionPrivatePostAuthApiKey(params?: {}): Promise<Dict>;
+    opinionPrivatePostOrder(params?: {}): Promise<Dict>;
+    opinionPrivatePostOrderCancel(params?: {}): Promise<Dict>;
+    opinionPrivateDeleteAuthApiKey(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

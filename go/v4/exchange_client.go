@@ -27,10 +27,10 @@ import (
 
 type ClientInterface interface {
 	Resolve(data any, subHash any) any
-	Future(messageHash any) <-chan any
+	Future(messageHash any) <-chan AsyncResult[any]
 	ReusableFuture(messageHash any) *Future
 	Reject(err any, messageHash ...any)
-	SendAsync(message any) <-chan any
+	SendAsync(message any) <-chan AsyncResult[any]
 	Reset(err any)
 	OnPong()
 	GetError() error
@@ -110,7 +110,7 @@ func (this *Client) Resolve(data any, subHash any) any {
 	return data
 }
 
-func (this *Client) Future(messageHash any) <-chan any {
+func (this *Client) Future(messageHash any) <-chan AsyncResult[any] {
 	future := this.NewFuture(messageHash)
 	return future.Await()
 }
@@ -394,7 +394,7 @@ func (this *Client) OnUpgrade(message any) {
 	}
 }
 
-func (this *Client) SendAsync(message any) <-chan any {
+func (this *Client) SendAsync(message any) <-chan AsyncResult[any] {
 	var msgStr string
 	if str, ok := message.(string); ok {
 		msgStr = str
@@ -408,7 +408,7 @@ func (this *Client) SendAsync(message any) <-chan any {
 	}
 
 	future := NewFuture()
-	ch := make(chan any)
+	ch := make(chan AsyncResult[any])
 	go func() {
 		this.ConnectionMu.Lock()
 		// ? if (isNode)
@@ -419,21 +419,21 @@ func (this *Client) SendAsync(message any) <-chan any {
 				this.MockSentMessages = append(this.MockSentMessages, parsed)
 			}
 			future.Resolve(true)
-			ch <- true
+			ch <- AsyncResult[any]{Value: true}
 		} else if this.Connection == nil {
 			err := NetworkError("not connected to " + this.Url)
 			future.Reject(err)
 			// the caller receives on ch (see Exchange.watch); without sending here
 			// it would block forever when the connection is not established
-			ch <- err
+			ch <- AsyncResult[any]{Err: err}
 		} else {
 			err := this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
 			if err != nil {
 				future.Reject(err)
-				ch <- err
+				ch <- AsyncResult[any]{Err: err}
 			} else {
 				future.Resolve(true)
-				ch <- true
+				ch <- AsyncResult[any]{Value: true}
 			}
 		}
 
