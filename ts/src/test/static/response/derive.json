@@ -4018,6 +4018,39 @@
                 }
             }
         ],
+        "transfer": [
+            {
+                "description": "transfer between existing subaccounts",
+                "method": "transfer",
+                "input": [
+                    "USDC",
+                    5,
+                    86815,
+                    86820
+                ],
+                "httpResponse": {
+                    "id": "cc745aff-d485-464d-bc2f-cd99f821ea52",
+                    "result": {
+                        "operation_id": 4724036,
+                        "op_uuid": "01a101be-1291-7e22-b3b4-9cc6ebc71904"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "operation_id": 4724036,
+                        "op_uuid": "01a101be-1291-7e22-b3b4-9cc6ebc71904"
+                    },
+                    "id": "4724036",
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDC",
+                    "amount": 5,
+                    "fromAccount": "86815",
+                    "toAccount": "86820",
+                    "status": null
+                }
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "fetchDeposits testnet",
