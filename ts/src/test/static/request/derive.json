@@ -575,6 +575,15 @@
                 "output": { "subaccount_id": 74412 }
             }
         ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_subaccounts",
+                "input": [],
+                "output": "{\"wallet\": \"0x0000000000000000000000000000000000000000\"}"
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer between existing subaccounts",

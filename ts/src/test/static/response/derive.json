@@ -4018,6 +4018,83 @@
                 }
             }
         ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "id": "b830f114-fc9e-4c6d-8a5b-9bcefe1e2ec1",
+                    "result": {
+                        "wallet": "0x0000000000000000000000000000000000000000",
+                        "subaccount_ids": [
+                            86814,
+                            86815,
+                            86820,
+                            86921
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "86814",
+                        "type": null,
+                        "code": null,
+                        "info": {
+                            "wallet": "0x0000000000000000000000000000000000000000",
+                            "subaccount_ids": [
+                                86814,
+                                86815,
+                                86820,
+                                86921
+                            ]
+                        }
+                    },
+                    {
+                        "id": "86815",
+                        "type": null,
+                        "code": null,
+                        "info": {
+                            "wallet": "0x0000000000000000000000000000000000000000",
+                            "subaccount_ids": [
+                                86814,
+                                86815,
+                                86820,
+                                86921
+                            ]
+                        }
+                    },
+                    {
+                        "id": "86820",
+                        "type": null,
+                        "code": null,
+                        "info": {
+                            "wallet": "0x0000000000000000000000000000000000000000",
+                            "subaccount_ids": [
+                                86814,
+                                86815,
+                                86820,
+                                86921
+                            ]
+                        }
+                    },
+                    {
+                        "id": "86921",
+                        "type": null,
+                        "code": null,
+                        "info": {
+                            "wallet": "0x0000000000000000000000000000000000000000",
+                            "subaccount_ids": [
+                                86814,
+                                86815,
+                                86820,
+                                86921
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer between existing subaccounts",
