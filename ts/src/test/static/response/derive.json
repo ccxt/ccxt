@@ -4270,6 +4270,137 @@
                 }
             }
         ],
+        "fetchBorrowRateHistory": [
+            {
+                "description": "fetchBorrowRateHistory with since limit and until",
+                "method": "fetchBorrowRateHistory",
+                "input": [
+                    "USDC",
+                    1789538400000,
+                    2,
+                    {
+                        "until": 1789545600000
+                    }
+                ],
+                "httpResponse": {
+                    "id": "5ec63a9f-f1f9-41ed-b3a6-947ff28b8a44",
+                    "result": {
+                        "interest_rate_history": [
+                            {
+                                "timestamp": 1789538400000,
+                                "risk_universe_id": 1,
+                                "borrow_apy": {
+                                    "open": "0.03468275844",
+                                    "high": "0.03468275844",
+                                    "low": "0.03468130428",
+                                    "close": "0.03468130428"
+                                },
+                                "supply_apy": {
+                                    "open": "0.019045860837",
+                                    "high": "0.019045860837",
+                                    "low": "0.019044229865",
+                                    "close": "0.019044229865"
+                                },
+                                "total_supply": "45473276.586444395755",
+                                "total_borrow": "26284555.446690104936"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "currency": "USDC",
+                        "rate": 0.03468130428,
+                        "period": null,
+                        "timestamp": 1789538400000,
+                        "datetime": "2026-09-16T06:00:00.000Z",
+                        "info": {
+                            "timestamp": 1789538400000,
+                            "risk_universe_id": 1,
+                            "borrow_apy": {
+                                "open": "0.03468275844",
+                                "high": "0.03468275844",
+                                "low": "0.03468130428",
+                                "close": "0.03468130428"
+                            },
+                            "supply_apy": {
+                                "open": "0.019045860837",
+                                "high": "0.019045860837",
+                                "low": "0.019044229865",
+                                "close": "0.019044229865"
+                            },
+                            "total_supply": "45473276.586444395755",
+                            "total_borrow": "26284555.446690104936"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetchBorrowInterest with until",
+                "method": "fetchBorrowInterest",
+                "input": [
+                    "USDC",
+                    null,
+                    null,
+                    null,
+                    {
+                        "subaccount_id": 86815,
+                        "until": 1790900000000
+                    }
+                ],
+                "httpResponse": {
+                    "id": "05a1b85e-313d-4248-b8d3-79056c3e6b61",
+                    "result": {
+                        "events": [
+                            {
+                                "subaccount_id": 86815,
+                                "timestamp": 1790873774000,
+                                "interest": "0.007211476749"
+                            },
+                            {
+                                "subaccount_id": 86815,
+                                "timestamp": 1790866575000,
+                                "interest": "0.000361702587"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "subaccount_id": 86815,
+                            "timestamp": 1790866575000,
+                            "interest": "0.000361702587"
+                        },
+                        "symbol": null,
+                        "currency": "USDC",
+                        "interest": 0.000361702587,
+                        "interestRate": null,
+                        "amountBorrowed": null,
+                        "marginMode": "cross",
+                        "timestamp": 1790866575000,
+                        "datetime": "2026-10-01T14:56:15.000Z"
+                    },
+                    {
+                        "info": {
+                            "subaccount_id": 86815,
+                            "timestamp": 1790873774000,
+                            "interest": "0.007211476749"
+                        },
+                        "symbol": null,
+                        "currency": "USDC",
+                        "interest": 0.007211476749,
+                        "interestRate": null,
+                        "amountBorrowed": null,
+                        "marginMode": "cross",
+                        "timestamp": 1790873774000,
+                        "datetime": "2026-10-01T16:56:14.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchAccounts": [
             {
                 "description": "fetchAccounts",
