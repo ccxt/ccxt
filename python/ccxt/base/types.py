@@ -109,6 +109,7 @@ class Balance(TypedDict):
     used: Num
     total: Num
     debt: NotRequired[Num]
+    info: dict[str, Any]
 
 
 class BalanceAccount(TypedDict):
