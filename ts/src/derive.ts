@@ -4041,11 +4041,15 @@ export default class derive extends Exchange {
         const response = await this.privatePostWithdraw (this.extend (request, paramsDeriveWalletAddress));
         const result = this.safeDict (response, 'result', {});
         const transaction = this.parseTransaction (result, currency);
-        // the response carries only the operation ids, the known request values fill the rest
         transaction['type'] = 'withdrawal';
-        transaction['currency'] = currency['code'];
-        transaction['amount'] = this.parseNumber (amountString);
-        transaction['addressTo'] = address;
+        const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
+        const fillResponseFromRequest = this.safeBool (withdrawOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            // the response carries only the operation ids, the known request values fill the rest
+            transaction['currency'] = currency['code'];
+            transaction['amount'] = this.parseNumber (amountString);
+            transaction['addressTo'] = address;
+        }
         return transaction;
     }
 
