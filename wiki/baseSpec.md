@@ -6390,6 +6390,7 @@ fetch the trading fees for multiple markets
 * [lbank](/exchanges/lbank.md#fetchtradingfees)
 * [modetrade](/exchanges/modetrade.md#fetchtradingfees)
 * [onetrading](/exchanges/onetrading.md#fetchtradingfees)
+* [pacifica](/exchanges/pacifica.md#fetchtradingfees)
 * [paradex](/exchanges/paradex.md#fetchtradingfees)
 * [poloniex](/exchanges/poloniex.md#fetchtradingfees)
 * [toobit](/exchanges/toobit.md#fetchtradingfees)
