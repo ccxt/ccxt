@@ -4153,7 +4153,7 @@ export default class binance extends binanceRest {
         };
         const isConditional = this.safeBoolN (paramsReturnRateLimits, [ 'stop', 'trigger', 'conditional' ]);
         const clientOrderId = this.safeStringN (paramsReturnRateLimits, [ 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ]);
-        const shouldUseAlgoOrder = (market['linear'] === true) && (market['swap'] === true) && (isConditional === true);
+        const shouldUseAlgoOrder = (market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && (isConditional === true);
         if (clientOrderId !== undefined) {
             if (shouldUseAlgoOrder === true) {
                 payload['clientAlgoId'] = clientOrderId;
