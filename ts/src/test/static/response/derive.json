@@ -1009,6 +1009,56 @@
                 }
             }
         ],
+        "fetchSettlementHistory": [
+            {
+                "description": "fetchSettlementHistory",
+                "method": "fetchSettlementHistory",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "id": "9fc60156-810a-4ab5-ae54-c8a3318de88d",
+                    "result": {
+                        "expiries": [
+                            {
+                                "expiry_date": "20260707",
+                                "price": "63107.787847",
+                                "utc_expiry_sec": 1783411200
+                            },
+                            {
+                                "expiry_date": "20260708",
+                                "price": "62790.231563",
+                                "utc_expiry_sec": 1783497600
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "expiry_date": "20260707",
+                            "price": "63107.787847",
+                            "utc_expiry_sec": 1783411200
+                        },
+                        "symbol": null,
+                        "price": 63107.787847,
+                        "timestamp": 1783411200000,
+                        "datetime": "2026-07-07T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "expiry_date": "20260708",
+                            "price": "62790.231563",
+                            "utc_expiry_sec": 1783497600
+                        },
+                        "symbol": null,
+                        "price": 62790.231563,
+                        "timestamp": 1783497600000,
+                        "datetime": "2026-07-08T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetchTrades BTC perp mainnet",

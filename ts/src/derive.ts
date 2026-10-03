@@ -94,6 +94,7 @@ export default class derive extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -110,6 +111,7 @@ export default class derive extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTime': true,
@@ -1186,6 +1188,129 @@ export default class derive extends Exchange {
             'baseVolume': this.safeNumber (stats, 'c'),
             'quoteVolume': this.safeNumber (stats, 'v'),
         };
+    }
+
+    /**
+     * @method
+     * @name derive#fetchSettlementHistory
+     * @description fetches historical settlement records, the venue publishes one underlying settlement price per currency and expiry rather than per option instrument, so the records carry no symbol
+     * @see https://docs.derive.xyz/api-reference/market-data/publicget_option_settlement_prices
+     * @param {string} symbol unified market symbol of any market of the underlying currency to fetch the settlement history for
+     * @param {int} [since] timestamp in ms of the earliest settlement to fetch
+     * @param {int} [limit] the maximum number of settlements to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+     */
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument to resolve the underlying currency');
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'currency': market['baseId'],
+        };
+        const response = await this.publicPostGetOptionSettlementPrices (this.extend (request, params)); // todo: check on main-net
+        //
+        //     {
+        //         "id": "d1847bad-5917-424b-bd9a-37262a03fd47",
+        //         "result": {
+        //             "expiries": [
+        //                 {
+        //                     "expiry_date": "20260707",
+        //                     "price": "63107.787847",
+        //                     "utc_expiry_sec": 1783411200
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const expiries = this.safeList (result, 'expiries', []);
+        const settlements = this.parseSettlements (expiries, undefined);
+        const sorted = this.sortBy (settlements, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit);
+    }
+
+    /**
+     * @method
+     * @name derive#fetchMySettlementHistory
+     * @description fetches historical settlement records of the user
+     * @see https://docs.derive.xyz/api-reference/history/privateget_option_settlement_history
+     * @param {string} [symbol] unified market symbol of the settlement history to fetch
+     * @param {int} [since] timestamp in ms of the earliest settlement to fetch
+     * @param {int} [limit] the maximum number of settlements to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+     */
+    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('fetchMySettlementHistory', params);
+        const request: Dict = {
+            'subaccount_id': subaccountId,
+        };
+        const response = await this.privatePostGetOptionSettlementHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+        //
+        //     {
+        //         "id": "d714df6e-d708-4d16-9769-47cbea2d8ea8",
+        //         "result": {
+        //             "settlements": []
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const settlements = this.safeList (result, 'settlements', []);
+        const parsed = this.parseSettlements (settlements, market);
+        const sorted = this.sortBy (parsed, 'timestamp');
+        const symbolResolved = (market !== undefined) ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit);
+    }
+
+    parseSettlement (settlement: Dict, market: Market = undefined): Dict {
+        //
+        // fetchSettlementHistory
+        //
+        //     {
+        //         "expiry_date": "20260707",
+        //         "price": "63107.787847",
+        //         "utc_expiry_sec": 1783411200
+        //     }
+        //
+        // fetchMySettlementHistory rows carry the fields amount, expiry (sec), instrument_name,
+        // option_settlement_pnl, option_settlement_pnl_excl_fees, settlement_price, settlement_value
+        // and subaccount_id per the venue schema; a live sample is pending the first settled option
+        // todo: replace with a live sample after an option settles on the test account
+        //
+        const marketId = this.safeString (settlement, 'instrument_name');
+        const timestamp = this.safeTimestamp2 (settlement, 'utc_expiry_sec', 'expiry');
+        let symbolResolved: Str = undefined;
+        if (marketId !== undefined) {
+            symbolResolved = this.safeSymbol (marketId, market);
+        }
+        return {
+            'info': settlement,
+            'symbol': symbolResolved,
+            'price': this.safeNumber2 (settlement, 'price', 'settlement_price'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    parseSettlements (settlements: any[], market: Market = undefined): List {
+        const result: List = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push (this.parseSettlement (settlements[i], market));
+        }
+        return result;
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
