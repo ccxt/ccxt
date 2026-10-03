@@ -6,7 +6,7 @@ import Exchange from './abstract/cex.js';
 import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest, AuthenticationError, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress, NullableDict, Endpoint } from './base/types.js';
+import type { Bool, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress, NullableDict, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -163,6 +163,7 @@ export default class cex extends Exchange {
                         'do_cancel_my_order': { 'cost': 1 } as Endpoint<Dict>,
                         'do_cancel_all_orders': { 'cost': 5 } as Endpoint<Dict>,
                         'get_order_book': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_ticker': { 'cost': 1 } as Endpoint<Dict>,
                         'get_candles': { 'cost': 1 } as Endpoint<Dict>,
                         'get_trade_history': { 'cost': 1 } as Endpoint<Dict>,
                         'get_my_transaction_history': { 'cost': 1 } as Endpoint<Dict>,
@@ -318,7 +319,7 @@ export default class cex extends Exchange {
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const promises: Promise<Dict>[] = [];
         promises.push (this.publicPostGetCurrenciesInfo (params));
         //
@@ -368,15 +369,18 @@ export default class cex extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (id);
-        const isFiat = (this.safeBool (rawCurrency, 'fiat') === true);
-        const type = isFiat ? 'fiat' : 'crypto';
+        const isFiat = this.safeBool (rawCurrency, 'fiat', false);
+        let type: Str = 'crypto';
+        if (isFiat) {
+            type = 'fiat';
+        }
         const currencyPrecision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
         const networks: Dict = {};
         const rawNetworks = this.safeDict (rawCurrency, 'blockchains', {});
         const keys = Object.keys (rawNetworks);
         for (let j = 0; j < keys.length; j++) {
             const networkId = keys[j];
-            const rawNetwork = rawNetworks[networkId];
+            const rawNetwork = this.safeDict (rawNetworks, networkId);
             const networkCode = this.networkIdToCode (networkId, code);
             const deposit = this.safeString (rawNetwork, 'deposit') === 'enabled';
             const withdraw = this.safeString (rawNetwork, 'withdrawal') === 'enabled';
@@ -437,7 +441,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicPostGetPairsInfo (params);
         //
         //    {
@@ -469,6 +473,9 @@ export default class cex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quoteId = this.safeString (market, 'quote');
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const id = base + '-' + quote; // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         const symbol = base + '/' + quote;
         return this.safeMarketStructure ({
@@ -533,7 +540,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicPostGetServerTime (params);
         //
         //    {
@@ -558,12 +565,13 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const response = await this.fetchTickers ([ symbol ], params);
-        return this.safeDict (response, symbol, {}) as Ticker;
+        const ticker = this.safeDict (response, symbol, {});
+        return ticker as Ticker;
     }
 
     /**
@@ -575,7 +583,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -652,7 +660,7 @@ export default class cex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -663,15 +671,14 @@ export default class cex extends Exchange {
         if (since !== undefined) {
             request['fromDateISO'] = this.iso8601 (since);
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
+        const [ until, paramsUntil ] = this.handleParamInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request['toDateISO'] = this.iso8601 (until);
         }
         if (limit !== undefined) {
             request['pageSize'] = Math.min (limit, 10000); // has a bug, still returns more trades
         }
-        const response = await this.publicPostGetTradeHistory (this.extend (request, params));
+        const response = await this.publicPostGetTradeHistory (this.extend (request, paramsUntil));
         //
         //    {
         //        "ok": "ok",
@@ -688,7 +695,7 @@ export default class cex extends Exchange {
         //                ... followed by older trades
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'trades', []);
+        const trades: Dict[] = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -706,12 +713,12 @@ export default class cex extends Exchange {
         //
         const dateStr = this.safeString (trade, 'dateISO');
         const timestamp = this.parse8601 (dateStr);
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': this.safeString (trade, 'tradeId'),
             'order': undefined,
             'type': undefined,
@@ -721,7 +728,7 @@ export default class cex extends Exchange {
             'amount': this.safeString (trade, 'amount'),
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -734,7 +741,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -779,9 +786,8 @@ export default class cex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        let dataType: Str = undefined;
-        [ dataType, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'dataType');
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        const [ dataType, paramsDataType ] = this.handleOptionStringAndParams (params, 'fetchOHLCV', 'dataType');
         if (dataType === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"');
         }
@@ -797,8 +803,7 @@ export default class cex extends Exchange {
         if (since !== undefined) {
             request['fromISO'] = this.iso8601 (since);
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
+        const [ until, paramsUntil ] = this.handleParamInteger2 (paramsDataType, 'until', 'till');
         if (until !== undefined) {
             request['toISO'] = this.iso8601 (until);
         } else if (since === undefined) {
@@ -813,7 +818,7 @@ export default class cex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicPostGetCandles (this.extend (request, params));
+        const response = await this.publicPostGetCandles (this.extend (request, paramsUntil));
         //
         //    {
         //        "ok": "ok",
@@ -854,7 +859,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -874,7 +879,7 @@ export default class cex extends Exchange {
         return this.parseTradingFees (fees, true);
     }
 
-    parseTradingFees (response: any, useKeyAsId = false): TradingFees {
+    parseTradingFees (response: Dict, useKeyAsId: Bool = false): TradingFees {
         const result: Dict = {};
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
@@ -884,8 +889,9 @@ export default class cex extends Exchange {
                 market = this.safeMarket (key);
             }
             const parsed = this.parseTradingFee (response[key], market);
-            if (parsed['symbol'] !== undefined) {
-                result[parsed['symbol']] = parsed;
+            const parsedSymbol = this.safeString (parsed, 'symbol');
+            if (parsedSymbol !== undefined) {
+                result[parsedSymbol] = parsed;
             }
         }
         const symbols = this.symbols;
@@ -910,7 +916,7 @@ export default class cex extends Exchange {
         };
     }
 
-    override async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -960,14 +966,12 @@ export default class cex extends Exchange {
      * @param {object} [params.account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
-        let accountName: Str = undefined;
-        [ accountName, params ] = this.handleParamString (params, 'account', ''); // default is empty string
-        let method: Str = undefined;
-        [ method, params ] = this.handleParamString (params, 'method', 'privatePostGetMyWalletBalance');
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        const [ accountName, paramsAccount ] = this.handleParamString (params, 'account', ''); // default is empty string
+        const [ method, paramsMethod ] = this.handleParamString (paramsAccount, 'method', 'privatePostGetMyWalletBalance');
         let accountBalance: NullableDict = undefined;
         if (method === 'privatePostGetMyAccountStatusV3') {
-            const response = await this.privatePostGetMyAccountStatusV3 (params);
+            const response = await this.privatePostGetMyAccountStatusV3 (paramsMethod);
             //
             //    {
             //        "ok": "ok",
@@ -985,7 +989,7 @@ export default class cex extends Exchange {
             const balances = this.safeDict (data, 'balancesPerAccounts', {});
             accountBalance = this.safeDict (balances, accountName, {});
         } else {
-            const response = await this.privatePostGetMyWalletBalance (params);
+            const response = await this.privatePostGetMyWalletBalance (paramsMethod);
             //
             //    {
             //        "ok": "ok",
@@ -1036,7 +1040,7 @@ export default class cex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatus (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrdersByStatus (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1059,12 +1063,11 @@ export default class cex extends Exchange {
             // exchange requires a `since` parameter for closed orders, so set default to allowed 365
             request['serverCreateTimestampFrom'] = this.milliseconds () - 364 * 24 * 60 * 60 * 1000;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
+        const [ until, paramsUntil ] = this.handleParamInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request['serverCreateTimestampTo'] = until;
         }
-        const response = await this.privatePostGetMyOrders (this.extend (request, params));
+        const response = await this.privatePostGetMyOrders (this.extend (request, paramsUntil));
         //
         // if called without `pair`
         //
@@ -1105,7 +1108,7 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1120,7 +1123,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
@@ -1135,7 +1138,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
@@ -1149,7 +1152,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1170,7 +1173,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchClosedOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1234,8 +1237,8 @@ export default class cex extends Exchange {
         if (currency1 !== undefined && currency2 !== undefined) {
             marketId = currency1 + '-' + currency2;
         }
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const fee: Dict = {};
         const feeAmount = this.safeNumber (order, 'feeAmount');
@@ -1273,7 +1276,7 @@ export default class cex extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1291,9 +1294,8 @@ export default class cex extends Exchange {
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'accountId');
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        const [ accountId, paramsAccountId ] = this.handleOptionStringAndParams (params, 'createOrder', 'accountId');
         if (accountId === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() : API trading is now allowed from main account, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
@@ -1301,9 +1303,7 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             'clientOrderId': this.uuid (),
             'currency1': market['baseId'],
@@ -1314,19 +1314,17 @@ export default class cex extends Exchange {
             'timestamp': this.milliseconds (),
             'amountCcy1': this.amountToPrecision (symbol, amount),
         };
-        let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', 'GTC');
+        const [ timeInForce, paramsTimeInForce ] = this.handleOptionStringAndParams (paramsAccountId, 'createOrder', 'timeInForce', 'GTC');
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['timeInForce'] = timeInForce;
         }
-        let triggerPrice: Str = undefined;
-        [ triggerPrice, params ] = this.handleParamString (params, 'triggerPrice');
+        const [ triggerPrice, paramsTriggerPrice ] = this.handleParamString (paramsTimeInForce, 'triggerPrice');
         if (triggerPrice !== undefined) {
             request['type'] = 'Stop Limit';
             request['stopPrice'] = triggerPrice;
         }
-        const response = await this.privatePostDoMyNewOrder (this.extend (request, params));
+        const response = await this.privatePostDoMyNewOrder (this.extend (request, paramsTriggerPrice));
         //
         // on success
         //
@@ -1389,7 +1387,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1415,7 +1413,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1452,7 +1450,7 @@ export default class cex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1468,12 +1466,11 @@ export default class cex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
+        const [ until, paramsUntil ] = this.handleParamInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request['dateTo'] = until;
         }
-        const response = await this.privatePostGetMyTransactionHistory (this.extend (request, params));
+        const response = await this.privatePostGetMyTransactionHistory (this.extend (request, paramsUntil));
         //
         //    {
         //        "ok": "ok",
@@ -1489,7 +1486,7 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -1503,8 +1500,8 @@ export default class cex extends Exchange {
             direction = 'in';
         }
         const currencyId = this.safeString (item, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
-        const code = this.safeCurrencyCode (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
+        const code = this.safeCurrencyCode (currencyId, currencyResolved);
         const timestampString = this.safeString (item, 'timestamp');
         const timestamp = this.parse8601 (timestampString);
         const type = this.safeString (item, 'type');
@@ -1524,10 +1521,10 @@ export default class cex extends Exchange {
             'after': undefined,
             'status': undefined,
             'fee': undefined,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str): Str {
         const ledgerType: Dict = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -1547,7 +1544,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1562,12 +1559,11 @@ export default class cex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
+        const [ until, paramsUntil ] = this.handleParamInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request['dateTo'] = until;
         }
-        const response = await this.privatePostGetMyFundingHistory (this.extend (request, params));
+        const response = await this.privatePostGetMyFundingHistory (this.extend (request, paramsUntil));
         //
         //    {
         //        "ok": "ok",
@@ -1586,14 +1582,17 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         const currencyId = this.safeString (transaction, 'currency');
         const direction = this.safeString (transaction, 'direction');
-        const type = (direction === 'withdraw') ? 'withdrawal' : 'deposit';
+        let type: Str = 'deposit';
+        if (direction === 'withdraw') {
+            type = 'withdrawal';
+        }
         const code = this.safeCurrencyCode (currencyId, currency);
         const updatedAt = this.safeString (transaction, 'updatedAt');
         const timestamp = this.parse8601 (updatedAt);
@@ -1645,7 +1644,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         let transfer: NullableDict = undefined;
         if (toAccount !== '' && fromAccount !== '') {
             transfer = await this.transferBetweenSubAccounts (code, amount, fromAccount, toAccount, params);
@@ -1653,20 +1652,24 @@ export default class cex extends Exchange {
             transfer = await this.transferBetweenMainAndSubAccount (code, amount, fromAccount, toAccount, params);
         }
         const fillResponseFromRequest = this.handleOption ('transfer', 'fillResponseFromRequest', true);
+        const filled: Dict = {};
         if (fillResponseFromRequest === true) {
-            transfer['fromAccount'] = fromAccount;
-            transfer['toAccount'] = toAccount;
+            filled['fromAccount'] = fromAccount;
+            filled['toAccount'] = toAccount;
         }
-        return transfer;
+        return this.extend (transfer, filled) as TransferEntry;
     }
 
-    async transferBetweenMainAndSubAccount (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    async transferBetweenMainAndSubAccount (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
         const fromMain = (fromAccount === '');
-        const targetAccount = fromMain ? toAccount : fromAccount;
+        let targetAccount: Str = fromAccount;
+        if (fromMain) {
+            targetAccount = toAccount;
+        }
         const guid = this.safeString (params, 'guid', this.uuid ());
         const request: Dict = {
             'currency': currency['id'],
@@ -1697,7 +1700,7 @@ export default class cex extends Exchange {
         return this.parseTransfer (data, currency);
     }
 
-    async transferBetweenSubAccounts (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    async transferBetweenSubAccounts (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1769,24 +1772,22 @@ export default class cex extends Exchange {
      * @param {string} [params.accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'accountId');
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
+        const [ accountId, paramsAccountId ] = this.handleOptionStringAndParams (params, 'createOrder', 'accountId');
         if (accountId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsAccountId);
         const currency = this.currency (code);
         const request: Dict = {
             'accountId': accountId,
             'currency': currency['id'], // documentation is wrong about this param
-            'blockchain': this.networkCodeToId (networkCode, currency['code']),
+            'blockchain': this.networkCodeToId (networkCode, this.safeString (currency, 'code')),
         };
-        const response = await this.privatePostGetDepositAddress (this.extend (request, params));
+        const response = await this.privatePostGetDepositAddress (this.extend (request, paramsNetworkCode));
         //
         //    {
         //        "ok": "ok",
@@ -1802,22 +1803,26 @@ export default class cex extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositAddress, 'address');
         const currencyId = this.safeString (depositAddress, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         this.checkAddress (address);
         return {
             'info': depositAddress,
-            'currency': currency['code'],
-            'network': this.networkIdToCode (this.safeString (depositAddress, 'blockchain'), currency['code']),
+            'currency': currencyResolved['code'],
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'blockchain'), this.safeString (currencyResolved, 'code')),
             'address': address,
             'tag': undefined,
         } as DepositAddress;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (method === 'GET') {
@@ -1825,23 +1830,25 @@ export default class cex extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
             } else {
-                body = this.json (query);
-                headers = {
+                const bodyJson = this.json (query);
+                const headersJson: NullableDict = {
                     'Content-Type': 'application/json',
                 };
+                return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersJson };
             }
         } else {
             this.checkRequiredCredentials ();
             const seconds = this.seconds ().toString ();
-            body = this.json (query);
-            const auth = path + seconds + body;
+            const bodySigned = this.json (query);
+            const auth = path + seconds + bodySigned;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
-            headers = {
+            const headersSigned: NullableDict = {
                 'Content-Type': 'application/json',
                 'X-AGGR-KEY': this.apiKey,
                 'X-AGGR-TIMESTAMP': seconds,
                 'X-AGGR-SIGNATURE': signature,
             };
+            return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1850,17 +1857,19 @@ export default class cex extends Exchange {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         // and because of `.parseJson` bug, we need extra fix
+        let responseFixed = undefined;
         if (response === undefined) {
             if (body === undefined) {
                 throw new NullResponse (this.id + ' returned empty response');
             } else if (body[0] === '{') {
                 const fixed = this.fixStringifiedJsonMembers (body);
-                response = this.parseJson (fixed);
+                responseFixed = this.parseJson (fixed);
             } else {
                 throw new NullResponse (this.id + ' returned unparsed response: ' + body);
             }
         }
-        const error = this.safeString (response, 'error');
+        const responseParsed = (response === undefined) ? responseFixed : response;
+        const error = this.safeString (responseParsed, 'error');
         if (error !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
@@ -1869,7 +1878,7 @@ export default class cex extends Exchange {
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
         if (url.indexOf ('do_my_new_order') >= 0) {
-            const data = this.safeDict (response, 'data', {});
+            const data = this.safeDict (responseParsed, 'data', {});
             const rejectReason = this.safeString (data, 'rejectReason');
             if (rejectReason !== undefined) {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], rejectReason, rejectReason);

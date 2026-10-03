@@ -102,6 +102,20 @@ public partial class bitstamp : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetFundingRateHistoryPair",parameters);
     }
 
+    /// <summary>Calls the publicGetDerivativesMarketHours endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetDerivativesMarketHours (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetDerivativesMarketHours",parameters);
+    }
+
+    /// <summary>Calls the publicGetDerivativesMarketHoursMarketSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDerivativesMarketHoursMarketSymbol (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDerivativesMarketHoursMarketSymbol",parameters);
+    }
+
     /// <summary>Calls the privateGetTravelRuleContacts endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateGetTravelRuleContacts (object parameters = null)
@@ -114,6 +128,34 @@ public partial class bitstamp : Exchange
     public async Task<Dictionary<string, object>> privateGetContactsContactUuid (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetContactsContactUuid",parameters);
+    }
+
+    /// <summary>Calls the privateGetTravelRuleUtxoXpubRegistrations endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetTravelRuleUtxoXpubRegistrations (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetTravelRuleUtxoXpubRegistrations",parameters);
+    }
+
+    /// <summary>Calls the privateGetTravelRuleUtxoXpubRegistrationsRegistrationId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTravelRuleUtxoXpubRegistrationsRegistrationId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTravelRuleUtxoXpubRegistrationsRegistrationId",parameters);
+    }
+
+    /// <summary>Calls the privateGetTravelRuleAddressVerification endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTravelRuleAddressVerification (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTravelRuleAddressVerification",parameters);
+    }
+
+    /// <summary>Calls the privateGetCryptoTransactionsDeposits endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetCryptoTransactionsDeposits (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetCryptoTransactionsDeposits",parameters);
     }
 
     /// <summary>Calls the privateGetEarnSubscriptions endpoint.</summary>
@@ -205,6 +247,13 @@ public partial class bitstamp : Exchange
     public async Task<Dictionary<string, object>> privatePostCryptoTransactions (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostCryptoTransactions",parameters);
+    }
+
+    /// <summary>Calls the privatePostCryptoTransactionsDepositsDepositIdReject endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCryptoTransactionsDepositsDepositIdReject (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCryptoTransactionsDepositsDepositIdReject",parameters);
     }
 
     /// <summary>Calls the privatePostOpenOrder endpoint.</summary>
@@ -422,6 +471,20 @@ public partial class bitstamp : Exchange
     public async Task<Dictionary<string, object>> privatePostGetMaxOrderAmount (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostGetMaxOrderAmount",parameters);
+    }
+
+    /// <summary>Calls the privatePostOrderData endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostOrderData (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostOrderData",parameters);
+    }
+
+    /// <summary>Calls the privatePostAccountOrderData endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostAccountOrderData (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostAccountOrderData",parameters);
     }
 
     /// <summary>Calls the privatePostBtcWithdrawal endpoint.</summary>
@@ -1563,6 +1626,20 @@ public partial class bitstamp : Exchange
     public async Task<Dictionary<string, object>> privatePostTravelRuleContacts (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostTravelRuleContacts",parameters);
+    }
+
+    /// <summary>Calls the privatePostTravelRuleUtxoXpubRegistrations endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTravelRuleUtxoXpubRegistrations (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTravelRuleUtxoXpubRegistrations",parameters);
+    }
+
+    /// <summary>Calls the privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke",parameters);
     }
 
     /// <summary>Calls the privatePostEarnSubscribe endpoint.</summary>

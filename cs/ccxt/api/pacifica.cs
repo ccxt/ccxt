@@ -179,6 +179,27 @@ public partial class pacifica : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetOrdersHistoryById",parameters);
     }
 
+    /// <summary>Calls the publicGetOrdersTwap endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetOrdersTwap (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetOrdersTwap",parameters);
+    }
+
+    /// <summary>Calls the publicGetOrdersTwapHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetOrdersTwapHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetOrdersTwapHistory",parameters);
+    }
+
+    /// <summary>Calls the publicGetOrdersTwapHistoryById endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetOrdersTwapHistoryById (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetOrdersTwapHistoryById",parameters);
+    }
+
     /// <summary>Calls the publicGetSpotAssets endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetSpotAssets (object parameters = null)
@@ -212,6 +233,27 @@ public partial class pacifica : Exchange
     public async Task<List<object>> publicGetAccountBuilderCodesApprovals (object parameters = null)
     {
         return await this.callAsync<List<object>> ("publicGetAccountBuilderCodesApprovals",parameters);
+    }
+
+    /// <summary>Calls the publicGetBuilderOverview endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetBuilderOverview (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetBuilderOverview",parameters);
+    }
+
+    /// <summary>Calls the publicGetBuilderTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetBuilderTrades (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetBuilderTrades",parameters);
+    }
+
+    /// <summary>Calls the publicGetLeaderboardBuilderCode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetLeaderboardBuilderCode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetLeaderboardBuilderCode",parameters);
     }
 
     /// <summary>Calls the privatePostAccountLeverage endpoint.</summary>
@@ -354,6 +396,20 @@ public partial class pacifica : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostOrdersBatch",parameters);
     }
 
+    /// <summary>Calls the privatePostOrdersTwapCreate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOrdersTwapCreate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOrdersTwapCreate",parameters);
+    }
+
+    /// <summary>Calls the privatePostOrdersTwapCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOrdersTwapCancel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOrdersTwapCancel",parameters);
+    }
+
     /// <summary>Calls the privatePostAccountBuilderCodesApprove endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostAccountBuilderCodesApprove (object parameters = null)
@@ -368,11 +424,74 @@ public partial class pacifica : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostAccountBuilderCodesRevoke",parameters);
     }
 
+    /// <summary>Calls the privatePostBuilderUpdateFeeRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBuilderUpdateFeeRate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBuilderUpdateFeeRate",parameters);
+    }
+
+    /// <summary>Calls the privatePostReferralUserCodeClaim endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostReferralUserCodeClaim (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostReferralUserCodeClaim",parameters);
+    }
+
     /// <summary>Calls the privatePostAgentBind endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostAgentBind (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostAgentBind",parameters);
+    }
+
+    /// <summary>Calls the privatePostAgentList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAgentList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAgentList",parameters);
+    }
+
+    /// <summary>Calls the privatePostAgentRevoke endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAgentRevoke (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAgentRevoke",parameters);
+    }
+
+    /// <summary>Calls the privatePostAgentRevokeAll endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAgentRevokeAll (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAgentRevokeAll",parameters);
+    }
+
+    /// <summary>Calls the privatePostAgentIpWhitelistList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAgentIpWhitelistList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAgentIpWhitelistList",parameters);
+    }
+
+    /// <summary>Calls the privatePostAgentIpWhitelistAdd endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAgentIpWhitelistAdd (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAgentIpWhitelistAdd",parameters);
+    }
+
+    /// <summary>Calls the privatePostAgentIpWhitelistRemove endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAgentIpWhitelistRemove (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAgentIpWhitelistRemove",parameters);
+    }
+
+    /// <summary>Calls the privatePostAgentIpWhitelistToggle endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAgentIpWhitelistToggle (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAgentIpWhitelistToggle",parameters);
     }
 
     /// <summary>Calls the privatePostAccountApiKeysCreate endpoint.</summary>

@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official independentreserve API documentation:** [independentreserve.com](https://www.independentreserve.com/API)
 
-> 39 implicit endpoints across 2 access groups.
+> 46 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -76,6 +76,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetGetRecentTrades` | GET | `GetRecentTrades` | 1 |
 | `publicGetGetFxRates` | GET | `GetFxRates` | 1 |
 | `publicGetGetOrderMinimumVolumes` | GET | `GetOrderMinimumVolumes` | 1 |
+| `publicGetGetDepositFees` | GET | `GetDepositFees` | 1 |
+| `publicGetGetFiatWithdrawalFees` | GET | `GetFiatWithdrawalFees` | 1 |
 | `publicGetGetCryptoWithdrawalFees` | GET | `GetCryptoWithdrawalFees` | 1 |
 | `publicGetGetCryptoWithdrawalFees2` | GET | `GetCryptoWithdrawalFees2` | 1 |
 | `publicGetGetNetworks` | GET | `GetNetworks` | 1 |
@@ -99,11 +101,16 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostGetDigitalCurrencyDepositAddresses` | POST | `GetDigitalCurrencyDepositAddresses` | 1 |
 | `privatePostGetDigitalCurrencyDepositAddresses2` | POST | `GetDigitalCurrencyDepositAddresses2` | 1 |
 | `privatePostGetTrades` | POST | `GetTrades` | 1 |
+| `privatePostGetTradesByOrder` | POST | `GetTradesByOrder` | 1 |
 | `privatePostGetBrokerageFees` | POST | `GetBrokerageFees` | 1 |
 | `privatePostGetDigitalCurrencyWithdrawal` | POST | `GetDigitalCurrencyWithdrawal` | 1 |
+| `privatePostGetFiatWithdrawal` | POST | `GetFiatWithdrawal` | 1 |
+| `privatePostGetDepositLimits` | POST | `GetDepositLimits` | 1 |
+| `privatePostGetWithdrawalLimits` | POST | `GetWithdrawalLimits` | 1 |
 | `privatePostPlaceLimitOrder` | POST | `PlaceLimitOrder` | 1 |
 | `privatePostPlaceMarketOrder` | POST | `PlaceMarketOrder` | 1 |
 | `privatePostCancelOrder` | POST | `CancelOrder` | 1 |
+| `privatePostCancelOrders` | POST | `CancelOrders` | 1 |
 | `privatePostSynchDigitalCurrencyDepositAddressWithBlockchain` | POST | `SynchDigitalCurrencyDepositAddressWithBlockchain` | 1 |
 | `privatePostRequestFiatWithdrawal` | POST | `RequestFiatWithdrawal` | 1 |
 | `privatePostWithdrawFiatCurrency` | POST | `WithdrawFiatCurrency` | 1 |

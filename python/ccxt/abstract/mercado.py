@@ -25,3 +25,7 @@ class ImplicitAPI:
     private_post_withdraw_coin = privatePostWithdrawCoin = Entry[_Dict]('withdraw_coin', 'private', 'POST', {'cost': 1})
     v4public_get_coin_candle = v4PublicGetCoinCandle = Entry[_Dict]('{coin}/candle/', 'v4Public', 'GET', {'cost': 1})
     v4publicnet_get_candles = v4PublicNetGetCandles = Entry[_Dict]('candles', 'v4PublicNet', 'GET', {'cost': 1})
+    v4private_post_accounts = v4PrivatePostAccounts = Entry[_Dict]('accounts', 'v4Private', 'POST', {'cost': 1})
+    v4private_post_accounts_accountid_symbol_transfers_internal = v4PrivatePostAccountsAccountIdSymbolTransfersInternal = Entry[_Dict]('accounts/{accountId}/{symbol}/transfers/internal', 'v4Private', 'POST', {'cost': 1})
+    v4private_post_oauth2_token = v4PrivatePostOauth2Token = Entry[_Dict]('oauth2/token', 'v4Private', 'POST', {'cost': 1})
+    v4private_patch_accounts_accountid_wallet_symbol_deposits_depositid = v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId = Entry[_Dict]('accounts/{accountId}/wallet/{symbol}/deposits/{depositId}', 'v4Private', 'PATCH', {'cost': 1})

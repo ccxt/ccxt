@@ -6,7 +6,7 @@ package io.github.ccxt.types;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public final class CurrencyInterface {
+public final class CurrencyInterface extends TypedMap {
     public String id;
     public String code;
     public Long numericId;
@@ -20,10 +20,13 @@ public final class CurrencyInterface {
     public Boolean margin;
     public CurrencyLimits limits;
     public Map<String, Network> networks;
+    public Map<String, Object> fees;
+    public Long valueScale;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
     public CurrencyInterface(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.code = TypeHelper.safeString(data, "code");
@@ -45,6 +48,9 @@ public final class CurrencyInterface {
                 this.networks.put(entry.getKey(), new Network(entry.getValue()));
             }
         }
+        Object feesRaw = TypeHelper.safeValue(data, "fees");
+        this.fees = feesRaw instanceof Map ? (Map<String, Object>) feesRaw : null;
+        this.valueScale = TypeHelper.safeInteger(data, "valueScale");
         this.info = TypeHelper.getInfo(data);
     }
 }

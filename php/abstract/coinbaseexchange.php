@@ -74,10 +74,34 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
         return $this->request('products/volume-summary', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function public_get_wrapped_assets($params = array()) {
+        return $this->request('wrapped-assets', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_wrapped_assets_wrapped_asset_id($params = array()) {
+        return $this->request('wrapped-assets/{wrapped_asset_id}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_wrapped_assets_wrapped_asset_id_conversion_rate($params = array()) {
+        return $this->request('wrapped-assets/{wrapped_asset_id}/conversion-rate', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return list<mixed>
      */
     public function private_get_address_book($params = array()) {
         return $this->request('address-book', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_get_address_book_counterparty($params = array()) {
+        return $this->request('address-book/counterparty', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -254,6 +278,12 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
         return $this->request('transfers/{transfer_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function private_get_travel_rules($params = array()) {
+        return $this->request('travel-rules', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function private_get_users_self_exchange_limits($params = array()) {
@@ -270,6 +300,12 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
      */
     public function private_get_users_self_trailing_volume($params = array()) {
         return $this->request('users/self/trailing-volume', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_users_user_id_trading_volumes($params = array()) {
+        return $this->request('users/{user_id}/trading-volumes', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -362,6 +398,36 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
         return $this->request('loans', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function private_get_loans_options($params = array()) {
+        return $this->request('loans/options', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_get_wrapped_assets_redeem($params = array()) {
+        return $this->request('wrapped-assets/redeem', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_wrapped_assets_redeem_redeem_id($params = array()) {
+        return $this->request('wrapped-assets/redeem/{redeem_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_get_wrapped_assets_stake_wrap($params = array()) {
+        return $this->request('wrapped-assets/stake-wrap', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_wrapped_assets_stake_wrap_stake_wrap_id($params = array()) {
+        return $this->request('wrapped-assets/stake-wrap/{stake_wrap_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function private_post_conversions($params = array()) {
@@ -384,6 +450,12 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
      */
     public function private_post_coinbase_accounts_id_addresses($params = array()) {
         return $this->request('coinbase-accounts/{id}/addresses', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_address_book($params = array()) {
+        return $this->request('address-book', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -442,6 +514,12 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_withdrawals_counterparty($params = array()) {
+        return $this->request('withdrawals/counterparty', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_withdrawals_crypto($params = array()) {
         return $this->request('withdrawals/crypto', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -450,6 +528,36 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
      */
     public function private_post_withdrawals_payment_method($params = array()) {
         return $this->request('withdrawals/payment-method', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_transfers_transfer_id_travel_rules($params = array()) {
+        return $this->request('transfers/{transfer_id}/travel-rules', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_travel_rules($params = array()) {
+        return $this->request('travel-rules', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_users_user_id_settlement_preferences($params = array()) {
+        return $this->request('users/{user_id}/settlement-preferences', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_wrapped_assets_redeem($params = array()) {
+        return $this->request('wrapped-assets/redeem', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_wrapped_assets_stake_wrap($params = array()) {
+        return $this->request('wrapped-assets/stake-wrap', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -490,6 +598,18 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_delete_address_book_id($params = array()) {
+        return $this->request('address-book/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_delete_travel_rules_id($params = array()) {
+        return $this->request('travel-rules/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_put_profiles_id_deactivate($params = array()) {
         return $this->request('profiles/{id}/deactivate', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -498,6 +618,12 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
      */
     public function private_put_profiles_id($params = array()) {
         return $this->request('profiles/{id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_put_address_book_id($params = array()) {
+        return $this->request('address-book/{id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -566,10 +692,34 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
         return $this->request('products/volume-summary', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function publicGetWrappedAssets($params = array()) {
+        return $this->request('wrapped-assets', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetWrappedAssetsWrappedAssetId($params = array()) {
+        return $this->request('wrapped-assets/{wrapped_asset_id}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetWrappedAssetsWrappedAssetIdConversionRate($params = array()) {
+        return $this->request('wrapped-assets/{wrapped_asset_id}/conversion-rate', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return list<mixed>
      */
     public function privateGetAddressBook($params = array()) {
         return $this->request('address-book', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetAddressBookCounterparty($params = array()) {
+        return $this->request('address-book/counterparty', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -746,6 +896,12 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
         return $this->request('transfers/{transfer_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function privateGetTravelRules($params = array()) {
+        return $this->request('travel-rules', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function privateGetUsersSelfExchangeLimits($params = array()) {
@@ -762,6 +918,12 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
      */
     public function privateGetUsersSelfTrailingVolume($params = array()) {
         return $this->request('users/self/trailing-volume', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUsersUserIdTradingVolumes($params = array()) {
+        return $this->request('users/{user_id}/trading-volumes', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -854,6 +1016,36 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
         return $this->request('loans', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function privateGetLoansOptions($params = array()) {
+        return $this->request('loans/options', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetWrappedAssetsRedeem($params = array()) {
+        return $this->request('wrapped-assets/redeem', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetWrappedAssetsRedeemRedeemId($params = array()) {
+        return $this->request('wrapped-assets/redeem/{redeem_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetWrappedAssetsStakeWrap($params = array()) {
+        return $this->request('wrapped-assets/stake-wrap', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetWrappedAssetsStakeWrapStakeWrapId($params = array()) {
+        return $this->request('wrapped-assets/stake-wrap/{stake_wrap_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function privatePostConversions($params = array()) {
@@ -876,6 +1068,12 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
      */
     public function privatePostCoinbaseAccountsIdAddresses($params = array()) {
         return $this->request('coinbase-accounts/{id}/addresses', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostAddressBook($params = array()) {
+        return $this->request('address-book', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -934,6 +1132,12 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatePostWithdrawalsCounterparty($params = array()) {
+        return $this->request('withdrawals/counterparty', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostWithdrawalsCrypto($params = array()) {
         return $this->request('withdrawals/crypto', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -942,6 +1146,36 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
      */
     public function privatePostWithdrawalsPaymentMethod($params = array()) {
         return $this->request('withdrawals/payment-method', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostTransfersTransferIdTravelRules($params = array()) {
+        return $this->request('transfers/{transfer_id}/travel-rules', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostTravelRules($params = array()) {
+        return $this->request('travel-rules', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostUsersUserIdSettlementPreferences($params = array()) {
+        return $this->request('users/{user_id}/settlement-preferences', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostWrappedAssetsRedeem($params = array()) {
+        return $this->request('wrapped-assets/redeem', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostWrappedAssetsStakeWrap($params = array()) {
+        return $this->request('wrapped-assets/stake-wrap', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -982,6 +1216,18 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateDeleteAddressBookId($params = array()) {
+        return $this->request('address-book/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateDeleteTravelRulesId($params = array()) {
+        return $this->request('travel-rules/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePutProfilesIdDeactivate($params = array()) {
         return $this->request('profiles/{id}/deactivate', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -990,5 +1236,11 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
      */
     public function privatePutProfilesId($params = array()) {
         return $this->request('profiles/{id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePutAddressBookId($params = array()) {
+        return $this->request('address-book/{id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
 }

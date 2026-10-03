@@ -139,7 +139,7 @@ function isTranspileNeeded (tsPath: string, outputPaths: string[]) {
 //
 // This MUST run before the worker pool is fed: the per-language drivers hand the
 // whole file list to piscina as the sticky ts.Program `roots` (see
-// build/worker-program-batch.js), so a skipped exchange that stayed in the list
+// build/worker-program-batch.ts), so a skipped exchange that stayed in the list
 // would still be parsed, printed and written — i.e. no saving at all.
 //
 // `resolvePaths` returns the ts source and every file the driver writes for that
@@ -167,7 +167,7 @@ function filterDirtyExchangeFiles (lang: string, files: string[], force: boolean
 // base methods, the error hierarchy, and the test groups. Those stages emit a fixed
 // set of files from a fixed set of sources, and they cannot be filtered file by file
 // — `webworkerTranspile` hands the whole stage list to piscina as the sticky
-// ts.Program `roots` (build/worker-program-batch.js), so printing a subset off a
+// ts.Program `roots` (build/worker-program-batch.ts), so printing a subset off a
 // different root set is not guaranteed to reproduce the full-run output. A stage is
 // therefore skipped all-or-nothing: clean only when every output exists and the
 // newest input is not newer than the oldest output.
@@ -493,7 +493,7 @@ class Transpiler {
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3):'],
             [ /\s\|\|\s/g, ' or ' ],
             [ /\s\&\&\s/g, ' and ' ],
-            [ /\!([^\s\='"])/g, 'not $1'],
+            [ /(?<!['"])\!([^\s\='"])/g, 'not $1'],
             [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
             [ /^(\s*}\s*$)+/gm, '' ],
             [ /\;(\s+?\/\/.+?)/g, '$1' ],
@@ -519,7 +519,7 @@ class Transpiler {
             [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
             [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(math.ceil($1))' ],
             [ /Math\.log/g, 'math.log' ],
-            [ /([a-zA-Z0-9_\.]*\([^\)]+\)|[^\s]+)\s+\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
+            [ /([a-zA-Z0-9_\.]*\((?:[^()]|\([^()]*\))+\)|[^\s]+)\s+\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
             [ /([^\s]+)\.slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2:$3]' ],
             [ /([^\s]+)\.slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
             [ /([^\s(:]+)\.length/g, 'len($1)' ],
@@ -806,7 +806,7 @@ class Transpiler {
     getTypescriptRemovalRegexes() {
         return [
             [ /(?<![a-zA-Z0-9_]\s)(?<![a-zA-Z0-9_])\((\w+)\sas\s\w+\)/g, '$1'], // remove parens around a cast like "(x as any)" -> "x"; but NOT when it's a call arg, in either the spaced "foo (x as string)" or unspaced "foo(x as string)" form (the latter is produced by trimmedUnCamelCase collapsing base-method calls, e.g. capitalize(side as string)) — both keep their parens and let the next rule drop just the " as T"
-            [ /\sas (\w+<[^<>]*(?:<[^<>]*>[^<>]*)*>|(?:Dictionary<)?\w+(?:\[])?>?)/g, ''], // remove any "as any" or "as number" or "as trade[]" or a generic cast such as "as Endpoint<Dict | List>" (the generic arm must run first, otherwise "as Foo" matches and strands "<T>")
+            [ /\sas (\w+<[^<>]*(?:<[^<>]*>[^<>]*)*>|(?:Dictionary<)?(?:[A-Z]\w*|(?:any|number|string|boolean|bigint|unknown|object|never|void|symbol)\b)(?:\[])?>?)/g, ''], // remove any "as any" or "as number" or "as trade[]" or a generic cast such as "as Endpoint<Dict | List>" (the generic arm must run first, otherwise "as Foo" matches and strands "<T>")
             [ /(^|[^a-zA-Z0-9_])((?:let|const)\s+\w+):[^=\n]+(\s+=.*$)/gm, '$1$2$3'], // remove variable type
         ]
     }
@@ -1082,9 +1082,11 @@ class Transpiler {
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
             'CurrencyInterface': /(?:->|:) (?:[Ll]ist\[)?CurrencyInterface\b/,
-            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress/,
+            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress\b(?!es)/,
+            'DepositAddresses': /-> (?:[Ll]ist\[)?DepositAddresses\b/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
+            'AllGreeks': /-> AllGreeks:/,
             'IndexType': /: IndexType/,
             'NullableIndexType': /: NullableIndexType/,
             'Int': /(: (?:[Ll]ist\[)?Int\b)|(-> Int:)/,
@@ -1092,7 +1094,7 @@ class Transpiler {
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
-            'LedgerEntry': /-> LedgerEntry:/,
+            'LedgerEntry': /-> (?:[Ll]ist\[)?LedgerEntry\b/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
             'LeverageTier': /-> (?:[Ll]ist\[)?LeverageTier/,
@@ -1101,9 +1103,9 @@ class Transpiler {
             'LongShortRatio': /-> (?:[Ll]ist\[)?LongShortRatio/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
-            'MarginModification': /-> MarginModification:/,
+            'MarginModification': /-> (?:[Ll]ist\[)?MarginModification\b/,
             'MarginLoan': /-> MarginLoan:/,
-            'Market': /(-> Market:|: Market)/,
+            'Market': /(-> (?:[Ll]ist\[)?Market\b|: Market)/,
             // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
@@ -1125,7 +1127,7 @@ class Transpiler {
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'FundingRate': /-> FundingRate:/,
-            'OpenInterest': /-> OpenInterest:/,
+            'OpenInterest': /-> (?:[Ll]ist\[)?OpenInterest\b/,
             'FundingRates': /-> FundingRates:/,
             'OrderBooks': /-> OrderBooks:/,
             'OpenInterests': /-> OpenInterests:/,
@@ -1136,8 +1138,8 @@ class Transpiler {
             'DepositWithdrawFees': /-> DepositWithdrawFees:/,
             'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
             'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
-            'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
-            'TransferEntry': /-> TransferEntry:/,
+            'MarketInterface': /(-> (?:[Ll]ist\[)?MarketInterface|: MarketInterface\b)/,
+            'TransferEntry': /-> (?:[Ll]ist\[)?TransferEntry\b/,
             'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
             'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
             'fetchEventsParams': /: (?:[Ll]ist\[)?fetchEventsParams\b/,
@@ -1680,7 +1682,11 @@ class Transpiler {
         // same idea for dynamic constructor calls, e.g. new $broad[$broadKey] ($error);
         // the variable only gets its "$" from phpVariablesRegexes below, so handle it here.
         const noSpaceBeforeDynamicNewParen = [ /new (\$[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])*) \(/g, 'new $1(' ]
-        let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
+        let phpBody = this.regexAll (js, phpRegexes)
+        // string literals are data, the variable rules must never turn '&signature=' into '&$signature='
+        const { masked: phpCode, literals } = this.maskPhpStringLiterals (phpBody)
+        phpBody = this.unmaskPhpStringLiterals (this.regexAll (phpCode, phpVariablesRegexes.concat (variablePropertiesRegexes)), literals)
+        phpBody = this.regexAll (phpBody, [ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ])
         // indent async php — awaiting bodies stay flat here on purpose: the caller
         // (transpileMethodsToAllLanguages) emits a thin public stub
         // `return Async\async(self::do_<name>(...))($args);` and re-homes this flat
@@ -1703,7 +1709,175 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
+    findCommentStart (line: string) {
+        // returns the index of the first comment marker sitting outside of any
+        // string literal or minus one, quote state is tracked per line so that
+        // protocol separators and protocol relative joins inside strings like
+        // https:// or a bare '//' never register as comment starts
+        let quote = ''
+        for (let i = 0; i < line.length; i++) {
+            const c = line[i]
+            if (quote !== '') {
+                if (c === '\\') {
+                    i++
+                } else if (c === quote) {
+                    quote = ''
+                }
+            } else if (c === "'" || c === '"' || c === '`') {
+                quote = c
+            } else if (c === '/' && line[i + 1] === '/' && line[i - 1] !== ':') {
+                // the colon guard keeps bare protocol separators inside jsdoc
+                // blocks like https:// out of the match, those lines feed the
+                // docstring and link conversion passes and must stay visible
+                return i
+            }
+        }
+        return -1
+    }
+
+    maskStringSpaceParens (js: string) {
+        // a space before a left paren inside a string literal is data, not
+        // code style - the PEP8 E225 collapse and its siblings must not
+        // rewrite it (see #30286). quote state is tracked per line exactly
+        // like findCommentStart; every ' (' inside a single- or double-quoted
+        // literal is swapped for a regex-inert token before the transforms
+        // and restored verbatim afterwards. backticks stay out of the quote
+        // set so jsdoc code spans remain visible to the method-conversion
+        // rules. runs after maskComments, so line-comment bodies are already
+        // inert and cannot desync the state.
+        //
+        // the per-line quote-state reset is DELIBERATE: cross-line scanning
+        // is exactly what let stray apostrophes desync the earlier span
+        // design, and multi-line string content (jsdoc-derived docstring
+        // prose) is knowingly left to the long-standing collapse - see the
+        // coverage notes in the commit message. do not "fix" this into a
+        // multi-line scanner.
+        const lines = js.split ('\n')
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            if (line.indexOf (' (') < 0) {
+                continue
+            }
+            let quote = ''
+            let out = ''
+            for (let j = 0; j < line.length; j++) {
+                const c = line[j]
+                if (quote !== '') {
+                    if (c === '\\') {
+                        out += c + (line[j + 1] ?? '')
+                        j++
+                        continue
+                    }
+                    if (c === quote) {
+                        quote = ''
+                        out += c
+                        continue
+                    }
+                    if (c === ' ' && line[j + 1] === '(') {
+                        out += '\x02'
+                        continue
+                    }
+                    out += c
+                } else {
+                    if (c === "'" || c === '"') {
+                        quote = c
+                    }
+                    out += c
+                }
+            }
+            lines[i] = out
+        }
+        return lines.join ('\n')
+    }
+
+    unmaskStringSpaceParens (body: string) {
+        return body.replace (/\x02/g, ' ')
+    }
+
+    maskPhpStringLiterals (body: string) {
+        // swaps the contents of every quoted literal that closes on its own line for a
+        // regex-inert token; docstring lines and text after a // marker are left as is
+        const literals: string[] = []
+        const lines = body.split ('\n')
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            if (/^\s*\/?\*/.test (line) || (line.indexOf ("'") < 0 && line.indexOf ('"') < 0)) {
+                continue
+            }
+            let out = ''
+            let j = 0
+            while (j < line.length) {
+                const c = line[j]
+                if (c === '/' && line[j + 1] === '/') {
+                    break
+                }
+                if (c !== "'" && c !== '"') {
+                    out += c
+                    j++
+                    continue
+                }
+                let k = j + 1
+                while (k < line.length && line[k] !== c) {
+                    k += (line[k] === '\\') ? 2 : 1
+                }
+                if (k >= line.length) {
+                    break
+                }
+                const content = line.slice (j + 1, k)
+                if (content.length > 0) {
+                    literals.push (content)
+                    out += c + '\x03' + (literals.length - 1).toString () + '\x03' + c
+                } else {
+                    out += c + c
+                }
+                j = k + 1
+            }
+            lines[i] = out + line.slice (j)
+        }
+        return { masked: lines.join ('\n'), literals }
+    }
+
+    unmaskPhpStringLiterals (body: string, literals: string[]) {
+        return body.replace (/\x03(\d+)\x03/g, (match: string, index: string) => literals[parseInt (index)])
+    }
+
+    maskComments (js: string) {
+        // comment text is documentation, not code to translate, so the body of
+        // every comment is replaced by a regex-inert token before any transform
+        // runs and restored verbatim afterwards, the marker itself stays visible
+        // for the language specific marker conversion rules
+        const masks: string[] = []
+        const lines = js.split ('\n')
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            const start = this.findCommentStart (line)
+            if (start < 0) {
+                continue
+            }
+            let textStart = start + 2
+            if (line[textStart] === ' ') {
+                textStart++
+            }
+            const text = line.slice (textStart)
+            if (text.length === 0) {
+                continue
+            }
+            masks.push (text)
+            lines[i] = line.slice (0, textStart) + '\x01' + (masks.length - 1).toString () + '\x01'
+        }
+        return { masked: lines.join ('\n'), masks }
+    }
+
+    unmaskComments (body: string, masks: string[]) {
+        return body.replace (/\x01(\d+)\x01/g, (match: string, index: string) => masks[parseInt (index)])
+    }
+
     transpileJavaScriptToPythonAndPHP (args:any) {
+
+        // protect comment bodies from every code transform below
+        const { masked, masks } = this.maskComments (args.js)
+        // protect data spaces inside string literals from the style rules
+        args.js = this.maskStringSpaceParens (masked)
 
         // apply common regexes once before branching to language-specific paths
         args.js = this.regexAll (args.js, this.getCommonRegexes ())
@@ -1731,6 +1905,11 @@ class Transpiler {
             phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
         }
 
+        python3Body = this.unmaskStringSpaceParens (this.unmaskComments (python3Body, masks))
+        python2Body = this.unmaskStringSpaceParens (this.unmaskComments (python2Body, masks))
+        phpBody = this.unmaskStringSpaceParens (this.unmaskComments (phpBody, masks))
+        phpAsyncBody = this.unmaskStringSpaceParens (this.unmaskComments (phpAsyncBody, masks))
+
         return { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait }
     }
 
@@ -1753,7 +1932,11 @@ class Transpiler {
                         .replace ('await asyncio.sleep', 'time.sleep')
                         .replace ('async ', '')
                         .replace ('await ', ''))
-                        .replace ('asyncio.gather\(\*', '(') // needed for async -> sync
+                        // needed for async -> sync. the previous string pattern also matched
+                        // (a plain literal drops the backslashes, so it was exactly
+                        // `asyncio.gather(*`), but String.replace with a string only rewrites the
+                        // first occurrence - the /g regex unwraps every gather on the line
+                        .replace (/asyncio\.gather\(\*/g, '(')
                         .replace ('asyncio.run', '') // needed for async -> sync
             })
 
@@ -1772,9 +1955,6 @@ class Transpiler {
 
         newContents = deleteFunction ('test_tickers_async', newContents)
         newContents = deleteFunction ('test_l2_order_books_async', newContents)
-        if (fs.existsSync (sync)) {
-            fs.truncateSync (sync)
-        }
         fs.writeFileSync (sync, newContents)
     }
 
@@ -1794,9 +1974,6 @@ class Transpiler {
         ]
 
         const newContents = this.regexAll (syncBody, this.getPHPSyncRegexes ().concat (phpTestRegexes));
-        if (fs.existsSync (sync)) {
-            fs.truncateSync (sync)
-        }
         fs.writeFileSync (sync, newContents)
     }
 
@@ -2200,7 +2377,9 @@ class Transpiler {
                 'Dict': 'dict',
                 'NullableDict': 'dict',
                 'List': 'list',
-                'NullableList': 'list'
+                'NullableList': 'list',
+                // the ws order book class alias prints untyped, as `any` did
+                'WsOrderBook': 'object'
             }
             const unwrapLists = (type: string) => {
                 // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
@@ -2241,8 +2420,10 @@ class Transpiler {
                     'NullableDict': '?array',
                     'List': 'array',
                     'NullableList': '?array',
+                    // the ws order book class alias prints untyped, as `any` did
+                    'WsOrderBook': 'mixed',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -3096,7 +3277,7 @@ class Transpiler {
 
         // ########### PHP ###########
         if (this.buildPHP) {
-            const phpReform = (cont: string) => {
+            const phpReform = (cont: string, isAsync: boolean) => {
                 // add exceptions
                 let exceptions = '';
                 for (const eType of Object.keys(errors)) {
@@ -3104,7 +3285,8 @@ class Transpiler {
                         exceptions += `use ccxt\\${eType};\n`;
                     }
                 }
-                let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
+                const reactIncludes = isAsync ? 'use \\React\\Async;\nuse \\React\\Promise;\n' : '';
+                let head = '<?php\n\n' + 'namespace ccxt;\n\n' + reactIncludes + exceptions + '\n\n\n';
                 let newContent = head + cont;
                 newContent = newContent.
                     replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
@@ -3116,9 +3298,9 @@ class Transpiler {
                 newContent = this.phpReplaceException (newContent);
                 return newContent;
             }
-            let bodyPhpAsync = phpReform (phpAsync);
+            let bodyPhpAsync = phpReform (phpAsync, true);
             overwriteSafe (files.phpFileAsync, bodyPhpAsync);
-            let bodyPhpSync = phpReform (php);
+            let bodyPhpSync = phpReform (php, false);
             bodyPhpSync = bodyPhpSync.replace (/(?:\\React\\)?Promise\\all/g, '');
             overwriteSafe (files.phpFileSync, bodyPhpSync);
         }
@@ -3138,7 +3320,7 @@ class Transpiler {
         // create worker
         const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
         const piscina = new Piscina({
-            filename: resolve(__dirname, './ast-transpiler-worker.js'),
+            filename: resolve(__dirname, './ast-transpiler-worker.ts'),
             maxThreads,
         });
 
@@ -3275,7 +3457,10 @@ class Transpiler {
                 phpSync = this.transpileAsyncPHPToSyncPHP (phpFixes(result[1].content));
             } else if (this.buildPython) {
                 pythonAsync = pyFixes(result[1].content);
-                pythonSync = pyFixes(result[0].content);
+                // the sync flag drives the async->sync fixes (asyncio.gather unwrap);
+                // omitting it here left every python-only build - the CI python lane -
+                // emitting a bare asyncio.gather over non-awaitables in sync tests
+                pythonSync = pyFixes(result[0].content, true);
             }
 
             const usesEqualsFunction = needsEquals[i];
@@ -3937,6 +4122,7 @@ if (isMainEntry(metaFileUrl)) {
     const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     const baseClassOnly = process.argv.includes ('--baseClass')
+    const baseTestsOnly = process.argv.includes ('--baseTests')
 
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
 
@@ -3956,6 +4142,11 @@ if (isMainEntry(metaFileUrl)) {
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ()
         transpiler.transpilePredictionBaseMethods ()
+    } else if (baseTestsOnly) {
+        (async () => {
+            await transpiler.baseFunctionalitiesTests ()
+            transpiler.transpileCryptoTests ()
+        })()
     } else if (test) {
         (async () => {
             await transpiler.transpileTests ()

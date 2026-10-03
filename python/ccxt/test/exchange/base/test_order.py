@@ -70,5 +70,5 @@ def test_order(exchange, skipped_properties, method, entry, symbol, now):
         })
         if entry['trades'] is not None:
             for i in range(0, len(entry['trades'])):
-                test_trade(exchange, skipped_new, method, entry['trades'][i], symbol, now)
+                test_trade(exchange, skipped_new, method, entry['trades'][i], symbol, now, False)
     test_shared_methods.assert_fee_structure(exchange, skipped_properties, method, entry, 'fee')

@@ -13,6 +13,7 @@ class ImplicitAPI:
     public_get_trade_api_pairs = publicGetTradeApiPairs = Entry[_Dict]('trade/api/pairs', 'public', 'GET', {'cost': 1})
     public_get_trade_api_pairs_precisions = publicGetTradeApiPairsPrecisions = Entry[_Dict]('trade/api/pairs/precisions', 'public', 'GET', {'cost': 1})
     public_get_trade_api_rates = publicGetTradeApiRates = Entry[_Dict]('trade/api/rates', 'public', 'GET', {'cost': 1})
+    public_get_trade_api_stats = publicGetTradeApiStats = Entry[_Dict]('trade/api/stats', 'public', 'GET', {'cost': 1})
     public_get_trade_api_trade_id = publicGetTradeApiTradeId = Entry[_Dict]('trade/api/trade/{id}', 'public', 'GET', {'cost': 1})
     public_get_trade_api_trades = publicGetTradeApiTrades = Entry[_Dict]('trade/api/trades', 'public', 'GET', {'cost': 1})
     public_get_trade_api_ccxt_pairs = publicGetTradeApiCcxtPairs = Entry[_Dict]('trade/api/ccxt/pairs', 'public', 'GET', {'cost': 1})

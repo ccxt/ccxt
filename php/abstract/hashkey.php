@@ -278,6 +278,12 @@ abstract class hashkey extends \ccxt\Exchange {
         return $this->request('api/v1/account/withdrawOrders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function private_get_api_v1_affiliate_inviteeinfo($params = array()) {
+        return $this->request('api/v1/affiliate/inviteeInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function private_post_api_v1_userdatastream($params = array()) {
@@ -388,6 +394,12 @@ abstract class hashkey extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_delete_api_v1_spot_cancelallopenorders($params = array()) {
+        return $this->request('api/v1/spot/cancelAllOpenOrders', 'private', 'DELETE', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_api_v1_futures_order($params = array()) {
         return $this->request('api/v1/futures/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -402,6 +414,12 @@ abstract class hashkey extends \ccxt\Exchange {
      */
     public function private_delete_api_v1_futures_cancelorderbyids($params = array()) {
         return $this->request('api/v1/futures/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_delete_api_v1_futures_cancelallopenorders($params = array()) {
+        return $this->request('api/v1/futures/cancelAllOpenOrders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -680,6 +698,12 @@ abstract class hashkey extends \ccxt\Exchange {
         return $this->request('api/v1/account/withdrawOrders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function privateGetApiV1AffiliateInviteeInfo($params = array()) {
+        return $this->request('api/v1/affiliate/inviteeInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function privatePostApiV1UserDataStream($params = array()) {
@@ -790,6 +814,12 @@ abstract class hashkey extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateDeleteApiV1SpotCancelAllOpenOrders($params = array()) {
+        return $this->request('api/v1/spot/cancelAllOpenOrders', 'private', 'DELETE', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteApiV1FuturesOrder($params = array()) {
         return $this->request('api/v1/futures/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -804,6 +834,12 @@ abstract class hashkey extends \ccxt\Exchange {
      */
     public function privateDeleteApiV1FuturesCancelOrderByIds($params = array()) {
         return $this->request('api/v1/futures/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateDeleteApiV1FuturesCancelAllOpenOrders($params = array()) {
+        return $this->request('api/v1/futures/cancelAllOpenOrders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

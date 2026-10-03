@@ -74,6 +74,13 @@ public partial class bitteam : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetTradeApiRates",parameters);
     }
 
+    /// <summary>Calls the publicGetTradeApiStats endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTradeApiStats (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTradeApiStats",parameters);
+    }
+
     /// <summary>Calls the publicGetTradeApiTradeId endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetTradeApiTradeId (object parameters = null)

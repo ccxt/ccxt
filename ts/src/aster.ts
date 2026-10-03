@@ -6,7 +6,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRates, int, Int, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo, Endpoint, FundingHistory } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -267,6 +267,13 @@ export default class aster extends Exchange {
                         // builder
                         'v3/agent': { 'cost': 1 } as Endpoint<List>,
                         'v3/builder': { 'cost': 1 } as Endpoint<List>,
+                        'v3/builder/userTrades': { 'cost': 5 } as Endpoint<Dict>,
+                        'v3/builder/approvedUserList': { 'cost': 5 } as Endpoint<Dict>,
+                        'v3/stpMode': { 'cost': 30 } as Endpoint<Dict>,
+                        'v3/asset/migrateUser/history': { 'cost': 50 } as Endpoint<Dict>,
+                        // strategy
+                        'v3/strategyOpenOrder': { 'cost': 5 } as Endpoint<Dict>,
+                        'v3/strategyHistoryOrder': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'post': {
                         'v1/positionSide/dual': { 'cost': 1 } as Endpoint<Dict>,
@@ -300,6 +307,13 @@ export default class aster extends Exchange {
                         'v3/updateAgent': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/approveBuilder': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/updateBuilder': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/registerAndApproveAgent': { 'cost': 50 } as Endpoint<Dict>,
+                        'v3/asset/migrateUser': { 'cost': 50 } as Endpoint<Dict>,
+                        'v3/chase': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/stpMode': { 'cost': 1 } as Endpoint<Dict>,
+                        // strategy
+                        'v3/placeStrategyOrder': { 'cost': 50 } as Endpoint<Dict>,
+                        'v3/updateStrategyOrder': { 'cost': 50 } as Endpoint<List>,
                     },
                     'put': {
                         'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
@@ -312,6 +326,8 @@ export default class aster extends Exchange {
                         'v3/allOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/batchOrders': { 'cost': 1 } as Endpoint<List>,
                         'v3/batchOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v3/guardedCancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/guardedBatchOrders': { 'cost': 1 } as Endpoint<List>,
                         'v3/mmp': { 'cost': 1 } as Endpoint<List>,
                         'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/listenKey': { 'cost': 1 } as Endpoint<Dict>,
@@ -790,7 +806,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const sapiResult = await this.sapiPublicGetV3ExchangeInfo (params);
         const sapiRows = this.safeList (sapiResult, 'assets', []);
         //
@@ -847,7 +863,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const promises: Promise<any>[] = [
             this.sapiPublicGetV3ExchangeInfo (params),
             this.fapiPublicGetV3ExchangeInfo (params),
@@ -857,7 +873,7 @@ export default class aster extends Exchange {
         const sapiResult = this.safeDict (results, 0, {});
         const sapiRows = this.safeList (sapiResult, 'symbols', []);
         const fapiResult = this.safeDict (results, 1, {});
-        const fapiRows = this.safeList (fapiResult, 'symbols', []);
+        const fapiRows: Dict[] = this.safeList (fapiResult, 'symbols', []);
         //
         // example:
         //
@@ -970,6 +986,9 @@ export default class aster extends Exchange {
         const quoteId = this.safeString (market, 'quoteAsset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const active = this.safeString (market, 'status') === 'TRADING';
         let spot: Bool = undefined;
         let symbol: Str = undefined;
@@ -1076,14 +1095,13 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+    override async fetchTime (params: Dict = {}): Promise<Int> {
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response: Dict;
         if (marketType === 'swap') {
-            response = await this.fapiPublicGetV3Time (params);
+            response = await this.fapiPublicGetV3Time (paramsMarketType);
         } else {
-            response = await this.sapiPublicGetV3Time (params);
+            response = await this.sapiPublicGetV3Time (paramsMarketType);
         }
         //
         // both SPOT & PERP has same format
@@ -1141,37 +1159,37 @@ export default class aster extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1500);
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-        const price = this.safeString (params, 'price');
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
+        requestUntil['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
+        const price = this.safeString (paramsUntil, 'price');
         const isMark = (price === 'mark');
         const isIndex = (price === 'index');
-        params = this.omit (params, 'price');
+        const paramsOmitted: Dict = this.omit (paramsUntil, 'price');
         let response: Dict | List;
         if (isMark) {
-            request['symbol'] = market['id'];
-            response = await this.fapiPublicGetV3MarkPriceKlines (this.extend (request, params));
+            requestUntil['symbol'] = market['id'];
+            response = await this.fapiPublicGetV3MarkPriceKlines (this.extend (requestUntil, paramsOmitted));
         } else if (isIndex) {
-            request['pair'] = market['id'];
-            response = await this.fapiPublicGetV3IndexPriceKlines (this.extend (request, params));
+            requestUntil['pair'] = market['id'];
+            response = await this.fapiPublicGetV3IndexPriceKlines (this.extend (requestUntil, paramsOmitted));
         } else {
-            request['symbol'] = market['id'];
+            requestUntil['symbol'] = market['id'];
             if (market['linear'] === true) {
-                response = await this.fapiPublicGetV3Klines (this.extend (request, params));
+                response = await this.fapiPublicGetV3Klines (this.extend (requestUntil, paramsOmitted));
             } else {
-                response = await this.sapiPublicGetV3Klines (this.extend (request, params));
+                response = await this.sapiPublicGetV3Klines (this.extend (requestUntil, paramsOmitted));
             }
             //
             // both SPOT & PERP has same format
@@ -1249,8 +1267,11 @@ export default class aster extends Exchange {
         //
         const id = this.safeString2 (trade, 'id', 'a');
         const marketId = this.safeString (trade, 'symbol');
-        const marketType = ('positionSide' in trade) ? 'swap' : 'spot';
-        market = this.safeMarket (marketId, market, undefined, marketType);
+        let marketType: Str = 'spot';
+        if ('positionSide' in trade) {
+            marketType = 'swap';
+        }
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         const currencyId = this.safeString2 (trade, 'commissionAsset', 'marginAsset');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const amountString = this.safeString2 (trade, 'qty', 'q');
@@ -1278,7 +1299,7 @@ export default class aster extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'side': side,
@@ -1290,7 +1311,7 @@ export default class aster extends Exchange {
                 'cost': this.parseNumber (Precise.stringAbs (this.safeString (trade, 'commission'))),
                 'currency': currencyCode,
             },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1307,7 +1328,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1386,28 +1407,27 @@ export default class aster extends Exchange {
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarketsAndSignIn ();
-        let request: Dict = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsMarketType);
         let response: List;
         if (marketType === 'swap') {
-            response = await this.fapiPrivateGetV3UserTrades (this.extend (request, params));
+            response = await this.fapiPrivateGetV3UserTrades (this.extend (requestUntil, paramsUntil));
         } else {
-            response = await this.sapiPrivateGetV3UserTrades (this.extend (request, params));
+            response = await this.sapiPrivateGetV3UserTrades (this.extend (requestUntil, paramsUntil));
         }
         //
         // SPOT & PERP have similar format
@@ -1432,7 +1452,7 @@ export default class aster extends Exchange {
         //     "positionSide": "BOTH",      // only in SPOT
         // }
         //
-        return this.parseTrades (response, market, since, limit, params);
+        return this.parseTrades (response, market, since, limit, paramsUntil);
     }
 
     /**
@@ -1446,7 +1466,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1547,9 +1567,9 @@ export default class aster extends Exchange {
             marketType = ('lastUpdateId' in ticker) ? 'swap' : 'spot';
         }
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, marketType);
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': high,
@@ -1571,7 +1591,7 @@ export default class aster extends Exchange {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1584,7 +1604,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1641,19 +1661,18 @@ export default class aster extends Exchange {
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const market = this.getMarketFromSymbols (symbols);
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols (symbolsNormalized);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response: NullableDict = undefined;
         if (marketType === 'swap') {
-            response = await this.fapiPublicGetV3Ticker24hr (params);
+            response = await this.fapiPublicGetV3Ticker24hr (paramsMarketType);
         } else if (marketType === 'spot') {
-            response = await this.sapiPublicGetV3Ticker24hr (params);
+            response = await this.sapiPublicGetV3Ticker24hr (paramsMarketType);
         }
         //
         //     [
@@ -1683,7 +1702,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTickers (response, symbols);
+        return this.parseTickers (response, symbolsNormalized);
     }
 
     /**
@@ -1697,19 +1716,18 @@ export default class aster extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of lastprices structures
      */
-    override async fetchLastPrices (symbols: Strings = undefined, params = {}) {
+    override async fetchLastPrices (symbols: Strings = undefined, params: Dict = {}): Promise<LastPrices> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const market = this.getMarketFromSymbols (symbols);
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols (symbolsNormalized);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         let response: Dict | List | undefined = undefined;
         if (marketType === 'swap') {
-            response = await this.fapiPublicGetV3TickerPrice (params);
+            response = await this.fapiPublicGetV3TickerPrice (paramsMarketType);
         } else if (marketType === 'spot') {
-            response = await this.sapiPublicGetV3TickerPrice (params);
+            response = await this.sapiPublicGetV3TickerPrice (paramsMarketType);
         }
         //
         // both SPOT & SWAP has same format
@@ -1731,14 +1749,14 @@ export default class aster extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const marketId = this.safeString (rows[i], 'symbol');
             const safeMarket = this.safeMarket (marketId, undefined, undefined, marketType);
-            const priceData = this.extend (this.parseLastPrice (rows[i], safeMarket), params);
+            const priceData = this.extend (this.parseLastPrice (rows[i], safeMarket), paramsMarketType);
             results.push (priceData);
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbols) as LastPrices;
+        const symbolsNormalized2: Strings = this.marketSymbols (symbolsNormalized);
+        return this.filterByArray (results, 'symbol', symbolsNormalized2) as LastPrices;
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined) {
+    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
         //
         // spot & swap
         //
@@ -1770,19 +1788,18 @@ export default class aster extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+    override async fetchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const market = this.getMarketFromSymbols (symbols);
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols (symbolsNormalized);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let response: NullableDict = undefined;
         if (marketType === 'swap') {
-            response = await this.fapiPublicGetV3TickerBookTicker (params);
+            response = await this.fapiPublicGetV3TickerBookTicker (paramsMarketType);
         } else if (marketType === 'spot') {
-            response = await this.sapiPublicGetV3TickerBookTicker (params);
+            response = await this.sapiPublicGetV3TickerBookTicker (paramsMarketType);
         }
         //
         // SPOT & PERP have only one field difference
@@ -1798,7 +1815,7 @@ export default class aster extends Exchange {
         //            "lastUpdateId": "453174307613"   // only in PERP
         //        }, ...
         //
-        return this.parseTickers (response, symbols);
+        return this.parseTickers (response, symbolsNormalized);
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
@@ -1866,7 +1883,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRate() requires a symbol argument');
         }
@@ -1902,11 +1919,11 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.fapiPublicGetV3PremiumIndex (this.extend (params));
         //
         //     [
@@ -1922,7 +1939,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        return this.parseFundingRates (response, symbols);
+        return this.parseFundingRates (response, symbolsNormalized);
     }
 
     /**
@@ -1934,13 +1951,11 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingIntervals (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingIntervals (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
-        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.fapiPublicGetV3FundingInfo (params);
         //
         //     [
@@ -1954,7 +1969,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        return this.parseFundingRates (response, symbols);
+        return this.parseFundingRates (response, symbolsNormalized);
     }
 
     /**
@@ -1969,11 +1984,11 @@ export default class aster extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1985,8 +2000,8 @@ export default class aster extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.fapiPublicGetV3FundingRate (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.fapiPublicGetV3FundingRate (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -1999,7 +2014,7 @@ export default class aster extends Exchange {
         return this.parseFundingRateHistories (response, market);
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -2028,14 +2043,13 @@ export default class aster extends Exchange {
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadMarketsAndSignIn ();
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let response: NullableDict = undefined;
         let data: Dict | List | undefined = undefined;
         if (marketType === 'swap') {
-            data = await this.fapiPrivateGetV3Balance (params);
+            data = await this.fapiPrivateGetV3Balance (paramsMarketType);
             //
             //    [
             //        {
@@ -2051,7 +2065,7 @@ export default class aster extends Exchange {
             //        }, ...
             //
         } else if (marketType === 'spot') {
-            response = await this.sapiPrivateGetV3Account (params);
+            response = await this.sapiPrivateGetV3Account (paramsMarketType);
             data = this.safeList (response, 'balances', []);
             //
             //     [
@@ -2069,7 +2083,7 @@ export default class aster extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2093,22 +2107,20 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params: Dict = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        marginMode = marginMode.toUpperCase ();
-        if (marginMode === 'CROSS') {
-            marginMode = 'CROSSED';
-        }
-        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSSED')) {
+        const marginModeUpper = marginMode.toUpperCase ();
+        const marginModeValue: string = (marginModeUpper === 'CROSS') ? 'CROSSED' : marginModeUpper;
+        if ((marginModeValue !== 'ISOLATED') && (marginModeValue !== 'CROSSED')) {
             throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
         }
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': marginModeValue,
         };
         const response = await this.fapiPrivatePostV3MarginType (this.extend (request, params));
         //
@@ -2126,7 +2138,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
+    override async fetchPositionMode (symbol: Str = undefined, params: Dict = {}): Promise<PositionModeInfo> {
         const response = await this.fapiPrivateGetV3PositionSideDual (params);
         //
         //     {
@@ -2149,8 +2161,11 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
-        const strValue = hedged ? 'true' : 'false';
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
+        let strValue: Str = 'false';
+        if (hedged) {
+            strValue = 'true';
+        }
         const request: Dict = {
             'dualSidePosition': strValue,
         };
@@ -2165,8 +2180,8 @@ export default class aster extends Exchange {
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         const marketId = this.safeString (fee, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         return {
             'info': fee,
             'symbol': symbol,
@@ -2187,7 +2202,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -2291,9 +2306,12 @@ export default class aster extends Exchange {
         //
         const info = order;
         const positionSide = this.safeString (order, 'positionSide');
-        const defaultType = (positionSide !== undefined) ? 'swap' : 'spot';
+        let defaultType: Str = 'spot';
+        if (positionSide !== undefined) {
+            defaultType = 'swap';
+        }
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, defaultType);
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, defaultType);
         const side = this.safeStringLower (order, 'side');
         const timestamp = this.safeInteger (order, 'time');
         const statusId = this.safeStringUpper (order, 'status');
@@ -2304,7 +2322,7 @@ export default class aster extends Exchange {
             'info': info,
             'id': this.safeString (order, 'orderId'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (marketId, marketResolved),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -2324,7 +2342,7 @@ export default class aster extends Exchange {
             'fee': undefined,
             'trades': undefined,
             'reduceOnly': this.safeBool2 (order, 'reduceOnly', 'ro'),
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2339,7 +2357,7 @@ export default class aster extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -2349,7 +2367,7 @@ export default class aster extends Exchange {
             'symbol': market['id'],
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
-        params = this.omit (params, [ 'clientOrderId', 'clientOid' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'clientOid' ]);
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
@@ -2357,9 +2375,9 @@ export default class aster extends Exchange {
         }
         let response: Dict;
         if (market['swap'] === true) {
-            response = await this.fapiPrivateGetV3Order (this.extend (request, params));
+            response = await this.fapiPrivateGetV3Order (this.extend (request, paramsOmitted));
         } else {
-            response = await this.sapiPrivateGetV3Order (this.extend (request, params));
+            response = await this.sapiPrivateGetV3Order (this.extend (request, paramsOmitted));
         }
         //
         // SPOT & SWAP has similar formats
@@ -2404,7 +2422,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
         }
@@ -2414,7 +2432,7 @@ export default class aster extends Exchange {
             'symbol': market['id'],
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
-        params = this.omit (params, [ 'clientOrderId', 'clientOid' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'clientOid' ]);
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
@@ -2422,9 +2440,9 @@ export default class aster extends Exchange {
         }
         let response: Dict;
         if (market['spot'] === true) {
-            response = await this.sapiPrivateGetV3OpenOrder (this.extend (request, params));
+            response = await this.sapiPrivateGetV3OpenOrder (this.extend (request, paramsOmitted));
         } else {
-            response = await this.fapiPrivateGetV3OpenOrder (this.extend (request, params));
+            response = await this.fapiPrivateGetV3OpenOrder (this.extend (request, paramsOmitted));
         }
         //
         // SPOT & SWAP has similar formats
@@ -2471,13 +2489,13 @@ export default class aster extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -2486,12 +2504,12 @@ export default class aster extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         let response: Dict;
         if (market['swap'] === true) {
-            response = await this.fapiPrivateGetV3AllOrders (this.extend (request, params));
+            response = await this.fapiPrivateGetV3AllOrders (this.extend (requestUntil, paramsUntil));
         } else {
-            response = await this.sapiPrivateGetV3AllOrders (this.extend (request, params));
+            response = await this.sapiPrivateGetV3AllOrders (this.extend (requestUntil, paramsUntil));
         }
         //
         // SPOT & SWAP has similar responses
@@ -2540,31 +2558,29 @@ export default class aster extends Exchange {
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
         const request: Dict = {};
         let market: Market = undefined;
-        let marketType: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         if (symbol === undefined) {
-            if (this.options['fetchOpenOrders']['warnIfNoSymbol'] === true) {
+            if (this.safeBool (this.options['fetchOpenOrders'], 'warnIfNoSymbol', false)) {
                 throw new ExchangeError (this.id + ' fetchOpenOrders(): WARNING - this method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnIfNoSymbol"] = false to suppress this warning message.');
             }
         } else {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        let subType: SubType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, paramsMarketType);
         let response: NullableDict = undefined;
         if (this.isLinear (marketType, subType)) {
-            response = await this.fapiPrivateGetV3OpenOrders (this.extend (request, params));
+            response = await this.fapiPrivateGetV3OpenOrders (this.extend (request, paramsSubType));
         } else if (marketType === 'spot') {
-            response = await this.sapiPrivateGetV3OpenOrders (this.extend (request, params));
+            response = await this.sapiPrivateGetV3OpenOrders (this.extend (request, paramsSubType));
         }
         //
         // SPOT & SWAP has similar responses
@@ -2622,7 +2638,7 @@ export default class aster extends Exchange {
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
@@ -2674,15 +2690,15 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
         const ordersRequests: List = [];
-        let orderSymbols: List = [];
+        const orderSymbols: string[] = [];
         if (orders.length > 5) {
             throw new InvalidOrder (this.id + ' createOrders() order list max 5 orders');
         }
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const currentMarket = this.market (marketId);
             orderSymbols.push (currentMarket['symbol']);
@@ -2694,8 +2710,8 @@ export default class aster extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
-        const market = this.market (orderSymbols[0]);
+        const orderSymbolsResolved = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (orderSymbolsResolved[0]);
         if (market['spot'] === true) {
             throw new NotSupported (this.id + ' createOrders() does not support ' + market['type'] + ' orders');
         }
@@ -2736,7 +2752,7 @@ export default class aster extends Exchange {
         return this.parseOrders (response);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -2806,20 +2822,11 @@ export default class aster extends Exchange {
         if (postOnly) {
             request['timeInForce'] = 'GTX';
         }
-        //
-        // spot
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity or quoteOrderQty
-        // STOP and TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET and TAKE_PROFIT_MARKET quantity, stopPrice
-        // future
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity
-        // STOP/TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET/TAKE_PROFIT_MARKET stopPrice
-        // TRAILING_STOP_MARKET callbackRate
-        //
-        // additional required fields depending on the order type
+        // additional required fields per order type
+        // spot: LIMIT timeInForce, quantity, price; MARKET quantity or quoteOrderQty;
+        //       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
+        // future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
+        //       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
         const closePosition = this.safeBool (params, 'closePosition', false);
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
@@ -2896,13 +2903,17 @@ export default class aster extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
-            let tif: Str = undefined;
-            [ tif, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
-            request['timeInForce'] = tif;
+        const [ tifOption, paramsTifOption ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce');
+        const tifIsMissing = timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined);
+        const omitKeys: string[] = [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ];
+        let requestParams: NullableDict = undefined;
+        if (tifIsMissing) {
+            request['timeInForce'] = tifOption;
+            requestParams = this.omit (paramsTifOption, omitKeys);
+        } else {
+            requestParams = this.omit (params, omitKeys);
         }
-        const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        if ((this.safeBool (this.options, 'builderFee') === true) && (market['swap'] === true)) {
+        if ((this.safeBool (this.options, 'builderFee', false)) && (market['swap'] === true)) {
             request['builder'] = this.safeString (this.options, 'builder');
             request['feeRate'] = this.safeString (this.options, 'builderRate');
         }
@@ -2919,7 +2930,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -2960,7 +2971,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2975,12 +2986,12 @@ export default class aster extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         let response: Dict;
         if (market['swap'] === true) {
-            response = await this.fapiPrivateDeleteV3Order (this.extend (request, params));
+            response = await this.fapiPrivateDeleteV3Order (this.extend (request, paramsOmitted));
         } else {
-            response = await this.sapiPrivateDeleteV3Order (this.extend (request, params));
+            response = await this.sapiPrivateDeleteV3Order (this.extend (request, paramsOmitted));
         }
         return this.parseOrder (response, market);
     }
@@ -3000,7 +3011,7 @@ export default class aster extends Exchange {
      * @param {int[]} [params.recvWindow]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids:string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -3069,7 +3080,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3102,7 +3113,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
+    override async fetchLeverages (symbols: Strings = undefined, params: Dict = {}): Promise<Leverages> {
         await this.loadMarketsAndSignIn ();
         const response = await this.fapiPrivateGetV3PositionRisk (params);
         //
@@ -3181,7 +3192,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    override async fetchMarginModes (symbols: Strings = undefined, params = {}): Promise<MarginModes> {
+    override async fetchMarginModes (symbols: Strings = undefined, params: Dict = {}): Promise<MarginModes> {
         await this.loadMarketsAndSignIn ();
         const response = await this.fapiPrivateGetV3PositionRisk (params);
         //
@@ -3231,10 +3242,10 @@ export default class aster extends Exchange {
         //     }
         //
         const marketId = this.safeString (marginMode, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'swap');
         return {
             'info': marginMode,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'marginMode': this.safeStringLower (marginMode, 'marginType'),
         } as MarginMode;
     }
@@ -3252,14 +3263,14 @@ export default class aster extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<MarginModification[]> {
+    override async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params: Dict = {}): Promise<MarginModification[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMarginAdjustmentHistory () requires a symbol argument');
         }
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
+        const paramsOmitted: Dict = this.omit (params, 'until');
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -3275,7 +3286,7 @@ export default class aster extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.fapiPrivateGetV3PositionMarginHistory (this.extend (request, params));
+        const response = await this.fapiPrivateGetV3PositionMarginHistory (this.extend (request, paramsOmitted));
         //
         //     [
         //         {
@@ -3314,12 +3325,12 @@ export default class aster extends Exchange {
         const errorCode = this.safeString (data, 'code');
         const marketId = this.safeString (data, 'symbol');
         const timestamp = this.safeInteger (data, 'time');
-        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'swap');
         const noErrorCode = errorCode === undefined;
         const success = errorCode === '200';
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': (rawType === 1) ? 'add' : 'reduce',
             'marginMode': 'isolated',
             'amount': this.safeNumber (data, 'amount'),
@@ -3331,14 +3342,14 @@ export default class aster extends Exchange {
         };
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params = {}) {
+    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: number, params: Dict = {}): Promise<MarginModification> {
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
-        amount = this.amountToPrecision (symbol, amount);
+        const amountValue: any = this.amountToPrecision (symbol, amount);
         const request: Dict = {
             'type': addOrReduce,
             'symbol': market['id'],
-            'amount': amount,
+            'amount': amountValue,
         };
         const code = market['quote'];
         const response = await this.fapiPrivatePostV3PositionMargin (this.extend (request, params));
@@ -3363,7 +3374,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
 
@@ -3377,11 +3388,11 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //     {
         //       "symbol": "ETHUSDT",
@@ -3422,24 +3433,24 @@ export default class aster extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         await this.loadMarketsAndSignIn ();
         let market: Market = undefined;
-        let request: Dict = {
+        const request: Dict = {
             'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION", "INSURANCE_CLEAR", and "MARKET_MERCHANT_RETURN_REWARD"
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
-            request['startTime'] = since;
+            requestUntil['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 1000); // max 1000
+            requestUntil['limit'] = Math.min (limit, 1000); // max 1000
         }
-        const response = await this.fapiPrivateGetV3Income (this.extend (request, params));
+        const response = await this.fapiPrivateGetV3Income (this.extend (requestUntil, paramsUntil));
         return this.parseIncomes (response, market, since, limit);
     }
 
@@ -3466,7 +3477,7 @@ export default class aster extends Exchange {
         }
         const currencyId = this.safeString (item, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger (item, 'time');
         const type = this.safeString (item, 'incomeType');
         return this.safeLedgerEntry ({
@@ -3485,10 +3496,10 @@ export default class aster extends Exchange {
             'after': undefined,
             'status': undefined,
             'fee': undefined,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str): Str {
         const ledgerType: Dict = {
             'TRANSFER': 'transfer',
             'WELCOME_BONUS': 'cashback',
@@ -3513,7 +3524,7 @@ export default class aster extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         await this.loadMarketsAndSignIn ();
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -3527,11 +3538,11 @@ export default class aster extends Exchange {
             request['limit'] = Math.min (limit, 1000); // max 1000
         }
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['endTime'] = until;
         }
-        const response = await this.fapiPrivateGetV3Income (this.extend (request, params));
+        const response = await this.fapiPrivateGetV3Income (this.extend (request, paramsOmitted));
         //
         //     [
         //         {
@@ -3549,7 +3560,7 @@ export default class aster extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parsePositionRisk (position: any, market: Market = undefined) {
+    parsePositionRisk (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "entryPrice": "6563.66500",
@@ -3568,8 +3579,8 @@ export default class aster extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'contract');
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'contract');
+        const symbol = this.safeString (marketResolved, 'symbol');
         const isolatedMarginString = this.safeString (position, 'isolatedMargin');
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
         const leverageBracket = this.safeList (leverageBrackets, symbol, []);
@@ -3581,7 +3592,7 @@ export default class aster extends Exchange {
             if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
-            maintenanceMarginPercentageString = bracket[1];
+            maintenanceMarginPercentageString = this.safeString (bracket, 1);
         }
         const notional = this.parseNumber (notionalStringAbs);
         const contractsAbs = Precise.stringAbs (this.safeString (position, 'positionAmt'));
@@ -3603,13 +3614,13 @@ export default class aster extends Exchange {
         }
         const entryPriceString = this.safeString (position, 'entryPrice');
         const entryPrice = this.parseNumber (entryPriceString);
-        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSize = this.safeNumber (marketResolved, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         // as oppose to notionalValue
         const linear = ('notional' in position);
         if (marginMode === 'cross') {
             // calculate collateral
-            const precision = this.safeDict (market, 'precision', {});
+            const precision = this.safeDict (marketResolved, 'precision', {});
             const basePrecisionValue = this.safeString (precision, 'base');
             const quotePrecisionValue = this.safeString2 (precision, 'quote', 'price');
             const precisionIsUndefined = (basePrecisionValue === undefined) && (quotePrecisionValue === undefined);
@@ -3627,9 +3638,7 @@ export default class aster extends Exchange {
                     const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     const leftSide = Precise.stringAdd (inner, entryPriceSignString);
                     const quotePrecision = this.precisionFromString (this.safeString2 (precision, 'quote', 'price'));
-                    if (quotePrecision !== undefined) {
-                        collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
-                    }
+                    collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
                 } else {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                     let onePlusMaintenanceMarginPercentageString: Str = undefined;
@@ -3643,9 +3652,7 @@ export default class aster extends Exchange {
                     const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
                     const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
                     const basePrecision = this.precisionFromString (this.safeString (precision, 'base'));
-                    if (basePrecision !== undefined) {
-                        collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
-                    }
+                    collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
                 }
             }
         } else {
@@ -3728,7 +3735,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on the positions risk
      */
-    override async fetchPositionsRisk (symbols: Strings = undefined, params = {}) {
+    override async fetchPositionsRisk (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
                 throw new ArgumentsRequired (this.id + ' fetchPositionsRisk() requires an array argument for symbols');
@@ -3766,8 +3773,8 @@ export default class aster extends Exchange {
                 result.push (this.parsePositionRisk (rawPosition));
             }
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -3780,9 +3787,9 @@ export default class aster extends Exchange {
      * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        let defaultMethod: Str = undefined;
-        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method');
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
+        const [ methodOption, paramsMethod ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'method');
+        let defaultMethod: Str = methodOption;
         if (defaultMethod === undefined) {
             const options = this.safeDict (this.options, 'fetchPositions');
             if (options === undefined) {
@@ -3792,20 +3799,20 @@ export default class aster extends Exchange {
             }
         }
         if (defaultMethod === 'positionRisk') {
-            return await this.fetchPositionsRisk (symbols, params);
+            return await this.fetchPositionsRisk (symbols, paramsMethod);
         } else if (defaultMethod === 'account') {
-            return await this.fetchAccountPositions (symbols, params);
+            return await this.fetchAccountPositions (symbols, paramsMethod);
         } else {
             throw new NotSupported (this.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"');
         }
     }
 
-    parseAccountPositions (account: any, filterClosed = false) {
-        const positions = this.safeList (account, 'positions', []);
-        const assets = this.safeList (account, 'assets', []);
+    parseAccountPositions (account: Dict, filterClosed: boolean = false): Position[] {
+        const positions: Dict[] = this.safeList (account, 'positions', []);
+        const assets: Dict[] = this.safeList (account, 'assets', []);
         const balances: Dict = {};
         for (let i = 0; i < assets.length; i++) {
-            const entry = assets[i];
+            const entry = this.safeDict (assets, i);
             const currencyId = this.safeString (entry, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const crossWalletBalance = this.safeString (entry, 'crossWalletBalance');
@@ -3840,10 +3847,10 @@ export default class aster extends Exchange {
         return result;
     }
 
-    parseAccountPosition (position: any, market: Market = undefined) {
+    parseAccountPosition (position: Dict, market: Market = undefined): Position {
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'contract');
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'contract');
+        const symbol = this.safeString (marketResolved, 'symbol');
         const leverageString = this.safeString (position, 'leverage');
         const leverage = (leverageString !== undefined) ? parseInt (leverageString) : undefined;
         const initialMarginString = this.safeString (position, 'initialMargin');
@@ -3872,7 +3879,7 @@ export default class aster extends Exchange {
         let contractsStringAbs = Precise.stringAbs (contractsString);
         if (contractsString === undefined) {
             const entryNotional = Precise.stringMul (Precise.stringMul (leverageString, initialMarginString), entryPriceString);
-            const contractSizeNew = this.safeString (market, 'contractSize');
+            const contractSizeNew = this.safeString (marketResolved, 'contractSize');
             contractsString = Precise.stringDiv (entryNotional, contractSizeNew);
             contractsStringAbs = Precise.stringDiv (Precise.stringAdd (contractsString, '0.5'), '1', 0);
         }
@@ -3885,7 +3892,7 @@ export default class aster extends Exchange {
             if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
-            maintenanceMarginPercentageString = bracket[1];
+            maintenanceMarginPercentageString = this.safeString (bracket, 1);
         }
         const maintenanceMarginPercentage = this.parseNumber (maintenanceMarginPercentageString);
         const unrealizedPnlString = this.safeString (position, 'unrealizedProfit');
@@ -3917,7 +3924,7 @@ export default class aster extends Exchange {
         let percentage: Num = undefined;
         let liquidationPriceStringRaw: Str = undefined;
         let liquidationPrice: Num = undefined;
-        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSize = this.safeNumber (marketResolved, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         if (Precise.stringEquals (notionalString, '0')) {
             entryPrice = undefined;
@@ -3962,7 +3969,7 @@ export default class aster extends Exchange {
                 const rightSide = Precise.stringSub (Precise.stringMul (Precise.stringDiv ('1', entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv (leftSide, rightSide);
             }
-            const pricePrecision = this.precisionFromString (this.safeString (market['precision'], 'price'));
+            const pricePrecision = this.precisionFromString (this.safeString (marketResolved['precision'], 'price'));
             const pricePrecisionPlusOne = pricePrecision + 1;
             const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString ();
             // round half up
@@ -4014,12 +4021,12 @@ export default class aster extends Exchange {
      * @name aster#fetchAccountPositions
      * @ignore
      * @description fetch account positions
-     https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on account positions
      */
-    async fetchAccountPositions (symbols: Strings = undefined, params = {}) {
+    async fetchAccountPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() requires an array argument for symbols');
@@ -4028,14 +4035,13 @@ export default class aster extends Exchange {
         await this.loadMarketsAndSignIn ();
         await this.loadLeverageBrackets (false, params);
         const response = await this.fapiPrivateGetV4Account (params);
-        let filterClosed: Bool = undefined;
-        [ filterClosed, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'filterClosed', false);
+        const filterClosed = this.handleOptionBoolAndParams (params, 'fetchAccountPositions', 'filterClosed', false)[0];
         const result = this.parseAccountPositions (response, filterClosed);
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
-    async loadLeverageBrackets (reload = false, params = {}) {
+    async loadLeverageBrackets (reload: boolean = false, params: Dict = {}): Promise<Dict> {
         await this.loadMarketsAndSignIn ();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
@@ -4068,13 +4074,13 @@ export default class aster extends Exchange {
             this.options['leverageBrackets'] = this.createSafeDictionary ();
             const entries = this.toArray (response);
             for (let i = 0; i < entries.length; i++) {
-                const entry = entries[i];
+                const entry = this.safeDict (entries, i);
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
-                const brackets = this.safeList (entry, 'brackets', []);
+                const brackets: Dict[] = this.safeList (entry, 'brackets', []);
                 const result: List = [];
                 for (let j = 0; j < brackets.length; j++) {
-                    const bracket = brackets[j];
+                    const bracket = this.safeDict (brackets, j);
                     const floorValue = this.safeString (bracket, 'notionalFloor');
                     const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
                     result.push ([ floorValue, maintenanceMarginPercentage ]);
@@ -4089,7 +4095,7 @@ export default class aster extends Exchange {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signMessage (message: any, privateKey: any) {
+    signMessage (message: any, privateKey: string): string {
         return this.signHash (this.keccakMessage (message), privateKey.slice (-64));
     }
 
@@ -4113,7 +4119,7 @@ export default class aster extends Exchange {
                 { 'name': 'aster chain', 'type': 'string' },
             ],
         };
-        const request = {
+        const request: Dict = {
             'type': 'Withdraw',
             'destination': this.safeString (withdrawPayload, 'receiver'),
             'destination Chain': network,
@@ -4142,8 +4148,9 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag: Dict = tagAndParams[1];
         this.checkAddress (address);
         await this.loadMarketsAndSignIn ();
         const currency = this.currency (code);
@@ -4153,10 +4160,10 @@ export default class aster extends Exchange {
             'receiver': address,
             'userNonce': nonce.toString (),
         };
-        let chainId = this.safeInteger (params, 'chainId');
+        let chainId = this.safeInteger (paramsWithdrawTag, 'chainId');
         // TODO: check how ARBI signature would work
         const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network');
+        let network = this.safeStringUpper (paramsWithdrawTag, 'network');
         network = this.safeString (networks, network, network);
         if ((chainId === undefined) && (network !== undefined)) {
             const chainIds = this.safeDict (this.options, 'networksToChainId', {});
@@ -4166,15 +4173,15 @@ export default class aster extends Exchange {
             throw new ArgumentsRequired (this.id + ' withdraw require chainId or network parameter');
         }
         request['chainId'] = chainId;
-        const fee = this.safeString (params, 'fee');
+        const fee = this.safeString (paramsWithdrawTag, 'fee');
         if (fee === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw require fee parameter');
         }
         request['fee'] = fee;
-        params = this.omit (params, [ 'chainId', 'network', 'fee' ]);
+        const paramsOmitted: Dict = this.omit (paramsWithdrawTag, [ 'chainId', 'network', 'fee' ]);
         request['amount'] = this.currencyToPrecision (code, amount, network);
         request['userSignature'] = this.signWithdrawPayload (request, network);
-        const response = await this.sapiPrivatePostV3AsterUserWithdraw (this.extend (request, params));
+        const response = await this.sapiPrivatePostV3AsterUserWithdraw (this.extend (request, paramsOmitted));
         //
         //   {
         //       "withdrawId": "1097219372504338432",
@@ -4184,7 +4191,7 @@ export default class aster extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override parseTransaction (transaction: any, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'withdrawId'),
@@ -4222,7 +4229,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         await this.loadMarketsAndSignIn ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -4230,14 +4237,8 @@ export default class aster extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         let type: Str = undefined;
-        let fromId: Str = undefined;
-        if (fromAccount !== undefined) {
-            fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
-        }
-        let toId: Str = undefined;
-        if (toAccount !== undefined) {
-            toId = this.convertTypeToAccount (toAccount).toUpperCase ();
-        }
+        const fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
+        const toId = this.convertTypeToAccount (toAccount).toUpperCase ();
         if (fromId === 'SPOT' && toId === 'FUTURE') {
             type = 'SPOT_FUTURE';
         } else if (fromId === 'FUTURE' && toId === 'SPOT') {
@@ -4285,7 +4286,7 @@ export default class aster extends Exchange {
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any) {
+    signHash (hash: string, privateKey: string): string {
         this.checkRequiredCredentials ();
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
@@ -4294,8 +4295,12 @@ export default class aster extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = baseApiUrl + '/' + path;
         if (api === 'fapiPublic' || api === 'sapiPublic') {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.rawencode (params);
@@ -4318,7 +4323,7 @@ export default class aster extends Exchange {
             if (signerAddress === undefined) {
                 throw new ArgumentsRequired (this.id + ' requires signerAddress in options when use v3 api');
             }
-            const domain = {
+            const domain: Dict = {
                 'name': 'AsterSignTransaction',
                 'version': '1',
                 'chainId': v3ChainId,
@@ -4364,9 +4369,10 @@ export default class aster extends Exchange {
             if (method === 'GET') {
                 url += '?' + queryString;
             } else {
-                headers = {};
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
-                body = queryString;
+                const formHeaders: Dict = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+                return { 'url': url, 'method': method, 'body': queryString, 'headers': formHeaders };
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -4410,7 +4416,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    override async signIn (params = {}) {
+    override async signIn (params: Dict = {}) {
         if (this.isEmptyString (this.privateKey)) {
             if (!this.isEmptyString (this.apiKey) || !this.isEmptyString (this.secret)) {
                 throw new NotSupported (this.id + 'after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.');
@@ -4424,7 +4430,7 @@ export default class aster extends Exchange {
         return true;
     }
 
-    async initializeClient (params = {}) {
+    async initializeClient (params: Dict = {}): Promise<Bool> {
         const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true)); // we shouldn't omit here
         if (builderFee !== true) {
             return false; // skip if builder fee is not enabled

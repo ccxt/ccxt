@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class TokocryptoApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  binanceGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  binanceGetPing (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetPing", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  binanceGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  binanceGetTime (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetTime", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  binanceGetDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  binanceGetDepth (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetDepth", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  binanceGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  binanceGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetTrades", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  binanceGetAggTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  binanceGetAggTrades (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetAggTrades", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  binanceGetHistoricalTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  binanceGetHistoricalTrades (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetHistoricalTrades", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  binanceGetKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  binanceGetKlines (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetKlines", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  binanceGetTicker24hr (Object... optionalArgs)
+    public CompletableFuture<Object>  binanceGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetTicker24hr", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  binanceGetTickerPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  binanceGetTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetTickerPrice", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  binanceGetTickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  binanceGetTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetTickerBookTicker", optionalArgs);
     }
@@ -135,9 +138,20 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  binanceGetExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  binanceGetExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetExchangeInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the binanceGetExecutionRules endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  binanceGetExecutionRules (Object... optionalArgs)
+    {
+        return this.callAsync ("binanceGetExecutionRules", optionalArgs);
     }
 
     /**
@@ -146,7 +160,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  binancePutUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  binancePutUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("binancePutUserDataStream", optionalArgs);
     }
@@ -157,7 +171,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  binancePostUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  binancePostUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("binancePostUserDataStream", optionalArgs);
     }
@@ -168,7 +182,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  binanceDeleteUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  binanceDeleteUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("binanceDeleteUserDataStream", optionalArgs);
     }
@@ -179,7 +193,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOpenV1CommonTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOpenV1CommonTime (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOpenV1CommonTime", optionalArgs);
     }
@@ -190,7 +204,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOpenV1CommonSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOpenV1CommonSymbols (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOpenV1CommonSymbols", optionalArgs);
     }
@@ -201,7 +215,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOpenV1MarketDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOpenV1MarketDepth (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOpenV1MarketDepth", optionalArgs);
     }
@@ -212,7 +226,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOpenV1MarketTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOpenV1MarketTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOpenV1MarketTrades", optionalArgs);
     }
@@ -223,7 +237,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOpenV1MarketAggTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOpenV1MarketAggTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOpenV1MarketAggTrades", optionalArgs);
     }
@@ -234,7 +248,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOpenV1MarketKlines (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOpenV1MarketKlines (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOpenV1MarketKlines", optionalArgs);
     }
@@ -245,7 +259,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOpenV1OrdersDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOpenV1OrdersDetail (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenV1OrdersDetail", optionalArgs);
     }
@@ -256,7 +270,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOpenV1Orders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOpenV1Orders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenV1Orders", optionalArgs);
     }
@@ -267,7 +281,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOpenV1AccountSpot (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOpenV1AccountSpot (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenV1AccountSpot", optionalArgs);
     }
@@ -278,7 +292,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOpenV1AccountSpotAsset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOpenV1AccountSpotAsset (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenV1AccountSpotAsset", optionalArgs);
     }
@@ -289,7 +303,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOpenV1OrdersTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOpenV1OrdersTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenV1OrdersTrades", optionalArgs);
     }
@@ -300,7 +314,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOpenV1Withdraws (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOpenV1Withdraws (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenV1Withdraws", optionalArgs);
     }
@@ -311,7 +325,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOpenV1Deposits (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOpenV1Deposits (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenV1Deposits", optionalArgs);
     }
@@ -322,7 +336,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOpenV1DepositsAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOpenV1DepositsAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenV1DepositsAddress", optionalArgs);
     }
@@ -333,7 +347,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOpenV1Orders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOpenV1Orders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenV1Orders", optionalArgs);
     }
@@ -344,7 +358,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOpenV1OrdersCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOpenV1OrdersCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenV1OrdersCancel", optionalArgs);
     }
@@ -355,7 +369,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOpenV1OrdersOco (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOpenV1OrdersOco (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenV1OrdersOco", optionalArgs);
     }
@@ -366,7 +380,7 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOpenV1Withdraws (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOpenV1Withdraws (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenV1Withdraws", optionalArgs);
     }
@@ -377,9 +391,20 @@ public class TokocryptoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOpenV1UserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOpenV1UserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenV1UserDataStream", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostOpenV1UserListenToken endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostOpenV1UserListenToken (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOpenV1UserListenToken", optionalArgs);
     }
 
 }

@@ -2,8 +2,6 @@
     "exchange": "opinion",
     "asyncOnly": true,
     "skipKeys": [
-        "timestamp",
-        "datetime",
         "remaining"
     ],
     "walletAddress": "0xabababababababababababababababababababab",

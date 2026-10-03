@@ -286,6 +286,42 @@ abstract class dydx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function indexer_get_pnl($params = array()) {
+        return $this->request('pnl', 'indexer', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function indexer_get_pnl_parentsubaccountnumber($params = array()) {
+        return $this->request('pnl/parentSubaccountNumber', 'indexer', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function indexer_get_tradehistory($params = array()) {
+        return $this->request('tradeHistory', 'indexer', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function indexer_get_tradehistory_parentsubaccountnumber($params = array()) {
+        return $this->request('tradeHistory/parentSubaccountNumber', 'indexer', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function indexer_post_turnkey_signin($params = array()) {
+        return $this->request('turnkey/signin', 'indexer', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function indexer_post_turnkey_uploadaddress($params = array()) {
+        return $this->request('turnkey/uploadAddress', 'indexer', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function noderpc_get_abci_info($params = array()) {
         return $this->request('abci_info', 'nodeRpc', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -606,6 +642,42 @@ abstract class dydx extends \ccxt\Exchange {
      */
     public function indexerGetHistoricalPnlParentSubaccount($params = array()) {
         return $this->request('historical-pnl/parentSubaccount', 'indexer', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function indexerGetPnl($params = array()) {
+        return $this->request('pnl', 'indexer', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function indexerGetPnlParentSubaccountNumber($params = array()) {
+        return $this->request('pnl/parentSubaccountNumber', 'indexer', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function indexerGetTradeHistory($params = array()) {
+        return $this->request('tradeHistory', 'indexer', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function indexerGetTradeHistoryParentSubaccountNumber($params = array()) {
+        return $this->request('tradeHistory/parentSubaccountNumber', 'indexer', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function indexerPostTurnkeySignin($params = array()) {
+        return $this->request('turnkey/signin', 'indexer', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function indexerPostTurnkeyUploadAddress($params = array()) {
+        return $this->request('turnkey/uploadAddress', 'indexer', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

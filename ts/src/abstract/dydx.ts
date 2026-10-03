@@ -55,6 +55,12 @@ interface Exchange {
     indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders (params?: {}): Promise<Dict>;
     indexerGetFillsParentSubaccount (params?: {}): Promise<Dict>;
     indexerGetHistoricalPnlParentSubaccount (params?: {}): Promise<Dict>;
+    indexerGetPnl (params?: {}): Promise<Dict>;
+    indexerGetPnlParentSubaccountNumber (params?: {}): Promise<Dict>;
+    indexerGetTradeHistory (params?: {}): Promise<Dict>;
+    indexerGetTradeHistoryParentSubaccountNumber (params?: {}): Promise<Dict>;
+    indexerPostTurnkeySignin (params?: {}): Promise<Dict>;
+    indexerPostTurnkeyUploadAddress (params?: {}): Promise<Dict>;
     nodeRpcGetAbciInfo (params?: {}): Promise<Dict>;
     nodeRpcGetBlock (params?: {}): Promise<Dict>;
     nodeRpcGetBroadcastTxAsync (params?: {}): Promise<Dict>;

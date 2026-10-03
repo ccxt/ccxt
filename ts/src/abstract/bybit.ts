@@ -76,6 +76,11 @@ interface Exchange {
     publicGetV5InsLoanProductInfos (params?: {}): Promise<Dict>;
     publicGetV5InsLoanEnsureTokensConvert (params?: {}): Promise<Dict>;
     publicGetV5EarnProduct (params?: {}): Promise<Dict>;
+    publicGetV5SpotXLaunchpoolProjectList (params?: {}): Promise<Dict>;
+    publicGetV5SpotXPuzzleProjectList (params?: {}): Promise<Dict>;
+    publicGetV5SpotXTokenSplashProjectList (params?: {}): Promise<Dict>;
+    publicGetV5EventInstrumentsInfo (params?: {}): Promise<Dict>;
+    publicGetV5EventOrderbook (params?: {}): Promise<Dict>;
     privateGetV5MarketInstrumentsInfo (params?: {}): Promise<Dict>;
     privateGetV2PrivateWalletFundRecords (params?: {}): Promise<Dict>;
     privateGetSpotV3PrivateOrder (params?: {}): Promise<Dict>;
@@ -210,10 +215,12 @@ interface Exchange {
     privateGetV5UserSubmembers (params?: {}): Promise<Dict>;
     privateGetV5UserEscrowSubMembers (params?: {}): Promise<Dict>;
     privateGetV5UserInvitationReferrals (params?: {}): Promise<Dict>;
+    privateGetV5UserInvitationCode (params?: {}): Promise<Dict>;
     privateGetV5AffiliateAffUserList (params?: {}): Promise<Dict>;
     privateGetV5AffiliateAffiliateSubList (params?: {}): Promise<Dict>;
     privateGetV5SpotLeverTokenOrderRecord (params?: {}): Promise<Dict>;
     privateGetV5SpotMarginTradeFlexibleAvailableInventory (params?: {}): Promise<Dict>;
+    privateGetV5SpotMarginTradeFixedAvailableInventory (params?: {}): Promise<Dict>;
     privateGetV5SpotMarginTradeInterestRateHistory (params?: {}): Promise<Dict>;
     privateGetV5SpotMarginTradeState (params?: {}): Promise<Dict>;
     privateGetV5SpotMarginTradeMaxBorrowable (params?: {}): Promise<Dict>;
@@ -248,6 +255,8 @@ interface Exchange {
     privateGetV5CryptoLoanFixedRenewInfo (params?: {}): Promise<Dict>;
     privateGetV5CryptoLoanFixedSupplyOrderInfo (params?: {}): Promise<Dict>;
     privateGetV5CryptoLoanFixedRepaymentHistory (params?: {}): Promise<Dict>;
+    privateGetV5CryptoLoanFixedAvailableInventory (params?: {}): Promise<Dict>;
+    privateGetV5CryptoLoanFlexibleAvailableInventory (params?: {}): Promise<Dict>;
     privateGetV5InsLoanProductInfos (params?: {}): Promise<Dict>;
     privateGetV5InsLoanEnsureTokens (params?: {}): Promise<Dict>;
     privateGetV5InsLoanEnsureTokensConvert (params?: {}): Promise<Dict>;
@@ -268,6 +277,17 @@ interface Exchange {
     privateGetV5EarnPosition (params?: {}): Promise<Dict>;
     privateGetV5EarnYield (params?: {}): Promise<Dict>;
     privateGetV5EarnHourlyYield (params?: {}): Promise<Dict>;
+    privateGetV5EventOrderRealtime (params?: {}): Promise<Dict>;
+    privateGetV5EventOrderList (params?: {}): Promise<Dict>;
+    privateGetV5EventPositions (params?: {}): Promise<Dict>;
+    privateGetV5EventTrades (params?: {}): Promise<Dict>;
+    privateGetV5EventSettlements (params?: {}): Promise<Dict>;
+    privateGetV5SpotXLaunchpoolUserCurrentStaking (params?: {}): Promise<Dict>;
+    privateGetV5SpotXTokenSplashUserActivityParams (params?: {}): Promise<Dict>;
+    privateGetV5RfqRfqDetailList (params?: {}): Promise<Dict>;
+    privateGetV5AlphaPredictionEngineStatus (params?: {}): Promise<Dict>;
+    privateGetV5AlphaPredictionPayTokenList (params?: {}): Promise<Dict>;
+    privateGetV5AlphaPredictionSportsTimelineStages (params?: {}): Promise<Dict>;
     privatePostSpotV3PrivateOrder (params?: {}): Promise<Dict>;
     privatePostSpotV3PrivateCancelOrder (params?: {}): Promise<Dict>;
     privatePostSpotV3PrivateCancelOrders (params?: {}): Promise<Dict>;
@@ -413,6 +433,24 @@ interface Exchange {
     privatePostV5BrokerAwardDistributeAward (params?: {}): Promise<Dict>;
     privatePostV5BrokerAwardDistributionRecord (params?: {}): Promise<Dict>;
     privatePostV5EarnPlaceOrder (params?: {}): Promise<Dict>;
+    privatePostV5EventQuotes (params?: {}): Promise<Dict>;
+    privatePostV5EventCancel (params?: {}): Promise<Dict>;
+    privatePostV5SpotXLaunchpoolUserActivityLog (params?: {}): Promise<Dict>;
+    privatePostV5SpotXLaunchpoolUserHistory (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionEventDetail (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionOrderEstimate (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionBuy (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionSell (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionOrderList (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionOrderBook (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionTokenPrice (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionPriceHistory (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionPositionList (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionPositionHistory (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionPortfolioSummary (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionSideMarketList (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionSportsMatchList (params?: {}): Promise<Dict>;
+    privatePostV5AlphaPredictionSportsGroupStageDetail (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

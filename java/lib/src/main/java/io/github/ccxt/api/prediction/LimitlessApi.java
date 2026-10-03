@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api.prediction;
 import io.github.ccxt.PredictionExchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class LimitlessApi extends PredictionExchange
 {
@@ -25,7 +28,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsActive (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsActive (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsActive", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsActiveCategoryId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsActiveCategoryId (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsActiveCategoryId", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPublicGetCategories (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  limitlessPublicGetCategories (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetCategories", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsAddressOrSlug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsAddressOrSlug (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsAddressOrSlug", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsCategoriesCount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsCategoriesCount (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsCategoriesCount", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPublicGetMarketsActiveSlugs (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  limitlessPublicGetMarketsActiveSlugs (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsActiveSlugs", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSearch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsSearch (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSearch", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSlugOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsSlugOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSlugOrderbook", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSlugHistoricalPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsSlugHistoricalPrice (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSlugHistoricalPrice", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  limitlessPublicGetAuthSigningMessage (Object... optionalArgs)
+    public CompletableFuture<String>  limitlessPublicGetAuthSigningMessage (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetAuthSigningMessage", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsAddressOrSlugOracleCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsAddressOrSlugOracleCandles (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsAddressOrSlugOracleCandles", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSlugGetFeedEvents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsSlugGetFeedEvents (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSlugGetFeedEvents", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSlugEvents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsSlugEvents (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSlugEvents", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsTimeline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsTimeline (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsTimeline", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketsSlugTimeline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketsSlugTimeline (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketsSlugTimeline", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPublicGetNavigation (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  limitlessPublicGetNavigation (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetNavigation", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketPagesByPath (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketPagesByPath (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketPagesByPath", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetMarketPagesIdMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetMarketPagesIdMarkets (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetMarketPagesIdMarkets", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPublicGetPropertyKeys (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  limitlessPublicGetPropertyKeys (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPropertyKeys", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetPropertyKeysId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetPropertyKeysId (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPropertyKeysId", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPublicGetPropertyKeysIdOptions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  limitlessPublicGetPropertyKeysIdOptions (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPropertyKeysIdOptions", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetPortfolioAccountTradedVolume (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetPortfolioAccountTradedVolume (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPortfolioAccountTradedVolume", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetPortfolioAccountPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetPortfolioAccountPositions (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPortfolioAccountPositions", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPublicGetPortfolioAccountPnlChart (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPublicGetPortfolioAccountPnlChart (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPublicGetPortfolioAccountPnlChart", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetAuthApiKeys (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetAuthApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetAuthApiKeys", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetProfilesPartnerAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetProfilesPartnerAccounts (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetProfilesPartnerAccounts", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPrivateGetMarketsSlugUserOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  limitlessPrivateGetMarketsSlugUserOrders (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetMarketsSlugUserOrders", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetPortfolioPositions (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioPositions", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetPortfolioTrades (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioTrades", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetMarketsSlugLockedBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetMarketsSlugLockedBalance (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetMarketsSlugLockedBalance", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetProfilesMe (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetProfilesMe (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetProfilesMe", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetProfilesAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetProfilesAccount (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetProfilesAccount", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioPnlChart (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetPortfolioPnlChart (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioPnlChart", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetPortfolioHistory (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioHistory", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioPoints (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetPortfolioPoints (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioPoints", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetPortfolioTradingAllowance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetPortfolioTradingAllowance (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetPortfolioTradingAllowance", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetAuthApiTokensCapabilities (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetAuthApiTokensCapabilities (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetAuthApiTokensCapabilities", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  limitlessPrivateGetAuthApiTokens (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  limitlessPrivateGetAuthApiTokens (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetAuthApiTokens", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostAuthLogout (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostAuthLogout (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostAuthLogout", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostAuthApiKeys (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostAuthApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostAuthApiKeys", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostAuthLogin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostAuthLogin (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostAuthLogin", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostOrders", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostOrdersCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostOrdersCancel (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostOrdersCancel", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostOrdersCancelBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostOrdersCancelBatch (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostOrdersCancelBatch", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostOrdersBatchCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostOrdersBatchCancel (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostOrdersBatchCancel", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostOrdersStatusBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostOrdersStatusBatch (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostOrdersStatusBatch", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostPortfolioRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostPortfolioRedeem (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostPortfolioRedeem", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostPortfolioWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostPortfolioWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostPortfolioWithdraw", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostPortfolioWithdrawalAddresses (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostPortfolioWithdrawalAddresses (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostPortfolioWithdrawalAddresses", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostAuthApiTokensDerive (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostAuthApiTokensDerive (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostAuthApiTokensDerive", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostProfilesPartnerAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostProfilesPartnerAccounts (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostProfilesPartnerAccounts", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateDeleteAuthApiKeys (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateDeleteAuthApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateDeleteAuthApiKeys", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateDeleteOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateDeleteOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateDeleteOrdersOrderId", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateDeleteOrdersAllSlug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateDeleteOrdersAllSlug (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateDeleteOrdersAllSlug", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateDeleteAuthApiTokensTokenId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateDeleteAuthApiTokensTokenId (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateDeleteAuthApiTokensTokenId", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class LimitlessApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (Object... optionalArgs)
     {
         return this.callAsync ("limitlessPrivateDeletePortfolioWithdrawalAddressesAddress", optionalArgs);
     }

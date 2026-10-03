@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class BitrueApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotKlinePublicGetPublicJson (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotKlinePublicGetPublicJson (Object... optionalArgs)
     {
         return this.callAsync ("spotKlinePublicGetPublicJson", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotKlinePublicGetPublicCurrencyJson (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotKlinePublicGetPublicCurrencyJson (Object... optionalArgs)
     {
         return this.callAsync ("spotKlinePublicGetPublicCurrencyJson", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PublicGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PublicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PublicGetPing", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PublicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PublicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PublicGetTime", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PublicGetExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PublicGetExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PublicGetExchangeInfo", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PublicGetDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PublicGetDepth (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PublicGetDepth", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotV1PublicGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotV1PublicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PublicGetTrades", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotV1PublicGetHistoricalTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotV1PublicGetHistoricalTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PublicGetHistoricalTrades", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotV1PublicGetAggTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotV1PublicGetAggTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PublicGetAggTrades", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotV1PublicGetTicker24hr (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotV1PublicGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PublicGetTicker24hr", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PublicGetTickerPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PublicGetTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PublicGetTickerPrice", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PublicGetTickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PublicGetTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PublicGetTickerBookTicker", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PublicGetMarketKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PublicGetMarketKline (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PublicGetMarketKline", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PrivateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PrivateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PrivateGetOrder", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PrivateGetOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PrivateGetOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PrivateGetOpenOrders", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotV1PrivateGetAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotV1PrivateGetAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PrivateGetAllOrders", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PrivateGetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PrivateGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PrivateGetAccount", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotV1PrivateGetMyTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotV1PrivateGetMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PrivateGetMyTrades", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PrivateGetEtfNetValueSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PrivateGetEtfNetValueSymbol (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PrivateGetEtfNetValueSymbol", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PrivateGetWithdrawHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PrivateGetWithdrawHistory (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PrivateGetWithdrawHistory", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PrivateGetDepositHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PrivateGetDepositHistory (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PrivateGetDepositHistory", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PrivatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PrivatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PrivatePostOrder", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PrivatePostWithdrawCommit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PrivatePostWithdrawCommit (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PrivatePostWithdrawCommit", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV1PrivateDeleteOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV1PrivateDeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotV1PrivateDeleteOrder", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV2PrivateGetMyTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotV2PrivateGetMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotV2PrivateGetMyTrades", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV1PublicGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV1PublicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("fapiV1PublicGetPing", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV1PublicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV1PublicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("fapiV1PublicGetTime", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiV1PublicGetContracts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiV1PublicGetContracts (Object... optionalArgs)
     {
         return this.callAsync ("fapiV1PublicGetContracts", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV1PublicGetDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV1PublicGetDepth (Object... optionalArgs)
     {
         return this.callAsync ("fapiV1PublicGetDepth", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  fapiV1PublicGetTicker (Object... optionalArgs)
+    public CompletableFuture<Object>  fapiV1PublicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("fapiV1PublicGetTicker", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiV1PublicGetKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiV1PublicGetKlines (Object... optionalArgs)
     {
         return this.callAsync ("fapiV1PublicGetKlines", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivateGetMyTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivateGetMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivateGetMyTrades", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivateGetOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivateGetOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivateGetOpenOrders", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivateGetOrder", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivateGetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivateGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivateGetAccount", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivateGetLeverageBracket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivateGetLeverageBracket (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivateGetLeverageBracket", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivateGetCommissionRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivateGetCommissionRate (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivateGetCommissionRate", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivateGetFuturesTransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivateGetFuturesTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivateGetFuturesTransferHistory", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivateGetForceOrdersHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivateGetForceOrdersHistory (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivateGetForceOrdersHistory", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivatePostPositionMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivatePostPositionMargin (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivatePostPositionMargin", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivatePostLevelEdit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivatePostLevelEdit (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivatePostLevelEdit", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivatePostCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivatePostCancel (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivatePostCancel", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivatePostOrder", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivatePostAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivatePostAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivatePostAllOpenOrders", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiV2PrivatePostFuturesTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiV2PrivatePostFuturesTransfer (Object... optionalArgs)
     {
         return this.callAsync ("fapiV2PrivatePostFuturesTransfer", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV1PublicGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV1PublicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("dapiV1PublicGetPing", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV1PublicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV1PublicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("dapiV1PublicGetTime", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiV1PublicGetContracts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiV1PublicGetContracts (Object... optionalArgs)
     {
         return this.callAsync ("dapiV1PublicGetContracts", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV1PublicGetDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV1PublicGetDepth (Object... optionalArgs)
     {
         return this.callAsync ("dapiV1PublicGetDepth", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  dapiV1PublicGetTicker (Object... optionalArgs)
+    public CompletableFuture<Object>  dapiV1PublicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("dapiV1PublicGetTicker", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiV1PublicGetKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiV1PublicGetKlines (Object... optionalArgs)
     {
         return this.callAsync ("dapiV1PublicGetKlines", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivateGetMyTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivateGetMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivateGetMyTrades", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivateGetOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivateGetOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivateGetOpenOrders", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivateGetOrder", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivateGetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivateGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivateGetAccount", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivateGetLeverageBracket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivateGetLeverageBracket (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivateGetLeverageBracket", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivateGetCommissionRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivateGetCommissionRate (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivateGetCommissionRate", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivateGetFuturesTransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivateGetFuturesTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivateGetFuturesTransferHistory", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivateGetForceOrdersHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivateGetForceOrdersHistory (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivateGetForceOrdersHistory", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivatePostPositionMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivatePostPositionMargin (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivatePostPositionMargin", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivatePostLevelEdit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivatePostLevelEdit (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivatePostLevelEdit", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivatePostCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivatePostCancel (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivatePostCancel", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivatePostOrder", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivatePostAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivatePostAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivatePostAllOpenOrders", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV2PrivatePostFuturesTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiV2PrivatePostFuturesTransfer (Object... optionalArgs)
     {
         return this.callAsync ("dapiV2PrivatePostFuturesTransfer", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  openV1PrivatePostPoseidonApiV1ListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  openV1PrivatePostPoseidonApiV1ListenKey (Object... optionalArgs)
     {
         return this.callAsync ("openV1PrivatePostPoseidonApiV1ListenKey", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  openV1PrivatePutPoseidonApiV1ListenKeyListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  openV1PrivatePutPoseidonApiV1ListenKeyListenKey (Object... optionalArgs)
     {
         return this.callAsync ("openV1PrivatePutPoseidonApiV1ListenKeyListenKey", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class BitrueApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  openV1PrivateDeletePoseidonApiV1ListenKeyListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  openV1PrivateDeletePoseidonApiV1ListenKeyListenKey (Object... optionalArgs)
     {
         return this.callAsync ("openV1PrivateDeletePoseidonApiV1ListenKeyListenKey", optionalArgs);
     }

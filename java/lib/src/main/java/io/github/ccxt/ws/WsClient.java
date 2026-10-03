@@ -90,7 +90,9 @@ public class WsClient {
     public volatile long connectionEstablished = 0;
     public volatile CompletableFuture<Boolean> connected;
     public volatile long lastPong = 0;
-    public boolean error = false;
+    // mirrors js Client.error: null while live, the terminal error once
+    // retired. written under futuresSync, volatile for the onClose guard read.
+    public volatile Object error = null;
     public boolean isMock = false; // static ws tests: transport is stubbed, sends are recorded
     public final java.util.List<Object> mockSentMessages = java.util.Collections.synchronizedList(new java.util.ArrayList<>()); // frames recorded in mock mode
     /**
@@ -147,6 +149,11 @@ public class WsClient {
     // own executor. Virtual-thread factory keeps blocking .join() calls cheap.
     private final ExecutorService messageExecutor = Executors.newSingleThreadExecutor(
             Thread.ofVirtual().name("ws-msg-", 0).factory());
+
+    /** Grace period before a discarded client's messageExecutor shuts down; overridable in tests. */
+    public long executorShutdownDelayMs = 5000;
+
+    private final AtomicBoolean executorShutdownScheduled = new AtomicBoolean(false);
 
     public WsClient(String url, String proxy,
                     BiConsumer<WsClient, Object> handleMessage,
@@ -286,7 +293,7 @@ public class WsClient {
             if (this.startedConnecting.compareAndSet(false, true)) {
                 if (backoffDelay > 0) {
                     CompletableFuture.delayedExecutor(backoffDelay,
-                            java.util.concurrent.TimeUnit.MILLISECONDS)
+                            java.util.concurrent.TimeUnit.MILLISECONDS, Exchange.VIRTUAL_EXECUTOR)
                             .execute(this::createConnection);
                 } else {
                     Exchange.VIRTUAL_EXECUTOR.execute(this::createConnection);
@@ -439,19 +446,27 @@ public class WsClient {
             // unblocked AND preserves frame ordering per connection. Cross-frame races
             // on shared exchange state (orderbook cache, balance sub-maps, etc.) are
             // eliminated for same-client traffic.
-            messageExecutor.execute(() -> {
-                try {
-                    if (this.verbose) {
-                        System.out.println(getFormattedDate() + "OnMessage:" + message);
+            try {
+                messageExecutor.execute(() -> {
+                    try {
+                        if (this.verbose) {
+                            System.out.println(getFormattedDate() + "OnMessage:" + message);
+                        }
+                        this.handleMessageCallback.accept(this, message);
+                    } catch (Exception e) {
+                        if (this.verbose) {
+                            System.err.println("handleMessage error: " + e.getMessage());
+                        }
+                        this.reject(e);
                     }
-                    this.handleMessageCallback.accept(this, message);
-                } catch (Exception e) {
-                    if (this.verbose) {
-                        System.err.println("handleMessage error: " + e.getMessage());
-                    }
-                    this.reject(e);
+                });
+            } catch (java.util.concurrent.RejectedExecutionException e) {
+                // Client already discarded — drop late frames instead of propagating.
+                if (this.verbose) {
+                    System.out.println(getFormattedDate()
+                            + "Dropping frame after executor shutdown: " + this.url);
                 }
-            });
+            }
         }
     }
 
@@ -470,19 +485,19 @@ public class WsClient {
         synchronized (connectedLock) {
             this.startedConnecting.set(false);
         }
-        this.error = false;
+        // this.error stays set: BaseExchange.onClose reads it as the terminal marker
         if (this.onCloseCallback != null) {
             this.onCloseCallback.accept(this, reason);
         }
     }
 
-    void onError(Object err) {
+    // mirrors js Client.onError: set the error marker, reset, notify the
+    // exchange. the connected future always rotates; the lock elects one winner
+    // for the rest when the transport error, a late onClose and a close race.
+    public void onError(Object err) {
         if (this.verbose) {
             System.err.println( getFormattedDate() + "WsClient error on " + this.url + ": " + err);
         }
-        this.isConnected = false;
-        this.error = true;
-
         Throwable t = (err instanceof Throwable th)
                 ? th
                 : new RuntimeException(String.valueOf(err));
@@ -494,6 +509,7 @@ public class WsClient {
         // out of `watch()` as the raw WebSocketHandshakeException and tests
         // mark it as a fatal failure instead of retrying.
         Throwable wrapped = wrapAsNetworkError(t);
+        this.isConnected = false;
 
         // Complete-then-replace: surface the error to current awaiters and
         // install a fresh future for the next connect() attempt.
@@ -506,6 +522,15 @@ public class WsClient {
             // that wins the CAS must be guaranteed to read the new future
             this.startedConnecting.set(false);
         }
+
+        synchronized (futuresSync) {
+            if (this.error != null) {
+                return;
+            }
+            this.error = wrapped;
+        }
+        this.subscriptionsMap().clear();
+        this.reject(wrapped); // no messageHash: rejects every pending future
 
         if (this.onErrorCallback != null) {
             this.onErrorCallback.accept(this, wrapped);
@@ -643,6 +668,8 @@ public class WsClient {
 
     /**
      * Close the WebSocket connection and reject all pending futures.
+     * Does not set this.error: reset() closes on app-level errors and the
+     * registry entry is then detached by BaseExchange.onClose's error == null guard.
      */
     public void close() {
         if (this.verbose) {
@@ -679,6 +706,34 @@ public class WsClient {
         }
 
         messageExecutor.shutdown();
+    }
+
+    /**
+     * Delayed graceful executor shutdown for a discarded client: a synchronous
+     * shutdown rejects in-flight frames, omitting it leaks the executor. If the
+     * client reconnects before the timer fires, the shutdown is disarmed so a
+     * later disconnect can re-arm it.
+     */
+    public void scheduleExecutorShutdown() {
+        if (executorShutdownScheduled.compareAndSet(false, true)) {
+            CompletableFuture.delayedExecutor(executorShutdownDelayMs,
+                    java.util.concurrent.TimeUnit.MILLISECONDS, Exchange.VIRTUAL_EXECUTOR)
+                    .execute(() -> {
+                        // Serialize with connect()'s CAS on startedConnecting.
+                        synchronized (connectedLock) {
+                            if (this.isConnected || this.startedConnecting.get()) {
+                                executorShutdownScheduled.set(false);
+                                return;
+                            }
+                            messageExecutor.shutdown();
+                        }
+                    });
+        }
+    }
+
+    /** For tests and consumers verifying cleanup. */
+    public boolean isMessageExecutorShutdown() {
+        return messageExecutor.isShutdown();
     }
 
     // ─── Binary decompression (matches C# lines 393-471) ───

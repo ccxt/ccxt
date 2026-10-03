@@ -136,6 +136,12 @@ abstract class lighter extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_markpricecandles($params = array()) {
+        return $this->request('markPriceCandles', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_get_fundings($params = array()) {
         return $this->request('fundings', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -156,6 +162,24 @@ abstract class lighter extends \ccxt\async\Exchange {
      */
     public function public_get_withdrawaldelay($params = array()) {
         return $this->request('withdrawalDelay', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_partnerstats($params = array()) {
+        return $this->request('partnerStats', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_syntheticspotinfo($params = array()) {
+        return $this->request('syntheticSpotInfo', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_tokenlist($params = array()) {
+        return $this->request('tokenlist', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -214,6 +238,12 @@ abstract class lighter extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_getmakeronlyapikeys($params = array()) {
+        return $this->request('getMakerOnlyApiKeys', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_accountactiveorders($params = array()) {
         return $this->request('accountActiveOrders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -226,8 +256,20 @@ abstract class lighter extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_accountorders($params = array()) {
+        return $this->request('accountOrders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_export($params = array()) {
         return $this->request('export', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_export_historicaltrades($params = array()) {
+        return $this->request('export/historicalTrades', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -274,14 +316,50 @@ abstract class lighter extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_rfq_get($params = array()) {
+        return $this->request('rfq/get', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_rfq_list($params = array()) {
+        return $this->request('rfq/list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_changeaccounttier($params = array()) {
         return $this->request('changeAccountTier', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_setmakeronlyapikeys($params = array()) {
+        return $this->request('setMakerOnlyApiKeys', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_notification_ack($params = array()) {
         return $this->request('notification/ack', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_rfq_create($params = array()) {
+        return $this->request('rfq/create', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_rfq_respond($params = array()) {
+        return $this->request('rfq/respond', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_rfq_update($params = array()) {
+        return $this->request('rfq/update', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -412,6 +490,12 @@ abstract class lighter extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicGetMarkPriceCandles($params = array()) {
+        return $this->request('markPriceCandles', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicGetFundings($params = array()) {
         return $this->request('fundings', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -432,6 +516,24 @@ abstract class lighter extends \ccxt\async\Exchange {
      */
     public function publicGetWithdrawalDelay($params = array()) {
         return $this->request('withdrawalDelay', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetPartnerStats($params = array()) {
+        return $this->request('partnerStats', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetSyntheticSpotInfo($params = array()) {
+        return $this->request('syntheticSpotInfo', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetTokenlist($params = array()) {
+        return $this->request('tokenlist', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -490,6 +592,12 @@ abstract class lighter extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetGetMakerOnlyApiKeys($params = array()) {
+        return $this->request('getMakerOnlyApiKeys', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetAccountActiveOrders($params = array()) {
         return $this->request('accountActiveOrders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -502,8 +610,20 @@ abstract class lighter extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetAccountOrders($params = array()) {
+        return $this->request('accountOrders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetExport($params = array()) {
         return $this->request('export', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetExportHistoricalTrades($params = array()) {
+        return $this->request('export/historicalTrades', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -550,13 +670,49 @@ abstract class lighter extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetRfqGet($params = array()) {
+        return $this->request('rfq/get', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetRfqList($params = array()) {
+        return $this->request('rfq/list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostChangeAccountTier($params = array()) {
         return $this->request('changeAccountTier', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privatePostSetMakerOnlyApiKeys($params = array()) {
+        return $this->request('setMakerOnlyApiKeys', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostNotificationAck($params = array()) {
         return $this->request('notification/ack', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostRfqCreate($params = array()) {
+        return $this->request('rfq/create', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostRfqRespond($params = array()) {
+        return $this->request('rfq/respond', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostRfqUpdate($params = array()) {
+        return $this->request('rfq/update', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

@@ -211,6 +211,20 @@ async def test_race_broadcast_reject_no_unretrieved():
         loop.set_exception_handler(previous_handler)
 
 
+async def test_race_pending_loser_callbacks_bounded():
+    # a cached pending future raced repeatedly must not accumulate done-callbacks
+    print("test_race_pending_loser_callbacks_bounded")
+    stuck = Future()
+    for i in range(50):
+        winner = Future()
+        raced = Future.race([winner, stuck])
+        winner.resolve(i)
+        assert await raced == i
+    assert len(stuck._callbacks) == 1, f"pending loser kept {len(stuck._callbacks)} callbacks"
+    stuck.reject(ExchangeClosedByUser('closed'))
+    await asyncio.sleep(0)
+
+
 async def test_ws_future():
     await test_resolve_before()
     await test_reject()
@@ -225,4 +239,5 @@ async def test_ws_future():
     await test_race_with_precompleted_future()
     await test_closed_by_user()
     await test_race_broadcast_reject_no_unretrieved()
+    await test_race_pending_loser_callbacks_bounded()
 

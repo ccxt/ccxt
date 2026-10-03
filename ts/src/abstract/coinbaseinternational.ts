@@ -17,8 +17,16 @@ interface Exchange {
     v1PublicGetInstrumentsInstrumentQuote (params?: {}): Promise<Dict>;
     v1PublicGetInstrumentsInstrumentFunding (params?: {}): Promise<Dict>;
     v1PublicGetInstrumentsInstrumentCandles (params?: {}): Promise<Dict>;
+    v1PublicGetInstrumentsVolumesDaily (params?: {}): Promise<Dict>;
+    v1PublicGetPositionOffsets (params?: {}): Promise<Dict>;
+    v1PublicGetFeeRateTiers (params?: {}): Promise<List>;
+    v1PrivateGetAddressBook (params?: {}): Promise<List>;
     v1PrivateGetOrders (params?: {}): Promise<Dict>;
     v1PrivateGetOrdersId (params?: {}): Promise<Dict>;
+    v1PrivateGetIndexIndexComposition (params?: {}): Promise<Dict>;
+    v1PrivateGetIndexIndexCompositionHistory (params?: {}): Promise<Dict>;
+    v1PrivateGetIndexIndexPrice (params?: {}): Promise<Dict>;
+    v1PrivateGetIndexIndexCandles (params?: {}): Promise<Dict>;
     v1PrivateGetPortfolios (params?: {}): Promise<List>;
     v1PrivateGetPortfoliosPortfolio (params?: {}): Promise<Dict>;
     v1PrivateGetPortfoliosPortfolioDetail (params?: {}): Promise<Dict>;
@@ -27,14 +35,28 @@ interface Exchange {
     v1PrivateGetPortfoliosPortfolioBalancesAsset (params?: {}): Promise<Dict>;
     v1PrivateGetPortfoliosPortfolioPositions (params?: {}): Promise<List>;
     v1PrivateGetPortfoliosPortfolioPositionsInstrument (params?: {}): Promise<Dict>;
+    v1PrivateGetPortfoliosPortfolioPositionLimits (params?: {}): Promise<Dict>;
+    v1PrivateGetPortfoliosPortfolioPositionLimitsPositions (params?: {}): Promise<List>;
+    v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument (params?: {}): Promise<Dict>;
     v1PrivateGetPortfoliosFills (params?: {}): Promise<Dict>;
     v1PrivateGetPortfoliosPortfolioFills (params?: {}): Promise<Dict>;
+    v1PrivateGetPortfoliosFeeRates (params?: {}): Promise<List>;
+    v1PrivateGetPortfoliosPortfolioLoans (params?: {}): Promise<List>;
+    v1PrivateGetPortfoliosPortfolioLoansAsset (params?: {}): Promise<Dict>;
+    v1PrivateGetPortfoliosPortfolioLoansAssetAvailability (params?: {}): Promise<Dict>;
+    v1PrivateGetPortfoliosPortfolioMarginCallStatus (params?: {}): Promise<Dict>;
     v1PrivateGetTransfers (params?: {}): Promise<Dict>;
     v1PrivateGetTransfersTransferUuid (params?: {}): Promise<Dict>;
+    v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit (params?: {}): Promise<Dict>;
     v1PrivatePostOrders (params?: {}): Promise<Dict>;
     v1PrivatePostPortfolios (params?: {}): Promise<Dict>;
     v1PrivatePostPortfoliosMargin (params?: {}): Promise<Dict>;
+    v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled (params?: {}): Promise<Dict>;
+    v1PrivatePostPortfoliosPortfolioAutoMarginEnabled (params?: {}): Promise<Dict>;
+    v1PrivatePostPortfoliosPortfolioLoansAsset (params?: {}): Promise<Dict>;
+    v1PrivatePostPortfoliosPortfolioLoansAssetPreview (params?: {}): Promise<Dict>;
     v1PrivatePostPortfoliosTransfer (params?: {}): Promise<Dict>;
+    v1PrivatePostPortfoliosTransferPosition (params?: {}): Promise<Dict>;
     v1PrivatePostTransfersWithdraw (params?: {}): Promise<Dict>;
     v1PrivatePostTransfersAddress (params?: {}): Promise<Dict>;
     v1PrivatePostTransfersCreateCounterpartyId (params?: {}): Promise<Dict>;
@@ -44,6 +66,7 @@ interface Exchange {
     v1PrivatePutPortfoliosPortfolio (params?: {}): Promise<Dict>;
     v1PrivateDeleteOrders (params?: {}): Promise<List>;
     v1PrivateDeleteOrdersId (params?: {}): Promise<Dict>;
+    v1PrivatePatchPortfoliosPortfolio (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

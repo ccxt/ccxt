@@ -190,6 +190,54 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function spot_v2_public_get_quote_bookticker($params = array()) {
+        return $this->request('quote/bookTicker', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_v2_public_get_quote_depth($params = array()) {
+        return $this->request('quote/depth', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_v2_public_get_quote_historicalklines($params = array()) {
+        return $this->request('quote/historicalKlines', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_v2_public_get_quote_historicaltrades($params = array()) {
+        return $this->request('quote/historicalTrades', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_v2_public_get_quote_klines($params = array()) {
+        return $this->request('quote/klines', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_v2_public_get_quote_price($params = array()) {
+        return $this->request('quote/price', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_v2_public_get_quote_ticker($params = array()) {
+        return $this->request('quote/ticker', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_v2_public_get_quote_trades($params = array()) {
+        return $this->request('quote/trades', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function spot_v3_private_get_get_asset_transfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -520,6 +568,12 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function swap_v2_private_get_trade_positionhistory($params = array()) {
+        return $this->request('trade/positionHistory', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function swap_v2_private_get_user_income_export($params = array()) {
         return $this->request('user/income/export', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -766,6 +820,12 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function cswap_v2_private_post_trade_order($params = array()) {
+        return $this->request('trade/order', array('cswap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function contract_v1_private_get_allposition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -916,6 +976,12 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function account_v1_private_get_account_apirestrictions($params = array()) {
+        return $this->request('account/apiRestrictions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function account_v1_private_get_allaccountbalance($params = array()) {
         return $this->request('allAccountBalance', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -964,12 +1030,6 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
-    public function copytrading_v1_private_get_swap_trace_currenttrack($params = array()) {
-        return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
     public function copytrading_v1_private_get_pfutures_traderdetail($params = array()) {
         return $this->request('PFutures/traderDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1014,12 +1074,6 @@ abstract class bingx extends \ccxt\async\Exchange {
      */
     public function copytrading_v1_private_get_spot_historyorder($params = array()) {
         return $this->request('spot/historyOrder', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function copytrading_v1_private_post_swap_trace_closetrackorder($params = array()) {
-        return $this->request('swap/trace/closeTrackOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1128,6 +1182,36 @@ abstract class bingx extends \ccxt\async\Exchange {
      */
     public function agent_v1_private_get_account_superiorcheck($params = array()) {
         return $this->request('account/superiorCheck', array('agent', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function wealth_v1_private_get_product_dual_currency_pre_order($params = array()) {
+        return $this->request('product/dual-currency/pre-order', array('wealth', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function wealth_v1_private_get_product_dual_currency_position($params = array()) {
+        return $this->request('product/dual-currency/position', array('wealth', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function wealth_v1_private_get_product_dual_currency_order_records($params = array()) {
+        return $this->request('product/dual-currency/order-records', array('wealth', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function wealth_v1_private_post_product_dual_currency_invest_asset_list($params = array()) {
+        return $this->request('product/dual-currency/invest-asset-list', array('wealth', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function wealth_v1_private_post_product_dual_currency_order($params = array()) {
+        return $this->request('product/dual-currency/order', array('wealth', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1308,6 +1392,54 @@ abstract class bingx extends \ccxt\async\Exchange {
      */
     public function spotV2PublicGetTickerPrice($params = array()) {
         return $this->request('ticker/price', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotV2PublicGetQuoteBookTicker($params = array()) {
+        return $this->request('quote/bookTicker', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotV2PublicGetQuoteDepth($params = array()) {
+        return $this->request('quote/depth', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotV2PublicGetQuoteHistoricalKlines($params = array()) {
+        return $this->request('quote/historicalKlines', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotV2PublicGetQuoteHistoricalTrades($params = array()) {
+        return $this->request('quote/historicalTrades', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotV2PublicGetQuoteKlines($params = array()) {
+        return $this->request('quote/klines', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotV2PublicGetQuotePrice($params = array()) {
+        return $this->request('quote/price', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotV2PublicGetQuoteTicker($params = array()) {
+        return $this->request('quote/ticker', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotV2PublicGetQuoteTrades($params = array()) {
+        return $this->request('quote/trades', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1642,6 +1774,12 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function swapV2PrivateGetTradePositionHistory($params = array()) {
+        return $this->request('trade/positionHistory', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function swapV2PrivateGetUserIncomeExport($params = array()) {
         return $this->request('user/income/export', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1888,6 +2026,12 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function cswapV2PrivatePostTradeOrder($params = array()) {
+        return $this->request('trade/order', array('cswap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function contractV1PrivateGetAllPosition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -2038,6 +2182,12 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function accountV1PrivateGetAccountApiRestrictions($params = array()) {
+        return $this->request('account/apiRestrictions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function accountV1PrivateGetAllAccountBalance($params = array()) {
         return $this->request('allAccountBalance', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -2086,12 +2236,6 @@ abstract class bingx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
-    public function copyTradingV1PrivateGetSwapTraceCurrentTrack($params = array()) {
-        return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
     public function copyTradingV1PrivateGetPFuturesTraderDetail($params = array()) {
         return $this->request('PFutures/traderDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -2136,12 +2280,6 @@ abstract class bingx extends \ccxt\async\Exchange {
      */
     public function copyTradingV1PrivateGetSpotHistoryOrder($params = array()) {
         return $this->request('spot/historyOrder', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function copyTradingV1PrivatePostSwapTraceCloseTrackOrder($params = array()) {
-        return $this->request('swap/trace/closeTrackOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -2250,5 +2388,35 @@ abstract class bingx extends \ccxt\async\Exchange {
      */
     public function agentV1PrivateGetAccountSuperiorCheck($params = array()) {
         return $this->request('account/superiorCheck', array('agent', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function wealthV1PrivateGetProductDualCurrencyPreOrder($params = array()) {
+        return $this->request('product/dual-currency/pre-order', array('wealth', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function wealthV1PrivateGetProductDualCurrencyPosition($params = array()) {
+        return $this->request('product/dual-currency/position', array('wealth', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function wealthV1PrivateGetProductDualCurrencyOrderRecords($params = array()) {
+        return $this->request('product/dual-currency/order-records', array('wealth', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function wealthV1PrivatePostProductDualCurrencyInvestAssetList($params = array()) {
+        return $this->request('product/dual-currency/invest-asset-list', array('wealth', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function wealthV1PrivatePostProductDualCurrencyOrder($params = array()) {
+        return $this->request('product/dual-currency/order', array('wealth', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
 }

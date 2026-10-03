@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official gate API documentation:** [gate.com](https://www.gate.com/docs/developers/apiv4/en)
 
-> 339 implicit endpoints across 2 access groups.
+> 395 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -97,6 +97,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicFuturesGetSettleIndexConstituentsIndex` | GET | `{settle}/index_constituents/{index}` | 1 |
 | `publicFuturesGetSettleLiqOrders` | GET | `{settle}/liq_orders` | 1 |
 | `publicFuturesGetSettleRiskLimitTiers` | GET | `{settle}/risk_limit_tiers` | 1 |
+| `publicFuturesGetSettleAdlRiskStates` | GET | `{settle}/adl_risk_states` | 1 |
+| `publicFuturesPostSettleFundingRates` | POST | `{settle}/funding_rates` | 1 |
 | `publicDeliveryGetSettleContracts` | GET | `{settle}/contracts` | 1 |
 | `publicDeliveryGetSettleContractsContract` | GET | `{settle}/contracts/{contract}` | 1 |
 | `publicDeliveryGetSettleOrderBook` | GET | `{settle}/order_book` | 1 |
@@ -121,6 +123,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicEarnGetUniCurrenciesCurrency` | GET | `uni/currencies/{currency}` | 1 |
 | `publicEarnGetDualInvestmentPlan` | GET | `dual/investment_plan` | 1 |
 | `publicEarnGetStructuredProducts` | GET | `structured/products` | 1 |
+| `publicEarnGetDualProjectRecommend` | GET | `dual/project-recommend` | 1 |
+| `publicEarnGetFixedTermProduct` | GET | `fixed-term/product` | 1 |
+| `publicEarnGetFixedTermProductAssetList` | GET | `fixed-term/product/{asset}/list` | 1 |
 | `publicLoanGetCollateralCurrencies` | GET | `collateral/currencies` | 1 |
 | `publicLoanGetMultiCollateralCurrencies` | GET | `multi_collateral/currencies` | 1 |
 | `publicLoanGetMultiCollateralLtv` | GET | `multi_collateral/ltv` | 1 |
@@ -151,6 +156,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateWalletGetSmallBalanceHistory` | GET | `small_balance_history` | 1 |
 | `privateWalletGetPush` | GET | `push` | 1 |
 | `privateWalletGetGetLowCapExchangeList` | GET | `getLowCapExchangeList` | 1 |
+| `privateWalletGetTransfers` | GET | `transfers` | 1 |
 | `privateWalletPostTransfers` | POST | `transfers` | 2.5 |
 | `privateWalletPostSubAccountTransfers` | POST | `sub_account_transfers` | 2.5 |
 | `privateWalletPostSubAccountToSubAccount` | POST | `sub_account_to_sub_account` | 2.5 |
@@ -180,11 +186,16 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateUnifiedGetLoanMarginTiers` | GET | `loan_margin_tiers` | 1.3333333333333333 |
 | `privateUnifiedGetLeverageUserCurrencyConfig` | GET | `leverage/user_currency_config` | 1.3333333333333333 |
 | `privateUnifiedGetLeverageUserCurrencySetting` | GET | `leverage/user_currency_setting` | 1.3333333333333333 |
+| `privateUnifiedGetDeltaNeutral` | GET | `delta_neutral` | 1.3333333333333333 |
+| `privateUnifiedGetEstimatedQuickRepayment` | GET | `estimated_quick_repayment` | 1.3333333333333333 |
 | `privateUnifiedGetAccountMode` | GET | `account_mode` | 1.3333333333333333 |
 | `privateUnifiedPostLoans` | POST | `loans` | 13.333333333333334 |
 | `privateUnifiedPostPortfolioCalculator` | POST | `portfolio_calculator` | 1.3333333333333333 |
 | `privateUnifiedPostLeverageUserCurrencySetting` | POST | `leverage/user_currency_setting` | 1.3333333333333333 |
 | `privateUnifiedPostCollateralCurrencies` | POST | `collateral_currencies` | 1.3333333333333333 |
+| `privateUnifiedPostDeltaNeutral` | POST | `delta_neutral` | 1.3333333333333333 |
+| `privateUnifiedPostLeverageUserSetting` | POST | `leverage/user_setting` | 1.3333333333333333 |
+| `privateUnifiedPostQuickRepayment` | POST | `quick_repayment` | 1.3333333333333333 |
 | `privateUnifiedPostAccountMode` | POST | `account_mode` | 1.3333333333333333 |
 | `privateUnifiedPutUnifiedMode` | PUT | `unified_mode` | 1.3333333333333333 |
 | `privateSpotGetFee` | GET | `fee` | 1 |
@@ -197,6 +208,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateSpotGetMyTrades` | GET | `my_trades` | 1 |
 | `privateSpotGetPriceOrders` | GET | `price_orders` | 1 |
 | `privateSpotGetPriceOrdersOrderId` | GET | `price_orders/{order_id}` | 1 |
+| `privateSpotGetPovOrders` | GET | `pov_orders` | 1 |
+| `privateSpotGetPovOrdersOrderId` | GET | `pov_orders/{order_id}` | 1 |
 | `privateSpotPostBatchOrders` | POST | `batch_orders` | 0.4 |
 | `privateSpotPostCrossLiquidateOrders` | POST | `cross_liquidate_orders` | 1 |
 | `privateSpotPostOrders` | POST | `orders` | 0.4 |
@@ -204,10 +217,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateSpotPostCountdownCancelAll` | POST | `countdown_cancel_all` | 0.26666666666666666 |
 | `privateSpotPostAmendBatchOrders` | POST | `amend_batch_orders` | 0.4 |
 | `privateSpotPostPriceOrders` | POST | `price_orders` | 0.4 |
+| `privateSpotPostPovOrders` | POST | `pov_orders` | 0.4 |
 | `privateSpotDeleteOrders` | DELETE | `orders` | 0.26666666666666666 |
 | `privateSpotDeleteOrdersOrderId` | DELETE | `orders/{order_id}` | 0.26666666666666666 |
 | `privateSpotDeletePriceOrders` | DELETE | `price_orders` | 0.26666666666666666 |
 | `privateSpotDeletePriceOrdersOrderId` | DELETE | `price_orders/{order_id}` | 0.26666666666666666 |
+| `privateSpotDeletePovOrders` | DELETE | `pov_orders` | 0.26666666666666666 |
+| `privateSpotDeletePovOrdersOrderId` | DELETE | `pov_orders/{order_id}` | 0.26666666666666666 |
 | `privateSpotPatchOrdersOrderId` | PATCH | `orders/{order_id}` | 0.4 |
 | `privateMarginGetAccounts` | GET | `accounts` | 1.3333333333333333 |
 | `privateMarginGetAccountBook` | GET | `account_book` | 1.3333333333333333 |
@@ -269,6 +285,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateFuturesGetSettleRiskLimitTable` | GET | `{settle}/risk_limit_table` | 1 |
 | `privateFuturesGetSettlePriceOrders` | GET | `{settle}/price_orders` | 1 |
 | `privateFuturesGetSettlePriceOrdersOrderId` | GET | `{settle}/price_orders/{order_id}` | 1 |
+| `privateFuturesGetSettleAutoorderV1TrailList` | GET | `{settle}/autoorder/v1/trail/list` | 1 |
+| `privateFuturesGetSettleAutoorderV1TrailDetail` | GET | `{settle}/autoorder/v1/trail/detail` | 1 |
+| `privateFuturesGetSettleAutoorderV1TrailChangeLog` | GET | `{settle}/autoorder/v1/trail/change_log` | 1 |
+| `privateFuturesGetSettleAutoorderV1ChaseList` | GET | `{settle}/autoorder/v1/chase/list` | 1 |
+| `privateFuturesGetSettleAutoorderV1ChaseDetail` | GET | `{settle}/autoorder/v1/chase/detail` | 1 |
 | `privateFuturesPostSettlePositionsContractMargin` | POST | `{settle}/positions/{contract}/margin` | 1 |
 | `privateFuturesPostSettlePositionsContractLeverage` | POST | `{settle}/positions/{contract}/leverage` | 1 |
 | `privateFuturesPostSettlePositionsContractSetLeverage` | POST | `{settle}/positions/{contract}/set_leverage` | 1 |
@@ -287,6 +308,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateFuturesPostSettleBatchAmendOrders` | POST | `{settle}/batch_amend_orders` | 0.4 |
 | `privateFuturesPostSettleBboOrders` | POST | `{settle}/bbo_orders` | 0.4 |
 | `privateFuturesPostSettlePriceOrders` | POST | `{settle}/price_orders` | 0.4 |
+| `privateFuturesPostSettleAutoorderV1TrailCreate` | POST | `{settle}/autoorder/v1/trail/create` | 0.4 |
+| `privateFuturesPostSettleAutoorderV1TrailStop` | POST | `{settle}/autoorder/v1/trail/stop` | 0.4 |
+| `privateFuturesPostSettleAutoorderV1TrailStopAll` | POST | `{settle}/autoorder/v1/trail/stop_all` | 0.4 |
+| `privateFuturesPostSettleAutoorderV1TrailUpdate` | POST | `{settle}/autoorder/v1/trail/update` | 0.4 |
+| `privateFuturesPostSettleAutoorderV1ChaseCreate` | POST | `{settle}/autoorder/v1/chase/create` | 0.4 |
+| `privateFuturesPostSettleAutoorderV1ChaseStop` | POST | `{settle}/autoorder/v1/chase/stop` | 0.4 |
+| `privateFuturesPostSettleAutoorderV1ChaseStopAll` | POST | `{settle}/autoorder/v1/chase/stop_all` | 0.4 |
 | `privateFuturesPutSettleOrdersOrderId` | PUT | `{settle}/orders/{order_id}` | 1 |
 | `privateFuturesPutSettlePriceOrdersOrderId` | PUT | `{settle}/price_orders/{order_id}` | 1 |
 | `privateFuturesDeleteSettleOrders` | DELETE | `{settle}/orders` | 0.26666666666666666 |
@@ -328,6 +356,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateOptionsPostCountdownCancelAll` | POST | `countdown_cancel_all` | 1.3333333333333333 |
 | `privateOptionsPostMmp` | POST | `mmp` | 1.3333333333333333 |
 | `privateOptionsPostMmpReset` | POST | `mmp/reset` | 1.3333333333333333 |
+| `privateOptionsPutOrdersOrderId` | PUT | `orders/{order_id}` | 1.3333333333333333 |
 | `privateOptionsDeleteOrders` | DELETE | `orders` | 1.3333333333333333 |
 | `privateOptionsDeleteOrdersOrderId` | DELETE | `orders/{order_id}` | 1.3333333333333333 |
 | `privateEarnGetUniLends` | GET | `uni/lends` | 1.3333333333333333 |
@@ -345,6 +374,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateEarnGetStakingOrderList` | GET | `staking/order_list` | 1.3333333333333333 |
 | `privateEarnGetStakingAwardList` | GET | `staking/award_list` | 1.3333333333333333 |
 | `privateEarnGetStakingAssets` | GET | `staking/assets` | 1.3333333333333333 |
+| `privateEarnGetDualOrderRefundPreview` | GET | `dual/order-refund-preview` | 1.3333333333333333 |
+| `privateEarnGetFixedTermUserLend` | GET | `fixed-term/user/lend` | 1.3333333333333333 |
+| `privateEarnGetFixedTermUserHistory` | GET | `fixed-term/user/history` | 1.3333333333333333 |
+| `privateEarnGetAutoinvestCoins` | GET | `autoinvest/coins` | 1.3333333333333333 |
+| `privateEarnGetAutoinvestConfig` | GET | `autoinvest/config` | 1.3333333333333333 |
+| `privateEarnGetAutoinvestOrders` | GET | `autoinvest/orders` | 1.3333333333333333 |
+| `privateEarnGetAutoinvestPlansDetail` | GET | `autoinvest/plans/detail` | 1.3333333333333333 |
+| `privateEarnGetAutoinvestPlansListInfo` | GET | `autoinvest/plans/list_info` | 1.3333333333333333 |
+| `privateEarnGetAutoinvestPlansRecords` | GET | `autoinvest/plans/records` | 1.3333333333333333 |
 | `privateEarnGetUniCurrencies` | GET | `uni/currencies` | 1.3333333333333333 |
 | `privateEarnGetUniCurrenciesCurrency` | GET | `uni/currencies/{currency}` | 1.3333333333333333 |
 | `privateEarnPostUniLends` | POST | `uni/lends` | 1.3333333333333333 |
@@ -352,6 +390,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateEarnPostDualOrders` | POST | `dual/orders` | 1.3333333333333333 |
 | `privateEarnPostStructuredOrders` | POST | `structured/orders` | 1.3333333333333333 |
 | `privateEarnPostStakingSwap` | POST | `staking/swap` | 1.3333333333333333 |
+| `privateEarnPostDualOrderRefund` | POST | `dual/order-refund` | 1.3333333333333333 |
+| `privateEarnPostDualModifyOrderReinvest` | POST | `dual/modify-order-reinvest` | 1.3333333333333333 |
+| `privateEarnPostFixedTermUserLend` | POST | `fixed-term/user/lend` | 1.3333333333333333 |
+| `privateEarnPostFixedTermUserPreRedeem` | POST | `fixed-term/user/pre-redeem` | 1.3333333333333333 |
+| `privateEarnPostAutoinvestMinInvestAmount` | POST | `autoinvest/min_invest_amount` | 1.3333333333333333 |
+| `privateEarnPostAutoinvestPlansAddPosition` | POST | `autoinvest/plans/add_position` | 1.3333333333333333 |
+| `privateEarnPostAutoinvestPlansCreate` | POST | `autoinvest/plans/create` | 1.3333333333333333 |
+| `privateEarnPostAutoinvestPlansStop` | POST | `autoinvest/plans/stop` | 1.3333333333333333 |
+| `privateEarnPostAutoinvestPlansUpdate` | POST | `autoinvest/plans/update` | 1.3333333333333333 |
 | `privateEarnPutUniInterestReinvest` | PUT | `uni/interest_reinvest` | 1.3333333333333333 |
 | `privateEarnPatchUniLends` | PATCH | `uni/lends` | 1.3333333333333333 |
 | `privateLoanGetCollateralOrders` | GET | `collateral/orders` | 1.3333333333333333 |
@@ -396,13 +443,22 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateRebateGetBrokerTransactionHistory` | GET | `broker/transaction_history` | 1.3333333333333333 |
 | `privateRebateGetUserInfo` | GET | `user/info` | 1.3333333333333333 |
 | `privateRebateGetUserSubRelation` | GET | `user/sub_relation` | 1.3333333333333333 |
+| `privateRebateGetPartnerDataAggregated` | GET | `partner/data/aggregated` | 1.3333333333333333 |
 | `privateOtcGetGetUserDefBank` | GET | `get_user_def_bank` | 1 |
 | `privateOtcGetOrderList` | GET | `order/list` | 1 |
 | `privateOtcGetStableCoinOrderList` | GET | `stable_coin/order/list` | 1 |
 | `privateOtcGetOrderDetail` | GET | `order/detail` | 1 |
+| `privateOtcGetBankList` | GET | `bank/list` | 1 |
+| `privateOtcGetBankBankSupplementChecklist` | GET | `bank/bank_supplement_checklist` | 1 |
 | `privateOtcPostQuote` | POST | `quote` | 1 |
 | `privateOtcPostOrderCreate` | POST | `order/create` | 1 |
 | `privateOtcPostStableCoinOrderCreate` | POST | `stable_coin/order/create` | 1 |
 | `privateOtcPostOrderPaid` | POST | `order/paid` | 1 |
 | `privateOtcPostOrderCancel` | POST | `order/cancel` | 1 |
+| `privateOtcPostBankCreate` | POST | `bank/create` | 1 |
+| `privateOtcPostBankDelete` | POST | `bank/delete` | 1 |
+| `privateOtcPostBankSetDefault` | POST | `bank/set_default` | 1 |
+| `privateOtcPostBankPersonalBankSupplement` | POST | `bank/personal/bank_supplement` | 1 |
+| `privateOtcPostBankEnterpriseBankSupplement` | POST | `bank/enterprise/bank_supplement` | 1 |
+| `privateOtcPostUploadPreUpload` | POST | `upload/pre_upload` | 1 |
 

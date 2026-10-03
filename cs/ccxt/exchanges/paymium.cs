@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class paymium : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "paymium" },
@@ -96,6 +96,9 @@ public partial class paymium : Exchange
                             { "cost", 1 },
                         } },
                         { "user/price_alerts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/withdrawals", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "merchant/get_payment/{uuid}", new Dictionary<string, object>() {
@@ -202,25 +205,25 @@ public partial class paymium : Exchange
         });
     }
 
-    public override object parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(object response)
     {
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         List<object> currencies = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+        for (int i = 0; i < currencies.Count; i++)
         {
-            object code = getValue(currencies, i);
-            object currency = this.currency(code);
-            object currencyId = getValue(currency, "id");
-            object free = add("balance_", currencyId);
-            if (isTrue(inOp(response, free)))
+            string? code = ((string)currencies[i]);
+            Dictionary<string, object> currency = this.currency(code);
+            string? currencyId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
+            string free = ("balance_" + currencyId);
+            if (inOp(response, free))
             {
-                object account = this.account();
-                object used = add("locked_", currencyId);
-                ((IDictionary<string,object>)account)["free"] = this.safeString(response, free);
-                ((IDictionary<string,object>)account)["used"] = this.safeString(response, used);
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                Dictionary<string, object> account = this.account();
+                string used = ("locked_" + currencyId);
+                account["free"] = this.safeString(response, free);
+                account["used"] = this.safeString(response, used);
+                result[(string)code] = account;
             }
         }
         return this.safeBalance(result);
@@ -234,15 +237,15 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object response = await this.privateGetUser(parameters);
-        return this.parseBalance(response);
+        Dictionary<string, object> response = await this.privateGetUser(parameters);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -255,22 +258,22 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "currency", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object response = await this.publicGetDataCurrencyDepth(this.extend(request, parameters));
-        return this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount");
+        Dictionary<string, object> response = await this.publicGetDataCurrencyDepth(this.extend(request, parameters));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "amount");
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // {
@@ -290,12 +293,12 @@ public partial class paymium : Exchange
         //     "size":"0.00041087"
         // }
         //
-        object symbol = this.safeSymbol(null, market);
-        object timestamp = this.safeTimestamp(ticker, "at");
-        object vwap = this.safeString(ticker, "vwap");
-        object baseVolume = this.safeString(ticker, "volume");
-        object quoteVolume = Precise.stringMul(baseVolume, vwap);
-        object last = this.safeString(ticker, "price");
+        string? symbol = this.safeSymbol(null, market);
+        Int64? timestamp = this.safeTimestamp(ticker, "at");
+        string? vwap = this.safeString(ticker, "vwap");
+        string? baseVolume = this.safeString(ticker, "volume");
+        string? quoteVolume = Precise.stringMul(baseVolume, vwap);
+        string? last = this.safeString(ticker, "price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -332,15 +335,15 @@ public partial class paymium : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "currency", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object ticker = await this.publicGetDataCurrencyTicker(this.extend(request, parameters));
+        Dictionary<string, object> ticker = await this.publicGetDataCurrencyTicker(this.extend(request, parameters));
         //
         // {
         //     "high":"33740.82",
@@ -359,25 +362,25 @@ public partial class paymium : Exchange
         //     "size":"0.00041087"
         // }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+        return this.parseTicker(ticker, market);
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
-        object timestamp = this.safeTimestamp(trade, "created_at_int");
-        object id = this.safeString(trade, "uuid");
-        market = this.safeMarket(null, market);
-        object side = this.safeString(trade, "side");
-        object price = this.safeString(trade, "price");
-        object amountField = add("traded_", ((string)getValue(market, "base")).ToLower());
-        object amount = this.safeString(trade, amountField);
+        Int64? timestamp = this.safeTimestamp(trade, "created_at_int");
+        string? id = this.safeString(trade, "uuid");
+        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        string? side = this.safeString(trade, "side");
+        string? price = this.safeString(trade, "price");
+        string amountField = ("traded_" + ((string)(marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null)).ToLower());
+        string? amount = this.safeString(trade, amountField);
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
             { "order", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", null },
             { "side", side },
             { "takerOrMaker", null },
@@ -385,7 +388,7 @@ public partial class paymium : Exchange
             { "amount", amount },
             { "cost", null },
             { "fee", null },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -402,16 +405,16 @@ public partial class paymium : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "currency", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object response = await this.publicGetDataCurrencyTrades(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        List<object> response = await this.publicGetDataCurrencyTrades(this.extend(request, parameters));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -426,11 +429,11 @@ public partial class paymium : Exchange
     public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object response = await this.privatePostUserAddresses(parameters);
+        Dictionary<string, object> response = await this.privatePostUserAddresses(parameters);
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -454,14 +457,14 @@ public partial class paymium : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", code },
         };
-        object response = await this.privateGetUserAddressesAddress(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetUserAddressesAddress(this.extend(request, parameters));
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -482,14 +485,14 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(object codes = null, object parameters = null)
+    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object response = await this.privateGetUserAddresses(parameters);
+        List<object> response = await this.privateGetUserAddresses(parameters);
         //
         //     [
         //         {
@@ -500,10 +503,10 @@ public partial class paymium : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(response, codes));
+        return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(response, codes, false));
     }
 
-    public override object parseDepositAddress(object depositAddress, object currency = null)
+    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -513,8 +516,8 @@ public partial class paymium : Exchange
         //         "label": "Savings"
         //     }
         //
-        object address = this.safeString(depositAddress, "address");
-        object currencyId = this.safeString(depositAddress, "currency");
+        string? address = this.safeString(depositAddress, "address");
+        string? currencyId = this.safeString(depositAddress, "currency");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
@@ -540,23 +543,23 @@ public partial class paymium : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "type", add(this.capitalize(type), "Order") },
-            { "currency", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", (this.capitalize(type) + "Order") },
+            { "currency", (market.ContainsKey("id") ? market["id"] : null) },
             { "direction", side },
             { "amount", amount },
         };
-        if (isTrue(!isEqual(type, "market")))
+        if ((type != "market"))
         {
-            ((IDictionary<string,object>)request)["price"] = price;
+            request["price"] = price;
         }
-        object response = await this.privatePostUserOrders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(response, "uuid") },         }, market));
+        Dictionary<string, object> response = await this.privatePostUserOrders(this.extend(request, parameters));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(response, "uuid") },         }, market);
     }
 
     /**
@@ -572,11 +575,11 @@ public partial class paymium : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "uuid", id },
         };
-        object response = await this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        Dictionary<string, object> response = await this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     /**
@@ -591,28 +594,28 @@ public partial class paymium : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(code);
-        if (isTrue(isLessThan(getIndexOf(toAccount, "@"), 0)))
+        Dictionary<string, object> currency = this.currency(code);
+        if (toAccount.IndexOf("@", StringComparison.Ordinal) < 0)
         {
-            throw new ExchangeError ((string)add(this.id, " transfer() only allows transfers to an email address")) ;
+            throw new ExchangeError ((this.id + " transfer() only allows transfers to an email address")) ;
         }
-        if (isTrue(isTrue(!isEqual(code, "BTC")) && isTrue(!isEqual(code, "EUR"))))
+        if ((code != "BTC") && (code != "EUR"))
         {
-            throw new ExchangeError ((string)add(this.id, " transfer() only allows BTC or EUR")) ;
+            throw new ExchangeError ((this.id + " transfer() only allows BTC or EUR")) ;
         }
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(code, amount) },
             { "email", toAccount },
         };
-        object response = await this.privatePostUserEmailTransfers(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostUserEmailTransfers(this.extend(request, parameters));
         //
         //     {
         //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -645,10 +648,10 @@ public partial class paymium : Exchange
         //         ]
         //     }
         //
-        return this.parseTransfer(response, currency);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
     }
 
-    public override object parseTransfer(object transfer, object currency = null)
+    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -682,12 +685,12 @@ public partial class paymium : Exchange
         //         ]
         //     }
         //
-        object currencyId = this.safeString(transfer, "currency");
-        object updatedAt = this.safeString(transfer, "updated_at");
-        object timetstamp = this.parseDate(updatedAt);
-        object accountOperations = this.safeValue(transfer, "account_operations");
-        object firstOperation = this.safeValue(accountOperations, 0, new Dictionary<string, object>() {});
-        object status = this.safeString(transfer, "state");
+        string? currencyId = this.safeString(transfer, "currency");
+        string? updatedAt = this.safeString(transfer, "updated_at");
+        Int64? timetstamp = this.parseDate(updatedAt);
+        List<object> accountOperations = this.safeList(transfer, "account_operations");
+        IDictionary<string, object> firstOperation = this.safeDict(accountOperations, 0, new Dictionary<string, object>() {});
+        string? status = this.safeString(transfer, "state");
         return new Dictionary<string, object>() {
             { "info", transfer },
             { "id", this.safeString(transfer, "uuid") },
@@ -701,54 +704,78 @@ public partial class paymium : Exchange
         };
     }
 
-    public virtual object parseTransferStatus(object status)
+    public virtual string? parseTransferStatus(string? status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "executed", "ok" },
         };
         return this.safeString(statuses, status, status);
     }
 
-    public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Int64 nonce()
+    {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
+
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(add(add(getValue(getValue(this.urls, "api"), "rest"), "/"), this.version), "/"), this.implodeParams(path, parameters));
-        object query = this.omit(parameters, this.extractParams(path));
-        if (isTrue(isEqual(api, "public")))
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        if ((baseApiUrl == null))
         {
-            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string baseUrl = baseApiUrl;
+        string url = ((((baseUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
+        object query = this.omit(parameters, this.extractParams(path));
+        if ((api is "public"))
+        {
+            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         } else
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
-            object auth = add(nonce, url);
-            headers = new Dictionary<string, object>() {
+            // paymium requires an increasing nonce
+            string nonce = ((object)this.incrementingNonce()).ToString();
+            object auth = (nonce + url);
+            Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "Api-Key", this.apiKey },
                 { "Api-Nonce", nonce },
             };
-            if (isTrue(isEqual(method, "POST")))
+            bool hasQuery = (new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0;
+            object signedBody = body;
+            if ((method == "POST") && hasQuery)
             {
-                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
+                signedBody = this.json(query);
+            }
+            if ((method == "POST"))
+            {
+                if (hasQuery)
                 {
-                    body = this.json(query);
-                    auth = add(auth, body);
-                    ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                    auth = add(auth, signedBody);
+                    signedHeaders["Content-Type"] = "application/json";
                 }
             } else
             {
-                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
+                if (hasQuery)
                 {
-                    object queryString = this.urlencode(query);
+                    string queryString = this.urlencode(query);
                     auth = add(auth, queryString);
-                    url = add(url, add("?", queryString));
+                    url = url + ("?" + queryString);
                 }
             }
-            ((IDictionary<string,object>)headers)["Api-Signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            signedHeaders["Api-Signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            return new Dictionary<string, object>() {
+                { "url", url },
+                { "method", method },
+                { "body", signedBody },
+                { "headers", signedHeaders },
+            };
         }
         return new Dictionary<string, object>() {
             { "url", url },
@@ -758,16 +785,16 @@ public partial class paymium : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if (isTrue(isEqual(response, null)))
+        if ((response == null))
         {
             return null;
         }
         object errors = this.safeValue(response, "errors");
-        if (isTrue(!isEqual(errors, null)))
+        if ((errors != null))
         {
-            throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
+            throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
         return null;
     }

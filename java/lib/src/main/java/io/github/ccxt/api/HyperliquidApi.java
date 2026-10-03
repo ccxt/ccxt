@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class HyperliquidApi extends Exchange
 {
@@ -25,7 +27,7 @@ public class HyperliquidApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object, a JSON array or a JSON scalar, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicPostInfo (Object... optionalArgs)
+    public CompletableFuture<Object>  publicPostInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicPostInfo", optionalArgs);
     }
@@ -36,7 +38,7 @@ public class HyperliquidApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostExchange (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostExchange (Object... optionalArgs)
     {
         return this.callAsync ("privatePostExchange", optionalArgs);
     }

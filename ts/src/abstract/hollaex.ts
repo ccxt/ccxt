@@ -31,10 +31,12 @@ interface Exchange {
     privateGetUserDeposits (params?: {}): Promise<Dict>;
     privateGetUserWithdrawals (params?: {}): Promise<Dict>;
     privateGetUserWithdrawalFee (params?: {}): Promise<Dict>;
+    privateGetSubaccounts (params?: {}): Promise<Dict>;
     privateGetUserTrades (params?: {}): Promise<Dict>;
     privateGetOrders (params?: {}): Promise<Dict>;
     privateGetOrder (params?: {}): Promise<Dict>;
     privatePostUserWithdrawal (params?: {}): Promise<Dict>;
+    privatePostSubaccountTransfer (params?: {}): Promise<Dict>;
     privatePostOrder (params?: {}): Promise<Dict>;
     privateDeleteOrderAll (params?: {}): Promise<List>;
     privateDeleteOrder (params?: {}): Promise<Dict>;

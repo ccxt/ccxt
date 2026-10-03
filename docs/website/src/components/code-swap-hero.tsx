@@ -3,7 +3,7 @@
 // CCXT "Code Swap" hero — change one token (ccxt.binance() -> ccxt.coinbase())
 // and the unified response re-routes to a different venue. Same code, any exchange.
 // Auto-cycles; click any exchange to swap; pick a language to see the same call in
-// TS / Python / PHP / Go / C# / Java. Adapted from a self-contained HTML/CSS/JS
+// TS / Python / PHP / Go / C# / Java / Rust. Adapted from a self-contained HTML/CSS/JS
 // animation into a React client component for this Fumadocs (Tailwind v4) stack.
 // Theming follows the Fumadocs light/dark theme (fd- tokens / .dark class).
 
@@ -31,13 +31,15 @@ const LANGS: readonly Lang[] = [
   ['go', 'Go', 'strategy.go'],
   ['cs', 'C#', 'Strategy.cs'],
   ['java', 'Java', 'Strategy.java'],
+  ['rust', 'Rust', 'strategy.rs'],
 ] as const;
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function tokText(langId: string, exId: string) {
   if (langId === 'go') return 'New' + cap(exId);
-  if (langId === 'java') return cap(exId);
+  // Java classes and the Rust typed wrappers (ccxt::Binance, ccxt::Okx, …) are PascalCase
+  if (langId === 'java' || langId === 'rust') return cap(exId);
   return exId;
 }
 
@@ -150,6 +152,33 @@ function CodeSnippet({
           {STR(`"${arg}"`)}
           {PUN(')')}
           {PUN(';')}
+        </>
+      );
+    case 'rust':
+      return (
+        <>
+          {COM('// one unified API — pick any venue')}
+          {'\n'}
+          {K('use')} ccxt{PUN('::')}Params{PUN(';')}
+          {'\n\n'}
+          {K('let')} {K('mut')} ex {PUN('=')} {isPred ? 'ccxt_prediction' : 'ccxt'}
+          {PUN('::')}
+          {tokenNode}
+          {PUN('::')}
+          {FN('new')}
+          {PUN('(')}
+          {K('None')}
+          {PUN(');')}
+          {'\n'}
+          {K('let')} t {' '}
+          {PUN('=')} ex.{FN('fetch_ticker')}
+          {PUN('(')}
+          {STR(`"${arg}"`)}
+          {PUN(',')} Params{PUN('::')}
+          {FN('none')}
+          {PUN('()).')}
+          {K('await')}
+          {PUN('?;')}
         </>
       );
     default:

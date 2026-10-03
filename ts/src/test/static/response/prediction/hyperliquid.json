@@ -8,9 +8,7 @@
         "s",
         "v",
         "nonce",
-        "time",
-        "timestamp",
-        "datetime"
+        "time"
     ],
     "outputType": "json",
     "options": {
@@ -304,8 +302,8 @@
                             }
                         }
                     },
-                    "timestamp": 1783249885448,
-                    "datetime": "2026-07-05T11:11:25.448Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "status": "closed",
                     "outcome": "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES",
                     "outcomeId": "#1720",

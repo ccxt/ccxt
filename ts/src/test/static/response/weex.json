@@ -3,6 +3,51 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history",
+                "method": "fetchFundingHistory",
+                "input": [],
+                "httpResponse": {
+                    "hasNextPage": false,
+                    "items": [
+                        {
+                            "billId": "793622764958253481",
+                            "asset": "USDT",
+                            "symbol": "VIRTUALUSDT",
+                            "income": "0.00000378",
+                            "incomeType": "position_funding",
+                            "balance": "29.36239410",
+                            "fillFee": "0",
+                            "time": "1789214411964",
+                            "transferReason": "UNKNOWN_TRANSFER_REASON"
+                        }
+                    ],
+                    "nextKey": null
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "billId": "793622764958253481",
+                            "asset": "USDT",
+                            "symbol": "VIRTUALUSDT",
+                            "income": "0.00000378",
+                            "incomeType": "position_funding",
+                            "balance": "29.36239410",
+                            "fillFee": "0",
+                            "time": "1789214411964",
+                            "transferReason": "UNKNOWN_TRANSFER_REASON"
+                        },
+                        "symbol": "VIRTUAL/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1789214411964,
+                        "datetime": "2026-09-12T12:00:11.964Z",
+                        "id": "793622764958253481",
+                        "amount": 0.00000378
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",

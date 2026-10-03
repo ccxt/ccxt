@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, List, Market, NullableDict, FeeString, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, List, Market, NullableDict, FeeString, NullableList, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ export default class weex extends Exchange {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
@@ -242,6 +242,13 @@ export default class weex extends Exchange {
                         'api/v3/agency/verifyReferrals': { 'cost': 20 } as Endpoint<List>, // not unified
                         'api/v3/agency/getAssert': { 'cost': 20 } as Endpoint<Dict>, // not unified
                         'api/v3/agency/getDealData': { 'cost': 20 } as Endpoint<Dict>, // not unified
+                        'api/v3/apiReferral/checkUserEligibility': { 'cost': 5 } as Endpoint<Dict>, // not unified - broker access
+                        'api/v3/apiReferral/rebate/recentRecord': { 'cost': 5 } as Endpoint<Dict>, // not unified - broker access
+                        'api/v3/apiReferral/rebateRatio': { 'cost': 5 } as Endpoint<Dict>, // not unified - broker access
+                        'api/v3/content/articles/detail': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
+                        'api/v3/content/articles/list': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
+                        'api/v3/content/articles/listByCoin': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
+                        'api/v3/content/banners/latest': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
                     },
                     'post': {
                         'api/v3/account/bills': { 'cost': 5 } as Endpoint<List>, // done
@@ -249,6 +256,7 @@ export default class weex extends Exchange {
                         'api/v3/order': { 'cost': 5 } as Endpoint<Dict>, // done
                         'api/v3/order/batch': { 'cost': 50 } as Endpoint<Dict>, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
                         'api/v3/rebate/affiliate/internalWithdrawal': { 'cost': 100 } as Endpoint<string>, // not unified
+                        'api/v3/tax/income': { 'cost': 5 } as Endpoint<List>, // not unified - tax reporting
                     },
                     'delete': {
                         'api/v3/order': { 'cost': 1 } as Endpoint<Dict>, // done
@@ -293,6 +301,15 @@ export default class weex extends Exchange {
                         'capi/v3/sim/balance': { 'cost': 10 } as Endpoint<List>, // done - demo trading variant of capi/v3/account/balance
                         'capi/v3/sim/position/allPosition': { 'cost': 15 } as Endpoint<List>, // done - demo trading variant of capi/v3/account/position/allPosition
                         'capi/v3/sim/order/history': { 'cost': 10 } as Endpoint<List>, // done - demo trading variant of capi/v3/order/history
+                        'capi/v3/copy/follower/historyOrders': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/myTraders': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/openOrders': { 'cost': 10 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/copy/follower/settings': { 'cost': 10 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/copy/trader/historyOrders': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/trader/openOrders': { 'cost': 10 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/copy/trader/pairs': { 'cost': 1 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/trailing/openOrders': { 'cost': 2 } as Endpoint<List>, // not unified - trailing orders
+                        'capi/v3/trailing/historyOrders': { 'cost': 10 } as Endpoint<List>, // not unified - trailing orders
                     },
                     'post': {
                         'capi/v3/account/income': { 'cost': 5 } as Endpoint<Dict>, // done
@@ -307,6 +324,9 @@ export default class weex extends Exchange {
                         'capi/v3/placeTpSlOrder': { 'cost': 5 } as Endpoint<List>, // not unified
                         'capi/v3/modifyTpSlOrder': { 'cost': 5 } as Endpoint<Dict>, // not unified
                         'capi/v3/sim/order': { 'cost': 5 } as Endpoint<Dict>, // done - demo trading variant of capi/v3/order
+                        'capi/v3/copy/follower/closePos': { 'cost': 50 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/settings': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/stopCopy': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
                     },
                     'delete': {
                         'capi/v3/order': { 'cost': 3 } as Endpoint<Dict>, // done
@@ -694,8 +714,8 @@ export default class weex extends Exchange {
         });
     }
 
-    override nonce () {
-        return this.milliseconds () - this.options['timeDifference'];
+    override nonce (): number {
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     /**
@@ -706,7 +726,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Status> {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         const response = await this.publicGetApiV3Ping (params);
         // returns an empty response if the exchange is alive, otherwise will trigger an error
         return {
@@ -728,14 +748,13 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+    override async fetchTime (params: Dict = {}): Promise<Int> {
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
         if (type !== 'spot') {
-            response = await this.contractGetCapiV3MarketTime (params);
+            response = await this.contractGetCapiV3MarketTime (paramsMarketType);
         } else {
-            response = await this.publicGetApiV3Time (params);
+            response = await this.publicGetApiV3Time (paramsMarketType);
         }
         //
         //     {
@@ -753,7 +772,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicGetApiV3Coins (params);
         //
         //     [
@@ -873,7 +892,7 @@ export default class weex extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (rawCurrency, 'name');
         const networks: Dict = {};
-        const chains = this.safeList (rawCurrency, 'networkList', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'networkList', []);
         for (let j = 0; j < chains.length; j++) {
             const chain = this.safeDict (chains, j);
             const networkId = this.safeString (chain, 'network');
@@ -944,8 +963,8 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const promises = [
@@ -1022,6 +1041,9 @@ export default class weex extends Exchange {
         const settleId = this.safeString (market, 'marginAsset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         let active = true;
         let symbol = base + '/' + quote;
@@ -1123,17 +1145,16 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true);
-        const market = this.getMarketFromSymbols (symbols);
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols (symbolsNormalized);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let symbolsLength = 0;
-        if (symbols !== undefined) {
-            symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
         }
         const request: Dict = {};
         if (symbolsLength === 1) {
@@ -1163,7 +1184,7 @@ export default class weex extends Exchange {
             //         }
             //     ]
             //
-            response = await this.publicGetApiV3MarketTicker24hr (this.extend (request, params));
+            response = await this.publicGetApiV3MarketTicker24hr (this.extend (request, paramsMarketType));
         } else {
             //
             //     [
@@ -1184,12 +1205,12 @@ export default class weex extends Exchange {
             //         }
             //     ]
             //
-            response = await this.contractGetCapiV3MarketTicker24hr (this.extend (request, params));
+            response = await this.contractGetCapiV3MarketTicker24hr (this.extend (request, paramsMarketType));
         }
         if (!Array.isArray (response)) {
             response = [ response ];
         }
-        return this.parseTickers (response, symbols);
+        return this.parseTickers (response, symbolsNormalized);
     }
 
     /**
@@ -1203,24 +1224,23 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true);
-        const market = this.getMarketFromSymbols (symbols);
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols (symbolsNormalized);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.publicGetApiV3MarketTickerBookTicker (params);
+            response = await this.publicGetApiV3MarketTickerBookTicker (paramsMarketType);
         } else {
-            response = await this.contractGetCapiV3MarketTickerBookTicker (params);
+            response = await this.contractGetCapiV3MarketTickerBookTicker (paramsMarketType);
         }
         if (!Array.isArray (response)) {
             response = [ response ];
         }
-        const results = [];
+        const results: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             const rawTicker = response[i];
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
@@ -1228,7 +1248,7 @@ export default class weex extends Exchange {
             const tickerMarket = this.safeMarket (marketId, undefined, undefined, marketType);
             results.push (this.parseTicker (rawTicker, tickerMarket));
         }
-        return this.filterByArrayTickers (results, 'symbol', symbols);
+        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1298,11 +1318,11 @@ export default class weex extends Exchange {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap';
         }
-        market = this.safeMarket (marketId, market, undefined, marketType);
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         const timestamp = this.safeInteger2 (ticker, 'closeTime', 'time');
         const percentage = Precise.stringMul (this.safeString (ticker, 'priceChangePercent'), '100');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'highPrice'),
@@ -1324,7 +1344,7 @@ export default class weex extends Exchange {
             'markPrice': markPrice,
             'indexPrice': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1336,18 +1356,17 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprice structures
      */
-    override async fetchLastPrices (symbols: Strings = undefined, params = {}): Promise<LastPrices> {
+    override async fetchLastPrices (symbols: Strings = undefined, params: Dict = {}): Promise<LastPrices> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true);
-        const market = this.getMarketFromSymbols (symbols);
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols (symbolsNormalized);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets');
         }
-        const response = await this.publicGetApiV3MarketTickerPrice (params);
+        const response = await this.publicGetApiV3MarketTickerPrice (paramsMarketType);
         //
         //     [
         //         {
@@ -1356,10 +1375,10 @@ export default class weex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseLastPrices (response, symbols);
+        return this.parseLastPrices (response, symbolsNormalized);
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1367,9 +1386,9 @@ export default class weex extends Exchange {
         //     }
         //
         const marketId = this.safeString (entry, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'spot');
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'spot');
         return {
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'price': this.safeNumberOmitZero (entry, 'price'),
@@ -1388,7 +1407,7 @@ export default class weex extends Exchange {
      * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1396,13 +1415,12 @@ export default class weex extends Exchange {
         if (market['contract'] !== true) {
             throw new NotSupported (this.id + ' fetchMarkPrice() supports contract markets only');
         }
-        let priceType: Str = undefined;
-        [ priceType, params ] = this.handleOptionAndParams (params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
+        const [ priceType, paramsPriceType ] = this.handleOptionStringAndParams (params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
         const request: Dict = {
             'symbol': market['id'],
             'priceType': priceType,
         };
-        const response = await this.contractGetCapiV3MarketSymbolPrice (this.extend (request, params));
+        const response = await this.contractGetCapiV3MarketSymbolPrice (this.extend (request, paramsPriceType));
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1429,11 +1447,11 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, 'swap'); // reject non-contract symbols instead of silently filtering the result to an empty dict
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, 'swap'); // reject non-contract symbols instead of silently filtering the result to an empty dict
         const response = await this.contractGetCapiV3MarketPremiumIndex (params);
         //
         //     [
@@ -1450,7 +1468,7 @@ export default class weex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTickers (response, symbols);
+        return this.parseTickers (response, symbolsNormalized);
     }
 
     /**
@@ -1464,7 +1482,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1520,7 +1538,7 @@ export default class weex extends Exchange {
      * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1545,7 +1563,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchSpotOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchSpotOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1577,20 +1595,18 @@ export default class weex extends Exchange {
      * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchContractOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchContractOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const maxHistoricalLimit = 100;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            params = this.extend (params, { 'historical': true });
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxHistoricalLimit) as OHLCV[];
+            const paramsExtended: Dict = this.extend (paramsPaginate, { 'historical': true });
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsExtended, maxHistoricalLimit) as OHLCV[];
         }
-        const until = this.safeInteger (params, 'until');
-        let historical = false;
-        [ historical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'historical');
+        const until = this.safeInteger (paramsPaginate, 'until');
+        const [ historical, paramsHistorical ] = this.handleOptionBoolAndParams (paramsPaginate, 'fetchOHLCV', 'historical', false);
         const timeframeOption = this.safeDict (this.options, 'timeframes', {});
         const contractTimeframes = this.safeDict (timeframeOption, 'contract', {});
         const market = this.market (symbol);
@@ -1598,12 +1614,11 @@ export default class weex extends Exchange {
             'symbol': market['id'],
             'interval': this.safeString (contractTimeframes, timeframe, timeframe),
         };
-        const priceType = this.safeStringUpper (params, 'price');
-        params = this.omit (params, [ 'historical', 'until', 'price' ]);
+        const priceType = this.safeStringUpper (paramsHistorical, 'price');
+        const paramsOmitted: Dict = this.omit (paramsHistorical, [ 'historical', 'until', 'price' ]);
         let response = undefined;
-        if (limit !== undefined) {
-            limit = Math.min (limit, 1000); // hardcap threshold
-        }
+        // hardcap threshold
+        const limitResolved: Int = (limit === undefined) ? undefined : Math.min (limit, 1000);
         if (historical) {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
@@ -1613,7 +1628,10 @@ export default class weex extends Exchange {
             if ((since === undefined) || (until === undefined)) {
                 const now = this.milliseconds ();
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                const numberOfCandles = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxHistoricalLimit;
+                let numberOfCandles = maxHistoricalLimit;
+                if (limitResolved !== undefined && limitResolved !== null && limitResolved !== 0) {
+                    numberOfCandles = limitResolved;
+                }
                 const timeDelta = numberOfCandles * duration;
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
@@ -1629,20 +1647,20 @@ export default class weex extends Exchange {
             }
             request['startTime'] = startTime;
             request['endTime'] = endTime;
-            response = await this.contractGetCapiV3MarketHistoryKlines (this.extend (request, params));
+            response = await this.contractGetCapiV3MarketHistoryKlines (this.extend (request, paramsOmitted));
         } else {
-            if (limit !== undefined) {
-                request['limit'] = limit;
+            if (limitResolved !== undefined) {
+                request['limit'] = limitResolved;
             }
             if (priceType === 'MARK') {
-                response = await this.contractGetCapiV3MarketMarkPriceKlines (this.extend (request, params));
+                response = await this.contractGetCapiV3MarketMarkPriceKlines (this.extend (request, paramsOmitted));
             } else if (priceType === 'INDEX') {
-                response = await this.contractGetCapiV3MarketIndexPriceKlines (this.extend (request, params));
+                response = await this.contractGetCapiV3MarketIndexPriceKlines (this.extend (request, paramsOmitted));
             } else {
-                response = await this.contractGetCapiV3MarketKlines (this.extend (request, params));
+                response = await this.contractGetCapiV3MarketKlines (this.extend (request, paramsOmitted));
             }
         }
-        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limitResolved);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1668,7 +1686,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1758,13 +1776,16 @@ export default class weex extends Exchange {
         } else if (isBuyerMaker !== undefined) {
             side = isBuyerMaker ? 'sell' : 'buy';
         }
-        let isSpot: Bool = true;
+        const tradeMarketId = this.safeString (trade, 'symbol');
+        const realizedPnl = this.safeString (trade, 'realizedPnl');
+        let tradeMarketType: Str = 'spot';
+        if (realizedPnl !== undefined) {
+            tradeMarketType = 'swap';
+        }
+        const marketResolved: Market = this.safeMarket ((market === undefined) ? tradeMarketId : undefined, market, undefined, tradeMarketType);
+        let isSpot: Bool = undefined;
         if (market === undefined) {
-            const marketId = this.safeString (trade, 'symbol');
-            const realizedPnl = this.safeString (trade, 'realizedPnl');
-            const marketType = (realizedPnl !== undefined) ? 'swap' : 'spot';
-            market = this.safeMarket (marketId, undefined, undefined, marketType);
-            isSpot = marketType === 'spot';
+            isSpot = tradeMarketType === 'spot';
         } else {
             isSpot = market['spot'];
         }
@@ -1775,9 +1796,9 @@ export default class weex extends Exchange {
             let feeCurrency = this.safeCurrencyCode (commissionAsset);
             if (isSpot === true) {
                 if (side === 'buy') {
-                    feeCurrency = market['base'];
+                    feeCurrency = this.safeString (marketResolved, 'base');
                 } else {
-                    feeCurrency = market['quote'];
+                    feeCurrency = this.safeString (marketResolved, 'quote');
                 }
             }
             fee = {
@@ -1798,7 +1819,7 @@ export default class weex extends Exchange {
             'order': this.safeString (trade, 'orderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -1806,7 +1827,7 @@ export default class weex extends Exchange {
             'amount': this.safeString (trade, 'qty'),
             'cost': this.safeString (trade, 'quoteQty'),
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1818,7 +1839,7 @@ export default class weex extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}) {
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1830,7 +1851,7 @@ export default class weex extends Exchange {
         return this.parseOpenInterest (response, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1861,18 +1882,18 @@ export default class weex extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         let symbolsLength = 0;
-        if (symbols !== undefined) {
-            symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
         }
         const request: Dict = {};
         if (symbolsLength === 1) {
-            const market = this.getMarketFromSymbols (symbols);
+            const market = this.getMarketFromSymbols (symbolsNormalized);
             request['symbol'] = this.safeString (market, 'id');
         }
         const response = await this.contractGetCapiV3MarketPremiumIndex (this.extend (request, params));
@@ -1891,7 +1912,7 @@ export default class weex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseFundingRates (response, symbols);
+        return this.parseFundingRates (response, symbolsNormalized);
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
@@ -1939,7 +1960,7 @@ export default class weex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -1947,7 +1968,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1956,12 +1977,12 @@ export default class weex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.contractGetCapiV3MarketFundingRate (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.contractGetCapiV3MarketFundingRate (this.extend (requestUntil, paramsUntil));
         return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1993,13 +2014,14 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         const requestedType = this.safeString (params, 'type');
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
+        let type = marketType;
         if ((sandboxMode === true) && (requestedType === undefined)) {
-            type = 'swap'; // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
+            type = 'swap';
         }
         let response = undefined;
         if (type === 'spot') {
@@ -2032,7 +2054,7 @@ export default class weex extends Exchange {
             //         "uid": 8886281669
             //     }
             //
-            response = await this.privateGetApiV3Account (params);
+            response = await this.privateGetApiV3Account (paramsMarketType);
         } else {
             //
             //     [
@@ -2046,9 +2068,9 @@ export default class weex extends Exchange {
             //     ]
             //
             if (sandboxMode === true) {
-                response = await this.contractPrivateGetCapiV3SimBalance (params);
+                response = await this.contractPrivateGetCapiV3SimBalance (paramsMarketType);
             } else {
-                response = await this.contractPrivateGetCapiV3AccountBalance (params);
+                response = await this.contractPrivateGetCapiV3AccountBalance (paramsMarketType);
             }
         }
         return this.parseBalance (response);
@@ -2059,7 +2081,7 @@ export default class weex extends Exchange {
             'info': response,
         };
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const balances = this.safeList (response, 'balances', response);
+        const balances: Dict[] = this.safeList (response, 'balances', response);
         for (let i = 0; i < balances.length; i++) {
             const entry = this.safeDict (balances, i);
             let currencyId = this.safeString (entry, 'asset');
@@ -2090,20 +2112,19 @@ export default class weex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
         const maxLimit = 100;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, paramsPaginate, maxLimit);
         }
         if (since !== undefined) {
             request['after'] = since;
@@ -2111,8 +2132,8 @@ export default class weex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('before', request, params);
-        const response = await this.privateGetApiV3AccountTransferRecords (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('before', request, paramsPaginate);
+        const response = await this.privateGetApiV3AccountTransferRecords (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -2173,7 +2194,7 @@ export default class weex extends Exchange {
      * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2204,7 +2225,7 @@ export default class weex extends Exchange {
      * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2225,7 +2246,7 @@ export default class weex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
+    createSpotOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -2246,14 +2267,14 @@ export default class weex extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         let clientOrderId = this.safeString (params, 'clientOrderId');
-        params = this.omit (params, 'clientOrderId');
+        const paramsOmitted: Dict = this.omit (params, 'clientOrderId');
         if (clientOrderId === undefined) {
-            const partner = this.safeString (params, 'partner', 'b-WEEX111125');
+            const partner = this.safeString (paramsOmitted, 'partner', 'b-WEEX111125');
             clientOrderId = partner + '-' + this.uuid22 ();
         }
         request['newClientOrderId'] = clientOrderId;
         // timeInForce is passed directly from params
-        return this.extend (request, params);
+        return this.extend (request, paramsOmitted);
     }
 
     /**
@@ -2287,7 +2308,7 @@ export default class weex extends Exchange {
      * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2312,7 +2333,7 @@ export default class weex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createContractOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}) {
+    createContractOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -2465,8 +2486,8 @@ export default class weex extends Exchange {
                 }
             }
         }
-        params = this.omit (params, [ 'takeProfit', 'stopLoss', 'stopLossPrice', 'takeProfitPrice', 'triggerPriceType', 'stopLossPriceType', 'takeProfitPriceType', 'clientOrderId', 'callerMethodName' ]);
-        return this.extend (request, params);
+        const paramsOmitted: Dict = this.omit (params, [ 'takeProfit', 'stopLoss', 'stopLossPrice', 'takeProfitPrice', 'triggerPriceType', 'stopLossPriceType', 'takeProfitPriceType', 'clientOrderId', 'callerMethodName' ]);
+        return this.extend (request, paramsOmitted);
     }
 
     encodeTriggerPriceType (triggerPriceType: Str) {
@@ -2491,7 +2512,7 @@ export default class weex extends Exchange {
      * @param {string} [params.clientOrderId] *non-trigger orders only* a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2499,15 +2520,14 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const trigger = this.safeBool (params, 'trigger', false);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const trigger = this.safeBool (paramsMarketType, 'trigger', false);
         if ((trigger === true) && id === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument for trigger orders');
         }
         const request: Dict = {};
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        params = this.omit (params, [ 'clientOrderId', 'trigger' ]);
+        const clientOrderId = this.safeString (paramsMarketType, 'clientOrderId');
+        const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'clientOrderId', 'trigger' ]);
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else if (id === undefined) {
@@ -2529,11 +2549,11 @@ export default class weex extends Exchange {
             //         "status": "CANCELED"
             //     }
             //
-            response = await this.privateDeleteApiV3Order (this.extend (request, params));
+            response = await this.privateDeleteApiV3Order (this.extend (request, paramsOmitted));
         } else if (trigger === true) {
-            response = await this.contractPrivateDeleteCapiV3AlgoOrder (this.extend (request, params));
+            response = await this.contractPrivateDeleteCapiV3AlgoOrder (this.extend (request, paramsOmitted));
         } else {
-            response = await this.contractPrivateDeleteCapiV3Order (this.extend (request, params));
+            response = await this.contractPrivateDeleteCapiV3Order (this.extend (request, paramsOmitted));
         }
         if (response === undefined) {
             throw new NullResponse (this.id + ' parseOrder() returned empty response');
@@ -2556,7 +2576,7 @@ export default class weex extends Exchange {
      * @param {boolean} [params.trigger] *swap only* true for cancelling trigger orders (default is false)
      * @returns Response from the exchange
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2566,20 +2586,19 @@ export default class weex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const trigger = this.safeBool (params, 'trigger', false);
-        params = this.omit (params, 'trigger');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const trigger = this.safeBool (paramsMarketType, 'trigger', false);
+        const paramsOmitted: Dict = this.omit (paramsMarketType, 'trigger');
         let response = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for spot markets');
             }
-            response = await this.privateDeleteApiV3OpenOrders (this.extend (request, params));
+            response = await this.privateDeleteApiV3OpenOrders (this.extend (request, paramsOmitted));
         } else if (trigger === true) {
-            response = await this.contractPrivateDeleteCapiV3AlgoOpenOrders (this.extend (request, params));
+            response = await this.contractPrivateDeleteCapiV3AlgoOpenOrders (this.extend (request, paramsOmitted));
         } else {
-            response = await this.contractPrivateDeleteCapiV3AllOpenOrders (this.extend (request, params));
+            response = await this.contractPrivateDeleteCapiV3AllOpenOrders (this.extend (request, paramsOmitted));
         }
         const extendedParams: Dict = {
             'status': 'canceled',
@@ -2600,7 +2619,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2609,11 +2628,10 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         const isSpot = (marketType === 'spot');
-        const clientOrderIds = this.safeList (params, 'clientOrderIds');
-        params = this.omit (params, 'clientOrderIds');
+        const clientOrderIds = this.safeList (paramsMarketType, 'clientOrderIds');
+        const paramsOmitted: Dict = this.omit (paramsMarketType, 'clientOrderIds');
         if (clientOrderIds !== undefined) {
             if (isSpot) {
                 request['origClientOrderIds'] = clientOrderIds;
@@ -2631,11 +2649,11 @@ export default class weex extends Exchange {
         }
         let response = undefined;
         if (isSpot) {
-            response = await this.privateDeleteApiV3OrderBatch (this.extend (request, params));
+            response = await this.privateDeleteApiV3OrderBatch (this.extend (request, paramsOmitted));
         } else {
-            response = await this.contractPrivateDeleteCapiV3BatchOrders (this.extend (request, params));
+            response = await this.contractPrivateDeleteCapiV3BatchOrders (this.extend (request, paramsOmitted));
         }
-        const ordersResponse = this.safeList (response, 'orderList', []);
+        const ordersResponse: Dict[] = this.safeList (response, 'orderList', []);
         const extendedParams: Dict = {
             'status': 'canceled',
         };
@@ -2655,7 +2673,7 @@ export default class weex extends Exchange {
      * @param {string} [params.clientOrderId] *spot only* a unique id for the order, used if id is not provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2663,15 +2681,14 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const isSpot = (marketType === 'spot');
         const request: Dict = {};
         if ((id === undefined) && !isSpot) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument for non-spot markets');
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        params = this.omit (params, 'clientOrderId');
+        const clientOrderId = this.safeString (paramsMarketType, 'clientOrderId');
+        const paramsOmitted: Dict = this.omit (paramsMarketType, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else if (id === undefined) {
@@ -2699,9 +2716,9 @@ export default class weex extends Exchange {
             //         "isWorking": true
             //     }
             //
-            response = await this.privateGetApiV3Order (this.extend (request, params));
+            response = await this.privateGetApiV3Order (this.extend (request, paramsOmitted));
         } else {
-            response = await this.contractPrivateGetCapiV3Order (this.extend (request, params));
+            response = await this.contractPrivateGetCapiV3Order (this.extend (request, paramsOmitted));
         }
         if (response === undefined) {
             throw new NullResponse (this.id + ' parseOrder() returned empty response');
@@ -2724,7 +2741,7 @@ export default class weex extends Exchange {
      * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2732,19 +2749,17 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const isSpot = (marketType === 'spot');
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (paramsMarketType, 'fetchOpenOrders', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
             if (isSpot) {
                 throw new NotSupported (this.id + ' fetchOpenOrders() pagination is not supported for spot markets');
             }
-            return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, paramsPaginate, maxLimit);
         }
-        let request: Dict = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             request['symbol'] = this.safeString (market, 'id');
         }
@@ -2770,7 +2785,7 @@ export default class weex extends Exchange {
             //         }
             //     ]
             //
-            response = await this.privateGetApiV3OpenOrders (this.extend (request, params));
+            response = await this.privateGetApiV3OpenOrders (this.extend (request, paramsPaginate));
         } else {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -2778,10 +2793,10 @@ export default class weex extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            [ request, params ] = this.handleUntilOption ('endTime', request, params);
-            const trigger = this.safeBool (params, 'trigger', false);
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
+            const trigger = this.safeBool (paramsUntil, 'trigger', false);
             if (trigger === true) {
-                params = this.omit (params, 'trigger');
+                const paramsOmitted: Dict = this.omit (paramsUntil, 'trigger');
                 //
                 //     [
                 //         {
@@ -2813,7 +2828,7 @@ export default class weex extends Exchange {
                 //         }
                 //     ]
                 //
-                response = await this.contractPrivateGetCapiV3OpenAlgoOrders (this.extend (request, params));
+                response = await this.contractPrivateGetCapiV3OpenAlgoOrders (this.extend (requestUntil, paramsOmitted));
             } else {
                 //
                 //     [
@@ -2839,7 +2854,7 @@ export default class weex extends Exchange {
                 //         }
                 //     ]
                 //
-                response = await this.contractPrivateGetCapiV3OpenOrders (this.extend (request, params));
+                response = await this.contractPrivateGetCapiV3OpenOrders (this.extend (requestUntil, paramsUntil));
             }
         }
         const extendedParams: Dict = {
@@ -2863,7 +2878,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2871,16 +2886,15 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         let orders: NullableList = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument for spot markets');
             }
-            orders = await this.fetchOrders (symbol, since, undefined, params);
+            orders = await this.fetchOrders (symbol, since, undefined, paramsMarketType);
         } else {
-            orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+            orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, paramsMarketType);
         }
         return this.filterBy (orders, 'status', 'closed') as Order[];
     }
@@ -2900,7 +2914,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2908,16 +2922,15 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
         let orders: NullableList = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument for spot markets');
             }
-            orders = await this.fetchOrders (symbol, since, undefined, params);
+            orders = await this.fetchOrders (symbol, since, undefined, paramsMarketType);
         } else {
-            orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+            orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, paramsMarketType);
         }
         return this.filterBy (orders, 'status', 'canceled') as Order[];
     }
@@ -2935,7 +2948,7 @@ export default class weex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
@@ -2947,12 +2960,11 @@ export default class weex extends Exchange {
             throw new NotSupported (this.id + ' fetchOrders() supports spot markets only');
         }
         const maxLimit = 1000;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, paramsPaginate, maxLimit);
         }
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -2961,8 +2973,8 @@ export default class weex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, maxLimit);
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.privateGetApiV3AllOrders (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
+        const response = await this.privateGetApiV3AllOrders (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -3001,7 +3013,7 @@ export default class weex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3009,18 +3021,16 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (paramsMarketType, 'fetchCanceledAndClosedOrders', 'paginate', false);
         const maxLimit = 1000;
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit);
         }
-        let request: Dict = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             request['symbol'] = this.toSandboxMarketId (market);
         }
@@ -3030,13 +3040,13 @@ export default class weex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let response = undefined;
         if (sandboxMode === true) {
-            response = await this.contractPrivateGetCapiV3SimOrderHistory (this.extend (request, params));
+            response = await this.contractPrivateGetCapiV3SimOrderHistory (this.extend (requestUntil, paramsUntil));
         } else {
-            response = await this.contractPrivateGetCapiV3OrderHistory (this.extend (request, params));
+            response = await this.contractPrivateGetCapiV3OrderHistory (this.extend (requestUntil, paramsUntil));
         }
         //
         //     [
@@ -3171,12 +3181,13 @@ export default class weex extends Exchange {
         if ((errorCode !== undefined) || (errorMessage !== undefined)) {
             this.handleOrderOrPositionError (errorCode, errorMessage, order);
         }
-        if (market === undefined) {
-            const marketId = this.fromSandboxMarketId (this.safeString (order, 'symbol'));
-            const positionSide = this.safeString (order, 'positionSide');
-            const marketType = (positionSide === undefined) ? 'spot' : 'swap';
-            market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const orderMarketId = this.fromSandboxMarketId (this.safeString (order, 'symbol'));
+        const positionSide = this.safeString (order, 'positionSide');
+        let orderMarketType: Str = 'swap';
+        if (positionSide === undefined) {
+            orderMarketType = 'spot';
         }
+        const marketResolved: Market = this.safeMarket ((market === undefined) ? orderMarketId : undefined, market, undefined, orderMarketType);
         const timestamp = this.safeIntegerN (order, [ 'transactTime', 'time', 'createTime' ]);
         const rawStatus = this.safeStringLower2 (order, 'status', 'algoStatus'); // algo (trigger) order payloads carry algoStatus instead of status
         const triggerPrice = this.omitZero (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
@@ -3203,7 +3214,7 @@ export default class weex extends Exchange {
         return this.safeOrder ({
             'id': this.safeStringN (order, [ 'orderId', 'algoId', 'successOrderId' ]),
             'clientOrderId': this.safeStringN (order, [ 'clientOrderId', 'origClientOrderId', 'clientAlgoId' ]),
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'type': this.parseOrderType (rawType),
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': undefined,
@@ -3226,7 +3237,7 @@ export default class weex extends Exchange {
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderStatus (status: Str) {
@@ -3257,21 +3268,17 @@ export default class weex extends Exchange {
     }
 
     handleOrderOrPositionError (errorCode: Str, errorMessage: Str, order: Dict) {
-        if (errorCode === undefined) {
-            errorCode = '';
-        }
-        if (errorMessage === undefined) {
-            errorMessage = '';
-        }
-        if ((errorCode === '') && (errorMessage === '')) {
+        const errorCodeValue: string = (errorCode === undefined) ? '' : errorCode;
+        const errorMessageValue: string = (errorMessage === undefined) ? '' : errorMessage;
+        if ((errorCodeValue === '') && (errorMessageValue === '')) {
             // some endpoints could return an empty string if there is no error
             return;
         }
         const feedback = this.id + ' ' + this.json (order);
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-        this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorMessageValue, feedback);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCodeValue, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessageValue, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], errorCodeValue, feedback);
         throw new InvalidOrder (feedback);
     }
 
@@ -3288,7 +3295,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3312,7 +3319,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3320,19 +3327,17 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const isSpot = (marketType === 'spot');
         if (isSpot && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument for spot markets');
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (paramsMarketType, 'fetchMyTrades', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit);
         }
-        let request: Dict = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             request['symbol'] = this.safeString (market, 'id');
         }
@@ -3342,7 +3347,7 @@ export default class weex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
         let response = undefined;
         if (isSpot) {
             //
@@ -3360,7 +3365,7 @@ export default class weex extends Exchange {
             //         }
             //     ]
             //
-            response = await this.privateGetApiV3MyTrades (this.extend (request, params));
+            response = await this.privateGetApiV3MyTrades (this.extend (requestUntil, paramsUntil));
         } else {
             //
             //     [
@@ -3382,7 +3387,7 @@ export default class weex extends Exchange {
             //         }
             //     ]
             //
-            response = await this.contractPrivateGetCapiV3UserTrades (this.extend (request, params));
+            response = await this.contractPrivateGetCapiV3UserTrades (this.extend (requestUntil, paramsUntil));
         }
         let responseList: List = [];
         if (response !== undefined) {
@@ -3407,31 +3412,26 @@ export default class weex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, paramsPaginate, maxLimit);
         }
-        let accountType: Str = undefined;
-        [ accountType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, paramsPaginate);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        accountType = this.safeString (accountsByType, accountType, accountType);
-        let request: Dict = {};
+        const accountType = this.safeString (accountsByType, marketType, marketType);
+        const request: Dict = {};
         let items: NullableList = undefined;
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
         if (accountType === 'contract') {
-            if (currency === undefined) {
-                throw new ExchangeError (this.id + ' fetchLedger() could not resolve currency');
-            }
-            if (code !== undefined) {
+            if (currency !== undefined) {
                 request['currency'] = currency['id'];
             }
             if (since !== undefined) {
@@ -3440,8 +3440,8 @@ export default class weex extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            [ request, params ] = this.handleUntilOption ('endTime', request, params);
-            const contractResponse = await this.contractPrivatePostCapiV3AccountIncome (this.extend (request, params));
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsMarketType);
+            const contractResponse = await this.contractPrivatePostCapiV3AccountIncome (this.extend (requestUntil, paramsUntil));
             items = this.safeList (contractResponse, 'items', []);
         } else if (accountType === 'funding') {
             if (since !== undefined) {
@@ -3450,8 +3450,8 @@ export default class weex extends Exchange {
             if (limit !== undefined) {
                 request['pageSize'] = limit;
             }
-            [ request, params ] = this.handleUntilOption ('endTime', request, params);
-            const fundingResponse = await this.privatePostApiV3AccountFundingBills (this.extend (request, params));
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsMarketType);
+            const fundingResponse = await this.privatePostApiV3AccountFundingBills (this.extend (requestUntil, paramsUntil));
             items = this.safeList (fundingResponse, 'items', []);
         } else {
             if (since !== undefined) {
@@ -3460,8 +3460,8 @@ export default class weex extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            [ request, params ] = this.handleUntilOption ('before', request, params);
-            const billsResponse = await this.privatePostApiV3AccountBills (this.extend (request, params));
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('before', request, paramsMarketType);
+            const billsResponse = await this.privatePostApiV3AccountBills (this.extend (requestUntil, paramsUntil));
             items = this.toArray (billsResponse);
         }
         return this.parseLedger (items, currency, since, limit);
@@ -3512,7 +3512,7 @@ export default class weex extends Exchange {
         //
         const currencyId = this.safeString2 (item, 'coinName', 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger2 (item, 'cTime', 'time');
         const amountRaw = this.safeString2 (item, 'deltaAmount', 'income');
         const after = this.safeString2 (item, 'afterAmount', 'balance');
@@ -3552,7 +3552,7 @@ export default class weex extends Exchange {
                 'currency': code,
                 'cost': this.safeNumber2 (item, 'fees', 'fillFee'),
             },
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     parseLedgerType (type: Str) {
@@ -3573,6 +3573,105 @@ export default class weex extends Exchange {
 
     /**
      * @method
+     * @name weex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve (default 20, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 100) as FundingHistory[];
+        }
+        let market: Market = undefined;
+        const request: Dict = {
+            'incomeType': 'position_funding', // deposit, withdraw, transfer_in, transfer_out, margin_move_in, margin_move_out, position_open_long, position_open_short, position_close_long, position_close_short, position_funding, order_fill_fee_income, order_liquidate_fee_income, start_liquidate, finish_liquidate, order_fix_margin_amount, tracking_follow_pay, tracking_system_pre_receive, tracking_follow_back, tracking_trader_income, tracking_third_party_share
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (market['swap'] !== true) {
+                throw new NotSupported (this.id + ' fetchFundingHistory() supports swap contracts only');
+            }
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
+        // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
+        const hasSince = ('startTime' in requestUntil);
+        const hasUntil = ('endTime' in requestUntil);
+        if (hasSince && !hasUntil) {
+            requestUntil['endTime'] = this.milliseconds ();
+        } else if (hasUntil && !hasSince) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires since to be set when until is used');
+        }
+        const response = await this.contractPrivatePostCapiV3AccountIncome (this.extend (requestUntil, paramsUntil));
+        //
+        //     {
+        //         "hasNextPage": false,
+        //         "nextKey": null,
+        //         "items": [
+        //             {
+        //                 "billId": "793622764958253481",
+        //                 "asset": "USDT",
+        //                 "symbol": "VIRTUALUSDT",
+        //                 "income": "0.00000378",
+        //                 "incomeType": "position_funding",
+        //                 "balance": "29.36239410",
+        //                 "fillFee": "0",
+        //                 "time": "1789214411964",
+        //                 "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //             }
+        //         ]
+        //     }
+        //
+        const items: Dict[] = this.safeList (response, 'items', []);
+        return this.parseIncomes (items, market, since, limit);
+    }
+
+    override parseIncome (income: Dict, market: Market = undefined): object {
+        //
+        //     {
+        //         "billId": "793622764958253481",
+        //         "asset": "USDT",
+        //         "symbol": "VIRTUALUSDT",
+        //         "income": "0.00000378",
+        //         "incomeType": "position_funding",
+        //         "balance": "29.36239410",
+        //         "fillFee": "0",
+        //         "time": "1789214411964",
+        //         "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //     }
+        //
+        const marketId = this.safeString (income, 'symbol');
+        const currencyId = this.safeString (income, 'asset');
+        const timestamp = this.safeInteger (income, 'time');
+        return {
+            'info': income,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'code': this.safeCurrencyCode (currencyId),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (income, 'billId'),
+            'amount': this.safeNumber (income, 'income'),
+        };
+    }
+
+    /**
+     * @method
      * @name weex#fetchPositions
      * @description fetch all open positions
      * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
@@ -3581,11 +3680,11 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let response = undefined;
         if (sandboxMode === true) {
@@ -3593,7 +3692,7 @@ export default class weex extends Exchange {
         } else {
             response = await this.contractPrivateGetCapiV3AccountPositionAllPosition (params);
         }
-        return this.parsePositions (response, symbols);
+        return this.parsePositions (response, symbolsNormalized);
     }
 
     /**
@@ -3605,7 +3704,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPosition (symbol: string, params = {}) {
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
         const positions = await this.fetchPositionsForSymbol (symbol, params);
         return this.safeDict (positions, 0) as Position;
     }
@@ -3620,7 +3719,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+    override async fetchPositionsForSymbol (symbol: string, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3637,7 +3736,7 @@ export default class weex extends Exchange {
         return this.parsePositions (response, [ market['symbol'] ]);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "id": 737191855967437160,
@@ -3707,7 +3806,7 @@ export default class weex extends Exchange {
             this.handleOrderOrPositionError (errorCode, errorMessage, position);
         }
         const marketId = this.fromSandboxMarketId (this.safeString2 (position, 'symbol', 'coinId')); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
-        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger (position, 'createdTime');
         const marginType = this.safeString2 (position, 'marginType', 'marginMode');
         let marginMode = 'cross';
@@ -3725,7 +3824,7 @@ export default class weex extends Exchange {
         const size = this.safeString (position, 'size');
         const entryPrice = Precise.stringDiv (notional, size);
         return this.safePosition ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': this.safeString2 (position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3764,7 +3863,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async closeAllPositions (params = {}): Promise<Position[]> {
+    override async closeAllPositions (params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3792,7 +3891,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3814,7 +3913,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3866,7 +3965,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    override async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+    override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3900,13 +3999,13 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    override async fetchMarginModes (symbols: Strings = undefined, params = {}): Promise<MarginModes> {
+    override async fetchMarginModes (symbols: Strings = undefined, params: Dict = {}): Promise<MarginModes> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (params);
-        return this.parseMarginModes (this.toArray (response), symbols, 'symbol', 'swap');
+        return this.parseMarginModes (this.toArray (response), symbolsNormalized, 'symbol', 'swap');
     }
 
     override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
@@ -3937,7 +4036,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -3973,7 +4072,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3995,13 +4094,13 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
+    override async fetchLeverages (symbols: Strings = undefined, params: Dict = {}): Promise<Leverages> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (params);
-        return this.parseLeverages (this.toArray (response), symbols, 'symbol', 'swap');
+        return this.parseLeverages (this.toArray (response), symbolsNormalized, 'symbol', 'swap');
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
@@ -4043,7 +4142,7 @@ export default class weex extends Exchange {
      * the leverage value will be applied to cross leverage
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -4054,14 +4153,13 @@ export default class weex extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('setLeverage', params);
         if (marginMode !== undefined) {
             request['marginType'] = this.encodeMarginMode (marginMode);
         }
-        const isolatedLongLeverage = this.safeNumber (params, 'isolatedLongLeverage');
-        const isolatedShortLeverage = this.safeNumber (params, 'isolatedShortLeverage');
-        const crossLeverage = this.safeNumber (params, 'crossLeverage');
+        const isolatedLongLeverage = this.safeNumber (paramsMarginMode, 'isolatedLongLeverage');
+        const isolatedShortLeverage = this.safeNumber (paramsMarginMode, 'isolatedShortLeverage');
+        const crossLeverage = this.safeNumber (paramsMarginMode, 'crossLeverage');
         if ((isolatedLongLeverage === undefined) && (isolatedShortLeverage === undefined) && (crossLeverage === undefined)) {
             if (marginMode === 'isolated') {
                 request['isolatedLongLeverage'] = leverage;
@@ -4070,7 +4168,7 @@ export default class weex extends Exchange {
                 request['crossLeverage'] = leverage;
             }
         }
-        return await this.contractPrivatePostCapiV3AccountLeverage (this.extend (request, params));
+        return await this.contractPrivatePostCapiV3AccountLeverage (this.extend (request, paramsMarginMode));
     }
 
     /**
@@ -4082,7 +4180,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
+    override async fetchPositionMode (symbol: Str = undefined, params: Dict = {}): Promise<PositionModeInfo> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4110,7 +4208,7 @@ export default class weex extends Exchange {
      * @param {string} params.marginMode 'cross' or 'isolated' (default is 'cross')
      * @returns {object} response from the exchange
      */
-    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol argument');
         }
@@ -4118,21 +4216,23 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setPositionMode', params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('setPositionMode', params);
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setPositionMode() also sets marginMode, so a marginMode parameter is required');
         }
-        const separatedType = hedged ? 'SEPARATED' : 'COMBINED';
+        let separatedType: Str = 'COMBINED';
+        if (hedged) {
+            separatedType = 'SEPARATED';
+        }
         const request: Dict = {
             'symbol': market['id'],
             'marginType': this.encodeMarginMode (marginMode),
             'separatedType': separatedType,
         };
-        return await this.contractPrivatePostCapiV3AccountMarginType (this.extend (request, params));
+        return await this.contractPrivatePostCapiV3AccountMarginType (this.extend (request, paramsMarginMode));
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: Num, type: int, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4140,15 +4240,18 @@ export default class weex extends Exchange {
         if (isolatedPositionId === undefined) {
             throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter');
         }
-        params = this.omit (params, [ 'positionId', 'id' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'positionId', 'id' ]);
         const market = this.market (symbol);
         const request: Dict = {
             'isolatedPositionId': isolatedPositionId,
             'amount': this.costToPrecision (symbol, amount),
             'type': type,
         };
-        const parsedType = (type === 1) ? 'add' : 'reduce';
-        const response = await this.contractPrivatePostCapiV3AccountPositionMargin (this.extend (request, params));
+        let parsedType: Str = 'reduce';
+        if (type === 1) {
+            parsedType = 'add';
+        }
+        const response = await this.contractPrivatePostCapiV3AccountPositionMargin (this.extend (request, paramsOmitted));
         return this.extend (this.parseMarginModification (response, market), {
             'amount': this.parseNumber (amount),
             'type': parsedType,
@@ -4164,7 +4267,10 @@ export default class weex extends Exchange {
         //     }
         //
         const msg = this.safeString (data, 'msg');
-        const status = (msg === 'success') ? 'ok' : 'failed';
+        let status: Str = 'failed';
+        if (msg === 'success') {
+            status = 'ok';
+        }
         const timestamp = this.safeInteger (data, 'requestTime');
         return {
             'info': data,
@@ -4191,7 +4297,7 @@ export default class weex extends Exchange {
      * @param {string} params.positionId the id of the position to reduce margin from, required
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
 
@@ -4206,7 +4312,7 @@ export default class weex extends Exchange {
      * @param {string} params.positionId the id of the position to add margin to, required
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
@@ -4256,7 +4362,7 @@ export default class weex extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let endpoint = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const isBatch = (path.indexOf ('batch') >= 0);
@@ -4265,7 +4371,14 @@ export default class weex extends Exchange {
                 endpoint += '?' + this.urlencode (query);
             }
         }
-        if ((api === 'private') || (api === 'contractPrivate')) {
+        const isPrivate = (api === 'private') || (api === 'contractPrivate');
+        const hasJsonBody = isPrivate && ((method === 'POST') || isBatch);
+        let requestBody: Str = body;
+        if (hasJsonBody) {
+            requestBody = this.json (query);
+        }
+        let requestHeaders: NullableDict = undefined;
+        if (isPrivate) {
             const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             if ((sandboxMode === true) && (path.indexOf ('capi/v3/sim/') !== 0)) {
                 // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
@@ -4274,27 +4387,31 @@ export default class weex extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.numberToString (this.nonce ());
             let payload = timestamp + method + '/' + endpoint;
-            if ((method === 'POST') || isBatch) {
-                body = this.json (query);
-                payload += body;
+            if (hasJsonBody) {
+                payload += requestBody;
             }
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
-            headers = {
+            requestHeaders = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-PASSPHRASE': this.password,
                 'ACCESS-TIMESTAMP': timestamp,
             };
             if ((method === 'POST') || (method === 'DELETE')) {
-                headers['Content-Type'] = 'application/json';
+                requestHeaders['Content-Type'] = 'application/json';
             }
         } else {
-            headers = {
+            requestHeaders = {
                 'User-Agent': 'ccxt',
             };
         }
-        const url = this.urls['api'][api] + '/' + endpoint;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl: string = baseApiUrl;
+        const url = baseUrl + '/' + endpoint;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

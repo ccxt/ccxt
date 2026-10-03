@@ -367,6 +367,24 @@ public partial class testMainClass : BaseTest
             }
             return outDict;
         }
+        // OrderBook.bids/asks are List<List<double>>. getValue on List<double> returns
+        // null (it is not IList<object>), so each stored [price, amount] compared as null.
+        if (type.IsGenericType
+            && type.GetGenericTypeDefinition() == typeof(List<>)
+            && value is System.Collections.IList numericList)
+        {
+            var elem = type.GetGenericArguments()[0];
+            if (elem.IsPrimitive || elem == typeof(double) || elem == typeof(Int64)
+                || (elem.IsGenericType && elem.GetGenericTypeDefinition() == typeof(List<>)))
+            {
+                var outList = new List<object>(numericList.Count);
+                foreach (var item in numericList)
+                {
+                    outList.Add(detypeForComparison(item));
+                }
+                return outList;
+            }
+        }
         return value;
     }
 
@@ -383,6 +401,7 @@ public partial class testMainClass : BaseTest
             return row;
         }
         var result = new dict();
+        var indexer = type.GetProperty("Item", new[] { typeof(string) });
         foreach (var field in fields)
         {
             var fieldValue = field.GetValue(value);
@@ -391,14 +410,30 @@ public partial class testMainClass : BaseTest
             // LeverageTiers, ...) hold a Dictionary<string, T> where T is a unified
             // struct or a list of them; the unified shape is that dictionary itself,
             // keyed by symbol/currency, so splat its entries instead of nesting them.
+            // Only unwrap dictionaries exposed by the container's string indexer.
             if (fieldType.IsGenericType
                 && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)
                 && fieldType.GetGenericArguments()[0] == typeof(string)
+                && indexer != null && indexer.PropertyType == fieldType.GetGenericArguments()[1]
                 && isProjectable(fieldType.GetGenericArguments()[1]))
             {
                 if (fieldValue is System.Collections.IDictionary inner)
                 {
                     foreach (System.Collections.DictionaryEntry entry in inner)
+                    {
+                        result[Convert.ToString(entry.Key)] = detypeForComparison(entry.Value);
+                    }
+                }
+                continue;
+            }
+            // `extra` holds source keys with no struct field (venue-only market keys such
+            // as baseName / tradfi / delivery). Production writes them back at top level
+            // in From*, so the projection has to splat them the same way.
+            if (field.Name == "extra")
+            {
+                if (fieldValue is System.Collections.IDictionary extraDict)
+                {
+                    foreach (System.Collections.DictionaryEntry entry in extraDict)
                     {
                         result[Convert.ToString(entry.Key)] = detypeForComparison(entry.Value);
                     }
@@ -545,8 +580,16 @@ public partial class testMainClass : BaseTest
         var exchange = exchange2 as BaseExchange;
 
         exchange.fetchResponse = response;
+        exchange.fetchResponseByUrl = null; // a plain body (or the undefined reset) drops any url-keyed mock
         return exchange;
 
+    }
+
+    public BaseExchange setFetchResponseByUrl(object exchange2, object responsesByUrl)
+    {
+        var exchange = exchange2 as BaseExchange;
+        exchange.fetchResponseByUrl = responsesByUrl;
+        return exchange;
     }
 
     public object setupWsMockTransport(object exchange2, object url)

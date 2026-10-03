@@ -2,6 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import binance from './binance.js';
+import type { Dict, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -39,12 +40,12 @@ export default class binancecoinm extends binance {
         });
     }
 
-    async transferIn (code: string, amount: any, params = {}) {
+    async transferIn (code: string, amount: number, params: Dict = {}): Promise<TransferEntry> {
         // transfer from spot wallet to coinm futures wallet
         return await this.futuresTransfer (code, amount, 3, params);
     }
 
-    async transferOut (code: string, amount: any, params = {}) {
+    async transferOut (code: string, amount: number, params: Dict = {}): Promise<TransferEntry> {
         // transfer from coinm futures wallet to spot wallet
         return await this.futuresTransfer (code, amount, 4, params);
     }

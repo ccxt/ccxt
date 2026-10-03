@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Liquidation {
+public final class Liquidation extends TypedMap {
     public String symbol;
     public Long timestamp;
     public String datetime;
@@ -19,6 +19,7 @@ public final class Liquidation {
 
     @SuppressWarnings("unchecked")
     public Liquidation(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

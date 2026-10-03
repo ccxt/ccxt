@@ -1,0 +1,8 @@
+{
+    "TransferUta": "map[string]any",
+    "TransferClassic": "map[string]any",
+    "FetchMarketById": "map[string]any",
+    "FetchRawEventsList": "[]any",
+    "FetchRawTopicsByQueries": "[]any",
+    "NegotiateHelper": "string"
+}

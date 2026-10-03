@@ -14,6 +14,7 @@ class ImplicitAPI:
     private_get_user_assets = privateGetUserAssets = Entry[_Dict]('user/assets', 'private', 'GET', {'cost': 1})
     private_get_user_spot_order = privateGetUserSpotOrder = Entry[_Dict]('user/spot/order', 'private', 'GET', {'cost': 1})
     private_get_user_spot_active_orders = privateGetUserSpotActiveOrders = Entry[_Dict]('user/spot/active_orders', 'private', 'GET', {'cost': 1})
+    private_get_user_margin_status = privateGetUserMarginStatus = Entry[_Dict]('user/margin/status', 'private', 'GET', {'cost': 1})
     private_get_user_margin_positions = privateGetUserMarginPositions = Entry[_Dict]('user/margin/positions', 'private', 'GET', {'cost': 1})
     private_get_user_spot_trade_history = privateGetUserSpotTradeHistory = Entry[_Dict]('user/spot/trade_history', 'private', 'GET', {'cost': 1})
     private_get_user_deposit_history = privateGetUserDepositHistory = Entry[_Dict]('user/deposit_history', 'private', 'GET', {'cost': 1})

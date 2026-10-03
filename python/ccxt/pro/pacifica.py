@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.types import Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 
@@ -80,7 +81,7 @@ class pacifica(ccxt.async_support.pacifica):
                 headers['PF-API-KEY'] = self.options['apiKey']
         self.options['ws']['options']['headers'] = headers
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -101,19 +102,19 @@ class pacifica(ccxt.async_support.pacifica):
         :param str|None [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use.
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         request, operationType = self.create_order_request(symbol, type, side, amount, price, params)
-        params = self.omit(params, [
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
-            'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'agentAddress', 'originAddress',
-        ])
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
         requestId = self.safe_string(wsRequest, 'id')
         if operationType == 'create_stop_order':
@@ -162,7 +163,7 @@ class pacifica(ccxt.async_support.pacifica):
         clientOrderId = self.safe_string(order, 'I')
         return self.safe_order({'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    async def edit_order_ws(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
+    async def edit_order_ws(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -178,7 +179,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         batchOperationType = 'edit_order'
@@ -186,10 +187,13 @@ class pacifica(ccxt.async_support.pacifica):
             await self.load_markets()
         market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, market, params)
-        params = self.omit(params, ['originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId'])
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(batchOperationType, request)
         requestId = self.safe_string(wsRequest, 'id')
         response = await self.watch(url, requestId, wsRequest, requestId)
@@ -218,7 +222,7 @@ class pacifica(ccxt.async_support.pacifica):
         clientOrderId = self.safe_string(order, 'I')
         return self.safe_order({'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params={}):
+    async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -231,7 +235,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param string|str[] [params.clientOrderId]: client order ids,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         batchOperationType = 'batch_orders'
@@ -240,10 +244,13 @@ class pacifica(ccxt.async_support.pacifica):
         if symbol is None:
             raise ArgumentsRequired(self.id + 'cancelOrders() requires a "symbol" argument!')
         request = self.cancelOrdersRequest(ids, symbol, params)
-        params = self.omit(params, ['originAddress', 'agentAddress', 'expiryWindow', 'clientOrderIds'])
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(batchOperationType, request)
         requestId = self.safe_string(wsRequest, 'id')
         response = await self.watch(url, requestId, wsRequest, requestId)
@@ -253,13 +260,13 @@ class pacifica(ccxt.async_support.pacifica):
         #   "data": {
         #     "results": [
         #       {
-        #         "success": True,
+        #         "success": true,
         #         "order_id": 645953,
         #         "client_order_id": "57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e",
         #         "symbol": "BTC"
         #       },
         #       {
-        #         "success": True,
+        #         "success": true,
         #         "order_id": 645954,
         #         "symbol": "ETH"
         #       }
@@ -274,7 +281,7 @@ class pacifica(ccxt.async_support.pacifica):
         results = self.safe_list(data, 'results', [])
         ordersToReturn = []
         for i in range(0, len(results)):
-            order = results[i]
+            order = self.safe_dict(results, i)
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             marketId = self.safe_string(order, 'symbol')
@@ -289,7 +296,7 @@ class pacifica(ccxt.async_support.pacifica):
             ordersToReturn.append(self.safe_order({'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': market['symbol']}))
         return ordersToReturn
 
-    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -302,7 +309,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str|None [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         operationType = 'cancel_order'
@@ -311,10 +318,13 @@ class pacifica(ccxt.async_support.pacifica):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrderWs() requires a symbol argument')
         request = self.cancel_order_request(id, symbol, params)
-        params = self.omit(params, ['originAddress', 'agentAddress', 'expiryWindow', 'trigger', 'stop', 'clientOrderId'])
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
         requestId = self.safe_string(wsRequest, 'id')
         response = await self.watch(url, requestId, wsRequest, requestId)
@@ -345,7 +355,7 @@ class pacifica(ccxt.async_support.pacifica):
         clientOrderId = self.safe_string(order, 'I')
         return self.safe_order({'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -356,17 +366,20 @@ class pacifica(ccxt.async_support.pacifica):
         :param boolean|None [params.excludeReduceOnly]: whether to exclude reduce-only orders
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         operationType = 'cancel_all_orders'
         request = self.cancelAllOrdersRequest(symbol, params)
-        params = self.omit(params, ['excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow'])
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
         requestId = self.safe_string(wsRequest, 'id')
         response = await self.watch(url, requestId, wsRequest, requestId)
@@ -386,7 +399,7 @@ class pacifica(ccxt.async_support.pacifica):
             }),
         ]
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -402,12 +415,15 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        aggLevel = None
-        aggLevel, params = self.handle_option_and_params(params, 'watchOrderBook', 'aggLevel', 1)
+        aggLevel, paramsAggLevel = self.handle_option_integer_and_params(params, 'watchOrderBook', 'aggLevel', 1)
         messageHash = 'orderbook:' + symbol
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -416,11 +432,11 @@ class pacifica(ccxt.async_support.pacifica):
                 'agg_level': aggLevel,
             },
         }
-        message = self.extend(request, params)
+        message = self.extend(request, paramsAggLevel)
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> object:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -434,13 +450,16 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        aggLevel = None
-        aggLevel, params = self.handle_option_and_params(params, 'watchOrderBook', 'aggLevel', 1)
+        aggLevel, paramsAggLevel = self.handle_option_integer_and_params(params, 'watchOrderBook', 'aggLevel', 1)
         subMessageHash = 'orderbook:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -449,10 +468,10 @@ class pacifica(ccxt.async_support.pacifica):
                 'agg_level': aggLevel,
             },
         }
-        message = self.extend(request, params)
+        message = self.extend(request, paramsAggLevel)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order_book(self, client: object, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # {
         #   "channel": "book",
@@ -464,7 +483,7 @@ class pacifica(ccxt.async_support.pacifica):
         #           "n": 4,
         #           "p": "157.47"
         #         },
-        #         # ... other aggegated bid levels
+        #         // ... other aggegated bid levels
         #       ],
         #       [
         #         {
@@ -477,12 +496,12 @@ class pacifica(ccxt.async_support.pacifica):
         #           "n": 3,
         #           "p": "157.5"
         #         },
-        #         # ... other aggregated ask levels
+        #         // ... other aggregated ask levels
         #       ]
         #     ],
         #     "s": "SOL",
         #     "t": 1749051881187,
-        #     "li": 1559885104  # sequence id - last order id
+        #     "li": 1559885104 // sequence id - last order id
         #   }
         # }
         #
@@ -508,7 +527,7 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/prices
@@ -521,7 +540,7 @@ class pacifica(ccxt.async_support.pacifica):
         tickers = await self.watch_tickers([symbol], params)
         return tickers[symbol]
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -534,11 +553,15 @@ class pacifica(ccxt.async_support.pacifica):
         self.setup_api_key_headers()
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, True)
+        symbolsNormalized = self.market_symbols(symbols, None, True)
         messageHash = 'tickers'
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -547,10 +570,10 @@ class pacifica(ccxt.async_support.pacifica):
         }
         tickers = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
-            return self.filter_by_array_tickers(tickers, 'symbol', symbols)
+            return self.filter_by_array_tickers(tickers, 'symbol', symbolsNormalized)
         return self.tickers
 
-    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> object:
+    async def un_watch_tickers(self, symbols: Strings = None, params: dict = {}) -> object:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -562,12 +585,16 @@ class pacifica(ccxt.async_support.pacifica):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, True)
+        self.market_symbols(symbols, None, True)
         subMessageHash = 'tickers'
         messageHash = 'unsubscribe:' + subMessageHash
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -576,7 +603,7 @@ class pacifica(ccxt.async_support.pacifica):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -589,17 +616,21 @@ class pacifica(ccxt.async_support.pacifica):
         :param str|None [params.account]: will default to options' walletAddress if not provided
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        userAddress = None
-        userAddress, params = self.handleOriginAndSingleAddress('watchMyTrades', params)
+        userAddress, paramsOriginAndSingleAddress = self.handleOriginAndSingleAddress('watchMyTrades', params)
         if self.markets is None:
             await self.load_markets()
         messageHash = 'myTrades'
+        symbolResolved = None
         if symbol is not None:
-            symbol = self.symbol(symbol)
-            messageHash += ':' + symbol
+            symbolResolved = self.symbol(symbol)
+            messageHash += ':' + symbolResolved
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -607,13 +638,14 @@ class pacifica(ccxt.async_support.pacifica):
                 'account': userAddress,
             },
         }
-        message = self.extend(request, params)
+        message = self.extend(request, paramsOriginAndSingleAddress)
         trades = await self.watch(url, messageHash, message, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+            limitResolved = trades.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
 
-    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> object:
+    async def un_watch_my_trades(self, symbol: Str = None, params: dict = {}) -> object:
         """
         unWatches information on multiple trades made by the user
 
@@ -628,12 +660,15 @@ class pacifica(ccxt.async_support.pacifica):
             await self.load_markets()
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only')
-        userAddress = None
-        userAddress, params = self.handleOriginAndSingleAddress('unWatchMyTrades', params)
+        userAddress, paramsOriginAndSingleAddress = self.handleOriginAndSingleAddress('unWatchMyTrades', params)
         messageHash = 'unsubscribe:myTrades'
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -641,10 +676,10 @@ class pacifica(ccxt.async_support.pacifica):
                 'account': userAddress,
             },
         }
-        message = self.extend(request, params)
+        message = self.extend(request, paramsOriginAndSingleAddress)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ws_tickers(self, client: Client, message: object):
+    def handle_ws_tickers(self, client: Client, message: dict) -> bool:
         #
         # {
         #     "channel": "prices",
@@ -661,7 +696,7 @@ class pacifica(ccxt.async_support.pacifica):
         #             "volume_24h": "63265.87522",
         #             "yesterday_price": "955476"
         #         }
-        #         # ... other symbol prices
+        #         // ... other symbol prices
         #     ],
         # }
         #
@@ -679,28 +714,28 @@ class pacifica(ccxt.async_support.pacifica):
         client.resolve(tickers, 'tickers')
         return True
 
-    def parse_ws_ticker(self, rawTicker: object, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, rawTicker: dict, market: Market = None) -> Ticker:
         return self.parse_ticker(rawTicker, market)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         # {
         #   "channel": "account_trades",
         #   "data": [
         #     {
-        #       "h": 80063441,  # history id
-        #       "i": 1559912767,  # oid
-        #       "I": null,  # cloid
-        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",  # account address
-        #       "s": "BTC",  # symbol
-        #       "p": "89477",  # price
-        #       "o": "89505",  # entry price
-        #       "a": "0.00036",  # amount
+        #       "h": 80063441, // history id
+        #       "i": 1559912767, // oid
+        #       "I": null, // cloid
+        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        #       "s": "BTC",  // symbol
+        #       "p": "89477", // price
+        #       "o": "89505", // entry price
+        #       "a": "0.00036", // amount
         #       "te": "fulfill_taker",
         #       "ts": "close_long",
-        #       "tc": "normal",  # trade type
-        #       "f": "0.012885",  # fee
-        #       "n": "-0.022965",  # pnl
+        #       "tc": "normal", // trade type
+        #       "f": "0.012885", // fee
+        #       "n": "-0.022965", // pnl
         #       "t": 1765018588190,
         #       "li": 1559912767
         #     }
@@ -731,7 +766,7 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -746,11 +781,15 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'trade:' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'trade:' + symbolValue
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -760,11 +799,12 @@ class pacifica(ccxt.async_support.pacifica):
         }
         message = self.extend(request, params)
         trades = await self.watch(url, messageHash, message, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> object:
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches information on multiple trades made in a market
 
@@ -777,12 +817,16 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        subMessageHash = 'trade:' + symbol
+        symbolValue = market['symbol']
+        subMessageHash = 'trade:' + symbolValue
         messageHash = 'unsubscribe:' + subMessageHash
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -793,7 +837,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         # {
         #   "channel": "trades",
@@ -833,19 +877,19 @@ class pacifica(ccxt.async_support.pacifica):
         # fetchMyTrades
         #
         #    {
-        #       "h": 80063441,  # history id
-        #       "i": 1559912767,  # oid
-        #       "I": null,  # cloid
-        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",  # account address
-        #       "s": "BTC",  # symbol
-        #       "p": "89477",  # price
-        #       "o": "89505",  # entry price
-        #       "a": "0.00036",  # amount
+        #       "h": 80063441, // history id
+        #       "i": 1559912767, // oid
+        #       "I": null, // cloid
+        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        #       "s": "BTC",  // symbol
+        #       "p": "89477", // price
+        #       "o": "89505", // entry price
+        #       "a": "0.00036", // amount
         #       "te": "fulfill_taker",
         #       "ts": "close_long",
-        #       "tc": "normal",  # trade type
-        #       "f": "0.012885",  # fee
-        #       "n": "-0.022965",  # pnl
+        #       "tc": "normal", // trade type
+        #       "f": "0.012885", // fee
+        #       "n": "-0.022965", // pnl
         #       "t": 1765018588190,
         #       "li": 1559912767
         #     }
@@ -867,8 +911,8 @@ class pacifica(ccxt.async_support.pacifica):
         price = self.safe_string(trade, 'p')
         amount = self.safe_string(trade, 'a')
         marketId = self.safe_string(trade, 's')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         id = self.safe_string(trade, 'h')
         fee = self.safe_string(trade, 'f')
         side = self.safe_string_2(trade, 'ts', 'd')
@@ -902,9 +946,9 @@ class pacifica(ccxt.async_support.pacifica):
             'amount': amount,
             'cost': None,
             'fee': {'cost': fee, 'currency': 'USDC'},
-        }, market)
+        }, marketResolved)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -915,16 +959,20 @@ class pacifica(ccxt.async_support.pacifica):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         isTestnet = self.isSandboxModeEnabled
         parsedTf = self.safe_string(self.timeframes, timeframe, timeframe)
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -933,14 +981,15 @@ class pacifica(ccxt.async_support.pacifica):
                 'interval': parsedTf,
             },
         }
-        messageHash = 'candles:' + parsedTf + ':' + symbol
+        messageHash = 'candles:' + parsedTf + ':' + symbolValue
         message = self.extend(request, params)
         ohlcv = await self.watch(url, messageHash, message, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> object:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -949,15 +998,19 @@ class pacifica(ccxt.async_support.pacifica):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -966,12 +1019,12 @@ class pacifica(ccxt.async_support.pacifica):
                 'interval': timeframe,
             },
         }
-        subMessageHash = 'candles:' + timeframe + ':' + symbol
+        subMessageHash = 'candles:' + timeframe + ':' + symbolValue
         messagehash = 'unsubscribe:' + subMessageHash
         message = self.extend(request, params)
         return await self.watch(url, messagehash, message, messagehash)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         # {
         #   "channel": "candle",
@@ -998,7 +1051,7 @@ class pacifica(ccxt.async_support.pacifica):
             return
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        symbolOhlcvs = self.safe_value(self.ohlcvs, symbol, {})
+        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
         ohlcv = self.safe_value(symbolOhlcvs, timeframe)
         if ohlcv is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -1009,7 +1062,7 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(ohlcv, messageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -1024,17 +1077,21 @@ class pacifica(ccxt.async_support.pacifica):
         """
         if self.markets is None:
             await self.load_markets()
-        userAddress = None
-        userAddress, params = self.handleOriginAndSingleAddress('watchOrders', params)
+        userAddress, paramsOriginAndSingleAddress = self.handleOriginAndSingleAddress('watchOrders', params)
         market = None
         messageHash = 'order'
+        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
-            messageHash = messageHash + ':' + symbol
+            symbolResolved = self.safe_string(market, 'symbol')
+            messageHash = messageHash + ':' + symbolResolved
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -1042,13 +1099,14 @@ class pacifica(ccxt.async_support.pacifica):
                 'account': userAddress,
             },
         }
-        message = self.extend(request, params)
+        message = self.extend(request, paramsOriginAndSingleAddress)
         orders = await self.watch(url, messageHash, message, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
-    async def un_watch_orders(self, symbol: Str = None, params={}) -> object:
+    async def un_watch_orders(self, symbol: Str = None, params: dict = {}) -> object:
         """
         unWatches information on multiple orders made by the user
 
@@ -1065,10 +1123,13 @@ class pacifica(ccxt.async_support.pacifica):
             raise NotSupported(self.id + ' unWatchOrders() does not support a symbol argument, unWatch from all markets only')
         messageHash = 'unsubscribe:order'
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
-        url = self.urls[urlKey]['ws']['public']
-        userAddress = None
-        userAddress, params = self.handleOriginAndSingleAddress('unWatchOrders', params)
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
+        userAddress, paramsOriginAndSingleAddress = self.handleOriginAndSingleAddress('unWatchOrders', params)
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -1076,10 +1137,10 @@ class pacifica(ccxt.async_support.pacifica):
                 'account': userAddress,
             },
         }
-        message = self.extend(request, params)
+        message = self.extend(request, paramsOriginAndSingleAddress)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         # not snapshot, only updates
         # {
         #   "channel": "account_order_updates",
@@ -1100,7 +1161,7 @@ class pacifica(ccxt.async_support.pacifica):
         #       "ot": "limit",
         #       "sp": null,
         #       "si": null,
-        #       "r": False,
+        #       "r": false,
         #       "ct": 1765017049008,
         #       "ut": 1765017219639,
         #       "li": 1559696133
@@ -1131,7 +1192,7 @@ class pacifica(ccxt.async_support.pacifica):
             client.resolve(stored, innerMessageHash)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         # 'rl' key is present only when a rate-limited API key is used
         # {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1210,7 +1271,7 @@ class pacifica(ccxt.async_support.pacifica):
         }
         self.clean_cache(topicStructure)
 
-    def handle_subscription_response(self, client: Client, message: object):
+    def handle_subscription_response(self, client: Client, message: dict):
         #  {
         #      "channel": "subscribe",
         #      "data": {
@@ -1297,7 +1358,7 @@ class pacifica(ccxt.async_support.pacifica):
             'method': 'ping',
         }
 
-    def handle_pong(self, client: Client, message: object):
+    def handle_pong(self, client: Client, message: dict) -> dict:
         #
         #   {
         #       "channel": "pong"

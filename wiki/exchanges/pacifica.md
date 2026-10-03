@@ -39,6 +39,8 @@
 * [fetchOpenInterests](#fetchopeninterests)
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchLedger](#fetchledger)
+* [fetchDeposits](#fetchdeposits)
+* [fetchWithdrawals](#fetchwithdrawals)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [transfer](#transfer)
 * [createSubAccount](#createsubaccount)
@@ -336,6 +338,7 @@ create a trade order
 | params.takeProfitPrice | <code>float</code> | No | the price that a take profit order is triggered at (optional provide takeProfitCloid) |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book) |
 | params.reduceOnly | <code>boolean</code> | No | Ensures that the executed order does not flip the opened position. |
+| params.slippage | <code>string</code> | No | the slippage for market orders in percent, defaults to options.defaultSlippage (0.5) |
 | params.clientOrderId | <code>string</code> | No | client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479) |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 
@@ -764,8 +767,8 @@ make a withdrawal (only support native USDC)
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
-| address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
+| address | <code>string</code> | Yes | validated but not sent, funds go to the account wallet |
+| tag | <code>string</code> | Yes | not used by withdraw () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 
@@ -862,6 +865,54 @@ fetch the history of changes, actions done by the user or operations that altere
 
 ```javascript
 pacifica.fetchLedger (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchDeposits" id="fetchdeposits"></a>
+
+### fetchDeposits{docsify-ignore}
+fetch all USDC deposits made to an account, spot asset deposits are not included
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
+| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | will default to walletAddress if not provided |
+
+
+```javascript
+pacifica.fetchDeposits (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
+
+### fetchWithdrawals{docsify-ignore}
+fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
+| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | will default to walletAddress if not provided |
+
+
+```javascript
+pacifica.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 

@@ -373,6 +373,18 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "over limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitvavo.com/v2/BTC-USDC/candles?interval=1m&limit=1440",
+                "input": [
+                    "BTC/USDC",
+                    "1m",
+                    null,
+                    1445
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://api.bitvavo.com/v2/BTC-EUR/candles?interval=1m&limit=5",

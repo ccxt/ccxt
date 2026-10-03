@@ -304,6 +304,12 @@ abstract class delta extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_put_users_trading_preferences($params = array()) {
+        return $this->request('users/trading_preferences', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_delete_orders($params = array()) {
         return $this->request('orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -612,6 +618,12 @@ abstract class delta extends \ccxt\async\Exchange {
      */
     public function privatePutUsersMarginMode($params = array()) {
         return $this->request('users/margin_mode', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePutUsersTradingPreferences($params = array()) {
+        return $this->request('users/trading_preferences', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

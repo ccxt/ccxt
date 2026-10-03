@@ -174,12 +174,18 @@ export default class bitstamp extends Exchange {
                         'travel_rule/vasps/': { 'cost': 1 },
                         'funding_rate/{market_symbol}/': { 'cost': 1 },
                         'funding_rate_history/{pair}/': { 'cost': 1 },
+                        'derivatives/market_hours/': { 'cost': 1 },
+                        'derivatives/market_hours/{market_symbol}/': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         'travel_rule/contacts/': { 'cost': 1 },
                         'contacts/{contact_uuid}/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/': { 'cost': 1 },
+                        'travel_rule/address_verification/': { 'cost': 1 },
+                        'crypto-transactions/deposits/': { 'cost': 1 },
                         'earn/subscriptions/': { 'cost': 1 },
                         'earn/transactions/': { 'cost': 1 },
                         'trade_history/': { 'cost': 1 },
@@ -195,6 +201,7 @@ export default class bitstamp extends Exchange {
                         'user_transactions/': { 'cost': 1 },
                         'user_transactions/{pair}/': { 'cost': 1 },
                         'crypto-transactions/': { 'cost': 1 },
+                        'crypto-transactions/deposits/{deposit_id}/reject/': { 'cost': 1 },
                         'open_order': { 'cost': 1 },
                         'open_orders/all/': { 'cost': 1 },
                         'open_orders/{pair}/': { 'cost': 1 },
@@ -226,6 +233,8 @@ export default class bitstamp extends Exchange {
                         'websockets_token/': { 'cost': 1 },
                         'revoke_all_api_keys/': { 'cost': 1 },
                         'get_max_order_amount/': { 'cost': 1 },
+                        'order_data/': { 'cost': 1 },
+                        'account_order_data/': { 'cost': 1 },
                         // individual coins
                         'btc_withdrawal/': { 'cost': 1 },
                         'btc_address/': { 'cost': 1 },
@@ -390,6 +399,8 @@ export default class bitstamp extends Exchange {
                         'ldo_withdrawal/': { 'cost': 1 },
                         'ldo_address/': { 'cost': 1 },
                         'travel_rule/contacts/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/revoke/': { 'cost': 1 },
                         'earn/subscribe/': { 'cost': 1 },
                         'earn/subscriptions/setting/': { 'cost': 1 },
                         'earn/unsubscribe': { 'cost': 1 },
@@ -665,6 +676,9 @@ export default class bitstamp extends Exchange {
             const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let settleId = undefined;
             const marketTypeRaw = this.safeString(market, 'market_type');
             let symbol = base + '/' + quote;
@@ -782,7 +796,7 @@ export default class bitstamp extends Exchange {
     async fetchMarketsFromCache(params = {}) {
         // this method is now redundant
         // currencies are now fetched before markets
-        const options = this.safeValue(this.options, 'fetchMarkets', {});
+        const options = this.safeDict(this.options, 'fetchMarkets', {});
         const timestamp = this.safeInteger(options, 'timestamp');
         const expires = this.safeInteger(options, 'expires', 1000);
         const now = this.milliseconds();
@@ -1048,7 +1062,7 @@ export default class bitstamp extends Exchange {
         if (currencyId !== undefined) {
             return currencyId;
         }
-        transaction = this.omit(transaction, [
+        const transactionOmitted = this.omit(transaction, [
             'fee',
             'price',
             'datetime',
@@ -1056,11 +1070,11 @@ export default class bitstamp extends Exchange {
             'status',
             'id',
         ]);
-        const ids = Object.keys(transaction);
+        const ids = Object.keys(transactionOmitted);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.indexOf('_') < 0) {
-                const value = this.safeInteger(transaction, id);
+                const value = this.safeInteger(transactionOmitted, id);
                 if ((value !== undefined) && (value !== 0)) {
                     return id;
                 }
@@ -1069,7 +1083,7 @@ export default class bitstamp extends Exchange {
         return undefined;
     }
     getMarketFromTrade(trade) {
-        trade = this.omit(trade, [
+        const tradeOmitted = this.omit(trade, [
             'fee',
             'price',
             'datetime',
@@ -1078,10 +1092,10 @@ export default class bitstamp extends Exchange {
             'order_id',
             'side',
         ]);
-        const currencyIds = Object.keys(trade);
+        const currencyIds = Object.keys(tradeOmitted);
         const numCurrencyIds = currencyIds.length;
         if (numCurrencyIds > 2) {
-            throw new ExchangeError(this.id + ' getMarketFromTrade() too many keys: ' + this.json(currencyIds) + ' in the trade: ' + this.json(trade));
+            throw new ExchangeError(this.id + ' getMarketFromTrade() too many keys: ' + this.json(currencyIds) + ' in the trade: ' + this.json(tradeOmitted));
         }
         if (numCurrencyIds === 2) {
             let marketId = currencyIds[0] + currencyIds[1];
@@ -1144,30 +1158,38 @@ export default class bitstamp extends Exchange {
         const type = undefined;
         let costString = this.safeString(trade, 'cost');
         let rawMarketId = undefined;
+        // resolved in the key scan below, falling back to the passed market
+        let marketResolved = market;
         if (market === undefined) {
             const keys = Object.keys(trade);
             for (let i = 0; i < keys.length; i++) {
                 const currentKey = keys[i];
                 if (currentKey !== 'order_id' && currentKey.indexOf('_') >= 0) {
                     rawMarketId = currentKey;
-                    market = this.safeMarket(rawMarketId, market, '_');
+                    marketResolved = this.safeMarket(rawMarketId, marketResolved, '_');
                 }
             }
         }
         // if the market is still not defined
         // try to deduce it from used keys
-        if (market === undefined) {
-            market = this.getMarketFromTrade(trade);
+        if (marketResolved === undefined) {
+            marketResolved = this.getMarketFromTrade(trade);
         }
         const feeCostString = this.safeString(trade, 'fee');
-        const feeCurrency = this.safeString(market, 'quote');
-        const priceId = (rawMarketId !== undefined) ? rawMarketId : this.safeString(market, 'id');
+        const feeCurrency = this.safeString(marketResolved, 'quote');
+        let priceId = undefined;
+        if (rawMarketId !== undefined) {
+            priceId = rawMarketId;
+        }
+        else {
+            priceId = this.safeString(marketResolved, 'id');
+        }
         priceString = this.safeString(trade, priceId, priceString);
-        amountString = this.safeString(trade, this.safeString(market, 'baseId'), amountString);
-        costString = this.safeString(trade, this.safeString(market, 'quoteId'), costString);
+        amountString = this.safeString(trade, this.safeString(marketResolved, 'baseId'), amountString);
+        costString = this.safeString(trade, this.safeString(marketResolved, 'quoteId'), costString);
         // this endpoint is not aligned with "markets" endpoint
-        const baseIdLower = this.safeStringLower(market, 'baseId');
-        const quoteIdLower = this.safeStringLower(market, 'quoteId');
+        const baseIdLower = this.safeStringLower(marketResolved, 'baseId');
+        const quoteIdLower = this.safeStringLower(marketResolved, 'quoteId');
         const dashedIdLower = baseIdLower + '_' + quoteIdLower;
         if (priceString === undefined) {
             priceString = this.safeString(trade, dashedIdLower);
@@ -1178,7 +1200,7 @@ export default class bitstamp extends Exchange {
         if (costString === undefined) {
             costString = this.safeString(trade, quoteIdLower);
         }
-        symbol = this.safeString(market, 'symbol');
+        symbol = this.safeString(marketResolved, 'symbol');
         const datetimeString = this.safeString2(trade, 'date', 'datetime');
         let timestamp = undefined;
         if (datetimeString !== undefined) {
@@ -1241,7 +1263,7 @@ export default class bitstamp extends Exchange {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1314,6 +1336,7 @@ export default class bitstamp extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1326,27 +1349,49 @@ export default class bitstamp extends Exchange {
             'step': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe(timeframe);
+        const until = this.safeInteger(params, 'until');
+        const untilIsDefined = (until !== undefined);
+        const limitResolved = (limit === undefined) ? 1000 : limit;
         if (limit === undefined) {
             if (since === undefined) {
-                request['limit'] = 1000; // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                request['limit'] = limitResolved;
+                if (untilIsDefined) {
+                    const end = this.parseToInt(until / 1000);
+                    request['start'] = end - (duration * limitResolved) - 1;
+                    request['end'] = end;
+                }
             }
             else {
-                limit = 1000;
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum(start, duration * (limit - 1));
-                request['limit'] = limit;
+                if (untilIsDefined) {
+                    request['end'] = this.parseToInt(until / 1000);
+                }
+                else {
+                    request['end'] = this.sum(start, duration * limitResolved - 1);
+                }
+                request['limit'] = limitResolved;
             }
         }
         else {
             if (since !== undefined) {
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum(start, duration * (limit - 1));
+                let end = this.sum(start, duration * limitResolved - 1);
+                if (untilIsDefined) {
+                    end = Math.min(end, this.parseToInt(until / 1000));
+                }
+                request['end'] = end;
             }
-            request['limit'] = Math.min(limit, 1000); // min 1, max 1000
+            else if (untilIsDefined) {
+                const end = this.parseToInt(until / 1000);
+                request['end'] = end;
+                request['start'] = end - (duration * limitResolved) - 1;
+            }
+            request['limit'] = Math.min(limitResolved, 1000); // min 1, max 1000
         }
-        const response = await this.publicGetOhlcPair(this.extend(request, params));
+        const paramsOmitted = this.omit(params, 'until');
+        const response = await this.publicGetOhlcPair(this.extend(request, paramsOmitted));
         //
         //     {
         //         "data": {
@@ -1359,9 +1404,9 @@ export default class bitstamp extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const ohlc = this.safeList(data, 'ohlc', []);
-        return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
+        return this.parseOHLCVs(ohlc, market, timeframe, since, limitResolved);
     }
     parseBalance(response) {
         const finalResponse = response; // java req
@@ -1370,11 +1415,12 @@ export default class bitstamp extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
+        let responseList = response;
         if (response === undefined) {
-            response = [];
+            responseList = [];
         }
-        for (let i = 0; i < response.length; i++) {
-            const currencyBalance = response[i];
+        for (let i = 0; i < responseList.length; i++) {
+            const currencyBalance = this.safeDict(responseList, i);
             const currencyId = this.safeString(currencyBalance, 'currency');
             const currencyCode = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -1537,7 +1583,7 @@ export default class bitstamp extends Exchange {
         const ids = Object.keys(currencies);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const fees = this.safeValue(response, i, {});
+            const fees = this.safeDict(response, i, {});
             const code = this.safeCurrencyCode(id);
             if ((codes !== undefined) && !this.inArray(code, codes)) {
                 continue;
@@ -1583,7 +1629,7 @@ export default class bitstamp extends Exchange {
         const result = this.depositWithdrawFee(fee);
         const code = this.safeString(currency, 'code');
         for (let j = 0; j < fee.length; j++) {
-            const networkEntry = fee[j];
+            const networkEntry = this.safeDict(fee, j);
             const networkId = this.safeString(networkEntry, 'network');
             const networkCode = this.networkIdToCode(networkId, code);
             const withdrawFee = this.safeNumber(networkEntry, 'fee');
@@ -1636,33 +1682,33 @@ export default class bitstamp extends Exchange {
         const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit(params, ['clientOrderId']);
         }
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, ['clientOrderId']) : params;
         let response = undefined;
         const capitalizedSide = this.capitalize(side);
         if (type === 'market') {
             if (capitalizedSide === 'Buy') {
-                response = await this.privatePostBuyMarketPair(this.extend(request, params));
+                response = await this.privatePostBuyMarketPair(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostSellMarketPair(this.extend(request, params));
+                response = await this.privatePostSellMarketPair(this.extend(request, paramsOmitted));
             }
         }
         else if (type === 'instant') {
             if (capitalizedSide === 'Buy') {
-                response = await this.privatePostBuyInstantPair(this.extend(request, params));
+                response = await this.privatePostBuyInstantPair(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostSellInstantPair(this.extend(request, params));
+                response = await this.privatePostSellInstantPair(this.extend(request, paramsOmitted));
             }
         }
         else {
             request['price'] = this.priceToPrecision(symbol, price);
             if (capitalizedSide === 'Buy') {
-                response = await this.privatePostBuyPair(this.extend(request, params));
+                response = await this.privatePostBuyPair(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostSellPair(this.extend(request, params));
+                response = await this.privatePostSellPair(this.extend(request, paramsOmitted));
             }
         }
         const orderResponse = (response === undefined) ? {} : response;
@@ -1699,12 +1745,12 @@ export default class bitstamp extends Exchange {
         const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit(params, ['clientOrderId']);
         }
         else {
             request['id'] = id;
         }
-        const response = await this.privatePostReplaceOrder(this.extend(request, params));
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, ['clientOrderId']) : params;
+        const response = await this.privatePostReplaceOrder(this.extend(request, paramsOmitted));
         const order = this.parseOrder(response, market);
         order['type'] = type;
         return order;
@@ -1799,12 +1845,12 @@ export default class bitstamp extends Exchange {
         const request = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit(params, ['client_order_id', 'clientOrderId']);
         }
         else {
             request['id'] = id;
         }
-        const response = await this.privatePostOrderStatus(this.extend(request, params));
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, ['client_order_id', 'clientOrderId']) : params;
+        const response = await this.privatePostOrderStatus(this.extend(request, paramsOmitted));
         return this.parseOrderStatus(this.safeString(response, 'status'));
     }
     /**
@@ -1829,12 +1875,12 @@ export default class bitstamp extends Exchange {
         const request = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit(params, ['client_order_id', 'clientOrderId']);
         }
         else {
             request['id'] = id;
         }
-        const response = await this.privatePostOrderStatus(this.extend(request, params));
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, ['client_order_id', 'clientOrderId']) : params;
+        const response = await this.privatePostOrderStatus(this.extend(request, paramsOmitted));
         //
         //      {
         //          "status": "Finished",
@@ -1905,15 +1951,14 @@ export default class bitstamp extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let request = {};
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1922,11 +1967,11 @@ export default class bitstamp extends Exchange {
         if (since !== undefined) {
             request['since_timestamp'] = Math.round(since / 1000);
         }
-        [request, params] = this.handleUntilOption('until_timestamp', request, params, 0.001);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('until_timestamp', request, paramsPaginate, 0.001);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            requestUntil['limit'] = limit;
         }
-        const response = await this.publicGetFundingRateHistoryPair(this.extend(request, params));
+        const response = await this.publicGetFundingRateHistoryPair(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "market": "BTC/USD-PERP",
@@ -1938,7 +1983,7 @@ export default class bitstamp extends Exchange {
         //         ]
         //     }
         //
-        const values = this.safeValue(response, 'funding_rate_history', []);
+        const values = this.safeList(response, 'funding_rate_history', []);
         return this.parseFundingRateHistories(values, market, since, limit);
     }
     parseFundingRateHistory(contract, market = undefined) {
@@ -2275,7 +2320,7 @@ export default class bitstamp extends Exchange {
         const symbol = this.safeSymbol(marketId, market, '/');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const amount = this.safeString(order, 'amount');
-        const transactions = this.safeValue(order, 'transactions', []);
+        const transactions = this.safeList(order, 'transactions', []);
         const price = this.safeString(order, 'price');
         return this.safeOrder({
             'id': id,
@@ -2375,14 +2420,17 @@ export default class bitstamp extends Exchange {
         else {
             const parsedTransaction = this.parseTransaction(item, currency);
             let direction = undefined;
+            const hasTransactionCurrency = !('amount' in item) && ('currency' in parsedTransaction) && (parsedTransaction['currency'] !== undefined);
+            let currencyResolved = currency;
+            if (hasTransactionCurrency) {
+                currencyResolved = this.currency(this.safeString(parsedTransaction, 'currency'));
+            }
             if ('amount' in item) {
                 const amount = this.safeString(item, 'amount');
                 direction = Precise.stringGt(amount, '0') ? 'in' : 'out';
             }
             else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
-                const currencyCode = this.safeString(parsedTransaction, 'currency');
-                currency = this.currency(currencyCode);
-                const amount = this.safeString(item, currency['id']);
+                const amount = this.safeString(item, this.safeString(currencyResolved, 'id'));
                 direction = Precise.stringGt(amount, '0') ? 'in' : 'out';
             }
             return this.safeLedgerEntry({
@@ -2401,7 +2449,7 @@ export default class bitstamp extends Exchange {
                 'after': undefined,
                 'status': parsedTransaction['status'],
                 'fee': parsedTransaction['fee'],
-            }, currency);
+            }, currencyResolved);
         }
     }
     /**
@@ -2467,14 +2515,16 @@ export default class bitstamp extends Exchange {
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         const currentTime = this.safeIntegerProduct(fundingRate, 'timestamp', 1000);
         const nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, 'next_funding_time', 1000);
         const marketId = this.safeString(fundingRate, 'market');
         return {
             'info': fundingRate,
             'symbol': this.safeSymbol(marketId, market),
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': this.safeNumber(fundingRate, 'mark_price'),
+            'indexPrice': this.safeNumber(fundingRate, 'index_price'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': currentTime,
@@ -2586,7 +2636,7 @@ export default class bitstamp extends Exchange {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2599,25 +2649,25 @@ export default class bitstamp extends Exchange {
         if (!this.isFiat(code)) {
             const name = this.getCurrencyName(code);
             if (code === 'XRP') {
-                if (tag !== undefined) {
-                    request['destination_tag'] = tag;
+                if (tagWithdrawTag !== undefined) {
+                    request['destination_tag'] = tagWithdrawTag;
                 }
             }
             else if (code === 'XLM' || code === 'HBAR') {
-                if (tag !== undefined) {
-                    request['memo_id'] = tag;
+                if (tagWithdrawTag !== undefined) {
+                    request['memo_id'] = tagWithdrawTag;
                 }
             }
             request['address'] = address;
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
-            response = await this.request(name + '_withdrawal/', 'private', 'POST', this.extend(request, params));
+            response = await this.request(name + '_withdrawal/', 'private', 'POST', this.extend(request, paramsWithdrawTag));
         }
         else {
             currency = this.currency(code);
             request['iban'] = address;
             request['account_currency'] = currency['id'];
-            response = await this.privatePostWithdrawalOpen(this.extend(request, params));
+            response = await this.privatePostWithdrawalOpen(this.extend(request, paramsWithdrawTag));
         }
         return this.parseTransaction(response, currency);
     }
@@ -2696,10 +2746,27 @@ export default class bitstamp extends Exchange {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/';
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/';
         url += this.version + '/';
         url += this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
+        const isPrivatePost = (api !== 'public') && (method === 'POST');
+        // an empty POST triggers an API0020 error, so empty requests send a dummy object
+        // https://github.com/ccxt/ccxt/issues/6846
+        const emptyPostBody = this.urlencode({ 'foo': 'bar' });
+        let postBody = emptyPostBody;
+        if (Object.keys(query).length > 0) {
+            postBody = this.urlencode(query);
+        }
+        let requestBody = body;
+        if (isPrivatePost) {
+            requestBody = postBody;
+        }
+        let privateHeaders = undefined;
         if (api === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
@@ -2712,34 +2779,26 @@ export default class bitstamp extends Exchange {
             const xAuthTimestamp = this.milliseconds().toString();
             const xAuthVersion = 'v2';
             let contentType = '';
-            headers = {
+            privateHeaders = {
                 'X-Auth': xAuth,
                 'X-Auth-Nonce': xAuthNonce,
                 'X-Auth-Timestamp': xAuthTimestamp,
                 'X-Auth-Version': xAuthVersion,
             };
             if (method === 'POST') {
-                if (Object.keys(query).length > 0) {
-                    body = this.urlencode(query);
-                    contentType = 'application/x-www-form-urlencoded';
-                    headers['Content-Type'] = contentType;
-                }
-                else {
-                    // sending an empty POST request will trigger
-                    // an API0020 error returned by the exchange
-                    // therefore for empty requests we send a dummy object
-                    // https://github.com/ccxt/ccxt/issues/6846
-                    body = this.urlencode({ 'foo': 'bar' });
-                    contentType = 'application/x-www-form-urlencoded';
-                    headers['Content-Type'] = contentType;
-                }
+                contentType = 'application/x-www-form-urlencoded';
+                privateHeaders['Content-Type'] = contentType;
             }
-            const authBody = (body !== undefined && body !== '') ? body : '';
+            let authBody = '';
+            if (requestBody !== undefined && requestBody !== '') {
+                authBody = requestBody;
+            }
             const auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-            headers['X-Auth-Signature'] = signature;
+            privateHeaders['X-Auth-Signature'] = signature;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const requestHeaders = (api === 'public') ? headers : privateHeaders;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -2775,7 +2834,7 @@ export default class bitstamp extends Exchange {
                 errors.push(reasonInner);
             }
             else {
-                const all = this.safeValue(reasonInner, '__all__', []);
+                const all = this.safeList(reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors.push(all[i]);
                 }

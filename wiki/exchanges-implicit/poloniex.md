@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official poloniex API documentation:** [api-docs.poloniex.com](https://api-docs.poloniex.com/spot/)
 
-> 101 implicit endpoints across 4 access groups.
+> 105 implicit endpoints across 4 access groups.
 
 ## public
 
@@ -150,9 +150,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `swapPublicGetV3MarketIndexPrice` | GET | `v3/market/indexPrice` | 0.6666666666666666 |
 | `swapPublicGetV3MarketIndexPriceComponents` | GET | `v3/market/indexPriceComponents` | 0.6666666666666666 |
 | `swapPublicGetV3MarketFundingRate` | GET | `v3/market/fundingRate` | 0.6666666666666666 |
+| `swapPublicGetV3MarketFundingRateHistory` | GET | `v3/market/fundingRate/history` | 0.6666666666666666 |
 | `swapPublicGetV3MarketOpenInterest` | GET | `v3/market/openInterest` | 0.6666666666666666 |
 | `swapPublicGetV3MarketInsurance` | GET | `v3/market/insurance` | 0.6666666666666666 |
 | `swapPublicGetV3MarketRiskLimit` | GET | `v3/market/riskLimit` | 0.6666666666666666 |
+| `swapPublicGetV3MarketLimitPrice` | GET | `v3/market/limitPrice` | 0.6666666666666666 |
 
 ## swapPrivate
 
@@ -163,10 +165,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `swapPrivateGetV3TradeOrderOpens` | GET | `v3/trade/order/opens` | 20 |
 | `swapPrivateGetV3TradeOrderTrades` | GET | `v3/trade/order/trades` | 20 |
 | `swapPrivateGetV3TradeOrderHistory` | GET | `v3/trade/order/history` | 20 |
+| `swapPrivateGetV3TradeOrderDetails` | GET | `v3/trade/order/details` | 20 |
 | `swapPrivateGetV3TradePositionOpens` | GET | `v3/trade/position/opens` | 20 |
 | `swapPrivateGetV3TradePositionHistory` | GET | `v3/trade/position/history` | 20 |
 | `swapPrivateGetV3PositionLeverages` | GET | `v3/position/leverages` | 20 |
 | `swapPrivateGetV3PositionMode` | GET | `v3/position/mode` | 20 |
+| `swapPrivateGetV3PositionRiskLimit` | GET | `v3/position/riskLimit` | 20 |
 | `swapPrivatePostV3TradeOrder` | POST | `v3/trade/order` | 4 |
 | `swapPrivatePostV3TradeOrders` | POST | `v3/trade/orders` | 40 |
 | `swapPrivatePostV3TradePosition` | POST | `v3/trade/position` | 20 |

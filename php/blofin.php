@@ -15,7 +15,7 @@ class blofin extends Exchange {
             'name' => 'BloFin',
             'countries' => array( 'US' ),
             'version' => 'v1',
-            'rateLimit' => 100,
+            'rateLimit' => 200, // 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -57,15 +57,15 @@ class blofin extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => false,
-                'fetchDeposit' => false,
-                'fetchDepositAddress' => false,
+                'fetchCurrencies' => true,
+                'fetchDeposit' => true,
+                'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
-                'fetchDepositWithdrawFees' => false,
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -122,7 +122,7 @@ class blofin extends Exchange {
                 'fetchTransfers' => false,
                 'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => false,
-                'fetchWithdrawal' => false,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => false,
@@ -133,7 +133,7 @@ class blofin extends Exchange {
                 'setPositionMode' => true,
                 'signIn' => false,
                 'transfer' => true,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -171,6 +171,7 @@ class blofin extends Exchange {
                 'public' => array(
                     'get' => array(
                         'market/instruments' => array( 'cost' => 1 ),
+                        'market/instruments-history' => array( 'cost' => 1 ),
                         'market/tickers' => array( 'cost' => 1 ),
                         'market/books' => array( 'cost' => 1 ),
                         'market/trades' => array( 'cost' => 1 ),
@@ -181,6 +182,12 @@ class blofin extends Exchange {
                         'market/index-candles' => array( 'cost' => 1 ),
                         'market/mark-price-candles' => array( 'cost' => 1 ),
                         'market/position-tiers' => array( 'cost' => 1 ),
+                        // spot
+                        'spot/market/instruments' => array( 'cost' => 1 ),
+                        'spot/market/tickers' => array( 'cost' => 1 ),
+                        'spot/market/books' => array( 'cost' => 1 ),
+                        'spot/market/trades' => array( 'cost' => 1 ),
+                        'spot/market/candles' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
@@ -190,26 +197,28 @@ class blofin extends Exchange {
                         'asset/bills' => array( 'cost' => 1 ),
                         'asset/withdrawal-history' => array( 'cost' => 1 ),
                         'asset/deposit-history' => array( 'cost' => 1 ),
+                        'asset/deposit-address' => array( 'cost' => 1 ),
                         'account/config' => array( 'cost' => 1 ),
                         'asset/currencies' => array( 'cost' => 1 ),
                         // trading
                         'account/balance' => array( 'cost' => 1 ),
                         'account/positions' => array( 'cost' => 1 ),
                         'account/positions-history' => array( 'cost' => 1 ),
+                        'account/funding-fees' => array( 'cost' => 1 ),
                         'account/margin-mode' => array( 'cost' => 1 ),
                         'account/position-mode' => array( 'cost' => 1 ),
                         'account/leverage-info' => array( 'cost' => 1 ),
                         'account/batch-leverage-info' => array( 'cost' => 1 ),
-                        'trade/orders-pending' => array( 'cost' => 1 ),
-                        'trade/order-detail' => array( 'cost' => 1 ),
-                        'trade/orders-tpsl-pending' => array( 'cost' => 1 ),
-                        'trade/order-tpsl-detail' => array( 'cost' => 1 ),
-                        'trade/orders-algo-pending' => array( 'cost' => 1 ),
-                        'trade/orders-history' => array( 'cost' => 1 ),
-                        'trade/orders-tpsl-history' => array( 'cost' => 1 ),
-                        'trade/orders-algo-history' => array( 'cost' => 1 ), // todo new
-                        'trade/fills-history' => array( 'cost' => 1 ),
-                        'trade/order/price-range' => array( 'cost' => 1 ),
+                        'trade/orders-pending' => array( 'cost' => 1.67 ),
+                        'trade/order-detail' => array( 'cost' => 1.67 ),
+                        'trade/orders-tpsl-pending' => array( 'cost' => 1.67 ),
+                        'trade/order-tpsl-detail' => array( 'cost' => 1.67 ),
+                        'trade/orders-algo-pending' => array( 'cost' => 1.67 ),
+                        'trade/orders-history' => array( 'cost' => 1.67 ),
+                        'trade/orders-tpsl-history' => array( 'cost' => 1.67 ),
+                        'trade/orders-algo-history' => array( 'cost' => 1.67 ), // todo new
+                        'trade/fills-history' => array( 'cost' => 1.67 ),
+                        'trade/order/price-range' => array( 'cost' => 1.67 ),
                         // affiliate
                         'affiliate/basic' => array( 'cost' => 1 ),
                         'affiliate/referral-code' => array( 'cost' => 1 ),
@@ -226,44 +235,63 @@ class blofin extends Exchange {
                         'copytrading/account/positions-by-contract' => array( 'cost' => 1 ),
                         'copytrading/account/position-mode' => array( 'cost' => 1 ),
                         'copytrading/account/leverage-info' => array( 'cost' => 1 ),
-                        'copytrading/trade/orders-pending' => array( 'cost' => 1 ),
-                        'copytrading/trade/pending-tpsl-by-contract' => array( 'cost' => 1 ),
-                        'copytrading/trade/position-history-by-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/orders-history' => array( 'cost' => 1 ),
-                        'copytrading/trade/pending-tpsl-by-order' => array( 'cost' => 1 ),
+                        'copytrading/trade/orders-pending' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/pending-tpsl-by-contract' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/position-history-by-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/orders-history' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/pending-tpsl-by-order' => array( 'cost' => 1.67 ),
                         // user
                         'user/query-apikey' => array( 'cost' => 1 ),
                         // tax
                         'spot/trade/fills-history' => array( 'cost' => 1 ),
+                        // spot
+                        'spot/trade/orders-pending' => array( 'cost' => 1.67 ),
+                        'spot/trade/order-detail' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-algo-pending' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-history' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-algo-history' => array( 'cost' => 1.67 ),
+                        'spot/trade/order/price-range' => array( 'cost' => 1.67 ),
                     ),
                     'post' => array(
                         // account
                         'asset/transfer' => array( 'cost' => 1 ),
                         'asset/demo-apply-money' => array( 'cost' => 1 ),
+                        'asset/withdrawal-apply' => array( 'cost' => 1 ),
                         // trading
-                        'account/set-margin-mode' => array( 'cost' => 1 ),
-                        'account/set-position-mode' => array( 'cost' => 1 ),
-                        'account/set-leverage' => array( 'cost' => 1 ),
-                        'trade/order' => array( 'cost' => 1 ),
-                        'trade/batch-orders' => array( 'cost' => 1 ),
-                        'trade/order-tpsl' => array( 'cost' => 1 ),
-                        'trade/order-algo' => array( 'cost' => 1 ),
-                        'trade/cancel-order' => array( 'cost' => 1 ),
-                        'trade/cancel-batch-orders' => array( 'cost' => 1 ),
-                        'trade/cancel-tpsl' => array( 'cost' => 1 ),
-                        'trade/cancel-algo' => array( 'cost' => 1 ),
-                        'trade/close-position' => array( 'cost' => 1 ),
+                        'account/set-margin-mode' => array( 'cost' => 1.67 ),
+                        'account/set-position-mode' => array( 'cost' => 1.67 ),
+                        'account/set-leverage' => array( 'cost' => 1.67 ),
+                        'trade/order' => array( 'cost' => 1.67 ),
+                        'trade/batch-orders' => array( 'cost' => 1.67 ),
+                        'trade/order-tpsl' => array( 'cost' => 1.67 ),
+                        'trade/order-algo' => array( 'cost' => 1.67 ),
+                        'trade/cancel-order' => array( 'cost' => 1.67 ),
+                        'trade/cancel-batch-orders' => array( 'cost' => 1.67 ),
+                        'trade/cancel-tpsl' => array( 'cost' => 1.67 ),
+                        'trade/cancel-algo' => array( 'cost' => 1.67 ),
+                        'trade/amend-order' => array( 'cost' => 1.67 ),
+                        'trade/amend-batch-orders' => array( 'cost' => 1.67 ),
+                        'trade/amend-tpsl' => array( 'cost' => 1.67 ),
+                        'trade/amend-algo' => array( 'cost' => 1.67 ),
+                        'trade/close-position' => array( 'cost' => 1.67 ),
+                        // spot
+                        'spot/trade/order' => array( 'cost' => 1.67 ),
+                        'spot/trade/batch-orders' => array( 'cost' => 1.67 ),
+                        'spot/trade/order-algo' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-order' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-batch-orders' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-algo' => array( 'cost' => 1.67 ),
                         // copy trading
-                        'copytrading/account/set-position-mode' => array( 'cost' => 1 ),
-                        'copytrading/account/set-leverage' => array( 'cost' => 1 ),
-                        'copytrading/trade/place-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/cancel-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/place-tpsl-by-contract' => array( 'cost' => 1 ),
-                        'copytrading/trade/cancel-tpsl-by-contract' => array( 'cost' => 1 ),
-                        'copytrading/trade/place-tpsl-by-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/cancel-tpsl-by-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/close-position-by-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/close-position-by-contract' => array( 'cost' => 1 ),
+                        'copytrading/account/set-position-mode' => array( 'cost' => 1.67 ),
+                        'copytrading/account/set-leverage' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/place-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/cancel-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/place-tpsl-by-contract' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/cancel-tpsl-by-contract' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/place-tpsl-by-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/cancel-tpsl-by-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/close-position-by-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/close-position-by-contract' => array( 'cost' => 1.67 ),
                     ),
                 ),
             ),
@@ -330,6 +358,9 @@ class blofin extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => false,
                         'triggerPrice' => false,
@@ -377,15 +408,15 @@ class blofin extends Exchange {
                     '405' => '\\ccxt\\BadRequest',  // Method Not Allowed
                     '406' => '\\ccxt\\BadRequest',  // Not Acceptable
                     '429' => '\\ccxt\\RateLimitExceeded',  // Too Many Requests
-                    '152001' => '\\ccxt\\BadRequest',  // Parameter array() cannot be empty
-                    '152002' => '\\ccxt\\BadRequest',  // Parameter array() error
-                    '152003' => '\\ccxt\\BadRequest',  // Either parameter array() or array() is required
+                    '152001' => '\\ccxt\\BadRequest',  // Parameter {} cannot be empty - verified live 2026-09-14 (withdrawal-apply without addrType)
+                    '152002' => '\\ccxt\\BadRequest',  // Parameter {} error - verified live 2026-09-14 (short-form chain id in withdrawal-apply; NOTE the live message omits the field name)
+                    '152003' => '\\ccxt\\BadRequest',  // Either parameter {} or {} is required
                     '152004' => '\\ccxt\\BadRequest',  // JSON syntax error
-                    '152005' => '\\ccxt\\BadRequest',  // Parameter error => wrong or empty
+                    '152005' => '\\ccxt\\BadRequest',  // Parameter error: wrong or empty
                     '152006' => '\\ccxt\\InvalidOrder',  // Batch orders can be placed for up to 20 at once
                     '152007' => '\\ccxt\\InvalidOrder',  // Batch orders can only be placed with the same instId and marginMode
                     '152008' => '\\ccxt\\InvalidOrder',  // Only the same field is allowed for bulk cancellation of orders, orderId is preferred
-                    '152009' => '\\ccxt\\InvalidOrder',  // array() must be a combination of numbers, letters, or underscores, and the maximum length of characters is 32
+                    '152009' => '\\ccxt\\InvalidOrder',  // {} must be a combination of numbers, letters, or underscores, and the maximum length of characters is 32
                     '150003' => '\\ccxt\\InvalidOrder',  // clientId already exist
                     '150004' => '\\ccxt\\InvalidOrder',  // Insufficient balance. please adjust the amount and try again
                     '542' => '\\ccxt\\InvalidOrder',  // Exceeded the maximum order size limit
@@ -407,15 +438,55 @@ class blofin extends Exchange {
                     '102053' => '\\ccxt\\InvalidOrder',  // take profit trigger price should be lower than the best bid price
                     '102054' => '\\ccxt\\InvalidOrder',  // take profit trigger price should be higher than the best ask price
                     '102055' => '\\ccxt\\InvalidOrder',  // stop loss trigger price should be lower than the best ask price
-                    '102064' => '\\ccxt\\BadRequest',  // Buy price is not within the price limit (Minimum => 310.40; Maximum:1,629.40)
+                    '102064' => '\\ccxt\\BadRequest',  // Buy price is not within the price limit (Minimum: 310.40; Maximum:1,629.40)
                     '102065' => '\\ccxt\\BadRequest',  // Sell price is not within the price limit
-                    '102068' => '\\ccxt\\BadRequest',  // Cancel failed order has been filled, triggered, canceled or does not exist
+                    '102068' => '\\ccxt\\BadRequest',  // Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013' => '\\ccxt\\ExchangeError',  // Internal error; unable to process your request. Please try again.
+                    '102067' => '\\ccxt\\OrderNotFound',  // Order modification failed as the order has been filled, triggered, canceled or does not exist.
+                    '102089' => '\\ccxt\\BadRequest',  // Position mode mismatch
+                    '102148' => '\\ccxt\\DuplicateOrderId',  // Duplicate requestId, request ignored.
+                    '103003' => '\\ccxt\\InsufficientFunds',  // Order failed. Insufficient USDT margin in account
+                    '110006' => '\\ccxt\\InvalidOrder',  // You have pending cross orders. Please cancel them before adjusting your leverage.
+                    '110019' => '\\ccxt\\InvalidOrder',  // Setting failed. Cancel any open orders, and close positions first.
+                    '148082' => '\\ccxt\\BadRequest',  // Callback percentage range 0.1% - 100%
+                    '148083' => '\\ccxt\\BadRequest',  // Callback constant range
+                    '152011' => '\\ccxt\\PermissionDenied',  // Transaction API Key does not support brokerId
+                    '152012' => '\\ccxt\\BadRequest',  // BrokerId is required
+                    '152013' => '\\ccxt\\PermissionDenied',  // Unmatched brokerId, please check your API key's bound broker
+                    '152014' => '\\ccxt\\BadRequest',  // Instrument ID does not exist
+                    '152015' => '\\ccxt\\BadRequest',  // Number of instId values exceeds the maximum limit of 20
+                    '152020' => '\\ccxt\\InvalidAddress',  // Address binding not found.
+                    '152022' => '\\ccxt\\BadRequest',  // Current network is not available.
+                    '152023' => '\\ccxt\\PermissionDenied',  // This address is still within the 24-hour withdrawal lock period.
+                    '152024' => '\\ccxt\\PermissionDenied',  // Your account now can only withdraw to whitelist addresses.
+                    '152025' => '\\ccxt\\PermissionDenied',  // Deposits not supported yet, contact customer support for details.
+                    '152026' => '\\ccxt\\BadRequest',  // Amount precision error.
+                    '152027' => '\\ccxt\\BadRequest',  // The withdrawal must exceed the minimum limit.
+                    '152028' => '\\ccxt\\InsufficientFunds',  // Insufficient balance.
+                    '152029' => '\\ccxt\\PermissionDenied',  // The maximum daily withdrawal amount has been reached.
+                    '152030' => '\\ccxt\\DuplicateOrderId',  // Duplicated clientId.
+                    '152031' => '\\ccxt\\InvalidAddress',  // This address is not marked as verification-free. - verified live 2026-09-14 (account-policy rejection, address must carry the verification-free flag for api withdrawals)
+                    '152032' => '\\ccxt\\PermissionDenied',  // Quick withdrawal daily limit exceeded. Please complete 2FA verification.
+                    '152401' => '\\ccxt\\AuthenticationError',  // Access key does not exist
+                    '152402' => '\\ccxt\\AuthenticationError',  // Access key has expired
+                    '152404' => '\\ccxt\\PermissionDenied',  // This operation is not supported, Please check the requestPath or API key permissions. - verified live 2026-09-14 (api key without the withdrawal permission)
+                    '152405' => '\\ccxt\\InvalidNonce',  // Timestamp in header or signature has expired, need to be within 60s
+                    '152406' => '\\ccxt\\PermissionDenied',  // Your IP is not included in your API key's IP whitelist
+                    '152407' => '\\ccxt\\InvalidNonce',  // Repeated nonce, Reusing within 60 seconds is not allowed.
+                    '152408' => '\\ccxt\\AuthenticationError',  // Passphrase error
+                    '152409' => '\\ccxt\\AuthenticationError',  // Signature verification failed
+                    '152410' => '\\ccxt\\InvalidNonce',  // The value of ACCESS-TIMESTAMP needs to be a millisecond timestamp
+                    '152420' => '\\ccxt\\DuplicateOrderId',  // Duplicate order in batch request
+                    '152421' => '\\ccxt\\DuplicateOrderId',  // requestId already exists, please try again later
+                    '152422' => '\\ccxt\\BadRequest',  // Exactly one of callbackRatio and callbackSpread must be provided
+                    '152423' => '\\ccxt\\InvalidOrder',  // New size cannot be less than filled size
+                    '152428' => '\\ccxt\\BadRequest',  // Invalid trigger price type
+                    '152429' => '\\ccxt\\BadRequest',  // Request expired, ttl exceeded
                     'Order failed. Insufficient USDT margin in account' => '\\ccxt\\InsufficientFunds',  // Insufficient USDT margin in account
                 ),
                 'broad' => array(
-                    'Internal Server Error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error")
-                    'server error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249")
+                    'Internal Server Error' => '\\ccxt\\ExchangeNotAvailable', // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
+                    'server error' => '\\ccxt\\ExchangeNotAvailable', // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 ),
             ),
             'httpExceptions' => array(
@@ -445,10 +516,55 @@ class blofin extends Exchange {
                     'USDT' => 'TRC20',
                 ),
                 'networks' => array(
+                    // code -> the live withdrawal-apply chain identifier where
+                    // it carries no parenthesized suffix; the suffix family
+                    // ('Tron (TRC20)' and friends) is constructed at runtime
+                    // in networkCodeToChainId from networkPrefixes, because a
+                    // space before a paren inside a source literal is not
+                    // transpiler-safe
                     'BTC' => 'Bitcoin',
-                    'BEP20' => 'BSC',
-                    'ERC20' => 'ERC20',
-                    'TRC20' => 'TRC20',
+                    'SOL' => 'Solana',
+                    'MATIC' => 'Polygon POS',
+                    'AVAXC' => 'AVAX C-Chain',
+                    'ARBITRUM' => 'Arbitrum One',
+                    'OPTIMISM' => 'Optimism',
+                    'KAIA' => 'KAIA',
+                    'PLASMA' => 'Plasma',
+                ),
+                'networkCodeAliases' => array(
+                    // legacy codes accepted on input, resolved to the unified code
+                    'OP' => 'OPTIMISM',
+                ),
+                'networkPrefixes' => array(
+                    // code -> the display-name prefix; the venue id is
+                    // prefix + space + parenthesized suffix, where the suffix
+                    // defaults to the unified code itself
+                    'TRC20' => 'Tron',
+                    'ERC20' => 'Ethereum',
+                    'BEP20' => 'BNB Smart Chain',
+                    'APT' => 'APT',
+                    'TON' => 'TON',
+                ),
+                'networkSuffixes' => array(
+                    // only where the parenthesized suffix differs from the code
+                    'TON' => 'Toncoin',
+                ),
+                'networkCodesBySuffix' => array(
+                    // reverse of networkSuffixes for parsing venue ids
+                    'Toncoin' => 'TON',
+                ),
+                'networksById' => array(
+                    // paren-free venue ids and legacy short forms -> unified;
+                    // ids with a parenthesized suffix are parsed at runtime in
+                    // chainIdToNetworkCode
+                    'Bitcoin' => 'BTC',
+                    'Solana' => 'SOL',
+                    'Polygon POS' => 'MATIC',
+                    'AVAX C-Chain' => 'AVAXC',
+                    'Arbitrum One' => 'ARBITRUM',
+                    'Optimism' => 'OPTIMISM',
+                    'BSC' => 'BEP20',
+                    'Plasma' => 'PLASMA',
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -517,6 +633,9 @@ class blofin extends Exchange {
         $settle = $this->safe_currency_code($settleId);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         if ($swap) {
             $symbol = $symbol . ':' . $settle;
@@ -534,7 +653,7 @@ class blofin extends Exchange {
         $isMargin = $spot && (Precise::string_gt($maxLeverage, '1'));
         $contractType = $this->safe_string($market, 'contractType');
         $maxLimitAmount = $this->safe_number($market, 'maxLimitSize');
-        $maxSpotCost = $this->safe_number($market, 'maxMarketSize'); // for $spot, $market-buy size is denominated in the $quote currency, i.e. cost
+        $maxSpotCost = $this->safe_number($market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -606,30 +725,30 @@ class blofin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $limit = ($limit === null) ? 50 : $limit;
-        if ($limit !== null) {
-            $request['size'] = $limit; // max 100
+        $limitValue = ($limit === null) ? 50 : $limit;
+        if ($limitValue !== null) {
+            $request['size'] = $limitValue; // max 100
         }
         $response = $this->publicGetMarketBooks($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "asks" => array(
+        //                 "asks": [
         //                     ["0.07228","4.211619","0","2"], // price, amount, liquidated orders, total open orders
         //                     ["0.0723","299.880364","0","2"],
         //                     ["0.07231","3.72832","0","1"],
-        //                 ),
-        //                 "bids" => array(
+        //                 ],
+        //                 "bids": [
         //                     ["0.07221","18.5","0","1"],
         //                     ["0.0722","18.5","0","1"],
         //                     ["0.07219","0.505407","0","1"],
-        //                 ),
-        //                 "ts" => "1621438475342"
+        //                 ],
+        //                 "ts": "1621438475342"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -643,28 +762,28 @@ class blofin extends Exchange {
         // response similar for REST & WS
         //
         //     {
-        //         instId => "ADA-USDT",
-        //         ts => "1707736811486",
-        //         $last => "0.5315",
-        //         lastSize => "4",
-        //         askPrice => "0.5318",
-        //         askSize => "248",
-        //         bidPrice => "0.5315",
-        //         bidSize => "63",
-        //         open24h => "0.5555",
-        //         high24h => "0.5563",
-        //         low24h => "0.5315",
-        //         volCurrency24h => "198560100",
-        //         vol24h => "1985601",
+        //         instId: "ADA-USDT",
+        //         ts: "1707736811486",
+        //         last: "0.5315",
+        //         lastSize: "4",
+        //         askPrice: "0.5318",
+        //         askSize: "248",
+        //         bidPrice: "0.5315",
+        //         bidSize: "63",
+        //         open24h: "0.5555",
+        //         high24h: "0.5563",
+        //         low24h: "0.5315",
+        //         volCurrency24h: "198560100",
+        //         vol24h: "1985601",
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
-        $market = $this->safe_market($marketId, $market, '-');
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market, '-');
+        $symbol = $marketResolved['symbol'];
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
-        $spot = $this->safe_bool($market, 'spot', false);
+        $spot = $this->safe_bool($marketResolved, 'spot', false);
         $quoteVolume = ($spot === true) ? $this->safe_string($ticker, 'volCurrency24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         $high = $this->safe_string($ticker, 'high24h');
@@ -692,7 +811,7 @@ class blofin extends Exchange {
             'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
@@ -755,10 +874,10 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = $this->publicGetMarketTickers($params);
         $tickers = $this->safe_list($response, 'data', array());
-        return $this->parse_tickers($tickers, $symbols);
+        return $this->parse_tickers($tickers, $symbolsNormalized);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -766,48 +885,48 @@ class blofin extends Exchange {
         // fetch trades (response similar for REST & WS)
         //
         //   {
-        //       "tradeId" => "3263934920",
-        //       "instId" => "LTC-USDT",
-        //       "price" => "67.87",
-        //       "size" => "1",
-        //       "side" => "buy",
-        //       "ts" => "1707232020854"
+        //       "tradeId": "3263934920",
+        //       "instId": "LTC-USDT",
+        //       "price": "67.87",
+        //       "size": "1",
+        //       "side": "buy",
+        //       "ts": "1707232020854"
         //   }
         //
         // my trades
         //   {
-        //       "instId" => "LTC-USDT",
-        //       "tradeId" => "1440847",
-        //       "orderId" => "2075705202",
-        //       "fillPrice" => "67.850000000000000000",
-        //       "fillSize" => "1.000000000000000000",
-        //       "fillPnl" => "0.000000000000000000",
-        //       "side" => "buy",
-        //       "positionSide" => "net",
-        //       "fee" => "0.040710000000000000",
-        //       "ts" => "1707224678878",
-        //       "brokerId" => ""
+        //       "instId": "LTC-USDT",
+        //       "tradeId": "1440847",
+        //       "orderId": "2075705202",
+        //       "fillPrice": "67.850000000000000000",
+        //       "fillSize": "1.000000000000000000",
+        //       "fillPnl": "0.000000000000000000",
+        //       "side": "buy",
+        //       "positionSide": "net",
+        //       "fee": "0.040710000000000000",
+        //       "ts": "1707224678878",
+        //       "brokerId": ""
         //   }
         //
         // fetchMyTrades spot
         //     {
-        //         "instId" => "DOGE-USDT",
-        //         "tradeId" => "6000001623870",
-        //         "orderId" => "6000011777113",
-        //         "fillPrice" => "0.091480000000000000",
-        //         "fillSize" => "30.000000000000000000",
-        //         "fillPnl" => null,
-        //         "side" => "buy",
-        //         "fee" => "0.030000000000000000",
-        //         "ts" => "1775213753407",
-        //         "brokerId" => null,
-        //         "feeCurrency" => "base_currency"
+        //         "instId": "DOGE-USDT",
+        //         "tradeId": "6000001623870",
+        //         "orderId": "6000011777113",
+        //         "fillPrice": "0.091480000000000000",
+        //         "fillSize": "30.000000000000000000",
+        //         "fillPnl": null,
+        //         "side": "buy",
+        //         "fee": "0.030000000000000000",
+        //         "ts": "1775213753407",
+        //         "brokerId": null,
+        //         "feeCurrency": "base_currency"
         //     }
         //
         $id = $this->safe_string($trade, 'tradeId');
         $marketId = $this->safe_string($trade, 'instId');
-        $market = $this->safe_market($marketId, $market, '-');
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market, '-');
+        $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer($trade, 'ts');
         $price = $this->safe_string_2($trade, 'price', 'fillPrice');
         $amount = $this->safe_string_2($trade, 'size', 'fillSize');
@@ -818,11 +937,11 @@ class blofin extends Exchange {
         $feeCurrency = $this->safe_string($trade, 'feeCurrency');
         $isSpot = $feeCurrency !== null;
         if ($feeCurrency === null) {
-            $feeCurrency = $market['settle'];
+            $feeCurrency = $this->safe_string($marketResolved, 'settle');
         } elseif ($feeCurrency === 'base_currency') {
-            $feeCurrency = $market['base'];
+            $feeCurrency = $this->safe_string($marketResolved, 'base');
         } elseif ($feeCurrency === 'quote_currency') {
-            $feeCurrency = $market['quote'];
+            $feeCurrency = $this->safe_string($marketResolved, 'quote');
         }
         if ($feeCost !== null) {
             $fee = array(
@@ -831,7 +950,7 @@ class blofin extends Exchange {
             );
         }
         if ($isSpot) {
-            $spotSymbol = $market['base'] . '/' . $market['quote'];
+            $spotSymbol = $marketResolved['base'] . '/' . $marketResolved['quote'];
             $cost = $this->parse_number(Precise::string_mul($price, $amount));
             $result = array(
                 'info' => $trade,
@@ -867,7 +986,7 @@ class blofin extends Exchange {
                 'amount' => $amount,
                 'cost' => null,
                 'fee' => $fee,
-            ), $market);
+            ), $marketResolved);
         }
     }
 
@@ -887,10 +1006,9 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $params, 'tradeId', 'after', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $paramsPaginate, 'tradeId', 'after', null, 100);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -900,10 +1018,9 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
-        $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'method', 'publicGetMarketTrades');
+        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if ($method === 'publicGetMarketTrades') {
-            $response = $this->publicGetMarketTrades($this->extend($request, $params));
+            $response = $this->publicGetMarketTrades($this->extend($request, $paramsMethod));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -911,7 +1028,7 @@ class blofin extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         "1678928760000", // timestamp
         //         "24341.4", // open
         //         "24344", // high
@@ -921,7 +1038,7 @@ class blofin extends Exchange {
         //         "2.5819", // base volume
         //         "62800", // quote volume
         //         "0" // candlestick state
-        //     )
+        //     ]
         //
         return array(
             $this->safe_integer($ohlcv, 0),
@@ -946,36 +1063,35 @@ class blofin extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        $query = null;
+        list($paginate, $query) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 100);
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $query, 100);
         }
-        if ($limit === null) {
-            $limit = 100; // default 100, max 100
-        }
+        $limitResolved = ($limit === null) ? 100 : $limit; // default 100, max 100
         $request = array(
             'instId' => $market['id'],
             'bar' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'limit' => $limit,
+            'limit' => $limitResolved,
         );
-        $until = $this->safe_integer($params, 'until');
+        $until = $this->safe_integer($query, 'until');
         if ($until !== null) {
             $request['after'] = $until;
-            $params = $this->omit($params, 'until');
+            $query = $this->omit($query, 'until');
         }
-        $response = $this->publicGetMarketCandles($this->extend($request, $params));
+        $response = $this->publicGetMarketCandles($this->extend($request, $query));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limitResolved);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding $rate prices
          *
@@ -990,15 +1106,16 @@ class blofin extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        $query = null;
+        list($paginate, $query) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 100);
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $query, 100);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1010,12 +1127,12 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = $this->safe_integer($params, 'until');
+        $until = $this->safe_integer($query, 'until');
         if ($until !== null) {
             $request['after'] = $until;
-            $params = $this->omit($params, 'until');
+            $query = $this->omit($query, 'until');
         }
-        $response = $this->publicGetMarketFundingRateHistory($this->extend($request, $params));
+        $response = $this->publicGetMarketFundingRateHistory($this->extend($request, $query));
         $rates = array();
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
@@ -1030,15 +1147,15 @@ class blofin extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //    {
-        //        "fundingRate" => "0.00027815",
-        //        "fundingTime" => "1634256000000",
-        //        "instId" => "BTC-USD-SWAP",
+        //        "fundingRate": "0.00027815",
+        //        "fundingTime": "1634256000000",
+        //        "instId": "BTC-USD-SWAP",
         //    }
         //
         $marketId = $this->safe_string($contract, 'instId');
@@ -1090,15 +1207,15 @@ class blofin extends Exchange {
         $response = $this->publicGetMarketFundingRate($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
+        //        "code": "0",
+        //        "data": [
         //            {
-        //                "fundingRate" => "0.00027815",
-        //                "fundingTime" => "1634256000000",
-        //                "instId" => "BTC-USD-SWAP",
+        //                "fundingRate": "0.00027815",
+        //                "fundingTime": "1634256000000",
+        //                "instId": "BTC-USD-SWAP",
         //            }
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1106,7 +1223,7 @@ class blofin extends Exchange {
         return $this->parse_funding_rate($entry, $market);
     }
 
-    public function parse_balance_by_type(mixed $response) {
+    public function parse_balance_by_type(array $response): array {
         $data = $this->safe_list($response, 'data');
         if (($data !== null) && (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             return $this->parse_funding_balance($response);
@@ -1115,34 +1232,34 @@ class blofin extends Exchange {
         }
     }
 
-    public function parse_balance(mixed $response) {
+    public function parse_balance(mixed $response): array {
         //
         // "data" similar for REST & WS
         //
         // {
-        //     "code" => "0",
-        //     "msg" => "success",
-        //     "data" => {
-        //         "ts" => "1697021343571",
-        //         "totalEquity" => "10011254.077985990315787910",
-        //         "isolatedEquity" => "861.763132108800000000",
-        //         "details" => array(
+        //     "code": "0",
+        //     "msg": "success",
+        //     "data": {
+        //         "ts": "1697021343571",
+        //         "totalEquity": "10011254.077985990315787910",
+        //         "isolatedEquity": "861.763132108800000000",
+        //         "details": [
         //             {
-        //                 "currency" => "USDT",
-        //                 "equity" => "10014042.988958415234430699548",
-        //                 "balance" => "10013119.885958415234430699",
-        //                 "ts" => "1697021343571",
-        //                 "isolatedEquity" => "862.003200000000000000048",
-        //                 "available" => "9996399.4708691159703362725",
-        //                 "availableEquity" => "9996399.4708691159703362725",
-        //                 "frozen" => "15805.149672632597427761",
-        //                 "orderFrozen" => "14920.994472632597427761",
-        //                 "equityUsd" => "10011254.077985990315787910",
-        //                 "isolatedUnrealizedPnl" => "-22.151999999999999999952",
-        //                 "bonus" => "0" // present only in REST
-        //                 "unrealizedPnl" => "0" // present only in WS
+        //                 "currency": "USDT",
+        //                 "equity": "10014042.988958415234430699548",
+        //                 "balance": "10013119.885958415234430699",
+        //                 "ts": "1697021343571",
+        //                 "isolatedEquity": "862.003200000000000000048",
+        //                 "available": "9996399.4708691159703362725",
+        //                 "availableEquity": "9996399.4708691159703362725",
+        //                 "frozen": "15805.149672632597427761",
+        //                 "orderFrozen": "14920.994472632597427761",
+        //                 "equityUsd": "10011254.077985990315787910",
+        //                 "isolatedUnrealizedPnl": "-22.151999999999999999952",
+        //                 "bonus": "0" // present only in REST
+        //                 "unrealizedPnl": "0" // present only in WS
         //             }
-        //         )
+        //         ]
         //     }
         // }
         //
@@ -1151,7 +1268,7 @@ class blofin extends Exchange {
         $timestamp = $this->safe_integer($data, 'ts');
         $details = $this->safe_list($data, 'details', array());
         for ($i = 0; $i < count($details); $i++) {
-            $balance = $details[$i];
+            $balance = $this->safe_dict($details, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1172,26 +1289,26 @@ class blofin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_funding_balance(mixed $response) {
+    public function parse_funding_balance(array $response): array {
         //
         //  {
-        //      "code" => "0",
-        //      "msg" => "success",
-        //      "data" => array(
+        //      "code": "0",
+        //      "msg": "success",
+        //      "data": [
         //          {
-        //              "currency" => "USDT",
-        //              "balance" => "10012514.919418081548717298",
-        //              "available" => "9872132.414278782284622898",
-        //              "frozen" => "138556.471805965930761067",
-        //              "bonus" => "0"
+        //              "currency": "USDT",
+        //              "balance": "10012514.919418081548717298",
+        //              "available": "9872132.414278782284622898",
+        //              "frozen": "138556.471805965930761067",
+        //              "bonus": "0"
         //          }
-        //      )
+        //      ]
         //  }
         //
         $result = array( 'info' => $response );
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $balance = $data[$i];
+            $balance = $this->safe_dict($data, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1208,7 +1325,7 @@ class blofin extends Exchange {
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
-            // blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
+            // blofin returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
             'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
             'percentage' => null,
@@ -1230,27 +1347,26 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $accountType = null;
-        list($accountType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'accountType', 'type');
+        list($accountType, $paramsAccountType) = $this->handle_option_string_and_params_2($params, 'fetchBalance', 'accountType', 'type');
         $request = array(
         );
         if ($accountType !== null && $accountType !== 'swap') {
             $options = $this->safe_dict($this->options, 'accountsByType', array());
             $parsedAccountType = $this->safe_string($options, $accountType, $accountType);
             $request['accountType'] = $parsedAccountType;
-            $response = $this->privateGetAssetBalances($this->extend($request, $params));
+            $response = $this->privateGetAssetBalances($this->extend($request, $paramsAccountType));
         } else {
-            $response = $this->privateGetAccountBalance($this->extend($request, $params));
+            $response = $this->privateGetAccountBalance($this->extend($request, $paramsAccountType));
         }
         return $this->parse_balance_by_type($response);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1261,33 +1377,37 @@ class blofin extends Exchange {
             'brokerId' => $this->safe_string($this->options, 'brokerId', 'ec6dd3a7dd982d0b'),
         );
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params, 'cross');
+        $query = null;
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params, 'cross');
         $request['marginMode'] = $marginMode;
-        $triggerPriceAny = $this->safe_string_n($params, array( 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-        $triggerPriceSlTp = $this->safe_string_2($params, 'stopLossPrice', 'takeProfitPrice');
-        $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
-        $isHedged = $this->safe_bool($params, 'hedged', false);
+        $triggerPriceAny = $this->safe_string_n($query, array( 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        $triggerPriceSlTp = $this->safe_string_2($query, 'stopLossPrice', 'takeProfitPrice');
+        $timeInForce = $this->safe_string($query, 'timeInForce', 'GTC');
+        $isHedged = $this->safe_bool($query, 'hedged', false);
         if ($isHedged === true) {
             $request['positionSide'] = ($side === 'buy') ? 'long' : 'short';
         }
         $isMarketOrder = $type === 'market';
-        $params = $this->omit($params, array( 'timeInForce' ));
+        $query = $this->omit($query, array( 'timeInForce' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
         $marketIOC = ($isMarketOrder && $ioc);
         if ($isMarketOrder || $marketIOC) {
             $request['orderType'] = 'market';
         } else {
-            $key = ($triggerPriceAny !== null) ? 'orderPrice' : 'price';
+            $key = 'price';
+            if ($triggerPriceAny !== null) {
+                $key = 'orderPrice';
+            }
             $request[$key] = $this->price_to_precision($symbol, $price);
         }
         $postOnly = false;
-        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'post_only', $params);
+        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, $type === 'post_only', $query);
         if ($postOnly) {
             $request['type'] = 'post_only';
         }
-        $stopLoss = $this->safe_dict($params, 'stopLoss');
-        $takeProfit = $this->safe_dict($params, 'takeProfit');
-        $params = $this->omit($params, array( 'stopLoss', 'takeProfit', 'hedged' ));
+        $stopLoss = $this->safe_dict($query, 'stopLoss');
+        $takeProfit = $this->safe_dict($query, 'takeProfit');
+        $query = $this->omit($query, array( 'stopLoss', 'takeProfit', 'hedged' ));
         $hasStopLoss = $stopLoss !== null;
         $hasTakeProfit = $takeProfit !== null;
         if ($hasStopLoss || $hasTakeProfit) {
@@ -1312,9 +1432,9 @@ class blofin extends Exchange {
             if ($triggerPriceSlTp !== null) {
                 $request['reduceOnly'] = true;
             }
-            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
+            $query = $this->omit($query, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
         }
-        return $this->extend($request, $params);
+        return $this->extend($request, $query);
     }
 
     public function parse_order_status(?string $status) {
@@ -1334,35 +1454,35 @@ class blofin extends Exchange {
         // response similar for REST & WS
         //
         // {
-        //     "orderId" => "2075628533",
-        //     "clientOrderId" => "",
-        //     "instId" => "LTC-USDT",
-        //     "marginMode" => "cross",
-        //     "positionSide" => "net",
-        //     "side" => "buy",
-        //     "orderType" => "market",
-        //     "price" => "0.000000000000000000",
-        //     "size" => "1.000000000000000000",
-        //     "reduceOnly" => "true",
-        //     "leverage" => "3",
-        //     "state" => "filled",
-        //     "filledSize" => "1.000000000000000000",
-        //     "pnl" => "-0.050000000000000000",
-        //     "averagePrice" => "68.110000000000000000",
-        //     "fee" => "0.040866000000000000",
-        //     "createTime" => "1706891359010",
-        //     "updateTime" => "1706891359098",
-        //     "orderCategory" => "normal",
-        //     "tpTriggerPrice" => null,
-        //     "tpOrderPrice" => null,
-        //     "slTriggerPrice" => null,
-        //     "slOrderPrice" => null,
-        //     "cancelSource" => "not_canceled",
-        //     "cancelSourceReason" => null,
-        //     "brokerId" => "ec6dd3a7dd982d0b"
-        //     "filled_amount" => "1.000000000000000000", // filledAmount in "ws" watchOrders
-        //     "cancelSource" => "", // only in WS
-        //     "instType" => "SWAP", // only in WS
+        //     "orderId": "2075628533",
+        //     "clientOrderId": "",
+        //     "instId": "LTC-USDT",
+        //     "marginMode": "cross",
+        //     "positionSide": "net",
+        //     "side": "buy",
+        //     "orderType": "market",
+        //     "price": "0.000000000000000000",
+        //     "size": "1.000000000000000000",
+        //     "reduceOnly": "true",
+        //     "leverage": "3",
+        //     "state": "filled",
+        //     "filledSize": "1.000000000000000000",
+        //     "pnl": "-0.050000000000000000",
+        //     "averagePrice": "68.110000000000000000",
+        //     "fee": "0.040866000000000000",
+        //     "createTime": "1706891359010",
+        //     "updateTime": "1706891359098",
+        //     "orderCategory": "normal",
+        //     "tpTriggerPrice": null,
+        //     "tpOrderPrice": null,
+        //     "slTriggerPrice": null,
+        //     "slOrderPrice": null,
+        //     "cancelSource": "not_canceled",
+        //     "cancelSourceReason": null,
+        //     "brokerId": "ec6dd3a7dd982d0b"
+        //     "filled_amount": "1.000000000000000000", // filledAmount in "ws" watchOrders
+        //     "cancelSource": "", // only in WS
+        //     "instType": "SWAP", // only in WS
         // }
         //
         $id = $this->safe_string_n($order, array( 'tpslId', 'orderId', 'algoId' ));
@@ -1386,21 +1506,21 @@ class blofin extends Exchange {
             $type = 'trigger';
         }
         $marketId = $this->safe_string($order, 'instId');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved, '-');
         $filled = $this->safe_string($order, 'filledSize');
         $price = $this->safe_string_n($order, array( 'px', 'price', 'orderPrice' ));
         $average = $this->safe_string($order, 'averagePrice');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
         $amount = $this->safe_string($order, 'size');
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
         $baseAmount = Precise::string_mul($contractSize, $filled);
         $cost = null;
         if ($average !== null) {
             $cost = Precise::string_mul($average, $baseAmount);
         }
-        // spot $market buy => "sz" can refer either to base currency units or to quote currency units
+        // spot market buy: "sz" can refer either to base currency units or to quote currency units
         $fee = null;
         if ($feeCostString !== null) {
             $feeCostSigned = Precise::string_abs($feeCostString);
@@ -1413,12 +1533,11 @@ class blofin extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
-            $clientOrderId = null; // fix empty $clientOrderId string
+            $clientOrderId = null; // fix empty clientOrderId string
         }
-        $stopLossTriggerPrice = $this->safe_number($order, 'slTriggerPrice');
-        $stopLossPrice = $this->safe_number($order, 'slOrderPrice');
-        $takeProfitTriggerPrice = $this->safe_number($order, 'tpTriggerPrice');
-        $takeProfitPrice = $this->safe_number($order, 'tpOrderPrice');
+        // unified stopLossPrice/takeProfitPrice are the trigger prices (createOrder sends them as sl/tpTriggerPrice)
+        $stopLossPrice = $this->safe_number($order, 'slTriggerPrice');
+        $takeProfitPrice = $this->safe_number($order, 'tpTriggerPrice');
         $reduceOnlyRaw = $this->safe_string($order, 'reduceOnly');
         $reduceOnly = ($reduceOnlyRaw === 'true');
         return $this->safe_order(array(
@@ -1435,8 +1554,6 @@ class blofin extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopLossTriggerPrice' => $stopLossTriggerPrice,
-            'takeProfitTriggerPrice' => $takeProfitTriggerPrice,
             'stopLossPrice' => $stopLossPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'average' => $average,
@@ -1448,7 +1565,7 @@ class blofin extends Exchange {
             'fee' => $fee,
             'trades' => null,
             'reduceOnly' => $reduceOnly,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -1489,22 +1606,21 @@ class blofin extends Exchange {
         $isStopLossPriceDefined = $this->safe_string($params, 'stopLossPrice') !== null;
         $isTakeProfitPriceDefined = $this->safe_string($params, 'takeProfitPrice') !== null;
         $isTriggerOrder = $this->safe_string($params, 'triggerPrice') !== null;
-        $isTpslEndpoint = false;
-        list($isTpslEndpoint, $params) = $this->handle_option_and_params($params, 'createOrder', 'tpsl', false);
+        list($isTpslEndpoint, $paramsTpsl) = $this->handle_option_bool_and_params($params, 'createOrder', 'tpsl', false);
         $isCombinedSlTp = ($isStopLossPriceDefined && $isTakeProfitPriceDefined) || $isTpslEndpoint;
         $isSlOrTp = $isStopLossPriceDefined || $isTakeProfitPriceDefined;
-        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
+        $reduceOnly = $this->safe_bool($paramsTpsl, 'reduceOnly');
         if ($reduceOnly !== null) {
-            $params['reduceOnly'] = $reduceOnly ? 'true' : 'false';
+            $paramsTpsl['reduceOnly'] = $reduceOnly ? 'true' : 'false';
         }
         if ($isCombinedSlTp) {
-            $tpslRequest = $this->create_tpsl_order_request($symbol, $type, $side, $amount, $price, $params);
+            $tpslRequest = $this->create_tpsl_order_request($symbol, $type, $side, $amount, $price, $paramsTpsl);
             $response = $this->privatePostTradeOrderTpsl($tpslRequest);
         } elseif ($isTriggerOrder || $isSlOrTp) {
-            $triggerRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $triggerRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsTpsl);
             $response = $this->privatePostTradeOrderAlgo($triggerRequest);
         } else {
-            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsTpsl);
             $response = $this->privatePostTradeOrder($request);
         }
         if ($isCombinedSlTp || $isSlOrTp || $isTriggerOrder) {
@@ -1519,7 +1635,7 @@ class blofin extends Exchange {
         return $order;
     }
 
-    public function create_tpsl_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function create_tpsl_order_request(?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $hedged = $this->safe_bool($params, 'hedged', false);
         $positionSide = 'net';
@@ -1538,7 +1654,7 @@ class blofin extends Exchange {
         }
         $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross or isolated
         if ($marginMode !== 'cross' && $marginMode !== 'isolated') {
-            throw new BadRequest($this->id . ' createTpslOrder() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' createTpslOrder() requires a marginMode parameter that must be either cross or isolated');
         }
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
@@ -1549,10 +1665,9 @@ class blofin extends Exchange {
             } else {
                 $slLimitPrice = $this->safe_string($params, 'stopLossLimitPrice');
                 if ($slLimitPrice === null) {
-                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order $type is not market');
+                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order type is not market');
                 }
                 $request['slOrderPrice'] = $this->price_to_precision($symbol, $slLimitPrice);
-                $params = $this->omit($params, 'stopLossLimitPrice');
             }
         }
         if ($takeProfitPrice !== null) {
@@ -1562,18 +1677,24 @@ class blofin extends Exchange {
             } else {
                 $tpLimitPrice = $this->safe_string($params, 'takeProfitLimitPrice');
                 if ($tpLimitPrice === null) {
-                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order $type is not market');
+                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order type is not market');
                 }
                 $request['tpOrderPrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
-                $params = $this->omit($params, 'takeProfitLimitPrice');
             }
         }
         $request['marginMode'] = $marginMode;
-        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ));
-        return $this->extend($request, $params);
+        // the limit prices are consumed only when the order type is not market
+        $consumedKeys = array( 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' );
+        if (($stopLossPrice !== null) && ($type !== 'market')) {
+            $consumedKeys[] = 'stopLossLimitPrice';
+        }
+        if (($takeProfitPrice !== null) && ($type !== 'market')) {
+            $consumedKeys[] = 'takeProfitLimitPrice';
+        }
+        return $this->extend($request, $this->omit($params, $consumedKeys));
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open $order
          *
@@ -1588,7 +1709,7 @@ class blofin extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1642,14 +1763,14 @@ class blofin extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
             $ordersRequests[] = $orderRequest;
         }
@@ -1677,10 +1798,9 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params);
+            return $this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $paramsPaginate);
         }
         $request = array(
         );
@@ -1692,11 +1812,10 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger' ), false);
-        $isTpSl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
-        $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
-        $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
+        $isTrigger = $this->safe_bool_n($paramsPaginate, array( 'stop', 'trigger' ), false);
+        $isTpSl = $this->safe_bool_2($paramsPaginate, 'tpsl', 'TPSL', false);
+        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPaginate, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
+        $query = $this->omit($paramsMethod, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         if (($isTpSl === true) || ($method === 'privateGetTradeOrdersTpslPending')) {
             $response = $this->privateGetTradeOrdersTpslPending($this->extend($request, $query));
         } elseif (($isTrigger === true) || ($method === 'privateGetTradeOrdersAlgoPending')) {
@@ -1728,10 +1847,9 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params);
+            return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate);
         }
         $request = array(
         );
@@ -1740,38 +1858,38 @@ class blofin extends Exchange {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
         }
-        list($request, $params) = $this->handle_until_option('end', $request, $params);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $paramsPaginate);
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 100, max 100
+            $requestUntil['limit'] = $limit; // default 100, max 100
         }
         $type = 'swap';
-        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params, $type);
-        if ($type === 'spot') {
-            $request['instType'] = 'SPOT';
+        list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchMyTrades', $market, $paramsUntil, $type);
+        if ($typeMarketType === 'spot') {
+            $requestUntil['instType'] = 'SPOT';
             //
             //     {
-            //         "code" => "0",
-            //         "msg" => "success",
-            //         "data" => array(
+            //         "code": "0",
+            //         "msg": "success",
+            //         "data": [
             //             {
-            //                 "instId" => "DOGE-USDT",
-            //                 "tradeId" => "6000001623870",
-            //                 "orderId" => "6000011777113",
-            //                 "fillPrice" => "0.091480000000000000",
-            //                 "fillSize" => "30.000000000000000000",
-            //                 "fillPnl" => null,
-            //                 "side" => "buy",
-            //                 "fee" => "0.030000000000000000",
-            //                 "ts" => "1775213753407",
-            //                 "brokerId" => null,
-            //                 "feeCurrency" => "base_currency"
+            //                 "instId": "DOGE-USDT",
+            //                 "tradeId": "6000001623870",
+            //                 "orderId": "6000011777113",
+            //                 "fillPrice": "0.091480000000000000",
+            //                 "fillSize": "30.000000000000000000",
+            //                 "fillPnl": null,
+            //                 "side": "buy",
+            //                 "fee": "0.030000000000000000",
+            //                 "ts": "1775213753407",
+            //                 "brokerId": null,
+            //                 "feeCurrency": "base_currency"
             //             }
-            //         )
+            //         ]
             //     }
             //
-            $response = $this->privateGetSpotTradeFillsHistory($this->extend($request, $params));
+            $response = $this->privateGetSpotTradeFillsHistory($this->extend($requestUntil, $paramsMarketType));
         } else {
-            $response = $this->privateGetTradeFillsHistory($this->extend($request, $params));
+            $response = $this->privateGetTradeFillsHistory($this->extend($requestUntil, $paramsMarketType));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -1794,10 +1912,9 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $params);
+            return $this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $paramsPaginate);
         }
         $request = array(
         );
@@ -1812,10 +1929,10 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        list($request, $params) = $this->handle_until_option('after', $request, $params);
-        $response = $this->privateGetAssetDepositHistory($this->extend($request, $params));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('after', $request, $paramsPaginate);
+        $response = $this->privateGetAssetDepositHistory($this->extend($requestUntil, $paramsUntil));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_transactions($data, $currency, $since, $limit, $params);
+        return $this->parse_transactions($data, $currency, $since, $limit, $paramsUntil);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1835,10 +1952,9 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params);
+            return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $paramsPaginate);
         }
         $request = array(
         );
@@ -1853,10 +1969,477 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        list($request, $params) = $this->handle_until_option('after', $request, $params);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('after', $request, $paramsPaginate);
+        $response = $this->privateGetAssetWithdrawalHistory($this->extend($requestUntil, $paramsUntil));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit, $paramsUntil);
+    }
+
+    public function network_code_to_chain_id(string $networkCode, ?array $currency = null): ?string {
+        $aliases = $this->safe_dict($this->options, 'networkCodeAliases', array());
+        $unifiedCode = $this->safe_string($aliases, $networkCode, $networkCode);
+        // prefer the exact chain id from the currencies registry when it is
+        // loaded, since some ids are currency-specific (USDT on Optimism)
+        if ($currency !== null) {
+            $currencyNetworks = $this->safe_dict($currency, 'networks', array());
+            $currencyNetwork = $this->safe_dict($currencyNetworks, $unifiedCode);
+            $currencyNetworkId = $this->safe_string($currencyNetwork, 'id');
+            if ($currencyNetworkId !== null) {
+                return $currencyNetworkId;
+            }
+        }
+        // the live venue identifies chains by display names; the suffix
+        // family is built here as prefix + space + parenthesized suffix
+        // because such literals are not transpiler-safe in source
+        $networks = $this->safe_dict($this->options, 'networks', array());
+        $direct = $this->safe_string($networks, $unifiedCode);
+        if ($direct !== null) {
+            return $direct;
+        }
+        $prefixes = $this->safe_dict($this->options, 'networkPrefixes', array());
+        $prefix = $this->safe_string($prefixes, $unifiedCode);
+        if ($prefix !== null) {
+            $suffixes = $this->safe_dict($this->options, 'networkSuffixes', array());
+            $suffix = $this->safe_string($suffixes, $unifiedCode, $unifiedCode);
+            return $prefix . ' ' . '(' . $suffix . ')';
+        }
+        return $unifiedCode;
+    }
+
+    public function chain_id_to_network_code(?string $chainId): ?string {
+        // live history rows and the currencies registry carry display-name
+        // chain ids like Tron with a parenthesized TRC20 suffix (verified
+        // live 2026-09-15), while the doc examples still show short forms -
+        // parse the suffix when present, fall back to the id maps otherwise
+        if ($chainId === null) {
+            return null;
+        }
+        if (mb_strpos($chainId, '(') > -1) {
+            // php-safe suffix extraction: split instead of index arithmetic,
+            // because a stored strpos result and a two-argument slice do not
+            // survive the php conversion (false-vs-int compare; length arg)
+            $parts = explode('(', $chainId);
+            $tail = $this->safe_string($parts, 1, '');
+            $tailParts = explode(')', $tail);
+            $suffix = $this->safe_string($tailParts, 0);
+            $bySuffix = $this->safe_dict($this->options, 'networkCodesBySuffix', array());
+            $suffixCode = $this->safe_string($bySuffix, $suffix);
+            if ($suffixCode !== null) {
+                return $suffixCode;
+            }
+            $prefixes = $this->safe_dict($this->options, 'networkPrefixes', array());
+            if (($suffix !== null) && (is_array($prefixes) && array_key_exists($suffix ?? '', $prefixes))) {
+                return $suffix;
+            }
+            // the suffix is not always a chain: 'Optimism (USDT0)' carries
+            // the token name (verified live 2026-09-30), resolve by prefix
+            $head = $this->safe_string($parts, 0, '');
+            return $this->network_id_to_code(trim($head));
+        }
+        // delegate the paren-free branch to the base resolver so the
+        // currency-scoped networks and the deprecated-network-code aliases
+        // keep applying alongside options['networksById']
+        return $this->network_id_to_code($chainId);
+    }
+
+    public function fetch_currencies($params = array()): array {
+        /**
+         * fetches all available $currencies on an exchange
+         *
+         * @see https://docs.blofin.com/index.html#get-$currencies
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of $currencies
+         */
+        // GET /asset/currencies is a private endpoint, while fetchCurrencies
+        // is invoked from loadMarkets - skip it when no credentials are set
+        // and on the demo host, which has no funding account
+        if (!$this->check_required_credentials(false) || $this->isSandboxModeEnabled) {
+            return array();
+        }
+        $response = $this->privateGetAssetCurrencies($params);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "chain": "TRC20",
+        //                 "depositMinAmount": "1",
+        //                 "depositUnsafeConfirmation": 1,
+        //                 "depositConfirmation": 20,
+        //                 "withdrawMinAmount": "10",
+        //                 "withdrawFee": "1",
+        //                 "withdrawPrecision": 8,
+        //                 "supportMemo": 0,
+        //                 "isDepositAvailable": 1,
+        //                 "isWithdrawAvailable": 1,
+        //                 "recoveryEtaDeposit": 0,
+        //                 "recoveryEtaWithdraw": 0,
+        //                 "logo": "https://example.com/usdt.png"
+        //             }
+        //         ]
+        //     }
+        //
+        // one row per currency + chain pair, group them per currency
+        $data = $this->safe_list($response, 'data', array());
+        $dataByCurrencyId = $this->group_by($data, 'currency');
+        $currencies = is_array($dataByCurrencyId) ? array_values($dataByCurrencyId) : array();
+        return $this->parse_currencies($currencies);
+    }
+
+    public function parse_currency(array $currency): array {
+        $chains = $currency;
+        $firstChain = $this->safe_dict($chains, 0, array());
+        $currencyId = $this->safe_string($firstChain, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $networks = array();
+        $chainsLength = count($chains);
+        for ($i = 0; $i < $chainsLength; $i++) {
+            $chain = $this->safe_dict($chains, $i);
+            $networkId = $this->safe_string($chain, 'chain');
+            $networkCode = $this->chain_id_to_network_code($networkId);
+            if ($networkCode === null) {
+                continue;
+            }
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_integer($chain, 'isDepositAvailable') === 1,
+                'withdraw' => $this->safe_integer($chain, 'isWithdrawAvailable') === 1,
+                'fee' => $this->safe_number($chain, 'withdrawFee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawPrecision'))),
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => $this->safe_number($chain, 'depositMinAmount'),
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($chain, 'withdrawMinAmount'),
+                        'max' => null,
+                    ),
+                ),
+                'info' => $chain,
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'info' => $chains,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => null,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'type' => 'crypto',
+            'networks' => $networks,
+        ));
+    }
+
+    public function fetch_deposit_address(string $code, $params = array()): array {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         *
+         * @see https://docs.blofin.com/index.html#get-deposit-address
+         *
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] unified network $code, required unless the $currency has a single network or a default in options['defaultNetworks']
+         * @param {string} [$params->chain] the exchange-specific $chain id, takes precedence over $params->network
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $networkCode = null;
+        $query = null;
+        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        $chain = $this->safe_string($query, 'chain');
+        if ($chain === null) {
+            if ($networkCode === null) {
+                $networks = $this->safe_dict($currency, 'networks', array());
+                $networkKeys = is_array($networks) ? array_keys($networks) : array();
+                $networkKeysLength = count($networkKeys);
+                if ($networkKeysLength === 1) {
+                    $networkCode = $this->safe_string($networkKeys, 0);
+                } else {
+                    $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks', array());
+                    $networkCode = $this->safe_string($defaultNetworks, $currency['code']);
+                }
+            }
+            if ($networkCode === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a params["network"] or params["chain"] for ' . $code);
+            }
+            // the same display-name chain ids that withdrawal-apply and the currencies registry use
+            $request['chain'] = $this->network_code_to_chain_id($networkCode, $currency);
+        }
+        $response = $this->privateGetAssetDepositAddress($this->extend($request, $query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "chain": "TRC20",
+        //                 "address": "THmWeEJKyb976L76MvrTjeYMyNgiS9aKTu",
+        //                 "tag": ""
+        //             }
+        //         ]
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0);
+        if ($first === null) {
+            throw new InvalidAddress($this->id . ' fetchDepositAddress() returned no address for ' . $code . ' on ' . $this->safe_string($request, 'chain', $chain));
+        }
+        return $this->parse_deposit_address($first, $currency);
+    }
+
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
+        $address = $this->safe_string($depositAddress, 'address');
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        $networkId = $this->safe_string($depositAddress, 'chain');
+        $tag = $this->safe_string($depositAddress, 'tag');
+        if ($tag === '') {
+            $tag = null;
+        }
+        $this->check_address($address);
+        return array(
+            'info' => $depositAddress,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => $this->chain_id_to_network_code($networkId),
+            'address' => $address,
+            'tag' => $tag,
+        );
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
+        /**
+         * fetch deposit and withdraw fees
+         *
+         * @see https://docs.blofin.com/index.html#get-currencies
+         *
+         * @param {string[]} [$codes] list of unified currency $codes
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+         */
+        $this->load_markets();
+        $response = $this->privateGetAssetCurrencies($params);
+        $data = $this->safe_list($response, 'data', array());
+        $dataByCurrencyId = $this->group_by($data, 'currency');
+        return $this->parse_deposit_withdraw_fees($dataByCurrencyId, $codes);
+    }
+
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+        //
+        // a list of GET /asset/currencies rows for one currency, see fetchCurrencies
+        //
+        $result = $this->deposit_withdraw_fee($fee);
+        $chainsLength = count($fee);
+        for ($i = 0; $i < $chainsLength; $i++) {
+            $chain = $this->safe_dict($fee, $i);
+            $networkCode = $this->chain_id_to_network_code($this->safe_string($chain, 'chain'));
+            if ($networkCode === null) {
+                continue;
+            }
+            $result['networks'][$networkCode] = array(
+                'withdraw' => array(
+                    'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'percentage' => false,
+                ),
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+            );
+        }
+        if ($chainsLength === 1) {
+            // a single network means the currency-level fee is unambiguous
+            $networkKeys = is_array($result['networks']) ? array_keys($result['networks']) : array();
+            $onlyNetwork = $this->safe_string($networkKeys, 0);
+            if ($onlyNetwork !== null) {
+                $result['withdraw'] = $result['networks'][$onlyNetwork]['withdraw'];
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): array {
+        /**
+         * fetch information on a deposit
+         *
+         * @see https://docs.blofin.com/index.html#get-deposit-history
+         *
+         * @param {string} $id deposit $id
+         * @param {string} [$code] unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'depositId' => $id,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->privateGetAssetDepositHistory($this->extend($request, $params));
+        $data = $this->safe_list($response, 'data', array());
+        // only accept a row that matches the requested id, in case the
+        // venue ignores the filter and returns the latest records instead
+        $dataLength = count($data);
+        for ($i = 0; $i < $dataLength; $i++) {
+            $entry = $data[$i];
+            if ($this->safe_string($entry, 'depositId') === $id) {
+                return $this->parse_transaction($entry, $currency);
+            }
+        }
+        throw new ExchangeError($this->id . ' fetchDeposit() could not find deposit ' . $id);
+    }
+
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
+        /**
+         * fetch $data on a $currency withdrawal via the withdrawal $id
+         *
+         * @see https://docs.blofin.com/index.html#get-withdraw-history
+         *
+         * @param {string} $id withdrawal $id
+         * @param {string} [$code] unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientId] look up by the client-supplied $id instead, with $id set to null
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+         */
+        $clientId = $this->safe_string($params, 'clientId');
+        if (($id === null) && ($clientId === null)) {
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires an id argument or a params["clientId"]');
+        }
+        $this->load_markets();
+        $request = array();
+        if ($id !== null) {
+            $request['withdrawId'] = $id;
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
         $response = $this->privateGetAssetWithdrawalHistory($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_transactions($data, $currency, $since, $limit, $params);
+        // only accept a row that matches the requested id (or clientId), in
+        // case the venue ignores the filter and returns the latest records
+        $dataLength = count($data);
+        for ($i = 0; $i < $dataLength; $i++) {
+            $entry = $data[$i];
+            $matches = false;
+            if ($id !== null) {
+                $matches = ($this->safe_string($entry, 'withdrawId') === $id);
+            } else {
+                $matches = ($this->safe_string($entry, 'clientId') === $clientId);
+            }
+            if ($matches) {
+                return $this->parse_transaction($entry, $currency);
+            }
+        }
+        $reference = ($id !== null) ? $id : $clientId;
+        throw new ExchangeError($this->id . ' fetchWithdrawal() could not find withdrawal ' . $reference);
+    }
+
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+        /**
+         * make a withdrawal
+         *
+         * @see https://docs.blofin.com/index.html#withdrawal
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw, the withdrawal fee is not included and must be reserved on top
+         * @param {string} $address the $address to withdraw to, or a UID / email / phone number for an internal transfer
+         * @param {string} $tag additional identifier (memo / payment id) required by certain networks
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] the unified network $code for on-$chain withdrawals, mapped to the exchange's $chain name
+         * @param {string} [$params->dest] 'onchain' (default) or 'internal' for an internal transfer
+         * @param {string} [$params->addrType] $address type, 1 => wallet $address, 2 => UID, 3 => email, 4 => mobile phone
+         * @param {string} [$params->areaCode] area $code for the phone number, required when $address is a phone number
+         * @param {string} [$params->clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         */
+        // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
+        // - addrType is documented optional but the live venue rejects
+        //   on-chain withdrawals without it: 152001 "Parameter addrType
+        //   cannot be empty" - defaulted to 1 below
+        // - the chain identifiers accepted here are the DISPLAY NAMES from
+        //   GET /asset/currencies ("Tron (TRC20)", "Ethereum (ERC20)", ...);
+        //   the short forms shown in the doc examples ("TRC20") are rejected
+        //   with 152002 "Invalid parameter" - see options["networks"]
+        // - 152002 responses omit the offending field name even though the
+        //   error table documents the message as "Parameter {} error"
+        $tagValue = null;
+        $query = null;
+        list($tagValue, $query) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+            'address' => $address,
+            'amount' => $this->number_to_string($amount),
+        );
+        $dest = $this->safe_string($query, 'dest', 'onchain');
+        $request['dest'] = $dest;
+        $query = $this->omit($query, 'dest');
+        if ($dest === 'onchain') {
+            $this->check_address($address);
+            // the doc's Request Parameters table marks addrType "Required:
+            // No", but the live venue rejects on-chain withdrawals without
+            // it (152001 "Parameter addrType cannot be empty") - default to
+            // 1 = wallet address, callers can override for other kinds
+            $request['addrType'] = $this->safe_string($query, 'addrType', '1');
+            $query = $this->omit($query, 'addrType');
+        }
+        if ($tagValue !== null) {
+            $request['tag'] = $tagValue;
+        }
+        // consume the unified network key unconditionally so it never leaks
+        // onto the wire; an explicit raw params['chain'] takes precedence
+        $networkCode = null;
+        list($networkCode, $query) = $this->handle_network_code_and_params($query);
+        $chain = $this->safe_string($query, 'chain');
+        if ($chain === null) {
+            if ($networkCode !== null) {
+                $request['chain'] = $this->network_code_to_chain_id($networkCode, $currency);
+            } elseif ($dest === 'onchain') {
+                // required for on-chain withdrawals, optional for internal transfers
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals');
+            }
+        }
+        $response = $this->privatePostAssetWithdrawalApply($this->extend($request, $query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "withdrawId": "a1b2c3d4e5",
+        //             "clientId": "broker-20260706-0001"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        // the response carries only withdrawId + clientId, and this class's
+        // parseTransaction reads every field from the payload - seed the
+        // parsed structure from the request so the unified transaction
+        // reflects what was actually submitted
+        return $this->parse_transaction($this->extend($request, $data), $currency);
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1877,10 +2460,9 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params);
+            return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $paramsPaginate);
         }
         $request = array(
         );
@@ -1892,8 +2474,8 @@ class blofin extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->privateGetAssetBills($this->extend($request, $params));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $paramsPaginate);
+        $response = $this->privateGetAssetBills($this->extend($requestUntil, $paramsUntil));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_ledger($data, $currency, $since, $limit);
     }
@@ -1904,34 +2486,34 @@ class blofin extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "currency" => "USDT",
-        //         "chain" => "TRC20",
-        //         "address" => "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Be",
-        //         "txId" => "892f4e0c32268b29b2e541ef30d32a30bbf10f902adcc4b1428319ed7c3758fd",
-        //         "type" => "0",
-        //         "amount" => "86.975843",
-        //         "state" => "1",
-        //         "ts" => "1703163304153",
-        //         "tag" => null,
-        //         "confirm" => "16",
-        //         "depositId" => "36c8e2a7ea184a219de72215a696acaf"
+        //         "currency": "USDT",
+        //         "chain": "TRC20",
+        //         "address": "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Be",
+        //         "txId": "892f4e0c32268b29b2e541ef30d32a30bbf10f902adcc4b1428319ed7c3758fd",
+        //         "type": "0",
+        //         "amount": "86.975843",
+        //         "state": "1",
+        //         "ts": "1703163304153",
+        //         "tag": null,
+        //         "confirm": "16",
+        //         "depositId": "36c8e2a7ea184a219de72215a696acaf"
         //     }
         // fetchWithdrawals
         //    {
-        //       "currency" => "USDT",
-        //        "chain" => "TRC20",
-        //        "address" => "TYgB3sVXHPEDQUu288EG1uMFh9Pk2swLgW",
-        //        "txId" => "1fd5ac52df414d7ea66194cadd9a5b4d2422c2b9720037f66d98207f9858fd96",
-        //        "type" => "0",
-        //        "amount" => "9",
-        //        "fee" => "1",
-        //        "feeCurrency" => "USDT",
-        //        "state" => "3",
-        //        "clientId" => null,
-        //        "ts" => "1707217439351",
-        //        "tag" => null,
-        //        "memo" => null,
-        //        "withdrawId" => "e0768698cfdf4aee8e54654c3775914b"
+        //       "currency": "USDT",
+        //        "chain": "TRC20",
+        //        "address": "TYgB3sVXHPEDQUu288EG1uMFh9Pk2swLgW",
+        //        "txId": "1fd5ac52df414d7ea66194cadd9a5b4d2422c2b9720037f66d98207f9858fd96",
+        //        "type": "0",
+        //        "amount": "9",
+        //        "fee": "1",
+        //        "feeCurrency": "USDT",
+        //        "state": "3",
+        //        "clientId": null,
+        //        "ts": "1707217439351",
+        //        "tag": null,
+        //        "memo": null,
+        //        "withdrawId": "e0768698cfdf4aee8e54654c3775914b"
         //    }
         //
         $type = null;
@@ -1954,6 +2536,16 @@ class blofin extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_number($transaction, 'amount');
+        // live history rows carry the DISPLAY-NAME chain identifiers
+        // ('Tron (TRC20)', verified live 2026-09-15) even though the doc
+        // examples show short forms ('TRC20') - chainIdToNetworkCode parses
+        // the parenthesized suffix for the display-name family, and the
+        // paren-free ids resolve through the base networkIdToCode with
+        // options['networksById']. note the history
+        // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
+        // amount 29 + fee 1
+        $networkId = $this->safe_string($transaction, 'chain');
+        $networkCode = $this->chain_id_to_network_code($networkId);
         $txid = $this->safe_string($transaction, 'txId');
         $timestamp = $this->safe_integer($transaction, 'ts');
         $feeCurrencyId = $this->safe_string($transaction, 'feeCurrency');
@@ -1964,7 +2556,7 @@ class blofin extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
-            'network' => null,
+            'network' => $networkCode,
             'addressFrom' => null,
             'addressTo' => $addressTo,
             'address' => $address,
@@ -2008,7 +2600,7 @@ class blofin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             '1' => 'transfer', // transfer
             '2' => 'trade', // trade
@@ -2028,7 +2620,7 @@ class blofin extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'ts');
         return $this->safe_ledger_entry(array(
             'info' => $item,
@@ -2046,7 +2638,7 @@ class blofin extends Exchange {
             'after' => null,
             'status' => 'ok',
             'fee' => null,
-        ), $currency);
+        ), $currencyResolved);
     }
 
     public function parse_ids(mixed $ids) {
@@ -2062,7 +2654,7 @@ class blofin extends Exchange {
         }
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -2074,9 +2666,9 @@ class blofin extends Exchange {
          * @param {boolean} [$params->trigger] whether the order is a stop/trigger order
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        // TODO : the original endpoint signature differs, according to that you can skip individual $symbol and assign $ids in batch. At this moment, `$params` is not being used too.
+        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2091,7 +2683,7 @@ class blofin extends Exchange {
             $method = 'privatePostTradeCancelTpsl';
         }
         if ($clientOrderIds === null) {
-            $ids = $this->parse_ids($ids);
+            $orderIds = $this->parse_ids($ids);
             if ($tpslIds !== null) {
                 for ($i = 0; $i < count($tpslIds); $i++) {
                     $request[] = array(
@@ -2100,15 +2692,15 @@ class blofin extends Exchange {
                     );
                 }
             }
-            for ($i = 0; $i < count($ids); $i++) {
+            for ($i = 0; $i < count($orderIds); $i++) {
                 if ($trigger === true) {
                     $request[] = array(
-                        'tpslId' => $ids[$i],
+                        'tpslId' => $orderIds[$i],
                         'instId' => $market['id'],
                     );
                 } else {
                     $request[] = array(
-                        'orderId' => $ids[$i],
+                        'orderId' => $orderIds[$i],
                         'instId' => $market['id'],
                     );
                 }
@@ -2122,9 +2714,9 @@ class blofin extends Exchange {
             }
         }
         if ($method === 'privatePostTradeCancelTpsl') {
-            $response = $this->privatePostTradeCancelTpsl($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            $response = $this->privatePostTradeCancelTpsl($request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else {
-            $response = $this->privatePostTradeCancelBatchOrders($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            $response = $this->privatePostTradeCancelBatchOrders($request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         $ordersData = $this->safe_list($response, 'data', array());
         return $this->parse_orders($ordersData, $market, null, null, $params);
@@ -2217,11 +2809,11 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = $this->privateGetAccountPositions($params);
         $data = $this->safe_list($response, 'data', array());
         $result = $this->parse_positions($data);
-        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2257,93 +2849,93 @@ class blofin extends Exchange {
         if ($since !== null) {
             $request['begin'] = $since;
         }
-        list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->privateGetAccountPositionsHistory($this->extend($request, $params));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $params);
+        $response = $this->privateGetAccountPositionsHistory($this->extend($requestUntil, $paramsUntil));
         //
         //    {
-        //        "code" => "0",
-        //        "msg" => "success",
-        //        "data" => array(
-        //            array(
-        //                "historyId" => "110307402",
-        //                "positionId" => "1000000722711",
-        //                "instId" => "BTC-USDT",
-        //                "instType" => "SWAP",
-        //                "marginMode" => "cross",
-        //                "positionSide" => "net",
-        //                "closePositions" => "0.0006",
-        //                "maxPositions" => "0.0006",
-        //                "liquidationPositions" => "0",
-        //                "openAveragePrice" => "81550.1",
-        //                "closeAveragePrice" => "81550",
-        //                "createTime" => "1777995583329",
-        //                "updateTime" => "1777995588333",
-        //                "leverage" => "50",
-        //                "realizedPnl" => "-0.058776036",
-        //                "realizedPnlRatio" => "-0.060061275216094155",
-        //                "fee" => "-0.058716036"
-        //            ),
-        //        )
+        //        "code": "0",
+        //        "msg": "success",
+        //        "data": [
+        //            {
+        //                "historyId": "110307402",
+        //                "positionId": "1000000722711",
+        //                "instId": "BTC-USDT",
+        //                "instType": "SWAP",
+        //                "marginMode": "cross",
+        //                "positionSide": "net",
+        //                "closePositions": "0.0006",
+        //                "maxPositions": "0.0006",
+        //                "liquidationPositions": "0",
+        //                "openAveragePrice": "81550.1",
+        //                "closeAveragePrice": "81550",
+        //                "createTime": "1777995583329",
+        //                "updateTime": "1777995588333",
+        //                "leverage": "50",
+        //                "realizedPnl": "-0.058776036",
+        //                "realizedPnlRatio": "-0.060061275216094155",
+        //                "fee": "-0.058716036"
+        //            },
+        //        ]
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
-        $positions = $this->parse_positions($data, $symbols, $params);
+        $positions = $this->parse_positions($data, $symbols, $paramsUntil);
         return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // response similar for REST & WS
         //
         //     {
-        //         instType => 'SWAP',
-        //         instId => 'LTC-USDT',
-        //         $marginMode => 'cross',
-        //         positionId => '644159',
-        //         positionSide => 'net',
-        //         positions => '1',
-        //         availablePositions => '1',
-        //         averagePrice => '68.16',
-        //         unrealizedPnl => '0.80631223',
-        //         unrealizedPnlRatio => '0.03548909463028169',
-        //         leverage => '3',
-        //         $liquidationPrice => '10.116655172370356435',
-        //         markPrice => '68.96',
-        //         initialMargin => '22.988770743333333333',
-        //         margin => '', // this field might not exist in rest response
-        //         $marginRatio => '152.523509620342499273',
-        //         $maintenanceMargin => '0.34483156115',
-        //         adl => '4',
-        //         createTime => '1707235776528',
-        //         updateTime => '1707235776528'
+        //         instType: 'SWAP',
+        //         instId: 'LTC-USDT',
+        //         marginMode: 'cross',
+        //         positionId: '644159',
+        //         positionSide: 'net',
+        //         positions: '1',
+        //         availablePositions: '1',
+        //         averagePrice: '68.16',
+        //         unrealizedPnl: '0.80631223',
+        //         unrealizedPnlRatio: '0.03548909463028169',
+        //         leverage: '3',
+        //         liquidationPrice: '10.116655172370356435',
+        //         markPrice: '68.96',
+        //         initialMargin: '22.988770743333333333',
+        //         margin: '', // this field might not exist in rest response
+        //         marginRatio: '152.523509620342499273',
+        //         maintenanceMargin: '0.34483156115',
+        //         adl: '4',
+        //         createTime: '1707235776528',
+        //         updateTime: '1707235776528'
         //     }
         //
         //
         //    positions-history
         //
-        //            array(
-        //                "positionId" => "1000000722711",
-        //                "instId" => "BTC-USDT",
-        //                "instType" => "SWAP",
-        //                "marginMode" => "cross",
-        //                "positionSide" => "net",
-        //                "createTime" => "1777995583329",
-        //                "updateTime" => "1777995588333",
-        //                "leverage" => "50",
-        //                "realizedPnl" => "-0.058776036",
-        //                "realizedPnlRatio" => "-0.060061275216094155",
-        //                "fee" => "-0.058716036"
-        //                "historyId" => "110307402",
-        //                "closePositions" => "0.0006",
-        //                "maxPositions" => "0.0006",
-        //                "liquidationPositions" => "0",
-        //                "openAveragePrice" => "81550.1",
-        //                "closeAveragePrice" => "81550",
-        //            ),
+        //            {
+        //                "positionId": "1000000722711",
+        //                "instId": "BTC-USDT",
+        //                "instType": "SWAP",
+        //                "marginMode": "cross",
+        //                "positionSide": "net",
+        //                "createTime": "1777995583329",
+        //                "updateTime": "1777995588333",
+        //                "leverage": "50",
+        //                "realizedPnl": "-0.058776036",
+        //                "realizedPnlRatio": "-0.060061275216094155",
+        //                "fee": "-0.058716036"
+        //                "historyId": "110307402",
+        //                "closePositions": "0.0006",
+        //                "maxPositions": "0.0006",
+        //                "liquidationPositions": "0",
+        //                "openAveragePrice": "81550.1",
+        //                "closeAveragePrice": "81550",
+        //            },
         //
         $marketId = $this->safe_string($position, 'instId');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $pos = $this->safe_string($position, 'positions');
         $contractsAbs = Precise::string_abs($pos);
         $side = $this->safe_string($position, 'positionSide');
@@ -2360,11 +2952,11 @@ class blofin extends Exchange {
                 }
             }
         }
-        $contractSize = $this->safe_number($market, 'contractSize');
+        $contractSize = $this->safe_number($marketResolved, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPrice');
         $notionalString = $this->safe_string($position, 'notionalUsd');
-        if ($market['inverse'] === true) {
+        if ($marketResolved['inverse'] === true) {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
@@ -2446,18 +3038,19 @@ class blofin extends Exchange {
             $this->load_markets();
         }
         if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLeverages() requires a $symbols argument');
+            throw new ArgumentsRequired($this->id . ' fetchLeverages() requires a symbols argument');
         }
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverages', $params);
+        $query = null;
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchLeverages', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($query, 'marginMode', 'cross'); // cross as default marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' fetchLeverages() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
-        $symbols = $this->market_symbols($symbols);
-        $symbolsList = $symbols;
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbolsList = $symbolsNormalized;
         $instIds = '';
         for ($i = 0; $i < count($symbolsList); $i++) {
             $entry = $symbolsList[$i];
@@ -2472,22 +3065,22 @@ class blofin extends Exchange {
             'instId' => $instIds,
             'marginMode' => $marginMode,
         );
-        $response = $this->privateGetAccountBatchLeverageInfo($this->extend($request, $params));
+        $response = $this->privateGetAccountBatchLeverageInfo($this->extend($request, $query));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => array(
-        //             array(
-        //                 "leverage" => "3",
-        //                 "marginMode" => "cross",
-        //                 "instId" => "BTC-USDT"
-        //             ),
-        //         )
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "leverage": "3",
+        //                 "marginMode": "cross",
+        //                 "instId": "BTC-USDT"
+        //             },
+        //         ]
         //     }
         //
         $leverages = $this->safe_list($response, 'data', array());
-        return $this->parse_leverages($leverages, $symbols, 'instId');
+        return $this->parse_leverages($leverages, $symbolsNormalized, 'instId');
     }
 
     public function fetch_leverage(string $symbol, $params = array()): array {
@@ -2505,27 +3098,28 @@ class blofin extends Exchange {
             $this->load_markets();
         }
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
+        $query = null;
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($query, 'marginMode', 'cross'); // cross as default marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
             'marginMode' => $marginMode,
         );
-        $response = $this->privateGetAccountLeverageInfo($this->extend($request, $params));
+        $response = $this->privateGetAccountLeverageInfo($this->extend($request, $query));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => {
-        //             "leverage" => "3",
-        //             "marginMode" => "cross",
-        //             "instId" => "BTC-USDT"
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "leverage": "3",
+        //             "marginMode": "cross",
+        //             "instId": "BTC-USDT"
         //         }
         //     }
         //
@@ -2559,28 +3153,27 @@ class blofin extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
-        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 125)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 125');
+            throw new BadRequest($this->id . ' setLeverage() leverage should be between 1 and 125');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
+        list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         $request = array(
             'leverage' => $leverage,
             'marginMode' => $marginMode,
             'instId' => $market['id'],
         );
-        $response = $this->privatePostAccountSetLeverage($this->extend($request, $params));
+        $response = $this->privatePostAccountSetLeverage($this->extend($request, $paramsMarginMode));
         return $response;
     }
 
@@ -2591,7 +3184,7 @@ class blofin extends Exchange {
          * @see https://blofin.com/docs#close-positions
          *
          * @param {string} $symbol Unified CCXT $market $symbol
-         * @param {string} [$side] 'buy' or 'sell', leave in net mode
+         * @param {string} [$side] 'buy' or 'sell', leave as null in net mode
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross;
@@ -2607,8 +3200,7 @@ class blofin extends Exchange {
         }
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('closePosition', $params, 'cross');
+        list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('closePosition', $params, 'cross');
         $request = array(
             'instId' => $market['id'],
             'marginMode' => $marginMode,
@@ -2616,7 +3208,7 @@ class blofin extends Exchange {
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         }
-        $response = $this->privatePostTradeClosePosition($this->extend($request, $params));
+        $response = $this->privatePostTradeClosePosition($this->extend($request, $paramsMarginMode));
         return $this->safe_dict($response, 'data');
     }
 
@@ -2638,10 +3230,9 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params);
+            return $this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $paramsPaginate);
         }
         $request = array(
         );
@@ -2656,10 +3247,9 @@ class blofin extends Exchange {
         if ($since !== null) {
             $request['begin'] = $since;
         }
-        $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
-        $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
-        $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
+        $isTrigger = $this->safe_bool_n($paramsPaginate, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
+        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPaginate, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
+        $query = $this->omit($paramsMethod, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         if (($isTrigger === true) || ($method === 'privateGetTradeOrdersTpslHistory')) {
             $response = $this->privateGetTradeOrdersTpslHistory($this->extend($request, $query));
         } else {
@@ -2686,10 +3276,10 @@ class blofin extends Exchange {
         $response = $this->privateGetAccountMarginMode($params);
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => {
-        //             "marginMode" => "cross"
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "marginMode": "cross"
         //         }
         //     }
         //
@@ -2730,15 +3320,15 @@ class blofin extends Exchange {
         $response = $this->privatePostAccountSetMarginMode($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => {
-        //             "marginMode" => "isolated"
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "marginMode": "isolated"
         //         }
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_margin_mode($data, $market); // Dict, not MarginMode => this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
+        return $this->parse_margin_mode($data, $market); // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
     }
 
     public function fetch_position_mode(?string $symbol = null, $params = array()): array {
@@ -2756,10 +3346,10 @@ class blofin extends Exchange {
         $positionMode = $this->safe_string($data, 'positionMode');
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => {
-        //             "positionMode" => "long_short_mode"
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "positionMode": "long_short_mode"
         //         }
         //     }
         //
@@ -2785,10 +3375,10 @@ class blofin extends Exchange {
         );
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => {
-        //             "positionMode" => "net_mode"
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "positionMode": "net_mode"
         //         }
         //     }
         //
@@ -2808,39 +3398,39 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         $response = $this->privateGetAccountPositions($params);
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
         //             {
-        //                 "positionId" => "756786",
-        //                 "instId" => "BTC-USDT",
-        //                 "instType" => "SWAP",
-        //                 "marginMode" => "cross",
-        //                 "positionSide" => "net",
-        //                 "adl" => "1",
-        //                 "positions" => "0.1",
-        //                 "availablePositions" => "0.1",
-        //                 "averagePrice" => "88564.9",
-        //                 "markPrice" => "88546.3696492756",
-        //                 "marginRatio" => "822.305183525552961566",
-        //                 "liquidationPrice" => "",
-        //                 "unrealizedPnl" => "-0.00185303507244",
-        //                 "unrealizedPnlRatio" => "-0.000627687178252332",
-        //                 "initialMargin" => "2.951545654975853333",
-        //                 "maintenanceMargin" => "0.02656391089478268",
-        //                 "createTime" => "1767169876207",
-        //                 "updateTime" => "1767169876207",
-        //                 "leverage" => "3"
+        //                 "positionId": "756786",
+        //                 "instId": "BTC-USDT",
+        //                 "instType": "SWAP",
+        //                 "marginMode": "cross",
+        //                 "positionSide": "net",
+        //                 "adl": "1",
+        //                 "positions": "0.1",
+        //                 "availablePositions": "0.1",
+        //                 "averagePrice": "88564.9",
+        //                 "markPrice": "88546.3696492756",
+        //                 "marginRatio": "822.305183525552961566",
+        //                 "liquidationPrice": "",
+        //                 "unrealizedPnl": "-0.00185303507244",
+        //                 "unrealizedPnlRatio": "-0.000627687178252332",
+        //                 "initialMargin": "2.951545654975853333",
+        //                 "maintenanceMargin": "0.02656391089478268",
+        //                 "createTime": "1767169876207",
+        //                 "updateTime": "1767169876207",
+        //                 "leverage": "3"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_adl_ranks($data, $symbols);
+        return $this->parse_adl_ranks($data, $symbolsNormalized);
     }
 
     public function parse_adl_rank(array $info, ?array $market = null): array {
@@ -2848,25 +3438,25 @@ class blofin extends Exchange {
         // fetchPositionsADLRank
         //
         //     {
-        //         "positionId" => "756786",
-        //         "instId" => "BTC-USDT",
-        //         "instType" => "SWAP",
-        //         "marginMode" => "cross",
-        //         "positionSide" => "net",
-        //         "adl" => "1",
-        //         "positions" => "0.1",
-        //         "availablePositions" => "0.1",
-        //         "averagePrice" => "88564.9",
-        //         "markPrice" => "88546.3696492756",
-        //         "marginRatio" => "822.305183525552961566",
-        //         "liquidationPrice" => "",
-        //         "unrealizedPnl" => "-0.00185303507244",
-        //         "unrealizedPnlRatio" => "-0.000627687178252332",
-        //         "initialMargin" => "2.951545654975853333",
-        //         "maintenanceMargin" => "0.02656391089478268",
-        //         "createTime" => "1767169876207",
-        //         "updateTime" => "1767169876207",
-        //         "leverage" => "3"
+        //         "positionId": "756786",
+        //         "instId": "BTC-USDT",
+        //         "instType": "SWAP",
+        //         "marginMode": "cross",
+        //         "positionSide": "net",
+        //         "adl": "1",
+        //         "positions": "0.1",
+        //         "availablePositions": "0.1",
+        //         "averagePrice": "88564.9",
+        //         "markPrice": "88546.3696492756",
+        //         "marginRatio": "822.305183525552961566",
+        //         "liquidationPrice": "",
+        //         "unrealizedPnl": "-0.00185303507244",
+        //         "unrealizedPnlRatio": "-0.000627687178252332",
+        //         "initialMargin": "2.951545654975853333",
+        //         "maintenanceMargin": "0.02656391089478268",
+        //         "createTime": "1767169876207",
+        //         "updateTime": "1767169876207",
+        //         "leverage": "3"
         //     }
         //
         $marketId = $this->safe_string($info, 'instId');
@@ -2887,7 +3477,7 @@ class blofin extends Exchange {
             return null; // fallback to default error handler
         }
         //
-        // array("code":"152002","msg":"Parameter bar error.")
+        // {"code":"152002","msg":"Parameter bar error."}
         //
         $code = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
@@ -2896,14 +3486,14 @@ class blofin extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         //
         //  {
-        //      orderId => null,
-        //      clientOrderId => '',
-        //      msg => 'Order failed. Insufficient USDT margin in account',
-        //      $code => '103003'
+        //      orderId: null,
+        //      clientOrderId: '',
+        //      msg: 'Order failed. Insufficient USDT margin in account',
+        //      code: '103003'
         //  }
         //
         $data = $this->safe_list($response, 'data');
@@ -2918,11 +3508,15 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api']['rest'] . $request;
-        // $type = $this->getPathAuthenticationType($path);
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $request;
+        // const type = this.getPathAuthenticationType (path);
         if ($api === 'public') {
             if (!$this->is_empty($query)) {
                 $url .= '?' . $this->urlencode($query);
@@ -2930,13 +3524,14 @@ class blofin extends Exchange {
         } elseif ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
-            $headers = array(
+            $signedHeaders = array(
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-PASSPHRASE' => $this->password,
                 'ACCESS-TIMESTAMP' => $timestamp,
                 'ACCESS-NONCE' => $timestamp,
             );
             $sign_body = '';
+            $signedBody = null;
             if ($method === 'GET') {
                 if (!$this->is_empty($query)) {
                     $urlencodedQuery = '?' . $this->urlencode($query);
@@ -2945,14 +3540,16 @@ class blofin extends Exchange {
                 }
             } else {
                 if (!$this->is_empty($query)) {
-                    $body = $this->json($query);
-                    $sign_body = $body;
+                    $signedBody = $this->json($query);
+                    $sign_body = $signedBody;
                 }
-                $headers['Content-Type'] = 'application/json';
+                $signedHeaders['Content-Type'] = 'application/json';
             }
             $auth = $request . $method . $timestamp . $timestamp . $sign_body;
             $signature = base64_encode($this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'));
-            $headers['ACCESS-SIGN'] = $signature;
+            $signedHeaders['ACCESS-SIGN'] = $signature;
+            $bodyResolved = ($signedBody === null) ? $body : $signedBody;
+            return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $signedHeaders );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

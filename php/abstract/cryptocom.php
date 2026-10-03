@@ -262,6 +262,12 @@ abstract class cryptocom extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v1_private_post_private_get_fee_credit_balances($params = array()) {
+        return $this->request('private/get-fee-credit-balances', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_post_private_fiat_fiat_deposit_info($params = array()) {
         return $this->request('private/fiat/fiat-deposit-info', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -372,6 +378,48 @@ abstract class cryptocom extends \ccxt\Exchange {
      */
     public function v1_private_post_private_change_isolated_margin_leverage($params = array()) {
         return $this->request('private/change-isolated-margin-leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_private_bot_create_trading_bot($params = array()) {
+        return $this->request('private/bot/create-trading-bot', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_private_bot_update_trading_bot($params = array()) {
+        return $this->request('private/bot/update-trading-bot', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_private_bot_terminate_trading_bot($params = array()) {
+        return $this->request('private/bot/terminate-trading-bot', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_private_bot_pause_trading_bot($params = array()) {
+        return $this->request('private/bot/pause-trading-bot', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_private_bot_resume_trading_bot($params = array()) {
+        return $this->request('private/bot/resume-trading-bot', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_private_bot_get_trading_bots($params = array()) {
+        return $this->request('private/bot/get-trading-bots', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_private_bot_get_trading_bot_executions($params = array()) {
+        return $this->request('private/bot/get-trading-bot-executions', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
     /**
      * @return array<string, mixed>
@@ -1036,6 +1084,12 @@ abstract class cryptocom extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v1PrivatePostPrivateGetFeeCreditBalances($params = array()) {
+        return $this->request('private/get-fee-credit-balances', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePostPrivateFiatFiatDepositInfo($params = array()) {
         return $this->request('private/fiat/fiat-deposit-info', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -1146,6 +1200,48 @@ abstract class cryptocom extends \ccxt\Exchange {
      */
     public function v1PrivatePostPrivateChangeIsolatedMarginLeverage($params = array()) {
         return $this->request('private/change-isolated-margin-leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPrivateBotCreateTradingBot($params = array()) {
+        return $this->request('private/bot/create-trading-bot', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPrivateBotUpdateTradingBot($params = array()) {
+        return $this->request('private/bot/update-trading-bot', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPrivateBotTerminateTradingBot($params = array()) {
+        return $this->request('private/bot/terminate-trading-bot', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPrivateBotPauseTradingBot($params = array()) {
+        return $this->request('private/bot/pause-trading-bot', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPrivateBotResumeTradingBot($params = array()) {
+        return $this->request('private/bot/resume-trading-bot', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPrivateBotGetTradingBots($params = array()) {
+        return $this->request('private/bot/get-trading-bots', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPrivateBotGetTradingBotExecutions($params = array()) {
+        return $this->request('private/bot/get-trading-bot-executions', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
     /**
      * @return array<string, mixed>

@@ -28,6 +28,12 @@ abstract class zebpay extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_spot_get_v2_market_orderbook_ticker($params = array()) {
+        return $this->request('v2/market/orderbook/ticker', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_spot_get_v2_market_trades($params = array()) {
         return $this->request('v2/market/trades', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 10));
     }
@@ -94,6 +100,18 @@ abstract class zebpay extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_swap_get_v1_exchange_exchangeinfo($params = array()) {
+        return $this->request('v1/exchange/exchangeInfo', array('public', 'swap'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_swap_get_v1_exchange_pairs($params = array()) {
+        return $this->request('v1/exchange/pairs', array('public', 'swap'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_swap_get_v1_market_orderbook($params = array()) {
         return $this->request('v1/market/orderBook', array('public', 'swap'), 'GET', $params, null, null, array("cost" => 10));
     }
@@ -108,6 +126,12 @@ abstract class zebpay extends \ccxt\async\Exchange {
      */
     public function public_swap_get_v1_market_markets($params = array()) {
         return $this->request('v1/market/markets', array('public', 'swap'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_swap_get_v1_market_marketinfo($params = array()) {
+        return $this->request('v1/market/marketInfo', array('public', 'swap'), 'GET', $params, null, null, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -144,6 +168,12 @@ abstract class zebpay extends \ccxt\async\Exchange {
      */
     public function private_spot_get_v2_ex_tradefee($params = array()) {
         return $this->request('v2/ex/tradefee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_spot_get_v2_ex_myfee_symbol($params = array()) {
+        return $this->request('v2/ex/myfee/{symbol}', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -196,6 +226,12 @@ abstract class zebpay extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_swap_get_v1_trade_order_history($params = array()) {
+        return $this->request('v1/trade/order/history', array('private', 'swap'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_swap_get_v1_trade_userleverages($params = array()) {
         return $this->request('v1/trade/userLeverages', array('private', 'swap'), 'GET', $params, null, null, array("cost" => 10));
     }
@@ -216,6 +252,12 @@ abstract class zebpay extends \ccxt\async\Exchange {
      */
     public function private_swap_get_v1_trade_history($params = array()) {
         return $this->request('v1/trade/history', array('private', 'swap'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_swap_get_v1_trade_transaction_history($params = array()) {
+        return $this->request('v1/trade/transaction/history', array('private', 'swap'), 'GET', $params, null, null, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -262,6 +304,18 @@ abstract class zebpay extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_swap_delete_v1_trade_order_all($params = array()) {
+        return $this->request('v1/trade/order/all', array('private', 'swap'), 'DELETE', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_swap_patch_v1_trade_order($params = array()) {
+        return $this->request('v1/trade/order', array('private', 'swap'), 'PATCH', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicSpotGetV2SystemTime($params = array()) {
         return $this->request('v2/system/time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 10));
     }
@@ -276,6 +330,12 @@ abstract class zebpay extends \ccxt\async\Exchange {
      */
     public function publicSpotGetV2MarketOrderbook($params = array()) {
         return $this->request('v2/market/orderbook', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicSpotGetV2MarketOrderbookTicker($params = array()) {
+        return $this->request('v2/market/orderbook/ticker', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -346,6 +406,18 @@ abstract class zebpay extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicSwapGetV1ExchangeExchangeInfo($params = array()) {
+        return $this->request('v1/exchange/exchangeInfo', array('public', 'swap'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicSwapGetV1ExchangePairs($params = array()) {
+        return $this->request('v1/exchange/pairs', array('public', 'swap'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicSwapGetV1MarketOrderBook($params = array()) {
         return $this->request('v1/market/orderBook', array('public', 'swap'), 'GET', $params, null, null, array("cost" => 10));
     }
@@ -360,6 +432,12 @@ abstract class zebpay extends \ccxt\async\Exchange {
      */
     public function publicSwapGetV1MarketMarkets($params = array()) {
         return $this->request('v1/market/markets', array('public', 'swap'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicSwapGetV1MarketMarketInfo($params = array()) {
+        return $this->request('v1/market/marketInfo', array('public', 'swap'), 'GET', $params, null, null, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -396,6 +474,12 @@ abstract class zebpay extends \ccxt\async\Exchange {
      */
     public function privateSpotGetV2ExTradefee($params = array()) {
         return $this->request('v2/ex/tradefee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateSpotGetV2ExMyfeeSymbol($params = array()) {
+        return $this->request('v2/ex/myfee/{symbol}', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -448,6 +532,12 @@ abstract class zebpay extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateSwapGetV1TradeOrderHistory($params = array()) {
+        return $this->request('v1/trade/order/history', array('private', 'swap'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateSwapGetV1TradeUserLeverages($params = array()) {
         return $this->request('v1/trade/userLeverages', array('private', 'swap'), 'GET', $params, null, null, array("cost" => 10));
     }
@@ -468,6 +558,12 @@ abstract class zebpay extends \ccxt\async\Exchange {
      */
     public function privateSwapGetV1TradeHistory($params = array()) {
         return $this->request('v1/trade/history', array('private', 'swap'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateSwapGetV1TradeTransactionHistory($params = array()) {
+        return $this->request('v1/trade/transaction/history', array('private', 'swap'), 'GET', $params, null, null, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -510,5 +606,17 @@ abstract class zebpay extends \ccxt\async\Exchange {
      */
     public function privateSwapDeleteV1TradeOrder($params = array()) {
         return $this->request('v1/trade/order', array('private', 'swap'), 'DELETE', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateSwapDeleteV1TradeOrderAll($params = array()) {
+        return $this->request('v1/trade/order/all', array('private', 'swap'), 'DELETE', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateSwapPatchV1TradeOrder($params = array()) {
+        return $this->request('v1/trade/order', array('private', 'swap'), 'PATCH', $params, null, null, array("cost" => 10));
     }
 }

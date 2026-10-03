@@ -7,27 +7,11 @@
 import assert from 'assert';
 import { ExchangeError, AuthenticationError } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
-// native ts test, intentionally not transpiled - pins the single-flight
-// authentication logic from https://github.com/ccxt/ccxt/issues/29393 on
-// ccxt.pro.lbank. the logic is inlined directly into authenticate (), so there
-// is no helper method to unit-test: this file is the only guard, and no
-// build/lint gate sees it - dropping the in-progress early-return or the
-// flight settlement still compiles and only surfaces as duplicate
-// subscribe/get_key (or subscribe/refresh_key) POSTs against the live venue.
-// lbank differs from the aster/binance/bingx block in test.singleFlightWiring.ts
-// in two ways: the credential bucket already lives on the exchange's own ws
-// client (client.subscriptions['authenticated']), so the flight is parked on
-// that same client under the namespaced key 'authenticateFlight' instead of on
-// a dummy 'authenticationFlights' client, and BOTH the cold-acquire and the
-// expired-refresh branch are covered by the one flight
-//
-// the flight is registered in client.futures and settled through
-// client.resolve / client.reject, so every mutation of the futures map happens
-// inside Client itself - the tests below therefore count client.futures and
-// also assert that a settled flight parks nothing in client.rejections
-//
-// none of the cases below dial a socket: this.client (url) only constructs the
-// WsClient, and the tests assert startedConnecting stays false
+// native ts test, intentionally not transpiled - the only guard for the single-flight
+// authenticate () wiring on ccxt.pro.lbank (https://github.com/ccxt/ccxt/issues/29393):
+// the flight is parked on the exchange's own ws client under 'authenticateFlight', covers both the
+// cold-acquire and the expired-refresh branch, lives in client.futures (settled via client.resolve /
+// client.reject, leaving nothing in client.rejections), and never dials a socket
 const FLIGHT_HASH = 'authenticateFlight';
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));

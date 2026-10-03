@@ -20,6 +20,7 @@
 * [createMarketBuyOrderWithCost](#createmarketbuyorderwithcost)
 * [cancelOrder](#cancelorder)
 * [cancelOrders](#cancelorders)
+* [cancelOrdersForSymbols](#cancelordersforsymbols)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchOrders](#fetchorders)
 * [fetchOrder](#fetchorder)
@@ -406,17 +407,48 @@ cancel multiple orders
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order  
+**See**
+
+- https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+- https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | not used by cancelOrders () |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| symbol | <code>string</code> | No | unified market symbol, required for swap markets |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array) |
+| params.type | <code>string</code> | No | 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType |
 
 
 ```javascript
-digifinex.cancelOrders (ids, symbol, params?)
+digifinex.cancelOrders (ids, symbol?, params?)
+```
+
+
+<a name="cancelOrdersForSymbols" id="cancelordersforsymbols"></a>
+
+### cancelOrdersForSymbols{docsify-ignore}
+cancel multiple orders for multiple symbols
+
+**Kind**: instance method of [<code>digifinex</code>](#digifinex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+- https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| orders | <code>Array&lt;CancellationRequest&gt;</code> | Yes | each order should contain the parameters required by cancelOrder namely id and symbol, all orders must be of the same market type (spot or swap), example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}] |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array) |
+| params.type | <code>string</code> | No | 'spot' or 'margin' for spot markets, defaults to 'spot' |
+
+
+```javascript
+digifinex.cancelOrdersForSymbols (orders, params?)
 ```
 
 

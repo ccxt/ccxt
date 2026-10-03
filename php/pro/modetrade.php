@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use ccxt\Precise;
@@ -75,7 +76,7 @@ class modetrade extends \ccxt\async\modetrade {
         ));
     }
 
-    public function request_id(mixed $url) {
+    public function request_id(string $url): float {
         $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
@@ -83,17 +84,21 @@ class modetrade extends \ccxt\async\modetrade {
         return $newValue;
     }
 
-    public function watch_public(mixed $messageHash, mixed $message) {
+    public function watch_public(string $messageHash, array $message) {
         return Async\async(self::do_watch_public(...))($messageHash, $message);
     }
 
-    private function do_watch_public(mixed $messageHash, mixed $message) {
-        // the default $id
+    private function do_watch_public(string $messageHash, array $message) {
+        // the default id
         $id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
         if ($this->accountId !== null && $this->accountId !== '') {
             $id = $this->accountId;
         }
-        $url = $this->urls['api']['ws']['public'] . '/' . $id;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchPublic() has no public websocket url');
+        }
+        $url = $wsUrl . '/' . $id;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -109,7 +114,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
          *
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -132,25 +137,25 @@ class modetrade extends \ccxt\async\modetrade {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDC@$orderbook",
-        //         "ts" => 1650121915308,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDC",
-        //             "bids" => array(
-        //                 array(
+        //         "topic": "PERP_BTC_USDC@orderbook",
+        //         "ts": 1650121915308,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDC",
+        //             "bids": [
+        //                 [
         //                     0.30891,
         //                     2469.98
-        //                 )
-        //             ),
-        //             "asks" => array(
-        //                 array(
+        //                 ]
+        //             ],
+        //             "asks": [
+        //                 [
         //                     0.31075,
         //                     2379.63
-        //                 )
-        //             )
+        //                 ]
+        //             ]
         //         }
         //     }
         //
@@ -176,7 +181,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_ticker(string $symbol, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
          *
          * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -188,7 +193,6 @@ class modetrade extends \ccxt\async\modetrade {
         }
         $name = 'ticker';
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
         $topic = $market['id'] . '@' . $name;
         $request = array(
             'event' => 'subscribe',
@@ -198,17 +202,17 @@ class modetrade extends \ccxt\async\modetrade {
         return Async\await($this->watch_public($topic, $message));
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "open" => 19441.5,
-        //         "close" => 20147.07,
-        //         "high" => 20761.87,
-        //         "low" => 19320.54,
-        //         "volume" => 2481.103,
-        //         "amount" => 50037935.0286,
-        //         "count" => 3689
+        //         "symbol": "PERP_BTC_USDC",
+        //         "open": 19441.5,
+        //         "close": 20147.07,
+        //         "high": 20761.87,
+        //         "low": 19320.54,
+        //         "volume": 2481.103,
+        //         "amount": 50037935.0286,
+        //         "count": 3689
         //     }
         //
         return $this->safe_ticker(array(
@@ -235,20 +239,20 @@ class modetrade extends \ccxt\async\modetrade {
         ), $market);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDC@$ticker",
-        //         "ts" => 1657120017000,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDC",
-        //             "open" => 19441.5,
-        //             "close" => 20147.07,
-        //             "high" => 20761.87,
-        //             "low" => 19320.54,
-        //             "volume" => 2481.103,
-        //             "amount" => 50037935.0286,
-        //             "count" => 3689
+        //         "topic": "PERP_BTC_USDC@ticker",
+        //         "ts": 1657120017000,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDC",
+        //             "open": 19441.5,
+        //             "close": 20147.07,
+        //             "high": 20761.87,
+        //             "low": 19320.54,
+        //             "volume": 2481.103,
+        //             "amount": 50037935.0286,
+        //             "count": 3689
         //         }
         //     }
         //
@@ -272,7 +276,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_tickers(?array $symbols = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-$tickers
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-$tickers
          *
          * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -282,7 +286,7 @@ class modetrade extends \ccxt\async\modetrade {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $name = 'tickers';
         $topic = $name;
         $request = array(
@@ -291,16 +295,16 @@ class modetrade extends \ccxt\async\modetrade {
         );
         $message = $this->extend($request, $params);
         $tickers = Async\await($this->watch_public($topic, $message));
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $this->filter_by_array($tickers, 'symbol', $symbolsNormalized);
     }
 
-    public function handle_tickers(Client $client, mixed $message) {
+    public function handle_tickers(Client $client, array $message) {
         //
         //     {
         //         "topic":"tickers",
         //         "ts":1618820615000,
-        //         "data":array(
-        //             array(
+        //         "data":[
+        //             {
         //                 "symbol":"PERP_NEAR_USDC",
         //                 "open":16.297,
         //                 "close":17.183,
@@ -309,9 +313,9 @@ class modetrade extends \ccxt\async\modetrade {
         //                 "volume":0,
         //                 "amount":0,
         //                 "count":0
-        //             ),
+        //             },
         //         ...
-        //         )
+        //         ]
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
@@ -335,7 +339,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
          *
          * watches best bid & ask for $symbols
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -345,7 +349,7 @@ class modetrade extends \ccxt\async\modetrade {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $name = 'bbos';
         $topic = $name;
         $request = array(
@@ -354,23 +358,23 @@ class modetrade extends \ccxt\async\modetrade {
         );
         $message = $this->extend($request, $params);
         $tickers = Async\await($this->watch_public($topic, $message));
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $this->filter_by_array($tickers, 'symbol', $symbolsNormalized);
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
-        //       "topic" => "bbos",
-        //       "ts" => 1726212495000,
-        //       "data" => array(
+        //       "topic": "bbos",
+        //       "ts": 1726212495000,
+        //       "data": [
         //         {
-        //           "symbol" => "PERP_BTC_USDC",
-        //           "ask" => 0.16570,
-        //           "askSize" => 4224,
-        //           "bid" => 0.16553,
-        //           "bidSize" => 6645
+        //           "symbol": "PERP_BTC_USDC",
+        //           "ask": 0.16570,
+        //           "askSize": 4224,
+        //           "bid": 0.16553,
+        //           "bidSize": 6645
         //         }
-        //       )
+        //       ]
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
@@ -388,10 +392,10 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_string($market, 'symbol');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 'ts');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -402,7 +406,7 @@ class modetrade extends \ccxt\async\modetrade {
             'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => $this->safe_string($ticker, 'bidSize'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -413,20 +417,20 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         if (($timeframe !== '1m') && ($timeframe !== '5m') && ($timeframe !== '15m') && ($timeframe !== '30m') && ($timeframe !== '1h') && ($timeframe !== '1d') && ($timeframe !== '1w') && ($timeframe !== '1M')) {
-            throw new NotSupported($this->id . ' watchOHLCV $timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
+            throw new NotSupported($this->id . ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -438,13 +442,14 @@ class modetrade extends \ccxt\async\modetrade {
         );
         $message = $this->extend($request, $params);
         $ohlcv = Async\await($this->watch_public($topic, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($market['symbol'], $limit);
+            $limitResolved = $ohlcv->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -481,8 +486,8 @@ class modetrade extends \ccxt\async\modetrade {
             $this->safe_number($data, 'close'),
             $this->safe_number($data, 'volume'),
         );
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -501,7 +506,7 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches information on multiple $trades made in a $market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
          *
          * @param {string} $symbol unified $market $symbol of the $market $trades were made in
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -513,7 +518,7 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $topic = $market['id'] . '@trade';
         $request = array(
             'event' => 'subscribe',
@@ -521,16 +526,17 @@ class modetrade extends \ccxt\async\modetrade {
         );
         $message = $this->extend($request, $params);
         $trades = Async\await($this->watch_public($topic, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($market['symbol'], $limit);
+            $limitResolved = $trades->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolValue, $since, $limitResolved, true);
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         // {
-        //     "topic":"PERP_ADA_USDC@$trade",
+        //     "topic":"PERP_ADA_USDC@trade",
         //     "ts":1618820361552,
         //     "data":{
         //         "symbol":"PERP_ADA_USDC",
@@ -558,7 +564,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($trades, $topic);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "symbol":"PERP_ADA_USDC",
@@ -569,35 +575,35 @@ class modetrade extends \ccxt\async\modetrade {
         //     }
         // private stream
         //     {
-        //         $symbol => 'PERP_XRP_USDC',
-        //         clientOrderId => '',
-        //         orderId => 1167632251,
-        //         type => 'MARKET',
-        //         $side => 'BUY',
-        //         quantity => 20,
-        //         $price => 0,
-        //         tradeId => '1715179456664012',
-        //         executedPrice => 0.5276,
-        //         executedQuantity => 20,
-        //         $fee => 0.006332,
-        //         feeAsset => 'USDC',
-        //         totalExecutedQuantity => 20,
-        //         avgPrice => 0.5276,
-        //         averageExecutedPrice => 0.5276,
-        //         status => 'FILLED',
-        //         reason => '',
-        //         totalFee => 0.006332,
-        //         visible => 0,
-        //         visibleQuantity => 0,
-        //         $timestamp => 1715179456660,
-        //         orderTag => 'CCXT',
-        //         createdTime => 1715179456656,
-        //         $maker => false
+        //         symbol: 'PERP_XRP_USDC',
+        //         clientOrderId: '',
+        //         orderId: 1167632251,
+        //         type: 'MARKET',
+        //         side: 'BUY',
+        //         quantity: 20,
+        //         price: 0,
+        //         tradeId: '1715179456664012',
+        //         executedPrice: 0.5276,
+        //         executedQuantity: 20,
+        //         fee: 0.006332,
+        //         feeAsset: 'USDC',
+        //         totalExecutedQuantity: 20,
+        //         avgPrice: 0.5276,
+        //         averageExecutedPrice: 0.5276,
+        //         status: 'FILLED',
+        //         reason: '',
+        //         totalFee: 0.006332,
+        //         visible: 0,
+        //         visibleQuantity: 0,
+        //         timestamp: 1715179456660,
+        //         orderTag: 'CCXT',
+        //         createdTime: 1715179456656,
+        //         maker: false
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $price = $this->safe_string_2($trade, 'executedPrice', 'price');
         $amount = $this->safe_string_2($trade, 'executedQuantity', 'size');
         $cost = Precise::string_mul($price, $amount);
@@ -630,21 +636,21 @@ class modetrade extends \ccxt\async\modetrade {
             'type' => $this->safe_string_lower($trade, 'type'),
             'fee' => $fee,
             'info' => $trade,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function handle_auth(Client $client, mixed $message) {
+    public function handle_auth(Client $client, array $message) {
         //
         //     {
-        //         "event" => "auth",
-        //         "success" => true,
-        //         "ts" => 1657463158812
+        //         "event": "auth",
+        //         "success": true,
+        //         "ts": 1657463158812
         //     }
         //
         $messageHash = 'authenticated';
-        $success = $this->safe_value($message, 'success');
+        $success = $this->safe_bool($message, 'success');
         if ($success === true) {
-            // $client->resolve($message, $messageHash);
+            // client.resolve (message, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             $future->resolve(true);
         } else {
@@ -663,7 +669,11 @@ class modetrade extends \ccxt\async\modetrade {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' authenticate() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . $this->accountId;
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $event = 'auth';
@@ -692,13 +702,17 @@ class modetrade extends \ccxt\async\modetrade {
         return Async\await($future);
     }
 
-    public function watch_private(mixed $messageHash, mixed $message, $params = array()) {
+    public function watch_private(string $messageHash, array $message, $params = array()) {
         return Async\async(self::do_watch_private(...))($messageHash, $message, $params);
     }
 
-    private function do_watch_private(mixed $messageHash, mixed $message, $params = array()) {
+    private function do_watch_private(string $messageHash, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchPrivate() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . $this->accountId;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -707,13 +721,17 @@ class modetrade extends \ccxt\async\modetrade {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
     }
 
-    public function watch_private_multiple(mixed $messageHashes, mixed $message, $params = array()) {
+    public function watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         return Async\async(self::do_watch_private_multiple(...))($messageHashes, $message, $params);
     }
 
-    private function do_watch_private_multiple(mixed $messageHashes, mixed $message, $params = array()) {
+    private function do_watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchPrivateMultiple() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . $this->accountId;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -730,8 +748,8 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches information on multiple $orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -744,24 +762,29 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $topic = 'executionreport';
+        if ($trigger === true) {
+            $topic = 'algoexecutionreport';
+        }
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = $topic;
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $this->safe_string($market, 'symbol');
+            $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsOmitted);
         $orders = Async\await($this->watch_private($messageHash, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -772,8 +795,8 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches information on multiple trades made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -786,59 +809,64 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
-        $params = $this->omit($params, 'stop');
+        $topic = 'executionreport';
+        if ($trigger === true) {
+            $topic = 'algoexecutionreport';
+        }
+        $paramsOmitted = $this->omit($params, 'stop');
         $messageHash = 'myTrades';
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $this->safe_string($market, 'symbol');
+            $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsOmitted);
         $orders = Async\await($this->watch_private($messageHash, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "PERP_BTC_USDT",
-        //         "clientOrderId" => 0,
-        //         "orderId" => 52952826,
-        //         "type" => "LIMIT",
-        //         "side" => "SELL",
-        //         "quantity" => 0.01,
-        //         "price" => 22000,
-        //         "tradeId" => 0,
-        //         "executedPrice" => 0,
-        //         "executedQuantity" => 0,
-        //         "fee" => 0,
-        //         "feeAsset" => "USDT",
-        //         "totalExecutedQuantity" => 0,
-        //         "status" => "NEW",
-        //         "reason" => '',
-        //         "orderTag" => "default",
-        //         "totalFee" => 0,
-        //         "visible" => 0.01,
-        //         "timestamp" => 1657515556798,
-        //         "reduceOnly" => false,
-        //         "maker" => false
+        //         "symbol": "PERP_BTC_USDT",
+        //         "clientOrderId": 0,
+        //         "orderId": 52952826,
+        //         "type": "LIMIT",
+        //         "side": "SELL",
+        //         "quantity": 0.01,
+        //         "price": 22000,
+        //         "tradeId": 0,
+        //         "executedPrice": 0,
+        //         "executedQuantity": 0,
+        //         "fee": 0,
+        //         "feeAsset": "USDT",
+        //         "totalExecutedQuantity": 0,
+        //         "status": "NEW",
+        //         "reason": '',
+        //         "orderTag": "default",
+        //         "totalFee": 0,
+        //         "visible": 0.01,
+        //         "timestamp": 1657515556798,
+        //         "reduceOnly": false,
+        //         "maker": false
         //     }
-        // algo $order
+        // algo order
         //     {
         //         "symbol":"PERP_MATIC_USDC",
         //         "rootAlgoOrderId":123,
         //         "parentAlgoOrderId":123,
         //         "algoOrderId":123,
         //         "orderTag":"some tags",
-        //         "algoType" => "STOP",
+        //         "algoType": "STOP",
         //         "clientOrderId":"client_id",
         //         "type":"LIMIT",
         //         "side":"BUY",
@@ -847,8 +875,8 @@ class modetrade extends \ccxt\async\modetrade {
         //         "tradeId":0,
         //         "triggerTradePrice":0,
         //         "triggerTime":1234567,
-        //         "triggered" => false,
-        //         "activated" => false,
+        //         "triggered": false,
+        //         "activated": false,
         //         "executedPrice":0.0,
         //         "executedQuantity":0.0,
         //         "fee":0.0,
@@ -858,13 +886,13 @@ class modetrade extends \ccxt\async\modetrade {
         //         "avgPrice":0,
         //         "triggerPrice":0.0,
         //         "triggerPriceType":"STOP",
-        //         "isActivated" => false,
+        //         "isActivated": false,
         //         "status":"NEW",
-        //         "rootAlgoStatus" => "FILLED",
-        //         "algoStatus" => "FILLED",
+        //         "rootAlgoStatus": "FILLED",
+        //         "algoStatus": "FILLED",
         //         "reason":"",
         //         "totalFee":0.0,
-        //         "visible" => 7029.0,
+        //         "visible": 7029.0,
         //         "visibleQuantity":7029.0,
         //         "timestamp":1704679472448,
         //         "maker":false,
@@ -874,8 +902,8 @@ class modetrade extends \ccxt\async\modetrade {
         //
         $orderId = $this->safe_string($order, 'orderId');
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer($order, 'timestamp');
         $fee = array(
             'cost' => $this->safe_string($order, 'totalFee'),
@@ -927,32 +955,32 @@ class modetrade extends \ccxt\async\modetrade {
         ));
     }
 
-    public function handle_order_update(Client $client, mixed $message) {
+    public function handle_order_update(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "executionreport",
-        //         "ts" => 1657515556799,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDT",
-        //             "clientOrderId" => 0,
-        //             "orderId" => 52952826,
-        //             "type" => "LIMIT",
-        //             "side" => "SELL",
-        //             "quantity" => 0.01,
-        //             "price" => 22000,
-        //             "tradeId" => 0,
-        //             "executedPrice" => 0,
-        //             "executedQuantity" => 0,
-        //             "fee" => 0,
-        //             "feeAsset" => "USDT",
-        //             "totalExecutedQuantity" => 0,
-        //             "status" => "NEW",
-        //             "reason" => '',
-        //             "orderTag" => "default",
-        //             "totalFee" => 0,
-        //             "visible" => 0.01,
-        //             "timestamp" => 1657515556799,
-        //             "maker" => false
+        //         "topic": "executionreport",
+        //         "ts": 1657515556799,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "clientOrderId": 0,
+        //             "orderId": 52952826,
+        //             "type": "LIMIT",
+        //             "side": "SELL",
+        //             "quantity": 0.01,
+        //             "price": 22000,
+        //             "tradeId": 0,
+        //             "executedPrice": 0,
+        //             "executedQuantity": 0,
+        //             "fee": 0,
+        //             "feeAsset": "USDT",
+        //             "totalExecutedQuantity": 0,
+        //             "status": "NEW",
+        //             "reason": '',
+        //             "orderTag": "default",
+        //             "totalFee": 0,
+        //             "visible": 0.01,
+        //             "timestamp": 1657515556799,
+        //             "maker": false
         //         }
         //     }
         //
@@ -980,7 +1008,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function handle_order(Client $client, mixed $message, mixed $topic) {
+    public function handle_order(Client $client, array $message, ?string $topic) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -1012,33 +1040,33 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         // {
-        //     $symbol => 'PERP_XRP_USDC',
-        //     clientOrderId => '',
-        //     orderId => 1167632251,
-        //     type => 'MARKET',
-        //     side => 'BUY',
-        //     quantity => 20,
-        //     price => 0,
-        //     tradeId => '1715179456664012',
-        //     executedPrice => 0.5276,
-        //     executedQuantity => 20,
-        //     fee => 0.006332,
-        //     feeAsset => 'USDC',
-        //     totalExecutedQuantity => 20,
-        //     avgPrice => 0.5276,
-        //     averageExecutedPrice => 0.5276,
-        //     status => 'FILLED',
-        //     reason => '',
-        //     totalFee => 0.006332,
-        //     visible => 0,
-        //     visibleQuantity => 0,
-        //     timestamp => 1715179456660,
-        //     orderTag => 'CCXT',
-        //     createdTime => 1715179456656,
-        //     maker => false
+        //     symbol: 'PERP_XRP_USDC',
+        //     clientOrderId: '',
+        //     orderId: 1167632251,
+        //     type: 'MARKET',
+        //     side: 'BUY',
+        //     quantity: 20,
+        //     price: 0,
+        //     tradeId: '1715179456664012',
+        //     executedPrice: 0.5276,
+        //     executedQuantity: 20,
+        //     fee: 0.006332,
+        //     feeAsset: 'USDC',
+        //     totalExecutedQuantity: 20,
+        //     avgPrice: 0.5276,
+        //     averageExecutedPrice: 0.5276,
+        //     status: 'FILLED',
+        //     reason: '',
+        //     totalFee: 0.006332,
+        //     visible: 0,
+        //     visibleQuantity: 0,
+        //     timestamp: 1715179456660,
+        //     orderTag: 'CCXT',
+        //     createdTime: 1715179456656,
+        //     maker: false
         // }
         //
         $messageHash = 'myTrades';
@@ -1065,7 +1093,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
          *
          * watch all open positions
          * @param {string[]} [$symbols] list of unified market $symbols
@@ -1078,23 +1106,27 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
         }
         $messageHashes = array();
-        $symbols = $this->market_symbols($symbols);
-        if (($symbols !== null) && !$this->is_empty($symbols)) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+        $symbolsNormalized = $this->market_symbols($symbols);
+        if (($symbolsNormalized !== null) && !$this->is_empty($symbolsNormalized)) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'positions::' . $symbol;
             }
         } else {
             $messageHashes[] = 'positions';
         }
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchPositions() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . $this->accountId;
         $client = $this->client($url);
-        $this->set_positions_cache($client, $symbols);
+        $this->set_positions_cache($client, $symbolsNormalized);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($this->positions === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
-            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+            return $this->filter_by_symbols_since_limit($snapshot, $symbolsNormalized, $since, $limit, true);
         }
         $request = array(
             'event' => 'subscribe',
@@ -1104,7 +1136,7 @@ class modetrade extends \ccxt\async\modetrade {
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
     public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
@@ -1120,11 +1152,11 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash) {
+    public function load_positions_snapshot(Client $client, string $messageHash) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash) {
         $positions = Async\await($this->fetch_positions());
         $this->positions = new ArrayCacheBySymbolBySide();
         $cache = $this->positions;
@@ -1135,7 +1167,7 @@ class modetrade extends \ccxt\async\modetrade {
                 $cache->append($position);
             }
         }
-        // don't remove the $future from the .futures $cache
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve($cache);
@@ -1143,13 +1175,13 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //    {
         //        "topic":"position",
         //        "ts":1705292345255,
         //        "data":{
-        //           "positions":array(
+        //           "positions":[
         //              {
         //                     "symbol":"PERP_ETH_USDC",
         //                     "positionQty":3.1408,
@@ -1172,7 +1204,7 @@ class modetrade extends \ccxt\async\modetrade {
         //                     "imr":0.1,
         //                     "timestamp":1685154032762
         //              }
-        //           )
+        //           ]
         //        }
         //    }
         //
@@ -1184,7 +1216,7 @@ class modetrade extends \ccxt\async\modetrade {
         $cache = $this->positions;
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
-            $rawPosition = $rawPositions[$i];
+            $rawPosition = $this->safe_dict($rawPositions, $i);
             $marketId = $this->safe_string($rawPosition, 'symbol');
             $market = $this->safe_market($marketId);
             $position = $this->parse_ws_position($rawPosition, $market);
@@ -1196,7 +1228,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(?array $position, ?array $market = null): array {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",
@@ -1222,7 +1254,7 @@ class modetrade extends \ccxt\async\modetrade {
         //     }
         //
         $contract = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($contract, $market);
+        $marketResolved = $this->safe_market($contract, $market);
         $size = $this->safe_string($position, 'positionQty');
         $side = null;
         if (Precise::string_gt($size, '0')) {
@@ -1230,7 +1262,7 @@ class modetrade extends \ccxt\async\modetrade {
         } else {
             $side = 'short';
         }
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
         $markPrice = $this->safe_string($position, 'markPrice');
         $timestamp = $this->safe_integer($position, 'timestamp');
         $entryPrice = $this->safe_string($position, 'averageOpenPrice');
@@ -1240,7 +1272,7 @@ class modetrade extends \ccxt\async\modetrade {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,
@@ -1277,7 +1309,7 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watch balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -1295,7 +1327,7 @@ class modetrade extends \ccxt\async\modetrade {
         return Async\await($this->watch_private($messageHash, $message));
     }
 
-    public function handle_balance(mixed $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         "topic":"balance",
@@ -1332,7 +1364,7 @@ class modetrade extends \ccxt\async\modetrade {
         $this->balance['datetime'] = $this->iso8601($ts);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $balances[$key];
+            $value = $this->safe_dict($balances, $key);
             $code = $this->safe_currency_code($key);
             $account = $this->account();
             if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
@@ -1351,9 +1383,9 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($this->balance, 'balance');
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
-        // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
+        // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!(is_array($message) && array_key_exists('success' ?? '', $message))) {
             return false;
@@ -1383,7 +1415,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }
@@ -1441,37 +1473,37 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         return array( 'event' => 'ping' );
     }
 
-    public function pong(Client $client, mixed $message) {
+    public function pong(Client $client, array $message) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message) {
+    private function do_pong(Client $client, array $message) {
         Async\await($client->send(array( 'event' => 'pong' )));
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
-        // array( event => "pong", ts => 1614667590000 )
+        // { event: "pong", ts: 1614667590000 }
         //
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_subscribe(Client $client, mixed $message) {
+    public function handle_subscribe(Client $client, array $message): array {
         //
         //     {
-        //         "id" => "666888",
-        //         "event" => "subscribe",
-        //         "success" => true,
-        //         "ts" => 1657117712212
+        //         "id": "666888",
+        //         "event": "subscribe",
+        //         "success": true,
+        //         "ts": 1657117712212
         //     }
         //
         return $message;

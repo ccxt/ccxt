@@ -215,6 +215,8 @@ class coinone extends coinone$1["default"] {
                         'transaction/krw/history': { 'cost': 1 },
                         'transaction/coin/history': { 'cost': 1 },
                         'transaction/coin/withdrawal/limit': { 'cost': 1 },
+                        'event/order-reward/programs': { 'cost': 1 },
+                        'event/order-reward/history': { 'cost': 1 },
                     },
                 },
             },
@@ -335,7 +337,10 @@ class coinone extends coinone$1["default"] {
         const code = this.safeCurrencyCode(id);
         const isWithdrawEnabled = this.safeString(rawCurrency, 'withdraw_status', '') === 'normal';
         const isDepositEnabled = this.safeString(rawCurrency, 'deposit_status', '') === 'normal';
-        const type = (code !== 'KRW') ? 'crypto' : 'fiat';
+        let type = 'fiat';
+        if (code !== 'KRW') {
+            type = 'crypto';
+        }
         return this.safeCurrencyStructure({
             'id': id,
             'code': code,
@@ -409,12 +414,15 @@ class coinone extends coinone$1["default"] {
         const tickers = this.safeList(response, 'tickers', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
-            const entry = this.safeValue(tickers, i);
+            const entry = this.safeDict(tickers, i);
             const id = this.safeString(entry, 'id');
             const baseId = this.safeStringUpper(entry, 'target_currency');
             const quoteId = this.safeStringUpper(entry, 'quote_currency');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             result.push({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -478,7 +486,7 @@ class coinone extends coinone$1["default"] {
         const currencyIds = Object.keys(balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const balance = balances[currencyId];
+            const balance = this.safeDict(balances, currencyId);
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['free'] = this.safeString(balance, 'avail');
@@ -567,14 +575,14 @@ class coinone extends coinone$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const request = {
             'quote_currency': 'KRW',
         };
         let market = undefined;
         let response = undefined;
-        if (symbols !== undefined) {
-            const first = this.safeString(symbols, 0);
+        if (symbolsNormalized !== undefined) {
+            const first = this.safeString(symbolsNormalized, 0);
             market = this.market(first);
             request['quote_currency'] = market['quote'];
             request['target_currency'] = market['base'];
@@ -617,7 +625,7 @@ class coinone extends coinone$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'tickers', []);
-        return this.parseTickers(data, symbols);
+        return this.parseTickers(data, symbolsNormalized);
     }
     /**
      * @method
@@ -710,8 +718,12 @@ class coinone extends coinone$1["default"] {
         const quoteId = this.safeString(ticker, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+        }
         return this.safeTicker({
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'high'),
@@ -758,7 +770,7 @@ class coinone extends coinone$1["default"] {
         //     }
         //
         const timestamp = this.safeInteger(trade, 'timestamp');
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         const isSellerMaker = this.safeBool(trade, 'is_seller_maker');
         let side = undefined;
         if (isSellerMaker !== undefined) {
@@ -773,7 +785,13 @@ class coinone extends coinone$1["default"] {
             feeCostString = Precise["default"].stringAbs(feeCostString);
             let feeRateString = this.safeString(trade, 'feeRate');
             feeRateString = Precise["default"].stringAbs(feeRateString);
-            const feeCurrencyCode = (side === 'sell') ? market['quote'] : market['base'];
+            let feeCurrencyCode = undefined;
+            if (side === 'sell') {
+                feeCurrencyCode = marketResolved['quote'];
+            }
+            else {
+                feeCurrencyCode = marketResolved['base'];
+            }
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -786,7 +804,7 @@ class coinone extends coinone$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'order': orderId,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -794,7 +812,7 @@ class coinone extends coinone$1["default"] {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1001,8 +1019,8 @@ class coinone extends coinone$1["default"] {
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            market = this.safeMarket(symbol, market, '/');
         }
+        const marketResolved = (symbol !== undefined) ? this.safeMarket(symbol, market, '/') : market;
         let timestamp = this.safeTimestamp2(order, 'timestamp', 'updatedAt');
         if (timestamp === undefined) {
             timestamp = this.safeInteger2(order, 'ordered_at', 'updated_at'); // v2.1 sends milliseconds
@@ -1033,7 +1051,10 @@ class coinone extends coinone$1["default"] {
         let fee = undefined;
         const feeCostString = this.safeString(order, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrencyCode = (side === 'sell') ? quote : base;
+            let feeCurrencyCode = base;
+            if (side === 'sell') {
+                feeCurrencyCode = quote;
+            }
             fee = {
                 'cost': feeCostString,
                 'rate': this.safeString2(order, 'feeRate', 'fee_rate'),
@@ -1062,7 +1083,7 @@ class coinone extends coinone$1["default"] {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1224,15 +1245,15 @@ class coinone extends coinone$1["default"] {
         const result = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = walletAddress[key];
+            const value = this.safeString(walletAddress, key);
             if ((value === undefined) || (value === null) || (value === '') || (value === '-1')) {
                 continue;
             }
             const parts = key.split('_');
-            const currencyId = this.safeValue(parts, 0);
-            const secondPart = this.safeValue(parts, 1);
+            const currencyId = this.safeString(parts, 0);
+            const secondPart = this.safeString(parts, 1);
             const code = this.safeCurrencyCode(currencyId);
-            let depositAddress = this.safeValue(result, code);
+            let depositAddress = this.safeDict(result, code);
             if (depositAddress === undefined) {
                 depositAddress = {
                     'info': value,
@@ -1259,18 +1280,36 @@ class coinone extends coinone$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        let url = this.urls['api']['rest'] + '/';
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/';
+        const isPublic = (api === 'public') || (api === 'v2Public');
         if (api === 'v2Public') {
-            url = this.urls['api']['v2Public'] + '/';
-            api = 'public';
+            const apiUrl2 = this.safeString(this.urls['api'], 'v2Public');
+            if (apiUrl2 === undefined) {
+                throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl2 + '/';
         }
         else if (api === 'v2Private') {
-            url = this.urls['api']['v2Private'] + '/';
+            const apiUrl3 = this.safeString(this.urls['api'], 'v2Private');
+            if (apiUrl3 === undefined) {
+                throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl3 + '/';
         }
         else if (api === 'v2_1Private') {
-            url = this.urls['api']['v2_1Private'] + '/';
+            const apiUrl4 = this.safeString(this.urls['api'], 'v2_1Private');
+            if (apiUrl4 === undefined) {
+                throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl4 + '/';
         }
-        if (api === 'public') {
+        let requestBody = undefined;
+        let requestHeaders = undefined;
+        if (isPublic) {
             url += request;
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
@@ -1292,16 +1331,18 @@ class coinone extends coinone$1["default"] {
                 'nonce': nonce,
             }, params));
             const payload = this.stringToBase64(json);
-            body = payload;
+            requestBody = payload;
             const secret = this.secret.toUpperCase();
             const signature = this.hmac(this.encode(payload), this.encode(secret), sha2_js.sha512);
-            headers = {
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
                 'X-COINONE-SIGNATURE': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = (requestBody === undefined) ? body : requestBody;
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

@@ -64,6 +64,8 @@ interface Exchange {
     v2_1PrivatePostTransactionKrwHistory(params?: {}): Promise<Dict>;
     v2_1PrivatePostTransactionCoinHistory(params?: {}): Promise<Dict>;
     v2_1PrivatePostTransactionCoinWithdrawalLimit(params?: {}): Promise<Dict>;
+    v2_1PrivatePostEventOrderRewardPrograms(params?: {}): Promise<Dict>;
+    v2_1PrivatePostEventOrderRewardHistory(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

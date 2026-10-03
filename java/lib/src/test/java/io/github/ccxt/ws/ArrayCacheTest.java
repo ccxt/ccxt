@@ -136,7 +136,7 @@ class ArrayCacheTest {
 
         assertEquals(2, cache.size(), "plain ArrayCache must not collapse repeated ids");
         assertEquals(List.of(1, 2), order(cache, "i"), "insertion order is preserved");
-        assertEquals(2, cache.getLimit("BTC/USDT", 5).intValue(), "both appends count");
+        assertEquals(2, cache.getLimit("BTC/USDT", 5L).intValue(), "both appends count");
         assertTrue(cache.hashmap.isEmpty(), "plain ArrayCache never writes the hashmap index");
     }
 
@@ -167,25 +167,25 @@ class ArrayCacheTest {
         for (int i = 0; i < 3; i++) {
             cache.append(item("symbol", "BTC/USDT", "id", String.valueOf(i), "i", i));
         }
-        assertEquals(3, cache.getLimit("BTC/USDT", 5).intValue(), "min(3,5)");
-        assertEquals(2, cache.getLimit("BTC/USDT", 2).intValue(), "min(3,2)");
-        assertEquals(3, cache.getLimit("BTC/USDT", 5).intValue(), "still deferred, so still 3");
+        assertEquals(3, cache.getLimit("BTC/USDT", 5L).intValue(), "min(3,5)");
+        assertEquals(2, cache.getLimit("BTC/USDT", 2L).intValue(), "min(3,2)");
+        assertEquals(3, cache.getLimit("BTC/USDT", 5L).intValue(), "still deferred, so still 3");
     }
 
     @Test
     @DisplayName("D7: an unseen symbol returns the limit verbatim (Cache.ts:78-79)")
     void testGetLimitUnknownSymbolReturnsLimit() {
         var cache = new ArrayCache(100);
-        assertEquals(50, cache.getLimit("BTC/USDT", 50).intValue());
+        assertEquals(50, cache.getLimit("BTC/USDT", 50L).intValue());
         // undefined limit + unseen symbol is `undefined` in TS, i.e. null here — callers
         // funnel this into filterBySinceLimit, which null-checks before using it
         assertNull(cache.getLimit("BTC/USDT", null));
 
         cache.append(item("symbol", "BTC/USDT"));
-        assertEquals(7, cache.getLimit("ETH/USDT", 7).intValue(), "other symbols stay unseen");
+        assertEquals(7, cache.getLimit("ETH/USDT", 7L).intValue(), "other symbols stay unseen");
 
         // the all-symbols counter starts at 0, not undefined, so it never returns `limit`
-        assertEquals(0, new ArrayCache(100).getLimit(null, 7).intValue());
+        assertEquals(0, new ArrayCache(100).getLimit(null, 7L).intValue());
     }
 
     @Test
@@ -205,19 +205,19 @@ class ArrayCacheTest {
         cache.append(item("symbol", "BTC/USDT", "id", "one", "i", 1));
         cache.append(item("symbol", "ETH/USDT", "id", "two", "i", 1));
 
-        assertEquals(2, cache.getLimit(null, 5).intValue());
-        assertEquals(1, cache.getLimit("BTC/USDT", 5).intValue());
+        assertEquals(2, cache.getLimit(null, 5L).intValue());
+        assertEquals(1, cache.getLimit("BTC/USDT", 5L).intValue());
 
         cache.append(item("symbol", "BTC/USDT", "id", "one", "i", 2));
         cache.append(item("symbol", "ETH/USDT", "id", "two", "i", 2));
 
-        assertEquals(1, cache.getLimit("BTC/USDT", 5).intValue());
-        assertEquals(2, cache.getLimit(null, 5).intValue());
+        assertEquals(1, cache.getLimit("BTC/USDT", 5L).intValue());
+        assertEquals(2, cache.getLimit(null, 5L).intValue());
 
         cache.append(item("symbol", "ETH/USDT", "id", "two", "i", 3));
         cache.append(item("symbol", "ETH/USDT", "id", "three", "i", 3));
 
-        assertEquals(2, cache.getLimit(null, 5).intValue());
+        assertEquals(2, cache.getLimit(null, 5L).intValue());
         assertEquals(3, cache.size());
         assertEquals(List.of("one", "two", "three"), order(cache, "id"));
     }
@@ -231,8 +231,8 @@ class ArrayCacheTest {
         cache.append(item("symbol", "ETH/USDT", "id", "singleId", "i", 3));
 
         assertEquals(2, cache.size());
-        assertEquals(1, cache.getLimit("BTC/USDT", 5).intValue(), "same id twice counts once");
-        assertEquals(2, cache.getLimit(null, 5).intValue(), "same id under 2 symbols counts twice globally");
+        assertEquals(1, cache.getLimit("BTC/USDT", 5L).intValue(), "same id twice counts once");
+        assertEquals(2, cache.getLimit(null, 5L).intValue(), "same id under 2 symbols counts twice globally");
     }
 
     // ─── ArrayCacheByTimestamp ───
@@ -302,8 +302,8 @@ class ArrayCacheTest {
         assertEquals(4L, ((List<?>) cache.get(5)).get(0));
         assertEquals(8L, ((List<?>) cache.get(6)).get(0));
 
-        assertEquals(3, cache.getLimit(null, 5).intValue(), "min(3,5) after the deferred clear");
-        assertEquals(2, cache.getLimit(null, 2).intValue(), "min(3,2)");
+        assertEquals(3, cache.getLimit(null, 5L).intValue(), "min(3,5) after the deferred clear");
+        assertEquals(2, cache.getLimit(null, 2L).intValue(), "min(3,2)");
         assertEquals(3, cache.getLimit(null, null).intValue(), "still deferred");
     }
 
@@ -556,7 +556,7 @@ class ArrayCacheTest {
 
         assertEquals(1, cache.size(), "same (symbol,side) must not duplicate");
         assertEquals(0, at(cache, 0, "contracts"));
-        assertEquals(1, cache.getLimit("BTC/USDT", 5).intValue(), "the counted unit is the side");
+        assertEquals(1, cache.getLimit("BTC/USDT", 5L).intValue(), "the counted unit is the side");
 
         assertFalse(cache.hashmap.isEmpty(), "BySide must write through to hashmap");
         var bySide = asMap(cache.hashmap.get("BTC/USDT"));
@@ -594,14 +594,14 @@ class ArrayCacheTest {
     void testArrayCacheBySymbolBySideWatchAll() {
         var cache = new ArrayCache.ArrayCacheBySymbolBySide();
         cache.append(item("symbol", "BTC/USDT", "side", "short", "contracts", 1));
-        assertEquals(1, cache.getLimit(null, 5).intValue());
+        assertEquals(1, cache.getLimit(null, 5L).intValue());
         cache.append(item("symbol", "BTC/USDT", "side", "short", "contracts", 0));
-        assertEquals(1, cache.getLimit(null, 5).intValue());
+        assertEquals(1, cache.getLimit(null, 5L).intValue());
         cache.append(item("symbol", "BTC/USDT", "side", "long", "contracts", 3));
-        assertEquals(1, cache.getLimit(null, 5).intValue());
+        assertEquals(1, cache.getLimit(null, 5L).intValue());
         cache.append(item("symbol", "BTC/USDT", "side", "long", "contracts", 2));
         cache.append(item("symbol", "BTC/USDT", "side", "long", "contracts", 1));
-        assertEquals(1, cache.getLimit(null, 5).intValue(), "two appends to one side still report 1");
+        assertEquals(1, cache.getLimit(null, 5L).intValue(), "two appends to one side still report 1");
 
         assertEquals(2, cache.size());
         assertEquals(List.of("short", "long"), order(cache, "side"));
@@ -681,12 +681,12 @@ class ArrayCacheTest {
 
         Object viaReflection = io.github.ccxt.Helpers.callDynamically(
                 ohlcv, "getLimit", new Object[]{ "BTC/USDT", 5 });
-        assertEquals(2, viaReflection, "must hit ArrayCacheByTimestamp.getLimit, not the base");
+        assertEquals(2L, viaReflection, "must hit ArrayCacheByTimestamp.getLimit, not the base");
 
-        // a Long limit (the shape JSON parsing produces) must coerce to Integer, not throw
+        // an Integer limit must coerce to the Long parameter, not throw
         Object coerced = io.github.ccxt.Helpers.callDynamically(
-                ohlcv, "getLimit", new Object[]{ "BTC/USDT", 1L });
-        assertEquals(1, coerced, "min(2,1) after numeric coercion");
+                ohlcv, "getLimit", new Object[]{ "BTC/USDT", 1 });
+        assertEquals(1L, coerced, "min(2,1) after numeric coercion");
 
         var orders = new ArrayCache.ArrayCacheBySymbolById();
         assertNull(io.github.ccxt.Helpers.callDynamically(
@@ -694,10 +694,29 @@ class ArrayCacheTest {
                 "unseen symbol + null limit stays null through reflection");
 
         orders.append(item("symbol", "BTC/USDT", "id", "1", "i", 1));
-        assertEquals(1, io.github.ccxt.Helpers.callDynamically(
+        assertEquals(1L, io.github.ccxt.Helpers.callDynamically(
                 orders, "getLimit", new Object[]{ "BTC/USDT", 5 }));
-        assertEquals(1, io.github.ccxt.Helpers.callDynamically(
+        assertEquals(1L, io.github.ccxt.Helpers.callDynamically(
                 orders, "getLimit", new Object[]{ null, 5 }), "null symbol reads the global counter");
+    }
+
+    @Test
+    @DisplayName("getLimitOf: a cache answers its typed Long count, a plain resolved list the caller's limit")
+    void testGetLimitOf() {
+        var orders = new ArrayCache.ArrayCacheBySymbolById();
+        assertNull(ArrayCache.getLimitOf(orders, "BTC/USDT", null));
+        assertEquals(5L, ArrayCache.getLimitOf(orders, "BTC/USDT", 5L));
+        orders.append(item("symbol", "BTC/USDT", "id", "1", "i", 1));
+        orders.append(item("symbol", "BTC/USDT", "id", "2", "i", 2));
+        Long typed = ArrayCache.getLimitOf(orders, "BTC/USDT", 5L);
+        assertEquals(2L, typed, "min(2,5)");
+        assertEquals(1L, ArrayCache.getLimitOf(orders, null, 1), "an Integer cap reads as Long");
+        var ohlcv = new ArrayCache.ArrayCacheByTimestamp();
+        ohlcv.append(row(100L, 1.0));
+        assertEquals(1L, ArrayCache.getLimitOf(ohlcv, "BTC/USDT", null), "the ByTimestamp override wins");
+        java.util.List<Object> plain = new java.util.ArrayList<>();
+        assertEquals(7L, ArrayCache.getLimitOf(plain, "BTC/USDT", 7L));
+        assertNull(ArrayCache.getLimitOf(plain, null, null));
     }
 
     // ─── concurrency ───
@@ -717,7 +736,7 @@ class ArrayCacheTest {
                     start.await();
                     for (int i = 0; i < perThread; i++) {
                         cache.append(item("symbol", "S" + id, "id", id + "-" + i, "i", i));
-                        cache.getLimit("S" + id, 10);
+                        cache.getLimit("S" + id, 10L);
                         cache.snapshot();
                     }
                     return null;

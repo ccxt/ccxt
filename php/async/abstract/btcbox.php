@@ -38,6 +38,12 @@ abstract class btcbox extends \ccxt\async\Exchange {
         return $this->request('balance', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_order_history($params = array()) {
+        return $this->request('order_history', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_trade_add($params = array()) {
@@ -102,6 +108,12 @@ abstract class btcbox extends \ccxt\async\Exchange {
      */
     public function privatePostBalance($params = array()) {
         return $this->request('balance', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostOrderHistory($params = array()) {
+        return $this->request('order_history', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

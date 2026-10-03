@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitflyer API documentation:** [lightning.bitflyer.com](https://lightning.bitflyer.com/docs?lang=en)
 
-> 35 implicit endpoints across 2 access groups.
+> 36 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -71,6 +71,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetGetboardstate` | GET | `getboardstate` | 1 |
 | `publicGetGetchats` | GET | `getchats` | 1 |
 | `publicGetGetfundingrate` | GET | `getfundingrate` | 1 |
+| `publicGetGetfundingratehistory` | GET | `getfundingratehistory` | 1 |
 
 ## private
 

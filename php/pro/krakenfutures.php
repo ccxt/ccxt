@@ -39,7 +39,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchBalance' => true,
-                // 'watchStatus' => true, // https://docs.kraken.com/exchange/api-reference/futures-websocket/heartbeat
+                // 'watchStatus': true, // https://docs.kraken.com/exchange/api-reference/futures-websocket/heartbeat
                 'watchOrders' => true,
                 'watchMyTrades' => true,
                 'watchPositions' => true,
@@ -144,14 +144,12 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         );
         $marketIds = array();
         $messageHash = $name;
-        if ($symbols === null) {
-            $symbols = array();
-        }
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        $symbolsValue = ($symbols === null) ? array() : $symbols;
+        for ($i = 0; $i < count($symbolsValue); $i++) {
+            $symbol = $symbolsValue[$i];
             $marketIds[] = $this->market_id($symbol);
         }
-        $length = count($symbols);
+        $length = count($symbolsValue);
         if ($length === 1) {
             $market = $this->market($marketIds[0]);
             $messageHash = $messageHash . ':' . $market['symbol'];
@@ -207,9 +205,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbol = $this->symbol($symbol);
-        $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
-        return $tickers[$symbol];
+        $symbolValue = $this->symbol($symbol);
+        $tickers = Async\await($this->watch_tickers(array( $symbolValue ), $params));
+        return $tickers[$symbolValue];
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -229,14 +227,17 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
-        $ticker = Async\await($this->watch_multi_helper('ticker', 'ticker', $symbols, null, $params));
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $ticker = Async\await($this->watch_multi_helper('ticker', 'ticker', $symbolsNormalized, null, $params));
         if ($this->newUpdates) {
             $result = array();
-            $result[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $result[$tickerSymbol] = $ticker;
+            }
             return $result;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -256,13 +257,16 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $ticker = Async\await($this->watch_multi_helper('bidask', 'ticker_lite', $symbols, null, $params));
         if ($this->newUpdates) {
             $result = array();
-            $result[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $result[$tickerSymbol] = $ticker;
+            }
             return $result;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -294,12 +298,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $trades = Async\await($this->watch_multi_helper('trade', 'trade', $symbols, null, $params));
+        $first = $this->safe_list($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_list($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -336,55 +341,55 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             Async\await($this->load_markets());
         }
         $messageHash = '';
-        $symbols = $this->market_symbols($symbols);
-        if (($symbols !== null) && !$this->is_empty($symbols)) {
-            $messageHash = '::' . implode(',', $symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        if (($symbolsNormalized !== null) && !$this->is_empty($symbolsNormalized)) {
+            $messageHash = '::' . implode(',', $symbolsNormalized);
         }
         $messageHash = 'positions' . $messageHash;
         $newPositions = Async\await($this->subscribe_private('open_positions', $messageHash, $params));
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //    {
-        //        feed => 'open_positions',
-        //        account => '3b111acc-4fcc-45be-a622-57e611fe9f7f',
-        //        $positions => array(
+        //        feed: 'open_positions',
+        //        account: '3b111acc-4fcc-45be-a622-57e611fe9f7f',
+        //        positions: [
         //            {
-        //                instrument => 'PF_LTCUSD',
-        //                balance => 0.5,
-        //                pnl => -0.8628305877699987,
-        //                entry_price => 70.53,
-        //                mark_price => 68.80433882446,
-        //                index_price => 68.8091,
-        //                liquidation_threshold => 0,
-        //                effective_leverage => 0.007028866753648637,
-        //                return_on_equity => -1.2233525985679834,
-        //                unrealized_funding => 0.0000690610530935388,
-        //                initial_margin => 0.7053,
-        //                initial_margin_with_orders => 0.7053,
-        //                maintenance_margin => 0.35265,
-        //                pnl_currency => 'USD'
+        //                instrument: 'PF_LTCUSD',
+        //                balance: 0.5,
+        //                pnl: -0.8628305877699987,
+        //                entry_price: 70.53,
+        //                mark_price: 68.80433882446,
+        //                index_price: 68.8091,
+        //                liquidation_threshold: 0,
+        //                effective_leverage: 0.007028866753648637,
+        //                return_on_equity: -1.2233525985679834,
+        //                unrealized_funding: 0.0000690610530935388,
+        //                initial_margin: 0.7053,
+        //                initial_margin_with_orders: 0.7053,
+        //                maintenance_margin: 0.35265,
+        //                pnl_currency: 'USD'
         //            }
-        //        ),
-        //        seq => 0,
-        //        $timestamp => 1698608414910
+        //        ],
+        //        seq: 0,
+        //        timestamp: 1698608414910
         //    }
         //
         if ($this->positions === null) {
-            // krakenfutures $positions carry no id (parseWsPosition always sets
-            // 'id' => null), so key by symbol . side instead of by-id, see
+            // krakenfutures positions carry no id (parseWsPosition always sets
+            // 'id': undefined), so key by symbol + side instead of by-id, see
             // https://github.com/ccxt/ccxt/issues/29709
             $this->positions = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions;
         $rawPositions = $this->safe_list($message, 'positions');
         if ($rawPositions === null) {
-            // an open_positions frame without the $positions key is malformed;
+            // an open_positions frame without the positions key is malformed;
             // do not resolve with a fabricated empty list (the caller cannot
             // distinguish it from a genuinely flat account)
             return;
@@ -413,23 +418,23 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //        {
-        //            instrument => 'PF_LTCUSD',
-        //            balance => 0.5,
-        //            pnl => -0.8628305877699987,
-        //            entry_price => 70.53,
-        //            mark_price => 68.80433882446,
-        //            index_price => 68.8091,
-        //            liquidation_threshold => 0,
-        //            effective_leverage => 0.007028866753648637,
-        //            return_on_equity => -1.2233525985679834,
-        //            unrealized_funding => 0.0000690610530935388,
-        //            initial_margin => 0.7053,
-        //            initial_margin_with_orders => 0.7053,
-        //            maintenance_margin => 0.35265,
-        //            pnl_currency => 'USD'
+        //            instrument: 'PF_LTCUSD',
+        //            balance: 0.5,
+        //            pnl: -0.8628305877699987,
+        //            entry_price: 70.53,
+        //            mark_price: 68.80433882446,
+        //            index_price: 68.8091,
+        //            liquidation_threshold: 0,
+        //            effective_leverage: 0.007028866753648637,
+        //            return_on_equity: -1.2233525985679834,
+        //            unrealized_funding: 0.0000690610530935388,
+        //            initial_margin: 0.7053,
+        //            initial_margin_with_orders: 0.7053,
+        //            maintenance_margin: 0.35265,
+        //            pnl_currency: 'USD'
         //        }
         //
         $marketId = $this->safe_string($position, 'instrument');
@@ -483,22 +488,37 @@ class krakenfutures extends \ccxt\async\krakenfutures {
          * @param {int} [$since] not used by krakenfutures watchOrders
          * @param {int} [$limit] not used by krakenfutures watchOrders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->verbose] whether to subscribe to the open_orders_verbose $feed
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        list($verbose, $paramsVerbose) = $this->handle_option_bool_and_params($params, 'watchOrders', 'verbose', false);
         $name = 'open_orders';
         $messageHash = 'orders';
+        if ($verbose) {
+            $name = 'open_orders_verbose';
+            $messageHash = 'orders:verbose';
+        }
+        $feed = $this->safe_string($paramsVerbose, 'feed');
+        if ($feed !== null) {
+            $name = $feed;
+            $messageHash = 'orders';
+            if ($feed === 'open_orders_verbose') {
+                $messageHash = 'orders:verbose';
+            }
+        }
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $messageHash .= ':' . $market['symbol'];
         }
-        $orders = Async\await($this->subscribe_private($name, $messageHash, $params));
+        $orders = Async\await($this->subscribe_private($name, $messageHash, $paramsVerbose));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($orders, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -527,10 +547,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $messageHash .= ':' . $market['symbol'];
         }
         $trades = Async\await($this->subscribe_private($name, $messageHash, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_balance($params = array()): PromiseInterface {
@@ -552,52 +573,51 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
         $name = 'balances';
         $messageHash = $name;
-        $account = null;
-        list($account, $params) = $this->handle_option_and_params($params, 'watchBalance', 'account');
+        list($account, $paramsAccount) = $this->handle_option_string_and_params($params, 'watchBalance', 'account');
         if ($account !== null) {
             if ($account !== 'futures' && $account !== 'flex_futures') {
-                throw new ArgumentsRequired($this->id . ' watchBalance $account must be either \'futures\' or \'flex_futures\'');
+                throw new ArgumentsRequired($this->id . ' watchBalance account must be either \'futures\' or \'flex_futures\'');
             }
             $messageHash .= ':' . $account;
         }
-        return Async\await($this->subscribe_private($name, $messageHash, $params));
+        return Async\await($this->subscribe_private($name, $messageHash, $paramsAccount));
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         // snapshot
         //
         //    {
-        //        "feed" => "trade_snapshot",
-        //        "product_id" => "PI_XBTUSD",
-        //        "trades" => array(
-        //            array(
-        //                "feed" => "trade",
-        //                "product_id" => "PI_XBTUSD",
-        //                "uid" => "caa9c653-420b-4c24-a9f2-462a054d86f1",
-        //                "side" => "sell",
-        //                "type" => "fill",
-        //                "seq" => 655508,
-        //                "time" => 1612269657781,
-        //                "qty" => 440,
-        //                "price" => 34893
-        //            ),
+        //        "feed": "trade_snapshot",
+        //        "product_id": "PI_XBTUSD",
+        //        "trades": [
+        //            {
+        //                "feed": "trade",
+        //                "product_id": "PI_XBTUSD",
+        //                "uid": "caa9c653-420b-4c24-a9f2-462a054d86f1",
+        //                "side": "sell",
+        //                "type": "fill",
+        //                "seq": 655508,
+        //                "time": 1612269657781,
+        //                "qty": 440,
+        //                "price": 34893
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         // update
         //
         //    {
-        //        "feed" => "trade",
-        //        "product_id" => "PI_XBTUSD",
-        //        "uid" => "05af78ac-a774-478c-a50c-8b9c234e071e",
-        //        "side" => "sell",
-        //        "type" => "fill",
-        //        "seq" => 653355,
-        //        "time" => 1612266317519,
-        //        "qty" => 15000,
-        //        "price" => 34969.5
+        //        "feed": "trade",
+        //        "product_id": "PI_XBTUSD",
+        //        "uid": "05af78ac-a774-478c-a50c-8b9c234e071e",
+        //        "side": "sell",
+        //        "type": "fill",
+        //        "seq": 653355,
+        //        "time": 1612266317519,
+        //        "qty": 15000,
+        //        "price": 34969.5
         //    }
         //
         $channel = $this->safe_string($message, 'feed');
@@ -628,42 +648,42 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //    {
-        //        "feed" => "trade",
-        //        "product_id" => "PI_XBTUSD",
-        //        "uid" => "caa9c653-420b-4c24-a9f1-462a054d86f1",
-        //        "side" => "sell",
-        //        "type" => "fill",
-        //        "seq" => 655508,
-        //        "time" => 1612269657781,
-        //        "qty" => 440,
-        //        "price" => 34893
+        //        "feed": "trade",
+        //        "product_id": "PI_XBTUSD",
+        //        "uid": "caa9c653-420b-4c24-a9f1-462a054d86f1",
+        //        "side": "sell",
+        //        "type": "fill",
+        //        "seq": 655508,
+        //        "time": 1612269657781,
+        //        "qty": 440,
+        //        "price": 34893
         //    }
         //
         // order update
         //     {
-        //         "instrument" => "PF_DOGEUSD",
-        //         "time" => 1778610421471,
-        //         "last_update_time" => 1778610444402,
-        //         "qty" => 0,
-        //         "filled" => 10,
-        //         "limit_price" => 0.10912,
-        //         "stop_price" => 0,
-        //         "type" => "limit",
-        //         "order_id" => "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
-        //         "direction" => 0,
-        //         "reduce_only" => false
+        //         "instrument": "PF_DOGEUSD",
+        //         "time": 1778610421471,
+        //         "last_update_time": 1778610444402,
+        //         "qty": 0,
+        //         "filled": 10,
+        //         "limit_price": 0.10912,
+        //         "stop_price": 0,
+        //         "type": "limit",
+        //         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+        //         "direction": 0,
+        //         "reduce_only": false
         //     }
         //
         $marketId = $this->safe_string($trade, 'product_id');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'time');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'uid'),
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'order' => null,
@@ -678,36 +698,36 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 'cost' => null,
                 'currency' => null,
             ),
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function parse_ws_order_trade(array $trade, ?array $market = null) {
+    public function parse_ws_order_trade(array $trade, ?array $market = null): array {
         //
         //    {
-        //        "symbol" => "BTC_USDT",
-        //        "type" => "LIMIT",
-        //        "quantity" => "1",
-        //        "orderId" => "32471407854219264",
-        //        "tradeFee" => "0",
-        //        "clientOrderId" => "",
-        //        "accountType" => "SPOT",
-        //        "feeCurrency" => "",
-        //        "eventType" => "place",
-        //        "source" => "API",
-        //        "side" => "BUY",
-        //        "filledQuantity" => "0",
-        //        "filledAmount" => "0",
-        //        "matchRole" => "MAKER",
-        //        "state" => "NEW",
-        //        "tradeTime" => 0,
-        //        "tradeAmount" => "0",
-        //        "orderAmount" => "0",
-        //        "createTime" => 1648708186922,
-        //        "price" => "47112.1",
-        //        "tradeQty" => "0",
-        //        "tradePrice" => "0",
-        //        "tradeId" => "0",
-        //        "ts" => 1648708187469
+        //        "symbol": "BTC_USDT",
+        //        "type": "LIMIT",
+        //        "quantity": "1",
+        //        "orderId": "32471407854219264",
+        //        "tradeFee": "0",
+        //        "clientOrderId": "",
+        //        "accountType": "SPOT",
+        //        "feeCurrency": "",
+        //        "eventType": "place",
+        //        "source": "API",
+        //        "side": "BUY",
+        //        "filledQuantity": "0",
+        //        "filledAmount": "0",
+        //        "matchRole": "MAKER",
+        //        "state": "NEW",
+        //        "tradeTime": 0,
+        //        "tradeAmount": "0",
+        //        "orderAmount": "0",
+        //        "createTime": 1648708186922,
+        //        "price": "47112.1",
+        //        "tradeQty": "0",
+        //        "tradePrice": "0",
+        //        "tradeId": "0",
+        //        "ts": 1648708187469
         //    }
         //
         $timestamp = $this->safe_integer($trade, 'tradeTime');
@@ -733,73 +753,73 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ), $market);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message): array {
         //
         //  update (verbose)
         //
         //    {
-        //        "feed" => "open_orders_verbose",
-        //        "order" => array(
-        //            "instrument" => "PI_XBTUSD",
-        //            "time" => 1567597581495,
-        //            "last_update_time" => 1567597581495,
-        //            "qty" => 102.0,
-        //            "filled" => 0.0,
-        //            "limit_price" => 10601.0,
-        //            "stop_price" => 0.0,
-        //            "type" => "limit",
-        //            "order_id" => "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
-        //            "direction" => 0,
-        //            "reduce_only" => false
-        //        ),
-        //        "is_cancel" => true,
-        //        "reason" => "post_order_failed_because_it_would_be_filled"
+        //        "feed": "open_orders_verbose",
+        //        "order": {
+        //            "instrument": "PI_XBTUSD",
+        //            "time": 1567597581495,
+        //            "last_update_time": 1567597581495,
+        //            "qty": 102.0,
+        //            "filled": 0.0,
+        //            "limit_price": 10601.0,
+        //            "stop_price": 0.0,
+        //            "type": "limit",
+        //            "order_id": "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
+        //            "direction": 0,
+        //            "reduce_only": false
+        //        },
+        //        "is_cancel": true,
+        //        "reason": "post_order_failed_because_it_would_be_filled"
         //    }
         //
         // update
         //
         //    {
-        //        "feed" => "open_orders",
-        //        "order" => array(
-        //          "instrument" => "PI_XBTUSD",
-        //          "time" => 1567702877410,
-        //          "last_update_time" => 1567702877410,
-        //          "qty" => 304.0,
-        //          "filled" => 0.0,
-        //          "limit_price" => 10640.0,
-        //          "stop_price" => 0.0,
-        //          "type" => "limit",
-        //          "order_id" => "59302619-41d2-4f0b-941f-7e7914760ad3",
-        //          "direction" => 1,
-        //          "reduce_only" => true
-        //        ),
-        //        "is_cancel" => false,
-        //        "reason" => "new_placed_order_by_user"
+        //        "feed": "open_orders",
+        //        "order": {
+        //          "instrument": "PI_XBTUSD",
+        //          "time": 1567702877410,
+        //          "last_update_time": 1567702877410,
+        //          "qty": 304.0,
+        //          "filled": 0.0,
+        //          "limit_price": 10640.0,
+        //          "stop_price": 0.0,
+        //          "type": "limit",
+        //          "order_id": "59302619-41d2-4f0b-941f-7e7914760ad3",
+        //          "direction": 1,
+        //          "reduce_only": true
+        //        },
+        //        "is_cancel": false,
+        //        "reason": "new_placed_order_by_user"
         //    }
         //    {
-        //        "feed" => "open_orders",
-        //        "order_id" => "ea8a7144-37db-449b-bb4a-b53c814a0f43",
-        //        "is_cancel" => true,
-        //        "reason" => "cancelled_by_user"
+        //        "feed": "open_orders",
+        //        "order_id": "ea8a7144-37db-449b-bb4a-b53c814a0f43",
+        //        "is_cancel": true,
+        //        "reason": "cancelled_by_user"
         //    }
         //
         //     {
-        //         "feed" => 'open_orders',
-        //         "order" => array(
-        //         "instrument" => 'PF_XBTUSD',
-        //         "time" => 1698159920097,
-        //         "last_update_time" => 1699835622988,
-        //         "qty" => 1.1,
-        //         "filled" => 0,
-        //         "limit_price" => 20000,
-        //         "stop_price" => 0,
-        //         "type" => 'limit',
-        //         "order_id" => '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
-        //         "direction" => 0,
-        //         "reduce_only" => false
-        //         ),
-        //         "is_cancel" => false,
-        //         "reason" => 'edited_by_user'
+        //         "feed": 'open_orders',
+        //         "order": {
+        //         "instrument": 'PF_XBTUSD',
+        //         "time": 1698159920097,
+        //         "last_update_time": 1699835622988,
+        //         "qty": 1.1,
+        //         "filled": 0,
+        //         "limit_price": 20000,
+        //         "stop_price": 0,
+        //         "type": 'limit',
+        //         "order_id": '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
+        //         "direction": 0,
+        //         "reduce_only": false
+        //         },
+        //         "is_cancel": false,
+        //         "reason": 'edited_by_user'
         //     }
         //
         $orders = $this->orders;
@@ -808,14 +828,18 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $orders = new ArrayCacheBySymbolById($limit);
             $this->orders = $orders;
         }
-        $order = $this->safe_value($message, 'order');
+        $order = $this->safe_dict($message, 'order');
         if ($order !== null) {
             $marketId = $this->safe_string($order, 'instrument');
+            $feed = $this->safe_string($message, 'feed');
             $messageHash = 'orders';
+            if ($feed === 'open_orders_verbose') {
+                $messageHash = 'orders:verbose';
+            }
             $symbol = $this->safe_symbol($marketId);
             $orderId = $this->safe_string($order, 'order_id');
-            $previousOrders = $this->safe_value($orders->hashmap, $symbol, array());
-            $previousOrder = $this->safe_value($previousOrders, $orderId);
+            $previousOrders = $this->safe_dict($orders->hashmap, $symbol, array());
+            $previousOrder = $this->safe_dict($previousOrders, $orderId);
             $reason = $this->safe_string($message, 'reason');
             if (($previousOrder === null) || ($reason === 'edited_by_user')) {
                 $parsed = $this->parse_ws_order($order);
@@ -866,18 +890,23 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $client->resolve($orders, $messageHash);
             }
         } else {
-            $isCancel = $this->safe_value($message, 'is_cancel');
+            $isCancel = $this->safe_bool($message, 'is_cancel');
             if ($isCancel === true) {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
-                // rejected". Derive unified $status from `$reason` instead of
-                // mapping every removal to canceled. Preserve $reason on $info
+                // rejected". Derive unified status from `reason` instead of
+                // mapping every removal to canceled. Preserve reason on info
                 // so consumers can tell a user cancel from liquidation, etc.
                 $reason = $this->safe_string($message, 'reason');
                 $status = 'canceled';
                 if ($reason === 'full_fill') {
                     $status = 'closed';
                 }
-                // get $order without $symbol
+                $feed = $this->safe_string($message, 'feed');
+                $messageHash = 'orders';
+                if ($feed === 'open_orders_verbose') {
+                    $messageHash = 'orders:verbose';
+                }
+                // get order without symbol
                 for ($i = 0; $i < count($orders); $i++) {
                     $currentOrder = $orders[$i];
                     if ($currentOrder['id'] === $message['order_id']) {
@@ -888,8 +917,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                             'status' => $status,
                             'info' => $info,
                         ));
-                        $client->resolve($orders, 'orders');
-                        $client->resolve($orders, 'orders:' . $currentOrder['symbol']);
+                        $client->resolve($orders, $messageHash);
+                        $client->resolve($orders, $messageHash . ':' . $currentOrder['symbol']);
                         break;
                     }
                 }
@@ -898,57 +927,62 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return $message;
     }
 
-    public function handle_order_snapshot(Client $client, mixed $message) {
+    public function handle_order_snapshot(Client $client, array $message) {
         //
         // verbose
         //
         //    {
-        //        "feed" => "open_orders_verbose_snapshot",
-        //        "account" => "0f9c23b8-63e2-40e4-9592-6d5aa57c12ba",
-        //        "orders" => array(
-        //            array(
-        //                "instrument" => "PI_XBTUSD",
-        //                "time" => 1567428848005,
-        //                "last_update_time" => 1567428848005,
-        //                "qty" => 100.0,
-        //                "filled" => 0.0,
-        //                "limit_price" => 8500.0,
-        //                "stop_price" => 0.0,
-        //                "type" => "limit",
-        //                "order_id" => "566942c8-a3b5-4184-a451-622b09493129",
-        //                "direction" => 0,
-        //                "reduce_only" => false
-        //            ),
+        //        "feed": "open_orders_verbose_snapshot",
+        //        "account": "0f9c23b8-63e2-40e4-9592-6d5aa57c12ba",
+        //        "orders": [
+        //            {
+        //                "instrument": "PI_XBTUSD",
+        //                "time": 1567428848005,
+        //                "last_update_time": 1567428848005,
+        //                "qty": 100.0,
+        //                "filled": 0.0,
+        //                "limit_price": 8500.0,
+        //                "stop_price": 0.0,
+        //                "type": "limit",
+        //                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
+        //                "direction": 0,
+        //                "reduce_only": false
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         // regular
         //
         //    {
-        //        "feed" => "open_orders_snapshot",
-        //        "account" => "e258dba9-4dd4-4da5-bfef-75beb91c098e",
-        //        "orders" => array(
-        //            array(
-        //                "instrument" => "PI_XBTUSD",
-        //                "time" => 1612275024153,
-        //                "last_update_time" => 1612275024153,
-        //                "qty" => 1000,
-        //                "filled" => 0,
-        //                "limit_price" => 34900,
-        //                "stop_price" => 13789,
-        //                "type" => "stop",
-        //                "order_id" => "723ba95f-13b7-418b-8fcf-ab7ba6620555",
-        //                "direction" => 1,
-        //                "reduce_only" => false,
-        //                "triggerSignal" => "last"
-        //            ),
+        //        "feed": "open_orders_snapshot",
+        //        "account": "e258dba9-4dd4-4da5-bfef-75beb91c098e",
+        //        "orders": [
+        //            {
+        //                "instrument": "PI_XBTUSD",
+        //                "time": 1612275024153,
+        //                "last_update_time": 1612275024153,
+        //                "qty": 1000,
+        //                "filled": 0,
+        //                "limit_price": 34900,
+        //                "stop_price": 13789,
+        //                "type": "stop",
+        //                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+        //                "direction": 1,
+        //                "reduce_only": false,
+        //                "triggerSignal": "last"
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
-        $orders = $this->safe_value($message, 'orders', array());
+        $orders = $this->safe_list($message, 'orders', array());
         $limit = $this->safe_integer($this->options, 'ordersLimit');
         $this->orders = new ArrayCacheBySymbolById($limit);
+        $feed = $this->safe_string($message, 'feed');
+        $messageHash = 'orders';
+        if ($feed === 'open_orders_verbose_snapshot') {
+            $messageHash = 'orders:verbose';
+        }
         $symbols = array();
         $cachedOrders = $this->orders;
         for ($i = 0; $i < count($orders); $i++) {
@@ -962,56 +996,56 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
         $length = count($this->orders);
         if ($length > 0) {
-            $client->resolve($this->orders, 'orders');
+            $client->resolve($this->orders, $messageHash);
             $keys = is_array($symbols) ? array_keys($symbols) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $symbol = $keys[$i];
-                $messageHash = 'orders:' . $symbol;
-                $client->resolve($this->orders, $messageHash);
+                $symbolMessageHash = $messageHash . ':' . $symbol;
+                $client->resolve($this->orders, $symbolMessageHash);
             }
         }
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         // update
         //
         //    {
-        //        "feed" => "open_orders_verbose",
-        //        "order" => array(
-        //            "instrument" => "PI_XBTUSD",
-        //            "time" => 1567597581495,
-        //            "last_update_time" => 1567597581495,
-        //            "qty" => 102.0,
-        //            "filled" => 0.0,
-        //            "limit_price" => 10601.0,
-        //            "stop_price" => 0.0,
-        //            "type" => "limit",
-        //            "order_id" => "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
-        //            "direction" => 0,
-        //            "reduce_only" => false
-        //        ),
-        //        "is_cancel" => true,
-        //        "reason" => "post_order_failed_because_it_would_be_filled"
+        //        "feed": "open_orders_verbose",
+        //        "order": {
+        //            "instrument": "PI_XBTUSD",
+        //            "time": 1567597581495,
+        //            "last_update_time": 1567597581495,
+        //            "qty": 102.0,
+        //            "filled": 0.0,
+        //            "limit_price": 10601.0,
+        //            "stop_price": 0.0,
+        //            "type": "limit",
+        //            "order_id": "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
+        //            "direction": 0,
+        //            "reduce_only": false
+        //        },
+        //        "is_cancel": true,
+        //        "reason": "post_order_failed_because_it_would_be_filled"
         //    }
         //
         // snapshot
         //
         //    {
-        //        "instrument" => "PI_XBTUSD",
-        //        "time" => 1567597581495,
-        //        "last_update_time" => 1567597581495,
-        //        "qty" => 102.0,
-        //        "filled" => 0.0,
-        //        "limit_price" => 10601.0,
-        //        "stop_price" => 0.0,
-        //        "type" => "limit",
-        //        "order_id" => "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
-        //        "direction" => 0,
-        //        "reduce_only" => false
+        //        "instrument": "PI_XBTUSD",
+        //        "time": 1567597581495,
+        //        "last_update_time": 1567597581495,
+        //        "qty": 102.0,
+        //        "filled": 0.0,
+        //        "limit_price": 10601.0,
+        //        "stop_price": 0.0,
+        //        "type": "limit",
+        //        "order_id": "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
+        //        "direction": 0,
+        //        "reduce_only": false
         //    }
         //
-        $isCancelled = $this->safe_value($order, 'is_cancel');
+        $isCancelled = $this->safe_bool($order, 'is_cancel');
         $unparsedOrder = $order;
         $status = null;
         if ($isCancelled !== null) {
@@ -1053,36 +1087,36 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //    {
-        //        "time" => 1680811086487,
-        //        "product_id" => "PI_XBTUSD",
-        //        "funding_rate" => 7.792297e-12,
-        //        "funding_rate_prediction" => -4.2671095e-11,
-        //        "relative_funding_rate" => 2.18013888889e-7,
-        //        "relative_funding_rate_prediction" => -0.0000011974,
-        //        "next_funding_rate_time" => 1680811200000,
-        //        "feed" => "ticker",
-        //        "bid" => 28060,
-        //        "ask" => 28070,
-        //        "bid_size" => 2844,
-        //        "ask_size" => 1902,
-        //        "volume" => 19628180,
-        //        "dtm" => 0,
-        //        "leverage" => "50x",
-        //        "index" => 28062.14,
-        //        "premium" => 0,
-        //        "last" => 28053.5,
-        //        "change" => -0.7710945651981715,
-        //        "suspended" => false,
-        //        "tag" => "perpetual",
-        //        "pair" => "XBT:USD",
-        //        "openInterest" => 28875946,
-        //        "markPrice" => 28064.92082724592,
-        //        "maturityTime" => 0,
-        //        "post_only" => false,
-        //        "volumeQuote" => 19628180
+        //        "time": 1680811086487,
+        //        "product_id": "PI_XBTUSD",
+        //        "funding_rate": 7.792297e-12,
+        //        "funding_rate_prediction": -4.2671095e-11,
+        //        "relative_funding_rate": 2.18013888889e-7,
+        //        "relative_funding_rate_prediction": -0.0000011974,
+        //        "next_funding_rate_time": 1680811200000,
+        //        "feed": "ticker",
+        //        "bid": 28060,
+        //        "ask": 28070,
+        //        "bid_size": 2844,
+        //        "ask_size": 1902,
+        //        "volume": 19628180,
+        //        "dtm": 0,
+        //        "leverage": "50x",
+        //        "index": 28062.14,
+        //        "premium": 0,
+        //        "last": 28053.5,
+        //        "change": -0.7710945651981715,
+        //        "suspended": false,
+        //        "tag": "perpetual",
+        //        "pair": "XBT:USD",
+        //        "openInterest": 28875946,
+        //        "markPrice": 28064.92082724592,
+        //        "maturityTime": 0,
+        //        "post_only": false,
+        //        "volumeQuote": 19628180
         //    }
         //
         $marketId = $this->safe_string($message, 'product_id');
@@ -1097,21 +1131,21 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //    {
-        //        "feed" => "ticker_lite",
-        //        "product_id" => "FI_ETHUSD_210625",
-        //        "bid" => 1753.45,
-        //        "ask" => 1760.35,
-        //        "change" => 13.448175559936647,
-        //        "premium" => 9.1,
-        //        "volume" => 6899673.0,
-        //        "tag" => "semiannual",
-        //        "pair" => "ETH:USD",
-        //        "dtm" => 141,
-        //        "maturityTime" => 1624633200000,
-        //        "volumeQuote" => 6899673.0
+        //        "feed": "ticker_lite",
+        //        "product_id": "FI_ETHUSD_210625",
+        //        "bid": 1753.45,
+        //        "ask": 1760.35,
+        //        "change": 13.448175559936647,
+        //        "premium": 9.1,
+        //        "volume": 6899673.0,
+        //        "tag": "semiannual",
+        //        "pair": "ETH:USD",
+        //        "dtm": 141,
+        //        "maturityTime": 1624633200000,
+        //        "volumeQuote": 6899673.0
         //    }
         //
         $marketId = $this->safe_string($message, 'product_id');
@@ -1126,58 +1160,57 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
-        //        "time" => 1680811086487,
-        //        "product_id" => "PI_XBTUSD",
-        //        "funding_rate" => 7.792297e-12,
-        //        "funding_rate_prediction" => -4.2671095e-11,
-        //        "relative_funding_rate" => 2.18013888889e-7,
-        //        "relative_funding_rate_prediction" => -0.0000011974,
-        //        "next_funding_rate_time" => 1680811200000,
-        //        "feed" => "ticker",
-        //        "bid" => 28060,
-        //        "ask" => 28070,
-        //        "bid_size" => 2844,
-        //        "ask_size" => 1902,
-        //        "volume" => 19628180,
-        //        "dtm" => 0,
-        //        "leverage" => "50x",
-        //        "index" => 28062.14,
-        //        "premium" => 0,
-        //        "last" => 28053.5,
-        //        "change" => -0.7710945651981715,
-        //        "suspended" => false,
-        //        "tag" => "perpetual",
-        //        "pair" => "XBT:USD",
-        //        "openInterest" => 28875946,
-        //        "markPrice" => 28064.92082724592,
-        //        "maturityTime" => 0,
-        //        "post_only" => false,
-        //        "volumeQuote" => 19628180
+        //        "time": 1680811086487,
+        //        "product_id": "PI_XBTUSD",
+        //        "funding_rate": 7.792297e-12,
+        //        "funding_rate_prediction": -4.2671095e-11,
+        //        "relative_funding_rate": 2.18013888889e-7,
+        //        "relative_funding_rate_prediction": -0.0000011974,
+        //        "next_funding_rate_time": 1680811200000,
+        //        "feed": "ticker",
+        //        "bid": 28060,
+        //        "ask": 28070,
+        //        "bid_size": 2844,
+        //        "ask_size": 1902,
+        //        "volume": 19628180,
+        //        "dtm": 0,
+        //        "leverage": "50x",
+        //        "index": 28062.14,
+        //        "premium": 0,
+        //        "last": 28053.5,
+        //        "change": -0.7710945651981715,
+        //        "suspended": false,
+        //        "tag": "perpetual",
+        //        "pair": "XBT:USD",
+        //        "openInterest": 28875946,
+        //        "markPrice": 28064.92082724592,
+        //        "maturityTime": 0,
+        //        "post_only": false,
+        //        "volumeQuote": 19628180
         //    }
         //
         // ticker_lite
         //
         //    {
-        //        "feed" => "ticker_lite",
-        //        "product_id" => "FI_ETHUSD_210625",
-        //        "bid" => 1753.45,
-        //        "ask" => 1760.35,
-        //        "change" => 13.448175559936647,
-        //        "premium" => 9.1,
-        //        "volume" => 6899673.0,
-        //        "tag" => "semiannual",
-        //        "pair" => "ETH:USD",
-        //        "dtm" => 141,
-        //        "maturityTime" => 1624633200000,
-        //        "volumeQuote" => 6899673.0
+        //        "feed": "ticker_lite",
+        //        "product_id": "FI_ETHUSD_210625",
+        //        "bid": 1753.45,
+        //        "ask": 1760.35,
+        //        "change": 13.448175559936647,
+        //        "premium": 9.1,
+        //        "volume": 6899673.0,
+        //        "tag": "semiannual",
+        //        "pair": "ETH:USD",
+        //        "dtm": 141,
+        //        "maturityTime": 1624633200000,
+        //        "volumeQuote": 6899673.0
         //    }
         //
         $marketId = $this->safe_string($ticker, 'product_id');
         $marketResolved = $this->safe_market($marketId, $market);
-        $market = $marketResolved;
         $symbol = $marketResolved['symbol'];
         $timestamp = $this->parse8601($this->safe_string($ticker, 'lastTime'));
         $last = $this->safe_string($ticker, 'last');
@@ -1207,34 +1240,34 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ));
     }
 
-    public function handle_order_book_snapshot(Client $client, mixed $message) {
+    public function handle_order_book_snapshot(Client $client, array $message) {
         //
         //    {
-        //        "feed" => "book_snapshot",
-        //        "product_id" => "PI_XBTUSD",
-        //        "timestamp" => 1612269825817,
-        //        "seq" => 326072249,
-        //        "tickSize" => null,
-        //        "bids" => array(
-        //            array(
-        //                "price" => 34892.5,
-        //                "qty" => 6385
-        //            ),
-        //            array(
-        //                "price" => 34892,
-        //                "qty" => 10924
-        //            ),
-        //        ),
-        //        "asks" => array(
-        //            array(
-        //                "price" => 34911.5,
-        //                "qty" => 20598
-        //            ),
-        //            array(
-        //                "price" => 34912,
-        //                "qty" => 2300
-        //            ),
-        //        )
+        //        "feed": "book_snapshot",
+        //        "product_id": "PI_XBTUSD",
+        //        "timestamp": 1612269825817,
+        //        "seq": 326072249,
+        //        "tickSize": null,
+        //        "bids": [
+        //            {
+        //                "price": 34892.5,
+        //                "qty": 6385
+        //            },
+        //            {
+        //                "price": 34892,
+        //                "qty": 10924
+        //            },
+        //        ],
+        //        "asks": [
+        //            {
+        //                "price": 34911.5,
+        //                "qty": 20598
+        //            },
+        //            {
+        //                "price": 34912,
+        //                "qty": 2300
+        //            },
+        //        ]
         //    }
         //
         $marketId = $this->safe_string($message, 'product_id');
@@ -1255,14 +1288,14 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             return;
         }
         for ($i = 0; $i < count($bids); $i++) {
-            $bid = $bids[$i];
+            $bid = $this->safe_dict($bids, $i);
             $price = $this->safe_number($bid, 'price');
             $qty = $this->safe_number($bid, 'qty');
             $bidsSide = $orderbook['bids'];
             $bidsSide->store($price, $qty);
         }
         for ($i = 0; $i < count($asks); $i++) {
-            $ask = $asks[$i];
+            $ask = $this->safe_dict($asks, $i);
             $price = $this->safe_number($ask, 'price');
             $qty = $this->safe_number($ask, 'qty');
             $asksSide = $orderbook['asks'];
@@ -1274,16 +1307,16 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //    {
-        //        "feed" => "book",
-        //        "product_id" => "PI_XBTUSD",
-        //        "side" => "sell",
-        //        "seq" => 326094134,
-        //        "price" => 34981,
-        //        "qty" => 0,
-        //        "timestamp" => 1612269953629
+        //        "feed": "book",
+        //        "product_id": "PI_XBTUSD",
+        //        "side": "sell",
+        //        "seq": 326094134,
+        //        "price": 34981,
+        //        "qty": 0,
+        //        "timestamp": 1612269953629
         //    }
         //
         $marketId = $this->safe_string($message, 'product_id');
@@ -1307,45 +1340,45 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // snapshot
         //
         //    {
-        //        "feed" => "balances_snapshot",
-        //        "account" => "4a012c31-df95-484a-9473-d51e4a0c4ae7",
-        //        "holding" => array(
-        //            "USDT" => 4997.5012493753,
-        //            "XBT" => 0.1285407184,
+        //        "feed": "balances_snapshot",
+        //        "account": "4a012c31-df95-484a-9473-d51e4a0c4ae7",
+        //        "holding": {
+        //            "USDT": 4997.5012493753,
+        //            "XBT": 0.1285407184,
         //            ...
-        //        ),
-        //        "futures" => array(
-        //            "F-ETH:EUR" => array(
-        //                "name" => "F-ETH:EUR",
-        //                "pair" => "ETH/EUR",
-        //                "unit" => "EUR",
-        //                "portfolio_value" => 0.0,
-        //                "balance" => 0.0,
-        //                "maintenance_margin" => 0.0,
-        //                "initial_margin" => 0.0,
-        //                "available" => 0.0,
-        //                "unrealized_funding" => 0.0,
-        //                "pnl" => 0.0
-        //            ),
+        //        },
+        //        "futures": {
+        //            "F-ETH:EUR": {
+        //                "name": "F-ETH:EUR",
+        //                "pair": "ETH/EUR",
+        //                "unit": "EUR",
+        //                "portfolio_value": 0.0,
+        //                "balance": 0.0,
+        //                "maintenance_margin": 0.0,
+        //                "initial_margin": 0.0,
+        //                "available": 0.0,
+        //                "unrealized_funding": 0.0,
+        //                "pnl": 0.0
+        //            },
         //            ...
-        //        ),
-        //        "flex_futures" => array(
-        //            "currencies" => array(
-        //                "USDT" => array(
-        //                    "quantity" => 0.0,
-        //                    "value" => 0.0,
-        //                    "collateral_value" => 0.0,
-        //                    "available" => 0.0,
-        //                    "haircut" => 0.0,
-        //                    "conversion_spread" => 0.0
-        //                ),
+        //        },
+        //        "flex_futures": {
+        //            "currencies": {
+        //                "USDT": {
+        //                    "quantity": 0.0,
+        //                    "value": 0.0,
+        //                    "collateral_value": 0.0,
+        //                    "available": 0.0,
+        //                    "haircut": 0.0,
+        //                    "conversion_spread": 0.0
+        //                },
         //                ...
-        //            ),
+        //            },
         //            "balance_value":0.0,
         //            "portfolio_value":0.0,
         //            "collateral_value":0.0,
@@ -1358,9 +1391,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //            "total_unrealized_as_margin":0.0,
         //            "margin_equity":0.0,
         //            "available_margin":0.0
-        //            "isolated":array(
-        //            ),
-        //            "cross":array(
+        //            "isolated":{
+        //            },
+        //            "cross":{
         //                "balance_value":9963.66,
         //                "portfolio_value":9963.66,
         //                "collateral_value":9963.66,
@@ -1374,8 +1407,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //                "margin_equity":9963.66,
         //                "available_margin":9963.66,
         //                "effective_leverage":0.0
-        //            ),
-        //        ),
+        //            },
+        //        },
         //        "timestamp":1640995200000,
         //        "seq":0
         //    }
@@ -1385,77 +1418,77 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //    Holding Wallet
         //
         //    {
-        //        "feed" => "balances",
-        //        "account" => "7a641082-55c7-4411-a85f-930ec2e09617",
-        //        "holding" => array(
-        //            "USD" => 5000.0
-        //        ),
-        //        "futures" => array(),
-        //        "timestamp" => 1640995200000,
-        //        "seq" => 83
+        //        "feed": "balances",
+        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617",
+        //        "holding": {
+        //            "USD": 5000.0
+        //        },
+        //        "futures": {},
+        //        "timestamp": 1640995200000,
+        //        "seq": 83
         //    }
         //
         //    Multi-Collateral
         //
         //    {
-        //        "feed" => "balances"
-        //        "account" => "7a641082-55c7-4411-a85f-930ec2e09617"
-        //        "flex_futures" => array(
-        //            "currencies" => array(
-        //                "USDT" => array(
-        //                    "quantity" => 0.0,
-        //                    "value" => 0.0,
-        //                    "collateral_value" => 0.0,
-        //                    "available" => 0.0,
-        //                    "haircut" => 0.0,
-        //                    "conversion_spread" => 0.0
-        //                ),
+        //        "feed": "balances"
+        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617"
+        //        "flex_futures": {
+        //            "currencies": {
+        //                "USDT": {
+        //                    "quantity": 0.0,
+        //                    "value": 0.0,
+        //                    "collateral_value": 0.0,
+        //                    "available": 0.0,
+        //                    "haircut": 0.0,
+        //                    "conversion_spread": 0.0
+        //                },
         //                ...
-        //            ),
-        //            "balance_value" => 5000.0,
-        //            "portfolio_value" => 5000.0,
-        //            "collateral_value" => 5000.0,
-        //            "initial_margin" => 0.0,
-        //            "initial_margin_without_orders" => 0.0,
-        //            "maintenance_margin" => 0.0,
-        //            "pnl" => 0.0,
-        //            "unrealized_funding" => 0.0,
-        //            "total_unrealized" => 0.0,
-        //            "total_unrealized_as_margin" => 0.0,
-        //            "margin_equity" => 5000.0,
-        //            "available_margin" => 5000.0
-        //        ),
-        //        "timestamp" => 1640995200000,
-        //        "seq" => 1
+        //            },
+        //            "balance_value": 5000.0,
+        //            "portfolio_value": 5000.0,
+        //            "collateral_value": 5000.0,
+        //            "initial_margin": 0.0,
+        //            "initial_margin_without_orders": 0.0,
+        //            "maintenance_margin": 0.0,
+        //            "pnl": 0.0,
+        //            "unrealized_funding": 0.0,
+        //            "total_unrealized": 0.0,
+        //            "total_unrealized_as_margin": 0.0,
+        //            "margin_equity": 5000.0,
+        //            "available_margin": 5000.0
+        //        },
+        //        "timestamp": 1640995200000,
+        //        "seq": 1
         //    }
         //
         //    Sample Single-Collateral Balance Delta
         //
         //    {
-        //        "feed" => "balances",
-        //        "account" => "7a641082-55c7-4411-a85f-930ec2e09617",
-        //        "holding" => array(),
-        //        "futures" => {
-        //            "F-XBT:USD" => array(
-        //                "name" => "F-XBT:USD",
-        //                "pair" => "XBT/USD",
-        //                "unit" => "XBT",
-        //                "portfolio_value" => 0.1219368845,
-        //                "balance" => 0.1219368845,
-        //                "maintenance_margin" => 0.0,
-        //                "initial_margin" => 0.0,
-        //                "available" => 0.1219368845,
-        //                "unrealized_funding" => 0.0,
-        //                "pnl" => 0.0
+        //        "feed": "balances",
+        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617",
+        //        "holding": {},
+        //        "futures": {
+        //            "F-XBT:USD": {
+        //                "name": "F-XBT:USD",
+        //                "pair": "XBT/USD",
+        //                "unit": "XBT",
+        //                "portfolio_value": 0.1219368845,
+        //                "balance": 0.1219368845,
+        //                "maintenance_margin": 0.0,
+        //                "initial_margin": 0.0,
+        //                "available": 0.1219368845,
+        //                "unrealized_funding": 0.0,
+        //                "pnl": 0.0
         //            }
-        //        ),
-        //        "timestamp" => 1640995200000,
-        //        "seq" => 2
+        //        },
+        //        "timestamp": 1640995200000,
+        //        "seq": 2
         //    }
         //
-        $holding = $this->safe_value($message, 'holding');
-        $futures = $this->safe_value($message, 'futures');
-        $flexFutures = $this->safe_value($message, 'flex_futures');
+        $holding = $this->safe_dict($message, 'holding');
+        $futures = $this->safe_dict($message, 'futures');
+        $flexFutures = $this->safe_dict($message, 'flex_futures');
         $messageHash = 'balances';
         $timestamp = $this->safe_integer($message, 'timestamp');
         if ($holding !== null) {
@@ -1489,7 +1522,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $key = $futuresKeys[$i];
                 $symbol = $this->safe_symbol($key);
                 $newAccount = $this->account();
-                $future = $this->safe_value($futures, $key);
+                $future = $this->safe_dict($futures, $key);
                 $currencyId = $this->safe_string($future, 'unit');
                 $code = $this->safe_currency_code($currencyId);
                 $newAccount['free'] = $this->safe_string($future, 'available');
@@ -1505,7 +1538,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $client->resolve($this->balance['margin'], $messageHash . 'futures');
         }
         if ($flexFutures !== null) {
-            $flexFutureCurrencies = $this->safe_value($flexFutures, 'currencies', array());
+            $flexFutureCurrencies = $this->safe_dict($flexFutures, 'currencies', array());
             $flexFuturesKeys = is_array($flexFutureCurrencies) ? array_keys($flexFutureCurrencies) : array(); // multi-collateral margin account
             $flexFuturesResult = array(
                 'info' => $message,
@@ -1514,7 +1547,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             );
             for ($i = 0; $i < count($flexFuturesKeys); $i++) {
                 $key = $flexFuturesKeys[$i];
-                $flexFuture = $this->safe_value($flexFutureCurrencies, $key);
+                $flexFuture = $this->safe_dict($flexFutureCurrencies, $key);
                 $code = $this->safe_currency_code($key);
                 $newAccount = $this->account();
                 $newAccount['free'] = $this->safe_string($flexFuture, 'available');
@@ -1531,33 +1564,33 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //    {
-        //        "feed" => "fills_snapshot",
-        //        "account" => "DemoUser",
-        //        "fills" => array(
-        //            array(
-        //                "instrument" => "FI_XBTUSD_200925",
-        //                "time" => 1600256910739,
-        //                "price" => 10937.5,
-        //                "seq" => 36,
-        //                "buy" => true,
-        //                "qty" => 5000.0,
-        //                "order_id" => "9e30258b-5a98-4002-968a-5b0e149bcfbf",
-        //                "cli_ord_id" => "8b58d9da-fcaf-4f60-91bc-9973a3eba48d", // only on update, not on snapshot
-        //                "fill_id" => "cad76f07-814e-4dc6-8478-7867407b6bff",
-        //                "fill_type" => "maker",
-        //                "fee_paid" => -0.00009142857,
-        //                "fee_currency" => "BTC",
-        //                "taker_order_type" => "ioc",
-        //                "order_type" => "limit"
-        //            ),
+        //        "feed": "fills_snapshot",
+        //        "account": "DemoUser",
+        //        "fills": [
+        //            {
+        //                "instrument": "FI_XBTUSD_200925",
+        //                "time": 1600256910739,
+        //                "price": 10937.5,
+        //                "seq": 36,
+        //                "buy": true,
+        //                "qty": 5000.0,
+        //                "order_id": "9e30258b-5a98-4002-968a-5b0e149bcfbf",
+        //                "cli_ord_id": "8b58d9da-fcaf-4f60-91bc-9973a3eba48d", // only on update, not on snapshot
+        //                "fill_id": "cad76f07-814e-4dc6-8478-7867407b6bff",
+        //                "fill_type": "maker",
+        //                "fee_paid": -0.00009142857,
+        //                "fee_currency": "BTC",
+        //                "taker_order_type": "ioc",
+        //                "order_type": "limit"
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
-        $trades = $this->safe_value($message, 'fills', array());
+        $trades = $this->safe_list($message, 'fills', array());
         $stored = $this->myTrades;
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1582,36 +1615,36 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $client->resolve($stored, 'myTrades');
     }
 
-    public function parse_ws_my_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_my_trade(array $trade, ?array $market = null): array {
         //
         //    {
-        //        "instrument" => "FI_XBTUSD_200925",
-        //        "time" => 1600256910739,
-        //        "price" => 10937.5,
-        //        "seq" => 36,
-        //        "buy" => true,
-        //        "qty" => 5000.0,
-        //        "order_id" => "9e30258b-5a98-4002-968a-5b0e149bcfbf",
-        //        "cli_ord_id" => "8b58d9da-fcaf-4f60-91bc-9973a3eba48d", // only on update, not on snapshot
-        //        "fill_id" => "cad76f07-814e-4dc6-8478-7867407b6bff",
-        //        "fill_type" => "maker",
-        //        "fee_paid" => -0.00009142857,
-        //        "fee_currency" => "BTC",
-        //        "taker_order_type" => "ioc",
-        //        "order_type" => "limit"
+        //        "instrument": "FI_XBTUSD_200925",
+        //        "time": 1600256910739,
+        //        "price": 10937.5,
+        //        "seq": 36,
+        //        "buy": true,
+        //        "qty": 5000.0,
+        //        "order_id": "9e30258b-5a98-4002-968a-5b0e149bcfbf",
+        //        "cli_ord_id": "8b58d9da-fcaf-4f60-91bc-9973a3eba48d", // only on update, not on snapshot
+        //        "fill_id": "cad76f07-814e-4dc6-8478-7867407b6bff",
+        //        "fill_type": "maker",
+        //        "fee_paid": -0.00009142857,
+        //        "fee_currency": "BTC",
+        //        "taker_order_type": "ioc",
+        //        "order_type": "limit"
         //    }
         //
         $timestamp = $this->safe_integer($trade, 'time');
         $marketId = $this->safe_string($trade, 'instrument');
-        $market = $this->safe_market($marketId, $market);
-        $isBuy = $this->safe_value($trade, 'buy');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $isBuy = $this->safe_bool($trade, 'buy');
         $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'fill_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => $this->safe_string($trade, 'type'),
             'side' => ($isBuy === true) ? 'buy' : 'sell',
@@ -1636,14 +1669,14 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             Async\await($this->load_markets());
         }
         $url = $this->urls['api']['ws'];
-        // $symbols are required
-        $symbols = $this->market_symbols($symbols, null, false, true, false);
+        // symbols are required
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, false);
         $messageHashes = array();
         $rawSubs = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $messageHash = $this->get_message_hash($unifiedName, null, $this->symbol($symbols[$i]));
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $messageHash = $this->get_message_hash($unifiedName, null, $this->symbol($symbolsNormalized[$i]));
             $messageHashes[] = $messageHash;
-            $market = $this->market($symbols[$i]);
+            $market = $this->market($symbolsNormalized[$i]);
             if (!$this->subscription_exists_for_hash($url, $messageHash)) {
                 $rawSubs[] = $market['id'];
             }
@@ -1660,14 +1693,14 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscriptionArgs));
     }
 
-    public function subscription_exists_for_hash(string $url, string $hash) {
+    public function subscription_exists_for_hash(string $url, string $hash): bool {
         $client = $this->client($url);
         return (is_array($client->subscriptions) && array_key_exists($hash ?? '', $client->subscriptions));
     }
 
-    public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null) {
-        // $unifiedElementName can be : orderbook, trade, ticker, bidask ...
-        // $subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
+    public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null): string {
+        // unifiedElementName can be : orderbook, trade, ticker, bidask ...
+        // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         $withSymbol = $symbol !== null;
         $messageHash = $unifiedElementName;
         if (!$withSymbol) {
@@ -1681,20 +1714,20 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return $messageHash;
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //    {
-        //        event => 'alert',
-        //        $message => 'Failed to subscribe to authenticated feed'
+        //        event: 'alert',
+        //        message: 'Failed to subscribe to authenticated feed'
         //    }
         //    {
-        //        event => 'alert',
-        //        $message => 'Already subscribed to feed, re-requesting'
+        //        event: 'alert',
+        //        message: 'Already subscribed to feed, re-requesting'
         //    }
         //
         $errMsg = $this->safe_string($message, 'message');
-        // Benign "already subscribed" notice => the original subscription is still
-        // active and delivering data on this socket. The generic $client->reject
+        // Benign "already subscribed" notice: the original subscription is still
+        // active and delivering data on this socket. The generic client.reject
         // below rejects every pending future on the connection, so a stray
         // re-subscribe warning would kill unrelated in-flight watch* calls —
         // mirrors the bitmart 90008 fix.
@@ -1709,7 +1742,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function handle_message(mixed $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $event = $this->safe_string($message, 'event');
         if ($event === 'challenge') {
             $this->handle_authenticate($client, $message);
@@ -1724,7 +1757,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 'ticker_lite' => array($this, 'handle_bid_ask'),
                 'trade' => array($this, 'handle_trade'),
                 'trade_snapshot' => array($this, 'handle_trade'),
-                // 'heartbeat' => $this->handleStatus,
+                // 'heartbeat': this.handleStatus,
                 'book' => array($this, 'handle_order_book'),
                 'book_snapshot' => array($this, 'handle_order_book_snapshot'),
                 'open_orders_verbose' => array($this, 'handle_order'),
@@ -1744,18 +1777,18 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function handle_authenticate(Client $client, mixed $message) {
+    public function handle_authenticate(Client $client, array $message): array {
         /**
          * @ignore
          * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
          */
         //
         //    {
-        //        "event" => "challenge",
-        //        "message" => "226aee50-88fc-4618-a42a-34f7709570b2"
+        //        "event": "challenge",
+        //        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
         //    }
         //
-        $event = $this->safe_value($message, 'event');
+        $event = $this->safe_string($message, 'event');
         $messageHash = 'challenge';
         if ($event !== 'error') {
             $challenge = $this->safe_value($message, 'message');

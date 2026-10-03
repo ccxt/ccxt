@@ -163,11 +163,17 @@ class backpack extends Exchange {
                         'api/v1/collateral' => array( 'cost' => 1 ), // not used
                         'api/v1/borrowLend/markets' => array( 'cost' => 1 ),
                         'api/v1/borrowLend/markets/history' => array( 'cost' => 1 ),
+                        'api/v1/borrowLend/apy' => array( 'cost' => 1 ),
                         'api/v1/markets' => array( 'cost' => 1 ), // done
                         'api/v1/market' => array( 'cost' => 1 ), // not used
                         'api/v1/ticker' => array( 'cost' => 1 ), // done
                         'api/v1/tickers' => array( 'cost' => 1 ), // done
                         'api/v1/depth' => array( 'cost' => 1 ), // done
+                        'api/v1/prediction' => array( 'cost' => 1 ),
+                        'api/v1/prediction/tags' => array( 'cost' => 1 ),
+                        'api/v1/market-sessions' => array( 'cost' => 1 ),
+                        'api/v1/market-holidays' => array( 'cost' => 1 ),
+                        'api/v1/securities' => array( 'cost' => 1 ),
                         'api/v1/klines' => array( 'cost' => 1 ), // done
                         'api/v1/markPrices' => array( 'cost' => 1 ), // done
                         'api/v1/openInterest' => array( 'cost' => 1 ), // done
@@ -187,6 +193,7 @@ class backpack extends Exchange {
                         'api/v1/account/limits/order' => array( 'cost' => 1 ), // not used
                         'api/v1/account/limits/withdrawal' => array( 'cost' => 1 ), // not used
                         'api/v1/borrowLend/positions' => array( 'cost' => 1 ), // todo fetchBorrowInterest
+                        'api/v1/borrowLend/position/liquidationPrice' => array( 'cost' => 1 ),
                         'api/v1/capital' => array( 'cost' => 1 ), // done
                         'api/v1/capital/collateral' => array( 'cost' => 1 ), // not used
                         'wapi/v1/capital/deposits' => array( 'cost' => 1 ), // done
@@ -199,11 +206,17 @@ class backpack extends Exchange {
                         'wapi/v1/history/dust' => array( 'cost' => 1 ), // not used
                         'wapi/v1/history/fills' => array( 'cost' => 1 ), // done
                         'wapi/v1/history/funding' => array( 'cost' => 1 ), // done
+                        'wapi/v1/history/position' => array( 'cost' => 1 ),
                         'wapi/v1/history/orders' => array( 'cost' => 1 ), // done
+                        'api/v1/rfqs' => array( 'cost' => 1 ),
                         'wapi/v1/history/rfq' => array( 'cost' => 1 ),
                         'wapi/v1/history/quote' => array( 'cost' => 1 ),
+                        'wapi/v1/history/rfq/fill' => array( 'cost' => 1 ),
+                        'wapi/v1/history/quote/fill' => array( 'cost' => 1 ),
                         'wapi/v1/history/settlement' => array( 'cost' => 1 ),
                         'wapi/v1/history/strategies' => array( 'cost' => 1 ),
+                        'api/v1/strategy' => array( 'cost' => 1 ),
+                        'api/v1/strategies' => array( 'cost' => 1 ),
                         'api/v1/order' => array( 'cost' => 1 ), // done
                         'api/v1/orders' => array( 'cost' => 1 ), // done
                     ),
@@ -218,10 +231,13 @@ class backpack extends Exchange {
                         'api/v1/rfq/refresh' => array( 'cost' => 1 ),
                         'api/v1/rfq/cancel' => array( 'cost' => 1 ),
                         'api/v1/rfq/quote' => array( 'cost' => 1 ),
+                        'api/v1/strategy' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         'api/v1/order' => array( 'cost' => 1 ), // done
                         'api/v1/orders' => array( 'cost' => 1 ), // done
+                        'api/v1/strategy' => array( 'cost' => 1 ),
+                        'api/v1/strategies' => array( 'cost' => 1 ),
                     ),
                     'patch' => array(
                         'api/v1/account' => array( 'cost' => 1 ),
@@ -470,7 +486,7 @@ class backpack extends Exchange {
                     'INSUFFICIENT_SUPPLY' => '\\ccxt\\InsufficientFunds',
                     'INVALID_ASSET' => '\\ccxt\\BadRequest',
                     'INVALID_MARKET' => '\\ccxt\\BadSymbol',
-                    'INVALID_PRICE' => '\\ccxt\\InvalidOrder', // array("code":"INVALID_PRICE","message":"Price is too far from the last active price")
+                    'INVALID_PRICE' => '\\ccxt\\InvalidOrder', // {"code":"INVALID_PRICE","message":"Price is too far from the last active price"}
                     'INVALID_POSITION_ID' => '\\ccxt\\BadRequest',
                     'INVALID_QUANTITY' => '\\ccxt\\BadRequest',
                     'INVALID_RANGE' => '\\ccxt\\BadRequest',
@@ -493,8 +509,8 @@ class backpack extends Exchange {
                     'TRADING_PAUSED' => '\\ccxt\\ExchangeNotAvailable',
                     'UNAUTHORIZED' => '\\ccxt\\AuthenticationError',
                 ),
-                // Bad Request parse request payload error => failed to parse "MarketSymbol" => Invalid market symbol (occurred while parsing "OrderExecutePayload")
-                // failed to parse parameter `interval` => failed to parse "KlineInterval" => Expect a valid enumeration value.
+                // Bad Request parse request payload error: failed to parse "MarketSymbol": Invalid market symbol (occurred while parsing "OrderExecutePayload")
+                // failed to parse parameter `interval`: failed to parse "KlineInterval": Expect a valid enumeration value.
                 'broad' => array(),
             ),
         ));
@@ -515,27 +531,27 @@ class backpack extends Exchange {
          */
         $response = Async\await($this->publicGetApiV1Assets($params));
         //
-        //     array(
+        //     [
         //         {
-        //             "coingeckoId" => "jito-governance-token",
-        //             "displayName" => "Jito",
-        //             "symbol" => "JTO",
-        //             "tokens" => array(
+        //             "coingeckoId": "jito-governance-token",
+        //             "displayName": "Jito",
+        //             "symbol": "JTO",
+        //             "tokens": [
         //                 {
-        //                     "blockchain" => "Solana",
-        //                     "contractAddress" => "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-        //                     "depositEnabled" => true,
-        //                     "displayName" => "Jito",
-        //                     "maximumWithdrawal" => null,
-        //                     "minimumDeposit" => "0.28",
-        //                     "minimumWithdrawal" => "0.58",
-        //                     "withdrawEnabled" => true,
-        //                     "withdrawalFee" => "0.29"
+        //                     "blockchain": "Solana",
+        //                     "contractAddress": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
+        //                     "depositEnabled": true,
+        //                     "displayName": "Jito",
+        //                     "maximumWithdrawal": null,
+        //                     "minimumDeposit": "0.28",
+        //                     "minimumWithdrawal": "0.58",
+        //                     "withdrawEnabled": true,
+        //                     "withdrawalFee": "0.29"
         //                 }
-        //             )
+        //             ]
         //         }
         //         ...
-        //     )
+        //     ]
         //
         return $this->parse_currencies($response);
     }
@@ -576,7 +592,7 @@ class backpack extends Exchange {
         $active = null;
         $deposit = null;
         $withdraw = null;
-        if ($this->is_empty($parsedNetworks)) { // if $networks are not provided
+        if ($this->is_empty($parsedNetworks)) { // if networks are not provided
             $active = false;
             $deposit = false;
             $withdraw = false;
@@ -619,7 +635,7 @@ class backpack extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         $response = Async\await($this->publicGetApiV1Markets($params));
@@ -628,98 +644,101 @@ class backpack extends Exchange {
 
     public function parse_market(array $market): array {
         //
-        //     array(
+        //     [
         //         {
-        //             "baseSymbol" => "SOL",
-        //             "createdAt" => "2025-01-21T06:34:54.691858",
-        //             "filters" => array(
-        //                 "price" => array(
-        //                     "borrowmarketFeeMaxMultiplier" => null,
-        //                     "borrowmarketFeeMinMultiplier" => null,
-        //                     "maxImpactMultiplier" => "1.03",
-        //                     "maxMultiplier" => "1.25",
-        //                     "maxPrice" => null,
-        //                     "meanMarkPriceBand" => array(
-        //                         "maxMultiplier" => "1.15",
-        //                         "minMultiplier" => "0.9"
-        //                     ),
-        //                     "meanPremiumBand" => null,
-        //                     "minImpactMultiplier" => "0.97",
-        //                     "minMultiplier" => "0.75",
-        //                     "minPrice" => "0.01",
-        //                     "tickSize" => "0.01"
-        //                 ),
-        //                 "quantity" => array(
-        //                     "maxQuantity" => null,
-        //                     "minQuantity" => "0.01",
-        //                     "stepSize" => "0.01"
+        //             "baseSymbol": "SOL",
+        //             "createdAt": "2025-01-21T06:34:54.691858",
+        //             "filters": {
+        //                 "price": {
+        //                     "borrowmarketFeeMaxMultiplier": null,
+        //                     "borrowmarketFeeMinMultiplier": null,
+        //                     "maxImpactMultiplier": "1.03",
+        //                     "maxMultiplier": "1.25",
+        //                     "maxPrice": null,
+        //                     "meanMarkPriceBand": {
+        //                         "maxMultiplier": "1.15",
+        //                         "minMultiplier": "0.9"
+        //                     },
+        //                     "meanPremiumBand": null,
+        //                     "minImpactMultiplier": "0.97",
+        //                     "minMultiplier": "0.75",
+        //                     "minPrice": "0.01",
+        //                     "tickSize": "0.01"
+        //                 },
+        //                 "quantity": {
+        //                     "maxQuantity": null,
+        //                     "minQuantity": "0.01",
+        //                     "stepSize": "0.01"
         //                 }
-        //             ),
-        //             "fundingInterval" => 28800000,
-        //             "fundingRateLowerBound" => null,
-        //             "fundingRateUpperBound" => null,
-        //             "imfFunction" => null,
-        //             "marketType" => "SPOT",
-        //             "mmfFunction" => null,
-        //             "openInterestLimit" => "0",
-        //             "orderBookState" => "Open",
-        //             "quoteSymbol" => "USDC",
-        //             "symbol" => "SOL_USDC"
-        //         ),
+        //             },
+        //             "fundingInterval": 28800000,
+        //             "fundingRateLowerBound": null,
+        //             "fundingRateUpperBound": null,
+        //             "imfFunction": null,
+        //             "marketType": "SPOT",
+        //             "mmfFunction": null,
+        //             "openInterestLimit": "0",
+        //             "orderBookState": "Open",
+        //             "quoteSymbol": "USDC",
+        //             "symbol": "SOL_USDC"
+        //         },
         //         {
-        //             "baseSymbol" => "SOL",
-        //             "createdAt" => "2025-01-21T06:34:54.691858",
-        //             "filters" => {
-        //                 "price" => array(
-        //                     "borrowEntryFeeMaxMultiplier" => null,
-        //                     "borrowEntryFeeMinMultiplier" => null,
-        //                     "maxImpactMultiplier" => "1.03",
-        //                     "maxMultiplier" => "1.25",
-        //                     "maxPrice" => "1000",
-        //                     "meanMarkPriceBand" => array(
-        //                         "maxMultiplier" => "1.1",
-        //                         "minMultiplier" => "0.9"
-        //                     ),
-        //                     "meanPremiumBand" => array(
-        //                         "tolerancePct" => "0.05"
-        //                     ),
-        //                     "minImpactMultiplier" => "0.97",
-        //                     "minMultiplier" => "0.75",
-        //                     "minPrice" => "0.01",
-        //                     "tickSize" => "0.01"
-        //                 ),
-        //                 "quantity" => array(
-        //                     "maxQuantity" => null,
-        //                     "minQuantity" => "0.01",
-        //                     "stepSize" => "0.01"
+        //             "baseSymbol": "SOL",
+        //             "createdAt": "2025-01-21T06:34:54.691858",
+        //             "filters": {
+        //                 "price": {
+        //                     "borrowEntryFeeMaxMultiplier": null,
+        //                     "borrowEntryFeeMinMultiplier": null,
+        //                     "maxImpactMultiplier": "1.03",
+        //                     "maxMultiplier": "1.25",
+        //                     "maxPrice": "1000",
+        //                     "meanMarkPriceBand": {
+        //                         "maxMultiplier": "1.1",
+        //                         "minMultiplier": "0.9"
+        //                     },
+        //                     "meanPremiumBand": {
+        //                         "tolerancePct": "0.05"
+        //                     },
+        //                     "minImpactMultiplier": "0.97",
+        //                     "minMultiplier": "0.75",
+        //                     "minPrice": "0.01",
+        //                     "tickSize": "0.01"
+        //                 },
+        //                 "quantity": {
+        //                     "maxQuantity": null,
+        //                     "minQuantity": "0.01",
+        //                     "stepSize": "0.01"
         //                 }
-        //             ),
-        //             "fundingInterval" => "28800000",
-        //             "fundingRateLowerBound" => "-100",
-        //             "fundingRateUpperBound" => "100",
-        //             "imfFunction" => array(
-        //                 "base" => "0.02",
-        //                 "factor" => "0.0001275",
-        //                 "type" => "sqrt"
-        //             ),
-        //             "marketType" => "PERP",
-        //             "mmfFunction" => array(
-        //                 "base" => "0.0125",
-        //                 "factor" => "0.0000765",
-        //                 "type" => "sqrt"
-        //             ),
-        //             "openInterestLimit" => "4000000",
-        //             "orderBookState" => "Open",
-        //             "quoteSymbol" => "USDC",
-        //             "symbol" => "SOL_USDC_PERP"
+        //             },
+        //             "fundingInterval": "28800000",
+        //             "fundingRateLowerBound": "-100",
+        //             "fundingRateUpperBound": "100",
+        //             "imfFunction": {
+        //                 "base": "0.02",
+        //                 "factor": "0.0001275",
+        //                 "type": "sqrt"
+        //             },
+        //             "marketType": "PERP",
+        //             "mmfFunction": {
+        //                 "base": "0.0125",
+        //                 "factor": "0.0000765",
+        //                 "type": "sqrt"
+        //             },
+        //             "openInterestLimit": "4000000",
+        //             "orderBookState": "Open",
+        //             "quoteSymbol": "USDC",
+        //             "symbol": "SOL_USDC_PERP"
         //         }
-        //     )
+        //     ]
         //
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'baseSymbol');
         $quoteId = $this->safe_string($market, 'quoteSymbol');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $filters = $this->safe_dict($market, 'filters', array());
         $priceFilter = $this->safe_dict($filters, 'price', array());
@@ -802,15 +821,15 @@ class backpack extends Exchange {
         ));
     }
 
-    public function parse_market_type(mixed $type) {
+    public function parse_market_type(?string $type): ?string {
         $types = array(
             'SPOT' => 'spot',
             'PERP' => 'swap',
-            // current $types are described in the docs, but the exchange returns only 'SPOT' and 'PERP'
-            // 'IPERP' => 'swap',
-            // 'DATED' => 'swap',
-            // 'PREDICTION' => 'swap',
-            // 'RFQ' => 'swap',
+            // current types are described in the docs, but the exchange returns only 'SPOT' and 'PERP'
+            // 'IPERP': 'swap',
+            // 'DATED': 'swap',
+            // 'PREDICTION': 'swap',
+            // 'RFQ': 'swap',
         );
         return $this->safe_string($types, $type, $type);
     }
@@ -867,22 +886,22 @@ class backpack extends Exchange {
         //
         // fetchTicker/fetchTickers
         //
-        //     array(
-        //         "firstPrice" => "327.38",
-        //         "high" => "337.99",
-        //         "lastPrice" => "317.14",
-        //         "low" => "300.01",
-        //         "priceChange" => "-10.24",
-        //         "priceChangePercent" => "-0.031279",
-        //         "quoteVolume" => "21584.32278",
-        //         "symbol" => "AAVE_USDC",
-        //         "trades" => "245",
-        //         "volume" => "65.823"
-        //     ), ...
+        //     {
+        //         "firstPrice": "327.38",
+        //         "high": "337.99",
+        //         "lastPrice": "317.14",
+        //         "low": "300.01",
+        //         "priceChange": "-10.24",
+        //         "priceChangePercent": "-0.031279",
+        //         "quoteVolume": "21584.32278",
+        //         "symbol": "AAVE_USDC",
+        //         "trades": "245",
+        //         "volume": "65.823"
+        //     }, ...
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $open = $this->safe_string($ticker, 'firstPrice');
         $last = $this->safe_string($ticker, 'lastPrice');
         $high = $this->safe_string($ticker, 'high');
@@ -919,7 +938,7 @@ class backpack extends Exchange {
             'markPrice' => null,
             'indexPrice' => null,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
         return $parsedTicker;
     }
 
@@ -948,14 +967,14 @@ class backpack extends Exchange {
         $response = Async\await($this->publicGetApiV1Depth($this->extend($request, $params)));
         //
         //     {
-        //         "asks" => array(
+        //         "asks": [
         //             ["118318.3","0.00633"],
         //             ["118567.2","0.08450"]
-        //         ),
-        //         "bids" => array(
+        //         ],
+        //         "bids": [
         //             ["1.0","0.38647"],
         //             ["12.9","1.00000"]
-        //         ),
+        //         ],
         //         "lastUpdateId":"1504999670",
         //         "timestamp":1753102447307501
         //     }
@@ -985,60 +1004,68 @@ class backpack extends Exchange {
          * @param {int} [$since] timestamp in seconds of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch (default 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $duration = $this->parse_timeframe($timeframe);
         $request = array(
             'symbol' => $market['id'],
             'interval' => $interval,
         );
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'until');
         if ($until !== null) {
             $request['endTime'] = $this->parse_to_int($until / 1000); // convert milliseconds to seconds
         }
         $defaultLimit = 100;
+        $limitResolved = $limit;
+        if (($since === null) && ($limit === null)) {
+            $limitResolved = $defaultLimit;
+        }
         if ($since === null) {
-            if ($limit === null) {
-                $limit = $defaultLimit;
-            }
-            $duration = $this->parse_timeframe($timeframe);
             $endTime = ($until !== null && $until !== null && $until !== 0) ? $this->parse_to_int($until / 1000) : $this->seconds();
-            $startTime = $endTime - ($limit * $duration);
+            $windowLimit = ($limit === null) ? $defaultLimit : $limit;
+            $startTime = $endTime - ($windowLimit * $duration);
             $request['startTime'] = $startTime;
         } else {
             $request['startTime'] = $this->parse_to_int($since / 1000); // convert milliseconds to seconds
         }
-        $price = $this->safe_string($params, 'price');
+        if ($until === null) {
+            $currentMs = $this->seconds(); // default to current time in seconds
+            $windowLimit = ($limit === null) ? $defaultLimit : $limit;
+            $windowEnd = $this->sum($request['startTime'], $windowLimit * $duration); // sum (): `+` on a dict value is string concatenation in php
+            $minTimestamp = min($currentMs, $windowEnd);
+            $request['endTime'] = $this->parse_to_int($minTimestamp); // default to current time in seconds if until is not specified
+        }
+        $price = $this->safe_string($paramsUntil, 'price');
+        $paramsOmitted = ($price !== null) ? $this->omit($paramsUntil, 'price') : $paramsUntil;
         if ($price !== null) {
             $request['priceType'] = $this->capitalize($price);
-            $params = $this->omit($params, 'price');
         }
-        $response = Async\await($this->publicGetApiV1Klines($this->extend($request, $params)));
+        $response = Async\await($this->publicGetApiV1Klines($this->extend($request, $paramsOmitted)));
         $ohlcvs = $this->to_array($response);
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limitResolved);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
-        //         array(
-        //             "close" => "118294.6",
-        //             "end" => "2025-07-19 13:12:00",
-        //             "high" => "118297.6",
-        //             "low" => "118237.5",
-        //             "open" => "118238",
-        //             "quoteVolume" => "4106.558156",
-        //             "start" => "2025-07-19 13:09:00",
-        //             "trades" => "12",
-        //             "volume" => "0.03473"
-        //         ),
+        //     [
+        //         {
+        //             "close": "118294.6",
+        //             "end": "2025-07-19 13:12:00",
+        //             "high": "118297.6",
+        //             "low": "118237.5",
+        //             "open": "118238",
+        //             "quoteVolume": "4106.558156",
+        //             "start": "2025-07-19 13:09:00",
+        //             "trades": "12",
+        //             "volume": "0.03473"
+        //         },
         //         ...
-        //     )
+        //     ]
         //
         return array(
             $this->parse8601($this->safe_string($ohlcv, 'start')),
@@ -1069,7 +1096,7 @@ class backpack extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['spot'] === true) {
-            throw new BadRequest($this->id . ' fetchFundingRate() $symbol does not support $market ' . $symbol);
+            throw new BadRequest($this->id . ' fetchFundingRate() symbol does not support market ' . $symbol);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1082,16 +1109,16 @@ class backpack extends Exchange {
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
-        //         "fundingRate" => "0.0001",
-        //         "indexPrice" => "118333.18643195",
-        //         "markPrice" => "118343.51853741",
-        //         "nextFundingTimestamp" => 1753113600000,
-        //         "symbol" => "BTC_USDC_PERP"
+        //         "fundingRate": "0.0001",
+        //         "indexPrice": "118333.18643195",
+        //         "markPrice": "118343.51853741",
+        //         "nextFundingTimestamp": 1753113600000,
+        //         "symbol": "BTC_USDC_PERP"
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $nextFundingTimestamp = $this->safe_integer($contract, 'nextFundingTimestamp');
         return array(
             'info' => $contract,
@@ -1115,7 +1142,7 @@ class backpack extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -1134,7 +1161,7 @@ class backpack extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['spot'] === true) {
-            throw new BadRequest($this->id . ' fetchOpenInterest() $symbol does not support $market ' . $symbol);
+            throw new BadRequest($this->id . ' fetchOpenInterest() symbol does not support market ' . $symbol);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1144,15 +1171,15 @@ class backpack extends Exchange {
         return $this->parse_open_interest($interest, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         {
-        //             "openInterest" => "1273.85214",
-        //             "symbol" => "BTC_USDC_PERP",
+        //             "openInterest": "1273.85214",
+        //             "symbol": "BTC_USDC_PERP",
         //             "timestamp":1753105735301
         //         }
-        //     )
+        //     ]
         //
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $openInterest = $this->safe_number($interest, 'openInterest');
@@ -1183,7 +1210,7 @@ class backpack extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1197,13 +1224,13 @@ class backpack extends Exchange {
         }
         $response = Async\await($this->publicGetApiV1FundingRates($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "fundingRate" => "0.0001",
-        //             "intervalEndTimestamp" => "2025-07-22T00:00:00",
-        //             "symbol" => "BTC_USDC_PERP"
+        //             "fundingRate": "0.0001",
+        //             "intervalEndTimestamp": "2025-07-22T00:00:00",
+        //             "symbol": "BTC_USDC_PERP"
         //         }
-        //     )
+        //     ]
         //
         $rates = array();
         $rawRates = $this->to_array($response);
@@ -1220,7 +1247,7 @@ class backpack extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1262,7 +1289,7 @@ class backpack extends Exchange {
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1296,15 +1323,15 @@ class backpack extends Exchange {
             $request['limit'] = $limit;
         }
         $until = $this->safe_integer($params, 'until');
+        $paramsOmitted = ($until !== null) ? $this->omit($params, array( 'until' )) : $params;
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until' ));
             $request['to'] = $until;
         }
-        $fillType = $this->safe_string($params, 'fillType');
+        $fillType = $this->safe_string($paramsOmitted, 'fillType');
         if ($fillType === null) {
             $request['fillType'] = 'User'; // default
         }
-        $response = Async\await($this->privateGetWapiV1HistoryFills($this->extend($request, $params)));
+        $response = Async\await($this->privateGetWapiV1HistoryFills($this->extend($request, $paramsOmitted)));
         $responseList = $this->to_array($response);
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
@@ -1313,33 +1340,33 @@ class backpack extends Exchange {
         //
         // fetchTrades
         //     {
-        //         "id" => 8721563,
-        //         "isBuyerMaker" => false,
-        //         "price" => "117427.6",
-        //         "quantity" => "0.00016",
-        //         "quoteQuantity" => "18.788416",
-        //         "timestamp" => 1753123916819
+        //         "id": 8721563,
+        //         "isBuyerMaker": false,
+        //         "price": "117427.6",
+        //         "quantity": "0.00016",
+        //         "quoteQuantity": "18.788416",
+        //         "timestamp": 1753123916819
         //     }
         //
         // fetchMyTrades
         //     {
-        //         "clientId" => null,
-        //         "fee" => "0.004974",
-        //         "feeSymbol" => "USDC",
-        //         "isMaker" => false,
-        //         "orderId" => "4238907375",
-        //         "price" => "3826.15",
-        //         "quantity" => "0.0026",
-        //         "side" => "Bid",
-        //         "symbol" => "ETH_USDC_PERP",
-        //         "systemOrderType" => null,
-        //         "timestamp" => "2025-07-27T17:39:00.092",
-        //         "tradeId" => 9748827
+        //         "clientId": null,
+        //         "fee": "0.004974",
+        //         "feeSymbol": "USDC",
+        //         "isMaker": false,
+        //         "orderId": "4238907375",
+        //         "price": "3826.15",
+        //         "quantity": "0.0026",
+        //         "side": "Bid",
+        //         "symbol": "ETH_USDC_PERP",
+        //         "systemOrderType": null,
+        //         "timestamp": "2025-07-27T17:39:00.092",
+        //         "tradeId": 9748827
         //     }
         //
         $id = $this->safe_string_2($trade, 'id', 'tradeId');
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'quantity');
         $isBuyerMaker = $this->safe_bool($trade, 'isBuyerMaker');
@@ -1373,7 +1400,7 @@ class backpack extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'id' => $id,
             'order' => $orderId,
             'type' => null,
@@ -1383,7 +1410,7 @@ class backpack extends Exchange {
             'amount' => $amount,
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_status($params = array()): PromiseInterface {
@@ -1462,10 +1489,10 @@ class backpack extends Exchange {
     public function parse_balance(mixed $response): array {
         //
         //     {
-        //         "USDC" => {
-        //             "available" => "120",
-        //             "locked" => "0",
-        //             "staked" => "0"
+        //         "USDC": {
+        //             "available": "120",
+        //             "locked": "0",
+        //             "staked": "0"
         //         }
         //     }
         //
@@ -1474,7 +1501,7 @@ class backpack extends Exchange {
         for ($i = 0; $i < count($balanceKeys); $i++) {
             $id = $balanceKeys[$i];
             $code = $this->safe_currency_code($id);
-            $balance = $response[$id];
+            $balance = $this->safe_dict($response, $id);
             $account = $this->account();
             $locked = $this->safe_string($balance, 'locked');
             $staked = $this->safe_string($balance, 'staked');
@@ -1520,12 +1547,11 @@ class backpack extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchDeposits', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = Async\await($this->privateGetWapiV1CapitalDeposits($this->extend($request, $params)));
+        $response = Async\await($this->privateGetWapiV1CapitalDeposits($this->extend($request, $paramsUntil)));
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -1560,12 +1586,11 @@ class backpack extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchWithdrawals', 'until');
         if ($until !== null) {
             $request['to'] = $until;
         }
-        $response = Async\await($this->privateGetWapiV1CapitalWithdrawals($this->extend($request, $params)));
+        $response = Async\await($this->privateGetWapiV1CapitalWithdrawals($this->extend($request, $paramsUntil)));
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -1597,10 +1622,10 @@ class backpack extends Exchange {
             'address' => $address,
         );
         if ($tag !== null) {
-            $request['clientId'] = $tag; // memo or $tag
+            $request['clientId'] = $tag; // memo or tag
         }
         list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
+        $networkId = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() requires a network parameter');
         }
@@ -1609,78 +1634,78 @@ class backpack extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction(mixed $transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
-        //     array(
+        //     [
         //         {
-        //             "createdAt" => "2025-07-23T13:55:54.267",
-        //             "fiatAmount" => null,
-        //             "fiatCurrency" => null,
-        //             "fromAddress" => "0x2e3ab3e88a7dbdc763aadf5b28c18fb085af420a",
-        //             "id" => 6695353,
-        //             "institutionBic" => null,
-        //             "platformMemo" => null,
-        //             "quantity" => "120",
-        //             "source" => "ethereum",
-        //             "status" => "confirmed",
-        //             "symbol" => "USDC",
-        //             "toAddress" => "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170",
-        //             "transactionHash" => "0x58edaac415398d617b34c6673fffcaf0024990d5700565030119db5cbf3765d1"
+        //             "createdAt": "2025-07-23T13:55:54.267",
+        //             "fiatAmount": null,
+        //             "fiatCurrency": null,
+        //             "fromAddress": "0x2e3ab3e88a7dbdc763aadf5b28c18fb085af420a",
+        //             "id": 6695353,
+        //             "institutionBic": null,
+        //             "platformMemo": null,
+        //             "quantity": "120",
+        //             "source": "ethereum",
+        //             "status": "confirmed",
+        //             "symbol": "USDC",
+        //             "toAddress": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170",
+        //             "transactionHash": "0x58edaac415398d617b34c6673fffcaf0024990d5700565030119db5cbf3765d1"
         //         }
-        //     )
+        //     ]
         //
         // withdraw
         //     {
-        //         "accountIdentifier" => null,
-        //         "bankIdentifier" => null,
-        //         "bankName" => null,
-        //         "blockchain" => "Ethereum",
-        //         "clientId" => null,
-        //         "createdAt" => "2025-08-13T19:27:13.817",
-        //         "fee" => "3",
-        //         "fiatFee" => null,
-        //         "fiatState" => null,
-        //         "fiatSymbol" => null,
-        //         "id" => 5479929,
-        //         "identifier" => null,
-        //         "isInternal" => false,
-        //         "providerId" => null,
-        //         "quantity" => "10",
-        //         "status" => "pending",
-        //         "subaccountId" => null,
-        //         "symbol" => "USDC",
-        //         "toAddress" => "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749",
-        //         "transactionHash" => null,
-        //         "triggerAt" => null
+        //         "accountIdentifier": null,
+        //         "bankIdentifier": null,
+        //         "bankName": null,
+        //         "blockchain": "Ethereum",
+        //         "clientId": null,
+        //         "createdAt": "2025-08-13T19:27:13.817",
+        //         "fee": "3",
+        //         "fiatFee": null,
+        //         "fiatState": null,
+        //         "fiatSymbol": null,
+        //         "id": 5479929,
+        //         "identifier": null,
+        //         "isInternal": false,
+        //         "providerId": null,
+        //         "quantity": "10",
+        //         "status": "pending",
+        //         "subaccountId": null,
+        //         "symbol": "USDC",
+        //         "toAddress": "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749",
+        //         "transactionHash": null,
+        //         "triggerAt": null
         //     }
         //
         // fetchWithdrawals
-        //     array(
+        //     [
         //         {
-        //             "accountIdentifier" => null,
-        //             "bankIdentifier" => null,
-        //             "bankName" => null,
-        //             "blockchain" => "Ethereum",
-        //             "clientId" => null,
-        //             "createdAt" => "2025-08-13T19:27:13.817",
-        //             "fee" => "3",
-        //             "fiatFee" => null,
-        //             "fiatState" => null,
-        //             "fiatSymbol" => null,
-        //             "id" => 5479929,
-        //             "identifier" => null,
-        //             "isInternal" => false,
-        //             "providerId" => null,
-        //             "quantity" => "10",
-        //             "status" => "confirmed",
-        //             "subaccountId" => null,
-        //             "symbol" => "USDC",
-        //             "toAddress" => "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749",
-        //             "transactionHash" => "0x658b6d082af4afa0d3cf85caf344ff7c19d980117726bf193b00d8850f8746a1",
-        //             "triggerAt" => null
+        //             "accountIdentifier": null,
+        //             "bankIdentifier": null,
+        //             "bankName": null,
+        //             "blockchain": "Ethereum",
+        //             "clientId": null,
+        //             "createdAt": "2025-08-13T19:27:13.817",
+        //             "fee": "3",
+        //             "fiatFee": null,
+        //             "fiatState": null,
+        //             "fiatSymbol": null,
+        //             "id": 5479929,
+        //             "identifier": null,
+        //             "isInternal": false,
+        //             "providerId": null,
+        //             "quantity": "10",
+        //             "status": "confirmed",
+        //             "subaccountId": null,
+        //             "symbol": "USDC",
+        //             "toAddress": "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749",
+        //             "transactionHash": "0x658b6d082af4afa0d3cf85caf344ff7c19d980117726bf193b00d8850f8746a1",
+        //             "triggerAt": null
         //         }
-        //     )
+        //     ]
         //
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $id = $this->safe_string($transaction, 'id');
@@ -1759,31 +1784,30 @@ class backpack extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes');
         }
         $currency = $this->currency($code);
         $request = array(
-            'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
+            'blockchain' => $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')),
         );
-        $response = Async\await($this->privateGetWapiV1CapitalDepositAddress($this->extend($request, $params)));
+        $response = Async\await($this->privateGetWapiV1CapitalDepositAddress($this->extend($request, $paramsNetworkCode)));
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
-        //         "address" => "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
+        //         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'currency');
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         return array(
             'info' => $depositAddress,
-            'currency' => $currency['code'],
+            'currency' => $currencyResolved['code'],
             'network' => null, // network is not returned by the API
             'address' => $address,
             'tag' => null,
@@ -1834,7 +1858,7 @@ class backpack extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -1853,14 +1877,14 @@ class backpack extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_number($rawOrder, 'amount');
             $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
             $ordersRequests[] = $orderRequest;
         }
@@ -1868,12 +1892,12 @@ class backpack extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1883,7 +1907,11 @@ class backpack extends Exchange {
         );
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
         $isTriggerOrder = $triggerPrice !== null;
-        $quantityKey = $isTriggerOrder ? 'triggerQuantity' : 'quantity';
+        $quantityKey = 'quantity';
+        if ($isTriggerOrder) {
+            $quantityKey = 'triggerQuantity';
+        }
+        $omitKeys = array();
         // handle basic limit/market order types
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1892,7 +1920,8 @@ class backpack extends Exchange {
             $cost = $this->safe_string_2($params, 'cost', 'quoteQuantity');
             if ($cost !== null) {
                 $request['quoteQuantity'] = $this->cost_to_precision($symbol, $cost);
-                $params = $this->omit($params, array( 'cost', 'quoteQuantity' ));
+                $omitKeys[] = 'cost';
+                $omitKeys[] = 'quoteQuantity';
             } else {
                 $request[$quantityKey] = $this->amount_to_precision($symbol, $amount);
             }
@@ -1900,19 +1929,19 @@ class backpack extends Exchange {
         // trigger orders
         if ($isTriggerOrder) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            $params = $this->omit($params, 'triggerPrice');
+            $omitKeys[] = 'triggerPrice';
         }
         $clientOrderId = $this->safe_integer($params, 'clientOrderId'); // the exchange requires uint
         if ($clientOrderId !== null) {
             $request['clientId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
+            $omitKeys[] = 'clientOrderId';
         }
-        $postOnly = false;
-        list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
+        list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $this->omit($params, $omitKeys));
         if ($postOnly) {
-            $params['postOnly'] = true;
+            $paramsPostOnly['postOnly'] = true;
         }
-        $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $bracketKeys = array();
+        $takeProfit = $this->safe_dict($paramsPostOnly, 'takeProfit');
         if ($takeProfit !== null) {
             $takeProfitTriggerPrice = $this->safe_string($takeProfit, 'triggerPrice');
             if ($takeProfitTriggerPrice !== null) {
@@ -1922,9 +1951,9 @@ class backpack extends Exchange {
             if ($takeProfitPrice !== null) {
                 $request['takeProfitLimitPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
             }
-            $params = $this->omit($params, 'takeProfit');
+            $bracketKeys[] = 'takeProfit';
         }
-        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $stopLoss = $this->safe_dict($paramsPostOnly, 'stopLoss');
         if ($stopLoss !== null) {
             $stopLossTriggerPrice = $this->safe_string($stopLoss, 'triggerPrice');
             if ($stopLossTriggerPrice !== null) {
@@ -1934,10 +1963,9 @@ class backpack extends Exchange {
             if ($stopLossPrice !== null) {
                 $request['stopLossLimitPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
             }
-            $params = $this->omit($params, 'stopLoss');
+            $bracketKeys[] = 'stopLoss';
         }
-        $selfTradePrevention = null;
-        list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
+        list($selfTradePrevention, $paramsSelfTradePrevention) = $this->handle_option_string_and_params($this->omit($paramsPostOnly, $bracketKeys), 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
             if ($selfTradePrevention === 'EXPIRE_MAKER') {
                 $request['selfTradePrevention'] = 'RejectMaker';
@@ -1947,10 +1975,10 @@ class backpack extends Exchange {
                 $request['selfTradePrevention'] = 'RejectBoth';
             }
         }
-        return $this->extend($request, $params);
+        return $this->extend($request, $paramsSelfTradePrevention);
     }
 
-    public function encode_order_side(mixed $side) {
+    public function encode_order_side(?string $side): ?string {
         $sides = array(
             'buy' => 'Bid',
             'sell' => 'Ask',
@@ -1958,7 +1986,7 @@ class backpack extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -2006,7 +2034,7 @@ class backpack extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -2017,7 +2045,7 @@ class backpack extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2036,7 +2064,7 @@ class backpack extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -2047,7 +2075,7 @@ class backpack extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -2065,7 +2093,7 @@ class backpack extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -2110,94 +2138,94 @@ class backpack extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "clientId" => null,
-        //         "createdAt" => 1753624283415,
-        //         "executedQuantity" => "0.001",
-        //         "executedQuoteQuantity" => "3.81428",
-        //         "id" => "4227701917",
-        //         "orderType" => "Market",
-        //         "quantity" => "0.001",
-        //         "quoteQuantity" => "3.82",
-        //         "reduceOnly" => null,
-        //         "relatedOrderId" => null,
-        //         "selfTradePrevention" => "RejectTaker",
-        //         "side" => "Bid",
-        //         "status" => "Filled",
-        //         "stopLossLimitPrice" => null,
-        //         "stopLossTriggerBy" => null,
-        //         "stopLossTriggerPrice" => null,
-        //         "strategyId" => null,
-        //         "symbol" => "ETH_USDC",
-        //         "takeProfitLimitPrice" => null,
-        //         "takeProfitTriggerBy" => null,
-        //         "takeProfitTriggerPrice" => null,
-        //         "timeInForce" => "GTC",
-        //         "triggerBy" => null,
-        //         "triggerPrice" => null,
-        //         "triggerQuantity" => null,
-        //         "triggeredAt" => null
+        //         "clientId": null,
+        //         "createdAt": 1753624283415,
+        //         "executedQuantity": "0.001",
+        //         "executedQuoteQuantity": "3.81428",
+        //         "id": "4227701917",
+        //         "orderType": "Market",
+        //         "quantity": "0.001",
+        //         "quoteQuantity": "3.82",
+        //         "reduceOnly": null,
+        //         "relatedOrderId": null,
+        //         "selfTradePrevention": "RejectTaker",
+        //         "side": "Bid",
+        //         "status": "Filled",
+        //         "stopLossLimitPrice": null,
+        //         "stopLossTriggerBy": null,
+        //         "stopLossTriggerPrice": null,
+        //         "strategyId": null,
+        //         "symbol": "ETH_USDC",
+        //         "takeProfitLimitPrice": null,
+        //         "takeProfitTriggerBy": null,
+        //         "takeProfitTriggerPrice": null,
+        //         "timeInForce": "GTC",
+        //         "triggerBy": null,
+        //         "triggerPrice": null,
+        //         "triggerQuantity": null,
+        //         "triggeredAt": null
         //     }
         //
         // fetchOpenOrders
         //     {
-        //         "clientId" => 123456789,
-        //         "createdAt" => 1753626206762,
-        //         "executedQuantity" => "0",
-        //         "executedQuoteQuantity" => "0",
-        //         "id" => "4228978331",
-        //         "orderType" => "Limit",
-        //         "postOnly" => true,
-        //         "price" => "3000",
-        //         "quantity" => "0.001",
-        //         "reduceOnly" => null,
-        //         "relatedOrderId" => null,
-        //         "selfTradePrevention" => "RejectTaker",
-        //         "side" => "Bid",
-        //         "status" => "New",
-        //         "stopLossLimitPrice" => null,
-        //         "stopLossTriggerBy" => null,
-        //         "stopLossTriggerPrice" => null,
-        //         "strategyId" => null,
-        //         "symbol" => "ETH_USDC",
-        //         "takeProfitLimitPrice" => null,
-        //         "takeProfitTriggerBy" => null,
-        //         "takeProfitTriggerPrice" => null,
-        //         "timeInForce" => "GTC",
-        //         "triggerBy" => null,
-        //         "triggerPrice" => null,
-        //         "triggerQuantity" => null,
-        //         "triggeredAt" => null
+        //         "clientId": 123456789,
+        //         "createdAt": 1753626206762,
+        //         "executedQuantity": "0",
+        //         "executedQuoteQuantity": "0",
+        //         "id": "4228978331",
+        //         "orderType": "Limit",
+        //         "postOnly": true,
+        //         "price": "3000",
+        //         "quantity": "0.001",
+        //         "reduceOnly": null,
+        //         "relatedOrderId": null,
+        //         "selfTradePrevention": "RejectTaker",
+        //         "side": "Bid",
+        //         "status": "New",
+        //         "stopLossLimitPrice": null,
+        //         "stopLossTriggerBy": null,
+        //         "stopLossTriggerPrice": null,
+        //         "strategyId": null,
+        //         "symbol": "ETH_USDC",
+        //         "takeProfitLimitPrice": null,
+        //         "takeProfitTriggerBy": null,
+        //         "takeProfitTriggerPrice": null,
+        //         "timeInForce": "GTC",
+        //         "triggerBy": null,
+        //         "triggerPrice": null,
+        //         "triggerQuantity": null,
+        //         "triggeredAt": null
         //     }
         //
         // fetchOrders
         //     {
-        //         "clientId" => null,
-        //         "createdAt" => "2025-07-27T18:05:40.897",
-        //         "executedQuantity" => "0",
-        //         "executedQuoteQuantity" => "0",
-        //         "expiryReason" => null,
-        //         "id" => "4239996998",
-        //         "orderType" => "Limit",
-        //         "postOnly" => false,
-        //         "price" => "4500",
-        //         "quantity" => null,
-        //         "quoteQuantity" => null,
-        //         "selfTradePrevention" => "RejectTaker",
-        //         "side" => "Ask",
-        //         "status" => "Cancelled",
-        //         "stopLossLimitPrice" => null,
-        //         "stopLossTriggerBy" => null,
-        //         "stopLossTriggerPrice" => null,
-        //         "strategyId" => null,
-        //         "symbol" => "ETH_USDC",
-        //         "systemOrderType" => null,
-        //         "takeProfitLimitPrice" => null,
-        //         "takeProfitTriggerBy" => null,
-        //         "takeProfitTriggerPrice" => null,
-        //         "timeInForce" => "GTC",
-        //         "triggerBy" => null,
-        //         "triggerPrice" => "4300",
-        //         "triggerQuantity" => "0.001"
+        //         "clientId": null,
+        //         "createdAt": "2025-07-27T18:05:40.897",
+        //         "executedQuantity": "0",
+        //         "executedQuoteQuantity": "0",
+        //         "expiryReason": null,
+        //         "id": "4239996998",
+        //         "orderType": "Limit",
+        //         "postOnly": false,
+        //         "price": "4500",
+        //         "quantity": null,
+        //         "quoteQuantity": null,
+        //         "selfTradePrevention": "RejectTaker",
+        //         "side": "Ask",
+        //         "status": "Cancelled",
+        //         "stopLossLimitPrice": null,
+        //         "stopLossTriggerBy": null,
+        //         "stopLossTriggerPrice": null,
+        //         "strategyId": null,
+        //         "symbol": "ETH_USDC",
+        //         "systemOrderType": null,
+        //         "takeProfitLimitPrice": null,
+        //         "takeProfitTriggerBy": null,
+        //         "takeProfitTriggerPrice": null,
+        //         "timeInForce": "GTC",
+        //         "triggerBy": null,
+        //         "triggerPrice": "4300",
+        //         "triggerQuantity": "0.001"
         //     }
         //
         $timestamp = $this->safe_integer($order, 'createdAt');
@@ -2292,49 +2320,49 @@ class backpack extends Exchange {
         if ($this->is_empty($symbols)) {
             return $positions;
         }
-        $symbols = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($positions, 'symbol', $symbols, false);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        return $this->filter_by_array_positions($positions, 'symbol', $symbolsNormalized);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // fetchPositions
         //     {
-        //         "breakEvenPrice" => "3831.3630555555555555555555556",
-        //         "cumulativeFundingPayment" => "-0.009218",
-        //         "cumulativeInterest" => "0",
-        //         "entryPrice" => "3826.8888888888888888888888889",
-        //         "estLiquidationPrice" => "0",
-        //         "imf" => "0.02",
-        //         "imfFunction" => array(
-        //             "base" => "0.02",
-        //             "factor" => "0.0000935",
-        //             "type" => "sqrt"
-        //         ),
-        //         "markPrice" => "3787.46813304",
-        //         "mmf" => "0.0125",
-        //         "mmfFunction" => array(
-        //             "base" => "0.0125",
-        //             "factor" => "0.0000561",
-        //             "type" => "sqrt"
-        //         ),
-        //         "netCost" => "13.7768",
-        //         "netExposureNotional" => "13.634885278944",
-        //         "netExposureQuantity" => "0.0036",
-        //         "netQuantity" => "0.0036",
-        //         "pnlRealized" => "0",
-        //         "pnlUnrealized" => "-0.141914",
-        //         "positionId" => "4238420454",
-        //         "subaccountId" => null,
-        //         "symbol" => "ETH_USDC_PERP",
+        //         "breakEvenPrice": "3831.3630555555555555555555556",
+        //         "cumulativeFundingPayment": "-0.009218",
+        //         "cumulativeInterest": "0",
+        //         "entryPrice": "3826.8888888888888888888888889",
+        //         "estLiquidationPrice": "0",
+        //         "imf": "0.02",
+        //         "imfFunction": {
+        //             "base": "0.02",
+        //             "factor": "0.0000935",
+        //             "type": "sqrt"
+        //         },
+        //         "markPrice": "3787.46813304",
+        //         "mmf": "0.0125",
+        //         "mmfFunction": {
+        //             "base": "0.0125",
+        //             "factor": "0.0000561",
+        //             "type": "sqrt"
+        //         },
+        //         "netCost": "13.7768",
+        //         "netExposureNotional": "13.634885278944",
+        //         "netExposureQuantity": "0.0036",
+        //         "netQuantity": "0.0036",
+        //         "pnlRealized": "0",
+        //         "pnlUnrealized": "-0.141914",
+        //         "positionId": "4238420454",
+        //         "subaccountId": null,
+        //         "symbol": "ETH_USDC_PERP",
         //         "userId":1813870
         //     }
         //
         //
         $id = $this->safe_string($position, 'positionId');
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $entryPrice = $this->safe_string($position, 'entryPrice');
         $markPrice = $this->safe_string($position, 'markPrice');
         $netCost = $this->safe_string($position, 'netCost');
@@ -2382,7 +2410,7 @@ class backpack extends Exchange {
         ));
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -2415,15 +2443,15 @@ class backpack extends Exchange {
         return $this->parse_incomes($response, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         //     {
-        //         "fundingRate" => "0.0001",
-        //         "intervalEndTimestamp" => "2025-08-01T16:00:00",
-        //         "quantity" => "-0.001301",
-        //         "subaccountId" => 0,
-        //         "symbol" => "ETH_USDC_PERP",
-        //         "userId" => 1813870
+        //         "fundingRate": "0.0001",
+        //         "intervalEndTimestamp": "2025-08-01T16:00:00",
+        //         "quantity": "-0.001301",
+        //         "subaccountId": 0,
+        //         "symbol": "ETH_USDC_PERP",
+        //         "userId": 1813870
         //     }
         //
         $marketId = $this->safe_string($income, 'symbol');
@@ -2444,14 +2472,24 @@ class backpack extends Exchange {
         );
     }
 
-    public function nonce() {
-        return $this->milliseconds() - $this->options['timeDifference'];
+    public function nonce(): float {
+        $timeDifference = $this->safe_integer($this->options, 'timeDifference');
+        if ($timeDifference === null) {
+            throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = '/' . $path;
-        $url = $this->urls['api'][$api];
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl;
         $sortedParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->keysort($params);
+        $headersSigned = null;
+        $bodySigned = null;
         if ($api === 'private') {
             $this->check_required_credentials();
             $ts = (string) $this->nonce();
@@ -2472,7 +2510,7 @@ class backpack extends Exchange {
             $secretBytes = base64_decode($this->secret);
             $seed = $this->array_slice($secretBytes, 0, 32);
             $signature = $this->eddsa($this->encode($payload), $seed, 'ed25519');
-            $headers = array(
+            $headersSigned = array(
                 'X-Timestamp' => $ts,
                 'X-Window' => $recvWindow,
                 'X-API-Key' => $this->apiKey,
@@ -2480,8 +2518,8 @@ class backpack extends Exchange {
                 'X-Broker-Id' => '1400',
             );
             if ($method !== 'GET') {
-                $body = $this->json($sortedParams);
-                $headers['Content-Type'] = 'application/json';
+                $bodySigned = $this->json($sortedParams);
+                $headersSigned['Content-Type'] = 'application/json';
             }
         }
         if ($method === 'GET') {
@@ -2491,10 +2529,15 @@ class backpack extends Exchange {
             }
         }
         $url .= $endpoint;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResolved = ($api === 'private') ? $headersSigned : $headers;
+        $bodyResolved = $body;
+        if (($api === 'private') && ($method !== 'GET')) {
+            $bodyResolved = $bodySigned;
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function generate_batch_payload(mixed $params, mixed $ts, mixed $recvWindow, mixed $instruction) {
+    public function generate_batch_payload(mixed $params, string $ts, string $recvWindow, string $instruction): string {
         $payload = '';
         for ($i = 0; $i < count($params); $i++) {
             $order = $this->safe_dict($params, $i, array());
@@ -2513,8 +2556,8 @@ class backpack extends Exchange {
             return null; // fallback to default error handler
         }
         //
-        // array("code":"INVALID_ORDER","message":"Invalid order")
-        // array("code":"INVALID_CLIENT_REQUEST","message":"Must specify both `triggerPrice` and `triggerQuantity` or neither")
+        // {"code":"INVALID_ORDER","message":"Invalid order"}
+        // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify both `triggerPrice` and `triggerQuantity` or neither"}
         //
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
@@ -2523,7 +2566,7 @@ class backpack extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

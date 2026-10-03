@@ -1042,6 +1042,36 @@ abstract class htx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function spot_private_get_v2_invitee_rebate_referrals($params = array()) {
+        return $this->request('v2/invitee/rebate/referrals', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_private_get_v2_invitee_rebate_detail($params = array()) {
+        return $this->request('v2/invitee/rebate/detail', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_private_get_v2_invitee_rebate_history($params = array()) {
+        return $this->request('v2/invitee/rebate/history', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_private_get_v2_invitee_rebate_all_rebate_detail($params = array()) {
+        return $this->request('v2/invitee/rebate/all_rebate/detail', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_private_get_v2_invitee_rebate_batcher_rebate_detail($params = array()) {
+        return $this->request('v2/invitee/rebate/batcher_rebate/detail', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function spot_private_post_v1_account_transfer($params = array()) {
         return $this->request('v1/account/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1278,6 +1308,12 @@ abstract class htx extends \ccxt\async\Exchange {
      */
     public function spot_private_post_v2_etp_batch_cancel($params = array()) {
         return $this->request('v2/etp/batch-cancel', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spot_private_post_v5_account_universal_transfer($params = array()) {
+        return $this->request('v5/account/universal_transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 4));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -2016,6 +2052,42 @@ abstract class htx extends \ccxt\async\Exchange {
      */
     public function contract_private_get_v5_algo_order_history($params = array()) {
         return $this->request('v5/algo/order/history', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 0.41679));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contract_private_get_api_v6_copytrading_trader_instruments($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/instruments', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contract_private_get_api_v6_copytrading_trader_statistics($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/statistics', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contract_private_get_api_v6_copytrading_trader_profit_sharing_history($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/profit-sharing-history', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contract_private_get_api_v6_copytrading_trader_profit_sharing_history_summary($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/profit-sharing-history-summary', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contract_private_get_api_v6_copytrading_trader_unrealized_profit_sharing_summary($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/unrealized-profit-sharing-summary', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contract_private_get_api_v6_copytrading_trader_followers($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/followers', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -2766,6 +2838,36 @@ abstract class htx extends \ccxt\async\Exchange {
      */
     public function contract_private_post_v5_algo_cancel_orders($params = array()) {
         return $this->request('v5/algo/cancel_orders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 0.41679));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contract_private_post_api_v6_copytrading_trader_follower($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/follower', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contract_private_post_api_v6_copytrading_trader_transfer($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/transfer', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contract_private_post_api_v6_copytrading_trader_follower_settings($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/follower-settings', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contract_private_post_api_v6_copytrading_trader_config($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/config', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contract_private_post_api_v6_copytrading_trader_apikey($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/apikey', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -3802,6 +3904,36 @@ abstract class htx extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function spotPrivateGetV2InviteeRebateReferrals($params = array()) {
+        return $this->request('v2/invitee/rebate/referrals', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotPrivateGetV2InviteeRebateDetail($params = array()) {
+        return $this->request('v2/invitee/rebate/detail', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotPrivateGetV2InviteeRebateHistory($params = array()) {
+        return $this->request('v2/invitee/rebate/history', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotPrivateGetV2InviteeRebateAllRebateDetail($params = array()) {
+        return $this->request('v2/invitee/rebate/all_rebate/detail', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotPrivateGetV2InviteeRebateBatcherRebateDetail($params = array()) {
+        return $this->request('v2/invitee/rebate/batcher_rebate/detail', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function spotPrivatePostV1AccountTransfer($params = array()) {
         return $this->request('v1/account/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -4038,6 +4170,12 @@ abstract class htx extends \ccxt\async\Exchange {
      */
     public function spotPrivatePostV2EtpBatchCancel($params = array()) {
         return $this->request('v2/etp/batch-cancel', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function spotPrivatePostV5AccountUniversalTransfer($params = array()) {
+        return $this->request('v5/account/universal_transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 4));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -4776,6 +4914,42 @@ abstract class htx extends \ccxt\async\Exchange {
      */
     public function contractPrivateGetV5AlgoOrderHistory($params = array()) {
         return $this->request('v5/algo/order/history', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 0.41679));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivateGetApiV6CopyTradingTraderInstruments($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/instruments', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivateGetApiV6CopyTradingTraderStatistics($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/statistics', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/profit-sharing-history', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/profit-sharing-history-summary', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/unrealized-profit-sharing-summary', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivateGetApiV6CopyTradingTraderFollowers($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/followers', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -5526,5 +5700,35 @@ abstract class htx extends \ccxt\async\Exchange {
      */
     public function contractPrivatePostV5AlgoCancelOrders($params = array()) {
         return $this->request('v5/algo/cancel_orders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 0.41679));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivatePostApiV6CopyTradingTraderFollower($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/follower', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivatePostApiV6CopyTradingTraderTransfer($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/transfer', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivatePostApiV6CopyTradingTraderFollowerSettings($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/follower-settings', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivatePostApiV6CopyTradingTraderConfig($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/config', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivatePostApiV6CopyTradingTraderApikey($params = array()) {
+        return $this->request('api/v6/copyTrading/trader/apikey', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
 }

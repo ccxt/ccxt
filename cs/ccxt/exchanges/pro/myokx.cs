@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class myokx { public myokx(object args = null) : base(args) { } }
 public partial class myokx : okx
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "myokx" },
@@ -16,7 +16,7 @@ public partial class myokx : okx
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://{hostname}" },
-                    { "ws", "wss://wseea.okx.com:8443/ws/v5" },
+                    { "ws", "wss://wseea.okx.com:443/ws/v5" },
                 } },
                 { "www", "https://my.okx.com" },
                 { "doc", "https://my.okx.com/docs-v5/en/#overview" },
@@ -26,7 +26,7 @@ public partial class myokx : okx
                     { "discount", 0.2 },
                 } },
                 { "test", new Dictionary<string, object>() {
-                    { "ws", "wss://wseeapap.okx.com:8443/ws/v5" },
+                    { "ws", "wss://wseeapap.okx.com:443/ws/v5" },
                 } },
             } },
             { "has", new Dictionary<string, object>() {

@@ -11,7 +11,7 @@ import (
 )
 
 func (e *BaseExchange) base16ToBinary(str any) []byte {
-	hexStr := str.(string)
+	hexStr := derefScalar(str).(string)
 	bytes, err := hex.DecodeString(hexStr)
 	if err != nil {
 		return nil
@@ -42,7 +42,7 @@ func convertHexStringToByteArray(hexString string) ([]byte, error) {
 }
 
 func (e *BaseExchange) remove0xPrefix(str any) string {
-	s := str.(string)
+	s := derefScalar(str).(string)
 	if strings.HasPrefix(s, "0x") {
 		return s[2:]
 	}
@@ -62,7 +62,7 @@ func (e *BaseExchange) StringToBase64(pt any) string {
 }
 
 func stringToBase64(pt any) string {
-	plainText := pt.(string)
+	plainText := derefScalar(pt).(string)
 	return base64.StdEncoding.EncodeToString([]byte(plainText))
 }
 
@@ -75,7 +75,7 @@ func (e *BaseExchange) Base64ToBinary(pt any) []byte {
 }
 
 func base64ToBinary(pt any) []byte {
-	plainText := pt.(string)
+	plainText := derefScalar(pt).(string)
 	bytes, err := base64.StdEncoding.DecodeString(plainText)
 	if err != nil {
 		return nil
@@ -146,7 +146,7 @@ func (e *BaseExchange) base58ToBinary(input string) ([]byte, error) {
 
 // An error can be returned, but that would not conform to the unified interface.
 func (e *BaseExchange) Base58ToBinary(pt any) []byte {
-	plainText := pt.(string)
+	plainText := derefScalar(pt).(string)
 	// base58.Decode() only Bitcoin Aplhabet
 	b, err := e.base58ToBinary(plainText)
 	if err != nil {
@@ -279,15 +279,15 @@ func (e *BaseExchange) BinaryToString(buff any) string {
 }
 
 func (e *BaseExchange) Encode(data any) string {
-	return data.(string) // stub
+	return derefScalar(data).(string) // stub
 }
 
 func Encode(data any) string {
-	return data.(string) // stub
+	return derefScalar(data).(string) // stub
 }
 
 func (e *BaseExchange) Decode(data any) string {
-	return data.(string) // stub
+	return derefScalar(data).(string) // stub
 }
 
 // func (e *BaseExchange) IntToBase16(number any) string {
@@ -310,13 +310,9 @@ func (e *BaseExchange) IntToBase16(number any) string {
 	}
 }
 
-// This function requires implementation of a message packer
-func (e *BaseExchange) packb(data any) any {
-	return nil
-}
-
 func (e *BaseExchange) Rawencode(params ...any) string {
-	parameters := params[0].(map[string]any)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	parameters := derefScalar(params[0]).(map[string]any)
 	shouldSort := GetArg(params, 1, false).(bool)
 	keys := make([]string, 0, len(parameters))
 	for k := range parameters {
@@ -329,7 +325,8 @@ func (e *BaseExchange) Rawencode(params ...any) string {
 
 	var outList []string
 	for _, key := range keys {
-		value := parameters[key]
+		// pointer-carried scalars must serialise as the value they point at
+		value := derefScalar(parameters[key])
 		if boolVal, ok := value.(bool); ok {
 			value = strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
@@ -341,25 +338,32 @@ func (e *BaseExchange) Rawencode(params ...any) string {
 	return strings.Join(outList, "&")
 }
 
+// rfc3986Escape matches the JS urlencode encoder: QueryEscape already escapes
+// !'()* but renders a space as "+", where JS emits "%20".
+func rfc3986Escape(s string) string {
+	return strings.ReplaceAll(url.QueryEscape(s), "+", "%20")
+}
+
 func (e *BaseExchange) UrlencodeWithArrayRepeat(parameters2 any) string {
 	parameters := parameters2.(map[string]any)
 	encodeValue := func(value any) string {
+		value = derefScalar(value)
 		if IsNumber(value) {
-			return url.QueryEscape(NumberToString(value))
+			return rfc3986Escape(NumberToString(value))
 		}
 		if boolVal, ok := value.(bool); ok {
 			return strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
-		return url.QueryEscape(ToString(value))
+		return rfc3986Escape(ToString(value))
 	}
 	var outList []string
 	for key, value := range parameters {
 		if values, ok := value.([]any); ok {
 			for _, item := range values {
-				outList = append(outList, fmt.Sprintf("%s=%s", url.QueryEscape(key), encodeValue(item)))
+				outList = append(outList, fmt.Sprintf("%s=%s", rfc3986Escape(key), encodeValue(item)))
 			}
 		} else {
-			outList = append(outList, fmt.Sprintf("%s=%s", url.QueryEscape(key), encodeValue(value)))
+			outList = append(outList, fmt.Sprintf("%s=%s", rfc3986Escape(key), encodeValue(value)))
 		}
 	}
 	return strings.Join(outList, "&")
@@ -371,7 +375,7 @@ func (e *BaseExchange) UrlencodeNested(parameters2 any) string {
 	// Define recursive function
 	var recurse func(any, string)
 	recurse = func(params any, prefix string) {
-		switch v := params.(type) {
+		switch v := derefScalar(params).(type) {
 		case map[string]any:
 			keys := make([]string, 0, len(v))
 			for k := range v {
@@ -436,34 +440,9 @@ func (e *BaseExchange) UrlencodeNested(parameters2 any) string {
 	return strings.Join(outList, "&")
 }
 
-// without sorting
-// func (e *BaseExchange) Urlencode(params ...any) string {
-// 	parameters := params[0].(map[string]any)
-// 	sort := GetArg(params, 1, false).(bool)
-// 	var queryString []string
-// 	for key, value := range parameters {
-// 		encodedKey := url.QueryEscape(key)
-// 		finalValue := ""
-// 		if IsNumber(value) {
-// 			finalValue = NumberToString(value)
-// 		} else {
-// 			finalValue = ToString(value)
-// 		}
-// 		if boolVal, ok := value.(bool); ok {
-// 			finalValue = strings.ToLower(fmt.Sprintf("%v", boolVal))
-// 		}
-// 		if strings.ToLower(key) == "timestamp" {
-// 			finalValue = strings.ToUpper(url.QueryEscape(finalValue))
-// 		} else {
-// 			finalValue = url.QueryEscape(finalValue)
-// 		}
-// 		queryString = append(queryString, fmt.Sprintf("%s=%s", encodedKey, finalValue))
-// 	}
-// 	return strings.Join(queryString, "&")
-// }
-
 func (e *BaseExchange) Urlencode(params ...any) string {
-	parameters := params[0].(map[string]any)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	parameters := derefScalar(params[0]).(map[string]any)
 	shouldSort := GetArg(params, 1, false).(bool)
 
 	var keys []string
@@ -477,8 +456,8 @@ func (e *BaseExchange) Urlencode(params ...any) string {
 
 	var queryString []string
 	for _, key := range keys {
-		value := parameters[key]
-		encodedKey := url.QueryEscape(key)
+		value := derefScalar(parameters[key])
+		encodedKey := rfc3986Escape(key)
 		finalValue := ""
 
 		if IsNumber(value) {
@@ -490,9 +469,9 @@ func (e *BaseExchange) Urlencode(params ...any) string {
 			finalValue = strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
 		if strings.ToLower(key) == "timestamp" {
-			finalValue = strings.ToUpper(url.QueryEscape(finalValue))
+			finalValue = strings.ToUpper(rfc3986Escape(finalValue))
 		} else {
-			finalValue = url.QueryEscape(finalValue)
+			finalValue = rfc3986Escape(finalValue)
 		}
 		queryString = append(queryString, fmt.Sprintf("%s=%s", encodedKey, finalValue))
 	}
@@ -501,7 +480,7 @@ func (e *BaseExchange) Urlencode(params ...any) string {
 }
 
 func (e *BaseExchange) EncodeURIComponent(str any) string {
-	s := str.(string)
+	s := derefScalar(str).(string)
 	var result bytes.Buffer
 	unreserved := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~"
 	for _, symbol := range s {
@@ -519,6 +498,7 @@ func (e *BaseExchange) UrlencodeBase64(s any) string {
 }
 
 func Base64urlencode(s any) string {
+	s = derefScalar(s)
 	var str string
 	if stringVal, ok := s.(string); ok {
 		str = stringToBase64(stringVal)
@@ -526,16 +506,4 @@ func Base64urlencode(s any) string {
 		str = base64.StdEncoding.EncodeToString(s.([]byte))
 	}
 	return strings.TrimRight(strings.ReplaceAll(strings.ReplaceAll(str, "+", "-"), "/", "_"), "=")
-}
-
-func (e *BaseExchange) stringToCharsArray(str any) any {
-	// Convert the input to a string
-	inputStr := fmt.Sprintf("%v", str)
-	// Create a slice to hold the result
-	res := make([]string, len(inputStr))
-	// Iterate over each character in the string and add it to the result slice
-	for i, ch := range inputStr {
-		res[i] = string(ch)
-	}
-	return res
 }

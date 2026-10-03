@@ -142,6 +142,12 @@ abstract class hollaex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_subaccounts($params = array()) {
+        return $this->request('subaccounts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_user_trades($params = array()) {
         return $this->request('user/trades', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -162,6 +168,12 @@ abstract class hollaex extends \ccxt\Exchange {
      */
     public function private_post_user_withdrawal($params = array()) {
         return $this->request('user/withdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_subaccount_transfer($params = array()) {
+        return $this->request('subaccount/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -316,6 +328,12 @@ abstract class hollaex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetSubaccounts($params = array()) {
+        return $this->request('subaccounts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetUserTrades($params = array()) {
         return $this->request('user/trades', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -336,6 +354,12 @@ abstract class hollaex extends \ccxt\Exchange {
      */
     public function privatePostUserWithdrawal($params = array()) {
         return $this->request('user/withdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostSubaccountTransfer($params = array()) {
+        return $this->request('subaccount/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

@@ -192,6 +192,14 @@ class dydx extends Exchange {
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/orders' => array( 'cost' => 1 ),
                         'fills/parentSubaccount' => array( 'cost' => 1 ),
                         'historical-pnl/parentSubaccount' => array( 'cost' => 1 ),
+                        'pnl' => array( 'cost' => 1 ),
+                        'pnl/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'tradeHistory' => array( 'cost' => 1 ),
+                        'tradeHistory/parentSubaccountNumber' => array( 'cost' => 1 ),
+                    ),
+                    'post' => array(
+                        'turnkey/signin' => array( 'cost' => 1 ),
+                        'turnkey/uploadAddress' => array( 'cost' => 1 ),
                     ),
                 ),
                 'nodeRpc' => array(
@@ -461,8 +469,8 @@ class dydx extends Exchange {
         $response = $this->indexerGetTime($params);
         //
         // {
-        //     "iso" => "2025-07-20T15:12:13.466Z",
-        //     "epoch" => 1753024333.466
+        //     "iso": "2025-07-20T15:12:13.466Z",
+        //     "epoch": 1753024333.466
         // }
         //
         return $this->safe_integer($response, 'epoch');
@@ -471,28 +479,28 @@ class dydx extends Exchange {
     public function parse_market(array $market): array {
         //
         // {
-        //     "clobPairId" => "0",
-        //     "ticker" => "BTC-USD",
-        //     "status" => "ACTIVE",
-        //     "oraclePrice" => "118976.5376",
-        //     "priceChange24H" => "659.9736",
-        //     "volume24H" => "1292729.3605",
-        //     "trades24H" => 9387,
-        //     "nextFundingRate" => "0",
-        //     "initialMarginFraction" => "0.02",
-        //     "maintenanceMarginFraction" => "0.012",
-        //     "openInterest" => "52.0691",
-        //     "atomicResolution" => -10,
-        //     "quantumConversionExponent" => -9,
-        //     "tickSize" => "1",
-        //     "stepSize" => "0.0001",
-        //     "stepBaseQuantums" => 1000000,
-        //     "subticksPerTick" => 100000,
-        //     "marketType" => "CROSS",
-        //     "openInterestLowerCap" => "0",
-        //     "openInterestUpperCap" => "0",
-        //     "baseOpenInterest" => "50.3776",
-        //     "defaultFundingRate1H" => "0"
+        //     "clobPairId": "0",
+        //     "ticker": "BTC-USD",
+        //     "status": "ACTIVE",
+        //     "oraclePrice": "118976.5376",
+        //     "priceChange24H": "659.9736",
+        //     "volume24H": "1292729.3605",
+        //     "trades24H": 9387,
+        //     "nextFundingRate": "0",
+        //     "initialMarginFraction": "0.02",
+        //     "maintenanceMarginFraction": "0.012",
+        //     "openInterest": "52.0691",
+        //     "atomicResolution": -10,
+        //     "quantumConversionExponent": -9,
+        //     "tickSize": "1",
+        //     "stepSize": "0.0001",
+        //     "stepBaseQuantums": 1000000,
+        //     "subticksPerTick": 100000,
+        //     "marketType": "CROSS",
+        //     "openInterestLowerCap": "0",
+        //     "openInterestUpperCap": "0",
+        //     "baseOpenInterest": "50.3776",
+        //     "defaultFundingRate1H": "0"
         // }
         //
         $quoteId = 'USDC';
@@ -502,9 +510,12 @@ class dydx extends Exchange {
         }
         $parts = explode('-', $marketId);
         $baseName = $this->safe_string($parts, 0);
-        $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving
+        $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving as is
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settleId = 'USDC';
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
@@ -581,35 +592,35 @@ class dydx extends Exchange {
          * @return {array[]} an array of objects representing market $data
          */
         $request = array(
-            // 'limit' => 1000,
+            // 'limit': 1000,
         );
         $response = $this->indexerGetPerpetualMarkets($this->extend($request, $params));
         //
         // {
-        //     "markets" => {
-        //         "BTC-USD" => {
-        //             "clobPairId" => "0",
-        //             "ticker" => "BTC-USD",
-        //             "status" => "ACTIVE",
-        //             "oraclePrice" => "118976.5376",
-        //             "priceChange24H" => "659.9736",
-        //             "volume24H" => "1292729.3605",
-        //             "trades24H" => 9387,
-        //             "nextFundingRate" => "0",
-        //             "initialMarginFraction" => "0.02",
-        //             "maintenanceMarginFraction" => "0.012",
-        //             "openInterest" => "52.0691",
-        //             "atomicResolution" => -10,
-        //             "quantumConversionExponent" => -9,
-        //             "tickSize" => "1",
-        //             "stepSize" => "0.0001",
-        //             "stepBaseQuantums" => 1000000,
-        //             "subticksPerTick" => 100000,
-        //             "marketType" => "CROSS",
-        //             "openInterestLowerCap" => "0",
-        //             "openInterestUpperCap" => "0",
-        //             "baseOpenInterest" => "50.3776",
-        //             "defaultFundingRate1H" => "0"
+        //     "markets": {
+        //         "BTC-USD": {
+        //             "clobPairId": "0",
+        //             "ticker": "BTC-USD",
+        //             "status": "ACTIVE",
+        //             "oraclePrice": "118976.5376",
+        //             "priceChange24H": "659.9736",
+        //             "volume24H": "1292729.3605",
+        //             "trades24H": 9387,
+        //             "nextFundingRate": "0",
+        //             "initialMarginFraction": "0.02",
+        //             "maintenanceMarginFraction": "0.012",
+        //             "openInterest": "52.0691",
+        //             "atomicResolution": -10,
+        //             "quantumConversionExponent": -9,
+        //             "tickSize": "1",
+        //             "stepSize": "0.0001",
+        //             "stepBaseQuantums": 1000000,
+        //             "subticksPerTick": 100000,
+        //             "marketType": "CROSS",
+        //             "openInterestLowerCap": "0",
+        //             "openInterestUpperCap": "0",
+        //             "baseOpenInterest": "50.3776",
+        //             "defaultFundingRate1H": "0"
         //         }
         //     }
         // }
@@ -622,13 +633,13 @@ class dydx extends Exchange {
     public function parse_trade(array $trade, ?array $market = null): array {
         //
         // {
-        //     "id" => "02ac5b1f0000000200000002",
-        //     "side" => "BUY",
-        //     "size" => "0.0501",
-        //     "price" => "115732",
-        //     "type" => "LIMIT",
-        //     "createdAt" => "2025-07-25T05:11:09.800Z",
-        //     "createdAtHeight" => "44849951"
+        //     "id": "02ac5b1f0000000200000002",
+        //     "side": "BUY",
+        //     "size": "0.0501",
+        //     "price": "115732",
+        //     "type": "LIMIT",
+        //     "createdAt": "2025-07-25T05:11:09.800Z",
+        //     "createdAtHeight": "44849951"
         // }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'createdAt'));
@@ -679,17 +690,17 @@ class dydx extends Exchange {
         $response = $this->indexerGetTradesPerpetualMarketMarket($this->extend($request, $params));
         //
         // {
-        //     "trades" => array(
+        //     "trades": [
         //         {
-        //             "id" => "02ac5b1f0000000200000002",
-        //             "side" => "BUY",
-        //             "size" => "0.0501",
-        //             "price" => "115732",
-        //             "type" => "LIMIT",
-        //             "createdAt" => "2025-07-25T05:11:09.800Z",
-        //             "createdAtHeight" => "44849951"
+        //             "id": "02ac5b1f0000000200000002",
+        //             "side": "BUY",
+        //             "size": "0.0501",
+        //             "price": "115732",
+        //             "type": "LIMIT",
+        //             "createdAt": "2025-07-25T05:11:09.800Z",
+        //             "createdAtHeight": "44849951"
         //         }
-        //     )
+        //     ]
         // }
         //
         $rows = $this->safe_list($response, 'trades', array());
@@ -699,19 +710,19 @@ class dydx extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // {
-        //     "startedAt" => "2025-07-25T09:47:00.000Z",
-        //     "ticker" => "BTC-USD",
-        //     "resolution" => "1MIN",
-        //     "low" => "116099",
-        //     "high" => "116099",
-        //     "open" => "116099",
-        //     "close" => "116099",
-        //     "baseTokenVolume" => "0",
-        //     "usdVolume" => "0",
-        //     "trades" => 0,
-        //     "startingOpenInterest" => "54.0594",
-        //     "orderbookMidPriceOpen" => "115845.5",
-        //     "orderbookMidPriceClose" => "115845.5"
+        //     "startedAt": "2025-07-25T09:47:00.000Z",
+        //     "ticker": "BTC-USD",
+        //     "resolution": "1MIN",
+        //     "low": "116099",
+        //     "high": "116099",
+        //     "open": "116099",
+        //     "close": "116099",
+        //     "baseTokenVolume": "0",
+        //     "usdVolume": "0",
+        //     "trades": 0,
+        //     "startingOpenInterest": "54.0594",
+        //     "orderbookMidPriceOpen": "115845.5",
+        //     "orderbookMidPriceClose": "115845.5"
         // }
         //
         return array(
@@ -736,7 +747,7 @@ class dydx extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -753,37 +764,37 @@ class dydx extends Exchange {
             $request['fromIso'] = $this->iso8601($since);
         }
         $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, 'until');
+        $paramsOmitted = $this->omit($params, 'until');
         if ($until !== null) {
             $request['toIso'] = $this->iso8601($until);
         }
-        $response = $this->indexerGetCandlesPerpetualMarketsMarket($this->extend($request, $params));
+        $response = $this->indexerGetCandlesPerpetualMarketsMarket($this->extend($request, $paramsOmitted));
         //
         // {
-        //     "candles" => array(
+        //     "candles": [
         //         {
-        //             "startedAt" => "2025-07-25T09:47:00.000Z",
-        //             "ticker" => "BTC-USD",
-        //             "resolution" => "1MIN",
-        //             "low" => "116099",
-        //             "high" => "116099",
-        //             "open" => "116099",
-        //             "close" => "116099",
-        //             "baseTokenVolume" => "0",
-        //             "usdVolume" => "0",
-        //             "trades" => 0,
-        //             "startingOpenInterest" => "54.0594",
-        //             "orderbookMidPriceOpen" => "115845.5",
-        //             "orderbookMidPriceClose" => "115845.5"
+        //             "startedAt": "2025-07-25T09:47:00.000Z",
+        //             "ticker": "BTC-USD",
+        //             "resolution": "1MIN",
+        //             "low": "116099",
+        //             "high": "116099",
+        //             "open": "116099",
+        //             "close": "116099",
+        //             "baseTokenVolume": "0",
+        //             "usdVolume": "0",
+        //             "trades": 0,
+        //             "startingOpenInterest": "54.0594",
+        //             "orderbookMidPriceOpen": "115845.5",
+        //             "orderbookMidPriceClose": "115845.5"
         //         }
-        //     )
+        //     ]
         // }
         //
         $rows = $this->safe_list($response, 'candles', array());
         return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -797,7 +808,7 @@ class dydx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -816,15 +827,15 @@ class dydx extends Exchange {
         $response = $this->indexerGetHistoricalFundingMarket($this->extend($request, $params));
         //
         // {
-        //     "historicalFunding" => array(
+        //     "historicalFunding": [
         //         {
-        //             "ticker" => "BTC-USD",
-        //             "rate" => "0",
-        //             "price" => "116302.62419",
-        //             "effectiveAtHeight" => "44865196",
-        //             "effectiveAt" => "2025-07-25T11:00:00.013Z"
+        //             "ticker": "BTC-USD",
+        //             "rate": "0",
+        //             "price": "116302.62419",
+        //             "effectiveAtHeight": "44865196",
+        //             "effectiveAt": "2025-07-25T11:00:00.013Z"
         //         }
-        //     )
+        //     ]
         // }
         //
         $rates = array();
@@ -846,43 +857,41 @@ class dydx extends Exchange {
     }
 
     public function handle_public_address(?string $methodName, array $params): array {
-        $userAux = null;
-        list($userAux, $params) = $this->handle_option_and_params($params, $methodName, 'user');
-        $user = $userAux;
-        list($user, $params) = $this->handle_option_and_params($params, $methodName, 'address', $userAux);
+        list($userAux, $paramsUser) = $this->handle_option_string_and_params($params, $methodName, 'user');
+        list($user, $paramsAddress) = $this->handle_option_string_and_params($paramsUser, $methodName, 'address', $userAux);
         if (($user !== null) && ($user !== '')) {
-            return array( $user, $params );
+            return array( $user, $paramsAddress );
         }
         if (($this->walletAddress !== null) && ($this->walletAddress !== '')) {
-            return array( $this->walletAddress, $params );
+            return array( $this->walletAddress, $paramsAddress );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $user parameter inside \'params\' or the walletAddress set');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a user parameter inside \'params\' or the walletAddress set');
     }
 
     public function parse_order(array $order, ?array $market = null): array {
         //
         // {
-        //     "id" => "dad46410-3444-5566-a129-19a619300fb7",
-        //     "subaccountId" => "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
-        //     "clientId" => "716238006",
-        //     "clobPairId" => "0",
-        //     "side" => "BUY",
-        //     "size" => "0.001",
-        //     "totalFilled" => "0.001",
-        //     "price" => "400000",
-        //     "type" => "LIMIT",
-        //     "status" => "FILLED",
-        //     "timeInForce" => "GTT",
-        //     "reduceOnly" => false,
-        //     "orderFlags" => "64",
-        //     "goodTilBlockTime" => "2025-07-28T12:07:33.000Z",
-        //     "createdAtHeight" => "45058325",
-        //     "clientMetadata" => "2",
-        //     "updatedAt" => "2025-07-28T12:06:35.330Z",
-        //     "updatedAtHeight" => "45058326",
-        //     "postOnly" => false,
-        //     "ticker" => "BTC-USD",
-        //     "subaccountNumber" => 0
+        //     "id": "dad46410-3444-5566-a129-19a619300fb7",
+        //     "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+        //     "clientId": "716238006",
+        //     "clobPairId": "0",
+        //     "side": "BUY",
+        //     "size": "0.001",
+        //     "totalFilled": "0.001",
+        //     "price": "400000",
+        //     "type": "LIMIT",
+        //     "status": "FILLED",
+        //     "timeInForce": "GTT",
+        //     "reduceOnly": false,
+        //     "orderFlags": "64",
+        //     "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
+        //     "createdAtHeight": "45058325",
+        //     "clientMetadata": "2",
+        //     "updatedAt": "2025-07-28T12:06:35.330Z",
+        //     "updatedAtHeight": "45058326",
+        //     "postOnly": false,
+        //     "ticker": "BTC-USD",
+        //     "subaccountNumber": 0
         // }
         //
         $status = $this->parse_order_status($this->safe_string_upper($order, 'status'));
@@ -946,7 +955,7 @@ class dydx extends Exchange {
         return $this->safe_string_upper($types, $type, $type);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an $order made by the user
          *
@@ -981,10 +990,8 @@ class dydx extends Exchange {
          * @param {string} [$params->subAccountNumber] sub account number
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $userAddress = null;
-        $subAccountNumber = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
-        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchOrders', $params);
+        list($subAccountNumber, $paramsSubAccountNumber) = $this->handle_option_string_and_params($paramsPublicAddress, 'fetchOrders', 'subAccountNumber', '0');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1000,33 +1007,33 @@ class dydx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->indexerGetOrders($this->extend($request, $params));
+        $response = $this->indexerGetOrders($this->extend($request, $paramsSubAccountNumber));
         //
-        // array(
+        // [
         //     {
-        //         "id" => "dad46410-3444-5566-a129-19a619300fb7",
-        //         "subaccountId" => "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
-        //         "clientId" => "716238006",
-        //         "clobPairId" => "0",
-        //         "side" => "BUY",
-        //         "size" => "0.001",
-        //         "totalFilled" => "0.001",
-        //         "price" => "400000",
-        //         "type" => "LIMIT",
-        //         "status" => "FILLED",
-        //         "timeInForce" => "GTT",
-        //         "reduceOnly" => false,
-        //         "orderFlags" => "64",
-        //         "goodTilBlockTime" => "2025-07-28T12:07:33.000Z",
-        //         "createdAtHeight" => "45058325",
-        //         "clientMetadata" => "2",
-        //         "updatedAt" => "2025-07-28T12:06:35.330Z",
-        //         "updatedAtHeight" => "45058326",
-        //         "postOnly" => false,
-        //         "ticker" => "BTC-USD",
-        //         "subaccountNumber" => 0
+        //         "id": "dad46410-3444-5566-a129-19a619300fb7",
+        //         "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+        //         "clientId": "716238006",
+        //         "clobPairId": "0",
+        //         "side": "BUY",
+        //         "size": "0.001",
+        //         "totalFilled": "0.001",
+        //         "price": "400000",
+        //         "type": "LIMIT",
+        //         "status": "FILLED",
+        //         "timeInForce": "GTT",
+        //         "reduceOnly": false,
+        //         "orderFlags": "64",
+        //         "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
+        //         "createdAtHeight": "45058325",
+        //         "clientMetadata": "2",
+        //         "updatedAt": "2025-07-28T12:06:35.330Z",
+        //         "updatedAtHeight": "45058326",
+        //         "postOnly": false,
+        //         "ticker": "BTC-USD",
+        //         "subaccountNumber": 0
         //     }
-        // )
+        // ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -1071,30 +1078,30 @@ class dydx extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
-        //     "market" => "BTC-USD",
-        //     "status" => "OPEN",
-        //     "side" => "SHORT",
-        //     "size" => "-0.407",
-        //     "maxSize" => "-0.009",
-        //     "entryPrice" => "118692.04840909090909090909",
-        //     "exitPrice" => "119526.565625",
-        //     "realizedPnl" => "476.42665909090909090909088",
-        //     "unrealizedPnl" => "-57.26681734000000000000037",
-        //     "createdAt" => "2025-07-14T07:53:55.631Z",
-        //     "createdAtHeight" => "44140908",
-        //     "closedAt" => null,
-        //     "sumOpen" => "0.44",
-        //     "sumClose" => "0.032",
-        //     "netFunding" => "503.13121",
-        //     "subaccountNumber" => 0
+        //     "market": "BTC-USD",
+        //     "status": "OPEN",
+        //     "side": "SHORT",
+        //     "size": "-0.407",
+        //     "maxSize": "-0.009",
+        //     "entryPrice": "118692.04840909090909090909",
+        //     "exitPrice": "119526.565625",
+        //     "realizedPnl": "476.42665909090909090909088",
+        //     "unrealizedPnl": "-57.26681734000000000000037",
+        //     "createdAt": "2025-07-14T07:53:55.631Z",
+        //     "createdAtHeight": "44140908",
+        //     "closedAt": null,
+        //     "sumOpen": "0.44",
+        //     "sumClose": "0.032",
+        //     "netFunding": "503.13121",
+        //     "subaccountNumber": 0
         // }
         //
         $marketId = $this->safe_string($position, 'market');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $side = $this->safe_string_lower($position, 'side');
         $quantity = $this->safe_string($position, 'size');
         if ($side !== 'long') {
@@ -1128,7 +1135,7 @@ class dydx extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on an open position
          *
@@ -1156,10 +1163,8 @@ class dydx extends Exchange {
          * @param {string} [$params->subAccountNumber] sub account number
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $userAddress = null;
-        $subAccountNumber = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
-        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'subAccountNumber', '0');
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchPositions', $params);
+        list($subAccountNumber, $paramsSubAccountNumber) = $this->handle_option_string_and_params($paramsPublicAddress, 'fetchPositions', 'subAccountNumber', '0');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1168,29 +1173,29 @@ class dydx extends Exchange {
             'subaccountNumber' => $subAccountNumber,
             'status' => 'OPEN', // ['OPEN', 'CLOSED', 'LIQUIDATED']
         );
-        $response = $this->indexerGetPerpetualPositions($this->extend($request, $params));
+        $response = $this->indexerGetPerpetualPositions($this->extend($request, $paramsSubAccountNumber));
         //
         // {
-        //     "positions" => array(
+        //     "positions": [
         //         {
-        //             "market" => "BTC-USD",
-        //             "status" => "OPEN",
-        //             "side" => "SHORT",
-        //             "size" => "-0.407",
-        //             "maxSize" => "-0.009",
-        //             "entryPrice" => "118692.04840909090909090909",
-        //             "exitPrice" => "119526.565625",
-        //             "realizedPnl" => "476.42665909090909090909088",
-        //             "unrealizedPnl" => "-57.26681734000000000000037",
-        //             "createdAt" => "2025-07-14T07:53:55.631Z",
-        //             "createdAtHeight" => "44140908",
-        //             "closedAt" => null,
-        //             "sumOpen" => "0.44",
-        //             "sumClose" => "0.032",
-        //             "netFunding" => "503.13121",
-        //             "subaccountNumber" => 0
+        //             "market": "BTC-USD",
+        //             "status": "OPEN",
+        //             "side": "SHORT",
+        //             "size": "-0.407",
+        //             "maxSize": "-0.009",
+        //             "entryPrice": "118692.04840909090909090909",
+        //             "exitPrice": "119526.565625",
+        //             "realizedPnl": "476.42665909090909090909088",
+        //             "unrealizedPnl": "-57.26681734000000000000037",
+        //             "createdAt": "2025-07-14T07:53:55.631Z",
+        //             "createdAtHeight": "44140908",
+        //             "closedAt": null,
+        //             "sumOpen": "0.44",
+        //             "sumClose": "0.032",
+        //             "netFunding": "503.13121",
+        //             "subaccountNumber": 0
         //         }
-        //     )
+        //     ]
         // }
         //
         $rows = $this->safe_list($response, 'positions', array());
@@ -1218,7 +1223,7 @@ class dydx extends Exchange {
 
     public function sign_onboarding_action(): array {
         $message = array( 'action' => 'dYdX Chain Onboarding' );
-        $chainId = $this->options['chainId'];
+        $chainId = $this->safe_integer($this->options, 'chainId');
         $domain = array(
             'chainId' => $chainId,
             'name' => 'dYdX Chain',
@@ -1259,7 +1264,7 @@ class dydx extends Exchange {
         return $credentials;
     }
 
-    public function fetch_dydx_account() {
+    public function fetch_dydx_account(): array {
         // required in js
         $this->load_dydx_protos();
         $dydxAccount = $this->safe_dict($this->options, 'dydxAccount');
@@ -1277,14 +1282,14 @@ class dydx extends Exchange {
         );
         //
         // {
-        //     "info" => {
-        //         "address" => "string",
-        //         "pub_key" => array(
-        //             "type_url" => "string",
-        //             "key" => "string"
-        //         ),
-        //         "account_number" => "string",
-        //         "sequence" => "string"
+        //     "info": {
+        //         "address": "string",
+        //         "pub_key": {
+        //             "type_url": "string",
+        //             "key": "string"
+        //         },
+        //         "account_number": "string",
+        //         "sequence": "string"
         //     }
         // }
         //
@@ -1301,36 +1306,36 @@ class dydx extends Exchange {
     public function pow(string $n, ?string $m) {
         $r = Precise::string_mul($n, '1');
         $c = $this->parse_to_int($m);
-        // TODO => cap
+        // TODO: cap
         for ($i = 1; $i < $c; $i++) {
             $r = Precise::string_mul($r, $n);
         }
         return $r;
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
         $orderType = strtoupper($type);
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a side argument');
         }
         $orderSide = strtoupper($side);
         $subaccountId = 0;
-        list($subaccountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'subAccountId', $subaccountId);
-        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        list($subaccountIdOption, $paramsSubAccountId) = $this->handle_option_integer_and_params($params, 'createOrder', 'subAccountId', $subaccountId);
+        $triggerPrice = $this->safe_string_2($paramsSubAccountId, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_value($paramsSubAccountId, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_value($paramsSubAccountId, 'takeProfitPrice');
         $isConditional = $triggerPrice !== null || $stopLossPrice !== null || $takeProfitPrice !== null;
         $isMarket = $orderType === 'MARKET';
-        $timeInForce = $this->safe_string_upper($params, 'timeInForce', 'GTT');
-        $postOnly = $this->is_post_only($isMarket, null, $params);
+        $timeInForce = $this->safe_string_upper($paramsSubAccountId, 'timeInForce', 'GTT');
+        $postOnly = $this->is_post_only($isMarket, null, $paramsSubAccountId);
         $amountStr = $this->amount_to_precision($symbol, $amount);
         $priceStr = $this->price_to_precision($symbol, $price);
         $marketInfo = $this->safe_dict($market, 'info', array());
@@ -1346,7 +1351,7 @@ class dydx extends Exchange {
         $orderFlag = null;
         $timeInForceNumber = null;
         if ($timeInForce === 'FOK') {
-            throw new InvalidOrder($this->id . ' $timeInForce fok has been deprecated');
+            throw new InvalidOrder($this->id . ' timeInForce fok has been deprecated');
         }
         if ($orderType === 'MARKET') {
             // short-term
@@ -1386,11 +1391,11 @@ class dydx extends Exchange {
             }
             $conditionalOrderTriggerSubticks = Precise::string_mul($conditionalOrderTriggerSubticks, $priceScale);
         }
-        $latestBlockHeight = $this->safe_integer($params, 'latestBlockHeight');
-        $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
+        $latestBlockHeight = $this->safe_integer($paramsSubAccountId, 'latestBlockHeight');
+        $goodTillBlock = $this->safe_integer($paramsSubAccountId, 'goodTillBlock');
         $goodTillBlockTime = null;
         $goodTillBlockTimeInSeconds = 2592000;
-        list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_and_params($params, 'createOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
+        list($goodTillBlockTimeInSecondsOption, $paramsGoodTillBlockTimeInSeconds) = $this->handle_option_integer_and_params($paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         if ($orderFlag === 0) {
             if ($goodTillBlock === null) {
                 // short term order
@@ -1400,20 +1405,20 @@ class dydx extends Exchange {
                 $goodTillBlock = $latestBlockHeight + 20;
             }
         } else {
-            if ($goodTillBlockTimeInSeconds === null) {
+            if ($goodTillBlockTimeInSecondsOption === null) {
                 throw new ArgumentsRequired('goodTillBlockTimeInSeconds is required.');
             }
-            $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSeconds;
+            $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSecondsOption;
         }
         $sideNumber = ($orderSide === 'BUY') ? 1 : 2;
         $defaultClientOrderId = $this->rand_number(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
-        $clientOrderId = $this->safe_integer($params, 'clientOrderId', $defaultClientOrderId);
+        $clientOrderId = $this->safe_integer($paramsGoodTillBlockTimeInSeconds, 'clientOrderId', $defaultClientOrderId);
         $orderPayload = array(
             'order' => array(
                 'orderId' => array(
                     'subaccountId' => array(
                         'owner' => $this->get_wallet_address(),
-                        'number' => $subaccountId,
+                        'number' => $subaccountIdOption,
                     ),
                     'clientId' => $clientOrderId,
                     'orderFlags' => $orderFlag,
@@ -1436,15 +1441,15 @@ class dydx extends Exchange {
             'typeUrl' => '/dydxprotocol.clob.MsgPlaceOrder',
             'value' => $orderPayload,
         );
-        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ));
+        $paramsOmitted = $this->omit($paramsGoodTillBlockTimeInSeconds, array( 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ));
         $walletAddress = $this->get_wallet_address();
         $clobPairId = $this->safe_integer($marketInfo, 'clobPairId', 0);
-        $subaccountIdValue = ($subaccountId === null) ? 0 : $subaccountId;
+        $subaccountIdValue = ($subaccountIdOption === null) ? 0 : $subaccountIdOption;
         $clientOrderIdValue = ($clientOrderId === null) ? 0 : $clientOrderId;
         $orderFlagValue = ($orderFlag === null) ? 0 : $orderFlag;
         $clobPairIdValue = ($clobPairId === null) ? 0 : $clobPairId;
         $orderId = $this->create_order_id_from_parts($walletAddress, $subaccountIdValue, $clientOrderIdValue, $orderFlagValue, $clobPairIdValue);
-        return array( $orderId, $this->extend($signingPayload, $params) );
+        return array( $orderId, $this->extend($signingPayload, $paramsOmitted) );
     }
 
     public function create_order_id_from_parts(string $address, float $subAccountNumber, float $clientOrderId, float $orderFlags, float $clobPairId): string {
@@ -1459,14 +1464,14 @@ class dydx extends Exchange {
         $response = $this->nodeRpcGetAbciInfo($params);
         //
         // {
-        //     "jsonrpc" => "2.0",
-        //     "id" => -1,
-        //     "result" => {
-        //         "response" => {
-        //             "data" => "dydxprotocol",
-        //             "version" => "9.1.0-rc0",
-        //             "last_block_height" => "49157714",
-        //             "last_block_app_hash" => "9LHAcDDI5zmWiC6bGiiGtxuWPlKJV+/fTBZk/WQ/Y4U="
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "response": {
+        //             "data": "dydxprotocol",
+        //             "version": "9.1.0-rc0",
+        //             "last_block_height": "49157714",
+        //             "last_block_app_hash": "9LHAcDDI5zmWiC6bGiiGtxuWPlKJV+/fTBZk/WQ/Y4U="
         //         }
         //     }
         // }
@@ -1500,7 +1505,7 @@ class dydx extends Exchange {
          * @param {bool} [$params->postOnly] true or false whether the order is post-only
          * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
          * @param {float} [$params->goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
-         * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+         * @param {int} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -1509,12 +1514,12 @@ class dydx extends Exchange {
         $credentials = $this->retrieve_credentials();
         $account = $this->fetch_dydx_account();
         $lastBlockHeight = $this->fetch_latest_block_height();
-        // $params['latestBlockHeight'] = $lastBlockHeight;
+        // params['latestBlockHeight'] = lastBlockHeight;
         $newParams = $this->extend($params, array( 'latestBlockHeight' => $lastBlockHeight ));
         $orderRequestRes = $this->create_order_request($symbol, $type, $side, $amount, $price, $newParams);
         $orderId = $orderRequestRes[0];
         $orderRequest = $orderRequestRes[1];
-        $chainName = $this->options['chainName'];
+        $chainName = $this->safe_string($this->options, 'chainName');
         $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $orderRequest, '', $chainName, $account, null);
         $request = array(
             'tx' => $signedTx,
@@ -1523,14 +1528,14 @@ class dydx extends Exchange {
         $response = $this->nodeRpcGetBroadcastTxSync($request);
         //
         // {
-        //     "jsonrpc" => "2.0",
-        //     "id" => -1,
-        //     "result" => {
-        //         "code" => 0,
-        //         "data" => "",
-        //         "log" => "array()",
-        //         "codespace" => "",
-        //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
         //     }
         // }
         //
@@ -1555,47 +1560,46 @@ class dydx extends Exchange {
          * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {float} [$params->orderFlags] default is 64, $orderFlags for the order, $market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
          * @param {float} [$params->goodTillBlock] expired block number for the order, required for $market order and non limit GTT order ($orderFlags = 0), default value is $latestBlockHeight + 20
-         * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+         * @param {int} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
          * @param {int} [$params->subAccountId] sub $account $id, default is 0
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-        $params = $this->omit($params, array( 'trigger', 'stop' ));
+        $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
         if (($isTrigger !== true) && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId', $id);
+        $clientOrderId = $this->safe_string_2($paramsOmitted, 'clientOrderId', 'clientId', $id);
         if ($clientOrderId === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $clientOrderId parameter, cancelling using $id is not currently supported.');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
         }
         $idString = (string) $id;
-        if ($id !== null && mb_strpos($idString, '-') > -1) {
-            throw new NotSupported($this->id . ' cancelOrder() cancelling using $id is not currently supported, please use provide the $clientOrderId parameter.');
+        if (mb_strpos($idString, '-') > -1) {
+            throw new NotSupported($this->id . ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
-        $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
+        $goodTillBlock = $this->safe_integer($paramsOmitted, 'goodTillBlock');
         $goodTillBlockTimeInSeconds = 2592000;
-        list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
+        list($goodTillBlockTimeInSecondsOption, $paramsGoodTillBlockTimeInSeconds) = $this->handle_option_integer_and_params($paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         $goodTillBlockTime = null;
         $defaultOrderFlags = ($isTrigger === true) ? 32 : 64;
-        $orderFlags = $this->safe_integer($params, 'orderFlags', $defaultOrderFlags);
+        $orderFlags = $this->safe_integer($paramsGoodTillBlockTimeInSeconds, 'orderFlags', $defaultOrderFlags);
         $subAccountId = 0;
-        list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'subAccountId', $subAccountId);
-        $params = $this->omit($params, array( 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId' ));
+        $subAccountIdOption = $this->handle_option_integer_and_params($paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', $subAccountId)[0];
         if ($orderFlags !== 0 && $orderFlags !== 64 && $orderFlags !== 32) {
-            throw new InvalidOrder($this->id . ' invalid $orderFlags, allowed values are (0, 64, 32).');
+            throw new InvalidOrder($this->id . ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
         if ($orderFlags > 0) {
-            if ($goodTillBlockTimeInSeconds === null) {
-                throw new ArgumentsRequired($this->id . ' $goodTillBlockTimeInSeconds is required in $params for long term or conditional order.');
+            if ($goodTillBlockTimeInSecondsOption === null) {
+                throw new ArgumentsRequired($this->id . ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.');
             }
             if ($goodTillBlock !== null && $goodTillBlock > 0) {
-                throw new InvalidOrder($this->id . ' $goodTillBlock should be 0 for long term or conditional order.');
+                throw new InvalidOrder($this->id . ' goodTillBlock should be 0 for long term or conditional order.');
             }
-            $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSeconds;
+            $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSecondsOption;
         } else {
             if ($goodTillBlock === null) {
                 $latestBlockHeight = $this->fetch_latest_block_height();
@@ -1608,7 +1612,7 @@ class dydx extends Exchange {
             'orderId' => array(
                 'subaccountId' => array(
                     'owner' => $this->get_wallet_address(),
-                    'number' => $subAccountId,
+                    'number' => $subAccountIdOption,
                 ),
                 'clientId' => $clientOrderId,
                 'orderFlags' => $orderFlags,
@@ -1621,7 +1625,7 @@ class dydx extends Exchange {
             'typeUrl' => '/dydxprotocol.clob.MsgCancelOrder',
             'value' => $cancelPayload,
         );
-        $chainName = $this->options['chainName'];
+        $chainName = $this->safe_string($this->options, 'chainName');
         $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
         $request = array(
             'tx' => $signedTx,
@@ -1630,14 +1634,14 @@ class dydx extends Exchange {
         $response = $this->nodeRpcGetBroadcastTxSync($request);
         //
         // {
-        //     "jsonrpc" => "2.0",
-        //     "id" => -1,
-        //     "result" => {
-        //         "code" => 0,
-        //         "data" => "",
-        //         "log" => "array()",
-        //         "codespace" => "",
-        //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
         //     }
         // }
         //
@@ -1647,7 +1651,7 @@ class dydx extends Exchange {
         ));
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          * @param {string[]} $ids order $ids
@@ -1663,16 +1667,15 @@ class dydx extends Exchange {
         $market = $this->market($symbol);
         $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
         if ($clientOrderIds === null) {
-            throw new NotSupported($this->id . ' $cancelOrders only support $clientOrderIds->');
+            throw new NotSupported($this->id . ' cancelOrders only support clientOrderIds.');
         }
         $subAccountId = 0;
-        list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'subAccountId', $subAccountId);
-        $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
+        list($subAccountIdOption, $paramsSubAccountId) = $this->handle_option_integer_and_params($params, 'cancelOrders', 'subAccountId', $subAccountId);
+        $goodTillBlock = $this->safe_integer($paramsSubAccountId, 'goodTillBlock');
         if ($goodTillBlock === null) {
             $latestBlockHeight = $this->fetch_latest_block_height();
             $goodTillBlock = $latestBlockHeight + 20;
         }
-        $params = $this->omit($params, array( 'clientOrderIds', 'goodTillBlock', 'subaccountId' ));
         $credentials = $this->retrieve_credentials();
         $account = $this->fetch_dydx_account();
         $cancelOrders = array(
@@ -1682,7 +1685,7 @@ class dydx extends Exchange {
         $cancelPayload = array(
             'subaccountId' => array(
                 'owner' => $this->get_wallet_address(),
-                'number' => $subAccountId,
+                'number' => $subAccountIdOption,
             ),
             'shortTermCancels' => array( $cancelOrders ),
             'goodTilBlock' => $goodTillBlock,
@@ -1691,7 +1694,7 @@ class dydx extends Exchange {
             'typeUrl' => '/dydxprotocol.clob.MsgBatchCancel',
             'value' => $cancelPayload,
         );
-        $chainName = $this->options['chainName'];
+        $chainName = $this->safe_string($this->options, 'chainName');
         $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
         $request = array(
             'tx' => $signedTx,
@@ -1700,14 +1703,14 @@ class dydx extends Exchange {
         $response = $this->nodeRpcGetBroadcastTxSync($request);
         //
         // {
-        //     "jsonrpc" => "2.0",
-        //     "id" => -1,
-        //     "result" => {
-        //         "code" => 0,
-        //         "data" => "",
-        //         "log" => "array()",
-        //         "codespace" => "",
-        //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
         //     }
         // }
         //
@@ -1738,18 +1741,18 @@ class dydx extends Exchange {
         $response = $this->indexerGetOrderbooksPerpetualMarketMarket($this->extend($request, $params));
         //
         // {
-        //     "bids" => array(
+        //     "bids": [
         //         {
-        //             "price" => "118267",
-        //             "size" => "0.3182"
+        //             "price": "118267",
+        //             "size": "0.3182"
         //         }
-        //     ),
-        //     "asks" => array(
+        //     ],
+        //     "asks": [
         //         {
-        //             "price" => "118485",
-        //             "size" => "0.0001"
+        //             "price": "118485",
+        //             "size": "0.0001"
         //         }
-        //     )
+        //     ]
         // }
         //
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'size');
@@ -1758,26 +1761,26 @@ class dydx extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // {
-        //     "id" => "6a6075bc-7183-5fd9-bc9d-894e238aa527",
-        //     "sender" => array(
-        //         "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-        //         "subaccountNumber" => 0
-        //     ),
-        //     "recipient" => array(
-        //         "address" => "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
-        //         "subaccountNumber" => 1
-        //     ),
-        //     "size" => "0.000001",
-        //     "createdAt" => "2025-07-29T09:43:02.105Z",
-        //     "createdAtHeight" => "45116125",
-        //     "symbol" => "USDC",
-        //     "type" => "TRANSFER_OUT",
-        //     "transactionHash" => "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //     "sender": {
+        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "subaccountNumber": 0
+        //     },
+        //     "recipient": {
+        //         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "subaccountNumber": 1
+        //     },
+        //     "size": "0.000001",
+        //     "createdAt": "2025-07-29T09:43:02.105Z",
+        //     "createdAtHeight": "45116125",
+        //     "symbol": "USDC",
+        //     "type": "TRANSFER_OUT",
+        //     "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
         // }
         //
         $currencyId = $this->safe_string($item, 'symbol');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         $type = $this->safe_string_upper($item, 'type');
         $direction = null;
         if ($type !== null) {
@@ -1807,10 +1810,10 @@ class dydx extends Exchange {
             'after' => null,
             'status' => null,
             'fee' => null,
-        ), $currency);
+        ), $currencyResolved);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'TRANSFER_IN' => 'transfer',
             'TRANSFER_OUT' => 'transfer',
@@ -1845,7 +1848,7 @@ class dydx extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function estimate_tx_fee(mixed $message, ?string $memo, mixed $account): mixed {
+    public function estimate_tx_fee(mixed $message, ?string $memo, mixed $account): array {
         $txBytes = $this->encode_dydx_tx_for_simulation($message, $memo, $account['sequence'], $account['pub_key']);
         $request = array(
             'txBytes' => $txBytes,
@@ -1853,8 +1856,8 @@ class dydx extends Exchange {
         $response = $this->nodeRestPostCosmosTxV1beta1Simulate($request);
         //
         // {
-        //     gas_info => array( gas_wanted => '18446744073709551615', gas_used => '86055' ),
-        //     result => {
+        //     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
+        //     result: {
         //         ...
         //     }
         // }
@@ -1873,11 +1876,11 @@ class dydx extends Exchange {
         $gasPrice = null;
         $denom = null;
         if ($defaultFeeDenom === 'uusdc') {
-            $gasPrice = $feeDenom['USDC_GAS_PRICE'];
-            $denom = $feeDenom['USDC_DENOM'];
+            $gasPrice = $this->safe_string($feeDenom, 'USDC_GAS_PRICE');
+            $denom = $this->safe_string($feeDenom, 'USDC_DENOM');
         } else {
-            $gasPrice = $feeDenom['CHAINTOKEN_GAS_PRICE'];
-            $denom = $feeDenom['CHAINTOKEN_DENOM'];
+            $gasPrice = $this->safe_string($feeDenom, 'CHAINTOKEN_GAS_PRICE');
+            $denom = $this->safe_string($feeDenom, 'CHAINTOKEN_DENOM');
         }
         $gasLimit = (int) ceil($this->parse_to_numeric(Precise::string_mul($gasUsed, $defaultFeeMultiplier)));
         $feeAmount = Precise::string_mul($this->number_to_string($gasLimit), $gasPrice);
@@ -1917,15 +1920,14 @@ class dydx extends Exchange {
         $fromSubaccountId = $this->safe_integer($params, 'fromSubaccountId');
         $toSubaccountId = $this->safe_integer($params, 'toSubaccountId');
         if ($fromAccount !== 'main') {
-            // throw error if from subaccount id is null
+            // throw error if from subaccount id is undefined
             if ($fromAccount === null) {
                 throw new NotSupported($this->id . ' transfer only support main > subaccount and subaccount <> subaccount.');
             }
             if ($fromSubaccountId === null || $toSubaccountId === null) {
-                throw new ArgumentsRequired($this->id . ' transfer requires $fromSubaccountId and $toSubaccountId->');
+                throw new ArgumentsRequired($this->id . ' transfer requires fromSubaccountId and toSubaccountId.');
             }
         }
-        $params = $this->omit($params, array( 'fromSubaccountId', 'toSubaccountId' ));
         $credentials = $this->retrieve_credentials();
         $account = $this->fetch_dydx_account();
         $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
@@ -1970,7 +1972,7 @@ class dydx extends Exchange {
             );
         }
         $txFee = $this->estimate_tx_fee($signingPayload, '', $account);
-        $chainName = $this->options['chainName'];
+        $chainName = $this->safe_string($this->options, 'chainName');
         $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null, $txFee);
         $request = array(
             'tx' => $signedTx,
@@ -1979,14 +1981,14 @@ class dydx extends Exchange {
         $response = $this->nodeRpcGetBroadcastTxSync($request);
         //
         // {
-        //     "jsonrpc" => "2.0",
-        //     "id" => -1,
-        //     "result" => {
-        //         "code" => 0,
-        //         "data" => "",
-        //         "log" => "array()",
-        //         "codespace" => "",
-        //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
         //     }
         // }
         //
@@ -1996,21 +1998,21 @@ class dydx extends Exchange {
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // {
-        //     "id" => "6a6075bc-7183-5fd9-bc9d-894e238aa527",
-        //     "sender" => array(
-        //         "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-        //         "subaccountNumber" => 0
-        //     ),
-        //     "recipient" => array(
-        //         "address" => "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
-        //         "subaccountNumber" => 1
-        //     ),
-        //     "size" => "0.000001",
-        //     "createdAt" => "2025-07-29T09:43:02.105Z",
-        //     "createdAtHeight" => "45116125",
-        //     "symbol" => "USDC",
-        //     "type" => "TRANSFER_OUT",
-        //     "transactionHash" => "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //     "sender": {
+        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "subaccountNumber": 0
+        //     },
+        //     "recipient": {
+        //         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "subaccountNumber": 1
+        //     },
+        //     "size": "0.000001",
+        //     "createdAt": "2025-07-29T09:43:02.105Z",
+        //     "createdAtHeight": "45116125",
+        //     "symbol": "USDC",
+        //     "type": "TRANSFER_OUT",
+        //     "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
         // }
         //
         $id = $this->safe_string($transfer, 'id');
@@ -2066,21 +2068,21 @@ class dydx extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // {
-        //     "id" => "6a6075bc-7183-5fd9-bc9d-894e238aa527",
-        //     "sender" => array(
-        //         "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-        //         "subaccountNumber" => 0
-        //     ),
-        //     "recipient" => array(
-        //         "address" => "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
-        //         "subaccountNumber" => 1
-        //     ),
-        //     "size" => "0.000001",
-        //     "createdAt" => "2025-07-29T09:43:02.105Z",
-        //     "createdAtHeight" => "45116125",
-        //     "symbol" => "USDC",
-        //     "type" => "TRANSFER_OUT",
-        //     "transactionHash" => "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //     "sender": {
+        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "subaccountNumber": 0
+        //     },
+        //     "recipient": {
+        //         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "subaccountNumber": 1
+        //     },
+        //     "size": "0.000001",
+        //     "createdAt": "2025-07-29T09:43:02.105Z",
+        //     "createdAtHeight": "45116125",
+        //     "symbol": "USDC",
+        //     "type": "TRANSFER_OUT",
+        //     "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
         // }
         //
         $id = $this->safe_string($transaction, 'id');
@@ -2136,9 +2138,8 @@ class dydx extends Exchange {
         $this->check_address($address);
         $subaccountId = $this->safe_integer($params, 'subaccountId');
         if ($subaccountId === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw requires $subaccountId->');
+            throw new ArgumentsRequired($this->id . ' withdraw requires subaccountId.');
         }
-        $params = $this->omit($params, array( 'subaccountId' ));
         $currency = $this->currency($code);
         $credentials = $this->retrieve_credentials();
         $account = $this->fetch_dydx_account();
@@ -2157,7 +2158,7 @@ class dydx extends Exchange {
             'value' => $payload,
         );
         $txFee = $this->estimate_tx_fee($signingPayload, $tag, $account);
-        $chainName = $this->options['chainName'];
+        $chainName = $this->safe_string($this->options, 'chainName');
         $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, $tag, $chainName, $account, null, $txFee);
         $request = array(
             'tx' => $signedTx,
@@ -2166,14 +2167,14 @@ class dydx extends Exchange {
         $response = $this->nodeRpcGetBroadcastTxSync($request);
         //
         // {
-        //     "jsonrpc" => "2.0",
-        //     "id" => -1,
-        //     "result" => {
-        //         "code" => 0,
-        //         "data" => "",
-        //         "log" => "array()",
-        //         "codespace" => "",
-        //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
         //     }
         // }
         //
@@ -2261,39 +2262,37 @@ class dydx extends Exchange {
         return $this->parse_transactions($rows, $currency, $since, $limit);
     }
 
-    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $methodName = $this->safe_string($params, 'methodName');
-        $params = $this->omit($params, 'methodName');
-        $userAddress = null;
-        $subAccountNumber = null;
-        list($userAddress, $params) = $this->handle_public_address($methodName, $params);
-        list($subAccountNumber, $params) = $this->handle_option_and_params($params, $methodName, 'subAccountNumber', '0');
+        $paramsOmitted = $this->omit($params, 'methodName');
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address($methodName, $paramsOmitted);
+        list($subAccountNumber, $paramsSubAccountNumber) = $this->handle_option_string_and_params($paramsPublicAddress, $methodName, 'subAccountNumber', '0');
         $request = array(
             'address' => $userAddress,
             'subaccountNumber' => $subAccountNumber,
         );
-        $response = $this->indexerGetTransfers($this->extend($request, $params));
+        $response = $this->indexerGetTransfers($this->extend($request, $paramsSubAccountNumber));
         //
         // {
-        //     "transfers" => array(
+        //     "transfers": [
         //         {
-        //             "id" => "6a6075bc-7183-5fd9-bc9d-894e238aa527",
-        //             "sender" => array(
-        //                 "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-        //                 "subaccountNumber" => 0
-        //             ),
-        //             "recipient" => array(
-        //                 "address" => "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
-        //                 "subaccountNumber" => 1
-        //             ),
-        //             "size" => "0.000001",
-        //             "createdAt" => "2025-07-29T09:43:02.105Z",
-        //             "createdAtHeight" => "45116125",
-        //             "symbol" => "USDC",
-        //             "type" => "TRANSFER_OUT",
-        //             "transactionHash" => "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        //             "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //             "sender": {
+        //                 "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //                 "subaccountNumber": 0
+        //             },
+        //             "recipient": {
+        //                 "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //                 "subaccountNumber": 1
+        //             },
+        //             "size": "0.000001",
+        //             "createdAt": "2025-07-29T09:43:02.105Z",
+        //             "createdAtHeight": "45116125",
+        //             "symbol": "USDC",
+        //             "type": "TRANSFER_OUT",
+        //             "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
         //         }
-        //     )
+        //     ]
         // }
         //
         return $this->safe_list($response, 'transfers', array());
@@ -2309,54 +2308,53 @@ class dydx extends Exchange {
          * @param {string} [$params->address] wallet address that made trades
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account type
          */
-        $userAddress = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchAccounts', $params);
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchAccounts', $params);
         $request = array(
             'address' => $userAddress,
         );
-        $response = $this->indexerGetAddressesAddress($this->extend($request, $params));
+        $response = $this->indexerGetAddressesAddress($this->extend($request, $paramsPublicAddress));
         //
         // {
-        //     "subaccounts" => array(
+        //     "subaccounts": [
         //         {
-        //             "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-        //             "subaccountNumber" => 0,
-        //             "equity" => "25346.73993597",
-        //             "freeCollateral" => "24207.8530595294",
-        //             "openPerpetualPositions" => {
-        //                 "BTC-USD" => array(
-        //                     "market" => "BTC-USD",
-        //                     "status" => "OPEN",
-        //                     "side" => "SHORT",
-        //                     "size" => "-0.491",
-        //                     "maxSize" => "-0.009",
-        //                     "entryPrice" => "118703.60811320754716981132",
-        //                     "exitPrice" => "119655.95",
-        //                     "realizedPnl" => "3075.17994830188679245283016",
-        //                     "unrealizedPnl" => "1339.12776155490566037735812",
-        //                     "createdAt" => "2025-07-14T07:53:55.631Z",
-        //                     "createdAtHeight" => "44140908",
-        //                     "closedAt" => null,
-        //                     "sumOpen" => "0.53",
-        //                     "sumClose" => "0.038",
-        //                     "netFunding" => "3111.36894",
-        //                     "subaccountNumber" => 0
+        //             "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //             "subaccountNumber": 0,
+        //             "equity": "25346.73993597",
+        //             "freeCollateral": "24207.8530595294",
+        //             "openPerpetualPositions": {
+        //                 "BTC-USD": {
+        //                     "market": "BTC-USD",
+        //                     "status": "OPEN",
+        //                     "side": "SHORT",
+        //                     "size": "-0.491",
+        //                     "maxSize": "-0.009",
+        //                     "entryPrice": "118703.60811320754716981132",
+        //                     "exitPrice": "119655.95",
+        //                     "realizedPnl": "3075.17994830188679245283016",
+        //                     "unrealizedPnl": "1339.12776155490566037735812",
+        //                     "createdAt": "2025-07-14T07:53:55.631Z",
+        //                     "createdAtHeight": "44140908",
+        //                     "closedAt": null,
+        //                     "sumOpen": "0.53",
+        //                     "sumClose": "0.038",
+        //                     "netFunding": "3111.36894",
+        //                     "subaccountNumber": 0
         //                 }
-        //             ),
-        //             "assetPositions" => {
-        //                 "USDC" => array(
-        //                     "size" => "82291.083758",
-        //                     "symbol" => "USDC",
-        //                     "side" => "LONG",
-        //                     "assetId" => "0",
-        //                     "subaccountNumber" => 0
+        //             },
+        //             "assetPositions": {
+        //                 "USDC": {
+        //                     "size": "82291.083758",
+        //                     "symbol": "USDC",
+        //                     "side": "LONG",
+        //                     "assetId": "0",
+        //                     "subaccountNumber": 0
         //                 }
-        //             ),
-        //             "marginEnabled" => true,
-        //             "updatedAtHeight" => "45234659",
-        //             "latestProcessedBlockHeight" => "45293477"
+        //             },
+        //             "marginEnabled": true,
+        //             "updatedAtHeight": "45234659",
+        //             "latestProcessedBlockHeight": "45293477"
         //         }
-        //     )
+        //     ]
         // }
         //
         $rows = $this->safe_list($response, 'subaccounts', array());
@@ -2387,72 +2385,70 @@ class dydx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $userAddress = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
-        $subaccountNumber = null;
-        list($subaccountNumber, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'subaccountNumber', 0);
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchBalance', $params);
+        list($subaccountNumber, $paramsSubaccountNumber) = $this->handle_option_integer_and_params($paramsPublicAddress, 'fetchBalance', 'subaccountNumber', 0);
         $request = array(
             'address' => $userAddress,
             'subaccountNumber' => $subaccountNumber,
         );
-        $response = $this->indexerGetAddressesAddressSubaccountNumberSubaccountNumber($this->extend($request, $params));
+        $response = $this->indexerGetAddressesAddressSubaccountNumberSubaccountNumber($this->extend($request, $paramsSubaccountNumber));
         //
         // {
-        //     "subaccount" => {
-        //         "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-        //         "subaccountNumber" => 0,
-        //         "equity" => "161451.040416029",
-        //         "freeCollateral" => "152508.28819133578",
-        //         "openPerpetualPositions" => {
-        //             "ETH-USD" => array(
-        //                 "market" => "ETH-USD",
-        //                 "status" => "OPEN",
-        //                 "side" => "LONG",
-        //                 "size" => "0.001",
-        //                 "maxSize" => "0.002",
-        //                 "entryPrice" => "3894.7",
-        //                 "exitPrice" => "3864.5",
-        //                 "realizedPnl" => "-0.034847",
-        //                 "unrealizedPnl" => "-0.044675155",
-        //                 "createdAt" => "2025-10-22T08:34:05.883Z",
-        //                 "createdAtHeight" => "52228825",
-        //                 "closedAt" => null,
-        //                 "sumOpen" => "0.002",
-        //                 "sumClose" => "0.001",
-        //                 "netFunding" => "-0.004647",
-        //                 "subaccountNumber" => 0
-        //             ),
-        //             "BTC-USD" => array(
-        //                 "market" => "BTC-USD",
-        //                 "status" => "OPEN",
-        //                 "side" => "SHORT",
-        //                 "size" => "-4.1368",
-        //                 "maxSize" => "-0.009",
-        //                 "entryPrice" => "112196.87848803433219017636",
-        //                 "exitPrice" => "113885.21872652924977050823",
-        //                 "realizedPnl" => "-15180.426770788459736511679821",
-        //                 "unrealizedPnl" => "17002.285719484425404321566048",
-        //                 "createdAt" => "2025-07-14T07:53:55.631Z",
-        //                 "createdAtHeight" => "44140908",
-        //                 "closedAt" => null,
-        //                 "sumOpen" => "5.3361",
-        //                 "sumClose" => "1.1983",
-        //                 "netFunding" => "-13157.288663",
-        //                 "subaccountNumber" => 0
+        //     "subaccount": {
+        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "subaccountNumber": 0,
+        //         "equity": "161451.040416029",
+        //         "freeCollateral": "152508.28819133578",
+        //         "openPerpetualPositions": {
+        //             "ETH-USD": {
+        //                 "market": "ETH-USD",
+        //                 "status": "OPEN",
+        //                 "side": "LONG",
+        //                 "size": "0.001",
+        //                 "maxSize": "0.002",
+        //                 "entryPrice": "3894.7",
+        //                 "exitPrice": "3864.5",
+        //                 "realizedPnl": "-0.034847",
+        //                 "unrealizedPnl": "-0.044675155",
+        //                 "createdAt": "2025-10-22T08:34:05.883Z",
+        //                 "createdAtHeight": "52228825",
+        //                 "closedAt": null,
+        //                 "sumOpen": "0.002",
+        //                 "sumClose": "0.001",
+        //                 "netFunding": "-0.004647",
+        //                 "subaccountNumber": 0
+        //             },
+        //             "BTC-USD": {
+        //                 "market": "BTC-USD",
+        //                 "status": "OPEN",
+        //                 "side": "SHORT",
+        //                 "size": "-4.1368",
+        //                 "maxSize": "-0.009",
+        //                 "entryPrice": "112196.87848803433219017636",
+        //                 "exitPrice": "113885.21872652924977050823",
+        //                 "realizedPnl": "-15180.426770788459736511679821",
+        //                 "unrealizedPnl": "17002.285719484425404321566048",
+        //                 "createdAt": "2025-07-14T07:53:55.631Z",
+        //                 "createdAtHeight": "44140908",
+        //                 "closedAt": null,
+        //                 "sumOpen": "5.3361",
+        //                 "sumClose": "1.1983",
+        //                 "netFunding": "-13157.288663",
+        //                 "subaccountNumber": 0
         //             }
-        //         ),
-        //         "assetPositions" => {
-        //             "USDC" => array(
-        //                 "size" => "608580.951601",
-        //                 "symbol" => "USDC",
-        //                 "side" => "LONG",
-        //                 "assetId" => "0",
-        //                 "subaccountNumber" => 0
+        //         },
+        //         "assetPositions": {
+        //             "USDC": {
+        //                 "size": "608580.951601",
+        //                 "symbol": "USDC",
+        //                 "side": "LONG",
+        //                 "assetId": "0",
+        //                 "subaccountNumber": 0
         //             }
-        //         ),
-        //         "marginEnabled" => true,
-        //         "updatedAtHeight" => "52228833",
-        //         "latestProcessedBlockHeight" => "52246761"
+        //         },
+        //         "marginEnabled": true,
+        //         "updatedAtHeight": "52228833",
+        //         "latestProcessedBlockHeight": "52246761"
         //     }
         // }
         //
@@ -2470,8 +2466,12 @@ class dydx extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function nonce() {
-        return $this->milliseconds() - $this->options['timeDifference'];
+    public function nonce(): float {
+        $timeDifference = $this->safe_integer($this->options, 'timeDifference');
+        if ($timeDifference === null) {
+            throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return $this->milliseconds() - $timeDifference;
     }
 
     public function get_wallet_address() {
@@ -2480,32 +2480,40 @@ class dydx extends Exchange {
         }
         $dydxAccount = $this->safe_dict($this->options, 'dydxAccount');
         if ($dydxAccount !== null) {
-            // return $dydxAccount;
+            // return dydxAccount;
             $wallet = $this->safe_string($dydxAccount, 'address');
             if ($wallet !== null) {
                 return $wallet;
             }
         }
-        throw new ArgumentsRequired($this->id . ' getWalletAddress() requires a $wallet address. Set `walletAddress` or `$dydxAccount` in exchange options.');
+        throw new ArgumentsRequired($this->id . ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
 
-    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->urls['api'][$section];
-        $params = $this->omit($params, $this->extract_params($path));
-        $params = $this->keysort($params);
+        $apiUrl = $this->safe_string($this->urls['api'], $section);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl;
+        $paramsOmitted = $this->omit($params, $this->extract_params($path));
+        $paramsSorted = $this->keysort($paramsOmitted);
         $url .= '/' . $pathWithParams;
         if ($method === 'GET') {
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            if (count($paramsSorted) > 0) {
+                $url .= '?' . $this->urlencode($paramsSorted);
             }
         } else {
-            $body = $this->json($params);
-            $headers = array(
+            $requestBody = $this->json($paramsSorted);
+            $requestHeaders = array(
                 'Content-type' => 'application/json',
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
+        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -2513,11 +2521,11 @@ class dydx extends Exchange {
             return null; // fallback to default error handler
         }
         //
-        // abci $response
-        // array( "result" => array( "code" => 0 ) )
+        // abci response
+        // { "result": { "code": 0 } }
         //
-        // rest $response
-        // array( "code" => 123 )
+        // rest response
+        // { "code": 123 }
         //
         $result = $this->safe_dict($response, 'result');
         $errorCode = $this->safe_string($result, 'code');

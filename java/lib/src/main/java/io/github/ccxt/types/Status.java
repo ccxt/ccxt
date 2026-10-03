@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Status {
+public final class Status extends TypedMap {
     public String status;
     public Long updated;
     public Long eta;
@@ -14,6 +14,7 @@ public final class Status {
 
     @SuppressWarnings("unchecked")
     public Status(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.status = TypeHelper.safeString(data, "status");
         this.updated = TypeHelper.safeInteger(data, "updated");

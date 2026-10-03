@@ -291,6 +291,41 @@ public partial class upbit : Exchange
         return await this.callAsync<List<object>> ("privateGetApiKeys",parameters);
     }
 
+    /// <summary>Calls the privateGetPockets endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetPockets (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetPockets",parameters);
+    }
+
+    /// <summary>Calls the privateGetPocketsApiKeys endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetPocketsApiKeys (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetPocketsApiKeys",parameters);
+    }
+
+    /// <summary>Calls the privateGetPocketsAssets endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetPocketsAssets (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetPocketsAssets",parameters);
+    }
+
+    /// <summary>Calls the privateGetPocketsUniversalTransfers endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetPocketsUniversalTransfers (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetPocketsUniversalTransfers",parameters);
+    }
+
+    /// <summary>Calls the privateGetPocketsTransfers endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetPocketsTransfers (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetPocketsTransfers",parameters);
+    }
+
     /// <summary>Calls the privatePostOrders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostOrders (object parameters = null)
@@ -352,6 +387,20 @@ public partial class upbit : Exchange
     public async Task<Dictionary<string, object>> privatePostTravelRuleDepositTxid (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostTravelRuleDepositTxid",parameters);
+    }
+
+    /// <summary>Calls the privatePostPocketsUniversalTransfers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostPocketsUniversalTransfers (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostPocketsUniversalTransfers",parameters);
+    }
+
+    /// <summary>Calls the privatePostPocketsTransfers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostPocketsTransfers (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostPocketsTransfers",parameters);
     }
 
     /// <summary>Calls the privateDeleteOrder endpoint.</summary>

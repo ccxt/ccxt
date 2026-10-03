@@ -1033,6 +1033,13 @@ public partial class coinex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v2PublicGetAssetsAllDepositWithdrawConfig",parameters);
     }
 
+    /// <summary>Calls the v2PublicGetAssetsInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PublicGetAssetsInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v2PublicGetAssetsInfo",parameters);
+    }
+
     /// <summary>Calls the v2PrivateGetAccountSubs endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v2PrivateGetAccountSubs (object parameters = null)
@@ -1766,6 +1773,20 @@ public partial class coinex : Exchange
     public async Task<Dictionary<string, object>> v2PrivatePostFuturesSetPositionTakeProfit (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v2PrivatePostFuturesSetPositionTakeProfit",parameters);
+    }
+
+    /// <summary>Calls the v2PrivatePostFuturesModifyPositionStopLoss endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PrivatePostFuturesModifyPositionStopLoss (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v2PrivatePostFuturesModifyPositionStopLoss",parameters);
+    }
+
+    /// <summary>Calls the v2PrivatePostFuturesModifyPositionTakeProfit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PrivatePostFuturesModifyPositionTakeProfit (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v2PrivatePostFuturesModifyPositionTakeProfit",parameters);
     }
 
 }

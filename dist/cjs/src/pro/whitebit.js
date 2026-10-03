@@ -77,22 +77,23 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const symbolValue = market['symbol'];
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
         const interval = this.safeInteger(timeframes, timeframe);
         const marketId = market['id'];
         // currently there is no way of knowing
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
         // to one timeframe per symbol
-        const messageHash = 'candles:' + symbol;
+        const messageHash = 'candles:' + symbolValue;
         const reqParams = [marketId, interval];
         const method = 'candles_subscribe';
         const ohlcv = await this.watchPublic(messageHash, method, reqParams, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -113,7 +114,7 @@ class whitebit extends whitebit$1["default"] {
         //     "id": null
         // }
         //
-        const params = this.safeValue(message, 'params', []);
+        const params = this.safeList(message, 'params', []);
         for (let i = 0; i < params.length; i++) {
             const data = params[i];
             const marketId = this.safeString(data, 7);
@@ -152,22 +153,20 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (limit === undefined) {
-            limit = 10; // max 100
-        }
+        const limitValue = (limit === undefined) ? 10 : limit;
         const messageHash = 'orderbook' + ':' + market['symbol'];
         const method = 'depth_subscribe';
-        const options = this.safeValue(this.options, 'watchOrderBook', {});
+        const options = this.safeDict(this.options, 'watchOrderBook', {});
         const defaultPriceInterval = this.safeString(options, 'priceInterval', '0');
         const priceInterval = this.safeString(params, 'priceInterval', defaultPriceInterval);
-        params = this.omit(params, 'priceInterval');
+        const paramsOmitted = this.omit(params, 'priceInterval');
         const reqParams = [
             market['id'],
-            limit,
+            limitValue,
             priceInterval,
             true, // true for allowing multiple subscriptions
         ];
-        const orderbook = await this.watchPublic(messageHash, method, reqParams, params);
+        const orderbook = await this.watchPublic(messageHash, method, reqParams, paramsOmitted);
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
@@ -208,12 +207,12 @@ class whitebit extends whitebit$1["default"] {
         //     "id":null
         //  }
         //
-        const params = this.safeValue(message, 'params', []);
-        const isSnapshot = this.safeValue(params, 0);
+        const params = this.safeList(message, 'params', []);
+        const isSnapshot = this.safeBool(params, 0);
         const marketId = this.safeString(params, 2);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        const data = this.safeValue(params, 1);
+        const data = this.safeDict(params, 1);
         const timestamp = this.safeTimestamp(data, 'timestamp');
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook();
@@ -227,8 +226,8 @@ class whitebit extends whitebit$1["default"] {
             orderbook.reset(snapshot);
         }
         else {
-            const asks = this.safeValue(data, 'asks', []);
-            const bids = this.safeValue(data, 'bids', []);
+            const asks = this.safeList(data, 'asks', []);
+            const bids = this.safeList(data, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
         }
@@ -259,11 +258,11 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const method = 'market_subscribe';
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbolValue;
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
-        return await this.watchMultipleSubscription(messageHash, method, symbol, false, params);
+        return await this.watchMultipleSubscription(messageHash, method, symbolValue, false, params);
     }
     /**
      * @method
@@ -278,14 +277,14 @@ class whitebit extends whitebit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const method = 'market_subscribe';
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const messageHashes = [];
         const args = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market(symbols[i]);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(symbolsNormalized[i]);
             messageHashes.push('ticker:' + market['symbol']);
             args.push(market['id']);
         }
@@ -295,7 +294,7 @@ class whitebit extends whitebit$1["default"] {
             'params': args,
         };
         await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
     }
     handleTicker(client, message) {
         //
@@ -317,11 +316,11 @@ class whitebit extends whitebit$1["default"] {
         //       "id": null
         //   }
         //
-        const tickers = this.safeValue(message, 'params', []);
+        const tickers = this.safeList(message, 'params', []);
         const marketId = this.safeString(tickers, 0);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        const rawTicker = this.safeValue(tickers, 1, {});
+        const rawTicker = this.safeDict(tickers, 1, {});
         const messageHash = 'ticker' + ':' + symbol;
         const ticker = this.parseTicker(rawTicker, market);
         this.tickers[symbol] = ticker;
@@ -362,15 +361,16 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trades' + ':' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'trades' + ':' + symbolValue;
         const method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        const trades = await this.watchMultipleSubscription(messageHash, method, symbol, false, params);
+        const trades = await this.watchMultipleSubscription(messageHash, method, symbolValue, false, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -397,7 +397,7 @@ class whitebit extends whitebit$1["default"] {
         //        ]
         //    }
         //
-        const params = this.safeValue(message, 'params', []);
+        const params = this.safeList(message, 'params', []);
         const marketId = this.safeString(params, 0);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -407,7 +407,7 @@ class whitebit extends whitebit$1["default"] {
             stored = new Cache.ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue(params, 1, []);
+        const data = this.safeList(params, 1, []);
         const parsedTrades = this.parseTrades(data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append(parsedTrades[j]);
@@ -435,14 +435,15 @@ class whitebit extends whitebit$1["default"] {
         }
         await this.authenticate();
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'myTrades:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'myTrades:' + symbolValue;
         const method = 'deals_subscribe';
-        const trades = await this.watchMultipleSubscription(messageHash, method, symbol, true, params);
+        const trades = await this.watchMultipleSubscription(messageHash, method, symbolValue, true, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true);
     }
     handleMyTrades(client, message, subscription = undefined) {
         //
@@ -498,12 +499,18 @@ class whitebit extends whitebit$1["default"] {
         const price = this.safeString(trade, 4);
         const amount = this.safeString(trade, 5);
         const marketId = this.safeString(trade, 2);
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         let fee = undefined;
         const feeCost = this.safeString(trade, 6);
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString(trade, 10);
-            const feeCurrencyCode = (feeCurrencyId !== undefined) ? this.safeCurrencyCode(feeCurrencyId) : market['quote'];
+            let feeCurrencyCode = undefined;
+            if (feeCurrencyId !== undefined) {
+                feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            }
+            else {
+                feeCurrencyCode = marketResolved['quote'];
+            }
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -530,7 +537,7 @@ class whitebit extends whitebit$1["default"] {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -539,7 +546,7 @@ class whitebit extends whitebit$1["default"] {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -561,14 +568,15 @@ class whitebit extends whitebit$1["default"] {
         }
         await this.authenticate();
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orders:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'orders:' + symbolValue;
         const method = 'ordersPending_subscribe';
-        const trades = await this.watchMultipleSubscription(messageHash, method, symbol, false, params);
+        const trades = await this.watchMultipleSubscription(messageHash, method, symbolValue, false, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true);
     }
     handleOrder(client, message, subscription = undefined) {
         //
@@ -597,8 +605,8 @@ class whitebit extends whitebit$1["default"] {
         //     "id": null
         // }
         //
-        const params = this.safeValue(message, 'params', []);
-        const data = this.safeValue(params, 1);
+        const params = this.safeList(message, 'params', []);
+        const data = this.safeDict(params, 1);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
@@ -636,7 +644,7 @@ class whitebit extends whitebit$1["default"] {
         //
         const status = this.safeInteger(order, 'status');
         const marketId = this.safeString(order, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const id = this.safeString(order, 'id');
         const clientOrderId = this.omitZero(this.safeString(order, 'client_order_id'));
         const price = this.safeString(order, 'price');
@@ -657,15 +665,18 @@ class whitebit extends whitebit$1["default"] {
         }
         const timestamp = this.safeTimestamp(order, 'ctime');
         const lastTradeTimestamp = this.safeTimestamp(order, 'mtime');
-        const symbol = market['symbol'];
+        const symbol = marketResolved['symbol'];
         const rawSide = this.safeInteger(order, 'side');
-        const side = (rawSide === 1) ? 'sell' : 'buy';
+        let side = 'buy';
+        if (rawSide === 1) {
+            side = 'sell';
+        }
         const dealFee = this.safeString(order, 'deal_fee');
         let fee = undefined;
         if (dealFee !== undefined) {
             fee = {
                 'cost': this.parseNumber(dealFee),
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         let unifiedStatus = undefined;
@@ -703,7 +714,7 @@ class whitebit extends whitebit$1["default"] {
             'status': unifiedStatus,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     parseWsOrderType(status) {
         const statuses = {
@@ -735,8 +746,7 @@ class whitebit extends whitebit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
+        const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
         let messageHash = 'wallet:';
         let method = undefined;
         if (type === 'spot') {
@@ -750,16 +760,14 @@ class whitebit extends whitebit$1["default"] {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         this.setBalanceCache(client, type, messageHash);
-        let fetchBalanceSnapshot = undefined;
-        let awaitBalanceSnapshot = undefined;
-        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        [awaitBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'awaitBalanceSnapshot', true);
+        const [fetchBalanceSnapshot, paramsFetchBalanceSnapshot] = this.handleOptionBoolAndParams(paramsMarketType, 'watchBalance', 'fetchBalanceSnapshot', true);
+        const [awaitBalanceSnapshot, paramsAwaitBalanceSnapshot] = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', true);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
         // an empty params array subscribes to updates for all assets,
         // listing all tickers explicitly is rejected with "invalid argument"
-        return await this.watchPrivate(messageHash, method, [], params);
+        return await this.watchPrivate(messageHash, method, [], paramsAwaitBalanceSnapshot);
     }
     setBalanceCache(client, type, subscriptionHash) {
         if (subscriptionHash in client.subscriptions) {
@@ -868,7 +876,7 @@ class whitebit extends whitebit$1["default"] {
     }
     async watchPublic(messageHash, method, reqParams = [], params = {}) {
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'id': id,
             'method': method,
@@ -882,7 +890,7 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const client = this.safeValue(this.clients, url);
         let request = undefined;
         let marketIds = [];
@@ -906,7 +914,7 @@ class whitebit extends whitebit$1["default"] {
             return await this.watch(url, messageHash, message, method, subscription);
         }
         else {
-            const subscription = this.safeValue(client.subscriptions, method, {});
+            const subscription = this.safeDict(client.subscriptions, method, {});
             let hasSymbolSubscription = true;
             const market = this.market(symbol);
             const marketId = market['id'];
@@ -944,7 +952,7 @@ class whitebit extends whitebit$1["default"] {
         this.checkRequiredCredentials();
         await this.authenticate();
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'id': id,
             'method': method,
@@ -962,18 +970,11 @@ class whitebit extends whitebit$1["default"] {
         // the authorized sentinel authenticate () has always returned - every
         // path below hands back that same value
         const authorized = 1;
-        // single-flight leader election, see
-        // https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
-        // subscriptions['authenticated'], which watch () only registers once
-        // the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
-        // every concurrent cold caller used to pass that gate, burn a
-        // rate-limited private REST call for its own websocket_token and push
-        // its own authorize frame down the shared socket. the flight is
-        // registered in client.futures on the very client that carries the
-        // handshake, under a key that is not one of the exchange's own
-        // messageHashes, and is settled through client.resolve () /
-        // client.reject () so every write to that map goes through the
-        // client's own accessors
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        // the handshake gate subscriptions['authenticated'] is only registered after the awaited
+        // token fetch, so concurrent cold callers would each burn a private REST call and push
+        // their own authorize frame. the flight lives in client.futures of the handshake client
+        // under a non-messageHash key and settles only via client.resolve () / client.reject ()
         const messageHash = 'authenticateFlight';
         if (messageHash in client.futures) {
             // a flight is already in progress - wake when the leader settles
@@ -1007,7 +1008,7 @@ class whitebit extends whitebit$1["default"] {
                 // venue answers that with an opaque socket drop
                 throw new errors.AuthenticationError(this.id + ' authenticate() received an empty websocket_token');
             }
-            const id = this.nonce();
+            const id = this.incrementingNonce();
             const request = {
                 'id': id,
                 'method': 'authorize',
@@ -1064,7 +1065,7 @@ class whitebit extends whitebit$1["default"] {
         //         "id": 1656090882
         //     }
         //
-        const error = this.safeValue(message, 'error');
+        const error = this.safeDict(message, 'error');
         try {
             if (error !== undefined) {
                 const code = this.safeString(message, 'code');
@@ -1115,7 +1116,7 @@ class whitebit extends whitebit$1["default"] {
             'balanceMargin_update': this.handleBalance,
             'deals_update': this.handleMyTrades,
         };
-        const topic = this.safeValue(message, 'method');
+        const topic = this.safeString(message, 'method');
         const method = this.safeValue(methods, topic);
         if (method !== undefined) {
             method.call(this, client, message);

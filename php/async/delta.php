@@ -191,6 +191,7 @@ class delta extends Exchange {
                         'users/update_mmp' => array( 'cost' => 1 ),
                         'users/reset_mmp' => array( 'cost' => 1 ),
                         'users/margin_mode' => array( 'cost' => 1 ),
+                        'users/trading_preferences' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         'orders' => array( 'cost' => 1 ),
@@ -262,16 +263,16 @@ class delta extends Exchange {
                         ),
                         'hedged' => false,
                         'selfTradePrevention' => false,
-                        'trailing' => false, // todo => implement
+                        'trailing' => false, // todo: implement
                         'iceberg' => false,
                         'leverage' => false,
                         'marketBuyByCost' => false,
                         'marketBuyRequiresPrice' => false,
                     ),
-                    'createOrders' => null, // todo => implement
+                    'createOrders' => null, // todo: implement
                     'fetchMyTrades' => array(
                         'marginMode' => false,
-                        'limit' => 100, // todo => revise
+                        'limit' => 100, // todo: revise
                         'daysBack' => 100000,
                         'untilDays' => 100000,
                         'symbolRequired' => false,
@@ -279,7 +280,7 @@ class delta extends Exchange {
                     'fetchOrder' => null,
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
-                        'limit' => 100, // todo => revise
+                        'limit' => 100, // todo: revise
                         'trigger' => false,
                         'trailing' => false,
                         'symbolRequired' => false,
@@ -296,7 +297,7 @@ class delta extends Exchange {
                         'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
-                        'limit' => 2000, // todo => recheck
+                        'limit' => 2000, // todo: recheck
                     ),
                 ),
                 'spot' => array(
@@ -327,19 +328,19 @@ class delta extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // Margin required to place order with selected leverage and quantity is insufficient.
-                    'insufficient_margin' => '\\ccxt\\InsufficientFunds', // array("error":array("code":"insufficient_margin","context":array("available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000")),"success":false)
+                    'insufficient_margin' => '\\ccxt\\InsufficientFunds', // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
                     'order_size_exceed_available' => '\\ccxt\\InvalidOrder', // The order book doesn't have sufficient liquidity, hence the order couldnt be filled, for example, ioc orders
-                    'risk_limits_breached' => '\\ccxt\\BadRequest', // orders couldn't be placed will breach allowed risk limits.
+                    'risk_limits_breached' => '\\ccxt\\BadRequest', // orders couldn't be placed as it will breach allowed risk limits.
                     'invalid_contract' => '\\ccxt\\BadSymbol', // The contract/product is either doesn't exist or has already expired.
                     'immediate_liquidation' => '\\ccxt\\InvalidOrder', // Order will cause immediate liquidation.
                     'out_of_bankruptcy' => '\\ccxt\\InvalidOrder', // Order prices are out of position bankruptcy limits.
                     'self_matching_disrupted_post_only' => '\\ccxt\\InvalidOrder', // Self matching is not allowed during auction.
-                    'immediate_execution_post_only' => '\\ccxt\\InvalidOrder', // orders couldn't be placed includes post only orders which will be immediately executed
-                    'bad_schema' => '\\ccxt\\BadRequest', // array("error":array("code":"bad_schema","context":array("schema_errors":[array("code":"validation_error","message":"id is required","param":"")])),"success":false)
-                    'invalid_api_key' => '\\ccxt\\AuthenticationError', // array("success":false,"error":array("code":"invalid_api_key"))
-                    'invalid_signature' => '\\ccxt\\AuthenticationError', // array("success":false,"error":array("code":"invalid_signature"))
-                    'open_order_not_found' => '\\ccxt\\OrderNotFound', // array("error":array("code":"open_order_not_found"),"success":false)
-                    'unavailable' => '\\ccxt\\ExchangeNotAvailable', // array("error":array("code":"unavailable"),"success":false)
+                    'immediate_execution_post_only' => '\\ccxt\\InvalidOrder', // orders couldn't be placed as it includes post only orders which will be immediately executed
+                    'bad_schema' => '\\ccxt\\BadRequest', // {"error":{"code":"bad_schema","context":{"schema_errors":[{"code":"validation_error","message":"id is required","param":""}]}},"success":false}
+                    'invalid_api_key' => '\\ccxt\\AuthenticationError', // {"success":false,"error":{"code":"invalid_api_key"}}
+                    'invalid_signature' => '\\ccxt\\AuthenticationError', // {"success":false,"error":{"code":"invalid_signature"}}
+                    'open_order_not_found' => '\\ccxt\\OrderNotFound', // {"error":{"code":"open_order_not_found"},"success":false}
+                    'unavailable' => '\\ccxt\\ExchangeNotAvailable', // {"error":{"code":"unavailable"},"success":false}
                 ),
                 'broad' => array(
                 ),
@@ -347,7 +348,7 @@ class delta extends Exchange {
         ));
     }
 
-    public function create_expired_option_market(string $symbol) {
+    public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = 'USDT';
         $optionParts = explode('-', $symbol);
@@ -371,7 +372,10 @@ class delta extends Exchange {
         $strike = $this->safe_string($optionParts, 2);
         $datetime = $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
-        $optionTypeUnified = ($optionType === 'C') ? 'call' : 'put';
+        $optionTypeUnified = 'put';
+        if ($optionType === 'C') {
+            $optionTypeUnified = 'call';
+        }
         return $this->safe_market_structure(array(
             'id' => $optionType . '-' . $base . '-' . $strike . '-' . $expiry,
             'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
@@ -438,7 +442,7 @@ class delta extends Exchange {
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = Async\await($this->publicGetSettings($params));
-        // full $response sample under `fetchStatus`
+        // full response sample under `fetchStatus`
         $result = $this->safe_dict($response, 'result', array());
         return $this->safe_integer_product($result, 'server_time', 0.001);
     }
@@ -456,60 +460,63 @@ class delta extends Exchange {
         $response = Async\await($this->publicGetSettings($params));
         //
         //     {
-        //         "result" => array(
-        //           "deto_liquidity_mining_daily_reward" => "40775",
-        //           "deto_msp" => "1.0",
-        //           "deto_staking_daily_reward" => "23764.08",
-        //           "enabled_wallets" => array(
+        //         "result": {
+        //           "deto_liquidity_mining_daily_reward": "40775",
+        //           "deto_msp": "1.0",
+        //           "deto_staking_daily_reward": "23764.08",
+        //           "enabled_wallets": [
         //             "BTC",
         //             ...
-        //           ),
-        //           "portfolio_margin_params" => array(
-        //             "enabled_portfolios" => array(
-        //               ".DEAVAXUSDT" => array(
-        //                 "asset_id" => 5,
-        //                 "futures_contingency_margin_percent" => "1",
-        //                 "interest_rate" => "0",
-        //                 "maintenance_margin_multiplier" => "0.8",
-        //                 "max_price_shock" => "20",
-        //                 "max_short_notional_limit" => "2000",
-        //                 "options_contingency_margin_percent" => "1",
-        //                 "options_discount_range" => "10",
-        //                 "options_liq_band_range_percentage" => "25",
-        //                 "settling_asset" => "USDT",
-        //                 "sort_priority" => 5,
-        //                 "underlying_asset" => "AVAX",
-        //                 "volatility_down_shock" => "30",
-        //                 "volatility_up_shock" => "45"
-        //               ),
+        //           ],
+        //           "portfolio_margin_params": {
+        //             "enabled_portfolios": {
+        //               ".DEAVAXUSDT": {
+        //                 "asset_id": 5,
+        //                 "futures_contingency_margin_percent": "1",
+        //                 "interest_rate": "0",
+        //                 "maintenance_margin_multiplier": "0.8",
+        //                 "max_price_shock": "20",
+        //                 "max_short_notional_limit": "2000",
+        //                 "options_contingency_margin_percent": "1",
+        //                 "options_discount_range": "10",
+        //                 "options_liq_band_range_percentage": "25",
+        //                 "settling_asset": "USDT",
+        //                 "sort_priority": 5,
+        //                 "underlying_asset": "AVAX",
+        //                 "volatility_down_shock": "30",
+        //                 "volatility_up_shock": "45"
+        //               },
         //               ...
-        //             ),
-        //             "portfolio_enabled_contracts" => array(
+        //             },
+        //             "portfolio_enabled_contracts": [
         //               "futures",
         //               "perpetual_futures",
         //               "call_options",
         //               "put_options"
-        //             )
-        //           ),
-        //           "server_time" => 1650640673500273,
-        //           "trade_farming_daily_reward" => "100000",
-        //           "circulating_supply" => "140000000",
-        //           "circulating_supply_update_time" => "1636752800",
-        //           "deto_referral_mining_daily_reward" => "0",
-        //           "deto_total_reward_pool" => "100000000",
-        //           "deto_trade_mining_daily_reward" => "0",
-        //           "kyc_deposit_limit" => "20",
-        //           "kyc_withdrawal_limit" => "10000",
-        //           "maintenance_start_time" => "1650387600000000",
-        //           "msp_deto_commission_percent" => "25",
-        //           "under_maintenance" => "false"
-        //         ),
-        //         "success" => true
+        //             ]
+        //           },
+        //           "server_time": 1650640673500273,
+        //           "trade_farming_daily_reward": "100000",
+        //           "circulating_supply": "140000000",
+        //           "circulating_supply_update_time": "1636752800",
+        //           "deto_referral_mining_daily_reward": "0",
+        //           "deto_total_reward_pool": "100000000",
+        //           "deto_trade_mining_daily_reward": "0",
+        //           "kyc_deposit_limit": "20",
+        //           "kyc_withdrawal_limit": "10000",
+        //           "maintenance_start_time": "1650387600000000",
+        //           "msp_deto_commission_percent": "25",
+        //           "under_maintenance": "false"
+        //         },
+        //         "success": true
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
         $underMaintenance = $this->safe_string($result, 'under_maintenance');
-        $status = ($underMaintenance === 'true') ? 'maintenance' : 'ok';
+        $status = 'ok';
+        if ($underMaintenance === 'true') {
+            $status = 'maintenance';
+        }
         $updated = $this->safe_integer_product($result, 'server_time', 0.001, $this->milliseconds());
         return array(
             'status' => $status,
@@ -536,49 +543,49 @@ class delta extends Exchange {
         $response = Async\await($this->publicGetAssets($params));
         //
         //    {
-        //        "result" => array(
+        //        "result": [
         //            {
-        //                "base_withdrawal_fee" => "0.005000000000000000",
-        //                "id" => "1",
-        //                "interest_credit" => false,
-        //                "interest_slabs" => null,
-        //                "kyc_deposit_limit" => "0.000000000000000000",
-        //                "kyc_withdrawal_limit" => "0.000000000000000000",
-        //                "min_withdrawal_amount" => "0.010000000000000000",
-        //                "minimum_precision" => "4",
-        //                "name" => "Ethereum",
-        //                "networks" => array(
-        //                    array(
-        //                        "allowed_deposit_groups" => null,
-        //                        "base_withdrawal_fee" => "0.0025",
-        //                        "deposit_status" => "enabled",
-        //                        "memo_required" => false,
-        //                        "min_deposit_amount" => "0.000050000000000000",
-        //                        "min_withdrawal_amount" => "0.010000000000000000",
-        //                        "minimum_deposit_confirmations" => "12",
-        //                        "network" => "ERC20",
-        //                        "variable_withdrawal_fee" => "0",
-        //                        "withdrawal_status" => "enabled"
-        //                    ),
-        //                    array(
-        //                        "allowed_deposit_groups" => null,
-        //                        "base_withdrawal_fee" => "0.0001",
-        //                        "deposit_status" => "enabled",
-        //                        "memo_required" => false,
-        //                        "min_deposit_amount" => "0.000050000000000000",
-        //                        "min_withdrawal_amount" => "0.000300000000000000",
-        //                        "minimum_deposit_confirmations" => "15",
-        //                        "network" => "BEP20(BSC)",
-        //                        "variable_withdrawal_fee" => "0",
-        //                        "withdrawal_status" => "enabled"
+        //                "base_withdrawal_fee": "0.005000000000000000",
+        //                "id": "1",
+        //                "interest_credit": false,
+        //                "interest_slabs": null,
+        //                "kyc_deposit_limit": "0.000000000000000000",
+        //                "kyc_withdrawal_limit": "0.000000000000000000",
+        //                "min_withdrawal_amount": "0.010000000000000000",
+        //                "minimum_precision": "4",
+        //                "name": "Ethereum",
+        //                "networks": [
+        //                    {
+        //                        "allowed_deposit_groups": null,
+        //                        "base_withdrawal_fee": "0.0025",
+        //                        "deposit_status": "enabled",
+        //                        "memo_required": false,
+        //                        "min_deposit_amount": "0.000050000000000000",
+        //                        "min_withdrawal_amount": "0.010000000000000000",
+        //                        "minimum_deposit_confirmations": "12",
+        //                        "network": "ERC20",
+        //                        "variable_withdrawal_fee": "0",
+        //                        "withdrawal_status": "enabled"
+        //                    },
+        //                    {
+        //                        "allowed_deposit_groups": null,
+        //                        "base_withdrawal_fee": "0.0001",
+        //                        "deposit_status": "enabled",
+        //                        "memo_required": false,
+        //                        "min_deposit_amount": "0.000050000000000000",
+        //                        "min_withdrawal_amount": "0.000300000000000000",
+        //                        "minimum_deposit_confirmations": "15",
+        //                        "network": "BEP20(BSC)",
+        //                        "variable_withdrawal_fee": "0",
+        //                        "withdrawal_status": "enabled"
         //                    }
-        //                ),
-        //                "precision" => "18",
-        //                "sort_priority" => "3",
-        //                "symbol" => "ETH",
-        //                "variable_withdrawal_fee" => "0.000000000000000000"
-        //            ),
-        //         ),
+        //                ],
+        //                "precision": "18",
+        //                "sort_priority": "3",
+        //                "symbol": "ETH",
+        //                "variable_withdrawal_fee": "0.000000000000000000"
+        //            },
+        //         ],
         //         "success":true
         //     }
         //
@@ -659,7 +666,7 @@ class delta extends Exchange {
         return $markets;
     }
 
-    public function index_by_stringified_numeric_id(mixed $input) {
+    public function index_by_stringified_numeric_id(?array $input) {
         $result = array();
         if ($input === null) {
             return null;
@@ -693,20 +700,20 @@ class delta extends Exchange {
         $response = Async\await($this->publicGetProducts($params));
         //
         //     {
-        //         "meta":array( "after":null, "before":null, "limit":100, "total_count":81 ),
-        //         "result":array(
-        //             // the below $response represents item from perpetual $market
-        //             array(
+        //         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
+        //         "result":[
+        //             // the below response represents item from perpetual market
+        //             {
         //                 "annualized_funding":"5.475000000000000000",
         //                 "is_quanto":false,
-        //                 "ui_config":array(
+        //                 "ui_config":{
         //                     "default_trading_view_candle":"15",
         //                     "leverage_slider_values":[1,3,5,10,25,50],
         //                     "price_clubbing_values":[0.001,0.005,0.05,0.1,0.5,1,5],
         //                     "show_bracket_orders":false,
         //                     "sort_priority":29,
-        //                     "tags":array()
-        //                 ),
+        //                     "tags":[]
+        //                 },
         //                 "basis_factor_max_limit":"0.15",
         //                 "symbol":"P-LINK-D-151120",
         //                 "id":1584,
@@ -714,16 +721,16 @@ class delta extends Exchange {
         //                 "maker_commission_rate":"0.0005",
         //                 "contract_unit_currency":"LINK",
         //                 "strike_price":"12.507948",
-        //                 "settling_asset":array(
+        //                 "settling_asset":{
         //                     // asset structure
-        //                 ),
+        //                 },
         //                 "auction_start_time":null,
         //                 "auction_finish_time":null,
         //                 "settlement_time":"2020-11-15T12:00:00Z",
         //                 "launch_time":"2020-11-14T11:55:05Z",
-        //                 "spot_index":array(
+        //                 "spot_index":{
         //                     // index structure
-        //                 ),
+        //                 },
         //                 "trading_status":"operational",
         //                 "tick_size":"0.001",
         //                 "position_size_limit":100000,
@@ -732,15 +739,15 @@ class delta extends Exchange {
         //                 "barrier_price":null,
         //                 "description":"Daily LINK PUT options quoted in USDT and settled in USDT",
         //                 "insurance_fund_margin_contribution":"1",
-        //                 "quoting_asset":array(
+        //                 "quoting_asset":{
         //                     // asset structure
-        //                 ),
+        //                 },
         //                 "liquidation_penalty_factor":"0.2",
-        //                 "product_specs":array("max_volatility":3,"min_volatility":0.3,"spot_price_band":"0.40"),
+        //                 "product_specs":{"max_volatility":3,"min_volatility":0.3,"spot_price_band":"0.40"},
         //                 "initial_margin_scaling_factor":"0.0001",
-        //                 "underlying_asset":array(
+        //                 "underlying_asset":{
         //                     // asset structure
-        //                 ),
+        //                 },
         //                 "state":"live",
         //                 "contract_value":"1",
         //                 "initial_margin":"2",
@@ -753,119 +760,119 @@ class delta extends Exchange {
         //                 "maintenance_margin_scaling_factor":"0.00005",
         //                 "funding_method":"mark_price",
         //                 "max_leverage_notional":"20000"
-        //             ),
-        //             // the below $response represents item from $spot $market
-        //             array(
-        //                 "position_size_limit" => 10000000,
-        //                 "settlement_price" => null,
-        //                 "funding_method" => "mark_price",
-        //                 "settling_asset" => null,
-        //                 "impact_size" => 10,
-        //                 "id" => 32258,
-        //                 "auction_finish_time" => null,
-        //                 "description" => "Solana tether $spot $market",
-        //                 "trading_status" => "operational",
-        //                 "tick_size" => "0.01",
-        //                 "liquidation_penalty_factor" => "1",
-        //                 "spot_index" => array(
-        //                     "config" => array( "quoting_asset" => "USDT", "service_id" => 8, "underlying_asset" => "SOL" ),
-        //                     "constituent_exchanges" => array(
-        //                         array( "exchange" => "binance", "health_interval" => 60, "health_priority" => 1, "weight" => 1 ),
-        //                         array( "exchange" => "huobi", "health_interval" => 60, "health_priority" => 2, "weight" => 1 )
-        //                     ),
-        //                     "constituent_indices" => null,
-        //                     "description" => "Solana index from binance and huobi",
-        //                     "health_interval" => 300,
-        //                     "id" => 105,
-        //                     "impact_size" => "40.000000000000000000",
-        //                     "index_type" => "spot_pair",
-        //                     "is_composite" => false,
-        //                     "price_method" => "ltp",
-        //                     "quoting_asset_id" => 5,
-        //                     "symbol" => ".DESOLUSDT",
-        //                     "tick_size" => "0.000100000000000000",
-        //                     "underlying_asset_id" => 66
-        //                 ),
-        //                 "contract_type" => "spot",
-        //                 "launch_time" => "2022-02-03T10:18:11Z",
-        //                 "symbol" => "SOL_USDT",
-        //                 "disruption_reason" => null,
-        //                 "settlement_time" => null,
-        //                 "insurance_fund_margin_contribution" => "1",
-        //                 "is_quanto" => false,
-        //                 "maintenance_margin" => "5",
-        //                 "taker_commission_rate" => "0.0005",
-        //                 "auction_start_time" => null,
-        //                 "max_leverage_notional" => "10000000",
-        //                 "state" => "live",
-        //                 "annualized_funding" => "0",
-        //                 "notional_type" => "vanilla",
-        //                 "price_band" => "100",
-        //                 "product_specs" => array( "kyc_required" => false, "max_order_size" => 2000, "min_order_size" => 0.01, "quoting_precision" => 4, "underlying_precision" => 2 ),
-        //                 "default_leverage" => "1.000000000000000000",
-        //                 "initial_margin" => "10",
-        //                 "maintenance_margin_scaling_factor" => "1",
-        //                 "ui_config" => array(
-        //                     "default_trading_view_candle" => "1d",
-        //                     "leverage_slider_values" => array(),
-        //                     "price_clubbing_values" => array( 0.01, 0.05, 0.1, 0.5, 1, 2.5, 5 ),
-        //                     "show_bracket_orders" => false,
-        //                     "sort_priority" => 2,
-        //                     "tags" => array()
-        //                 ),
-        //                 "basis_factor_max_limit" => "10000",
-        //                 "contract_unit_currency" => "SOL",
-        //                 "strike_price" => null,
-        //                 "quoting_asset" => array(
-        //                     "base_withdrawal_fee" => "10.000000000000000000",
-        //                     "deposit_status" => "enabled",
-        //                     "id" => 5,
-        //                     "interest_credit" => false,
-        //                     "interest_slabs" => null,
-        //                     "kyc_deposit_limit" => "100000.000000000000000000",
-        //                     "kyc_withdrawal_limit" => "10000.000000000000000000",
-        //                     "min_withdrawal_amount" => "30.000000000000000000",
-        //                     "minimum_precision" => 2,
-        //                     "name" => "Tether",
-        //                     "networks" => array(
-        //                         array( "base_withdrawal_fee" => "25", "deposit_status" => "enabled", "memo_required" => false, "network" => "ERC20", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
-        //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
-        //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "disabled", "memo_required" => false, "network" => "TRC20(TRON)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "disabled" )
-        //                     ),
-        //                     "precision" => 8,
-        //                     "sort_priority" => 1,
-        //                     "symbol" => "USDT",
-        //                     "variable_withdrawal_fee" => "0.000000000000000000",
-        //                     "withdrawal_status" => "enabled"
-        //                 ),
-        //                 "maker_commission_rate" => "0.0005",
-        //                 "initial_margin_scaling_factor" => "2",
-        //                 "underlying_asset" => array(
-        //                     "base_withdrawal_fee" => "0.000000000000000000",
-        //                     "deposit_status" => "enabled",
-        //                     "id" => 66,
-        //                     "interest_credit" => false,
-        //                     "interest_slabs" => null,
-        //                     "kyc_deposit_limit" => "0.000000000000000000",
-        //                     "kyc_withdrawal_limit" => "0.000000000000000000",
-        //                     "min_withdrawal_amount" => "0.020000000000000000",
-        //                     "minimum_precision" => 4,
-        //                     "name" => "Solana",
-        //                     "networks" => array(
-        //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "SOLANA", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
-        //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" )
-        //                     ),
-        //                     "precision" => 8,
-        //                     "sort_priority" => 7,
-        //                     "symbol" => "SOL",
-        //                     "variable_withdrawal_fee" => "0.000000000000000000",
-        //                     "withdrawal_status" => "enabled"
-        //                 ),
-        //                 "barrier_price" => null,
-        //                 "contract_value" => "1",
-        //                 "short_description" => "SOL-USDT $spot $market"
-        //             ),
-        //         ),
+        //             },
+        //             // the below response represents item from spot market
+        //             {
+        //                 "position_size_limit": 10000000,
+        //                 "settlement_price": null,
+        //                 "funding_method": "mark_price",
+        //                 "settling_asset": null,
+        //                 "impact_size": 10,
+        //                 "id": 32258,
+        //                 "auction_finish_time": null,
+        //                 "description": "Solana tether spot market",
+        //                 "trading_status": "operational",
+        //                 "tick_size": "0.01",
+        //                 "liquidation_penalty_factor": "1",
+        //                 "spot_index": {
+        //                     "config": { "quoting_asset": "USDT", "service_id": 8, "underlying_asset": "SOL" },
+        //                     "constituent_exchanges": [
+        //                         { "exchange": "binance", "health_interval": 60, "health_priority": 1, "weight": 1 },
+        //                         { "exchange": "huobi", "health_interval": 60, "health_priority": 2, "weight": 1 }
+        //                     ],
+        //                     "constituent_indices": null,
+        //                     "description": "Solana index from binance and huobi",
+        //                     "health_interval": 300,
+        //                     "id": 105,
+        //                     "impact_size": "40.000000000000000000",
+        //                     "index_type": "spot_pair",
+        //                     "is_composite": false,
+        //                     "price_method": "ltp",
+        //                     "quoting_asset_id": 5,
+        //                     "symbol": ".DESOLUSDT",
+        //                     "tick_size": "0.000100000000000000",
+        //                     "underlying_asset_id": 66
+        //                 },
+        //                 "contract_type": "spot",
+        //                 "launch_time": "2022-02-03T10:18:11Z",
+        //                 "symbol": "SOL_USDT",
+        //                 "disruption_reason": null,
+        //                 "settlement_time": null,
+        //                 "insurance_fund_margin_contribution": "1",
+        //                 "is_quanto": false,
+        //                 "maintenance_margin": "5",
+        //                 "taker_commission_rate": "0.0005",
+        //                 "auction_start_time": null,
+        //                 "max_leverage_notional": "10000000",
+        //                 "state": "live",
+        //                 "annualized_funding": "0",
+        //                 "notional_type": "vanilla",
+        //                 "price_band": "100",
+        //                 "product_specs": { "kyc_required": false, "max_order_size": 2000, "min_order_size": 0.01, "quoting_precision": 4, "underlying_precision": 2 },
+        //                 "default_leverage": "1.000000000000000000",
+        //                 "initial_margin": "10",
+        //                 "maintenance_margin_scaling_factor": "1",
+        //                 "ui_config": {
+        //                     "default_trading_view_candle": "1d",
+        //                     "leverage_slider_values": [],
+        //                     "price_clubbing_values": [ 0.01, 0.05, 0.1, 0.5, 1, 2.5, 5 ],
+        //                     "show_bracket_orders": false,
+        //                     "sort_priority": 2,
+        //                     "tags": []
+        //                 },
+        //                 "basis_factor_max_limit": "10000",
+        //                 "contract_unit_currency": "SOL",
+        //                 "strike_price": null,
+        //                 "quoting_asset": {
+        //                     "base_withdrawal_fee": "10.000000000000000000",
+        //                     "deposit_status": "enabled",
+        //                     "id": 5,
+        //                     "interest_credit": false,
+        //                     "interest_slabs": null,
+        //                     "kyc_deposit_limit": "100000.000000000000000000",
+        //                     "kyc_withdrawal_limit": "10000.000000000000000000",
+        //                     "min_withdrawal_amount": "30.000000000000000000",
+        //                     "minimum_precision": 2,
+        //                     "name": "Tether",
+        //                     "networks": [
+        //                         { "base_withdrawal_fee": "25", "deposit_status": "enabled", "memo_required": false, "network": "ERC20", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+        //                         { "base_withdrawal_fee": "1", "deposit_status": "enabled", "memo_required": false, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+        //                         { "base_withdrawal_fee": "1", "deposit_status": "disabled", "memo_required": false, "network": "TRC20(TRON)", "variable_withdrawal_fee": "0", "withdrawal_status": "disabled" }
+        //                     ],
+        //                     "precision": 8,
+        //                     "sort_priority": 1,
+        //                     "symbol": "USDT",
+        //                     "variable_withdrawal_fee": "0.000000000000000000",
+        //                     "withdrawal_status": "enabled"
+        //                 },
+        //                 "maker_commission_rate": "0.0005",
+        //                 "initial_margin_scaling_factor": "2",
+        //                 "underlying_asset": {
+        //                     "base_withdrawal_fee": "0.000000000000000000",
+        //                     "deposit_status": "enabled",
+        //                     "id": 66,
+        //                     "interest_credit": false,
+        //                     "interest_slabs": null,
+        //                     "kyc_deposit_limit": "0.000000000000000000",
+        //                     "kyc_withdrawal_limit": "0.000000000000000000",
+        //                     "min_withdrawal_amount": "0.020000000000000000",
+        //                     "minimum_precision": 4,
+        //                     "name": "Solana",
+        //                     "networks": [
+        //                         { "base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": false, "network": "SOLANA", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+        //                         { "base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": false, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" }
+        //                     ],
+        //                     "precision": 8,
+        //                     "sort_priority": 7,
+        //                     "symbol": "SOL",
+        //                     "variable_withdrawal_fee": "0.000000000000000000",
+        //                     "withdrawal_status": "enabled"
+        //                 },
+        //                 "barrier_price": null,
+        //                 "contract_value": "1",
+        //                 "short_description": "SOL-USDT spot market"
+        //             },
+        //         ],
         //         "success":true
         //     }
         //
@@ -875,11 +882,11 @@ class delta extends Exchange {
             $market = $markets[$i];
             $type = $this->safe_string($market, 'contract_type');
             if (($type === 'options_combos') || ($type === 'binary_call_options') || ($type === 'binary_put_options')) {
-                // binary options can not be represented in the unified $market
+                // binary options can not be represented in the unified market
                 // structure, their symbols would collide with vanilla options
                 continue;
             }
-            // $settlingAsset = $this->safe_value($market, 'settling_asset', array());
+            // const settlingAsset = this.safeValue (market, 'settling_asset', {});
             $quotingAsset = $this->safe_dict($market, 'quoting_asset', array());
             $underlyingAsset = $this->safe_dict($market, 'underlying_asset', array());
             $settlingAsset = $this->safe_dict($market, 'settling_asset');
@@ -891,6 +898,9 @@ class delta extends Exchange {
             $numericId = $this->safe_integer($market, 'id');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             $callOptions = ($type === 'call_options');
             $putOptions = ($type === 'put_options');
@@ -907,7 +917,7 @@ class delta extends Exchange {
             if ($spot) {
                 $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($productSpecs, 'underlying_precision'))); // seems inverse of 'impact_size'
             } else {
-                // other $markets ($swap, futures, move, spread, irs) seem to use the step of '1' contract
+                // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                 $amountPrecision = $this->parse_number('1');
             }
             $linear = ($settle === $quote);
@@ -961,7 +971,7 @@ class delta extends Exchange {
                 'maker' => $this->safe_number($market, 'maker_commission_rate'),
                 'contractSize' => $spot ? null : $contractSize,
                 'expiry' => $expiry,
-                'expiryDatetime' => $this->iso8601($expiry), // do not use raw $expiry string
+                'expiryDatetime' => $this->iso8601($expiry), // do not use raw expiry string
                 'strike' => $this->parse_number($strike),
                 'optionType' => $optionType,
                 'precision' => array(
@@ -995,130 +1005,130 @@ class delta extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        // spot => fetchTicker, fetchTickers
+        // spot: fetchTicker, fetchTickers
         //
         //     {
-        //         "close" => 30634.0,
-        //         "contract_type" => "spot",
-        //         "greeks" => null,
-        //         "high" => 30780.0,
-        //         "low" => 30340.5,
-        //         "mark_price" => "48000",
-        //         "oi" => "0.0000",
-        //         "oi_change_usd_6h" => "0.0000",
-        //         "oi_contracts" => "0",
-        //         "oi_value" => "0.0000",
-        //         "oi_value_symbol" => "BTC",
-        //         "oi_value_usd" => "0.0000",
-        //         "open" => 30464.0,
-        //         "price_band" => null,
-        //         "product_id" => 8320,
-        //         "quotes" => array(),
-        //         "size" => 2.6816639999999996,
-        //         "spot_price" => "30637.91465121",
-        //         "symbol" => "BTC_USDT",
-        //         "timestamp" => 1689139767621299,
-        //         "turnover" => 2.6816639999999996,
-        //         "turnover_symbol" => "BTC",
-        //         "turnover_usd" => 81896.45613400004,
-        //         "volume" => 2.6816639999999996
+        //         "close": 30634.0,
+        //         "contract_type": "spot",
+        //         "greeks": null,
+        //         "high": 30780.0,
+        //         "low": 30340.5,
+        //         "mark_price": "48000",
+        //         "oi": "0.0000",
+        //         "oi_change_usd_6h": "0.0000",
+        //         "oi_contracts": "0",
+        //         "oi_value": "0.0000",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "0.0000",
+        //         "open": 30464.0,
+        //         "price_band": null,
+        //         "product_id": 8320,
+        //         "quotes": {},
+        //         "size": 2.6816639999999996,
+        //         "spot_price": "30637.91465121",
+        //         "symbol": "BTC_USDT",
+        //         "timestamp": 1689139767621299,
+        //         "turnover": 2.6816639999999996,
+        //         "turnover_symbol": "BTC",
+        //         "turnover_usd": 81896.45613400004,
+        //         "volume": 2.6816639999999996
         //     }
         //
-        // swap => fetchTicker, fetchTickers
+        // swap: fetchTicker, fetchTickers
         //
         //     {
-        //         "close" => 30600.5,
-        //         "contract_type" => "perpetual_futures",
-        //         "funding_rate" => "0.00602961",
-        //         "greeks" => null,
-        //         "high" => 30803.0,
-        //         "low" => 30265.5,
-        //         "mark_basis" => "-0.45601594",
-        //         "mark_price" => "30600.10481568",
-        //         "oi" => "469.9190",
-        //         "oi_change_usd_6h" => "2226314.9900",
-        //         "oi_contracts" => "469919",
-        //         "oi_value" => "469.9190",
-        //         "oi_value_symbol" => "BTC",
-        //         "oi_value_usd" => "14385640.6802",
-        //         "open" => 30458.5,
-        //         "price_band" => array(
-        //             "lower_limit" => "29067.08312627",
-        //             "upper_limit" => "32126.77608693"
-        //         ),
-        //         "product_id" => 139,
-        //         "quotes" => array(
-        //             "ask_iv" => null,
-        //             "ask_size" => "965",
-        //             "best_ask" => "30600.5",
-        //             "best_bid" => "30599.5",
-        //             "bid_iv" => null,
-        //             "bid_size" => "196",
-        //             "impact_mid_price" => null,
-        //             "mark_iv" => "-0.44931641"
-        //         ),
-        //         "size" => 1226303,
-        //         "spot_price" => "30612.85362773",
-        //         "symbol" => "BTCUSDT",
-        //         "timestamp" => 1689136597460456,
-        //         "turnover" => 37392218.45999999,
-        //         "turnover_symbol" => "USDT",
-        //         "turnover_usd" => 37392218.45999999,
-        //         "volume" => 1226.3029999999485
+        //         "close": 30600.5,
+        //         "contract_type": "perpetual_futures",
+        //         "funding_rate": "0.00602961",
+        //         "greeks": null,
+        //         "high": 30803.0,
+        //         "low": 30265.5,
+        //         "mark_basis": "-0.45601594",
+        //         "mark_price": "30600.10481568",
+        //         "oi": "469.9190",
+        //         "oi_change_usd_6h": "2226314.9900",
+        //         "oi_contracts": "469919",
+        //         "oi_value": "469.9190",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "14385640.6802",
+        //         "open": 30458.5,
+        //         "price_band": {
+        //             "lower_limit": "29067.08312627",
+        //             "upper_limit": "32126.77608693"
+        //         },
+        //         "product_id": 139,
+        //         "quotes": {
+        //             "ask_iv": null,
+        //             "ask_size": "965",
+        //             "best_ask": "30600.5",
+        //             "best_bid": "30599.5",
+        //             "bid_iv": null,
+        //             "bid_size": "196",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "-0.44931641"
+        //         },
+        //         "size": 1226303,
+        //         "spot_price": "30612.85362773",
+        //         "symbol": "BTCUSDT",
+        //         "timestamp": 1689136597460456,
+        //         "turnover": 37392218.45999999,
+        //         "turnover_symbol": "USDT",
+        //         "turnover_usd": 37392218.45999999,
+        //         "volume": 1226.3029999999485
         //     }
         //
-        // option => fetchTicker, fetchTickers
+        // option: fetchTicker, fetchTickers
         //
         //     {
-        //         "contract_type" => "call_options",
-        //         "greeks" => array(
-        //             "delta" => "0.60873994",
-        //             "gamma" => "0.00014854",
-        //             "rho" => "7.71808010",
-        //             "spot" => "30598.49040622",
-        //             "theta" => "-30.44743017",
-        //             "vega" => "24.83508248"
-        //         ),
-        //         "mark_price" => "1347.74819696",
-        //         "mark_vol" => "0.39966303",
-        //         "oi" => "2.7810",
-        //         "oi_change_usd_6h" => "0.0000",
-        //         "oi_contracts" => "2781",
-        //         "oi_value" => "2.7810",
-        //         "oi_value_symbol" => "BTC",
-        //         "oi_value_usd" => "85127.4337",
-        //         "price_band" => array(
-        //             "lower_limit" => "91.27423497",
-        //             "upper_limit" => "7846.19454697"
-        //         ),
-        //         "product_id" => 107150,
-        //         "quotes" => array(
-        //             "ask_iv" => "0.41023239",
-        //             "ask_size" => "2397",
-        //             "best_ask" => "1374",
-        //             "best_bid" => "1322",
-        //             "bid_iv" => "0.38929375",
-        //             "bid_size" => "3995",
-        //             "impact_mid_price" => null,
-        //             "mark_iv" => "0.39965618"
-        //         ),
-        //         "spot_price" => "30598.43379314",
-        //         "strike_price" => "30000",
-        //         "symbol" => "C-BTC-30000-280723",
-        //         "timestamp" => 1689136932893181,
-        //         "turnover_symbol" => "USDT"
+        //         "contract_type": "call_options",
+        //         "greeks": {
+        //             "delta": "0.60873994",
+        //             "gamma": "0.00014854",
+        //             "rho": "7.71808010",
+        //             "spot": "30598.49040622",
+        //             "theta": "-30.44743017",
+        //             "vega": "24.83508248"
+        //         },
+        //         "mark_price": "1347.74819696",
+        //         "mark_vol": "0.39966303",
+        //         "oi": "2.7810",
+        //         "oi_change_usd_6h": "0.0000",
+        //         "oi_contracts": "2781",
+        //         "oi_value": "2.7810",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "85127.4337",
+        //         "price_band": {
+        //             "lower_limit": "91.27423497",
+        //             "upper_limit": "7846.19454697"
+        //         },
+        //         "product_id": 107150,
+        //         "quotes": {
+        //             "ask_iv": "0.41023239",
+        //             "ask_size": "2397",
+        //             "best_ask": "1374",
+        //             "best_bid": "1322",
+        //             "bid_iv": "0.38929375",
+        //             "bid_size": "3995",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "0.39965618"
+        //         },
+        //         "spot_price": "30598.43379314",
+        //         "strike_price": "30000",
+        //         "symbol": "C-BTC-30000-280723",
+        //         "timestamp": 1689136932893181,
+        //         "turnover_symbol": "USDT"
         //     }
         //
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.001);
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $last = $this->safe_string($ticker, 'close');
         $quotes = $this->safe_dict($ticker, 'quotes', array());
         // turnover_symbol names the currency turnover is denominated in, and on
         // spot markets that is the base currency rather than the quote
         $turnoverSymbol = $this->safe_string_upper($ticker, 'turnover_symbol');
-        $quoteId = $this->safe_string_upper($market, 'quoteId');
+        $quoteId = $this->safe_string_upper($marketResolved, 'quoteId');
         $baseDenominated = ($turnoverSymbol !== null) && ($quoteId !== null) && ($turnoverSymbol !== $quoteId);
         $quoteVolume = $baseDenominated ? $this->safe_number($ticker, 'turnover_usd') : $this->safe_number($ticker, 'turnover');
         return $this->safe_ticker(array(
@@ -1144,7 +1154,7 @@ class delta extends Exchange {
             'markPrice' => $this->safe_number($ticker, 'mark_price'),
             'indexPrice' => $this->safe_number($ticker, 'spot_price'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -1171,124 +1181,124 @@ class delta extends Exchange {
         // spot
         //
         //     {
-        //         "result" => array(
-        //             "close" => 30634.0,
-        //             "contract_type" => "spot",
-        //             "greeks" => null,
-        //             "high" => 30780.0,
-        //             "low" => 30340.5,
-        //             "mark_price" => "48000",
-        //             "oi" => "0.0000",
-        //             "oi_change_usd_6h" => "0.0000",
-        //             "oi_contracts" => "0",
-        //             "oi_value" => "0.0000",
-        //             "oi_value_symbol" => "BTC",
-        //             "oi_value_usd" => "0.0000",
-        //             "open" => 30464.0,
-        //             "price_band" => null,
-        //             "product_id" => 8320,
-        //             "quotes" => array(),
-        //             "size" => 2.6816639999999996,
-        //             "spot_price" => "30637.91465121",
-        //             "symbol" => "BTC_USDT",
-        //             "timestamp" => 1689139767621299,
-        //             "turnover" => 2.6816639999999996,
-        //             "turnover_symbol" => "BTC",
-        //             "turnover_usd" => 81896.45613400004,
-        //             "volume" => 2.6816639999999996
-        //         ),
-        //         "success" => true
+        //         "result": {
+        //             "close": 30634.0,
+        //             "contract_type": "spot",
+        //             "greeks": null,
+        //             "high": 30780.0,
+        //             "low": 30340.5,
+        //             "mark_price": "48000",
+        //             "oi": "0.0000",
+        //             "oi_change_usd_6h": "0.0000",
+        //             "oi_contracts": "0",
+        //             "oi_value": "0.0000",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "0.0000",
+        //             "open": 30464.0,
+        //             "price_band": null,
+        //             "product_id": 8320,
+        //             "quotes": {},
+        //             "size": 2.6816639999999996,
+        //             "spot_price": "30637.91465121",
+        //             "symbol": "BTC_USDT",
+        //             "timestamp": 1689139767621299,
+        //             "turnover": 2.6816639999999996,
+        //             "turnover_symbol": "BTC",
+        //             "turnover_usd": 81896.45613400004,
+        //             "volume": 2.6816639999999996
+        //         },
+        //         "success": true
         //     }
         //
         // swap
         //
         //     {
-        //         "result" => array(
-        //             "close" => 30600.5,
-        //             "contract_type" => "perpetual_futures",
-        //             "funding_rate" => "0.00602961",
-        //             "greeks" => null,
-        //             "high" => 30803.0,
-        //             "low" => 30265.5,
-        //             "mark_basis" => "-0.45601594",
-        //             "mark_price" => "30600.10481568",
-        //             "oi" => "469.9190",
-        //             "oi_change_usd_6h" => "2226314.9900",
-        //             "oi_contracts" => "469919",
-        //             "oi_value" => "469.9190",
-        //             "oi_value_symbol" => "BTC",
-        //             "oi_value_usd" => "14385640.6802",
-        //             "open" => 30458.5,
-        //             "price_band" => array(
-        //                 "lower_limit" => "29067.08312627",
-        //                 "upper_limit" => "32126.77608693"
-        //             ),
-        //             "product_id" => 139,
-        //             "quotes" => array(
-        //                 "ask_iv" => null,
-        //                 "ask_size" => "965",
-        //                 "best_ask" => "30600.5",
-        //                 "best_bid" => "30599.5",
-        //                 "bid_iv" => null,
-        //                 "bid_size" => "196",
-        //                 "impact_mid_price" => null,
-        //                 "mark_iv" => "-0.44931641"
-        //             ),
-        //             "size" => 1226303,
-        //             "spot_price" => "30612.85362773",
-        //             "symbol" => "BTCUSDT",
-        //             "timestamp" => 1689136597460456,
-        //             "turnover" => 37392218.45999999,
-        //             "turnover_symbol" => "USDT",
-        //             "turnover_usd" => 37392218.45999999,
-        //             "volume" => 1226.3029999999485
-        //         ),
-        //         "success" => true
+        //         "result": {
+        //             "close": 30600.5,
+        //             "contract_type": "perpetual_futures",
+        //             "funding_rate": "0.00602961",
+        //             "greeks": null,
+        //             "high": 30803.0,
+        //             "low": 30265.5,
+        //             "mark_basis": "-0.45601594",
+        //             "mark_price": "30600.10481568",
+        //             "oi": "469.9190",
+        //             "oi_change_usd_6h": "2226314.9900",
+        //             "oi_contracts": "469919",
+        //             "oi_value": "469.9190",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "14385640.6802",
+        //             "open": 30458.5,
+        //             "price_band": {
+        //                 "lower_limit": "29067.08312627",
+        //                 "upper_limit": "32126.77608693"
+        //             },
+        //             "product_id": 139,
+        //             "quotes": {
+        //                 "ask_iv": null,
+        //                 "ask_size": "965",
+        //                 "best_ask": "30600.5",
+        //                 "best_bid": "30599.5",
+        //                 "bid_iv": null,
+        //                 "bid_size": "196",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "-0.44931641"
+        //             },
+        //             "size": 1226303,
+        //             "spot_price": "30612.85362773",
+        //             "symbol": "BTCUSDT",
+        //             "timestamp": 1689136597460456,
+        //             "turnover": 37392218.45999999,
+        //             "turnover_symbol": "USDT",
+        //             "turnover_usd": 37392218.45999999,
+        //             "volume": 1226.3029999999485
+        //         },
+        //         "success": true
         //     }
         //
         // option
         //
         //     {
-        //         "result" => array(
-        //             "contract_type" => "call_options",
-        //             "greeks" => array(
-        //                 "delta" => "0.60873994",
-        //                 "gamma" => "0.00014854",
-        //                 "rho" => "7.71808010",
-        //                 "spot" => "30598.49040622",
-        //                 "theta" => "-30.44743017",
-        //                 "vega" => "24.83508248"
-        //             ),
-        //             "mark_price" => "1347.74819696",
-        //             "mark_vol" => "0.39966303",
-        //             "oi" => "2.7810",
-        //             "oi_change_usd_6h" => "0.0000",
-        //             "oi_contracts" => "2781",
-        //             "oi_value" => "2.7810",
-        //             "oi_value_symbol" => "BTC",
-        //             "oi_value_usd" => "85127.4337",
-        //             "price_band" => array(
-        //                 "lower_limit" => "91.27423497",
-        //                 "upper_limit" => "7846.19454697"
-        //             ),
-        //             "product_id" => 107150,
-        //             "quotes" => array(
-        //                 "ask_iv" => "0.41023239",
-        //                 "ask_size" => "2397",
-        //                 "best_ask" => "1374",
-        //                 "best_bid" => "1322",
-        //                 "bid_iv" => "0.38929375",
-        //                 "bid_size" => "3995",
-        //                 "impact_mid_price" => null,
-        //                 "mark_iv" => "0.39965618"
-        //             ),
-        //             "spot_price" => "30598.43379314",
-        //             "strike_price" => "30000",
-        //             "symbol" => "C-BTC-30000-280723",
-        //             "timestamp" => 1689136932893181,
-        //             "turnover_symbol" => "USDT"
-        //         ),
-        //         "success" => true
+        //         "result": {
+        //             "contract_type": "call_options",
+        //             "greeks": {
+        //                 "delta": "0.60873994",
+        //                 "gamma": "0.00014854",
+        //                 "rho": "7.71808010",
+        //                 "spot": "30598.49040622",
+        //                 "theta": "-30.44743017",
+        //                 "vega": "24.83508248"
+        //             },
+        //             "mark_price": "1347.74819696",
+        //             "mark_vol": "0.39966303",
+        //             "oi": "2.7810",
+        //             "oi_change_usd_6h": "0.0000",
+        //             "oi_contracts": "2781",
+        //             "oi_value": "2.7810",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "85127.4337",
+        //             "price_band": {
+        //                 "lower_limit": "91.27423497",
+        //                 "upper_limit": "7846.19454697"
+        //             },
+        //             "product_id": 107150,
+        //             "quotes": {
+        //                 "ask_iv": "0.41023239",
+        //                 "ask_size": "2397",
+        //                 "best_ask": "1374",
+        //                 "best_bid": "1322",
+        //                 "bid_iv": "0.38929375",
+        //                 "bid_size": "3995",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "0.39965618"
+        //             },
+        //             "spot_price": "30598.43379314",
+        //             "strike_price": "30000",
+        //             "symbol": "C-BTC-30000-280723",
+        //             "timestamp": 1689136932893181,
+        //             "turnover_symbol": "USDT"
+        //         },
+        //         "success": true
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -1310,135 +1320,135 @@ class delta extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->publicGetTickers($params));
         //
         // spot
         //
         //     {
-        //         "result" => array(
-        //             array(
-        //                 "close" => 30634.0,
-        //                 "contract_type" => "spot",
-        //                 "greeks" => null,
-        //                 "high" => 30780.0,
-        //                 "low" => 30340.5,
-        //                 "mark_price" => "48000",
-        //                 "oi" => "0.0000",
-        //                 "oi_change_usd_6h" => "0.0000",
-        //                 "oi_contracts" => "0",
-        //                 "oi_value" => "0.0000",
-        //                 "oi_value_symbol" => "BTC",
-        //                 "oi_value_usd" => "0.0000",
-        //                 "open" => 30464.0,
-        //                 "price_band" => null,
-        //                 "product_id" => 8320,
-        //                 "quotes" => array(),
-        //                 "size" => 2.6816639999999996,
-        //                 "spot_price" => "30637.91465121",
-        //                 "symbol" => "BTC_USDT",
-        //                 "timestamp" => 1689139767621299,
-        //                 "turnover" => 2.6816639999999996,
-        //                 "turnover_symbol" => "BTC",
-        //                 "turnover_usd" => 81896.45613400004,
-        //                 "volume" => 2.6816639999999996
-        //             ),
-        //         ),
+        //         "result": [
+        //             {
+        //                 "close": 30634.0,
+        //                 "contract_type": "spot",
+        //                 "greeks": null,
+        //                 "high": 30780.0,
+        //                 "low": 30340.5,
+        //                 "mark_price": "48000",
+        //                 "oi": "0.0000",
+        //                 "oi_change_usd_6h": "0.0000",
+        //                 "oi_contracts": "0",
+        //                 "oi_value": "0.0000",
+        //                 "oi_value_symbol": "BTC",
+        //                 "oi_value_usd": "0.0000",
+        //                 "open": 30464.0,
+        //                 "price_band": null,
+        //                 "product_id": 8320,
+        //                 "quotes": {},
+        //                 "size": 2.6816639999999996,
+        //                 "spot_price": "30637.91465121",
+        //                 "symbol": "BTC_USDT",
+        //                 "timestamp": 1689139767621299,
+        //                 "turnover": 2.6816639999999996,
+        //                 "turnover_symbol": "BTC",
+        //                 "turnover_usd": 81896.45613400004,
+        //                 "volume": 2.6816639999999996
+        //             },
+        //         ],
         //         "success":true
         //     }
         //
         // swap
         //
         //     {
-        //         "result" => array(
-        //             array(
-        //                 "close" => 30600.5,
-        //                 "contract_type" => "perpetual_futures",
-        //                 "funding_rate" => "0.00602961",
-        //                 "greeks" => null,
-        //                 "high" => 30803.0,
-        //                 "low" => 30265.5,
-        //                 "mark_basis" => "-0.45601594",
-        //                 "mark_price" => "30600.10481568",
-        //                 "oi" => "469.9190",
-        //                 "oi_change_usd_6h" => "2226314.9900",
-        //                 "oi_contracts" => "469919",
-        //                 "oi_value" => "469.9190",
-        //                 "oi_value_symbol" => "BTC",
-        //                 "oi_value_usd" => "14385640.6802",
-        //                 "open" => 30458.5,
-        //                 "price_band" => array(
-        //                     "lower_limit" => "29067.08312627",
-        //                     "upper_limit" => "32126.77608693"
-        //                 ),
-        //                 "product_id" => 139,
-        //                 "quotes" => array(
-        //                     "ask_iv" => null,
-        //                     "ask_size" => "965",
-        //                     "best_ask" => "30600.5",
-        //                     "best_bid" => "30599.5",
-        //                     "bid_iv" => null,
-        //                     "bid_size" => "196",
-        //                     "impact_mid_price" => null,
-        //                     "mark_iv" => "-0.44931641"
-        //                 ),
-        //                 "size" => 1226303,
-        //                 "spot_price" => "30612.85362773",
-        //                 "symbol" => "BTCUSDT",
-        //                 "timestamp" => 1689136597460456,
-        //                 "turnover" => 37392218.45999999,
-        //                 "turnover_symbol" => "USDT",
-        //                 "turnover_usd" => 37392218.45999999,
-        //                 "volume" => 1226.3029999999485
-        //             ),
-        //         ),
+        //         "result": [
+        //             {
+        //                 "close": 30600.5,
+        //                 "contract_type": "perpetual_futures",
+        //                 "funding_rate": "0.00602961",
+        //                 "greeks": null,
+        //                 "high": 30803.0,
+        //                 "low": 30265.5,
+        //                 "mark_basis": "-0.45601594",
+        //                 "mark_price": "30600.10481568",
+        //                 "oi": "469.9190",
+        //                 "oi_change_usd_6h": "2226314.9900",
+        //                 "oi_contracts": "469919",
+        //                 "oi_value": "469.9190",
+        //                 "oi_value_symbol": "BTC",
+        //                 "oi_value_usd": "14385640.6802",
+        //                 "open": 30458.5,
+        //                 "price_band": {
+        //                     "lower_limit": "29067.08312627",
+        //                     "upper_limit": "32126.77608693"
+        //                 },
+        //                 "product_id": 139,
+        //                 "quotes": {
+        //                     "ask_iv": null,
+        //                     "ask_size": "965",
+        //                     "best_ask": "30600.5",
+        //                     "best_bid": "30599.5",
+        //                     "bid_iv": null,
+        //                     "bid_size": "196",
+        //                     "impact_mid_price": null,
+        //                     "mark_iv": "-0.44931641"
+        //                 },
+        //                 "size": 1226303,
+        //                 "spot_price": "30612.85362773",
+        //                 "symbol": "BTCUSDT",
+        //                 "timestamp": 1689136597460456,
+        //                 "turnover": 37392218.45999999,
+        //                 "turnover_symbol": "USDT",
+        //                 "turnover_usd": 37392218.45999999,
+        //                 "volume": 1226.3029999999485
+        //             },
+        //         ],
         //         "success":true
         //     }
         //
         // option
         //
         //     {
-        //         "result" => array(
-        //             array(
-        //                 "contract_type" => "call_options",
-        //                 "greeks" => array(
-        //                     "delta" => "0.60873994",
-        //                     "gamma" => "0.00014854",
-        //                     "rho" => "7.71808010",
-        //                     "spot" => "30598.49040622",
-        //                     "theta" => "-30.44743017",
-        //                     "vega" => "24.83508248"
-        //                 ),
-        //                 "mark_price" => "1347.74819696",
-        //                 "mark_vol" => "0.39966303",
-        //                 "oi" => "2.7810",
-        //                 "oi_change_usd_6h" => "0.0000",
-        //                 "oi_contracts" => "2781",
-        //                 "oi_value" => "2.7810",
-        //                 "oi_value_symbol" => "BTC",
-        //                 "oi_value_usd" => "85127.4337",
-        //                 "price_band" => array(
-        //                     "lower_limit" => "91.27423497",
-        //                     "upper_limit" => "7846.19454697"
-        //                 ),
-        //                 "product_id" => 107150,
-        //                 "quotes" => array(
-        //                     "ask_iv" => "0.41023239",
-        //                     "ask_size" => "2397",
-        //                     "best_ask" => "1374",
-        //                     "best_bid" => "1322",
-        //                     "bid_iv" => "0.38929375",
-        //                     "bid_size" => "3995",
-        //                     "impact_mid_price" => null,
-        //                     "mark_iv" => "0.39965618"
-        //                 ),
-        //                 "spot_price" => "30598.43379314",
-        //                 "strike_price" => "30000",
-        //                 "symbol" => "C-BTC-30000-280723",
-        //                 "timestamp" => 1689136932893181,
-        //                 "turnover_symbol" => "USDT"
-        //             ),
-        //         ),
+        //         "result": [
+        //             {
+        //                 "contract_type": "call_options",
+        //                 "greeks": {
+        //                     "delta": "0.60873994",
+        //                     "gamma": "0.00014854",
+        //                     "rho": "7.71808010",
+        //                     "spot": "30598.49040622",
+        //                     "theta": "-30.44743017",
+        //                     "vega": "24.83508248"
+        //                 },
+        //                 "mark_price": "1347.74819696",
+        //                 "mark_vol": "0.39966303",
+        //                 "oi": "2.7810",
+        //                 "oi_change_usd_6h": "0.0000",
+        //                 "oi_contracts": "2781",
+        //                 "oi_value": "2.7810",
+        //                 "oi_value_symbol": "BTC",
+        //                 "oi_value_usd": "85127.4337",
+        //                 "price_band": {
+        //                     "lower_limit": "91.27423497",
+        //                     "upper_limit": "7846.19454697"
+        //                 },
+        //                 "product_id": 107150,
+        //                 "quotes": {
+        //                     "ask_iv": "0.41023239",
+        //                     "ask_size": "2397",
+        //                     "best_ask": "1374",
+        //                     "best_bid": "1322",
+        //                     "bid_iv": "0.38929375",
+        //                     "bid_size": "3995",
+        //                     "impact_mid_price": null,
+        //                     "mark_iv": "0.39965618"
+        //                 },
+        //                 "spot_price": "30598.43379314",
+        //                 "strike_price": "30000",
+        //                 "symbol": "C-BTC-30000-280723",
+        //                 "timestamp": 1689136932893181,
+        //                 "turnover_symbol": "USDT"
+        //             },
+        //         ],
         //         "success":true
         //     }
         //
@@ -1457,7 +1467,7 @@ class delta extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1486,19 +1496,19 @@ class delta extends Exchange {
         $response = Async\await($this->publicGetL2orderbookSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "result":array(
-        //             "buy":array(
-        //                 array("price":"15814.0","size":912),
-        //                 array("price":"15813.5","size":1279),
-        //                 array("price":"15813.0","size":1634),
-        //             ),
-        //             "sell":array(
-        //                 array("price":"15814.5","size":625),
-        //                 array("price":"15815.0","size":982),
-        //                 array("price":"15815.5","size":1328),
-        //             ),
+        //         "result":{
+        //             "buy":[
+        //                 {"price":"15814.0","size":912},
+        //                 {"price":"15813.5","size":1279},
+        //                 {"price":"15813.0","size":1634},
+        //             ],
+        //             "sell":[
+        //                 {"price":"15814.5","size":625},
+        //                 {"price":"15815.0","size":982},
+        //                 {"price":"15815.5","size":1328},
+        //             ],
         //             "symbol":"BTCUSDT"
-        //         ),
+        //         },
         //         "success":true
         //     }
         //
@@ -1526,28 +1536,28 @@ class delta extends Exchange {
         //         "created_at":"2020-11-16T19:07:19Z",
         //         "fill_type":"normal",
         //         "id":"e7ff05c233a74245b72381f8dd91d1ce",
-        //         "meta_data":array(
+        //         "meta_data":{
         //             "effective_commission_rate":"0.0005",
         //             "order_price":"16249",
         //             "order_size":1,
         //             "order_type":"market_order",
         //             "order_unfilled_size":0,
         //             "trading_fee_credits_used":"0"
-        //         ),
+        //         },
         //         "order_id":"152999629",
         //         "price":"16669",
-        //         "product":array(
+        //         "product":{
         //             "contract_type":"perpetual_futures",
         //             "contract_unit_currency":"BTC",
         //             "contract_value":"0.001",
         //             "id":139,
         //             "notional_type":"vanilla",
-        //             "quoting_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
-        //             "settling_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
+        //             "quoting_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
+        //             "settling_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
         //             "symbol":"BTCUSDT",
         //             "tick_size":"0.5",
-        //             "underlying_asset":array("minimum_precision":4,"precision":8,"symbol":"BTC")
-        //         ),
+        //             "underlying_asset":{"minimum_precision":4,"precision":8,"symbol":"BTC"}
+        //         },
         //         "product_id":139,
         //         "role":"taker",
         //         "side":"sell",
@@ -1630,7 +1640,7 @@ class delta extends Exchange {
         $response = Async\await($this->publicGetTradesSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "result":array(
+        //         "result":[
         //             {
         //                 "buyer_role":"maker",
         //                 "price":"15896.5",
@@ -1639,7 +1649,7 @@ class delta extends Exchange {
         //                 "symbol":"BTCUSDT",
         //                 "timestamp":1605376684714595
         //             }
-        //         ),
+        //         ],
         //         "success":true
         //     }
         //
@@ -1684,7 +1694,7 @@ class delta extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -1692,7 +1702,10 @@ class delta extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe);
-        $limit = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : 2000; // max 2000
+        $limitValue = 2000;
+        if ($limit !== null && $limit !== null && $limit !== 0) {
+            $limitValue = $limit; // max 2000
+        }
         $until = $this->safe_integer_product($params, 'until', 0.001);
         $untilIsDefined = ($until !== null);
         if ($untilIsDefined) {
@@ -1704,11 +1717,11 @@ class delta extends Exchange {
             if ($end === null) {
                 throw new ExchangeError($this->id . ' fetchOHLCV() missing end');
             }
-            $request['start'] = $end - $limit * $duration;
+            $request['start'] = $end - $limitValue * $duration;
         } else {
             $start = $this->parse_to_int($since / 1000);
             $request['start'] = $start;
-            $request['end'] = $untilIsDefined ? $until : $this->sum($start, $limit * $duration);
+            $request['end'] = $untilIsDefined ? $until : $this->sum($start, $limitValue * $duration);
         }
         $price = $this->safe_string($params, 'price');
         if ($price === 'mark') {
@@ -1718,20 +1731,20 @@ class delta extends Exchange {
         } else {
             $request['symbol'] = $market['id'];
         }
-        $params = $this->omit($params, array( 'price', 'until' ));
-        $response = Async\await($this->publicGetHistoryCandles($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, array( 'price', 'until' ));
+        $response = Async\await($this->publicGetHistoryCandles($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "success":true,
-        //         "result":array(
-        //             array("time":1605393120,"open":15989,"high":15989,"low":15987.5,"close":15987.5,"volume":565),
-        //             array("time":1605393180,"open":15966,"high":15966,"low":15959,"close":15959,"volume":24),
-        //             array("time":1605393300,"open":15973,"high":15973,"low":15973,"close":15973,"volume":1288),
-        //         )
+        //         "result":[
+        //             {"time":1605393120,"open":15989,"high":15989,"low":15987.5,"close":15987.5,"volume":565},
+        //             {"time":1605393180,"open":15966,"high":15966,"low":15959,"close":15959,"volume":24},
+        //             {"time":1605393300,"open":15973,"high":15973,"low":15973,"close":15973,"volume":1288},
+        //         ]
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limitValue);
     }
 
     public function parse_balance(mixed $response): array {
@@ -1739,7 +1752,7 @@ class delta extends Exchange {
         $result = array( 'info' => $response );
         $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'asset_id');
             $currency = $this->safe_dict($currenciesByNumericId, $currencyId);
             $code = ($currency === null) ? $currencyId : $currency['code'];
@@ -1768,8 +1781,8 @@ class delta extends Exchange {
         $response = Async\await($this->privateGetWalletBalances($params));
         //
         //     {
-        //         "result":array(
-        //             array(
+        //         "result":[
+        //             {
         //                 "asset_id":1,
         //                 "available_balance":"0",
         //                 "balance":"0",
@@ -1782,15 +1795,15 @@ class delta extends Exchange {
         //                 "position_margin":"0",
         //                 "trading_fee_credit":"0",
         //                 "user_id":22142
-        //             ),
-        //         ),
+        //             },
+        //         ],
         //         "success":true
         //     }
         //
         return $this->parse_balance($response);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
 
@@ -1812,11 +1825,11 @@ class delta extends Exchange {
         $response = Async\await($this->privateGetPositions($this->extend($request, $params)));
         //
         //     {
-        //         "result":array(
+        //         "result":{
         //             "entry_price":null,
         //             "size":0,
         //             "timestamp":1605454074268079
-        //         ),
+        //         },
         //         "success":true
         //     }
         //
@@ -1842,30 +1855,30 @@ class delta extends Exchange {
         $response = Async\await($this->privateGetPositionsMargined($params));
         //
         //     {
-        //         "success" => true,
-        //         "result" => array(
+        //         "success": true,
+        //         "result": [
         //           {
-        //             "user_id" => 0,
-        //             "size" => 0,
-        //             "entry_price" => "string",
-        //             "margin" => "string",
-        //             "liquidation_price" => "string",
-        //             "bankruptcy_price" => "string",
-        //             "adl_level" => 0,
-        //             "product_id" => 0,
-        //             "product_symbol" => "string",
-        //             "commission" => "string",
-        //             "realized_pnl" => "string",
-        //             "realized_funding" => "string"
+        //             "user_id": 0,
+        //             "size": 0,
+        //             "entry_price": "string",
+        //             "margin": "string",
+        //             "liquidation_price": "string",
+        //             "bankruptcy_price": "string",
+        //             "adl_level": 0,
+        //             "product_id": 0,
+        //             "product_symbol": "string",
+        //             "commission": "string",
+        //             "realized_pnl": "string",
+        //             "realized_funding": "string"
         //           }
-        //         )
+        //         ]
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
         return $this->parse_positions($result, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // fetchPosition
         //
@@ -1879,23 +1892,23 @@ class delta extends Exchange {
         // fetchPositions
         //
         //     {
-        //         "user_id" => 0,
-        //         "size" => 0,
-        //         "entry_price" => "string",
-        //         "margin" => "string",
-        //         "liquidation_price" => "string",
-        //         "bankruptcy_price" => "string",
-        //         "adl_level" => 0,
-        //         "product_id" => 0,
-        //         "product_symbol" => "string",
-        //         "commission" => "string",
-        //         "realized_pnl" => "string",
-        //         "realized_funding" => "string"
+        //         "user_id": 0,
+        //         "size": 0,
+        //         "entry_price": "string",
+        //         "margin": "string",
+        //         "liquidation_price": "string",
+        //         "bankruptcy_price": "string",
+        //         "adl_level": 0,
+        //         "product_id": 0,
+        //         "product_symbol": "string",
+        //         "commission": "string",
+        //         "realized_pnl": "string",
+        //         "realized_funding": "string"
         //     }
         //
         $marketId = $this->safe_string($position, 'product_symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer_product($position, 'timestamp', 0.001);
         $sizeString = $this->safe_string($position, 'size');
         $side = null;
@@ -1917,7 +1930,7 @@ class delta extends Exchange {
             'unrealizedPnl' => null, // todo - realized_pnl ?
             'percentage' => null,
             'contracts' => $this->parse_number($sizeString),
-            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'markPrice' => null,
             'side' => $side,
             'hedged' => null,
@@ -1964,7 +1977,7 @@ class delta extends Exchange {
         //         "created_at":"2020-11-16T02:38:26Z",
         //         "id":152870626,
         //         "limit_price":"10000",
-        //         "meta_data":array("source":"api"),
+        //         "meta_data":{"source":"api"},
         //         "order_type":"limit_order",
         //         "paid_commission":"0",
         //         "product_id":139,
@@ -1984,23 +1997,23 @@ class delta extends Exchange {
         // fetchOrder
         //
         //     {
-        //         "id" => 123,
-        //         "user_id" => 453671,
-        //         "size" => 10,
-        //         "unfilled_size" => 2,
-        //         "side" => "buy",
-        //         "order_type" => "limit_order",
-        //         "limit_price" => "59000",
-        //         "stop_order_type" => "stop_loss_order",
-        //         "stop_price" => "55000",
-        //         "paid_commission" => "0.5432",
-        //         "commission" => "0.5432",
-        //         "reduce_only" => false,
-        //         "client_order_id" => "my_signal_34521712",
-        //         "state" => "open",
-        //         "created_at" => "1725865012000000",
-        //         "product_id" => 27,
-        //         "product_symbol" => "BTCUSD"
+        //         "id": 123,
+        //         "user_id": 453671,
+        //         "size": 10,
+        //         "unfilled_size": 2,
+        //         "side": "buy",
+        //         "order_type": "limit_order",
+        //         "limit_price": "59000",
+        //         "stop_order_type": "stop_loss_order",
+        //         "stop_price": "55000",
+        //         "paid_commission": "0.5432",
+        //         "commission": "0.5432",
+        //         "reduce_only": false,
+        //         "client_order_id": "my_signal_34521712",
+        //         "state": "open",
+        //         "created_at": "1725865012000000",
+        //         "product_id": 27,
+        //         "product_symbol": "BTCUSD"
         //     }
         //
         $id = $this->safe_string($order, 'id');
@@ -2016,8 +2029,13 @@ class delta extends Exchange {
         }
         $marketId = $this->safe_string($order, 'product_id');
         $marketsByNumericId = $this->safe_dict($this->options, 'marketsByNumericId', array());
-        $market = $this->safe_value($marketsByNumericId, $marketId, $market);
-        $symbol = ($market === null) ? $marketId : $market['symbol'];
+        $marketValue = $this->safe_value($marketsByNumericId, $marketId, $market);
+        $symbol = null;
+        if ($marketValue === null) {
+            $symbol = $marketId;
+        } else {
+            $symbol = $marketValue['symbol'];
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'order_type');
@@ -2032,8 +2050,8 @@ class delta extends Exchange {
         $feeCostString = $this->safe_string($order, 'paid_commission');
         if ($feeCostString !== null) {
             $feeCurrencyCode = null;
-            if ($market !== null) {
-                $settlingAsset = $this->safe_dict($market['info'], 'settling_asset', array());
+            if ($marketValue !== null) {
+                $settlingAsset = $this->safe_dict($marketValue['info'], 'settling_asset', array());
                 $feeCurrencyId = $this->safe_string($settlingAsset, 'symbol');
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             }
@@ -2061,10 +2079,10 @@ class delta extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ), $market);
+        ), $marketValue);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2088,32 +2106,32 @@ class delta extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'product_id' => $market['numericId'],
-            // 'limit_price' => $this->price_to_precision($market['symbol'], $price),
+            // 'limit_price': this.priceToPrecision (market['symbol'], price),
             'size' => $this->amount_to_precision($market['symbol'], $amount),
             'side' => $side,
             'order_type' => $orderType,
-            // 'client_order_id' => 'string',
-            // 'time_in_force' => 'gtc', // gtc, ioc, fok
-            // 'post_only' => 'false', // 'true',
-            // 'reduce_only' => 'false', // 'true',
+            // 'client_order_id': 'string',
+            // 'time_in_force': 'gtc', // gtc, ioc, fok
+            // 'post_only': 'false', // 'true',
+            // 'reduce_only': 'false', // 'true',
         );
         if ($type === 'limit') {
             $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
-        $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
+        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
         }
-        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
+        $reduceOnly = $this->safe_bool($paramsOmitted, 'reduceOnly');
         if ($reduceOnly === true) {
             $request['reduce_only'] = $reduceOnly;
-            $params = $this->omit($params, 'reduceOnly');
         }
-        $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
+        $paramsOmitted2 = ($reduceOnly === true) ? $this->omit($paramsOmitted, 'reduceOnly') : $paramsOmitted;
+        $response = Async\await($this->privatePostOrders($this->extend($request, $paramsOmitted2)));
         //
         //     {
-        //         "result":array(
+        //         "result":{
         //             "average_fill_price":null,
         //             "bracket_order":null,
         //             "bracket_stop_loss_limit_price":null,
@@ -2128,7 +2146,7 @@ class delta extends Exchange {
         //             "created_at":"2020-11-16T02:38:26Z",
         //             "id":152870626,
         //             "limit_price":"10000",
-        //             "meta_data":array("source":"api"),
+        //             "meta_data":{"source":"api"},
         //             "order_type":"limit_order",
         //             "paid_commission":"0",
         //             "product_id":139,
@@ -2143,7 +2161,7 @@ class delta extends Exchange {
         //             "trail_amount":null,
         //             "unfilled_size":0,
         //             "user_id":22142
-        //         ),
+        //         },
         //         "success":true
         //     }
         //
@@ -2151,7 +2169,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2175,8 +2193,8 @@ class delta extends Exchange {
         $request = array(
             'id' => intval($id),
             'product_id' => $market['numericId'],
-            // "limit_price" => $this->price_to_precision($symbol, $price),
-            // "size" => $this->amount_to_precision($symbol, $amount),
+            // "limit_price": this.priceToPrecision (symbol, price),
+            // "size": this.amountToPrecision (symbol, amount),
         );
         if ($amount !== null) {
             $sizeString = $this->amount_to_precision($symbol, $amount);
@@ -2191,18 +2209,18 @@ class delta extends Exchange {
         $response = Async\await($this->privatePutOrders($this->extend($request, $params)));
         //
         //     {
-        //         "success" => true,
-        //         "result" => {
-        //             "id" => "ashb1212",
-        //             "product_id" => 27,
-        //             "limit_price" => "9200",
-        //             "side" => "buy",
-        //             "size" => 100,
-        //             "unfilled_size" => 50,
-        //             "user_id" => 1,
-        //             "order_type" => "limit_order",
-        //             "state" => "open",
-        //             "created_at" => "..."
+        //         "success": true,
+        //         "result": {
+        //             "id": "ashb1212",
+        //             "product_id": 27,
+        //             "limit_price": "9200",
+        //             "side": "buy",
+        //             "size": 100,
+        //             "unfilled_size": 50,
+        //             "user_id": 1,
+        //             "order_type": "limit_order",
+        //             "state": "open",
+        //             "created_at": "..."
         //         }
         //     }
         //
@@ -2210,7 +2228,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2226,7 +2244,7 @@ class delta extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -2237,7 +2255,7 @@ class delta extends Exchange {
         $response = Async\await($this->privateDeleteOrders($this->extend($request, $params)));
         //
         //     {
-        //         "result":array(
+        //         "result":{
         //             "average_fill_price":null,
         //             "bracket_order":null,
         //             "bracket_stop_loss_limit_price":null,
@@ -2252,7 +2270,7 @@ class delta extends Exchange {
         //             "created_at":"2020-11-16T02:38:26Z",
         //             "id":152870626,
         //             "limit_price":"10000",
-        //             "meta_data":array("source":"api"),
+        //             "meta_data":{"source":"api"},
         //             "order_type":"limit_order",
         //             "paid_commission":"0",
         //             "product_id":139,
@@ -2267,7 +2285,7 @@ class delta extends Exchange {
         //             "trail_amount":null,
         //             "unfilled_size":0,
         //             "user_id":22142
-        //         ),
+        //         },
         //         "success":true
         //     }
         //
@@ -2275,7 +2293,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -2290,19 +2308,19 @@ class delta extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
         $request = array(
             'product_id' => $market['numericId'],
-            // 'cancel_limit_orders' => 'true',
-            // 'cancel_stop_orders' => 'true',
+            // 'cancel_limit_orders': 'true',
+            // 'cancel_stop_orders': 'true',
         );
         $response = $this->privateDeleteOrdersAll($this->extend($request, $params));
         //
         //     {
-        //         "result":array(),
+        //         "result":{},
         //         "success":true
         //     }
         //
@@ -2336,37 +2354,37 @@ class delta extends Exchange {
             $market = $this->market($symbol);
         }
         $clientOrderId = $this->safe_string_n($params, array( 'clientOrderId', 'client_oid', 'clientOid' ));
-        $params = $this->omit($params, array( 'clientOrderId', 'client_oid', 'clientOid' ));
+        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_oid', 'clientOid' ));
         $request = array();
         $response = null;
         if ($clientOrderId !== null) {
             $request['client_oid'] = $clientOrderId;
-            $response = Async\await($this->privateGetOrdersClientOrderIdClientOid($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOrdersClientOrderIdClientOid($this->extend($request, $paramsOmitted)));
         } else {
             $request['order_id'] = $id;
-            $response = Async\await($this->privateGetOrdersOrderId($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOrdersOrderId($this->extend($request, $paramsOmitted)));
         }
         //
         //     {
-        //         "success" => true,
-        //         "result" => {
-        //             "id" => 123,
-        //             "user_id" => 453671,
-        //             "size" => 10,
-        //             "unfilled_size" => 2,
-        //             "side" => "buy",
-        //             "order_type" => "limit_order",
-        //             "limit_price" => "59000",
-        //             "stop_order_type" => "stop_loss_order",
-        //             "stop_price" => "55000",
-        //             "paid_commission" => "0.5432",
-        //             "commission" => "0.5432",
-        //             "reduce_only" => false,
-        //             "client_order_id" => "my_signal_34521712",
-        //             "state" => "open",
-        //             "created_at" => "1725865012000000",
-        //             "product_id" => 27,
-        //             "product_symbol" => "BTCUSD"
+        //         "success": true,
+        //         "result": {
+        //             "id": 123,
+        //             "user_id": 453671,
+        //             "size": 10,
+        //             "unfilled_size": 2,
+        //             "side": "buy",
+        //             "order_type": "limit_order",
+        //             "limit_price": "59000",
+        //             "stop_order_type": "stop_loss_order",
+        //             "stop_price": "55000",
+        //             "paid_commission": "0.5432",
+        //             "commission": "0.5432",
+        //             "reduce_only": false,
+        //             "client_order_id": "my_signal_34521712",
+        //             "state": "open",
+        //             "created_at": "1725865012000000",
+        //             "product_id": 27,
+        //             "product_symbol": "BTCUSD"
         //         }
         //     }
         //
@@ -2412,21 +2430,21 @@ class delta extends Exchange {
         return Async\await($this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params));
     }
 
-    public function fetch_orders_with_method(mixed $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_with_method(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_with_method(...))($method, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_orders_with_method(mixed $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_orders_with_method(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         Async\await($this->load_markets());
         $request = array(
-            // 'product_ids' => $market['id'], // comma-separated
-            // 'contract_types' => types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
-            // 'order_types' => types, // comma-separated, $market, $limit, stop_market, stop_limit, all_stop
-            // 'start_time' => $since * 1000,
-            // 'end_time' => $this->microseconds(),
+            // 'product_ids': market['id'], // comma-separated
+            // 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
+            // 'order_types': types, // comma-separated, market, limit, stop_market, stop_limit, all_stop
+            // 'start_time': since * 1000,
+            // 'end_time': this.microseconds (),
             // 'after', // after cursor for pagination
             // 'before', // before cursor for pagination
-            // 'page_size' => $limit, // number of records per page
+            // 'page_size': limit, // number of records per page
         );
         $market = null;
         if ($symbol !== null) {
@@ -2447,24 +2465,24 @@ class delta extends Exchange {
         }
         //
         //     {
-        //         "success" => true,
-        //         "result" => array(
+        //         "success": true,
+        //         "result": [
         //             {
-        //                 "id" => "ashb1212",
-        //                 "product_id" => 27,
-        //                 "limit_price" => "9200",
-        //                 "side" => "buy",
-        //                 "size" => 100,
-        //                 "unfilled_size" => 50,
-        //                 "user_id" => 1,
-        //                 "order_type" => "limit_order",
-        //                 "state" => "open",
-        //                 "created_at" => "..."
+        //                 "id": "ashb1212",
+        //                 "product_id": 27,
+        //                 "limit_price": "9200",
+        //                 "side": "buy",
+        //                 "size": 100,
+        //                 "unfilled_size": 50,
+        //                 "user_id": 1,
+        //                 "order_type": "limit_order",
+        //                 "state": "open",
+        //                 "created_at": "..."
         //             }
-        //         ),
-        //         "meta" => {
-        //             "after" => "string",
-        //             "before" => "string"
+        //         ],
+        //         "meta": {
+        //             "after": "string",
+        //             "before": "string"
         //         }
         //     }
         //
@@ -2472,7 +2490,7 @@ class delta extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2490,13 +2508,13 @@ class delta extends Exchange {
          */
         Async\await($this->load_markets());
         $request = array(
-            // 'product_ids' => $market['id'], // comma-separated
-            // 'contract_types' => types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
-            // 'start_time' => $since * 1000,
-            // 'end_time' => $this->microseconds(),
+            // 'product_ids': market['id'], // comma-separated
+            // 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
+            // 'start_time': since * 1000,
+            // 'end_time': this.microseconds (),
             // 'after', // after cursor for pagination
             // 'before', // before cursor for pagination
-            // 'page_size' => $limit, // number of records per page
+            // 'page_size': limit, // number of records per page
         );
         $market = null;
         if ($symbol !== null) {
@@ -2512,46 +2530,46 @@ class delta extends Exchange {
         $response = Async\await($this->privateGetFills($this->extend($request, $params)));
         //
         //     {
-        //         "meta":array(
+        //         "meta":{
         //             "after":null,
         //             "before":null,
         //             "limit":10,
         //             "total_count":2
-        //         ),
-        //         "result":array(
+        //         },
+        //         "result":[
         //             {
         //                 "commission":"0.008335000000000000",
         //                 "created_at":"2020-11-16T19:07:19Z",
         //                 "fill_type":"normal",
         //                 "id":"e7ff05c233a74245b72381f8dd91d1ce",
-        //                 "meta_data":array(
+        //                 "meta_data":{
         //                     "effective_commission_rate":"0.0005",
         //                     "order_price":"16249",
         //                     "order_size":1,
         //                     "order_type":"market_order",
         //                     "order_unfilled_size":0,
         //                     "trading_fee_credits_used":"0"
-        //                 ),
+        //                 },
         //                 "order_id":"152999629",
         //                 "price":"16669",
-        //                 "product":array(
+        //                 "product":{
         //                     "contract_type":"perpetual_futures",
         //                     "contract_unit_currency":"BTC",
         //                     "contract_value":"0.001",
         //                     "id":139,
         //                     "notional_type":"vanilla",
-        //                     "quoting_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
-        //                     "settling_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
+        //                     "quoting_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
+        //                     "settling_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
         //                     "symbol":"BTCUSDT",
         //                     "tick_size":"0.5",
-        //                     "underlying_asset":array("minimum_precision":4,"precision":8,"symbol":"BTC")
-        //                 ),
+        //                     "underlying_asset":{"minimum_precision":4,"precision":8,"symbol":"BTC"}
+        //                 },
         //                 "product_id":139,
         //                 "role":"taker",
         //                 "side":"sell",
         //                 "size":1
         //             }
-        //         ),
+        //         ],
         //         "success":true
         //     }
         //
@@ -2577,11 +2595,11 @@ class delta extends Exchange {
          */
         Async\await($this->load_markets());
         $request = array(
-            // 'asset_id' => $currency['numericId'],
-            // 'end_time' => $this->seconds(),
-            // 'after' => 'string', // after cursor for pagination
-            // 'before' => 'string', // before cursor for pagination
-            // 'page_size' => $limit,
+            // 'asset_id': currency['numericId'],
+            // 'end_time': this.seconds (),
+            // 'after': 'string', // after cursor for pagination
+            // 'before': 'string', // before cursor for pagination
+            // 'page_size': limit,
         );
         $currency = null;
         if ($code !== null) {
@@ -2594,22 +2612,22 @@ class delta extends Exchange {
         $response = Async\await($this->privateGetWalletTransactions($this->extend($request, $params)));
         //
         //     {
-        //         "meta":array("after":null,"before":null,"limit":10,"total_count":1),
-        //         "result":array(
+        //         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
+        //         "result":[
         //             {
         //                 "amount":"29.889184",
         //                 "asset_id":5,
         //                 "balance":"29.889184",
         //                 "created_at":"2020-11-15T21:25:01Z",
-        //                 "meta_data":array(
+        //                 "meta_data":{
         //                     "deposit_id":3884,
         //                     "transaction_id":"0x41a60174849828530abb5008e98fc63c9b598288743ec4ba9620bcce900a3b8d"
-        //                 ),
+        //                 },
         //                 "transaction_type":"deposit",
         //                 "user_id":22142,
         //                 "uuid":"70bb5679da3c4637884e2dc63efaa846"
         //             }
-        //         ),
+        //         ],
         //         "success":true
         //     }
         //
@@ -2617,18 +2635,18 @@ class delta extends Exchange {
         return $this->parse_ledger($result, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type) {
         $types = array(
             'pnl' => 'pnl',
             'deposit' => 'transaction',
             'withdrawal' => 'transaction',
             'commission' => 'fee',
             'conversion' => 'trade',
-            // 'perpetual_futures_funding' => 'perpetual_futures_funding',
-            // 'withdrawal_cancellation' => 'withdrawal_cancellation',
+            // 'perpetual_futures_funding': 'perpetual_futures_funding',
+            // 'withdrawal_cancellation': 'withdrawal_cancellation',
             'referral_bonus' => 'referral',
             'commission_rebate' => 'rebate',
-            // 'promo_credit' => 'promo_credit',
+            // 'promo_credit': 'promo_credit',
         );
         return $this->safe_string($types, $type, $type);
     }
@@ -2640,10 +2658,10 @@ class delta extends Exchange {
         //         "asset_id":5,
         //         "balance":"29.889184",
         //         "created_at":"2020-11-15T21:25:01Z",
-        //         "meta_data":array(
+        //         "meta_data":{
         //             "deposit_id":3884,
         //             "transaction_id":"0x41a60174849828530abb5008e98fc63c9b598288743ec4ba9620bcce900a3b8d"
-        //         ),
+        //         },
         //         "transaction_type":"deposit",
         //         "user_id":22142,
         //         "uuid":"70bb5679da3c4637884e2dc63efaa846"
@@ -2664,8 +2682,8 @@ class delta extends Exchange {
         $type = $this->parse_ledger_entry_type($type);
         $currencyId = $this->safe_string($item, 'asset_id');
         $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId');
-        $currency = $this->safe_value($currenciesByNumericId, $currencyId, $currency);
-        $code = ($currency === null) ? null : $currency['code'];
+        $currencyValue = $this->safe_value($currenciesByNumericId, $currencyId, $currency);
+        $code = ($currencyValue === null) ? null : $currencyValue['code'];
         $amount = $this->safe_string($item, 'amount');
         $timestamp = $this->parse8601($this->safe_string($item, 'created_at'));
         $after = $this->safe_string($item, 'balance');
@@ -2687,7 +2705,7 @@ class delta extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fee' => null,
-        ), $currency);
+        ), $currencyValue);
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
@@ -2710,23 +2728,23 @@ class delta extends Exchange {
         $networkCode = $this->safe_string_upper($params, 'network');
         if ($networkCode !== null) {
             $request['network'] = $this->network_code_to_id($networkCode, $code);
-            $params = $this->omit($params, 'network');
         }
-        $response = Async\await($this->privateGetDepositsAddress($this->extend($request, $params)));
+        $paramsOmitted = ($networkCode !== null) ? $this->omit($params, 'network') : $params;
+        $response = Async\await($this->privateGetDepositsAddress($this->extend($request, $paramsOmitted)));
         //
         //    {
-        //        "success" => true,
-        //        "result" => {
-        //            "id" => 1915615,
-        //            "user_id" => 27854758,
-        //            "address" => "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
-        //            "memo" => "",
-        //            "status" => "active",
-        //            "updated_at" => "2023-01-12T06:03:46.000Z",
-        //            "created_at" => "2023-01-12T06:03:46.000Z",
-        //            "asset_symbol" => "USDT",
-        //            "network" => "TRC20(TRON)",
-        //            "custodian" => "fireblocks"
+        //        "success": true,
+        //        "result": {
+        //            "id": 1915615,
+        //            "user_id": 27854758,
+        //            "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        //            "memo": "",
+        //            "status": "active",
+        //            "updated_at": "2023-01-12T06:03:46.000Z",
+        //            "created_at": "2023-01-12T06:03:46.000Z",
+        //            "asset_symbol": "USDT",
+        //            "network": "TRC20(TRON)",
+        //            "custodian": "fireblocks"
         //        }
         //    }
         //
@@ -2734,19 +2752,19 @@ class delta extends Exchange {
         return $this->parse_deposit_address($result, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //    {
-        //        "id" => 1915615,
-        //        "user_id" => 27854758,
-        //        "address" => "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
-        //        "memo" => "",
-        //        "status" => "active",
-        //        "updated_at" => "2023-01-12T06:03:46.000Z",
-        //        "created_at" => "2023-01-12T06:03:46.000Z",
-        //        "asset_symbol" => "USDT",
-        //        "network" => "TRC20(TRON)",
-        //        "custodian" => "fireblocks"
+        //        "id": 1915615,
+        //        "user_id": 27854758,
+        //        "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        //        "memo": "",
+        //        "status": "active",
+        //        "updated_at": "2023-01-12T06:03:46.000Z",
+        //        "created_at": "2023-01-12T06:03:46.000Z",
+        //        "asset_symbol": "USDT",
+        //        "network": "TRC20(TRON)",
+        //        "custodian": "fireblocks"
         //    }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -2788,47 +2806,47 @@ class delta extends Exchange {
         $response = Async\await($this->publicGetTickersSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "result" => array(
-        //             "close" => 30600.5,
-        //             "contract_type" => "perpetual_futures",
-        //             "funding_rate" => "0.00602961",
-        //             "greeks" => null,
-        //             "high" => 30803.0,
-        //             "low" => 30265.5,
-        //             "mark_basis" => "-0.45601594",
-        //             "mark_price" => "30600.10481568",
-        //             "oi" => "469.9190",
-        //             "oi_change_usd_6h" => "2226314.9900",
-        //             "oi_contracts" => "469919",
-        //             "oi_value" => "469.9190",
-        //             "oi_value_symbol" => "BTC",
-        //             "oi_value_usd" => "14385640.6802",
-        //             "open" => 30458.5,
-        //             "price_band" => array(
-        //                 "lower_limit" => "29067.08312627",
-        //                 "upper_limit" => "32126.77608693"
-        //             ),
-        //             "product_id" => 139,
-        //             "quotes" => array(
-        //                 "ask_iv" => null,
-        //                 "ask_size" => "965",
-        //                 "best_ask" => "30600.5",
-        //                 "best_bid" => "30599.5",
-        //                 "bid_iv" => null,
-        //                 "bid_size" => "196",
-        //                 "impact_mid_price" => null,
-        //                 "mark_iv" => "-0.44931641"
-        //             ),
-        //             "size" => 1226303,
-        //             "spot_price" => "30612.85362773",
-        //             "symbol" => "BTCUSDT",
-        //             "timestamp" => 1689136597460456,
-        //             "turnover" => 37392218.45999999,
-        //             "turnover_symbol" => "USDT",
-        //             "turnover_usd" => 37392218.45999999,
-        //             "volume" => 1226.3029999999485
-        //         ),
-        //         "success" => true
+        //         "result": {
+        //             "close": 30600.5,
+        //             "contract_type": "perpetual_futures",
+        //             "funding_rate": "0.00602961",
+        //             "greeks": null,
+        //             "high": 30803.0,
+        //             "low": 30265.5,
+        //             "mark_basis": "-0.45601594",
+        //             "mark_price": "30600.10481568",
+        //             "oi": "469.9190",
+        //             "oi_change_usd_6h": "2226314.9900",
+        //             "oi_contracts": "469919",
+        //             "oi_value": "469.9190",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "14385640.6802",
+        //             "open": 30458.5,
+        //             "price_band": {
+        //                 "lower_limit": "29067.08312627",
+        //                 "upper_limit": "32126.77608693"
+        //             },
+        //             "product_id": 139,
+        //             "quotes": {
+        //                 "ask_iv": null,
+        //                 "ask_size": "965",
+        //                 "best_ask": "30600.5",
+        //                 "best_bid": "30599.5",
+        //                 "bid_iv": null,
+        //                 "bid_size": "196",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "-0.44931641"
+        //             },
+        //             "size": 1226303,
+        //             "spot_price": "30612.85362773",
+        //             "symbol": "BTCUSDT",
+        //             "timestamp": 1689136597460456,
+        //             "turnover": 37392218.45999999,
+        //             "turnover_symbol": "USDT",
+        //             "turnover_usd": 37392218.45999999,
+        //             "volume": 1226.3029999999485
+        //         },
+        //         "success": true
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -2850,103 +2868,103 @@ class delta extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rates-structure funding rate structures~, indexed by market $symbols
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
             'contract_types' => 'perpetual_futures',
         );
         $response = Async\await($this->publicGetTickers($this->extend($request, $params)));
         //
         //     {
-        //         "result" => array(
-        //             array(
-        //                 "close" => 30600.5,
-        //                 "contract_type" => "perpetual_futures",
-        //                 "funding_rate" => "0.00602961",
-        //                 "greeks" => null,
-        //                 "high" => 30803.0,
-        //                 "low" => 30265.5,
-        //                 "mark_basis" => "-0.45601594",
-        //                 "mark_price" => "30600.10481568",
-        //                 "oi" => "469.9190",
-        //                 "oi_change_usd_6h" => "2226314.9900",
-        //                 "oi_contracts" => "469919",
-        //                 "oi_value" => "469.9190",
-        //                 "oi_value_symbol" => "BTC",
-        //                 "oi_value_usd" => "14385640.6802",
-        //                 "open" => 30458.5,
-        //                 "price_band" => array(
-        //                     "lower_limit" => "29067.08312627",
-        //                     "upper_limit" => "32126.77608693"
-        //                 ),
-        //                 "product_id" => 139,
-        //                 "quotes" => array(
-        //                     "ask_iv" => null,
-        //                     "ask_size" => "965",
-        //                     "best_ask" => "30600.5",
-        //                     "best_bid" => "30599.5",
-        //                     "bid_iv" => null,
-        //                     "bid_size" => "196",
-        //                     "impact_mid_price" => null,
-        //                     "mark_iv" => "-0.44931641"
-        //                 ),
-        //                 "size" => 1226303,
-        //                 "spot_price" => "30612.85362773",
-        //                 "symbol" => "BTCUSDT",
-        //                 "timestamp" => 1689136597460456,
-        //                 "turnover" => 37392218.45999999,
-        //                 "turnover_symbol" => "USDT",
-        //                 "turnover_usd" => 37392218.45999999,
-        //                 "volume" => 1226.3029999999485
-        //             ),
-        //         ),
+        //         "result": [
+        //             {
+        //                 "close": 30600.5,
+        //                 "contract_type": "perpetual_futures",
+        //                 "funding_rate": "0.00602961",
+        //                 "greeks": null,
+        //                 "high": 30803.0,
+        //                 "low": 30265.5,
+        //                 "mark_basis": "-0.45601594",
+        //                 "mark_price": "30600.10481568",
+        //                 "oi": "469.9190",
+        //                 "oi_change_usd_6h": "2226314.9900",
+        //                 "oi_contracts": "469919",
+        //                 "oi_value": "469.9190",
+        //                 "oi_value_symbol": "BTC",
+        //                 "oi_value_usd": "14385640.6802",
+        //                 "open": 30458.5,
+        //                 "price_band": {
+        //                     "lower_limit": "29067.08312627",
+        //                     "upper_limit": "32126.77608693"
+        //                 },
+        //                 "product_id": 139,
+        //                 "quotes": {
+        //                     "ask_iv": null,
+        //                     "ask_size": "965",
+        //                     "best_ask": "30600.5",
+        //                     "best_bid": "30599.5",
+        //                     "bid_iv": null,
+        //                     "bid_size": "196",
+        //                     "impact_mid_price": null,
+        //                     "mark_iv": "-0.44931641"
+        //                 },
+        //                 "size": 1226303,
+        //                 "spot_price": "30612.85362773",
+        //                 "symbol": "BTCUSDT",
+        //                 "timestamp": 1689136597460456,
+        //                 "turnover": 37392218.45999999,
+        //                 "turnover_symbol": "USDT",
+        //                 "turnover_usd": 37392218.45999999,
+        //                 "volume": 1226.3029999999485
+        //             },
+        //         ],
         //         "success":true
         //     }
         //
         $rates = $this->safe_list($response, 'result', array());
-        return $this->parse_funding_rates($rates, $symbols);
+        return $this->parse_funding_rates($rates, $symbolsNormalized);
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
-        //         "close" => 30600.5,
-        //         "contract_type" => "perpetual_futures",
-        //         "funding_rate" => "0.00602961",
-        //         "greeks" => null,
-        //         "high" => 30803.0,
-        //         "low" => 30265.5,
-        //         "mark_basis" => "-0.45601594",
-        //         "mark_price" => "30600.10481568",
-        //         "oi" => "469.9190",
-        //         "oi_change_usd_6h" => "2226314.9900",
-        //         "oi_contracts" => "469919",
-        //         "oi_value" => "469.9190",
-        //         "oi_value_symbol" => "BTC",
-        //         "oi_value_usd" => "14385640.6802",
-        //         "open" => 30458.5,
-        //         "price_band" => array(
-        //             "lower_limit" => "29067.08312627",
-        //             "upper_limit" => "32126.77608693"
-        //         ),
-        //         "product_id" => 139,
-        //         "quotes" => array(
-        //             "ask_iv" => null,
-        //             "ask_size" => "965",
-        //             "best_ask" => "30600.5",
-        //             "best_bid" => "30599.5",
-        //             "bid_iv" => null,
-        //             "bid_size" => "196",
-        //             "impact_mid_price" => null,
-        //             "mark_iv" => "-0.44931641"
-        //         ),
-        //         "size" => 1226303,
-        //         "spot_price" => "30612.85362773",
-        //         "symbol" => "BTCUSDT",
-        //         "timestamp" => 1689136597460456,
-        //         "turnover" => 37392218.45999999,
-        //         "turnover_symbol" => "USDT",
-        //         "turnover_usd" => 37392218.45999999,
-        //         "volume" => 1226.3029999999485
+        //         "close": 30600.5,
+        //         "contract_type": "perpetual_futures",
+        //         "funding_rate": "0.00602961",
+        //         "greeks": null,
+        //         "high": 30803.0,
+        //         "low": 30265.5,
+        //         "mark_basis": "-0.45601594",
+        //         "mark_price": "30600.10481568",
+        //         "oi": "469.9190",
+        //         "oi_change_usd_6h": "2226314.9900",
+        //         "oi_contracts": "469919",
+        //         "oi_value": "469.9190",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "14385640.6802",
+        //         "open": 30458.5,
+        //         "price_band": {
+        //             "lower_limit": "29067.08312627",
+        //             "upper_limit": "32126.77608693"
+        //         },
+        //         "product_id": 139,
+        //         "quotes": {
+        //             "ask_iv": null,
+        //             "ask_size": "965",
+        //             "best_ask": "30600.5",
+        //             "best_bid": "30599.5",
+        //             "bid_iv": null,
+        //             "bid_size": "196",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "-0.44931641"
+        //         },
+        //         "size": 1226303,
+        //         "spot_price": "30612.85362773",
+        //         "symbol": "BTCUSDT",
+        //         "timestamp": 1689136597460456,
+        //         "turnover": 37392218.45999999,
+        //         "turnover_symbol": "USDT",
+        //         "turnover_usd": 37392218.45999999,
+        //         "volume": 1226.3029999999485
         //     }
         //
         $timestamp = $this->safe_integer_product($contract, 'timestamp', 0.001);
@@ -3011,43 +3029,41 @@ class delta extends Exchange {
         return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $type, $params);
     }
 
-    private function do_modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()) {
+    private function do_modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()) {
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $amount = (string) $amount;
-        if ($type === 'reduce') {
-            $amount = Precise::string_mul($amount, '-1');
-        }
+        $amountString = (string) $amount;
+        $deltaMargin = ($type === 'reduce') ? Precise::string_mul($amountString, '-1') : $amountString;
         $request = array(
             'product_id' => $market['numericId'],
-            'delta_margin' => $amount,
+            'delta_margin' => $deltaMargin,
         );
         $response = Async\await($this->privatePostPositionsChangeMargin($this->extend($request, $params)));
         //
         //     {
-        //         "result" => array(
-        //             "auto_topup" => false,
-        //             "bankruptcy_price" => "24934.12",
-        //             "commission" => "0.01197072",
-        //             "created_at" => "2023-07-20T03:49:09.159401Z",
-        //             "entry_price" => "29926.8",
-        //             "liquidation_price" => "25083.754",
-        //             "margin" => "4.99268",
-        //             "margin_mode" => "isolated",
-        //             "product_id" => 84,
-        //             "product_symbol" => "BTCUSDT",
-        //             "realized_cashflow" => "0",
-        //             "realized_funding" => "0",
-        //             "realized_pnl" => "0",
-        //             "size" => 1,
-        //             "updated_at" => "2023-07-20T03:49:09.159401Z",
-        //             "user_id" => 30084879
-        //         ),
-        //         "success" => true
+        //         "result": {
+        //             "auto_topup": false,
+        //             "bankruptcy_price": "24934.12",
+        //             "commission": "0.01197072",
+        //             "created_at": "2023-07-20T03:49:09.159401Z",
+        //             "entry_price": "29926.8",
+        //             "liquidation_price": "25083.754",
+        //             "margin": "4.99268",
+        //             "margin_mode": "isolated",
+        //             "product_id": 84,
+        //             "product_symbol": "BTCUSDT",
+        //             "realized_cashflow": "0",
+        //             "realized_funding": "0",
+        //             "realized_pnl": "0",
+        //             "size": 1,
+        //             "updated_at": "2023-07-20T03:49:09.159401Z",
+        //             "user_id": 30084879
+        //         },
+        //         "success": true
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -3057,29 +3073,29 @@ class delta extends Exchange {
     public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         //     {
-        //         "auto_topup" => false,
-        //         "bankruptcy_price" => "24934.12",
-        //         "commission" => "0.01197072",
-        //         "created_at" => "2023-07-20T03:49:09.159401Z",
-        //         "entry_price" => "29926.8",
-        //         "liquidation_price" => "25083.754",
-        //         "margin" => "4.99268",
-        //         "margin_mode" => "isolated",
-        //         "product_id" => 84,
-        //         "product_symbol" => "BTCUSDT",
-        //         "realized_cashflow" => "0",
-        //         "realized_funding" => "0",
-        //         "realized_pnl" => "0",
-        //         "size" => 1,
-        //         "updated_at" => "2023-07-20T03:49:09.159401Z",
-        //         "user_id" => 30084879
+        //         "auto_topup": false,
+        //         "bankruptcy_price": "24934.12",
+        //         "commission": "0.01197072",
+        //         "created_at": "2023-07-20T03:49:09.159401Z",
+        //         "entry_price": "29926.8",
+        //         "liquidation_price": "25083.754",
+        //         "margin": "4.99268",
+        //         "margin_mode": "isolated",
+        //         "product_id": 84,
+        //         "product_symbol": "BTCUSDT",
+        //         "realized_cashflow": "0",
+        //         "realized_funding": "0",
+        //         "realized_pnl": "0",
+        //         "size": 1,
+        //         "updated_at": "2023-07-20T03:49:09.159401Z",
+        //         "user_id": 30084879
         //     }
         //
         $marketId = $this->safe_string($data, 'product_symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
@@ -3091,7 +3107,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -3116,108 +3132,108 @@ class delta extends Exchange {
         $response = Async\await($this->publicGetTickersSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "result" => array(
-        //             "close" => 894.0,
-        //             "contract_type" => "call_options",
-        //             "greeks" => array(
-        //                 "delta" => "0.67324861",
-        //                 "gamma" => "0.00022178",
-        //                 "rho" => "4.34638266",
-        //                 "spot" => "30178.53195697",
-        //                 "theta" => "-35.64972577",
-        //                 "vega" => "16.34381277"
-        //             ),
-        //             "high" => 946.0,
-        //             "low" => 893.0,
-        //             "mark_price" => "1037.07582681",
-        //             "mark_vol" => "0.35899491",
-        //             "oi" => "0.0910",
-        //             "oi_change_usd_6h" => "-90.5500",
-        //             "oi_contracts" => "91",
-        //             "oi_value" => "0.0910",
-        //             "oi_value_symbol" => "BTC",
-        //             "oi_value_usd" => "2746.3549",
-        //             "open" => 946.0,
-        //             "price_band" => array(
-        //                 "lower_limit" => "133.37794509",
-        //                 "upper_limit" => "5663.66930164"
-        //             ),
-        //             "product_id" => 116171,
-        //             "quotes" => array(
-        //                 "ask_iv" => "0.36932389",
-        //                 "ask_size" => "1321",
-        //                 "best_ask" => "1054",
-        //                 "best_bid" => "1020",
-        //                 "bid_iv" => "0.34851914",
-        //                 "bid_size" => "2202",
-        //                 "impact_mid_price" => null,
-        //                 "mark_iv" => "0.35896335"
-        //             ),
-        //             "size" => 152,
-        //             "spot_price" => "30178.53195697",
-        //             "strike_price" => "29500",
-        //             "symbol" => "C-BTC-29500-280723",
-        //             "timestamp" => 1689834695286094,
-        //             "turnover" => 4546.601744940001,
-        //             "turnover_symbol" => "USDT",
-        //             "turnover_usd" => 4546.601744940001,
-        //             "volume" => 0.15200000000000002
-        //         ),
-        //         "success" => true
+        //         "result": {
+        //             "close": 894.0,
+        //             "contract_type": "call_options",
+        //             "greeks": {
+        //                 "delta": "0.67324861",
+        //                 "gamma": "0.00022178",
+        //                 "rho": "4.34638266",
+        //                 "spot": "30178.53195697",
+        //                 "theta": "-35.64972577",
+        //                 "vega": "16.34381277"
+        //             },
+        //             "high": 946.0,
+        //             "low": 893.0,
+        //             "mark_price": "1037.07582681",
+        //             "mark_vol": "0.35899491",
+        //             "oi": "0.0910",
+        //             "oi_change_usd_6h": "-90.5500",
+        //             "oi_contracts": "91",
+        //             "oi_value": "0.0910",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "2746.3549",
+        //             "open": 946.0,
+        //             "price_band": {
+        //                 "lower_limit": "133.37794509",
+        //                 "upper_limit": "5663.66930164"
+        //             },
+        //             "product_id": 116171,
+        //             "quotes": {
+        //                 "ask_iv": "0.36932389",
+        //                 "ask_size": "1321",
+        //                 "best_ask": "1054",
+        //                 "best_bid": "1020",
+        //                 "bid_iv": "0.34851914",
+        //                 "bid_size": "2202",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "0.35896335"
+        //             },
+        //             "size": 152,
+        //             "spot_price": "30178.53195697",
+        //             "strike_price": "29500",
+        //             "symbol": "C-BTC-29500-280723",
+        //             "timestamp": 1689834695286094,
+        //             "turnover": 4546.601744940001,
+        //             "turnover_symbol": "USDT",
+        //             "turnover_usd": 4546.601744940001,
+        //             "volume": 0.15200000000000002
+        //         },
+        //         "success": true
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
         return $this->parse_open_interest($result, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
-        //         "close" => 894.0,
-        //         "contract_type" => "call_options",
-        //         "greeks" => array(
-        //             "delta" => "0.67324861",
-        //             "gamma" => "0.00022178",
-        //             "rho" => "4.34638266",
-        //             "spot" => "30178.53195697",
-        //             "theta" => "-35.64972577",
-        //             "vega" => "16.34381277"
-        //         ),
-        //         "high" => 946.0,
-        //         "low" => 893.0,
-        //         "mark_price" => "1037.07582681",
-        //         "mark_vol" => "0.35899491",
-        //         "oi" => "0.0910",
-        //         "oi_change_usd_6h" => "-90.5500",
-        //         "oi_contracts" => "91",
-        //         "oi_value" => "0.0910",
-        //         "oi_value_symbol" => "BTC",
-        //         "oi_value_usd" => "2746.3549",
-        //         "open" => 946.0,
-        //         "price_band" => array(
-        //             "lower_limit" => "133.37794509",
-        //             "upper_limit" => "5663.66930164"
-        //         ),
-        //         "product_id" => 116171,
-        //         "quotes" => array(
-        //             "ask_iv" => "0.36932389",
-        //             "ask_size" => "1321",
-        //             "best_ask" => "1054",
-        //             "best_bid" => "1020",
-        //             "bid_iv" => "0.34851914",
-        //             "bid_size" => "2202",
-        //             "impact_mid_price" => null,
-        //             "mark_iv" => "0.35896335"
-        //         ),
-        //         "size" => 152,
-        //         "spot_price" => "30178.53195697",
-        //         "strike_price" => "29500",
-        //         "symbol" => "C-BTC-29500-280723",
-        //         "timestamp" => 1689834695286094,
-        //         "turnover" => 4546.601744940001,
-        //         "turnover_symbol" => "USDT",
-        //         "turnover_usd" => 4546.601744940001,
-        //         "volume" => 0.15200000000000002
+        //         "close": 894.0,
+        //         "contract_type": "call_options",
+        //         "greeks": {
+        //             "delta": "0.67324861",
+        //             "gamma": "0.00022178",
+        //             "rho": "4.34638266",
+        //             "spot": "30178.53195697",
+        //             "theta": "-35.64972577",
+        //             "vega": "16.34381277"
+        //         },
+        //         "high": 946.0,
+        //         "low": 893.0,
+        //         "mark_price": "1037.07582681",
+        //         "mark_vol": "0.35899491",
+        //         "oi": "0.0910",
+        //         "oi_change_usd_6h": "-90.5500",
+        //         "oi_contracts": "91",
+        //         "oi_value": "0.0910",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "2746.3549",
+        //         "open": 946.0,
+        //         "price_band": {
+        //             "lower_limit": "133.37794509",
+        //             "upper_limit": "5663.66930164"
+        //         },
+        //         "product_id": 116171,
+        //         "quotes": {
+        //             "ask_iv": "0.36932389",
+        //             "ask_size": "1321",
+        //             "best_ask": "1054",
+        //             "best_bid": "1020",
+        //             "bid_iv": "0.34851914",
+        //             "bid_size": "2202",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "0.35896335"
+        //         },
+        //         "size": 152,
+        //         "spot_price": "30178.53195697",
+        //         "strike_price": "29500",
+        //         "symbol": "C-BTC-29500-280723",
+        //         "timestamp": 1689834695286094,
+        //         "turnover": 4546.601744940001,
+        //         "turnover_symbol": "USDT",
+        //         "turnover_usd": 4546.601744940001,
+        //         "volume": 0.15200000000000002
         //     }
         //
         $timestamp = $this->safe_integer_product($interest, 'timestamp', 0.001);
@@ -3256,15 +3272,15 @@ class delta extends Exchange {
         $response = Async\await($this->privateGetProductsProductIdOrdersLeverage($this->extend($request, $params)));
         //
         //     {
-        //         "result" => array(
-        //             "index_symbol" => null,
-        //             "leverage" => "10",
-        //             "margin_mode" => "isolated",
-        //             "order_margin" => "0",
-        //             "product_id" => 84,
-        //             "user_id" => 30084879
-        //         ),
-        //         "success" => true
+        //         "result": {
+        //             "index_symbol": null,
+        //             "leverage": "10",
+        //             "margin_mode": "isolated",
+        //             "order_margin": "0",
+        //             "product_id": 84,
+        //             "user_id": 30084879
+        //         },
+        //         "success": true
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -3283,7 +3299,7 @@ class delta extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
     }
 
@@ -3299,7 +3315,7 @@ class delta extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -3309,13 +3325,13 @@ class delta extends Exchange {
         );
         //
         //     {
-        //         "result" => array(
-        //             "leverage" => "20",
-        //             "margin_mode" => "isolated",
-        //             "order_margin" => "0",
-        //             "product_id" => 84
-        //         ),
-        //         "success" => true
+        //         "result": {
+        //             "leverage": "20",
+        //             "margin_mode": "isolated",
+        //             "order_margin": "0",
+        //             "product_id": 84
+        //         },
+        //         "success": true
         //     }
         //
         return Async\await($this->privatePostProductsProductIdOrdersLeverage($this->extend($request, $params)));
@@ -3351,60 +3367,60 @@ class delta extends Exchange {
         $response = Async\await($this->publicGetProducts($this->extend($request, $params)));
         //
         //     {
-        //         "result" => array(
+        //         "result": [
         //             {
-        //                 "contract_value" => "0.001",
-        //                 "basis_factor_max_limit" => "10.95",
-        //                 "maker_commission_rate" => "0.0003",
-        //                 "launch_time" => "2023-07-19T04:30:03Z",
-        //                 "trading_status" => "operational",
-        //                 "product_specs" => array(
-        //                     "backup_vol_expiry_time" => 31536000,
-        //                     "max_deviation_from_external_vol" => 0.75,
-        //                     "max_lower_deviation_from_external_vol" => 0.75,
-        //                     "max_upper_deviation_from_external_vol" => 0.5,
-        //                     "max_volatility" => 3,
-        //                     "min_volatility" => 0.1,
-        //                     "premium_commission_rate" => 0.1,
-        //                     "settlement_index_price" => "29993.536675710806",
-        //                     "vol_calculation_method" => "orderbook",
-        //                     "vol_expiry_time" => 31536000
-        //                 ),
-        //                 "description" => "BTC call option expiring on 19-7-2023",
-        //                 "settlement_price" => "0",
-        //                 "disruption_reason" => null,
-        //                 "settling_asset" => array(),
-        //                 "initial_margin" => "1",
-        //                 "tick_size" => "0.1",
-        //                 "maintenance_margin" => "0.5",
-        //                 "id" => 117542,
-        //                 "notional_type" => "vanilla",
-        //                 "ui_config" => array(),
-        //                 "contract_unit_currency" => "BTC",
-        //                 "symbol" => "C-BTC-30900-190723",
-        //                 "insurance_fund_margin_contribution" => "1",
-        //                 "price_band" => "2",
-        //                 "annualized_funding" => "10.95",
-        //                 "impact_size" => 200,
-        //                 "contract_type" => "call_options",
-        //                 "position_size_limit" => 255633,
-        //                 "max_leverage_notional" => "200000",
-        //                 "initial_margin_scaling_factor" => "0.000002",
-        //                 "strike_price" => "30900",
-        //                 "is_quanto" => false,
-        //                 "settlement_time" => "2023-07-19T12:00:00Z",
-        //                 "liquidation_penalty_factor" => "0.5",
-        //                 "funding_method" => "mark_price",
-        //                 "taker_commission_rate" => "0.0003",
-        //                 "default_leverage" => "100.000000000000000000",
-        //                 "state" => "expired",
-        //                 "auction_start_time" => null,
-        //                 "short_description" => "BTC  Call",
-        //                 "quoting_asset" => array(),
+        //                 "contract_value": "0.001",
+        //                 "basis_factor_max_limit": "10.95",
+        //                 "maker_commission_rate": "0.0003",
+        //                 "launch_time": "2023-07-19T04:30:03Z",
+        //                 "trading_status": "operational",
+        //                 "product_specs": {
+        //                     "backup_vol_expiry_time": 31536000,
+        //                     "max_deviation_from_external_vol": 0.75,
+        //                     "max_lower_deviation_from_external_vol": 0.75,
+        //                     "max_upper_deviation_from_external_vol": 0.5,
+        //                     "max_volatility": 3,
+        //                     "min_volatility": 0.1,
+        //                     "premium_commission_rate": 0.1,
+        //                     "settlement_index_price": "29993.536675710806",
+        //                     "vol_calculation_method": "orderbook",
+        //                     "vol_expiry_time": 31536000
+        //                 },
+        //                 "description": "BTC call option expiring on 19-7-2023",
+        //                 "settlement_price": "0",
+        //                 "disruption_reason": null,
+        //                 "settling_asset": {},
+        //                 "initial_margin": "1",
+        //                 "tick_size": "0.1",
+        //                 "maintenance_margin": "0.5",
+        //                 "id": 117542,
+        //                 "notional_type": "vanilla",
+        //                 "ui_config": {},
+        //                 "contract_unit_currency": "BTC",
+        //                 "symbol": "C-BTC-30900-190723",
+        //                 "insurance_fund_margin_contribution": "1",
+        //                 "price_band": "2",
+        //                 "annualized_funding": "10.95",
+        //                 "impact_size": 200,
+        //                 "contract_type": "call_options",
+        //                 "position_size_limit": 255633,
+        //                 "max_leverage_notional": "200000",
+        //                 "initial_margin_scaling_factor": "0.000002",
+        //                 "strike_price": "30900",
+        //                 "is_quanto": false,
+        //                 "settlement_time": "2023-07-19T12:00:00Z",
+        //                 "liquidation_penalty_factor": "0.5",
+        //                 "funding_method": "mark_price",
+        //                 "taker_commission_rate": "0.0003",
+        //                 "default_leverage": "100.000000000000000000",
+        //                 "state": "expired",
+        //                 "auction_start_time": null,
+        //                 "short_description": "BTC  Call",
+        //                 "quoting_asset": {},
         //                 "maintenance_margin_scaling_factor":"0.000002"
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -3413,57 +3429,57 @@ class delta extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_settlement(mixed $settlement, mixed $market) {
+    public function parse_settlement(array $settlement, array $market): array {
         //
         //     {
-        //         "contract_value" => "0.001",
-        //         "basis_factor_max_limit" => "10.95",
-        //         "maker_commission_rate" => "0.0003",
-        //         "launch_time" => "2023-07-19T04:30:03Z",
-        //         "trading_status" => "operational",
-        //         "product_specs" => array(
-        //             "backup_vol_expiry_time" => 31536000,
-        //             "max_deviation_from_external_vol" => 0.75,
-        //             "max_lower_deviation_from_external_vol" => 0.75,
-        //             "max_upper_deviation_from_external_vol" => 0.5,
-        //             "max_volatility" => 3,
-        //             "min_volatility" => 0.1,
-        //             "premium_commission_rate" => 0.1,
-        //             "settlement_index_price" => "29993.536675710806",
-        //             "vol_calculation_method" => "orderbook",
-        //             "vol_expiry_time" => 31536000
-        //         ),
-        //         "description" => "BTC call option expiring on 19-7-2023",
-        //         "settlement_price" => "0",
-        //         "disruption_reason" => null,
-        //         "settling_asset" => array(),
-        //         "initial_margin" => "1",
-        //         "tick_size" => "0.1",
-        //         "maintenance_margin" => "0.5",
-        //         "id" => 117542,
-        //         "notional_type" => "vanilla",
-        //         "ui_config" => array(),
-        //         "contract_unit_currency" => "BTC",
-        //         "symbol" => "C-BTC-30900-190723",
-        //         "insurance_fund_margin_contribution" => "1",
-        //         "price_band" => "2",
-        //         "annualized_funding" => "10.95",
-        //         "impact_size" => 200,
-        //         "contract_type" => "call_options",
-        //         "position_size_limit" => 255633,
-        //         "max_leverage_notional" => "200000",
-        //         "initial_margin_scaling_factor" => "0.000002",
-        //         "strike_price" => "30900",
-        //         "is_quanto" => false,
-        //         "settlement_time" => "2023-07-19T12:00:00Z",
-        //         "liquidation_penalty_factor" => "0.5",
-        //         "funding_method" => "mark_price",
-        //         "taker_commission_rate" => "0.0003",
-        //         "default_leverage" => "100.000000000000000000",
-        //         "state" => "expired",
-        //         "auction_start_time" => null,
-        //         "short_description" => "BTC  Call",
-        //         "quoting_asset" => array(),
+        //         "contract_value": "0.001",
+        //         "basis_factor_max_limit": "10.95",
+        //         "maker_commission_rate": "0.0003",
+        //         "launch_time": "2023-07-19T04:30:03Z",
+        //         "trading_status": "operational",
+        //         "product_specs": {
+        //             "backup_vol_expiry_time": 31536000,
+        //             "max_deviation_from_external_vol": 0.75,
+        //             "max_lower_deviation_from_external_vol": 0.75,
+        //             "max_upper_deviation_from_external_vol": 0.5,
+        //             "max_volatility": 3,
+        //             "min_volatility": 0.1,
+        //             "premium_commission_rate": 0.1,
+        //             "settlement_index_price": "29993.536675710806",
+        //             "vol_calculation_method": "orderbook",
+        //             "vol_expiry_time": 31536000
+        //         },
+        //         "description": "BTC call option expiring on 19-7-2023",
+        //         "settlement_price": "0",
+        //         "disruption_reason": null,
+        //         "settling_asset": {},
+        //         "initial_margin": "1",
+        //         "tick_size": "0.1",
+        //         "maintenance_margin": "0.5",
+        //         "id": 117542,
+        //         "notional_type": "vanilla",
+        //         "ui_config": {},
+        //         "contract_unit_currency": "BTC",
+        //         "symbol": "C-BTC-30900-190723",
+        //         "insurance_fund_margin_contribution": "1",
+        //         "price_band": "2",
+        //         "annualized_funding": "10.95",
+        //         "impact_size": 200,
+        //         "contract_type": "call_options",
+        //         "position_size_limit": 255633,
+        //         "max_leverage_notional": "200000",
+        //         "initial_margin_scaling_factor": "0.000002",
+        //         "strike_price": "30900",
+        //         "is_quanto": false,
+        //         "settlement_time": "2023-07-19T12:00:00Z",
+        //         "liquidation_penalty_factor": "0.5",
+        //         "funding_method": "mark_price",
+        //         "taker_commission_rate": "0.0003",
+        //         "default_leverage": "100.000000000000000000",
+        //         "state": "expired",
+        //         "auction_start_time": null,
+        //         "short_description": "BTC  Call",
+        //         "quoting_asset": {},
         //         "maintenance_margin_scaling_factor":"0.000002"
         //     }
         //
@@ -3478,7 +3494,7 @@ class delta extends Exchange {
         );
     }
 
-    public function parse_settlements(mixed $settlements, mixed $market) {
+    public function parse_settlements(array $settlements, array $market): array {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);
@@ -3508,54 +3524,54 @@ class delta extends Exchange {
         $response = Async\await($this->publicGetTickersSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "result" => array(
-        //             "close" => 6793.0,
-        //             "contract_type" => "call_options",
-        //             "greeks" => array(
-        //                 "delta" => "0.94739174",
-        //                 "gamma" => "0.00002206",
-        //                 "rho" => "11.00890725",
-        //                 "spot" => "36839.58124652",
-        //                 "theta" => "-18.18365310",
-        //                 "vega" => "7.85209698"
-        //             ),
-        //             "high" => 7556.0,
-        //             "low" => 6793.0,
-        //             "mark_price" => "6955.70698909",
-        //             "mark_vol" => "0.66916863",
-        //             "oi" => "1.8980",
-        //             "oi_change_usd_6h" => "110.4600",
-        //             "oi_contracts" => "1898",
-        //             "oi_value" => "1.8980",
-        //             "oi_value_symbol" => "BTC",
-        //             "oi_value_usd" => "69940.7319",
-        //             "open" => 7.2e3,
-        //             "price_band" => array(
-        //                 "lower_limit" => "5533.89814767",
-        //                 "upper_limit" => "11691.37688371"
-        //             ),
-        //             "product_id" => 129508,
-        //             "quotes" => array(
-        //                 "ask_iv" => "0.90180438",
-        //                 "ask_size" => "1898",
-        //                 "best_ask" => "7210",
-        //                 "best_bid" => "6913",
-        //                 "bid_iv" => "0.60881706",
-        //                 "bid_size" => "3163",
-        //                 "impact_mid_price" => null,
-        //                 "mark_iv" => "0.66973549"
-        //             ),
-        //             "size" => 5,
-        //             "spot_price" => "36839.58153868",
-        //             "strike_price" => "30000",
-        //             "symbol" => "C-BTC-30000-241123",
-        //             "timestamp" => 1699584998504530,
-        //             "turnover" => 184.41206804,
-        //             "turnover_symbol" => "USDT",
-        //             "turnover_usd" => 184.41206804,
-        //             "volume" => 0.005
-        //         ),
-        //         "success" => true
+        //         "result": {
+        //             "close": 6793.0,
+        //             "contract_type": "call_options",
+        //             "greeks": {
+        //                 "delta": "0.94739174",
+        //                 "gamma": "0.00002206",
+        //                 "rho": "11.00890725",
+        //                 "spot": "36839.58124652",
+        //                 "theta": "-18.18365310",
+        //                 "vega": "7.85209698"
+        //             },
+        //             "high": 7556.0,
+        //             "low": 6793.0,
+        //             "mark_price": "6955.70698909",
+        //             "mark_vol": "0.66916863",
+        //             "oi": "1.8980",
+        //             "oi_change_usd_6h": "110.4600",
+        //             "oi_contracts": "1898",
+        //             "oi_value": "1.8980",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "69940.7319",
+        //             "open": 7.2e3,
+        //             "price_band": {
+        //                 "lower_limit": "5533.89814767",
+        //                 "upper_limit": "11691.37688371"
+        //             },
+        //             "product_id": 129508,
+        //             "quotes": {
+        //                 "ask_iv": "0.90180438",
+        //                 "ask_size": "1898",
+        //                 "best_ask": "7210",
+        //                 "best_bid": "6913",
+        //                 "bid_iv": "0.60881706",
+        //                 "bid_size": "3163",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "0.66973549"
+        //             },
+        //             "size": 5,
+        //             "spot_price": "36839.58153868",
+        //             "strike_price": "30000",
+        //             "symbol": "C-BTC-30000-241123",
+        //             "timestamp": 1699584998504530,
+        //             "turnover": 184.41206804,
+        //             "turnover_symbol": "USDT",
+        //             "turnover_usd": 184.41206804,
+        //             "volume": 0.005
+        //         },
+        //         "success": true
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -3565,51 +3581,51 @@ class delta extends Exchange {
     public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
-        //         "close" => 6793.0,
-        //         "contract_type" => "call_options",
-        //         "greeks" => array(
-        //             "delta" => "0.94739174",
-        //             "gamma" => "0.00002206",
-        //             "rho" => "11.00890725",
-        //             "spot" => "36839.58124652",
-        //             "theta" => "-18.18365310",
-        //             "vega" => "7.85209698"
-        //         ),
-        //         "high" => 7556.0,
-        //         "low" => 6793.0,
-        //         "mark_price" => "6955.70698909",
-        //         "mark_vol" => "0.66916863",
-        //         "oi" => "1.8980",
-        //         "oi_change_usd_6h" => "110.4600",
-        //         "oi_contracts" => "1898",
-        //         "oi_value" => "1.8980",
-        //         "oi_value_symbol" => "BTC",
-        //         "oi_value_usd" => "69940.7319",
-        //         "open" => 7.2e3,
-        //         "price_band" => array(
-        //             "lower_limit" => "5533.89814767",
-        //             "upper_limit" => "11691.37688371"
-        //         ),
-        //         "product_id" => 129508,
-        //         "quotes" => array(
-        //             "ask_iv" => "0.90180438",
-        //             "ask_size" => "1898",
-        //             "best_ask" => "7210",
-        //             "best_bid" => "6913",
-        //             "bid_iv" => "0.60881706",
-        //             "bid_size" => "3163",
-        //             "impact_mid_price" => null,
-        //             "mark_iv" => "0.66973549"
-        //         ),
-        //         "size" => 5,
-        //         "spot_price" => "36839.58153868",
-        //         "strike_price" => "30000",
-        //         "symbol" => "C-BTC-30000-241123",
-        //         "timestamp" => 1699584998504530,
-        //         "turnover" => 184.41206804,
-        //         "turnover_symbol" => "USDT",
-        //         "turnover_usd" => 184.41206804,
-        //         "volume" => 0.005
+        //         "close": 6793.0,
+        //         "contract_type": "call_options",
+        //         "greeks": {
+        //             "delta": "0.94739174",
+        //             "gamma": "0.00002206",
+        //             "rho": "11.00890725",
+        //             "spot": "36839.58124652",
+        //             "theta": "-18.18365310",
+        //             "vega": "7.85209698"
+        //         },
+        //         "high": 7556.0,
+        //         "low": 6793.0,
+        //         "mark_price": "6955.70698909",
+        //         "mark_vol": "0.66916863",
+        //         "oi": "1.8980",
+        //         "oi_change_usd_6h": "110.4600",
+        //         "oi_contracts": "1898",
+        //         "oi_value": "1.8980",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "69940.7319",
+        //         "open": 7.2e3,
+        //         "price_band": {
+        //             "lower_limit": "5533.89814767",
+        //             "upper_limit": "11691.37688371"
+        //         },
+        //         "product_id": 129508,
+        //         "quotes": {
+        //             "ask_iv": "0.90180438",
+        //             "ask_size": "1898",
+        //             "best_ask": "7210",
+        //             "best_bid": "6913",
+        //             "bid_iv": "0.60881706",
+        //             "bid_size": "3163",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "0.66973549"
+        //         },
+        //         "size": 5,
+        //         "spot_price": "36839.58153868",
+        //         "strike_price": "30000",
+        //         "symbol": "C-BTC-30000-241123",
+        //         "timestamp": 1699584998504530,
+        //         "turnover": 184.41206804,
+        //         "turnover_symbol": "USDT",
+        //         "turnover_usd": 184.41206804,
+        //         "volume": 0.005
         //     }
         //
         $timestamp = $this->safe_integer_product($greeks, 'timestamp', 0.001);
@@ -3658,11 +3674,11 @@ class delta extends Exchange {
         $request = array(
             'close_all_portfolio' => true,
             'close_all_isolated' => true,
-            // 'user_id' => 12345,
+            // 'user_id': 12345,
         );
         $response = Async\await($this->privatePostPositionsCloseAll($this->extend($request, $params)));
         //
-        // array("result":array(),"success":true)
+        // {"result":{},"success":true}
         //
         $position = $this->parse_position($this->safe_dict($response, 'result', array()));
         return array( $position );
@@ -3690,65 +3706,65 @@ class delta extends Exchange {
         $response = Async\await($this->privateGetProfile($params));
         //
         //     {
-        //         "result" => {
-        //             "is_password_set" => true,
-        //             "kyc_expiry_date" => null,
-        //             "phishing_code" => "12345",
-        //             "preferences" => array(
-        //                 "favorites" => array()
-        //             ),
-        //             "is_kyc_provisioned" => false,
-        //             "country" => "Canada",
-        //             "margin_mode" => "isolated",
-        //             "mfa_updated_at" => "2023-07-19T01:04:43Z",
-        //             "last_name" => "",
-        //             "oauth_apple_active" => false,
-        //             "pf_index_symbol" => null,
-        //             "proof_of_identity_status" => "approved",
-        //             "dob" => null,
-        //             "email" => "abc_123@gmail.com",
-        //             "force_change_password" => false,
-        //             "nick_name" => "still-breeze-123",
-        //             "oauth_google_active" => false,
-        //             "phone_verification_status" => "verified",
-        //             "id" => 12345678,
-        //             "last_seen" => null,
-        //             "is_withdrawal_enabled" => true,
-        //             "force_change_mfa" => false,
-        //             "enable_bots" => false,
-        //             "kyc_verified_on" => null,
-        //             "created_at" => "2023-07-19T01:02:32Z",
-        //             "withdrawal_blocked_till" => null,
-        //             "proof_of_address_status" => "approved",
-        //             "is_password_change_blocked" => false,
-        //             "is_mfa_enabled" => true,
-        //             "is_kyc_done" => true,
-        //             "oauth" => null,
-        //             "account_name" => "Main",
-        //             "sub_account_permissions" => null,
-        //             "phone_number" => null,
-        //             "tracking_info" => array(
-        //                 "ga_cid" => "1234.4321",
-        //                 "is_kyc_gtm_tracked" => true,
-        //                 "sub_account_config" => array(
-        //                     "cross" => 2,
-        //                     "isolated" => 2,
-        //                     "portfolio" => 2
+        //         "result": {
+        //             "is_password_set": true,
+        //             "kyc_expiry_date": null,
+        //             "phishing_code": "12345",
+        //             "preferences": {
+        //                 "favorites": []
+        //             },
+        //             "is_kyc_provisioned": false,
+        //             "country": "Canada",
+        //             "margin_mode": "isolated",
+        //             "mfa_updated_at": "2023-07-19T01:04:43Z",
+        //             "last_name": "",
+        //             "oauth_apple_active": false,
+        //             "pf_index_symbol": null,
+        //             "proof_of_identity_status": "approved",
+        //             "dob": null,
+        //             "email": "abc_123@gmail.com",
+        //             "force_change_password": false,
+        //             "nick_name": "still-breeze-123",
+        //             "oauth_google_active": false,
+        //             "phone_verification_status": "verified",
+        //             "id": 12345678,
+        //             "last_seen": null,
+        //             "is_withdrawal_enabled": true,
+        //             "force_change_mfa": false,
+        //             "enable_bots": false,
+        //             "kyc_verified_on": null,
+        //             "created_at": "2023-07-19T01:02:32Z",
+        //             "withdrawal_blocked_till": null,
+        //             "proof_of_address_status": "approved",
+        //             "is_password_change_blocked": false,
+        //             "is_mfa_enabled": true,
+        //             "is_kyc_done": true,
+        //             "oauth": null,
+        //             "account_name": "Main",
+        //             "sub_account_permissions": null,
+        //             "phone_number": null,
+        //             "tracking_info": {
+        //                 "ga_cid": "1234.4321",
+        //                 "is_kyc_gtm_tracked": true,
+        //                 "sub_account_config": {
+        //                     "cross": 2,
+        //                     "isolated": 2,
+        //                     "portfolio": 2
         //                 }
-        //             ),
-        //             "first_name" => "",
-        //             "phone_verified_on" => null,
-        //             "seen_intro" => false,
-        //             "password_updated_at" => null,
-        //             "is_login_enabled" => true,
-        //             "registration_date" => "2023-07-19T01:02:32Z",
-        //             "permissions" => array(),
-        //             "max_sub_accounts_limit" => 2,
-        //             "country_calling_code" => null,
-        //             "is_sub_account" => false,
-        //             "is_kyc_refresh_required" => false
-        //         ),
-        //         "success" => true
+        //             },
+        //             "first_name": "",
+        //             "phone_verified_on": null,
+        //             "seen_intro": false,
+        //             "password_updated_at": null,
+        //             "is_login_enabled": true,
+        //             "registration_date": "2023-07-19T01:02:32Z",
+        //             "permissions": {},
+        //             "max_sub_accounts_limit": 2,
+        //             "country_calling_code": null,
+        //             "is_sub_account": false,
+        //             "is_kyc_refresh_required": false
+        //         },
+        //         "success": true
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -3767,7 +3783,7 @@ class delta extends Exchange {
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_margin_mode(...))($marginMode, $symbol, $params);
     }
 
@@ -3814,54 +3830,54 @@ class delta extends Exchange {
         $response = Async\await($this->publicGetTickersSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "result" => array(
-        //             "close" => 6793.0,
-        //             "contract_type" => "call_options",
-        //             "greeks" => array(
-        //                 "delta" => "0.94739174",
-        //                 "gamma" => "0.00002206",
-        //                 "rho" => "11.00890725",
-        //                 "spot" => "36839.58124652",
-        //                 "theta" => "-18.18365310",
-        //                 "vega" => "7.85209698"
-        //             ),
-        //             "high" => 7556.0,
-        //             "low" => 6793.0,
-        //             "mark_price" => "6955.70698909",
-        //             "mark_vol" => "0.66916863",
-        //             "oi" => "1.8980",
-        //             "oi_change_usd_6h" => "110.4600",
-        //             "oi_contracts" => "1898",
-        //             "oi_value" => "1.8980",
-        //             "oi_value_symbol" => "BTC",
-        //             "oi_value_usd" => "69940.7319",
-        //             "open" => 7.2e3,
-        //             "price_band" => array(
-        //                 "lower_limit" => "5533.89814767",
-        //                 "upper_limit" => "11691.37688371"
-        //             ),
-        //             "product_id" => 129508,
-        //             "quotes" => array(
-        //                 "ask_iv" => "0.90180438",
-        //                 "ask_size" => "1898",
-        //                 "best_ask" => "7210",
-        //                 "best_bid" => "6913",
-        //                 "bid_iv" => "0.60881706",
-        //                 "bid_size" => "3163",
-        //                 "impact_mid_price" => null,
-        //                 "mark_iv" => "0.66973549"
-        //             ),
-        //             "size" => 5,
-        //             "spot_price" => "36839.58153868",
-        //             "strike_price" => "30000",
-        //             "symbol" => "C-BTC-30000-241123",
-        //             "timestamp" => 1699584998504530,
-        //             "turnover" => 184.41206804,
-        //             "turnover_symbol" => "USDT",
-        //             "turnover_usd" => 184.41206804,
-        //             "volume" => 0.005
-        //         ),
-        //         "success" => true
+        //         "result": {
+        //             "close": 6793.0,
+        //             "contract_type": "call_options",
+        //             "greeks": {
+        //                 "delta": "0.94739174",
+        //                 "gamma": "0.00002206",
+        //                 "rho": "11.00890725",
+        //                 "spot": "36839.58124652",
+        //                 "theta": "-18.18365310",
+        //                 "vega": "7.85209698"
+        //             },
+        //             "high": 7556.0,
+        //             "low": 6793.0,
+        //             "mark_price": "6955.70698909",
+        //             "mark_vol": "0.66916863",
+        //             "oi": "1.8980",
+        //             "oi_change_usd_6h": "110.4600",
+        //             "oi_contracts": "1898",
+        //             "oi_value": "1.8980",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "69940.7319",
+        //             "open": 7.2e3,
+        //             "price_band": {
+        //                 "lower_limit": "5533.89814767",
+        //                 "upper_limit": "11691.37688371"
+        //             },
+        //             "product_id": 129508,
+        //             "quotes": {
+        //                 "ask_iv": "0.90180438",
+        //                 "ask_size": "1898",
+        //                 "best_ask": "7210",
+        //                 "best_bid": "6913",
+        //                 "bid_iv": "0.60881706",
+        //                 "bid_size": "3163",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "0.66973549"
+        //             },
+        //             "size": 5,
+        //             "spot_price": "36839.58153868",
+        //             "strike_price": "30000",
+        //             "symbol": "C-BTC-30000-241123",
+        //             "timestamp": 1699584998504530,
+        //             "turnover": 184.41206804,
+        //             "turnover_symbol": "USDT",
+        //             "turnover_usd": 184.41206804,
+        //             "volume": 0.005
+        //         },
+        //         "success": true
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -3871,61 +3887,61 @@ class delta extends Exchange {
     public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
         //
         //     {
-        //         "close" => 6793.0,
-        //         "contract_type" => "call_options",
-        //         "greeks" => array(
-        //             "delta" => "0.94739174",
-        //             "gamma" => "0.00002206",
-        //             "rho" => "11.00890725",
-        //             "spot" => "36839.58124652",
-        //             "theta" => "-18.18365310",
-        //             "vega" => "7.85209698"
-        //         ),
-        //         "high" => 7556.0,
-        //         "low" => 6793.0,
-        //         "mark_price" => "6955.70698909",
-        //         "mark_vol" => "0.66916863",
-        //         "oi" => "1.8980",
-        //         "oi_change_usd_6h" => "110.4600",
-        //         "oi_contracts" => "1898",
-        //         "oi_value" => "1.8980",
-        //         "oi_value_symbol" => "BTC",
-        //         "oi_value_usd" => "69940.7319",
-        //         "open" => 7.2e3,
-        //         "price_band" => array(
-        //             "lower_limit" => "5533.89814767",
-        //             "upper_limit" => "11691.37688371"
-        //         ),
-        //         "product_id" => 129508,
-        //         "quotes" => array(
-        //             "ask_iv" => "0.90180438",
-        //             "ask_size" => "1898",
-        //             "best_ask" => "7210",
-        //             "best_bid" => "6913",
-        //             "bid_iv" => "0.60881706",
-        //             "bid_size" => "3163",
-        //             "impact_mid_price" => null,
-        //             "mark_iv" => "0.66973549"
-        //         ),
-        //         "size" => 5,
-        //         "spot_price" => "36839.58153868",
-        //         "strike_price" => "30000",
-        //         "symbol" => "C-BTC-30000-241123",
-        //         "timestamp" => 1699584998504530,
-        //         "turnover" => 184.41206804,
-        //         "turnover_symbol" => "USDT",
-        //         "turnover_usd" => 184.41206804,
-        //         "volume" => 0.005
+        //         "close": 6793.0,
+        //         "contract_type": "call_options",
+        //         "greeks": {
+        //             "delta": "0.94739174",
+        //             "gamma": "0.00002206",
+        //             "rho": "11.00890725",
+        //             "spot": "36839.58124652",
+        //             "theta": "-18.18365310",
+        //             "vega": "7.85209698"
+        //         },
+        //         "high": 7556.0,
+        //         "low": 6793.0,
+        //         "mark_price": "6955.70698909",
+        //         "mark_vol": "0.66916863",
+        //         "oi": "1.8980",
+        //         "oi_change_usd_6h": "110.4600",
+        //         "oi_contracts": "1898",
+        //         "oi_value": "1.8980",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "69940.7319",
+        //         "open": 7.2e3,
+        //         "price_band": {
+        //             "lower_limit": "5533.89814767",
+        //             "upper_limit": "11691.37688371"
+        //         },
+        //         "product_id": 129508,
+        //         "quotes": {
+        //             "ask_iv": "0.90180438",
+        //             "ask_size": "1898",
+        //             "best_ask": "7210",
+        //             "best_bid": "6913",
+        //             "bid_iv": "0.60881706",
+        //             "bid_size": "3163",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "0.66973549"
+        //         },
+        //         "size": 5,
+        //         "spot_price": "36839.58153868",
+        //         "strike_price": "30000",
+        //         "symbol": "C-BTC-30000-241123",
+        //         "timestamp": 1699584998504530,
+        //         "turnover": 184.41206804,
+        //         "turnover_symbol": "USDT",
+        //         "turnover_usd": 184.41206804,
+        //         "volume": 0.005
         //     }
         //
         $marketId = $this->safe_string($chain, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $quotes = $this->safe_dict($chain, 'quotes', array());
         $timestamp = $this->safe_integer_product($chain, 'timestamp', 0.001);
         return array(
             'info' => $chain,
             'currency' => $this->safe_string($chain, 'currency'),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'impliedVolatility' => $this->safe_number($quotes, 'mark_iv'),
@@ -3958,180 +3974,180 @@ class delta extends Exchange {
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         $response = Async\await($this->privateGetPositionsMargined($params));
         //
         //     {
         //         "result":
-        //             array(
+        //             [
         //                 {
-        //                     "adl_level" => null,
-        //                     "auto_topup" => false,
-        //                     "bankruptcy_price" => "88618.22667",
-        //                     "commission" => "0.03797924",
-        //                     "created_at" => "2026-01-14T11:24:35.801586Z",
-        //                     "entry_price" => "94948.1",
-        //                     "liquidation_price" => "89092.96717",
-        //                     "margin" => "6.32987333",
-        //                     "margin_mode" => "isolated",
-        //                     "mark_price" => "94942.90888022",
-        //                     "product" => {
-        //                         "trading_status" => "operational",
-        //                         "short_description" => null,
-        //                         "quoting_asset" => array(
-        //                             "base_withdrawal_fee" => "0.000000000000000000",
-        //                             "id" => 4,
-        //                             "interest_credit" => false,
-        //                             "interest_slabs" => null,
-        //                             "kyc_deposit_limit" => "0.000000000000000000",
-        //                             "kyc_withdrawal_limit" => "0.000000000000000000",
-        //                             "min_withdrawal_amount" => "0.000000000000000000",
-        //                             "minimum_precision" => 2,
-        //                             "name" => "Tether",
-        //                             "networks" => array(),
-        //                             "precision" => 8,
-        //                             "sort_priority" => null,
-        //                             "symbol" => "USDT",
-        //                             "variable_withdrawal_fee" => "0.000000000000000000"
-        //                         ),
-        //                         "symbol" => "BTCUSDT",
-        //                         "taker_commission_rate" => "0.0004",
-        //                         "maintenance_margin_scaling_factor" => "0",
-        //                         "spot_index" => array(
-        //                             "config" => array(
-        //                                 "impact_size" => array(
-        //                                     "max_impact_size" => 150000,
-        //                                     "min_impact_size" => 5000,
-        //                                     "step_value" => 5000
-        //                                 ),
-        //                                 "quoting_asset" => "USDT",
-        //                                 "service_id" => 1,
-        //                                 "underlying_asset" => "BTC"
-        //                             ),
-        //                             "constituent_exchanges" => array(
-        //                                 array(
-        //                                     "exchange" => "binance",
-        //                                     "health_interval" => 3000,
-        //                                     "health_priority" => 1,
-        //                                     "weight" => 1
-        //                                 ),
-        //                                 array(
-        //                                     "exchange" => "gateio",
-        //                                     "health_interval" => 3000,
-        //                                     "health_priority" => 3,
-        //                                     "weight" => 1
-        //                                 ),
-        //                                 array(
-        //                                     "exchange" => "bybit",
-        //                                     "health_interval" => 3000,
-        //                                     "health_priority" => 2,
-        //                                     "weight" => 1
+        //                     "adl_level": null,
+        //                     "auto_topup": false,
+        //                     "bankruptcy_price": "88618.22667",
+        //                     "commission": "0.03797924",
+        //                     "created_at": "2026-01-14T11:24:35.801586Z",
+        //                     "entry_price": "94948.1",
+        //                     "liquidation_price": "89092.96717",
+        //                     "margin": "6.32987333",
+        //                     "margin_mode": "isolated",
+        //                     "mark_price": "94942.90888022",
+        //                     "product": {
+        //                         "trading_status": "operational",
+        //                         "short_description": null,
+        //                         "quoting_asset": {
+        //                             "base_withdrawal_fee": "0.000000000000000000",
+        //                             "id": 4,
+        //                             "interest_credit": false,
+        //                             "interest_slabs": null,
+        //                             "kyc_deposit_limit": "0.000000000000000000",
+        //                             "kyc_withdrawal_limit": "0.000000000000000000",
+        //                             "min_withdrawal_amount": "0.000000000000000000",
+        //                             "minimum_precision": 2,
+        //                             "name": "Tether",
+        //                             "networks": [],
+        //                             "precision": 8,
+        //                             "sort_priority": null,
+        //                             "symbol": "USDT",
+        //                             "variable_withdrawal_fee": "0.000000000000000000"
+        //                         },
+        //                         "symbol": "BTCUSDT",
+        //                         "taker_commission_rate": "0.0004",
+        //                         "maintenance_margin_scaling_factor": "0",
+        //                         "spot_index": {
+        //                             "config": {
+        //                                 "impact_size": {
+        //                                     "max_impact_size": 150000,
+        //                                     "min_impact_size": 5000,
+        //                                     "step_value": 5000
+        //                                 },
+        //                                 "quoting_asset": "USDT",
+        //                                 "service_id": 1,
+        //                                 "underlying_asset": "BTC"
+        //                             },
+        //                             "constituent_exchanges": [
+        //                                 {
+        //                                     "exchange": "binance",
+        //                                     "health_interval": 3000,
+        //                                     "health_priority": 1,
+        //                                     "weight": 1
+        //                                 },
+        //                                 {
+        //                                     "exchange": "gateio",
+        //                                     "health_interval": 3000,
+        //                                     "health_priority": 3,
+        //                                     "weight": 1
+        //                                 },
+        //                                 {
+        //                                     "exchange": "bybit",
+        //                                     "health_interval": 3000,
+        //                                     "health_priority": 2,
+        //                                     "weight": 1
         //                                 }
-        //                             ),
-        //                             "constituent_indices" => null,
-        //                             "description" => "BTC Spot",
-        //                             "health_interval" => 300,
-        //                             "id" => 2,
-        //                             "impact_size" => "1.000000000000000000",
-        //                             "index_type" => "spot_pair",
-        //                             "is_composite" => false,
-        //                             "price_method" => "ltp",
-        //                             "quoting_asset_id" => 4,
-        //                             "symbol" => ".DEXBTUSDT",
-        //                             "tick_size" => "0.100000000000000000",
-        //                             "underlying_asset_id" => 2
-        //                         ),
-        //                         "liquidation_penalty_factor" => "1",
-        //                         "auction_start_time" => "2025-12-22T12:18:52Z",
-        //                         "is_quanto" => false,
-        //                         "state" => "live",
-        //                         "id" => 84,
-        //                         "settling_asset" => array(
-        //                             "base_withdrawal_fee" => "0.000000000000000000",
-        //                             "id" => 4,
-        //                             "interest_credit" => false,
-        //                             "interest_slabs" => null,
-        //                             "kyc_deposit_limit" => "0.000000000000000000",
-        //                             "kyc_withdrawal_limit" => "0.000000000000000000",
-        //                             "min_withdrawal_amount" => "0.000000000000000000",
-        //                             "minimum_precision" => 2,
-        //                             "name" => "Tether",
-        //                             "networks" => array(),
-        //                             "precision" => 8,
-        //                             "sort_priority" => null,
-        //                             "symbol" => "USDT",
-        //                             "variable_withdrawal_fee" => "0.000000000000000000"
-        //                         ),
-        //                         "tick_size" => "0.1",
-        //                         "impact_size" => 4000,
-        //                         "insurance_fund_margin_contribution" => "5",
-        //                         "maker_commission_rate" => "0.0002",
-        //                         "ui_config" => array(
-        //                             "default_trading_view_candle" => "15",
-        //                             "leverage_slider_values" => [1,2,3,5,10,50,100],
-        //                             "price_clubbing_values" => [0.1,1,10,50],
-        //                             "show_bracket_orders" => false,
-        //                             "sort_priority" => 1
-        //                         ),
-        //                         "annualized_funding" => "0",
-        //                         "strike_price" => null,
-        //                         "price_band" => "100",
-        //                         "funding_method" => "mark_price",
-        //                         "contract_value" => "0.001",
-        //                         "auction_finish_time" => null,
-        //                         "product_specs" => array(
-        //                             "vol_expiry_time" => 172800
-        //                         ),
-        //                         "launch_time" => "2020-04-20T08:37:05Z",
-        //                         "basis_factor_max_limit" => "1000",
-        //                         "initial_margin" => "1",
-        //                         "notional_type" => "vanilla",
-        //                         "contract_unit_currency" => "BTC",
-        //                         "disruption_reason" => null,
-        //                         "underlying_asset" => array(
-        //                             "base_withdrawal_fee" => "0.000000000000000000",
-        //                             "id" => 2,
-        //                             "interest_credit" => false,
-        //                             "interest_slabs" => null,
-        //                             "kyc_deposit_limit" => "0.000000000000000000",
-        //                             "kyc_withdrawal_limit" => "0.000000000000000000",
-        //                             "min_withdrawal_amount" => "0.000000000000000000",
-        //                             "minimum_precision" => 4,
-        //                             "name" => "Bitcoin",
-        //                             "networks" => array(),
-        //                             "precision" => 8,
-        //                             "sort_priority" => 1,
-        //                             "symbol" => "BTC",
-        //                             "variable_withdrawal_fee" => "0.000000000000000000"
-        //                         ),
-        //                         "initial_margin_scaling_factor" => "0",
-        //                         "position_size_limit" => 10000000,
-        //                         "max_leverage_notional" => "10000",
-        //                         "settlement_price" => null,
-        //                         "barrier_price" => null,
-        //                         "maintenance_margin" => "0.5",
-        //                         "default_leverage" => "50.000000000000000000",
-        //                         "settlement_time" => null,
-        //                         "description" => "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
-        //                         "contract_type" => "perpetual_futures"
-        //                     ),
-        //                     "product_id" => 84,
-        //                     "product_symbol" => "BTCUSDT",
-        //                     "realized_cashflow" => "0.000000000000000000",
-        //                     "realized_funding" => "0",
-        //                     "realized_holding_cost" => "0",
-        //                     "realized_pnl" => "0",
-        //                     "size" => 1,
-        //                     "unrealized_pnl" => "-0.00519112",
-        //                     "updated_at" => "2026-01-14T11:24:35.801586Z",
-        //                     "user_id" => 30084879
+        //                             ],
+        //                             "constituent_indices": null,
+        //                             "description": "BTC Spot",
+        //                             "health_interval": 300,
+        //                             "id": 2,
+        //                             "impact_size": "1.000000000000000000",
+        //                             "index_type": "spot_pair",
+        //                             "is_composite": false,
+        //                             "price_method": "ltp",
+        //                             "quoting_asset_id": 4,
+        //                             "symbol": ".DEXBTUSDT",
+        //                             "tick_size": "0.100000000000000000",
+        //                             "underlying_asset_id": 2
+        //                         },
+        //                         "liquidation_penalty_factor": "1",
+        //                         "auction_start_time": "2025-12-22T12:18:52Z",
+        //                         "is_quanto": false,
+        //                         "state": "live",
+        //                         "id": 84,
+        //                         "settling_asset": {
+        //                             "base_withdrawal_fee": "0.000000000000000000",
+        //                             "id": 4,
+        //                             "interest_credit": false,
+        //                             "interest_slabs": null,
+        //                             "kyc_deposit_limit": "0.000000000000000000",
+        //                             "kyc_withdrawal_limit": "0.000000000000000000",
+        //                             "min_withdrawal_amount": "0.000000000000000000",
+        //                             "minimum_precision": 2,
+        //                             "name": "Tether",
+        //                             "networks": [],
+        //                             "precision": 8,
+        //                             "sort_priority": null,
+        //                             "symbol": "USDT",
+        //                             "variable_withdrawal_fee": "0.000000000000000000"
+        //                         },
+        //                         "tick_size": "0.1",
+        //                         "impact_size": 4000,
+        //                         "insurance_fund_margin_contribution": "5",
+        //                         "maker_commission_rate": "0.0002",
+        //                         "ui_config": {
+        //                             "default_trading_view_candle": "15",
+        //                             "leverage_slider_values": [1,2,3,5,10,50,100],
+        //                             "price_clubbing_values": [0.1,1,10,50],
+        //                             "show_bracket_orders": false,
+        //                             "sort_priority": 1
+        //                         },
+        //                         "annualized_funding": "0",
+        //                         "strike_price": null,
+        //                         "price_band": "100",
+        //                         "funding_method": "mark_price",
+        //                         "contract_value": "0.001",
+        //                         "auction_finish_time": null,
+        //                         "product_specs": {
+        //                             "vol_expiry_time": 172800
+        //                         },
+        //                         "launch_time": "2020-04-20T08:37:05Z",
+        //                         "basis_factor_max_limit": "1000",
+        //                         "initial_margin": "1",
+        //                         "notional_type": "vanilla",
+        //                         "contract_unit_currency": "BTC",
+        //                         "disruption_reason": null,
+        //                         "underlying_asset": {
+        //                             "base_withdrawal_fee": "0.000000000000000000",
+        //                             "id": 2,
+        //                             "interest_credit": false,
+        //                             "interest_slabs": null,
+        //                             "kyc_deposit_limit": "0.000000000000000000",
+        //                             "kyc_withdrawal_limit": "0.000000000000000000",
+        //                             "min_withdrawal_amount": "0.000000000000000000",
+        //                             "minimum_precision": 4,
+        //                             "name": "Bitcoin",
+        //                             "networks": [],
+        //                             "precision": 8,
+        //                             "sort_priority": 1,
+        //                             "symbol": "BTC",
+        //                             "variable_withdrawal_fee": "0.000000000000000000"
+        //                         },
+        //                         "initial_margin_scaling_factor": "0",
+        //                         "position_size_limit": 10000000,
+        //                         "max_leverage_notional": "10000",
+        //                         "settlement_price": null,
+        //                         "barrier_price": null,
+        //                         "maintenance_margin": "0.5",
+        //                         "default_leverage": "50.000000000000000000",
+        //                         "settlement_time": null,
+        //                         "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        //                         "contract_type": "perpetual_futures"
+        //                     },
+        //                     "product_id": 84,
+        //                     "product_symbol": "BTCUSDT",
+        //                     "realized_cashflow": "0.000000000000000000",
+        //                     "realized_funding": "0",
+        //                     "realized_holding_cost": "0",
+        //                     "realized_pnl": "0",
+        //                     "size": 1,
+        //                     "unrealized_pnl": "-0.00519112",
+        //                     "updated_at": "2026-01-14T11:24:35.801586Z",
+        //                     "user_id": 30084879
         //                 }
-        //             ),
-        //         "success" => true
+        //             ],
+        //         "success": true
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
-        return $this->parse_adl_ranks($result, $symbols);
+        return $this->parse_adl_ranks($result, $symbolsNormalized);
     }
 
     public function parse_adl_rank(array $info, ?array $market = null): array {
@@ -4139,166 +4155,166 @@ class delta extends Exchange {
         // fetchPositionsADLRank
         //
         //     {
-        //         "adl_level" => null,
-        //         "auto_topup" => false,
-        //         "bankruptcy_price" => "88618.22667",
-        //         "commission" => "0.03797924",
-        //         "created_at" => "2026-01-14T11:24:35.801586Z",
-        //         "entry_price" => "94948.1",
-        //         "liquidation_price" => "89092.96717",
-        //         "margin" => "6.32987333",
-        //         "margin_mode" => "isolated",
-        //         "mark_price" => "94942.90888022",
-        //         "product" => {
-        //             "trading_status" => "operational",
-        //             "short_description" => null,
-        //             "quoting_asset" => array(
-        //                 "base_withdrawal_fee" => "0.000000000000000000",
-        //                 "id" => 4,
-        //                 "interest_credit" => false,
-        //                 "interest_slabs" => null,
-        //                 "kyc_deposit_limit" => "0.000000000000000000",
-        //                 "kyc_withdrawal_limit" => "0.000000000000000000",
-        //                 "min_withdrawal_amount" => "0.000000000000000000",
-        //                 "minimum_precision" => 2,
-        //                 "name" => "Tether",
-        //                 "networks" => array(),
-        //                 "precision" => 8,
-        //                 "sort_priority" => null,
-        //                 "symbol" => "USDT",
-        //                 "variable_withdrawal_fee" => "0.000000000000000000"
-        //             ),
-        //             "symbol" => "BTCUSDT",
-        //             "taker_commission_rate" => "0.0004",
-        //             "maintenance_margin_scaling_factor" => "0",
-        //             "spot_index" => array(
-        //                 "config" => array(
-        //                     "impact_size" => array(
-        //                         "max_impact_size" => 150000,
-        //                         "min_impact_size" => 5000,
-        //                         "step_value" => 5000
-        //                     ),
-        //                     "quoting_asset" => "USDT",
-        //                     "service_id" => 1,
-        //                     "underlying_asset" => "BTC"
-        //                 ),
-        //                 "constituent_exchanges" => array(
-        //                     array(
-        //                         "exchange" => "binance",
-        //                         "health_interval" => 3000,
-        //                         "health_priority" => 1,
-        //                         "weight" => 1
-        //                     ),
-        //                     array(
-        //                         "exchange" => "gateio",
-        //                         "health_interval" => 3000,
-        //                         "health_priority" => 3,
-        //                         "weight" => 1
-        //                     ),
-        //                     array(
-        //                         "exchange" => "bybit",
-        //                         "health_interval" => 3000,
-        //                         "health_priority" => 2,
-        //                         "weight" => 1
+        //         "adl_level": null,
+        //         "auto_topup": false,
+        //         "bankruptcy_price": "88618.22667",
+        //         "commission": "0.03797924",
+        //         "created_at": "2026-01-14T11:24:35.801586Z",
+        //         "entry_price": "94948.1",
+        //         "liquidation_price": "89092.96717",
+        //         "margin": "6.32987333",
+        //         "margin_mode": "isolated",
+        //         "mark_price": "94942.90888022",
+        //         "product": {
+        //             "trading_status": "operational",
+        //             "short_description": null,
+        //             "quoting_asset": {
+        //                 "base_withdrawal_fee": "0.000000000000000000",
+        //                 "id": 4,
+        //                 "interest_credit": false,
+        //                 "interest_slabs": null,
+        //                 "kyc_deposit_limit": "0.000000000000000000",
+        //                 "kyc_withdrawal_limit": "0.000000000000000000",
+        //                 "min_withdrawal_amount": "0.000000000000000000",
+        //                 "minimum_precision": 2,
+        //                 "name": "Tether",
+        //                 "networks": [],
+        //                 "precision": 8,
+        //                 "sort_priority": null,
+        //                 "symbol": "USDT",
+        //                 "variable_withdrawal_fee": "0.000000000000000000"
+        //             },
+        //             "symbol": "BTCUSDT",
+        //             "taker_commission_rate": "0.0004",
+        //             "maintenance_margin_scaling_factor": "0",
+        //             "spot_index": {
+        //                 "config": {
+        //                     "impact_size": {
+        //                         "max_impact_size": 150000,
+        //                         "min_impact_size": 5000,
+        //                         "step_value": 5000
+        //                     },
+        //                     "quoting_asset": "USDT",
+        //                     "service_id": 1,
+        //                     "underlying_asset": "BTC"
+        //                 },
+        //                 "constituent_exchanges": [
+        //                     {
+        //                         "exchange": "binance",
+        //                         "health_interval": 3000,
+        //                         "health_priority": 1,
+        //                         "weight": 1
+        //                     },
+        //                     {
+        //                         "exchange": "gateio",
+        //                         "health_interval": 3000,
+        //                         "health_priority": 3,
+        //                         "weight": 1
+        //                     },
+        //                     {
+        //                         "exchange": "bybit",
+        //                         "health_interval": 3000,
+        //                         "health_priority": 2,
+        //                         "weight": 1
         //                     }
-        //                 ),
-        //                 "constituent_indices" => null,
-        //                 "description" => "BTC Spot",
-        //                 "health_interval" => 300,
-        //                 "id" => 2,
-        //                 "impact_size" => "1.000000000000000000",
-        //                 "index_type" => "spot_pair",
-        //                 "is_composite" => false,
-        //                 "price_method" => "ltp",
-        //                 "quoting_asset_id" => 4,
-        //                 "symbol" => ".DEXBTUSDT",
-        //                 "tick_size" => "0.100000000000000000",
-        //                 "underlying_asset_id" => 2
-        //             ),
-        //             "liquidation_penalty_factor" => "1",
-        //             "auction_start_time" => "2025-12-22T12:18:52Z",
-        //             "is_quanto" => false,
-        //             "state" => "live",
-        //             "id" => 84,
-        //             "settling_asset" => array(
-        //                 "base_withdrawal_fee" => "0.000000000000000000",
-        //                 "id" => 4,
-        //                 "interest_credit" => false,
-        //                 "interest_slabs" => null,
-        //                 "kyc_deposit_limit" => "0.000000000000000000",
-        //                 "kyc_withdrawal_limit" => "0.000000000000000000",
-        //                 "min_withdrawal_amount" => "0.000000000000000000",
-        //                 "minimum_precision" => 2,
-        //                 "name" => "Tether",
-        //                 "networks" => array(),
-        //                 "precision" => 8,
-        //                 "sort_priority" => null,
-        //                 "symbol" => "USDT",
-        //                 "variable_withdrawal_fee" => "0.000000000000000000"
-        //             ),
-        //             "tick_size" => "0.1",
-        //             "impact_size" => 4000,
-        //             "insurance_fund_margin_contribution" => "5",
-        //             "maker_commission_rate" => "0.0002",
-        //             "ui_config" => array(
-        //                 "default_trading_view_candle" => "15",
-        //                 "leverage_slider_values" => [1,2,3,5,10,50,100],
-        //                 "price_clubbing_values" => [0.1,1,10,50],
-        //                 "show_bracket_orders" => false,
-        //                 "sort_priority" => 1
-        //             ),
-        //             "annualized_funding" => "0",
-        //             "strike_price" => null,
-        //             "price_band" => "100",
-        //             "funding_method" => "mark_price",
-        //             "contract_value" => "0.001",
-        //             "auction_finish_time" => null,
-        //             "product_specs" => array(
-        //                 "vol_expiry_time" => 172800
-        //             ),
-        //             "launch_time" => "2020-04-20T08:37:05Z",
-        //             "basis_factor_max_limit" => "1000",
-        //             "initial_margin" => "1",
-        //             "notional_type" => "vanilla",
-        //             "contract_unit_currency" => "BTC",
-        //             "disruption_reason" => null,
-        //             "underlying_asset" => array(
-        //                 "base_withdrawal_fee" => "0.000000000000000000",
-        //                 "id" => 2,
-        //                 "interest_credit" => false,
-        //                 "interest_slabs" => null,
-        //                 "kyc_deposit_limit" => "0.000000000000000000",
-        //                 "kyc_withdrawal_limit" => "0.000000000000000000",
-        //                 "min_withdrawal_amount" => "0.000000000000000000",
-        //                 "minimum_precision" => 4,
-        //                 "name" => "Bitcoin",
-        //                 "networks" => array(),
-        //                 "precision" => 8,
-        //                 "sort_priority" => 1,
-        //                 "symbol" => "BTC",
-        //                 "variable_withdrawal_fee" => "0.000000000000000000"
-        //             ),
-        //             "initial_margin_scaling_factor" => "0",
-        //             "position_size_limit" => 10000000,
-        //             "max_leverage_notional" => "10000",
-        //             "settlement_price" => null,
-        //             "barrier_price" => null,
-        //             "maintenance_margin" => "0.5",
-        //             "default_leverage" => "50.000000000000000000",
-        //             "settlement_time" => null,
-        //             "description" => "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
-        //             "contract_type" => "perpetual_futures"
-        //         ),
-        //         "product_id" => 84,
-        //         "product_symbol" => "BTCUSDT",
-        //         "realized_cashflow" => "0.000000000000000000",
-        //         "realized_funding" => "0",
-        //         "realized_holding_cost" => "0",
-        //         "realized_pnl" => "0",
-        //         "size" => 1,
-        //         "unrealized_pnl" => "-0.00519112",
-        //         "updated_at" => "2026-01-14T11:24:35.801586Z",
-        //         "user_id" => 30084879
+        //                 ],
+        //                 "constituent_indices": null,
+        //                 "description": "BTC Spot",
+        //                 "health_interval": 300,
+        //                 "id": 2,
+        //                 "impact_size": "1.000000000000000000",
+        //                 "index_type": "spot_pair",
+        //                 "is_composite": false,
+        //                 "price_method": "ltp",
+        //                 "quoting_asset_id": 4,
+        //                 "symbol": ".DEXBTUSDT",
+        //                 "tick_size": "0.100000000000000000",
+        //                 "underlying_asset_id": 2
+        //             },
+        //             "liquidation_penalty_factor": "1",
+        //             "auction_start_time": "2025-12-22T12:18:52Z",
+        //             "is_quanto": false,
+        //             "state": "live",
+        //             "id": 84,
+        //             "settling_asset": {
+        //                 "base_withdrawal_fee": "0.000000000000000000",
+        //                 "id": 4,
+        //                 "interest_credit": false,
+        //                 "interest_slabs": null,
+        //                 "kyc_deposit_limit": "0.000000000000000000",
+        //                 "kyc_withdrawal_limit": "0.000000000000000000",
+        //                 "min_withdrawal_amount": "0.000000000000000000",
+        //                 "minimum_precision": 2,
+        //                 "name": "Tether",
+        //                 "networks": [],
+        //                 "precision": 8,
+        //                 "sort_priority": null,
+        //                 "symbol": "USDT",
+        //                 "variable_withdrawal_fee": "0.000000000000000000"
+        //             },
+        //             "tick_size": "0.1",
+        //             "impact_size": 4000,
+        //             "insurance_fund_margin_contribution": "5",
+        //             "maker_commission_rate": "0.0002",
+        //             "ui_config": {
+        //                 "default_trading_view_candle": "15",
+        //                 "leverage_slider_values": [1,2,3,5,10,50,100],
+        //                 "price_clubbing_values": [0.1,1,10,50],
+        //                 "show_bracket_orders": false,
+        //                 "sort_priority": 1
+        //             },
+        //             "annualized_funding": "0",
+        //             "strike_price": null,
+        //             "price_band": "100",
+        //             "funding_method": "mark_price",
+        //             "contract_value": "0.001",
+        //             "auction_finish_time": null,
+        //             "product_specs": {
+        //                 "vol_expiry_time": 172800
+        //             },
+        //             "launch_time": "2020-04-20T08:37:05Z",
+        //             "basis_factor_max_limit": "1000",
+        //             "initial_margin": "1",
+        //             "notional_type": "vanilla",
+        //             "contract_unit_currency": "BTC",
+        //             "disruption_reason": null,
+        //             "underlying_asset": {
+        //                 "base_withdrawal_fee": "0.000000000000000000",
+        //                 "id": 2,
+        //                 "interest_credit": false,
+        //                 "interest_slabs": null,
+        //                 "kyc_deposit_limit": "0.000000000000000000",
+        //                 "kyc_withdrawal_limit": "0.000000000000000000",
+        //                 "min_withdrawal_amount": "0.000000000000000000",
+        //                 "minimum_precision": 4,
+        //                 "name": "Bitcoin",
+        //                 "networks": [],
+        //                 "precision": 8,
+        //                 "sort_priority": 1,
+        //                 "symbol": "BTC",
+        //                 "variable_withdrawal_fee": "0.000000000000000000"
+        //             },
+        //             "initial_margin_scaling_factor": "0",
+        //             "position_size_limit": 10000000,
+        //             "max_leverage_notional": "10000",
+        //             "settlement_price": null,
+        //             "barrier_price": null,
+        //             "maintenance_margin": "0.5",
+        //             "default_leverage": "50.000000000000000000",
+        //             "settlement_time": null,
+        //             "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        //             "contract_type": "perpetual_futures"
+        //         },
+        //         "product_id": 84,
+        //         "product_symbol": "BTCUSDT",
+        //         "realized_cashflow": "0.000000000000000000",
+        //         "realized_funding": "0",
+        //         "realized_holding_cost": "0",
+        //         "realized_pnl": "0",
+        //         "size": 1,
+        //         "unrealized_pnl": "-0.00519112",
+        //         "updated_at": "2026-01-14T11:24:35.801586Z",
+        //         "user_id": 30084879
         //     }
         //
         $marketId = $this->safe_string($info, 'product_symbol');
@@ -4314,10 +4330,16 @@ class delta extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), mixed $body = null) {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), ?string $body = null): array {
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'][$api] . $requestPath;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
+        $requestBody = null;
+        $requestHeaders = null;
         if ($api === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
@@ -4325,7 +4347,7 @@ class delta extends Exchange {
         } elseif ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds();
-            $headers = array(
+            $requestHeaders = array(
                 'api-key' => $this->apiKey,
                 'timestamp' => $timestamp,
             );
@@ -4337,14 +4359,16 @@ class delta extends Exchange {
                     $url .= $queryString;
                 }
             } else {
-                $body = $this->json($query);
-                $auth .= $body;
-                $headers['Content-Type'] = 'application/json';
+                $requestBody = $this->json($query);
+                $auth .= $requestBody;
+                $requestHeaders['Content-Type'] = 'application/json';
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $headers['signature'] = $signature;
+            $requestHeaders['signature'] = $signature;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $bodyResult = ($requestBody === null) ? $body : $requestBody;
+        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -4352,7 +4376,7 @@ class delta extends Exchange {
             return null;
         }
         //
-        // array("error":array("code":"insufficient_margin","context":array("available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000")),"success":false)
+        // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
         //
         $error = $this->safe_dict($response, 'error', array());
         $errorCode = $this->safe_string($error, 'code');

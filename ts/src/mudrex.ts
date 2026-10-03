@@ -4,7 +4,7 @@
 import Exchange from './abstract/mudrex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Fee, Endpoint } from './base/types.js';
+import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, FeeString, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -111,6 +111,7 @@ export default class mudrex extends Exchange {
                         'futures/{asset_id}': { 'cost': 1 } as Endpoint<Dict>,
                         'wallet/funds': { 'cost': 5 } as Endpoint<Dict>,
                         'futures/funds': { 'cost': 5 } as Endpoint<Dict>,
+                        'futures/transactions': { 'cost': 1 } as Endpoint<Dict>,
                         'futures/orders': { 'cost': 1 } as Endpoint<Dict>,
                         'futures/orders/history': { 'cost': 1 } as Endpoint<Dict>,
                         'futures/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
@@ -178,7 +179,7 @@ export default class mudrex extends Exchange {
         });
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const apiUrls = this.safeDict (this.urls, 'api', {});
         const base = this.safeString (apiUrls, api);
         if (base === undefined) {
@@ -280,13 +281,12 @@ export default class mudrex extends Exchange {
      * @param {string} [params.price] "mark" to fetch mark price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const priceType = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
         const assetPair = market['baseId'] + '/' + market['quoteId'];
         const request: Dict = {
@@ -311,19 +311,19 @@ export default class mudrex extends Exchange {
         }
         let endTime = startTime + duration * requestLimit;
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = this.omit (params, [ 'price', 'until' ]);
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             endTime = this.parseToInt (until / 1000);
         } else if (endTime > now) {
             endTime = now;
         }
         request['start_time'] = startTime;
         request['end_time'] = endTime;
-        let response = undefined;
+        let response: Dict;
         if (priceType === 'mark') {
-            response = await this.marketGetPriceMarkKline (this.extend (request, params));
+            response = await this.marketGetPriceMarkKline (this.extend (request, paramsOmitted));
         } else {
-            response = await this.marketGetPriceKline (this.extend (request, params));
+            response = await this.marketGetPriceKline (this.extend (request, paramsOmitted));
         }
         //
         //     {
@@ -353,7 +353,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchMarkOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchMarkOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (params, { 'price': 'mark' }));
     }
 
@@ -366,7 +366,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -389,7 +389,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -416,14 +416,13 @@ export default class mudrex extends Exchange {
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const ms = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (ms, market);
-        const symbol = market['symbol'];
-        const ts = this.milliseconds ();
+        const marketResolved: Market = this.safeMarket (ms, market);
+        const symbol = marketResolved['symbol'];
         const pct = this.safeNumber (ticker, 'change_perc');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': ts,
-            'datetime': this.iso8601 (ts),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': undefined,
@@ -441,7 +440,7 @@ export default class mudrex extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -452,7 +451,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const aggregated: Dict[] = [];
         let offset = 0;
         const pageLimit = 100;
@@ -466,7 +465,7 @@ export default class mudrex extends Exchange {
                 items = this.safeList (data, 'items', []);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let itemsLength = items.length;
-                if ((itemsLength === undefined) || (itemsLength === 0)) {
+                if (itemsLength === 0) {
                     items = this.safeList (data, 'results', []);
                     itemsLength = items.length;
                 }
@@ -477,7 +476,7 @@ export default class mudrex extends Exchange {
                 items = this.toArray (data);
             }
             const numItems = items.length;
-            if ((numItems === undefined) || (numItems === 0)) {
+            if (numItems === 0) {
                 paging = false;
                 break;
             }
@@ -572,26 +571,25 @@ export default class mudrex extends Exchange {
      * @param {string} [params.trade_currency] the settlement currency to query the balance for
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'swap');
-        const requested = this.safeStringN (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
-        params = this.omit (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'swap');
+        const requested = this.safeStringN (paramsMarketType, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
+        const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
         const request: Dict = {};
         let response: NullableDict = undefined;
         if (type === 'spot') {
             if (requested !== undefined) {
                 request['currency'] = requested;
             }
-            response = await this.privateGetWalletFunds (this.extend (request, params));
+            response = await this.privateGetWalletFunds (this.extend (request, paramsOmitted));
         } else {
             if (requested !== undefined) {
                 request['trade_currency'] = requested;
             }
-            response = await this.privateGetFuturesFunds (this.extend (request, params));
+            response = await this.privateGetFuturesFunds (this.extend (request, paramsOmitted));
         }
         let currency = requested;
         if (currency === undefined) {
@@ -607,11 +605,8 @@ export default class mudrex extends Exchange {
     override parseBalance (response: any): Balances {
         const data = this.safeDict (response, 'data', {});
         const currency = this.safeString (response, 'currency', 'USDT');
-        const timestamp = this.milliseconds ();
         const result: Dict = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
         };
         const account = this.account ();
         const futuresBalance = this.safeString (data, 'balance');
@@ -637,7 +632,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
      */
-    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -668,7 +663,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol');
         }
@@ -683,8 +678,8 @@ export default class mudrex extends Exchange {
             'margin_type': marginType,
             'leverage': leverage,
         };
-        params = this.omit (params, [ 'marginType' ]);
-        const response = await this.privatePostFuturesAssetIdLeverage (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'marginType' ]);
+        const response = await this.privatePostFuturesAssetIdLeverage (this.extend (request, paramsOmitted));
         return response;
     }
 
@@ -711,7 +706,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.trade_currency] the settlement currency for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -725,7 +720,7 @@ export default class mudrex extends Exchange {
             if (positionId === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order');
             }
-            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id' ]);
+            const paramsOmitted: Dict = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id' ]);
             const riskRequest: Dict = {
                 'position_id': positionId,
             };
@@ -737,7 +732,7 @@ export default class mudrex extends Exchange {
                 riskRequest['is_stoploss'] = true;
                 riskRequest['stoploss_price'] = this.priceToPrecision (symbol, stopLossPrice);
             }
-            const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder (this.extend (riskRequest, params));
+            const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder (this.extend (riskRequest, paramsOmitted));
             const riskData = this.safeDict (riskResponse, 'data', riskResponse);
             return this.parseOrder (riskData, market);
         }
@@ -766,13 +761,14 @@ export default class mudrex extends Exchange {
             request['is_stoploss'] = true;
             request['stoploss_price'] = this.priceToPrecision (symbol, this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice', 'price' ]));
         }
-        params = this.omit (params, [ 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss' ]);
-        const response = await this.privatePostFuturesAssetIdOrder (this.extend (request, params));
+        const orderParams: Dict = this.omit (params, [ 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss' ]);
+        const response = await this.privatePostFuturesAssetIdOrder (this.extend (request, orderParams));
         const data = this.safeDict (response, 'data', response);
-        // the create response omits the order/trigger type, so restore them from the request
-        data['order_type'] = request['order_type'];
-        data['trigger_type'] = request['trigger_type'];
-        return this.parseOrder (data, market);
+        // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+        const merged = this.extend (data, { 'order_type': request['order_type'], 'trigger_type': request['trigger_type'] });
+        const order = this.parseOrder (merged, market);
+        order['info'] = data;
+        return order;
     }
 
     /**
@@ -789,7 +785,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -830,7 +826,7 @@ export default class mudrex extends Exchange {
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
         const oms = this.safeString (order, 'symbol');
-        market = this.safeMarket (oms, market);
+        const marketResolved: Market = this.safeMarket (oms, market);
         const oid = this.safeString2 (order, 'order_id', 'id');
         const rawSide = this.safeStringUpper (order, 'order_type');
         let side: Str = undefined;
@@ -839,6 +835,22 @@ export default class mudrex extends Exchange {
         } else if (rawSide === 'SHORT') {
             side = 'sell';
         }
+        // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
+        const isRiskOrder = (rawSide === 'STOPLOSS') || (rawSide === 'TAKEPROFIT');
+        const priceString = this.safeString2 (order, 'price', 'order_price');
+        let orderPrice = priceString;
+        let triggerPrice: Str = undefined;
+        let stopLossPrice: Str = undefined;
+        let takeProfitPrice: Str = undefined;
+        if (isRiskOrder) {
+            triggerPrice = priceString;
+            orderPrice = undefined;
+            if (rawSide === 'STOPLOSS') {
+                stopLossPrice = priceString;
+            } else {
+                takeProfitPrice = priceString;
+            }
+        }
         const trig = this.safeStringUpper (order, 'trigger_type');
         let typ: Str = undefined;
         if (trig === 'MARKET') {
@@ -846,12 +858,9 @@ export default class mudrex extends Exchange {
         } else if (trig === 'LIMIT') {
             typ = 'limit';
         }
-        let ts = this.parse8601 (this.safeString (order, 'created_at'));
-        if (ts === undefined) {
-            ts = this.milliseconds ();
-        }
+        const ts = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeStringLower (order, 'status'));
-        const sym = market['symbol'];
+        const sym = marketResolved['symbol'];
         return this.safeOrder ({
             'info': order,
             'id': oid,
@@ -864,21 +873,22 @@ export default class mudrex extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.safeNumber2 (order, 'price', 'order_price'),
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': this.safeNumber2 (order, 'quantity', 'amount'),
+            'price': orderPrice,
+            'triggerPrice': triggerPrice,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'amount': this.safeString2 (order, 'quantity', 'amount'),
             'cost': undefined,
-            'average': undefined,
-            'filled': undefined,
+            'average': this.safeString (order, 'filled_price'),
+            'filled': this.safeString (order, 'filled_quantity'),
             'remaining': undefined,
             'status': status,
             'fee': undefined,
             'trades': [],
             'fees': [],
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.parse8601 (this.safeString (order, 'updated_at')),
             'reduceOnly': this.safeBool (order, 'reduce_only'),
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -891,7 +901,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -917,7 +927,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -945,7 +955,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOrdersByState (state: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrdersByState (state: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -954,7 +964,7 @@ export default class mudrex extends Exchange {
             q['limit'] = limit;
         }
         const request = this.extend (q, params);
-        let response = undefined;
+        let response: Dict;
         if (state === 'closed') {
             response = await this.privateGetFuturesOrdersHistory (request);
         } else {
@@ -984,7 +994,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByState ('closed', symbol, since, limit, params);
     }
 
@@ -999,7 +1009,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByState ('open', symbol, since, limit, params);
     }
 
@@ -1014,7 +1024,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByState ('closed', symbol, since, limit, params);
     }
 
@@ -1028,7 +1038,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.trade_currency] the settlement currency to query positions for
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1047,7 +1057,7 @@ export default class mudrex extends Exchange {
             const pos = this.parsePosition (p, m);
             outPos.push (pos);
         }
-        return this.filterByArrayPositions (outPos, 'symbol', symbols, false);
+        return this.filterByArrayPositions (outPos, 'symbol', symbols);
     }
 
     /**
@@ -1062,11 +1072,11 @@ export default class mudrex extends Exchange {
      * @param {string} [params.trade_currency] the settlement currency to filter positions by
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1093,15 +1103,15 @@ export default class mudrex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
-        const positions = this.parsePositions (data, symbols);
+        const data: Dict[] = this.safeList (response, 'data', []);
+        const positions = this.parsePositions (data, symbolsNormalized);
         return this.filterBySinceLimit (positions, since, limit);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const ms = this.safeString (position, 'symbol');
-        const symbol = this.safeSymbol (ms, market);
+        const symbol = this.safeSymbol (ms, marketResolved);
         // open positions use "order_type", closed positions (history) use "position_type"
         const rawSide = this.safeStringUpper2 (position, 'order_type', 'position_type');
         let side: Str = undefined;
@@ -1116,7 +1126,7 @@ export default class mudrex extends Exchange {
         }
         const quantityString = this.safeString (position, 'quantity');
         const entryPriceString = this.safeString (position, 'entry_price');
-        const contractSizeString = this.safeString (market, 'contractSize', '1');
+        const contractSizeString = this.safeString (marketResolved, 'contractSize', '1');
         let notional: Num = undefined;
         if ((quantityString !== undefined) && (entryPriceString !== undefined)) {
             notional = this.parseNumber (Precise.stringMul (Precise.stringMul (quantityString, entryPriceString), contractSizeString));
@@ -1132,7 +1142,7 @@ export default class mudrex extends Exchange {
             'hedged': false,
             'side': side,
             'contracts': this.safeNumber (position, 'quantity'),
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'markPrice': undefined,
             'lastPrice': this.safeNumber (position, 'closed_price'), // exit price for closed positions
@@ -1163,7 +1173,7 @@ export default class mudrex extends Exchange {
      * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1197,12 +1207,12 @@ export default class mudrex extends Exchange {
             if (orderType === 'LIMIT' && lp !== undefined) {
                 request['limit_price'] = lp;
             }
-            params = this.omit (params, [ 'order_type', 'limit_price', 'amount', 'position_id' ]);
-            const partialResponse: Dict = await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, params));
+            const partialParams: Dict = this.omit (params, [ 'order_type', 'limit_price', 'amount', 'position_id' ]);
+            const partialResponse: Dict = await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, partialParams));
             return partialResponse as Order;
         }
-        params = this.omit (params, [ 'position_id' ]);
-        const response: Dict = await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, params));
+        const closeParams: Dict = this.omit (params, [ 'position_id' ]);
+        const response: Dict = await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, closeParams));
         return response as Order;
     }
 
@@ -1217,7 +1227,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
      */
-    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1239,9 +1249,9 @@ export default class mudrex extends Exchange {
             'position_id': positionId,
             'margin': this.costToPrecision (symbol, amount),
         };
-        params = this.omit (params, [ 'position_id' ]);
-        const response: Dict = await this.privatePostFuturesPositionsPositionIdAddMargin (this.extend (request, params));
-        return response as MarginModification;
+        const paramsOmitted: Dict = this.omit (params, [ 'position_id' ]);
+        const response: Dict = await this.privatePostFuturesPositionsPositionIdAddMargin (this.extend (request, paramsOmitted));
+        return this.extend (response, {}) as MarginModification;
     }
 
     /**
@@ -1254,23 +1264,24 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
      */
-    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         return await this.addMargin (symbol, -amount, params);
     }
 
     /**
      * @method
      * @name mudrex#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://docs.trade.mudrex.com/docs
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @description fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
+     * @see https://docs.trade.mudrex.com/docs/fees
+     * @param {string} [symbol] unified market symbol, applied client-side because the endpoint has no symbol filter
+     * @param {int} [since] the earliest time in ms to fetch trades for, applied client-side
+     * @param {int} [limit] the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.trade_currency] the settlement currency to filter trades by
+     * @param {string} [params.trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
+     * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
      * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1278,43 +1289,126 @@ export default class mudrex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request: Dict = {};
+        const [ maxCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, 'fetchMyTrades', 'paginationCalls', 10);
+        let pageSize = 0;
         if (limit !== undefined) {
-            request['limit'] = limit;
+            // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+            pageSize = limit * 2;
         }
-        const response = await this.privateGetFuturesFeeHistory (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
-        const rows = this.toArray (data);
+        const allRows: Dict[] = [];
+        let transactionsCount = 0;
+        let calls = 0;
+        let offset = 0;
+        let paging = true;
+        while (paging === true) {
+            const request: Dict = {};
+            if (pageSize > 0) {
+                request['limit'] = pageSize;
+                request['offset'] = offset;
+            }
+            const response = await this.privateGetFuturesFeeHistory (this.extend (request, paramsPaginationCalls));
+            const data: Dict[] = this.safeList (response, 'data', []);
+            const dataLength = data.length;
+            for (let i = 0; i < dataLength; i++) {
+                const entry = data[i];
+                allRows.push (entry);
+                if (this.safeString (entry, 'fee_type') === 'TRANSACTION') {
+                    // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
+                    if ((market === undefined) || (this.safeString (entry, 'symbol') === market['id'])) {
+                        transactionsCount = this.sum (transactionsCount, 1);
+                    }
+                }
+            }
+            calls = this.sum (calls, 1);
+            paging = false;
+            // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
+            if ((limit !== undefined) && (dataLength === pageSize) && (transactionsCount < limit) && (calls < maxCalls)) {
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = this.sum (offset, pageSize);
+                paging = true;
+            }
+        }
+        // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
+        const rebateKeys = [];
+        const rebateAmounts: string[] = [];
+        const transactions: Dict[] = [];
+        const transactionKeys: string[] = [];
+        for (let i = 0; i < allRows.length; i++) {
+            const entry = allRows[i];
+            const feeType = this.safeString (entry, 'fee_type');
+            const pairKey = this.safeString (entry, 'symbol', '') + ':' + this.safeString (entry, 'created_at', '') + ':' + this.safeString (entry, 'transaction_amount', '');
+            if (feeType === 'TRANSACTION') {
+                transactions.push (entry);
+                transactionKeys.push (pairKey);
+            } else if (feeType === 'REBATE') {
+                rebateKeys.push (pairKey);
+                rebateAmounts.push (this.safeString (entry, 'fee_amount', '0'));
+            }
+        }
+        const rows: Dict[] = [];
+        for (let i = 0; i < transactions.length; i++) {
+            let rebate: Str = undefined;
+            for (let j = 0; j < rebateKeys.length; j++) {
+                if (rebateKeys[j] === transactionKeys[i]) {
+                    rebate = this.safeString (rebateAmounts, j);
+                    // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
+                    rebateKeys[j] = undefined;
+                    break;
+                }
+            }
+            if (rebate === undefined) {
+                rows.push (transactions[i]);
+            } else {
+                rows.push (this.extend (transactions[i], { 'rebate_amount': rebate }));
+            }
+        }
         return this.parseTrades (rows, market, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "id": "019f21e1-9093-7333-866d-31f19c1300ed",
+        //         "symbol": "APTUSDT",
+        //         "fee_amount": "0.02468116",
+        //         "fee_perc": "0.05900003",
+        //         "fee_type": "TRANSACTION",
+        //         "created_at": "2026-07-02T08:10:58Z",
+        //         "transaction_amount": "41.83245",
+        //         "trade_currency": "USDT",
+        //         "order_type": "LONG",
+        //         "trigger_type": "MARKET",
+        //         "gst_amount": "0.00376492"
+        //     }
+        //
         const ms = this.safeString (trade, 'symbol');
-        market = this.safeMarket (ms, market);
-        const symbol = market['symbol'];
-        let ts = this.parse8601 (this.safeString (trade, 'created_at'));
-        if (ts === undefined) {
-            ts = this.safeInteger (trade, 'time');
-        }
-        const side = this.safeStringLower2 (trade, 'side', 'order_type');
+        const marketResolved: Market = this.safeMarket (ms, market);
+        const symbol = marketResolved['symbol'];
+        const ts = this.parse8601 (this.safeString (trade, 'created_at'));
+        // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
+        const side = this.safeStringLower (trade, 'order_type');
         let tradeSide: Str = undefined;
-        if (side === 'buy' || side === 'long') {
+        if (side === 'long') {
             tradeSide = 'buy';
-        } else if (side === 'sell' || side === 'short') {
+        } else if (side === 'short') {
             tradeSide = 'sell';
         }
-        const feeType = this.safeStringUpper (trade, 'fee_type');
+        const trig = this.safeStringUpper (trade, 'trigger_type');
         let takerOrMaker: Str = undefined;
-        if (feeType === 'TRANSACTION') {
+        if (trig === 'MARKET') {
+            // a market execution always takes liquidity, a limit execution can be either
             takerOrMaker = 'taker';
-        } else if (feeType === 'REBATE') {
-            takerOrMaker = 'maker';
         }
-        let fee: Fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee_amount');
-        if (feeCost !== undefined) {
+        let fee: FeeString = undefined;
+        let feeCostString = this.safeString (trade, 'fee_amount');
+        // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
+        const rebateString = this.safeString (trade, 'rebate_amount');
+        if ((feeCostString !== undefined) && (rebateString !== undefined)) {
+            feeCostString = Precise.stringSub (feeCostString, rebateString);
+        }
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': this.safeString (trade, 'trade_currency'),
             };
         }
@@ -1323,16 +1417,16 @@ export default class mudrex extends Exchange {
             'timestamp': ts,
             'datetime': this.iso8601 (ts),
             'symbol': symbol,
-            'id': this.safeString2 (trade, 'execId', 'id'),
-            'order': this.safeString (trade, 'order_id'),
+            'id': this.safeString (trade, 'id'),
+            'order': undefined,
             'type': this.safeStringLower (trade, 'trigger_type'),
             'side': tradeSide,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeNumber (trade, 'price'),
-            'amount': this.safeNumber2 (trade, 'size', 'quantity'),
-            'cost': this.safeNumber (trade, 'transaction_amount'),
+            'price': undefined,
+            'amount': undefined,
+            'cost': this.safeString (trade, 'transaction_amount'),
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1347,7 +1441,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params: Dict = {}): Promise<TransferEntry> {
         const mp: Dict = {
             'spot': 'SPOT',
             'SPOT': 'SPOT',
@@ -1372,7 +1466,7 @@ export default class mudrex extends Exchange {
                 useInr = true;
             }
         }
-        let response = undefined;
+        let response: Dict;
         if (useInr) {
             response = await this.privatePostFuturesTransfersInr (this.extend (body, params));
         } else {

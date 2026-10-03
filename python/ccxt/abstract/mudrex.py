@@ -9,6 +9,7 @@ class ImplicitAPI:
     private_get_futures_asset_id = privateGetFuturesAssetId = Entry[_Dict]('futures/{asset_id}', 'private', 'GET', {'cost': 1})
     private_get_wallet_funds = privateGetWalletFunds = Entry[_Dict]('wallet/funds', 'private', 'GET', {'cost': 5})
     private_get_futures_funds = privateGetFuturesFunds = Entry[_Dict]('futures/funds', 'private', 'GET', {'cost': 5})
+    private_get_futures_transactions = privateGetFuturesTransactions = Entry[_Dict]('futures/transactions', 'private', 'GET', {'cost': 1})
     private_get_futures_orders = privateGetFuturesOrders = Entry[_Dict]('futures/orders', 'private', 'GET', {'cost': 1})
     private_get_futures_orders_history = privateGetFuturesOrdersHistory = Entry[_Dict]('futures/orders/history', 'private', 'GET', {'cost': 1})
     private_get_futures_orders_order_id = privateGetFuturesOrdersOrderId = Entry[_Dict]('futures/orders/{order_id}', 'private', 'GET', {'cost': 1})

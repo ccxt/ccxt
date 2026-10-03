@@ -8,6 +8,96 @@ namespace ccxt\abstract;
 
 abstract class alpaca extends \ccxt\Exchange {
     /**
+     * @return list<mixed>
+     */
+    public function broker_private_get_v1_accounts_account_id_tokenization_requests($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_accounts_account_id_tokenization_requests_tokenization_request_id($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_accounts_account_id_tokenization_requests_by_client_request_id($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests:by_client_request_id', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_accounts_account_id_tokenization_requests_by_issuer_request_id($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_fpsl_analytics_account_id_loans($params = array()) {
+        return $this->request('v1/fpsl/analytics/{account_id}/loans', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_ipos($params = array()) {
+        return $this->request('v1/ipos', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_ipos_offering_reference($params = array()) {
+        return $this->request('v1/ipos/{offering_reference}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_wallets_travel_rule_vasps($params = array()) {
+        return $this->request('v1/wallets/travel-rule/vasps', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1beta1_acats($params = array()) {
+        return $this->request('v1beta1/acats', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1beta1_acats_contrabrokers($params = array()) {
+        return $this->request('v1beta1/acats/contrabrokers', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1beta1_acats_account_id($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1beta1_acats_account_id_acats_id($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}/{acats_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function broker_private_get_v1beta1_acats_account_id_acats_id_assets($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}/{acats_id}/assets', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_post_v1beta1_acats_account_id($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_patch_v1_accounts_account_id_wallets_whitelists_whitelisted_address_id_travel_rule_info($params = array()) {
+        return $this->request('v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info', array('broker', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function trader_private_get_v2_account($params = array()) {
@@ -130,6 +220,48 @@ abstract class alpaca extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function trader_private_get_v1_locates($params = array()) {
+        return $this->request('v1/locates', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_get_v1_locates_locate_id($params = array()) {
+        return $this->request('v1/locates/{locate_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_get_v1_locates_quotes($params = array()) {
+        return $this->request('v1/locates/quotes', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function trader_private_get_v2_tokenization_requests($params = array()) {
+        return $this->request('v2/tokenization/requests', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_get_v2_tokenization_requests_tokenization_request_id($params = array()) {
+        return $this->request('v2/tokenization/requests/{tokenization_request_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_get_v2_tokenization_requests_by_client_request_id($params = array()) {
+        return $this->request('v2/tokenization/requests:by_client_request_id', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_get_v2_wallets_travel_rule_vasps($params = array()) {
+        return $this->request('v2/wallets/travel-rule/vasps', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_post_v2_orders($params = array()) {
         return $this->request('v2/orders', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -160,6 +292,12 @@ abstract class alpaca extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function trader_private_post_v1_locates($params = array()) {
+        return $this->request('v1/locates', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_put_v2_orders_order_id($params = array()) {
         return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -186,6 +324,12 @@ abstract class alpaca extends \ccxt\Exchange {
      */
     public function trader_private_patch_v2_account_configurations($params = array()) {
         return $this->request('v2/account/configurations', array('trader', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_patch_v2_wallets_whitelists_whitelisted_address_id_travel_rule_info($params = array()) {
+        return $this->request('v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info', array('trader', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -282,6 +426,18 @@ abstract class alpaca extends \ccxt\Exchange {
      */
     public function market_private_get_v1beta1_corporate_actions($params = array()) {
         return $this->request('v1beta1/corporate-actions', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function market_private_get_v1beta1_fixed_income_latest_prices($params = array()) {
+        return $this->request('v1beta1/fixed_income/latest/prices', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function market_private_get_v1beta1_fixed_income_latest_quotes($params = array()) {
+        return $this->request('v1beta1/fixed_income/latest/quotes', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -428,6 +584,96 @@ abstract class alpaca extends \ccxt\Exchange {
         return $this->request('v2/stocks/{symbol}/trades/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function brokerPrivateGetV1AccountsAccountIdTokenizationRequests($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests:by_client_request_id', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1FpslAnalyticsAccountIdLoans($params = array()) {
+        return $this->request('v1/fpsl/analytics/{account_id}/loans', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1Ipos($params = array()) {
+        return $this->request('v1/ipos', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1IposOfferingReference($params = array()) {
+        return $this->request('v1/ipos/{offering_reference}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1WalletsTravelRuleVasps($params = array()) {
+        return $this->request('v1/wallets/travel-rule/vasps', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1beta1Acats($params = array()) {
+        return $this->request('v1beta1/acats', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1beta1AcatsContrabrokers($params = array()) {
+        return $this->request('v1beta1/acats/contrabrokers', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1beta1AcatsAccountId($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1beta1AcatsAccountIdAcatsId($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}/{acats_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}/{acats_id}/assets', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivatePostV1beta1AcatsAccountId($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo($params = array()) {
+        return $this->request('v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info', array('broker', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function traderPrivateGetV2Account($params = array()) {
@@ -550,6 +796,48 @@ abstract class alpaca extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function traderPrivateGetV1Locates($params = array()) {
+        return $this->request('v1/locates', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivateGetV1LocatesLocateId($params = array()) {
+        return $this->request('v1/locates/{locate_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivateGetV1LocatesQuotes($params = array()) {
+        return $this->request('v1/locates/quotes', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function traderPrivateGetV2TokenizationRequests($params = array()) {
+        return $this->request('v2/tokenization/requests', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivateGetV2TokenizationRequestsTokenizationRequestId($params = array()) {
+        return $this->request('v2/tokenization/requests/{tokenization_request_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivateGetV2TokenizationRequestsByClientRequestId($params = array()) {
+        return $this->request('v2/tokenization/requests:by_client_request_id', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivateGetV2WalletsTravelRuleVasps($params = array()) {
+        return $this->request('v2/wallets/travel-rule/vasps', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePostV2Orders($params = array()) {
         return $this->request('v2/orders', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -580,6 +868,12 @@ abstract class alpaca extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function traderPrivatePostV1Locates($params = array()) {
+        return $this->request('v1/locates', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePutV2OrdersOrderId($params = array()) {
         return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -606,6 +900,12 @@ abstract class alpaca extends \ccxt\Exchange {
      */
     public function traderPrivatePatchV2AccountConfigurations($params = array()) {
         return $this->request('v2/account/configurations', array('trader', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo($params = array()) {
+        return $this->request('v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info', array('trader', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -702,6 +1002,18 @@ abstract class alpaca extends \ccxt\Exchange {
      */
     public function marketPrivateGetV1beta1CorporateActions($params = array()) {
         return $this->request('v1beta1/corporate-actions', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function marketPrivateGetV1beta1FixedIncomeLatestPrices($params = array()) {
+        return $this->request('v1beta1/fixed_income/latest/prices', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function marketPrivateGetV1beta1FixedIncomeLatestQuotes($params = array()) {
+        return $this->request('v1beta1/fixed_income/latest/quotes', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

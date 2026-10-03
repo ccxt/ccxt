@@ -586,6 +586,198 @@ abstract class bitget extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_uta_get_v3_market_risk_reserve_all($params = array()) {
+        return $this->request('v3/market/risk-reserve-all', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_risk_reserve_hour($params = array()) {
+        return $this->request('v3/market/risk-reserve-hour', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_score_weights($params = array()) {
+        return $this->request('v3/market/score-weights', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_fee_group($params = array()) {
+        return $this->request('v3/market/fee-group', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_cash_dividend_records($params = array()) {
+        return $this->request('v3/market/cash-dividend-records', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_split_records($params = array()) {
+        return $this->request('v3/market/split-records', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_liquidations($params = array()) {
+        return $this->request('v3/market/liquidations', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_rpi_orderbook($params = array()) {
+        return $this->request('v3/market/rpi-orderbook', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_rpi_symbols($params = array()) {
+        return $this->request('v3/market/rpi-symbols', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_spot_whale_flow($params = array()) {
+        return $this->request('v3/market/spot-whale-flow', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_spot_fund_flow($params = array()) {
+        return $this->request('v3/market/spot-fund-flow', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_spot_net_flow($params = array()) {
+        return $this->request('v3/market/spot-net-flow', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_margin_long_short($params = array()) {
+        return $this->request('v3/market/margin-long-short', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_margin_loan_growth($params = array()) {
+        return $this->request('v3/market/margin-loan-growth', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_margin_isolated_borrow($params = array()) {
+        return $this->request('v3/market/margin-isolated-borrow', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_futures_active_buy_sell($params = array()) {
+        return $this->request('v3/market/futures-active-buy-sell', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_futures_long_short($params = array()) {
+        return $this->request('v3/market/futures-long-short', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_futures_position_long_short($params = array()) {
+        return $this->request('v3/market/futures-position-long-short', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_market_futures_account_long_short($params = array()) {
+        return $this->request('v3/market/futures-account-long-short', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_stock_info($params = array()) {
+        return $this->request('v3/reality/market/stock-info', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_states($params = array()) {
+        return $this->request('v3/reality/market/states', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_calendar($params = array()) {
+        return $this->request('v3/reality/market/calendar', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_company_overview($params = array()) {
+        return $this->request('v3/reality/market/company-overview', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_valuation_indicators($params = array()) {
+        return $this->request('v3/reality/market/valuation-indicators', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_earnings_forecast($params = array()) {
+        return $this->request('v3/reality/market/earnings-forecast', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_suspension_resumption_info($params = array()) {
+        return $this->request('v3/reality/market/suspension-resumption-info', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_dividends($params = array()) {
+        return $this->request('v3/reality/market/dividends', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_share_capital_change($params = array()) {
+        return $this->request('v3/reality/market/share-capital-change', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_inner_trades($params = array()) {
+        return $this->request('v3/reality/market/inner-trades', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_executive_shareholdings($params = array()) {
+        return $this->request('v3/reality/market/executive-shareholdings', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_reality_market_sharehold_detail($params = array()) {
+        return $this->request('v3/reality/market/sharehold-detail', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_uta_get_v3_account_custom_collateral_coins($params = array()) {
+        return $this->request('v3/account/custom-collateral-coins', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_spot_get_spot_v1_wallet_deposit_address($params = array()) {
         return $this->request('spot/v1/wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
     }
@@ -2026,6 +2218,12 @@ abstract class bitget extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_user_post_v2_user_create_agent_subaccount($params = array()) {
+        return $this->request('v2/user/create-agent-subaccount', array('private', 'user'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_p2p_get_p2p_v1_merchant_merchantlist($params = array()) {
         return $this->request('p2p/v1/merchant/merchantList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -2164,6 +2362,48 @@ abstract class bitget extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_broker_get_v2_broker_sub_customer_list($params = array()) {
+        return $this->request('v2/broker/sub-customer-list', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_broker_get_v2_broker_agent_commission($params = array()) {
+        return $this->request('v2/broker/agent-commission', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_broker_get_v2_broker_customer_commissions($params = array()) {
+        return $this->request('v2/broker/customer-commissions', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_broker_get_v2_broker_customer_kyc_result($params = array()) {
+        return $this->request('v2/broker/customer-kyc-result', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_broker_get_v2_broker_order_commission($params = array()) {
+        return $this->request('v2/broker/order-commission', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_broker_get_v2_broker_rebate_info($params = array()) {
+        return $this->request('v2/broker/rebate-info', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_broker_get_v2_broker_total_commission($params = array()) {
+        return $this->request('v2/broker/total-commission', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_broker_post_broker_v1_account_sub_create($params = array()) {
         return $this->request('broker/v1/account/sub-create', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 20));
     }
@@ -2256,6 +2496,30 @@ abstract class bitget extends \ccxt\Exchange {
      */
     public function private_broker_post_v2_broker_manage_modify_subaccount_apikey($params = array()) {
         return $this->request('v2/broker/manage/modify-subaccount-apikey', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_broker_post_v2_broker_customer_asset($params = array()) {
+        return $this->request('v2/broker/customer-asset', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_broker_post_v2_broker_customer_deposit($params = array()) {
+        return $this->request('v2/broker/customer-deposit', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_broker_post_v2_broker_customer_list($params = array()) {
+        return $this->request('v2/broker/customer-list', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_broker_post_v2_broker_customer_trade_volume($params = array()) {
+        return $this->request('v2/broker/customer-trade-volume', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
     }
     /**
      * @return array<string, mixed>
@@ -3238,6 +3502,42 @@ abstract class bitget extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_earn_get_v2_earn_elite_product($params = array()) {
+        return $this->request('v2/earn/elite/product', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_get_v2_earn_elite_assets($params = array()) {
+        return $this->request('v2/earn/elite/assets', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_get_v2_earn_elite_records($params = array()) {
+        return $this->request('v2/earn/elite/records', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_get_v2_earn_elite_subscribe_info($params = array()) {
+        return $this->request('v2/earn/elite/subscribe-info', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_get_v2_earn_elite_subscribe_result($params = array()) {
+        return $this->request('v2/earn/elite/subscribe-result', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_get_v2_earn_elite_redeem_info($params = array()) {
+        return $this->request('v2/earn/elite/redeem-info', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_earn_post_v2_earn_savings_subscribe($params = array()) {
         return $this->request('v2/earn/savings/subscribe', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -3270,6 +3570,18 @@ abstract class bitget extends \ccxt\Exchange {
      */
     public function private_earn_post_v2_earn_loan_revise_pledge($params = array()) {
         return $this->request('v2/earn/loan/revise-pledge', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_post_v2_earn_elite_subscribe($params = array()) {
+        return $this->request('v2/earn/elite/subscribe', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_post_v2_earn_elite_redeem($params = array()) {
+        return $this->request('v2/earn/elite/redeem', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 4));
     }
     /**
      * @return array<string, mixed>
@@ -3592,6 +3904,426 @@ abstract class bitget extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_uta_get_v3_account_info($params = array()) {
+        return $this->request('v3/account/info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_all_fee_rate($params = array()) {
+        return $this->request('v3/account/all-fee-rate', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_delta_info($params = array()) {
+        return $this->request('v3/account/delta-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_withdraw_address($params = array()) {
+        return $this->request('v3/account/withdraw-address', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_max_withdrawal($params = array()) {
+        return $this->request('v3/account/max-withdrawal', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_move_position_history($params = array()) {
+        return $this->request('v3/account/move-position-history', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_collateral_type($params = array()) {
+        return $this->request('v3/account/collateral-type', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_pre_set_leverage($params = array()) {
+        return $this->request('v3/account/pre-set-leverage', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_eligible_symbols($params = array()) {
+        return $this->request('v3/account/eligible-symbols', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_eligible_margin_tier($params = array()) {
+        return $this->request('v3/account/eligible-margin-tier', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_eligible_loan_info($params = array()) {
+        return $this->request('v3/account/eligible-loan-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_eligible_discount_rate($params = array()) {
+        return $this->request('v3/account/eligible-discount-rate', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_funding_financial_records($params = array()) {
+        return $this->request('v3/account/funding-financial-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_reality_orderbook($params = array()) {
+        return $this->request('v3/account/reality-orderbook', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_account_reality_fills($params = array()) {
+        return $this->request('v3/account/reality-fills', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_copy_futures_trading_pairs($params = array()) {
+        return $this->request('v3/copy/futures/trading-pairs', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_copy_futures_position_summary($params = array()) {
+        return $this->request('v3/copy/futures/position-summary', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_copy_futures_max_transferable($params = array()) {
+        return $this->request('v3/copy/futures/max-transferable', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_copy_futures_transfer_record($params = array()) {
+        return $this->request('v3/copy/futures/transfer-record', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_copy_futures_current_follower($params = array()) {
+        return $this->request('v3/copy/futures/current-follower', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_copy_futures_history_follower($params = array()) {
+        return $this->request('v3/copy/futures/history-follower', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_copy_futures_profit_summary($params = array()) {
+        return $this->request('v3/copy/futures/profit-summary', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_copy_futures_profit_details($params = array()) {
+        return $this->request('v3/copy/futures/profit-details', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_convert_small_assets($params = array()) {
+        return $this->request('v3/convert/small-assets', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_convert_small_assets_history($params = array()) {
+        return $this->request('v3/convert/small-assets-history', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_earn_elite_product($params = array()) {
+        return $this->request('v3/earn/elite-product', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_earn_elite_assets($params = array()) {
+        return $this->request('v3/earn/elite-assets', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_earn_elite_subscribe_info($params = array()) {
+        return $this->request('v3/earn/elite-subscribe-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_earn_elite_records($params = array()) {
+        return $this->request('v3/earn/elite-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_earn_elite_subscribe_result($params = array()) {
+        return $this->request('v3/earn/elite-subscribe-result', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_earn_elite_redeem_info($params = array()) {
+        return $this->request('v3/earn/elite-redeem-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_trade_loan_data($params = array()) {
+        return $this->request('v3/trade/loan-data', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_trade_strategy_sub_orders($params = array()) {
+        return $this->request('v3/trade/strategy-sub-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_trade_grid_bot_detail($params = array()) {
+        return $this->request('v3/trade/grid/bot-detail', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_trade_grid_list_details($params = array()) {
+        return $this->request('v3/trade/grid/list-details', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_trade_grid_neutral_bot_detail($params = array()) {
+        return $this->request('v3/trade/grid/neutral-bot-detail', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_trade_grid_neutral_list_details($params = array()) {
+        return $this->request('v3/trade/grid/neutral-list-details', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_user_rate_limit_quota($params = array()) {
+        return $this->request('v3/user/rate-limit-quota', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_market_option_quote($params = array()) {
+        return $this->request('v3/stockplus/market/option-quote', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_market_option_chain_info($params = array()) {
+        return $this->request('v3/stockplus/market/option-chain-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_market_option_expiry_date($params = array()) {
+        return $this->request('v3/stockplus/market/option-expiry-date', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_market_option_volume($params = array()) {
+        return $this->request('v3/stockplus/market/option-volume', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_market_depth($params = array()) {
+        return $this->request('v3/stockplus/market/depth', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_market_static($params = array()) {
+        return $this->request('v3/stockplus/market/static', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_market_quote($params = array()) {
+        return $this->request('v3/stockplus/market/quote', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_market_trade($params = array()) {
+        return $this->request('v3/stockplus/market/trade', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_market_intraday($params = array()) {
+        return $this->request('v3/stockplus/market/intraday', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_market_history_candlestick($params = array()) {
+        return $this->request('v3/stockplus/market/history-candlestick', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_market_candlestick($params = array()) {
+        return $this->request('v3/stockplus/market/candlestick', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_trade_today_orders($params = array()) {
+        return $this->request('v3/stockplus/trade/today-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_trade_history_orders($params = array()) {
+        return $this->request('v3/stockplus/trade/history-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_trade_order_detail($params = array()) {
+        return $this->request('v3/stockplus/trade/order-detail', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_trade_today_executions($params = array()) {
+        return $this->request('v3/stockplus/trade/today-executions', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_trade_history_executions($params = array()) {
+        return $this->request('v3/stockplus/trade/history-executions', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_asset_account($params = array()) {
+        return $this->request('v3/stockplus/asset/account', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_asset_cash_flow($params = array()) {
+        return $this->request('v3/stockplus/asset/cash-flow', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_asset_stock_position($params = array()) {
+        return $this->request('v3/stockplus/asset/stock-position', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_stockplus_asset_transfer_records($params = array()) {
+        return $this->request('v3/stockplus/asset/transfer-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_ad_list($params = array()) {
+        return $this->request('v3/p2p/ad-list', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_ad_info($params = array()) {
+        return $this->request('v3/p2p/ad-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_ad_limit($params = array()) {
+        return $this->request('v3/p2p/ad-limit', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_my_ads($params = array()) {
+        return $this->request('v3/p2p/my-ads', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_pending_orders($params = array()) {
+        return $this->request('v3/p2p/pending-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_all_orders($params = array()) {
+        return $this->request('v3/p2p/all-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_order_info($params = array()) {
+        return $this->request('v3/p2p/order-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_user_info($params = array()) {
+        return $this->request('v3/p2p/user-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_currencies($params = array()) {
+        return $this->request('v3/p2p/currencies', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_pay_method($params = array()) {
+        return $this->request('v3/p2p/pay-method', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_balance($params = array()) {
+        return $this->request('v3/p2p/balance', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_get_v3_p2p_exchange_rate($params = array()) {
+        return $this->request('v3/p2p/exchange-rate', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_uta_post_v3_account_set_leverage($params = array()) {
         return $this->request('v3/account/set-leverage', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -3828,6 +4560,198 @@ abstract class bitget extends \ccxt\Exchange {
      */
     public function private_uta_post_v3_user_delete_sub_api($params = array()) {
         return $this->request('v3/user/delete-sub-api', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_account_move_positions($params = array()) {
+        return $this->request('v3/account/move-positions', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_account_cancel_withdrawal($params = array()) {
+        return $this->request('v3/account/cancel-withdrawal', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_account_set_margin($params = array()) {
+        return $this->request('v3/account/set-margin', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_account_set_collateral_type($params = array()) {
+        return $this->request('v3/account/set-collateral-type', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_copy_futures_transfer($params = array()) {
+        return $this->request('v3/copy/futures/transfer', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_convert_small_assets_trade($params = array()) {
+        return $this->request('v3/convert/small-assets-trade', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_earn_elite_subscribe($params = array()) {
+        return $this->request('v3/earn/elite-subscribe', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_earn_elite_redeem($params = array()) {
+        return $this->request('v3/earn/elite-redeem', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_place_reality_order($params = array()) {
+        return $this->request('v3/trade/place-reality-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_cancel_reality_order($params = array()) {
+        return $this->request('v3/trade/cancel-reality-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_grid_validate($params = array()) {
+        return $this->request('v3/trade/grid/validate', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_grid_create_bot($params = array()) {
+        return $this->request('v3/trade/grid/create-bot', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_grid_modify_bot($params = array()) {
+        return $this->request('v3/trade/grid/modify-bot', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_grid_modify_grid_interval($params = array()) {
+        return $this->request('v3/trade/grid/modify-grid-interval', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_grid_add_investment($params = array()) {
+        return $this->request('v3/trade/grid/add-investment', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_grid_close_bot($params = array()) {
+        return $this->request('v3/trade/grid/close-bot', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_grid_validate_neutral($params = array()) {
+        return $this->request('v3/trade/grid/validate-neutral', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_grid_create_neutral_bot($params = array()) {
+        return $this->request('v3/trade/grid/create-neutral-bot', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_grid_modify_neutral_bot($params = array()) {
+        return $this->request('v3/trade/grid/modify-neutral-bot', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_trade_grid_modify_neutral_grid_interval($params = array()) {
+        return $this->request('v3/trade/grid/modify-neutral-grid-interval', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_user_set_rate_limit_quota($params = array()) {
+        return $this->request('v3/user/set-rate-limit-quota', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_user_sub_account_agent_create($params = array()) {
+        return $this->request('v3/user/sub-account/agent-create', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_stockplus_trade_place_order($params = array()) {
+        return $this->request('v3/stockplus/trade/place-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_stockplus_trade_cancel_order($params = array()) {
+        return $this->request('v3/stockplus/trade/cancel-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_stockplus_trade_modify_order($params = array()) {
+        return $this->request('v3/stockplus/trade/modify-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_stockplus_asset_transfer($params = array()) {
+        return $this->request('v3/stockplus/asset/transfer', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_p2p_ad_create($params = array()) {
+        return $this->request('v3/p2p/ad-create', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_p2p_ad_update($params = array()) {
+        return $this->request('v3/p2p/ad-update', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_p2p_ad_operate($params = array()) {
+        return $this->request('v3/p2p/ad-operate', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_p2p_fee_simulate($params = array()) {
+        return $this->request('v3/p2p/fee-simulate', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_p2p_order_pay($params = array()) {
+        return $this->request('v3/p2p/order-pay', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_uta_post_v3_p2p_order_release($params = array()) {
+        return $this->request('v3/p2p/order-release', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
     /**
      * @return array<string, mixed>
@@ -4404,6 +5328,198 @@ abstract class bitget extends \ccxt\Exchange {
      */
     public function publicUtaGetV3MarketIndexComponents($params = array()) {
         return $this->request('v3/market/index-components', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketRiskReserveAll($params = array()) {
+        return $this->request('v3/market/risk-reserve-all', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketRiskReserveHour($params = array()) {
+        return $this->request('v3/market/risk-reserve-hour', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketScoreWeights($params = array()) {
+        return $this->request('v3/market/score-weights', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketFeeGroup($params = array()) {
+        return $this->request('v3/market/fee-group', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketCashDividendRecords($params = array()) {
+        return $this->request('v3/market/cash-dividend-records', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketSplitRecords($params = array()) {
+        return $this->request('v3/market/split-records', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketLiquidations($params = array()) {
+        return $this->request('v3/market/liquidations', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketRpiOrderbook($params = array()) {
+        return $this->request('v3/market/rpi-orderbook', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketRpiSymbols($params = array()) {
+        return $this->request('v3/market/rpi-symbols', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketSpotWhaleFlow($params = array()) {
+        return $this->request('v3/market/spot-whale-flow', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketSpotFundFlow($params = array()) {
+        return $this->request('v3/market/spot-fund-flow', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketSpotNetFlow($params = array()) {
+        return $this->request('v3/market/spot-net-flow', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketMarginLongShort($params = array()) {
+        return $this->request('v3/market/margin-long-short', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketMarginLoanGrowth($params = array()) {
+        return $this->request('v3/market/margin-loan-growth', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketMarginIsolatedBorrow($params = array()) {
+        return $this->request('v3/market/margin-isolated-borrow', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketFuturesActiveBuySell($params = array()) {
+        return $this->request('v3/market/futures-active-buy-sell', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketFuturesLongShort($params = array()) {
+        return $this->request('v3/market/futures-long-short', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketFuturesPositionLongShort($params = array()) {
+        return $this->request('v3/market/futures-position-long-short', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3MarketFuturesAccountLongShort($params = array()) {
+        return $this->request('v3/market/futures-account-long-short', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketStockInfo($params = array()) {
+        return $this->request('v3/reality/market/stock-info', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketStates($params = array()) {
+        return $this->request('v3/reality/market/states', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketCalendar($params = array()) {
+        return $this->request('v3/reality/market/calendar', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketCompanyOverview($params = array()) {
+        return $this->request('v3/reality/market/company-overview', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketValuationIndicators($params = array()) {
+        return $this->request('v3/reality/market/valuation-indicators', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketEarningsForecast($params = array()) {
+        return $this->request('v3/reality/market/earnings-forecast', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketSuspensionResumptionInfo($params = array()) {
+        return $this->request('v3/reality/market/suspension-resumption-info', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketDividends($params = array()) {
+        return $this->request('v3/reality/market/dividends', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketShareCapitalChange($params = array()) {
+        return $this->request('v3/reality/market/share-capital-change', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketInnerTrades($params = array()) {
+        return $this->request('v3/reality/market/inner-trades', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketExecutiveShareholdings($params = array()) {
+        return $this->request('v3/reality/market/executive-shareholdings', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3RealityMarketShareholdDetail($params = array()) {
+        return $this->request('v3/reality/market/sharehold-detail', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicUtaGetV3AccountCustomCollateralCoins($params = array()) {
+        return $this->request('v3/account/custom-collateral-coins', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 2));
     }
     /**
      * @return array<string, mixed>
@@ -5848,6 +6964,12 @@ abstract class bitget extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateUserPostV2UserCreateAgentSubaccount($params = array()) {
+        return $this->request('v2/user/create-agent-subaccount', array('private', 'user'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateP2pGetP2pV1MerchantMerchantList($params = array()) {
         return $this->request('p2p/v1/merchant/merchantList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -5986,6 +7108,48 @@ abstract class bitget extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateBrokerGetV2BrokerSubCustomerList($params = array()) {
+        return $this->request('v2/broker/sub-customer-list', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateBrokerGetV2BrokerAgentCommission($params = array()) {
+        return $this->request('v2/broker/agent-commission', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateBrokerGetV2BrokerCustomerCommissions($params = array()) {
+        return $this->request('v2/broker/customer-commissions', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateBrokerGetV2BrokerCustomerKycResult($params = array()) {
+        return $this->request('v2/broker/customer-kyc-result', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateBrokerGetV2BrokerOrderCommission($params = array()) {
+        return $this->request('v2/broker/order-commission', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateBrokerGetV2BrokerRebateInfo($params = array()) {
+        return $this->request('v2/broker/rebate-info', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateBrokerGetV2BrokerTotalCommission($params = array()) {
+        return $this->request('v2/broker/total-commission', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateBrokerPostBrokerV1AccountSubCreate($params = array()) {
         return $this->request('broker/v1/account/sub-create', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 20));
     }
@@ -6078,6 +7242,30 @@ abstract class bitget extends \ccxt\Exchange {
      */
     public function privateBrokerPostV2BrokerManageModifySubaccountApikey($params = array()) {
         return $this->request('v2/broker/manage/modify-subaccount-apikey', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateBrokerPostV2BrokerCustomerAsset($params = array()) {
+        return $this->request('v2/broker/customer-asset', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateBrokerPostV2BrokerCustomerDeposit($params = array()) {
+        return $this->request('v2/broker/customer-deposit', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateBrokerPostV2BrokerCustomerList($params = array()) {
+        return $this->request('v2/broker/customer-list', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateBrokerPostV2BrokerCustomerTradeVolume($params = array()) {
+        return $this->request('v2/broker/customer-trade-volume', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
     }
     /**
      * @return array<string, mixed>
@@ -7060,6 +8248,42 @@ abstract class bitget extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateEarnGetV2EarnEliteProduct($params = array()) {
+        return $this->request('v2/earn/elite/product', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnGetV2EarnEliteAssets($params = array()) {
+        return $this->request('v2/earn/elite/assets', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnGetV2EarnEliteRecords($params = array()) {
+        return $this->request('v2/earn/elite/records', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnGetV2EarnEliteSubscribeInfo($params = array()) {
+        return $this->request('v2/earn/elite/subscribe-info', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnGetV2EarnEliteSubscribeResult($params = array()) {
+        return $this->request('v2/earn/elite/subscribe-result', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnGetV2EarnEliteRedeemInfo($params = array()) {
+        return $this->request('v2/earn/elite/redeem-info', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateEarnPostV2EarnSavingsSubscribe($params = array()) {
         return $this->request('v2/earn/savings/subscribe', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -7092,6 +8316,18 @@ abstract class bitget extends \ccxt\Exchange {
      */
     public function privateEarnPostV2EarnLoanRevisePledge($params = array()) {
         return $this->request('v2/earn/loan/revise-pledge', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnPostV2EarnEliteSubscribe($params = array()) {
+        return $this->request('v2/earn/elite/subscribe', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnPostV2EarnEliteRedeem($params = array()) {
+        return $this->request('v2/earn/elite/redeem', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 4));
     }
     /**
      * @return array<string, mixed>
@@ -7414,6 +8650,426 @@ abstract class bitget extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateUtaGetV3AccountInfo($params = array()) {
+        return $this->request('v3/account/info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountAllFeeRate($params = array()) {
+        return $this->request('v3/account/all-fee-rate', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountDeltaInfo($params = array()) {
+        return $this->request('v3/account/delta-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountWithdrawAddress($params = array()) {
+        return $this->request('v3/account/withdraw-address', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountMaxWithdrawal($params = array()) {
+        return $this->request('v3/account/max-withdrawal', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountMovePositionHistory($params = array()) {
+        return $this->request('v3/account/move-position-history', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountCollateralType($params = array()) {
+        return $this->request('v3/account/collateral-type', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountPreSetLeverage($params = array()) {
+        return $this->request('v3/account/pre-set-leverage', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountEligibleSymbols($params = array()) {
+        return $this->request('v3/account/eligible-symbols', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountEligibleMarginTier($params = array()) {
+        return $this->request('v3/account/eligible-margin-tier', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountEligibleLoanInfo($params = array()) {
+        return $this->request('v3/account/eligible-loan-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountEligibleDiscountRate($params = array()) {
+        return $this->request('v3/account/eligible-discount-rate', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountFundingFinancialRecords($params = array()) {
+        return $this->request('v3/account/funding-financial-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountRealityOrderbook($params = array()) {
+        return $this->request('v3/account/reality-orderbook', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3AccountRealityFills($params = array()) {
+        return $this->request('v3/account/reality-fills', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3CopyFuturesTradingPairs($params = array()) {
+        return $this->request('v3/copy/futures/trading-pairs', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3CopyFuturesPositionSummary($params = array()) {
+        return $this->request('v3/copy/futures/position-summary', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3CopyFuturesMaxTransferable($params = array()) {
+        return $this->request('v3/copy/futures/max-transferable', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3CopyFuturesTransferRecord($params = array()) {
+        return $this->request('v3/copy/futures/transfer-record', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3CopyFuturesCurrentFollower($params = array()) {
+        return $this->request('v3/copy/futures/current-follower', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3CopyFuturesHistoryFollower($params = array()) {
+        return $this->request('v3/copy/futures/history-follower', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3CopyFuturesProfitSummary($params = array()) {
+        return $this->request('v3/copy/futures/profit-summary', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3CopyFuturesProfitDetails($params = array()) {
+        return $this->request('v3/copy/futures/profit-details', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3ConvertSmallAssets($params = array()) {
+        return $this->request('v3/convert/small-assets', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3ConvertSmallAssetsHistory($params = array()) {
+        return $this->request('v3/convert/small-assets-history', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3EarnEliteProduct($params = array()) {
+        return $this->request('v3/earn/elite-product', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3EarnEliteAssets($params = array()) {
+        return $this->request('v3/earn/elite-assets', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3EarnEliteSubscribeInfo($params = array()) {
+        return $this->request('v3/earn/elite-subscribe-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3EarnEliteRecords($params = array()) {
+        return $this->request('v3/earn/elite-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3EarnEliteSubscribeResult($params = array()) {
+        return $this->request('v3/earn/elite-subscribe-result', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3EarnEliteRedeemInfo($params = array()) {
+        return $this->request('v3/earn/elite-redeem-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3TradeLoanData($params = array()) {
+        return $this->request('v3/trade/loan-data', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3TradeStrategySubOrders($params = array()) {
+        return $this->request('v3/trade/strategy-sub-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3TradeGridBotDetail($params = array()) {
+        return $this->request('v3/trade/grid/bot-detail', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3TradeGridListDetails($params = array()) {
+        return $this->request('v3/trade/grid/list-details', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3TradeGridNeutralBotDetail($params = array()) {
+        return $this->request('v3/trade/grid/neutral-bot-detail', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3TradeGridNeutralListDetails($params = array()) {
+        return $this->request('v3/trade/grid/neutral-list-details', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3UserRateLimitQuota($params = array()) {
+        return $this->request('v3/user/rate-limit-quota', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusMarketOptionQuote($params = array()) {
+        return $this->request('v3/stockplus/market/option-quote', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusMarketOptionChainInfo($params = array()) {
+        return $this->request('v3/stockplus/market/option-chain-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusMarketOptionExpiryDate($params = array()) {
+        return $this->request('v3/stockplus/market/option-expiry-date', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusMarketOptionVolume($params = array()) {
+        return $this->request('v3/stockplus/market/option-volume', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusMarketDepth($params = array()) {
+        return $this->request('v3/stockplus/market/depth', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusMarketStatic($params = array()) {
+        return $this->request('v3/stockplus/market/static', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusMarketQuote($params = array()) {
+        return $this->request('v3/stockplus/market/quote', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusMarketTrade($params = array()) {
+        return $this->request('v3/stockplus/market/trade', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusMarketIntraday($params = array()) {
+        return $this->request('v3/stockplus/market/intraday', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusMarketHistoryCandlestick($params = array()) {
+        return $this->request('v3/stockplus/market/history-candlestick', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusMarketCandlestick($params = array()) {
+        return $this->request('v3/stockplus/market/candlestick', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusTradeTodayOrders($params = array()) {
+        return $this->request('v3/stockplus/trade/today-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusTradeHistoryOrders($params = array()) {
+        return $this->request('v3/stockplus/trade/history-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusTradeOrderDetail($params = array()) {
+        return $this->request('v3/stockplus/trade/order-detail', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusTradeTodayExecutions($params = array()) {
+        return $this->request('v3/stockplus/trade/today-executions', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusTradeHistoryExecutions($params = array()) {
+        return $this->request('v3/stockplus/trade/history-executions', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusAssetAccount($params = array()) {
+        return $this->request('v3/stockplus/asset/account', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusAssetCashFlow($params = array()) {
+        return $this->request('v3/stockplus/asset/cash-flow', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusAssetStockPosition($params = array()) {
+        return $this->request('v3/stockplus/asset/stock-position', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3StockplusAssetTransferRecords($params = array()) {
+        return $this->request('v3/stockplus/asset/transfer-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pAdList($params = array()) {
+        return $this->request('v3/p2p/ad-list', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pAdInfo($params = array()) {
+        return $this->request('v3/p2p/ad-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pAdLimit($params = array()) {
+        return $this->request('v3/p2p/ad-limit', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pMyAds($params = array()) {
+        return $this->request('v3/p2p/my-ads', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pPendingOrders($params = array()) {
+        return $this->request('v3/p2p/pending-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pAllOrders($params = array()) {
+        return $this->request('v3/p2p/all-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pOrderInfo($params = array()) {
+        return $this->request('v3/p2p/order-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pUserInfo($params = array()) {
+        return $this->request('v3/p2p/user-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pCurrencies($params = array()) {
+        return $this->request('v3/p2p/currencies', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pPayMethod($params = array()) {
+        return $this->request('v3/p2p/pay-method', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pBalance($params = array()) {
+        return $this->request('v3/p2p/balance', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaGetV3P2pExchangeRate($params = array()) {
+        return $this->request('v3/p2p/exchange-rate', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateUtaPostV3AccountSetLeverage($params = array()) {
         return $this->request('v3/account/set-leverage', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -7650,5 +9306,197 @@ abstract class bitget extends \ccxt\Exchange {
      */
     public function privateUtaPostV3UserDeleteSubApi($params = array()) {
         return $this->request('v3/user/delete-sub-api', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3AccountMovePositions($params = array()) {
+        return $this->request('v3/account/move-positions', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3AccountCancelWithdrawal($params = array()) {
+        return $this->request('v3/account/cancel-withdrawal', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3AccountSetMargin($params = array()) {
+        return $this->request('v3/account/set-margin', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3AccountSetCollateralType($params = array()) {
+        return $this->request('v3/account/set-collateral-type', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3CopyFuturesTransfer($params = array()) {
+        return $this->request('v3/copy/futures/transfer', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3ConvertSmallAssetsTrade($params = array()) {
+        return $this->request('v3/convert/small-assets-trade', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3EarnEliteSubscribe($params = array()) {
+        return $this->request('v3/earn/elite-subscribe', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3EarnEliteRedeem($params = array()) {
+        return $this->request('v3/earn/elite-redeem', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradePlaceRealityOrder($params = array()) {
+        return $this->request('v3/trade/place-reality-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradeCancelRealityOrder($params = array()) {
+        return $this->request('v3/trade/cancel-reality-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradeGridValidate($params = array()) {
+        return $this->request('v3/trade/grid/validate', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradeGridCreateBot($params = array()) {
+        return $this->request('v3/trade/grid/create-bot', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradeGridModifyBot($params = array()) {
+        return $this->request('v3/trade/grid/modify-bot', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradeGridModifyGridInterval($params = array()) {
+        return $this->request('v3/trade/grid/modify-grid-interval', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradeGridAddInvestment($params = array()) {
+        return $this->request('v3/trade/grid/add-investment', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradeGridCloseBot($params = array()) {
+        return $this->request('v3/trade/grid/close-bot', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradeGridValidateNeutral($params = array()) {
+        return $this->request('v3/trade/grid/validate-neutral', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradeGridCreateNeutralBot($params = array()) {
+        return $this->request('v3/trade/grid/create-neutral-bot', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradeGridModifyNeutralBot($params = array()) {
+        return $this->request('v3/trade/grid/modify-neutral-bot', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3TradeGridModifyNeutralGridInterval($params = array()) {
+        return $this->request('v3/trade/grid/modify-neutral-grid-interval', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3UserSetRateLimitQuota($params = array()) {
+        return $this->request('v3/user/set-rate-limit-quota', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3UserSubAccountAgentCreate($params = array()) {
+        return $this->request('v3/user/sub-account/agent-create', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3StockplusTradePlaceOrder($params = array()) {
+        return $this->request('v3/stockplus/trade/place-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3StockplusTradeCancelOrder($params = array()) {
+        return $this->request('v3/stockplus/trade/cancel-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3StockplusTradeModifyOrder($params = array()) {
+        return $this->request('v3/stockplus/trade/modify-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3StockplusAssetTransfer($params = array()) {
+        return $this->request('v3/stockplus/asset/transfer', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3P2pAdCreate($params = array()) {
+        return $this->request('v3/p2p/ad-create', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3P2pAdUpdate($params = array()) {
+        return $this->request('v3/p2p/ad-update', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3P2pAdOperate($params = array()) {
+        return $this->request('v3/p2p/ad-operate', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3P2pFeeSimulate($params = array()) {
+        return $this->request('v3/p2p/fee-simulate', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3P2pOrderPay($params = array()) {
+        return $this->request('v3/p2p/order-pay', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUtaPostV3P2pOrderRelease($params = array()) {
+        return $this->request('v3/p2p/order-release', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
 }

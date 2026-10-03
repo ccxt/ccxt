@@ -4,6 +4,9 @@
 # Emits, for every struct family named by the table:
 #   ToX(object) / ToXList(object)     - untyped dict  -> typed struct
 #   FromX(object) / FromXList(object) - typed struct  -> untyped dict (pass-through when not an X)
+#   FromX(X) / FromXList(List<X>)     - the same conversion for the funnel call sites, whose
+#     argument IS the struct, so the pass-through arm is unreachable and the static type of the
+#     call is the box the object overload builds (read back by build/csharp-local-types.js)
 #
 # The From* helpers are derived by parsing the struct constructors in
 # cs/ccxt/base/Exchange.Types.cs and cs/ccxt/base/PredictionTypes.cs, so the
@@ -22,8 +25,15 @@ for const in ('const TYPED_CORES', 'const PREDICTION_TYPED_CORES'):
     table = src[src.index(const):]
     table = table[:table.index('\n};')]
     for csharpType in re.findall(r"^\s*'\w+': '([\w<>]+)',", table, re.M):
+        if csharpType in ('Int64', 'string', 'object'):
+            continue
         if csharpType.startswith('List<'):
-            need[csharpType[5:-1]].add(True)
+            inner = csharpType[5:-1]
+            if inner in ('Int64', 'string', 'object') or inner.startswith('Dictionary'):
+                continue
+            need[inner].add(True)
+        elif csharpType.startswith('Dictionary'):
+            continue
         else:
             need[csharpType].add(False)
 
@@ -50,6 +60,7 @@ NEST_CK = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\) \? new
 NEST_SV = re.compile(ASSIGN + r'Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null \? new (?P<t>\w+)\(Exchange\.SafeValue\(\w+, "(?P=k)"\)\) : null;$')
 NEST_AS = re.compile(ASSIGN + r'\((?P<v>\w+) as IDictionary<string, object>\)\.ContainsKey\("(?P<k>[^"]+)"\) \? new (?P<t>\w+)\(\((?P=v) as IDictionary<string, object>\)\["(?P=k)"\]\) : null;$')
 LIST_ST = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\)(?: && (?P=v)\["(?P=k)"\] != null)? \? \(\(IEnumerable<object>\)(?P=v)\["(?P=k)"\]\)\.Select\(x => new (?P<t>\w+)\(x\)\)(?:\.ToList\(\))? : null;$')
+LIST_SV = re.compile(ASSIGN + r'Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null \? \(\(IEnumerable<object>\)Exchange\.SafeValue\(\w+, "(?P=k)"\)\)\.Select\(x => new (?P<t>\w+)\(x\)\)\.ToList\(\) : null;$')
 LIST_STR = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\)(?: && (?P=v)\["(?P=k)"\] != null)? \? \(\(IEnumerable<object>\)(?P=v)\["(?P=k)"\]\)\.Select\(x => \(string\)x\)\.ToList\(\) : null;$')
 ALIAS = re.compile(r'^var \w+ = \(I?Dictionary<string, object>\)\w+;$')
 # safeOrder()/safeTrade() attach a `fees` list next to `fee`; Helper.GetFees returns null
@@ -59,15 +70,139 @@ DECL = re.compile(r'^\s*public (?P<type>[\w\.<>,\? ]+?) (?P<name>@?\w+);\s*$')
 
 structs = {}   # name -> {'fields': [...], 'decls': {name: type}, 'error': str|None}
 
+# The dictionary-like containers (Tickers, Currencies, FundingRates, ...) splat the payload
+# into a Dictionary<string, T> with a multi-line foreach, so the line-at-a-time matcher below
+# cannot see them. Collapse each known splat shape into one synthetic marker line first; the
+# inverse is exact because the loop copies every non-"info" key verbatim.
+SPLAT_TOP = re.compile(
+    r'^\s*(?:this\.)?(?P<f>@?\w+) = new Dictionary<string, (?P<t>\w+)>\(\);\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P<src>\w+)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*if \((?P=v)\.Key != "info"\)\s*\n'
+    r'\s*\{?\s*\n?'
+    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, new (?P=t)\((?P=v)\.Value\)\);\s*\n'
+    r'(?:\s*\}\s*\n)?'
+    r'\s*\}\s*$', re.M)
+
+SPLAT_TOP_LIST = re.compile(
+    r'^\s*(?:this\.)?(?P<f>@?\w+) = new Dictionary<string, List<(?P<t>\w+)>>\(\);\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P<src>\w+)\)\s*\n'
+    r'\s*\{\s*\n\s*if \((?P=v)\.Key != "info"\)\s*\n\s*\{\s*\n'
+    r'\s*var (?P<l1>\w+) = \(List<object>\)(?P=v)\.Value;\s*\n'
+    r'\s*var (?P<l2>\w+) = (?P=l1)\.Select\(x => new (?P=t)\(x\)\)\.ToList\(\);\s*\n'
+    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, (?P=l2)\);\s*\n'
+    r'\s*\}\s*\n\s*\}\s*$', re.M)
+
+SPLAT_KEY = re.compile(
+    r'^\s*(?:this\.)?(?P<f>@?\w+) = new Dictionary<string, (?P<t>\w+)>\(\);\s*\n'
+    r'\s*if \(Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*var (?P<v2>\w+) = \(Dictionary<string, object>\)Exchange\.SafeValue\(\w+, "(?P=k)"\);\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P=v2)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, new (?P=t)\((?P=v)\.Value\)\);\s*\n'
+    r'\s*\}\s*\n\s*\}\s*$', re.M)
+
+# order-book sides: List<List<double>> built from the raw [price, amount] rows
+LEVELS = re.compile(ASSIGN + r'\w+\.ContainsKey\("(?P<k>[^"]+)"\) \? \(\(IEnumerable<object>\)\w+\["(?P=k)"\]\)'
+                    r'\.Select\(x => \(\(IEnumerable<object>\)x\)\.Select\(y => Convert\.ToDouble\(y\)\)'
+                    r'\.ToList\(\)\)\.ToList\(\) : null;$')
+
+# `info = <ctorParam>;` keeps the WHOLE source dict, so the struct inverts to it exactly
+WHOLE_INFO = re.compile(r'^(?:this\.)?(?P<f>@?\w+) = (?P<p>\w+);$')
+
+# Balances mirrors free/used/total/debt as optional Dictionary<string, double?>
+NUMSPLAT = re.compile(
+    r'^\s*(?:this\.)?(?P<f>@?\w+) = null;\s*\n'
+    r'\s*var (?P<v2>\w+) = \w+\.ContainsKey\("(?P<k>[^"]+)"\) \? \(Dictionary<string, object>\)\w+\["(?P=k)"\] : null;\s*\n'
+    r'\s*if \((?P=v2) != null\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*(?:this\.)?(?P=f) = new Dictionary<string, double\?>\(\);\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P=v2)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, (?P=v)\.Value == null \? \(double\?\)null : Convert\.ToDouble\((?P=v)\.Value\)\);\s*\n'
+    r'\s*\}\s*\n\s*\}\s*$', re.M)
+
+# Balances skips a fixed key set when splatting the per-currency rows
+BAL_SPLAT = re.compile(
+    r'^\s*(?:this\.)?(?P<f>@?\w+) = new Dictionary<string, (?P<t>\w+)>\(\);\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P<src>\w+)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*if \((?P<cond>(?:(?P=v)\.Key != "[^"]+"(?: && )?)+)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, new (?P=t)\((?P=v)\.Value\)\);\s*\n'
+    r'\s*\}\s*\n\s*\}\s*$', re.M)
+
+# Currency / DepositWithdrawFee declare the empty dict early and fill it in a later
+# `if (SafeValue(x, "networks") != null) { ... }` block, so the two halves are matched apart
+SPLATKEY_FILL = re.compile(
+    r'^\s*if \(Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*var (?P<v2>\w+) = \(Dictionary<string, object>\)Exchange\.SafeValue\(\w+, "(?P=k)"\);\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P=v2)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*(?:this\.)?(?P<f>@?\w+)\.Add\((?P=v)\.Key, new (?P<t>\w+)\((?P=v)\.Value\)\);\s*\n'
+    r'\s*\}\s*\n\s*\}\s*$', re.M)
+
+# a scalar read via a local temp: `var pct = SafeValue(x, "percentage"); ... f = pct != null ? (bool)pct : null;`
+TEMP_BOOL_DECL = re.compile(r'^\s*var (?P<v>\w+) = Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\);\s*$', re.M)
+TEMP_BOOL_USE = re.compile(r'^\s*(?:this\.)?(?P<f>@?\w+) = (?P<v>\w+) != null \? \(bool\)(?P=v) : null;\s*$', re.M)
+
+def collapse_splats(body):
+    body = SPLAT_TOP_LIST.sub(lambda m: '        @@SPLATLIST %s %s' % (m.group('f'), m.group('t')), body)
+    body = SPLAT_TOP.sub(lambda m: '        @@SPLAT %s %s' % (m.group('f'), m.group('t')), body)
+    body = BAL_SPLAT.sub(lambda m: '        @@SPLAT %s %s' % (m.group('f'), m.group('t')), body)
+    body = NUMSPLAT.sub(lambda m: '        @@NUMSPLAT %s %s' % (m.group('f'), m.group('k')), body)
+    body = SPLAT_KEY.sub(lambda m: '        @@SPLATKEY %s %s %s' % (m.group('f'), m.group('t'), m.group('k')), body)
+    filled = set()
+    def fill(m):
+        filled.add(m.group('f'))
+        return '        @@SPLATKEY %s %s %s' % (m.group('f'), m.group('t'), m.group('k'))
+    body = SPLATKEY_FILL.sub(fill, body)
+    # drop the now-redundant empty-dict declaration that the fill block populates
+    for f in filled:
+        body = re.sub(r'^\s*(?:this\.)?%s = new Dictionary<string, \w+>\(\);\s*$\n' % re.escape(f), '', body, flags=re.M)
+    # inline a `var tmp = SafeValue(x, "k");` used only by a `f = tmp != null ? (bool)tmp : null;`
+    temps = dict((m.group('v'), m.group('k')) for m in TEMP_BOOL_DECL.finditer(body))
+    def usesub(m):
+        if m.group('v') not in temps:
+            return m.group(0)
+        return '        %s = Exchange.SafeValue(x, "%s") != null ? (bool)Exchange.SafeValue(x, "%s") : null;' % (
+            m.group('f'), temps[m.group('v')], temps[m.group('v')])
+    newbody = TEMP_BOOL_USE.sub(usesub, body)
+    if newbody != body:
+        body = TEMP_BOOL_DECL.sub(lambda m: '', newbody)
+    return body
+
 def parse_struct(name, body, ctor_param):
     fields = []
-    for raw in body.split('\n'):
+    for raw in collapse_splats(body).split('\n'):
         line = raw.strip()
         line = re.sub(r'(?:\s*;)+$', ';', line)
         if not line or line.startswith('//') or line in ('{', '}'):
             continue
         if ALIAS.match(line):
             continue
+        if line.startswith('@@SPLATLIST '):
+            _, f, t = line.split()
+            fields.append(('splatlist', f, None, t)); continue
+        if line.startswith('@@SPLATKEY '):
+            _, f, t, k = line.split()
+            fields.append(('splatkey', f, k, t)); continue
+        if line.startswith('@@SPLAT '):
+            _, f, t = line.split()
+            fields.append(('splat', f, None, t)); continue
+        if line.startswith('@@NUMSPLAT '):
+            _, f, k = line.split()
+            fields.append(('numsplat', f, k, None)); continue
+        m = LEVELS.match(line)
+        if m:
+            fields.append(('levels', m.group('f'), m.group('k'), None)); continue
+        m = WHOLE_INFO.match(line)
+        if m and m.group('p') == ctor_param:
+            # `info = <ctorParam>;` stores the entire source dict, so the struct's own
+            # inverse is that dict verbatim — nothing else can add or drop a key
+            fields.append(('wholeinfo', m.group('f'), None, None)); continue
         m = SCALAR.match(line)
         if m:
             fields.append(('scalar', m.group('f'), m.group('k'), None)); continue
@@ -89,7 +224,7 @@ def parse_struct(name, body, ctor_param):
         m = LIST_STR.match(line)
         if m:
             fields.append(('strlist', m.group('f'), m.group('k'), None)); continue
-        m = LIST_ST.match(line)
+        m = LIST_ST.match(line) or LIST_SV.match(line)
         if m:
             fields.append(('structlist', m.group('f'), m.group('k'), m.group('t'))); continue
         return None, 'unsupported constructor line: %s' % line
@@ -134,7 +269,7 @@ def resolve(name, stack=()):
         if fname not in info['decls']:
             resolved[name] = False; reason[name] = 'field %s has no public declaration' % fname
             return False
-        if kind in ('struct', 'structlist'):
+        if kind in ('struct', 'structlist', 'splat', 'splatlist', 'splatkey'):
             if not resolve(tname, stack + (name,)):
                 resolved[name] = False
                 reason[name] = 'nested type %s is not reversible (%s)' % (tname, reason.get(tname, '?'))
@@ -166,7 +301,7 @@ queue = list(emit_from)
 while queue:
     cur = queue.pop()
     for kind, fname, key, tname in structs[cur]['fields']:
-        if kind in ('struct', 'structlist') and tname not in emit_from:
+        if kind in ('struct', 'structlist', 'splat', 'splatlist', 'splatkey') and tname not in emit_from:
             emit_from.append(tname)
             queue.append(tname)
 emit_from = sorted(set(emit_from))
@@ -176,6 +311,74 @@ def nullable(decl):
     if decl.endswith('?'):
         return True
     return not re.match(r'^(bool|double|float|int|long|Int64|Int32|decimal)$', decl)
+
+def typed_from_box(info):
+    """The box `From<t>(object)` builds on its MATCHING path — the return type the typed
+    overload `From<t>(<t> value)` carries. A family whose matching path returns a box this
+    generator cannot name (a `wholeinfo` family whose struct field is not a plain dictionary)
+    keeps its object-only funnel, so no overload is emitted for it."""
+    whole = [f for f in info['fields'] if f[0] == 'wholeinfo']
+    if whole:
+        decl = info['decls'].get(whole[0][1], '').strip()
+        return decl if decl == 'Dictionary<string, object>' else None
+    return 'Dictionary<string, object>'
+
+def emit_typed_from(out, t, box):
+    """The typed value overload. `From<t>(<t> value)` cannot reach the object overload's
+    pass-through arm — <t> is a struct here, so `value is <t>` is always true — and its only
+    other arm builds exactly `box`, so the delegate's cast is an identity. The caller that
+    reads the funnel's static type is build/csharp-local-types.js#typedCoreFunnelType."""
+    if box is None:
+        return
+    out.append('    public static %s From%s(%s value)' % (box, t, t))
+    out.append('    {')
+    out.append('        return (%s)From%s((object)value);' % (box, t))
+    out.append('    }')
+    out.append('')
+
+def emit_typed_from_list(out, t):
+    """The typed list overload: null passes through as null (the object overload's null arm),
+    a non-null List of the family always takes the rebox arm, which builds a List<object>."""
+    out.append('    public static List<object> From%sList(List<%s> values)' % (t, t))
+    out.append('    {')
+    out.append('        return (List<object>)From%sList((object)values);' % t)
+    out.append('    }')
+    out.append('')
+
+# ---------------------------------------------- mandatory keys from types.ts
+# A key declared without `?` in ts/src/base/types.ts (Precision.amount, MinMax.min, ...)
+# is present in every other port even when its value is undefined: safeMarketStructure /
+# safeCurrencyStructure write it explicitly and the structure validators count it
+# (test.market.ts: `precision should have "amount" and "price" keys at least`). The
+# struct field is still null, so the reverse helper has to write the key back as null
+# instead of dropping it, or the typed round-trip changes the key set.
+TYPES_TS = 'ts/src/base/types.ts'
+MANDATORY = {}   # struct name -> set of unified keys declared non-optional
+try:
+    ts_src = open(TYPES_TS).read()
+    # csharpSpecs maps each C# struct to its TS interface ('ts': 'MarketInterface' or a
+    # nested member such as 'MarketInterface.limits')
+    spec_src = open('build/typeEmitters/csharpSpecs.ts').read()
+    ts_of = dict(re.findall(r"'n': '(\w+)', 'file': '[^']+', 'ts': '([\w.]+)'", spec_src))
+    def ts_members(name):
+        if '.' in name:
+            owner, member = name.split('.', 1)
+            body = re.search(r'export interface %s \{(.*?)\n\}' % owner, ts_src, re.S)
+            if not body:
+                return ''
+            nested = re.search(r'\n\s+%s\??: \{(.*?)\n\s+\};' % member, body.group(1), re.S)
+            return nested.group(1) if nested else ''
+        body = re.search(r'export interface %s(?: extends [^{]+)? \{(.*?)\n\}' % name, ts_src, re.S)
+        return body.group(1) if body else ''
+    for cs_name, ts_name in ts_of.items():
+        keys = set()
+        for line in ts_members(ts_name).split('\n'):
+            m = re.match(r'\s*(\w+)(\?)?\s*:', line)
+            if m and not m.group(2):
+                keys.add(m.group(1))
+        MANDATORY[cs_name] = keys
+except FileNotFoundError:
+    pass
 
 # --------------------------------------------------------------------- output
 out = []
@@ -188,6 +391,11 @@ out.append('// The From* helpers are the reverse direction: they hand a typed st
 out.append('// untyped object pipeline (pagination, arrayConcat, filterBySinceLimit, sortBy) as the')
 out.append('// plain unified dictionary the struct was built from. They pass non-matching values')
 out.append('// through unchanged so they are safe to apply blindly.')
+out.append('// Every family also carries typed overloads (From<t>(<t>) / From<t>List(List<t>)): the')
+out.append('// funnel call sites hand them the struct itself, so the matching arm is the only reachable')
+out.append('// one (a struct is never null) and the overload returns the plain box above; a List<t>')
+out.append('// argument takes the rebox arm, null passes through. build/csharp-local-types.js reads')
+out.append('// these signatures back to declare the funnel locals, so both sides cannot drift.')
 out.append('// This file is generated by build/generateTypedCoreHelpers.py — do not hand-edit.')
 out.append('public partial class BaseExchange')
 out.append('{')
@@ -229,6 +437,33 @@ for t in emit_from:
     out.append('            return value;')
     out.append('        }')
     out.append('        var typed = (%s)value;' % t)
+    whole = [f for f in info['fields'] if f[0] == 'wholeinfo']
+    if whole:
+        # the constructor kept the entire source dictionary on this field, so handing it
+        # back is byte-identical to what the untyped pipeline originally produced
+        out.append('        return typed.%s;' % whole[0][1])
+        out.append('    }')
+        out.append('')
+        helpers.append('From%s' % t)
+        emit_typed_from(out, t, typed_from_box(info))
+        out.append('    public static object From%sList(object values)' % t)
+        out.append('    {')
+        out.append('        if (!(values is List<%s>))' % t)
+        out.append('        {')
+        out.append('            return values;')
+        out.append('        }')
+        out.append('        var typed = (List<%s>)values;' % t)
+        out.append('        var result = new List<object>(typed.Count);')
+        out.append('        foreach (var row in typed)')
+        out.append('        {')
+        out.append('            result.Add(From%s(row));' % t)
+        out.append('        }')
+        out.append('        return result;')
+        out.append('    }')
+        out.append('')
+        helpers.append('From%sList' % t)
+        emit_typed_from_list(out, t)
+        continue
     out.append('        var result = new Dictionary<string, object>();')
     for kind, fname, key, tname in info['fields']:
         access = 'typed.%s' % fname
@@ -246,6 +481,44 @@ for t in emit_from:
                     'result["%s"] = %sRows;' % (key, fname.lstrip('@'))]
         elif kind == 'strlist':
             body = ['result["%s"] = new List<object>(%s);' % (key, access)]
+        elif kind == 'levels':
+            # rebuild the raw [[price, amount], ...] rows the ctor read
+            body = ['var %sRows = new List<object>();' % fname.lstrip('@'),
+                    'foreach (var level in %s)' % access,
+                    '{',
+                    '    %sRows.Add(new List<object>(level.Select(v => (object)v)));' % fname.lstrip('@'),
+                    '}',
+                    'result["%s"] = %sRows;' % (key, fname.lstrip('@'))]
+        elif kind in ('splat', 'splatlist', 'splatkey'):
+            # the ctor copied every non-"info" key verbatim into a Dictionary<string, T>,
+            # so writing each entry back under its own key is an exact inverse
+            var = fname.lstrip('@')
+            if kind == 'splatlist':
+                inner = ['        var %sList = new List<object>();' % var,
+                         '        foreach (var item in entry.Value)',
+                         '        {',
+                         '            %sList.Add(From%s(item));' % (var, tname),
+                         '        }',
+                         '        %sTarget[entry.Key] = %sList;' % (var, var)]
+            else:
+                inner = ['        %sTarget[entry.Key] = From%s(entry.Value);' % (var, tname)]
+            if kind == 'splatkey':
+                body = ['var %sTarget = new Dictionary<string, object>();' % var,
+                        'foreach (var entry in %s)' % access,
+                        '{'] + inner + ['}',
+                        'result["%s"] = %sTarget;' % (key, var)]
+            else:
+                body = ['var %sTarget = result;' % var,
+                        'foreach (var entry in %s)' % access,
+                        '{'] + inner + ['}']
+        elif kind == 'numsplat':
+            var = fname.lstrip('@')
+            body = ['var %sTarget = new Dictionary<string, object>();' % var,
+                    'foreach (var entry in %s)' % access,
+                    '{',
+                    '    %sTarget[entry.Key] = entry.Value;' % var,
+                    '}',
+                    'result["%s"] = %sTarget;' % (key, var)]
         else:
             raise Exception('unhandled kind ' + kind)
         if guard:
@@ -254,6 +527,12 @@ for t in emit_from:
             for b in body:
                 out.append('            ' + b)
             out.append('        }')
+            if kind in ('scalar', 'struct') and key in MANDATORY.get(t, ()):
+                # non-optional in types.ts: the key exists in every port, value or not
+                out.append('        else')
+                out.append('        {')
+                out.append('            result["%s"] = null;' % key)
+                out.append('        }')
         else:
             for b in body:
                 out.append('        ' + b)
@@ -261,6 +540,7 @@ for t in emit_from:
     out.append('    }')
     out.append('')
     helpers.append('From%s' % t)
+    emit_typed_from(out, t, typed_from_box(info))
     out.append('    public static object From%sList(object values)' % t)
     out.append('    {')
     out.append('        if (!(values is List<%s>))' % t)
@@ -277,6 +557,7 @@ for t in emit_from:
     out.append('    }')
     out.append('')
     helpers.append('From%sList' % t)
+    emit_typed_from_list(out, t)
 
 # One runtime dispatcher for the reflective pipeline: callDynamically /
 # fetchPaginatedCall* / promiseAll erase the static type, so AwaitAsObject cannot know
@@ -293,6 +574,8 @@ for t in emit_from:
     out.append('                return From%sList(value);' % t)
 out.append('            case List<OHLCV> _:')
 out.append('                return FromOHLCVList(value);')
+out.append('            case Dictionary<string, Dictionary<string, List<OHLCV>>> _:')
+out.append('                return FromOHLCVDict(value);')
 out.append('            default:')
 out.append('                return value;')
 out.append('        }')

@@ -254,7 +254,24 @@ ccxt kraken fetchTicker BTC/USD --verbose    # full HTTP request/response dump
 
 > ⚠️ **Do NOT rely on `--no-send` as a dry run.** In current ccxt-cli releases the flag is accepted but silently ignored — **the request IS sent to the exchange**. Use `--sandbox` or an exchange-side test param (below) to validate orders safely. There is also no keyless dry-run: private calls fail at signing (`AuthenticationError: requires "apiKey"`) before any request is built.
 
-For CCXT contributors running from the repo: `--request` / `--response` print static-test fixture templates for `ts/src/test/static/`, and `--static` prints both (add `--name "description"` to auto-save).
+### Capturing static-test fixtures (contributors)
+
+Running from the repo, the CLI is how CCXT's static test fixtures are produced:
+
+```bash
+npm run cli.ts -- <id> fetchTicker BTC/USDT --static --name "spot ticker"
+```
+
+`--static` makes a real call and records the actual URL, body and HTTP response as entries in both
+`ts/src/test/static/request/<id>.json` and `ts/src/test/static/response/<id>.json`. `--request` / `--response`
+capture one side only. `--name` auto-saves; omit it to print the entries for review first. For `watch*` methods
+`--static` records ws frames until ctrl+c into `ts/src/test/static/ws/<id>.json`, with `--recordLimit <n>`
+capping the resolutions kept.
+
+> 🚨 **Static fixtures must never be hand-written or invented — capture them with this command.** A fabricated
+> fixture asserts what you *assumed* the exchange does, so the test passes while the integration is broken, and
+> it becomes the reference all seven languages are verified against. If the endpoint is unreachable (no
+> credentials, geo-block, venue down), ship no fixture and say so rather than guessing one.
 
 ## Trading safely
 

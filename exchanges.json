@@ -18,7 +18,6 @@
         "bitflyer",
         "bitget",
         "bithumb",
-        "bitmex",
         "bitopro",
         "bitrue",
         "bitso",
@@ -35,6 +34,7 @@
         "bullish",
         "bybit",
         "bybiteu",
+        "bybitid",
         "bydfi",
         "cex",
         "coinbase",
@@ -93,6 +93,7 @@
         "paymium",
         "phemex",
         "poloniex",
+        "revolutx",
         "tokocrypto",
         "toobit",
         "upbit",
@@ -118,7 +119,6 @@
         "bitfinex",
         "bitget",
         "bithumb",
-        "bitmex",
         "bitopro",
         "bitrue",
         "bitstamp",
@@ -129,6 +129,7 @@
         "bullish",
         "bybit",
         "bybiteu",
+        "bybitid",
         "bydfi",
         "cex",
         "coinbase",
@@ -189,7 +190,9 @@
         "limitless",
         "myriad",
         "opinion",
-        "polymarket"
+        "polymarket",
+        "predictfun",
+        "sxbet"
     ],
     "predictionWs": []
 }

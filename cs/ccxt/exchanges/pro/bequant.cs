@@ -7,12 +7,12 @@ namespace ccxt.pro;
 public partial class bequant { public bequant(object args = null) : base(args) { } }
 public partial class bequant : hitbtc
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         // eslint-disable-next-line new-cap
         var restInstance = new ccxt.bequant();
-        object restDescribe = restInstance.describe();
-        object parentWsDescribe = base.describeData();
+        Dictionary<string, object> restDescribe = restInstance.describe();
+        Dictionary<string, object> parentWsDescribe = base.describeData();
         Dictionary<string, object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "bequant" },

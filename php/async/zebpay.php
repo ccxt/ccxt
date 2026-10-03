@@ -110,6 +110,7 @@ class zebpay extends Exchange {
                             'v2/system/time' => array( 'cost' => 10 ),
                             'v2/system/status' => array( 'cost' => 10 ),
                             'v2/market/orderbook' => array( 'cost' => 10 ),
+                            'v2/market/orderbook/ticker' => array( 'cost' => 10 ),
                             'v2/market/trades' => array( 'cost' => 10 ),
                             'v2/market/ticker' => array( 'cost' => 10 ),
                             'v2/market/allTickers' => array( 'cost' => 10 ),
@@ -125,9 +126,12 @@ class zebpay extends Exchange {
                             'v1/system/status' => array( 'cost' => 10 ),
                             'v1/exchange/tradefee' => array( 'cost' => 10 ),
                             'v1/exchange/tradefees' => array( 'cost' => 10 ),
+                            'v1/exchange/exchangeInfo' => array( 'cost' => 10 ),
+                            'v1/exchange/pairs' => array( 'cost' => 10 ),
                             'v1/market/orderBook' => array( 'cost' => 10 ),
                             'v1/market/ticker24Hr' => array( 'cost' => 10 ),
                             'v1/market/markets' => array( 'cost' => 10 ),
+                            'v1/market/marketInfo' => array( 'cost' => 10 ),
                             'v1/market/aggTrade' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
@@ -144,6 +148,7 @@ class zebpay extends Exchange {
                             'v2/ex/orders' => array( 'cost' => 10 ),
                             'v2/account/balance' => array( 'cost' => 10 ),
                             'v2/ex/tradefee' => array( 'cost' => 10 ),
+                            'v2/ex/myfee/{symbol}' => array( 'cost' => 10 ),
                             'v2/ex/order' => array( 'cost' => 10 ),
                             'v2/ex/order/fills' => array( 'cost' => 10 ),
                         ),
@@ -158,10 +163,12 @@ class zebpay extends Exchange {
                             'v1/wallet/balance' => array( 'cost' => 10 ),
                             'v1/trade/order' => array( 'cost' => 10 ),
                             'v1/trade/order/open-orders' => array( 'cost' => 10 ),
+                            'v1/trade/order/history' => array( 'cost' => 10 ),
                             'v1/trade/userLeverages' => array( 'cost' => 10 ),
                             'v1/trade/userLeverage' => array( 'cost' => 10 ),
                             'v1/trade/positions' => array( 'cost' => 10 ),
                             'v1/trade/history' => array( 'cost' => 10 ),
+                            'v1/trade/transaction/history' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
                             'v1/trade/order' => array( 'cost' => 10 ),
@@ -172,6 +179,10 @@ class zebpay extends Exchange {
                             'v1/trade/update/userLeverage' => array( 'cost' => 10 ),
                         ),
                         'delete' => array(
+                            'v1/trade/order' => array( 'cost' => 10 ),
+                            'v1/trade/order/all' => array( 'cost' => 10 ),
+                        ),
+                        'patch' => array(
                             'v1/trade/order' => array( 'cost' => 10 ),
                         ),
                     ),
@@ -237,27 +248,26 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchStatus', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchStatus', null, $params);
         $isSpot = ($type === 'spot');
         $response = null;
         $data = array();
         if ($isSpot) {
-            $response = Async\await($this->publicSpotGetV2SystemStatus($params));
+            $response = Async\await($this->publicSpotGetV2SystemStatus($paramsMarketType));
             $data = $response;
         } else {
-            $response = Async\await($this->publicSwapGetV1SystemStatus($params));
+            $response = Async\await($this->publicSwapGetV1SystemStatus($paramsMarketType));
             $data = $this->safe_dict($response, 'data', array());
         }
         //
         // {
-        //     "statusDescription" => "OK",
+        //     "statusDescription": "OK",
         //     "data":
         //      {
-        //        "systemStatus" => "ok"
+        //        "systemStatus": "ok"
         //       }
-        //     "statusCode" => 200,
-        //     "customMessage" => ["OK"]
+        //     "statusCode": 200,
+        //     "customMessage": ["OK"]
         // }
         //
         $status = $this->safe_string_2($data, 'systemStatus', 'status');
@@ -284,27 +294,26 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the poloniexfutures server
          */
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTime', null, $params);
         $isSpot = ($type === 'spot');
         $response = null;
         $data = array();
         if ($isSpot) {
-            $response = Async\await($this->publicSpotGetV2SystemTime($params));
+            $response = Async\await($this->publicSpotGetV2SystemTime($paramsMarketType));
             $data = $response;
         } else {
-            $response = Async\await($this->publicSwapGetV1SystemTime($params));
+            $response = Async\await($this->publicSwapGetV1SystemTime($paramsMarketType));
             $data = $this->safe_dict($response, 'data', array());
         }
         //
         // {
-        //     "statusDescription" => "OK",
+        //     "statusDescription": "OK",
         //     "data":
         //      {
-        //        "timestamp" => 1546837113087
+        //        "timestamp": 1546837113087
         //      }
-        //     "statusCode" => 200,
-        //     "customMessage" => ["OK"]
+        //     "statusCode": 200,
+        //     "customMessage": ["OK"]
         // }
         //
         $time = $this->safe_integer($data, 'timestamp');
@@ -330,7 +339,7 @@ class zebpay extends Exchange {
         $defaultMarkets = array( 'spot', 'swap' );
         $types = $this->safe_list($fetchMarketsOptions, 'types', $defaultMarkets);
         for ($i = 0; $i < count($types); $i++) {
-            $type = $types[$i];
+            $type = $this->safe_string($types, $i);
             if ($type === 'spot') {
                 $promisesUnresolved[] = $this->fetch_spot_markets($params);
             } elseif ($type === 'swap') {
@@ -361,33 +370,33 @@ class zebpay extends Exchange {
         $response = Async\await($this->publicSpotGetV2ExCurrencies($params));
         //
         //     {
-        //             "data" => array(
+        //             "data": [
         //                 {
-        //                     "currency" => "BTC",
-        //                     "name" => "BTC",
-        //                     "fullName" => "150",
-        //                     "precision" => "0.2",
-        //                     "type" => "fiat",
-        //                     "isDebitEnabled" => false,
-        //                     "chains" => array(
+        //                     "currency": "BTC",
+        //                     "name": "BTC",
+        //                     "fullName": "150",
+        //                     "precision": "0.2",
+        //                     "type": "fiat",
+        //                     "isDebitEnabled": false,
+        //                     "chains": [
         //                         {
-        //                             "chainName" => "Bitcoin",
-        //                             "withdrawalMinSize" => "0.000482",
-        //                             "depositMinSize" => "0.00000001",
-        //                             "withdrawalFee" => "0.00040000",
-        //                             "isWithdrawEnabled" => "true",
-        //                             "isDepositEnabled" => "true",
-        //                             "contractAddress" => "0x095418A82BC2439703b69fbE1210824F2247D77c",
-        //                             "withdrawPrecision" => "8",
-        //                             "maxWithdraw" => "2.43090487000000",
-        //                             "maxDeposit" => "100.00000000",
-        //                             "needTag" => "false",
-        //                             "chainId" => "bitcoin",
-        //                             "AddressRegex" => "^tb1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]array(39,59)|m[a-zA-Z0-9]array(25,34)|n[a-zA-Z0-9]array(25,34)|^2[a-zA-Z0-9]array(25,34)$"
+        //                             "chainName": "Bitcoin",
+        //                             "withdrawalMinSize": "0.000482",
+        //                             "depositMinSize": "0.00000001",
+        //                             "withdrawalFee": "0.00040000",
+        //                             "isWithdrawEnabled": "true",
+        //                             "isDepositEnabled": "true",
+        //                             "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+        //                             "withdrawPrecision": "8",
+        //                             "maxWithdraw": "2.43090487000000",
+        //                             "maxDeposit": "100.00000000",
+        //                             "needTag": "false",
+        //                             "chainId": "bitcoin",
+        //                             "AddressRegex": "^tb1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{39,59}|m[a-zA-Z0-9]{25,34}|n[a-zA-Z0-9]{25,34}|^2[a-zA-Z0-9]{25,34}$"
         //                          }
-        //                     )
+        //                     ]
         //                 }
-        //             )
+        //             ]
         //     }
         //
         $rows = $this->safe_list($response, 'data', array());
@@ -410,9 +419,9 @@ class zebpay extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'chainId');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $depositAllowed = $this->safe_bool($chain, 'isDepositEnabled') === true;
+            $depositAllowed = $this->safe_bool($chain, 'isDepositEnabled', false);
             $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
-            $withdrawAllowed = $this->safe_bool($chain, 'isWithdrawEnabled') === true;
+            $withdrawAllowed = $this->safe_bool($chain, 'isWithdrawEnabled', false);
             $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
             $withdrawFeeString = $this->safe_string($chain, 'withdrawalFee');
             if ($withdrawFeeString !== null) {
@@ -498,7 +507,7 @@ class zebpay extends Exchange {
         }
         $market = $this->market($symbol);
         $response = null;
-        $data;
+        $data = null;
         $request = array(
             'symbol' => $market['id'],
         );
@@ -506,32 +515,32 @@ class zebpay extends Exchange {
             $response = Async\await($this->privateSpotGetV2ExTradefee($this->extend($request, $params)));
             //
             // {
-            //     "statusDescription" => "Success",
+            //     "statusDescription": "Success",
             //     "data":
             //       {
-            //         "symbol" => "BTCINR",
-            //         "takerFeeRate" => "0.01",
-            //         "makerFeeRate" => "0.05",
-            //         "percentage" => true
+            //         "symbol": "BTCINR",
+            //         "takerFeeRate": "0.01",
+            //         "makerFeeRate": "0.05",
+            //         "percentage": true
             //       } ,
-            //     "statusCode" => 200,
+            //     "statusCode": 200,
             // }
             $data = $this->safe_dict($response, 'data', array());
         } else {
             $response = Async\await($this->publicSwapGetV1ExchangeTradefee($this->extend($request, $params)));
             //
             // {
-            //     "statusDescription" => "OK",
+            //     "statusDescription": "OK",
             //     "data":
-            //     array(
+            //     [
             //       {
-            //         "symbol" => "BTCINR",
-            //         "takerFee" => "0.01",
-            //         "makerFee" => "0.05"
+            //         "symbol": "BTCINR",
+            //         "takerFee": "0.01",
+            //         "makerFee": "0.05"
             //       }
-            //     ) ,
-            //     "statusCode" => 200,
-            //     "customMessage" => ["OK"]
+            //     ] ,
+            //     "statusCode": 200,
+            //     "customMessage": ["OK"]
             // }
             //
             $responseData = $this->safe_list($response, 'data', array());
@@ -553,26 +562,25 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
         $response = null;
         if ($type === 'spot') {
-            $response = Async\await($this->publicSpotGetV2ExTradefees($params));
+            $response = Async\await($this->publicSpotGetV2ExTradefees($paramsMarketType));
         } else {
-            $response = Async\await($this->publicSwapGetV1ExchangeTradefees($params));
+            $response = Async\await($this->publicSwapGetV1ExchangeTradefees($paramsMarketType));
         }
         //
         // {
-        //     "statusDescription" => "OK",
-        //     "data" => array(
+        //     "statusDescription": "OK",
+        //     "data": [
         //         {
-        //             "symbol" => "BTCINR",
-        //             "takerFee" => "0.01",
-        //             "makerFee" => "0.05"
+        //             "symbol": "BTCINR",
+        //             "takerFee": "0.01",
+        //             "makerFee": "0.05"
         //         }
-        //     ),
-        //     "statusCode" => 200,
-        //     "customMessage" => ["OK"]
+        //     ],
+        //     "statusCode": 200,
+        //     "customMessage": ["OK"]
         // }
         //
         $fees = $this->safe_list($response, 'data', array());
@@ -599,7 +607,7 @@ class zebpay extends Exchange {
          * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market->md#get-order-book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {int} [$limit] the maximum amount of order book entries to return.
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
@@ -610,21 +618,21 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = null;
         if ($market['spot'] === true) {
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
             //
             //       {
-            //         "asks" => array(
+            //         "asks": [
             //                 [5000, 1000],           //Price, quantity
             //                 [6000, 1983]            //Price, quantity
-            //         ),
-            //         "bids" => array(
+            //         ],
+            //         "bids": [
             //                 [3200, 800],            //Price, quantity
             //                 [3100, 100]             //Price, quantity
-            //         ),
+            //         ],
             //       }
             // }
             $response = Async\await($this->publicSpotGetV2MarketOrderbook($this->extend($request, $params)));
@@ -663,22 +671,22 @@ class zebpay extends Exchange {
         if ($market['spot'] === true) {
             $response = Async\await($this->publicSpotGetV2MarketTicker($this->extend($request, $params)));
             //
-            //     array(
+            //     [
             //        {
-            //            "symbol" => "BTC-INR",
-            //            "bestBid" => "4900000",
-            //            "bestBidQty" => "0.00014938",
-            //            "bestAsk" => "",
-            //            "bestAskQty" => "0",
-            //            "priceChange" => "-98134.56",
-            //            "priceChangePercent" => "-1.84",
-            //            "high" => "5433400",
-            //            "low" => "5333400",
-            //            "vol" => "0.0002",
-            //            "volValue" => "1066.68",
-            //            "last" => "5333400"
+            //            "symbol": "BTC-INR",
+            //            "bestBid": "4900000",
+            //            "bestBidQty": "0.00014938",
+            //            "bestAsk": "",
+            //            "bestAskQty": "0",
+            //            "priceChange": "-98134.56",
+            //            "priceChangePercent": "-1.84",
+            //            "high": "5433400",
+            //            "low": "5333400",
+            //            "vol": "0.0002",
+            //            "volValue": "1066.68",
+            //            "last": "5333400"
             //        }
-            //     )
+            //     ]
             //
         } else {
             $response = Async\await($this->publicSwapGetV1MarketTicker24Hr($this->extend($request, $params)));
@@ -701,36 +709,35 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         if ($type !== 'spot') {
             throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
-        $response = Async\await($this->publicSpotGetV2MarketAllTickers($params));
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $response = Async\await($this->publicSpotGetV2MarketAllTickers($paramsMarketType));
         //
-        //     array(
+        //     [
         //        {
-        //            "symbol" => "BTC-INR",
-        //            "bestBid" => "4900000",
-        //            "bestBidQty" => "0.00014938",
-        //            "bestAsk" => "",
-        //            "bestAskQty" => "0",
-        //            "priceChange" => "-98134.56",
-        //            "priceChangePercent" => "-1.84",
-        //            "high" => "5433400",
-        //            "low" => "5333400",
-        //            "vol" => "0.0002",
-        //            "volValue" => "1066.68",
-        //            "last" => "5333400"
+        //            "symbol": "BTC-INR",
+        //            "bestBid": "4900000",
+        //            "bestBidQty": "0.00014938",
+        //            "bestAsk": "",
+        //            "bestAskQty": "0",
+        //            "priceChange": "-98134.56",
+        //            "priceChangePercent": "-1.84",
+        //            "high": "5433400",
+        //            "low": "5333400",
+        //            "vol": "0.0002",
+        //            "volValue": "1066.68",
+        //            "last": "5333400"
         //        }
-        //     )
+        //     ]
         //
         $tickerList = $this->safe_list($response, 'data', array());
-        return $this->parse_tickers($tickerList, $symbols);
+        return $this->parse_tickers($tickerList, $symbolsNormalized);
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -747,53 +754,59 @@ class zebpay extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch. Swap => 1–1000, omit for 1000
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch (inclusive). Swap => requires $since
          * @param {int} [$params->endtime] the latest time in ms to fetch orders for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @param {string} [$params->priceType] *swap only* LTP (default) or MARK_PRICE
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100; // default is 200
-        }
         $request = array(
             'symbol' => $market['id'],
         );
+        $until = $this->safe_integer_2($params, 'until', 'endtime');
+        $paramsOmitted = $this->omit($params, array( 'until', 'endtime', 'endTime', 'interval', 'startTime' ));
+        $response = null;
+        $limitResolved = $limit;
         if ($market['spot'] === true) {
+            if ($limit === null) {
+                $limitResolved = 100;
+            }
             $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        } else {
-            $request['interval'] = $timeframe;
-        }
-        if (($market['contract'] === true) && ($limit !== null)) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            if ($market['spot'] === true) {
+            if ($since !== null) {
                 $request['startTime'] = $since;
-            } else {
+            }
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
+            if ($until === null || $since === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a since and until/endtime parameter for spot markets');
+            }
+            $paramsSpot = $this->omit($paramsOmitted, 'priceType');
+            $response = Async\await($this->publicSpotGetV2MarketKlines($this->extend($request, $paramsSpot)));
+        } else {
+            $request['timeframe'] = $timeframe;
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
                 $request['since'] = $since;
             }
-        }
-        $until = $this->safe_integer_2($params, 'until', 'endtime');
-        if ($until !== null) {
-            $request['endTime'] = $until;
-            $params = $this->omit($params, array( 'endtime', 'until' ));
-        }
-        $response = null;
-        if ($market['spot'] === true) {
-            if ($until === null || $since === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a $since and until/endtime parameter for spot markets');
+            if ($until !== null) {
+                if ($since === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a since argument when params["until"] is used');
+                }
+                $request['until'] = $until;
             }
-            $response = Async\await($this->publicSpotGetV2MarketKlines($this->extend($request, $params)));
-        } else {
-            $response = Async\await($this->publicSwapPostV1MarketKlines($this->extend($request, $params)));
+            $response = Async\await($this->publicSwapPostV1MarketKlines($this->extend($request, $paramsOmitted)));
         }
         //
-        //             array(
-        //                 array(
+        //             [
+        //                 [
         //                     "1670608800000",
         //                     "17071",
         //                     "17073",
@@ -801,8 +814,8 @@ class zebpay extends Exchange {
         //                     "17055.5",
         //                     "268611",
         //                     "15.74462667"
-        //                 ),
-        //                 array(
+        //                 ],
+        //                 [
         //                     "1670605200000",
         //                     "17071.5",
         //                     "17071.5",
@@ -810,8 +823,8 @@ class zebpay extends Exchange {
         //                     "17071",
         //                     "4177",
         //                     "0.24469757"
-        //                 ),
-        //                 array(
+        //                 ],
+        //                 [
         //                     "1670601600000",
         //                     "17086.5",
         //                     "17088",
@@ -819,11 +832,11 @@ class zebpay extends Exchange {
         //                     "17071.5",
         //                     "6356",
         //                     "0.37288112"
-        //                 )
-        //             )
+        //                 ]
+        //             ]
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limitResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -860,7 +873,7 @@ class zebpay extends Exchange {
             $response = Async\await($this->publicSwapGetV1MarketAggTrade($this->extend($request, $params)));
         }
         //
-        //     array(
+        //     [
         //         {
         //             "id" : "60014521",
         //             "price" : "23162.94",
@@ -869,7 +882,7 @@ class zebpay extends Exchange {
         //             "time" : 1659684602042,
         //             "isBuyerMaker" : 1659684602036
         //         }
-        //     )
+        //     ]
         //
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -898,20 +911,19 @@ class zebpay extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $response = null;
         if ($type === 'spot') {
             throw new NotSupported($this->id . ' fetchMyTrades() does not support spot markets');
         } else {
-            $response = Async\await($this->privateSwapGetV1TradeHistory($params));
+            $response = Async\await($this->privateSwapGetV1TradeHistory($paramsMarketType));
         }
         $data = $this->safe_dict($response, 'data', array());
         $items = $this->safe_list($data, 'items', array());
         return $this->parse_trades($items, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -928,8 +940,7 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchOrderTrades', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrderTrades', null, $params);
         if ($type !== 'spot') {
             throw new NotSupported($this->id . ' fetchOrderTrades() does not support ' . $type . ' markets');
         }
@@ -939,22 +950,22 @@ class zebpay extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        $response = Async\await($this->privateSpotGetV2ExOrderFills($this->extend($request, $params)));
+        $response = Async\await($this->privateSpotGetV2ExOrderFills($this->extend($request, $paramsMarketType)));
         //
         //         {
-        //             "orderId" => "456789",
-        //             "symbol" => "LINK_USDT",
-        //             "origQty" => "1.5",
-        //             "orderId" => "30249408733945856",
-        //             "side" => "BUY",
-        //             "type" => "LIMIT",
-        //             "matchRole" => "MAKER",
-        //             "createTime" => 1648200366864,
-        //             "price" => "3.1",
-        //             "avgExecutedPrice" => "2.3456"
-        //             "openQty" => "1",
-        //             "filledQty" => "0",
-        //             "fees" => "0.00145",
+        //             "orderId": "456789",
+        //             "symbol": "LINK_USDT",
+        //             "origQty": "1.5",
+        //             "orderId": "30249408733945856",
+        //             "side": "BUY",
+        //             "type": "LIMIT",
+        //             "matchRole": "MAKER",
+        //             "createTime": 1648200366864,
+        //             "price": "3.1",
+        //             "avgExecutedPrice": "2.3456"
+        //             "openQty": "1",
+        //             "filledQty": "0",
+        //             "fees": "0.00145",
         //         }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -967,31 +978,31 @@ class zebpay extends Exchange {
         // fetchMyTrades
         //
         //     {
-        //         "id" => "32164924331503616",
-        //         "symbol" => "LINK_USDT",
-        //         "accountType" => "SPOT",
-        //         "orderId" => "32164923987566592",
-        //         "side" => "SELL",
-        //         "type" => "MARKET",
-        //         "matchRole" => "TAKER",
-        //         "createTime" => 1648635115525,
-        //         "price" => "11",
-        //         "quantity" => "0.5",
-        //         "amount" => "5.5",
-        //         "feeCurrency" => "USDT",
-        //         "feeAmount" => "0.007975",
-        //         "pageId" => "32164924331503616",
-        //         "clientOrderId" => "myOwnId-321"
+        //         "id": "32164924331503616",
+        //         "symbol": "LINK_USDT",
+        //         "accountType": "SPOT",
+        //         "orderId": "32164923987566592",
+        //         "side": "SELL",
+        //         "type": "MARKET",
+        //         "matchRole": "TAKER",
+        //         "createTime": 1648635115525,
+        //         "price": "11",
+        //         "quantity": "0.5",
+        //         "amount": "5.5",
+        //         "feeCurrency": "USDT",
+        //         "feeAmount": "0.007975",
+        //         "pageId": "32164924331503616",
+        //         "clientOrderId": "myOwnId-321"
         //     }
         //   {
-        //     aggregateTradeId => '2659115835',
-        //     $symbol => 'ETHINR',
-        //     price => '292848',
-        //     quantity => '0.147',
-        //     firstTradeId => '7018766077',
-        //     lastTradeId => '7018766081',
-        //     tradeTime => '1765381971447',
-        //     isBuyerMarketMaker => true
+        //     aggregateTradeId: '2659115835',
+        //     symbol: 'ETHINR',
+        //     price: '292848',
+        //     quantity: '0.147',
+        //     firstTradeId: '7018766077',
+        //     lastTradeId: '7018766081',
+        //     tradeTime: '1765381971447',
+        //     isBuyerMarketMaker: true
         //   }
         //
         //
@@ -999,8 +1010,8 @@ class zebpay extends Exchange {
         $orderId = $this->safe_string_2($trade, 'id', 'order');
         $timestamp = $this->safe_integer_2($trade, 'timestamp', 'tradeTime');
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market, '_');
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market, '_');
+        $symbol = $marketResolved['symbol'];
         $side = $this->safe_string_lower($trade, 'side');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'amount', 'quantity');
@@ -1018,7 +1029,7 @@ class zebpay extends Exchange {
             'amount' => $amountString,
             'cost' => $this->safe_string($trade, 'cost'),
             'fee' => $this->safe_dict($trade, 'fee'),
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
@@ -1038,37 +1049,36 @@ class zebpay extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $isSpot = ($type === 'spot');
         $response = null;
         if ($isSpot) {
-            $response = Async\await($this->privateSpotGetV2AccountBalance($params));
+            $response = Async\await($this->privateSpotGetV2AccountBalance($paramsMarketType));
         } else {
-            $response = Async\await($this->privateSwapGetV1WalletBalance($params));
+            $response = Async\await($this->privateSwapGetV1WalletBalance($paramsMarketType));
         }
         //
         //     {
-        //         "data" => array(
-        //              array(
-        //                 "free" => 200,
-        //                 "used" => 100,
-        //                 "total" => 300,
-        //                 "currency" => "INR"
-        //              ),
+        //         "data": [
         //              {
-        //                 "free" => 0,
-        //                 "used" => 0,
-        //                 "total" => 0,
-        //                 "currency" => "USDT"
+        //                 "free": 200,
+        //                 "used": 100,
+        //                 "total": 300,
+        //                 "currency": "INR"
+        //              },
+        //              {
+        //                 "free": 0,
+        //                 "used": 0,
+        //                 "total": 0,
+        //                 "currency": "USDT"
         //              }
-        //         )
+        //         ]
         //     }
         //
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1099,21 +1109,19 @@ class zebpay extends Exchange {
         $upperCaseType = strtoupper($type);
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
-        $params = $this->omit($params, array( 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ));
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $query = $this->omit($params, array( 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ));
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
         );
         $response = null;
         if ($market['spot'] === true) {
-            list($request, $params) = $this->order_request($symbol, $type, $amount, $request, $price, $params);
-            $response = Async\await($this->privateSpotPostV2ExOrders($this->extend($request, $params)));
+            list($request, $query) = $this->order_request($symbol, $type, $amount, $request, $price, $query);
+            $response = Async\await($this->privateSpotPostV2ExOrders($this->extend($request, $query)));
         } else {
-            $marginAsset = $this->safe_string($params, 'marginAsset', 'INR');
-            $formType = $this->safe_string_upper($params, 'formType', 'ORDER_FORM');
+            $marginAsset = $this->safe_string($query, 'marginAsset', 'INR');
+            $formType = $this->safe_string_upper($query, 'formType', 'ORDER_FORM');
             $request['formType'] = $formType;
             $request['amount'] = $this->parse_to_numeric($this->amount_to_precision($market['id'], $amount));
             $request['marginAsset'] = $marginAsset;
@@ -1126,36 +1134,36 @@ class zebpay extends Exchange {
                 if ($hasSL) {
                     $request['stopLossPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
                 }
-                $response = Async\await($this->privateSwapPostV1TradeOrderAddTPSL($this->extend($request, $params)));
+                $response = Async\await($this->privateSwapPostV1TradeOrderAddTPSL($this->extend($request, $query)));
             } else {
                 $request['type'] = $upperCaseType;
                 if ($type === 'limit') {
                     if ($price === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for limit orders');
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for limit orders');
                     }
                     $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
                 }
-                $response = Async\await($this->privateSwapPostV1TradeOrder($this->extend($request, $params)));
+                $response = Async\await($this->privateSwapPostV1TradeOrder($this->extend($request, $query)));
             }
         }
         //
         //    {
-        //        "data" => array(
-        //            "clientOrderId" => "619717484f1d010001510cde",
-        //        ),
+        //        "data": {
+        //            "clientOrderId": "619717484f1d010001510cde",
+        //        },
         //    }
         //
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
-    public function order_request(mixed $symbol, mixed $type, mixed $amount, mixed $request, ?float $price = null, $params = array()) {
+    public function order_request(string $symbol, string $type, ?float $amount, array $request, ?float $price = null, $params = array()) {
         $upperCaseType = strtoupper($type);
         $triggerPrice = $this->safe_string($params, 'stopLossPrice');
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $clientOrderId = $this->safe_string($params, 'clientOrderId', $this->uuid());
-        $params = $this->omit($params, array( 'stopLossPrice', 'cost', 'timeInForce', 'clientOrderId' ));
+        $paramsOmitted = $this->omit($params, array( 'stopLossPrice', 'cost', 'timeInForce', 'clientOrderId' ));
         $request['type'] = $upperCaseType;
         $request['clientOrderId'] = $clientOrderId;
         $request['timeInForce'] = $timeInForce;
@@ -1171,10 +1179,10 @@ class zebpay extends Exchange {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        return array( $request, $params );
+        return array( $request, $paramsOmitted );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1203,7 +1211,7 @@ class zebpay extends Exchange {
         } else {
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $clientOrderId parameter for swap orders');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a clientOrderId parameter for swap orders');
             }
             $request['clientOrderId'] = $clientOrderId;
             $request['symbol'] = $market['id'];
@@ -1211,16 +1219,16 @@ class zebpay extends Exchange {
         }
         //
         //    {
-        //        "data" => array(
-        //            "clientOrderId" => "619714b8b6353000014c505a",
-        //            "status" => "canceled"
-        //        ),
+        //        "data": {
+        //            "clientOrderId": "619714b8b6353000014c505a",
+        //            "status": "canceled"
+        //        },
         //    }
         //
         return $this->parse_order($this->safe_dict($response, 'data', array()));
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1235,21 +1243,20 @@ class zebpay extends Exchange {
          * @param {int} [$params->timestamp] the timestamp of the request in ms
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
         if ($type !== 'spot') {
             throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' markets');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $response = Async\await($this->privateSpotDeleteV2ExOrdersCancelAll($params));
+        $response = Async\await($this->privateSpotDeleteV2ExOrdersCancelAll($paramsMarketType));
         //
         //    {
-        //        "data" => array(
-        //            "orderId" => "12345",
-        //            "symbol" => 'BTC-INR
-        //        ),
+        //        "data": {
+        //            "orderId": "12345",
+        //            "symbol": 'BTC-INR
+        //        },
         //    }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1304,33 +1311,33 @@ class zebpay extends Exchange {
         }
         //
         //     {
-        //         "data" => {
-        //             "nextTimeStamp" => null,
-        //             "totalCount" => 100,
-        //             "data" => array(
+        //         "data": {
+        //             "nextTimeStamp": null,
+        //             "totalCount": 100,
+        //             "data": [
         //                 {
-        //                     "clientOrderId" => "64507d02921f1c0001ff6892-123-zeb",
-        //                     "datetime" => "2025-03-14T14:34:34.4567",
-        //                     "timestamp" => 1741962557553,
-        //                     "status" => "open",
-        //                     "symbol" => "BTCINR",
-        //                     "type" => "market",
-        //                     "timeInForce" => "GTC",
-        //                     "side" => "buy",
-        //                     "price" => 700000,
-        //                     "amount" => 0.002,
-        //                     "filled" => null,
-        //                     "remaining" => 0.002,
-        //                     "trades" => array()
+        //                     "clientOrderId": "64507d02921f1c0001ff6892-123-zeb",
+        //                     "datetime": "2025-03-14T14:34:34.4567",
+        //                     "timestamp": 1741962557553,
+        //                     "status": "open",
+        //                     "symbol": "BTCINR",
+        //                     "type": "market",
+        //                     "timeInForce": "GTC",
+        //                     "side": "buy",
+        //                     "price": 700000,
+        //                     "amount": 0.002,
+        //                     "filled": null,
+        //                     "remaining": 0.002,
+        //                     "trades": []
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
         return $this->parse_orders($orders, $market, null, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1363,26 +1370,26 @@ class zebpay extends Exchange {
         }
         //
         //     {
-        //         "data" => {
-        //             "nextTimeStamp" => null,
-        //             "totalCount" => 100,
-        //             "data" => array(
+        //         "data": {
+        //             "nextTimeStamp": null,
+        //             "totalCount": 100,
+        //             "data": [
         //                 {
-        //                     "clientOrderId" => "64507d02921f1c0001ff6892-123-zeb",
-        //                     "datetime" => "2025-03-14T14:34:34.4567",
-        //                     "timestamp" => 1741962557553,
-        //                     "status" => "open",
-        //                     "symbol" => "BTCINR",
-        //                     "type" => "market",
-        //                     "timeInForce" => "GTC",
-        //                     "side" => "buy",
-        //                     "price" => 700000,
-        //                     "amount" => 0.002,
-        //                     "filled" => null,
-        //                     "remaining" => 0.002,
-        //                     "trades" => array()
+        //                     "clientOrderId": "64507d02921f1c0001ff6892-123-zeb",
+        //                     "datetime": "2025-03-14T14:34:34.4567",
+        //                     "timestamp": 1741962557553,
+        //                     "status": "open",
+        //                     "symbol": "BTCINR",
+        //                     "type": "market",
+        //                     "timeInForce": "GTC",
+        //                     "side": "buy",
+        //                     "price": 700000,
+        //                     "amount": 0.002,
+        //                     "filled": null,
+        //                     "remaining": 0.002,
+        //                     "trades": []
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -1393,24 +1400,24 @@ class zebpay extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //      {
-        //          "clientOrderId" => "64507d02921f1c0001ff6892-123-zeb",
-        //          "datetime" => "2025-03-14T14:34:34.4567",
-        //          "timestamp" => 1741962557553,
-        //          "status" => "open",
-        //          "symbol" => "BTCINR",
-        //          "type" => "market",
-        //          "timeInForce" => "GTC",
-        //          "side" => "buy",
-        //          "price" => 700000,
-        //          "amount" => 0.002,
-        //          "filled" => null,
-        //          "remaining" => 0.002,
-        //          "trades" => array()
+        //          "clientOrderId": "64507d02921f1c0001ff6892-123-zeb",
+        //          "datetime": "2025-03-14T14:34:34.4567",
+        //          "timestamp": 1741962557553,
+        //          "status": "open",
+        //          "symbol": "BTCINR",
+        //          "type": "market",
+        //          "timeInForce": "GTC",
+        //          "side": "buy",
+        //          "price": 700000,
+        //          "amount": 0.002,
+        //          "filled": null,
+        //          "remaining": 0.002,
+        //          "trades": []
         //      }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $type = $this->safe_string($order, 'type');
         $timestamp = $this->safe_number($order, 'timestamp');
         $datetime = $this->iso8601($timestamp);
@@ -1445,7 +1452,7 @@ class zebpay extends Exchange {
             'lastUpdateTimestamp' => null,
             'average' => null,
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
         return $parsedOrder;
     }
 
@@ -1497,14 +1504,14 @@ class zebpay extends Exchange {
         $response = Async\await($this->privateSwapGetV1TradeUserLeverages($params));
         //
         //     {
-        //         "leveragePreferences" => array(
-        //             array(
-        //                 "symbol" => "ETHINR",
-        //                 "shortLeverage" => 1,
-        //                 "longLeverage" => 10,
-        //                 "marginMode" => "isolated"
-        //             ),
-        //         )
+        //         "leveragePreferences": [
+        //             {
+        //                 "symbol": "ETHINR",
+        //                 "shortLeverage": 1,
+        //                 "longLeverage": 10,
+        //                 "marginMode": "isolated"
+        //             },
+        //         ]
         //     }
         //
         $leveragePreferences = $this->safe_list($response, 'data', array());
@@ -1535,7 +1542,7 @@ class zebpay extends Exchange {
         $response = Async\await($this->privateSwapGetV1TradeUserLeverage($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array( $symbol => "ETHINR", longLeverage => 1, shortLeverage => 1, marginMode => "isolated" )
+        //         "data": { symbol: "ETHINR", longLeverage: 1, shortLeverage: 1, marginMode: "isolated" }
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1558,7 +1565,7 @@ class zebpay extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1569,13 +1576,13 @@ class zebpay extends Exchange {
             'symbol' => $market['id'],
         );
         //
-        // array( data => { "symbol", "longLeverage" => 10, "shortLeverage" => 1, "marginMode" => "isolated" )
+        // { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
         //
         $response = Async\await($this->privateSwapPostV1TradeUpdateUserLeverage($this->extend($request, $params)));
         return $response;
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array()) {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_positions(...))($symbols, $params);
     }
 
@@ -1599,20 +1606,20 @@ class zebpay extends Exchange {
         $response = Async\await($this->privateSwapGetV1TradePositions($this->extend($request, $params)));
         //
         //    {
-        //        "data" => array(
+        //        "data": [
         //            {
-        //                "id" => "31998678-6056-413f-9d0d-fc3678641650",
-        //                "symbol" => "ETHINR",
-        //                "entryPrice" => "0.7533",
-        //                "datetime" => "2022-03-03T22:51:16.566Z",
-        //                "contractSize" => "230"
+        //                "id": "31998678-6056-413f-9d0d-fc3678641650",
+        //                "symbol": "ETHINR",
+        //                "entryPrice": "0.7533",
+        //                "datetime": "2022-03-03T22:51:16.566Z",
+        //                "contractSize": "230"
         //            }
-        //        ),
+        //        ],
         //    }
         //
         $positions = $this->safe_list($response, 'data', array());
         $result = $this->parse_positions($positions);
-        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols);
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
@@ -1643,13 +1650,13 @@ class zebpay extends Exchange {
         $response = Async\await($this->privateSwapPostV1TradeAddMargin($this->extend($request, $params)));
         //
         //    {
-        //        "code" => "200000",
-        //        "data" => {
-        //            "symbol" => "BTCINR",
-        //            "type" => "add",
-        //            "amount" => 1000,
-        //            "code" => "INR",
-        //            "status" => "ok"
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "BTCINR",
+        //            "type": "add",
+        //            "amount": 1000,
+        //            "code": "INR",
+        //            "status": "ok"
         //        }
         //    }
         //
@@ -1694,13 +1701,13 @@ class zebpay extends Exchange {
         $response = Async\await($this->privateSwapPostV1TradeReduceMargin($this->extend($request, $params)));
         //
         //    {
-        //        "code" => "200000",
-        //        "data" => {
-        //            "symbol" => "BTCINR",
-        //            "type" => "reduce",
-        //            "amount" => 1000,
-        //            "code" => "INR",
-        //            "status" => "ok"
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "BTCINR",
+        //            "type": "reduce",
+        //            "amount": 1000,
+        //            "code": "INR",
+        //            "status": "ok"
         //        }
         //    }
         //
@@ -1719,19 +1726,19 @@ class zebpay extends Exchange {
         $response = Async\await($this->publicSpotGetV2ExExchangeInfo($params));
         //
         //    {
-        //        "data" => {
-        //            "symbol" => "ETH-INR",
-        //            "name" => "ETH-INR",
-        //            "baseCurrency" => "ETH",
-        //            "quoteCurrency" => "INR",
-        //            "feeCurrency" => "INR",
-        //            "baseMinSize" => "",
-        //            "quoteMinSize" => "100",
-        //            "baseMaxSize" => "",
-        //            "quoteMaxSize" => "2000",
-        //            "baseIncrement" => "0.00001"
-        //            "quoteIncrement" => "0.00001",
-        //            "enableTrading" => true
+        //        "data": {
+        //            "symbol": "ETH-INR",
+        //            "name": "ETH-INR",
+        //            "baseCurrency": "ETH",
+        //            "quoteCurrency": "INR",
+        //            "feeCurrency": "INR",
+        //            "baseMinSize": "",
+        //            "quoteMinSize": "100",
+        //            "baseMaxSize": "",
+        //            "quoteMaxSize": "2000",
+        //            "baseIncrement": "0.00001"
+        //            "quoteIncrement": "0.00001",
+        //            "enableTrading": true
         //        }
         //    }
         //
@@ -1745,6 +1752,9 @@ class zebpay extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $symbol = $base . '/' . $quote;
             $result[] = array(
                 'id' => $id,
@@ -1797,24 +1807,24 @@ class zebpay extends Exchange {
         $response = Async\await($this->publicSwapGetV1MarketMarkets($params));
         //
         //    {
-        //        "data" => {
-        //            "symbol" => "ETHUSDT",
-        //            "status" => "TRADING",
-        //            "mainMarginPercent" => "10",
-        //            "baseAsset" => "ETH",
-        //            "quoteAsset" => "USDT",
-        //            "pricePrecision" => 1,
-        //            "quantityPrecision" => 0.05,
-        //            "baseAssetPrecision" => 0,
-        //            "quotePrecision" => 0,
-        //            "orderType" => ["LIMIT", "MARKET" ]
-        //            "timeInForce" => ["GTC"],
-        //            "makerFee" => "0.01",
-        //            "takerFee" => "0.01",
-        //            "minLeverage" => "1",
-        //            "maxLeverage" => "20"
-        //            "tickSz" => "0.1",
-        //            "lotSz" => "0.1"
+        //        "data": {
+        //            "symbol": "ETHUSDT",
+        //            "status": "TRADING",
+        //            "mainMarginPercent": "10",
+        //            "baseAsset": "ETH",
+        //            "quoteAsset": "USDT",
+        //            "pricePrecision": 1,
+        //            "quantityPrecision": 0.05,
+        //            "baseAssetPrecision": 0,
+        //            "quotePrecision": 0,
+        //            "orderType": ["LIMIT", "MARKET" ]
+        //            "timeInForce": ["GTC"],
+        //            "makerFee": "0.01",
+        //            "takerFee": "0.01",
+        //            "minLeverage": "1",
+        //            "maxLeverage": "20"
+        //            "tickSz": "0.1",
+        //            "lotSz": "0.1"
         //        }
         //    }
         //
@@ -1828,6 +1838,9 @@ class zebpay extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
             $symbol = $base . '/' . $quote;
@@ -1874,7 +1887,7 @@ class zebpay extends Exchange {
         );
         $currencyList = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($currencyList); $i++) {
-            $entry = $currencyList[$i];
+            $entry = $this->safe_dict($currencyList, $i);
             $account = $this->account();
             $account['total'] = $this->safe_string($entry, 'total');
             $account['free'] = $this->safe_string($entry, 'free');
@@ -1903,7 +1916,7 @@ class zebpay extends Exchange {
         $leverage = $this->safe_number($position, 'leverage');
         $datetime = $this->safe_string($position, 'datetime');
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         return array(
             'info' => $position,
             'symbol' => $marketId,
@@ -1918,12 +1931,12 @@ class zebpay extends Exchange {
             'leverage' => $leverage,
             'unrealizedPnl' => null,
             'contracts' => $this->safe_number($position, 'contracts'),
-            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => null,
             'collateral' => null,
-            'marginType' => 'isolated',
+            'marginMode' => 'isolated',
             'side' => $this->safe_string($position, 'side'),
             'percentage' => null,
         );
@@ -1959,34 +1972,33 @@ class zebpay extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //        {
-        //            "symbol" => "BTC-INR",
-        //            "bestBid" => "4900000",
-        //            "bestBidQty" => "0.00014938",
-        //            "bestAsk" => "",
-        //            "bestAskQty" => "0",
-        //            "priceChange" => "-98134.56",
-        //            "priceChangePercent" => "-1.84",
-        //            "high" => "5433400",
-        //            "low" => "5333400",
-        //            "vol" => "0.0002",
-        //            "volValue" => "1066.68",
-        //            "last" => "5333400"
+        //            "symbol": "BTC-INR",
+        //            "bestBid": "4900000",
+        //            "bestBidQty": "0.00014938",
+        //            "bestAsk": "",
+        //            "bestAskQty": "0",
+        //            "priceChange": "-98134.56",
+        //            "priceChangePercent": "-1.84",
+        //            "high": "5433400",
+        //            "low": "5333400",
+        //            "vol": "0.0002",
+        //            "volValue": "1066.68",
+        //            "last": "5333400"
         //        }
-        //     )
+        //     ]
         //
         $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'ts');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId);
+        $marketResolved = $this->safe_market($marketId);
         $close = $this->safe_string($ticker, 'close');
         $last = $this->safe_string($ticker, 'last');
         $percentage = $this->safe_string($ticker, 'percentage');
         $bidVolume = $this->safe_string($ticker, 'bidVolume');
         $askVolume = $this->safe_string($ticker, 'askVolume');
         return $this->safe_ticker(array(
-            'id' => $marketId,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'high'),
@@ -2007,20 +2019,19 @@ class zebpay extends Exchange {
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'markPrice' => null,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function parse_margin_modification(mixed $info, ?array $market = null): array {
+    public function parse_margin_modification(array $info, ?array $market = null): array {
         //
         //    {
-        //         "symbol" => "BTCINR",
-        //         "type" => "reduce",
-        //         "amount" => 1000,
-        //         "code" => "INR",
-        //         "status" => "ok"
+        //         "symbol": "BTCINR",
+        //         "type": "reduce",
+        //         "amount": 1000,
+        //         "code": "INR",
+        //         "status": "ok"
         //    }
         //
-        $timestamp = $this->milliseconds();
         return array(
             'info' => $info,
             'symbol' => $this->safe_string($market, 'id'),
@@ -2030,31 +2041,45 @@ class zebpay extends Exchange {
             'total' => null,
             'code' => $this->safe_string($info, 'code'),
             'status' => $this->safe_string($info, 'status'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
-        $params = $this->omit($params, 'defaultType');
+    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $bodySigned = null;
+        $headersSigned = null;
+        $paramsOmitted = $this->omit($params, 'defaultType');
         $isV1 = mb_strpos($path, 'v1/') > -1;
-        $marketType = $isV1 ? 'swap' : 'spot';
-        $url = $this->urls['api'][$marketType];
-        $tail = '/api/' . $this->implode_params($path, $params);
+        $marketType = 'spot';
+        if ($isV1) {
+            $marketType = 'swap';
+        }
+        $baseApiUrl = $this->safe_string($this->urls['api'], $marketType);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $baseApiUrl;
+        $tail = '/api/' . $this->implode_params($path, $paramsOmitted);
         $url .= $tail;
         $timestamp = (string) $this->milliseconds();
         $signature = '';
-        $query = $this->omit($params, $this->extract_params($path));
+        $query = $this->omit($paramsOmitted, $this->extract_params($path));
         $queryLength = count($query);
         $access = $this->safe_string($api, 0, 'public');
         if ($access === 'public') {
             if ($method === 'GET' || $method === 'DELETE') {
-                if (($queryLength !== null) && ($queryLength !== 0)) {
+                if ($queryLength !== 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {
-                $body = json_encode($params);
-                $headers = array(
+                $priceType = $this->safe_string($paramsOmitted, 'priceType');
+                $paramsBody = $this->omit($paramsOmitted, 'priceType');
+                if ($priceType !== null) {
+                    $url .= '?' . $this->urlencode(array( 'priceType' => $priceType ));
+                }
+                $bodySigned = json_encode($paramsBody);
+                $headersSigned = array(
                     'Referrer' => 'ccxt',
                     'Content-Type' => 'application/json',
                 );
@@ -2062,25 +2087,27 @@ class zebpay extends Exchange {
         } else {
             $this->check_required_credentials();
             $isSpot = $marketType === 'spot';
-            $params['timestamp'] = $timestamp;
+            $paramsOmitted['timestamp'] = $timestamp;
             if ($method === 'GET' || ($method === 'DELETE' && $isSpot)) {
-                // For GET/DELETE => Append $params to URL and sign the $query string
-                $queryString = $this->urlencode($params);
+                // For GET/DELETE: Append params to URL and sign the query string
+                $queryString = $this->urlencode($paramsOmitted);
                 $signature = $this->hmac($this->encode($queryString), $this->encode($this->secret), 'sha256', 'hex');
                 $url .= '?' . $queryString;
             } else {
-                // For POST/PUT => Convert $body to JSON and sign the stringified payload
-                $body = $this->json($params);
-                $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha256', 'hex');
+                // For POST/PUT: Convert body to JSON and sign the stringified payload
+                $bodySigned = $this->json($paramsOmitted);
+                $signature = $this->hmac($this->encode($bodySigned), $this->encode($this->secret), 'sha256', 'hex');
             }
-            $headers = array(
+            $headersSigned = array(
                 'Referrer' => 'ccxt',
                 'X-AUTH-APIKEY' => $this->apiKey,
                 'X-AUTH-SIGNATURE' => $signature,
             );
-            $headers['Content-Type'] = 'application/json';
+            $headersSigned['Content-Type'] = 'application/json';
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
+        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -2090,10 +2117,10 @@ class zebpay extends Exchange {
         }
         //
         // bad
-        //     array( "code" => "400100", "msg" => "validation.createOrder.clientOidIsRequired" )
+        //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
         // good
-        //     array( $code => "200000", data => array( ... ))
-        // array("statusDescription":"Order quantity is out of range","data":array(),"statusCode":400,"customMessage":["Order quantity is out of range"])
+        //     { code: "200000", data: { ... }}
+        // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         //
         $errorCode = $this->safe_string_2($response, 'code', 'statusCode');
         $message = $this->safe_string_2($response, 'msg', 'statusDescription');

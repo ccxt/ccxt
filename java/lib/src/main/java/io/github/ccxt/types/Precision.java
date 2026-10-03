@@ -5,16 +5,21 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Precision {
+public final class Precision extends TypedMap {
     public Double amount;
     public Double price;
     public Double cost;
+    public Double base;
+    public Double quote;
 
     @SuppressWarnings("unchecked")
     public Precision(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.amount = TypeHelper.safeFloat(data, "amount");
         this.price = TypeHelper.safeFloat(data, "price");
         this.cost = TypeHelper.safeFloat(data, "cost");
+        this.base = TypeHelper.safeFloat(data, "base");
+        this.quote = TypeHelper.safeFloat(data, "quote");
     }
 }

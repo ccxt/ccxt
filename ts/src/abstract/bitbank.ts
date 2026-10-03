@@ -20,6 +20,7 @@ interface Exchange {
     privateGetUserAssets (params?: {}): Promise<Dict>;
     privateGetUserSpotOrder (params?: {}): Promise<Dict>;
     privateGetUserSpotActiveOrders (params?: {}): Promise<Dict>;
+    privateGetUserMarginStatus (params?: {}): Promise<Dict>;
     privateGetUserMarginPositions (params?: {}): Promise<Dict>;
     privateGetUserSpotTradeHistory (params?: {}): Promise<Dict>;
     privateGetUserDepositHistory (params?: {}): Promise<Dict>;

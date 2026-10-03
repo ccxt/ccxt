@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official kraken API documentation:** [docs.kraken.com](https://docs.kraken.com/api-reference/)
 
-> 61 implicit endpoints across 3 access groups.
+> 63 implicit endpoints across 3 access groups.
 
 ## zendesk
 
@@ -74,6 +74,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `publicGetTime` | GET | `Time` | 1 |
 | `publicGetSystemStatus` | GET | `SystemStatus` | 1 |
+| `publicGetMaintenanceSchedule` | GET | `MaintenanceSchedule` | 1 |
 | `publicGetAssets` | GET | `Assets` | 1 |
 | `publicGetAssetPairs` | GET | `AssetPairs` | 1 |
 | `publicGetTicker` | GET | `Ticker` | 1 |
@@ -111,6 +112,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostRetrieveExport` | POST | `RetrieveExport` | 3 |
 | `privatePostRemoveExport` | POST | `RemoveExport` | 3 |
 | `privatePostGetApiKeyInfo` | POST | `GetApiKeyInfo` | 3 |
+| `privatePostListWalletAccounts` | POST | `ListWalletAccounts` | 3 |
 | `privatePostAddOrder` | POST | `AddOrder` | 0 |
 | `privatePostAmendOrder` | POST | `AmendOrder` | 0 |
 | `privatePostCancelOrder` | POST | `CancelOrder` | 0 |

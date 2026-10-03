@@ -354,6 +354,13 @@ public partial class delta : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePutUsersMarginMode",parameters);
     }
 
+    /// <summary>Calls the privatePutUsersTradingPreferences endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutUsersTradingPreferences (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutUsersTradingPreferences",parameters);
+    }
+
     /// <summary>Calls the privateDeleteOrders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateDeleteOrders (object parameters = null)

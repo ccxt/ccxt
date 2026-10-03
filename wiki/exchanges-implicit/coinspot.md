@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official coinspot API documentation:** [coinspot.com.au](https://www.coinspot.com.au/api)
 
-> 69 implicit endpoints across 3 access groups.
+> 73 implicit endpoints across 3 access groups.
 
 ## public
 
@@ -122,7 +122,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v2PrivatePostMySell` | POST | `my/sell` | 1 |
 | `v2PrivatePostMySellEdit` | POST | `my/sell/edit` | 1 |
 | `v2PrivatePostMyBuyNow` | POST | `my/buy/now` | 1 |
+| `v2PrivatePostMyBuyNowCoinlist` | POST | `my/buy/now/coinlist` | 1 |
 | `v2PrivatePostMySellNow` | POST | `my/sell/now` | 1 |
+| `v2PrivatePostMySellNowCoinlist` | POST | `my/sell/now/coinlist` | 1 |
 | `v2PrivatePostMySwapNow` | POST | `my/swap/now` | 1 |
 | `v2PrivatePostMyBuyCancel` | POST | `my/buy/cancel` | 1 |
 | `v2PrivatePostMyBuyCancelAll` | POST | `my/buy/cancel/all` | 1 |
@@ -130,6 +132,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v2PrivatePostMySellCancelAll` | POST | `my/sell/cancel/all` | 1 |
 | `v2PrivatePostMyCoinWithdrawSenddetails` | POST | `my/coin/withdraw/senddetails` | 1 |
 | `v2PrivatePostMyCoinWithdrawSend` | POST | `my/coin/withdraw/send` | 1 |
+| `v2PrivatePostMyCoinWithdrawSendAsync` | POST | `my/coin/withdraw/send/async` | 1 |
+| `v2PrivatePostMyCoinWithdrawSendStatus` | POST | `my/coin/withdraw/send/status` | 1 |
 | `v2PrivatePostRoStatus` | POST | `ro/status` | 1 |
 | `v2PrivatePostRoOrdersMarketOpen` | POST | `ro/orders/market/open` | 1 |
 | `v2PrivatePostRoOrdersMarketCompleted` | POST | `ro/orders/market/completed` | 1 |

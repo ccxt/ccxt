@@ -34,6 +34,12 @@ abstract class kraken extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_maintenanceschedule($params = array()) {
+        return $this->request('MaintenanceSchedule', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_assets($params = array()) {
         return $this->request('Assets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -210,6 +216,12 @@ abstract class kraken extends \ccxt\Exchange {
      */
     public function private_post_getapikeyinfo($params = array()) {
         return $this->request('GetApiKeyInfo', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_listwalletaccounts($params = array()) {
+        return $this->request('ListWalletAccounts', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     /**
      * @return array<string, mixed>
@@ -400,6 +412,12 @@ abstract class kraken extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function publicGetMaintenanceSchedule($params = array()) {
+        return $this->request('MaintenanceSchedule', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetAssets($params = array()) {
         return $this->request('Assets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -576,6 +594,12 @@ abstract class kraken extends \ccxt\Exchange {
      */
     public function privatePostGetApiKeyInfo($params = array()) {
         return $this->request('GetApiKeyInfo', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostListWalletAccounts($params = array()) {
+        return $this->request('ListWalletAccounts', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     /**
      * @return array<string, mixed>

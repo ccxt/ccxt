@@ -44,6 +44,8 @@ export function baseOptions(locale: string = i18n.defaultLanguage): BaseLayoutPr
       { text: t.blog, url: '/blog' },
       // Playground lives at the site root (not under /v2), so use an absolute URL.
       { text: 'Playground', url: 'https://docs.ccxt.com/playground', external: true },
+      // Router also lives at the site root (not under /v2), so use an absolute URL.
+      { text: 'Router', url: 'https://docs.ccxt.com/router/', external: true },
       // Discord icon in the secondary nav (next to GitHub) — currentColor matches the
       // GitHub mark in both themes.
       {

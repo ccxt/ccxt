@@ -6,7 +6,8 @@ import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict, Endpoint } from './base/types.js';
+import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict, Endpoint, DepositAddresses } from './base/types.js';
+import type { OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -156,11 +157,30 @@ export default class gemini extends Exchange {
                         'v2/derivatives/candles/{symbol}/{time_frame}': { 'cost': 5 } as Endpoint<List>,
                         'v2/fxrate/{symbol}/{timestamp}': { 'cost': 5 } as Endpoint<Dict>,
                         'v1/riskstats/{symbol}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/{eventTicker}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/{eventTicker}/strike': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/newly-listed': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/recently-settled': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/upcoming': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/categories': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/volume/{date}': { 'cost': 5 } as Endpoint<List>,
+                        'v1/prediction-markets/volume/{date}/hourly': { 'cost': 5 } as Endpoint<List>,
+                        'v1/prediction-markets/terms': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/maker-rebate/rates': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/config': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/events': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         'v1/perpetuals/fundingpaymentreport/records.xlsx': { 'cost': 1 } as Endpoint<string>,
+                        'v1/prediction-markets/terms/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/maker-rebate/summary/total': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/summary/daily': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/summary/total': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/network/{token}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/networks/{network}/assets': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'v1/staking/unstake': { 'cost': 1 } as Endpoint<Dict>,
@@ -223,6 +243,20 @@ export default class gemini extends Exchange {
                         'v1/perpetuals/fundingPayment': { 'cost': 1 } as Endpoint<List>,
                         'v1/perpetuals/fundingpaymentreport/records.json': { 'cost': 1 } as Endpoint<List>,
                         'v1/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order/batch/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/orders/active': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/positions/settled': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/metrics/volume': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/terms/accept': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/maker-rebate/payouts': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/transfers': { 'cost': 1 } as Endpoint<List>,
+                        'v2/withdraw/{network}/{ticker}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/withdraw/{network}/{ticker}/feeEstimate': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -410,7 +444,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         return await this.fetchCurrenciesFromWeb (params);
     }
 
@@ -422,7 +456,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrenciesFromWeb (params = {}) {
+    async fetchCurrenciesFromWeb (params: Dict = {}): Promise<Currencies> {
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {
             return {};
@@ -448,16 +482,19 @@ export default class gemini extends Exchange {
         //    }
         //
         this.options['tradingPairs'] = this.safeList (data, 'tradingPairs');
-        const currenciesArray = this.safeValue (data, 'currencies', []);
+        const currenciesArray = this.safeList (data, 'currencies', []);
         return this.parseCurrencies (currenciesArray);
     }
 
-    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
+    override parseCurrency (rawCurrency: List): CurrencyInterface {
         const id = this.safeString (rawCurrency, 0);
         const code = this.safeCurrencyCode (id);
         const fiatFlag = this.safeString (rawCurrency, 7);
         const isFiat = (fiatFlag !== undefined) && (fiatFlag !== '');
-        const type = isFiat ? 'fiat' : 'crypto';
+        let type: Str = 'crypto';
+        if (isFiat) {
+            type = 'fiat';
+        }
         const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 5)));
         const networks: Dict = {};
         const networkId = this.safeString (rawCurrency, 9);
@@ -520,8 +557,8 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
-        const method = this.safeValue (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+        const method = this.safeString (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
             const promises: List = [];
             promises.push (this.fetchMarketsFromWeb (params)); // get usd markets
@@ -532,7 +569,7 @@ export default class gemini extends Exchange {
         return await this.fetchMarketsFromAPI (params);
     }
 
-    async fetchMarketsFromWeb (params = {}) {
+    async fetchMarketsFromWeb (params: Dict = {}): Promise<Market[]> {
         const data = await this.fetchWebEndpoint ('fetchMarkets', 'webGetRestApi', false, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const error = this.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
         const tables = data.split ('tbody>');
@@ -577,6 +614,9 @@ export default class gemini extends Exchange {
             const baseId = this.safeStringLower (amountPrecisionParts, 1, marketId.replace (quoteId, ''));
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             result.push ({
                 'id': marketId,
                 'symbol': base + '/' + quote,
@@ -630,7 +670,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    parseMarketActive (status: any) {
+    parseMarketActive (status: Str): Bool {
         const statuses: Dict = {
             'open': true,
             'closed': false,
@@ -644,13 +684,13 @@ export default class gemini extends Exchange {
         return this.safeBool (statuses, status, true);
     }
 
-    async fetchUSDTMarkets (params = {}) {
+    async fetchUSDTMarkets (params: Dict = {}): Promise<Market[]> {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
         if ('test' in this.urls) {
             return []; // sandbox does not have usdt markets
         }
-        const fetchUsdtMarkets = this.safeValue (this.options, 'fetchUsdtMarkets', []);
+        const fetchUsdtMarkets: string[] = this.safeList (this.options, 'fetchUsdtMarkets', []);
         const result: List = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
             const marketId = fetchUsdtMarkets[i];
@@ -659,12 +699,15 @@ export default class gemini extends Exchange {
             };
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
             const rawResponse = await this.publicGetV1SymbolsDetailsSymbol (this.extend (request, params));
-            result.push (this.parseMarket (rawResponse));
+            const parsed = this.parseMarket (rawResponse);
+            if (parsed !== undefined) {
+                result.push (parsed);
+            }
         }
         return result;
     }
 
-    async fetchMarketsFromAPI (params = {}) {
+    async fetchMarketsFromAPI (params: Dict = {}): Promise<Market[]> {
         const marketIdsRaw = await this.publicGetV1Symbols (params);
         //
         //     [
@@ -677,7 +720,7 @@ export default class gemini extends Exchange {
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
         const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
         const marketIds: List = [];
-        let allMarketIds: List = [];
+        let allMarketIds: string[] = [];
         if (Array.isArray (marketIdsRaw)) {
             allMarketIds = marketIdsRaw;
         }
@@ -709,7 +752,10 @@ export default class gemini extends Exchange {
             }
             const responses = await Promise.all (promises);
             for (let i = 0; i < responses.length; i++) {
-                result.push (this.parseMarket (responses[i]));
+                const parsed = this.parseMarket (responses[i]);
+                if (parsed !== undefined) {
+                    result.push (parsed);
+                }
             }
         } else {
             // use trading-pairs info, if it was fetched
@@ -720,13 +766,19 @@ export default class gemini extends Exchange {
                     const marketId = marketIds[i];
                     const pairInfo = this.safeList (indexedTradingPairs, marketId.toUpperCase ());
                     if (pairInfo !== undefined && !this.inArray (marketId, brokenPairs)) {
-                        result.push (this.parseMarket (pairInfo));
+                        const parsed = this.parseMarket (pairInfo);
+                        if (parsed !== undefined) {
+                            result.push (parsed);
+                        }
                     }
                 }
             } else {
                 for (let i = 0; i < marketIds.length; i++) {
                     if (!this.inArray (marketIds[i], brokenPairs)) {
-                        result.push (this.parseMarket (marketIds[i]));
+                        const parsed = this.parseMarket (marketIds[i]);
+                        if (parsed !== undefined) {
+                            result.push (parsed);
+                        }
                     }
                 }
             }
@@ -734,7 +786,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    override parseMarket (response: any): Market {
+    override parseMarket (response: Dict | List | string): Market {
         //
         // response might be:
         //
@@ -830,6 +882,9 @@ export default class gemini extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
         if (settleId !== undefined) {
@@ -839,7 +894,10 @@ export default class gemini extends Exchange {
             linear = true; // always linear
             inverse = false;
         }
-        const type = swap ? 'swap' : 'spot';
+        let type: Str = 'spot';
+        if (swap) {
+            type = 'swap';
+        }
         const isSpot = !swap;
         return this.safeMarketStructure ({
             'id': marketId,
@@ -902,7 +960,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -918,7 +976,7 @@ export default class gemini extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTickerV1 (symbol: string, params = {}) {
+    async fetchTickerV1 (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -942,7 +1000,7 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV2 (symbol: string, params = {}) {
+    async fetchTickerV2 (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -967,7 +1025,7 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV1AndV2 (symbol: string, params = {}) {
+    async fetchTickerV1AndV2 (symbol: string, params: Dict = {}): Promise<Ticker> {
         const tickerPromiseA = this.fetchTickerV1 (symbol, params);
         const tickerPromiseB = this.fetchTickerV2 (symbol, params);
         const [ tickerA, tickerB ] = await Promise.all ([ tickerPromiseA, tickerPromiseB ]);
@@ -993,8 +1051,8 @@ export default class gemini extends Exchange {
      * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        const method = this.safeValue (this.options, 'fetchTickerMethod', 'fetchTickerV1');
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        const method = this.safeString (this.options, 'fetchTickerMethod', 'fetchTickerV1');
         if (method === 'fetchTickerV1') {
             return await this.fetchTickerV1 (symbol, params);
         }
@@ -1041,16 +1099,16 @@ export default class gemini extends Exchange {
         //         "ask":"9115.87"
         //     }
         //
-        const volume = this.safeValue (ticker, 'volume', {});
+        const volume = this.safeDict (ticker, 'volume', {});
         const timestamp = this.safeInteger (volume, 'timestamp');
         let symbol: Str = undefined;
         const marketId = this.safeStringLower (ticker, 'pair');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let baseId: Str = undefined;
         let quoteId: Str = undefined;
         let base: Str = undefined;
         let quote: Str = undefined;
-        if ((marketId !== undefined) && (market === undefined)) {
+        if ((marketId !== undefined) && (marketResolved === undefined)) {
             const idLength = marketId.length - 0;
             if (idLength === 7) {
                 baseId = marketId.slice (0, 4);
@@ -1061,12 +1119,14 @@ export default class gemini extends Exchange {
             }
             base = this.safeCurrencyCode (baseId);
             quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            baseId = this.safeStringUpper (market, 'baseId');
-            quoteId = this.safeStringUpper (market, 'quoteId');
+        if ((symbol === undefined) && (marketResolved !== undefined)) {
+            symbol = marketResolved['symbol'];
+            baseId = this.safeStringUpper (marketResolved, 'baseId');
+            quoteId = this.safeStringUpper (marketResolved, 'quoteId');
         }
         const price = this.safeString (ticker, 'price');
         const last = this.safeString2 (ticker, 'last', 'close', price);
@@ -1095,7 +1155,7 @@ export default class gemini extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1107,7 +1167,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1206,7 +1266,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1240,7 +1300,7 @@ export default class gemini extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1261,7 +1321,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1324,7 +1384,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1436,10 +1496,10 @@ export default class gemini extends Exchange {
         const remaining = this.safeString (order, 'remaining_amount');
         const filled = this.safeString (order, 'executed_amount');
         let status = 'closed';
-        if (order['is_live'] === true) {
+        if (this.safeBool (order, 'is_live', false)) {
             status = 'open';
         }
-        if (order['is_cancelled'] === true) {
+        if (this.safeBool (order, 'is_cancelled', false)) {
             status = 'canceled';
         }
         const price = this.safeString (order, 'price');
@@ -1450,7 +1510,7 @@ export default class gemini extends Exchange {
         } else if (type === 'market buy' || type === 'market sell') {
             type = 'market';
         } else {
-            type = order['type'];
+            type = this.safeString (order, 'type');
         }
         const fee = undefined;
         const marketId = this.safeString (order, 'symbol');
@@ -1458,7 +1518,7 @@ export default class gemini extends Exchange {
         const id = this.safeString (order, 'order_id');
         const side = this.safeStringLower (order, 'side');
         const clientOrderId = this.safeString (order, 'client_order_id');
-        const optionsArray = this.safeValue (order, 'options', []);
+        const optionsArray = this.safeList (order, 'options', []);
         const option = this.safeString (optionsArray, 0);
         let timeInForce = 'GTC';
         let postOnly = false;
@@ -1507,7 +1567,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1552,7 +1612,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1602,7 +1662,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1610,7 +1670,6 @@ export default class gemini extends Exchange {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
-        params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
             clientOrderId = this.milliseconds ().toString ();
         }
@@ -1626,12 +1685,14 @@ export default class gemini extends Exchange {
             'type': 'exchange limit', // gemini allows limit orders only
             // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         };
-        type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
+        const typeValue: OrderType = this.safeString (params, 'type', type);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price', 'stopPrice' ]);
-        params = this.omit (params, [ 'triggerPrice', 'stop_price', 'stopPrice', 'type' ]);
-        if (type === 'stopLimit') {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + type + ' orders');
+        // timeInForce and postOnly are consumed only by non-trigger orders
+        const omitKeys: string[] = [ 'clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice' ];
+        const optionKeys: string[] = (triggerPrice === undefined) ? [ 'timeInForce', 'postOnly' ] : [];
+        const paramsOmitted: Dict = this.omit (params, this.arrayConcat (omitKeys, optionKeys));
+        if (typeValue === 'stopLimit') {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders');
         }
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
@@ -1639,7 +1700,6 @@ export default class gemini extends Exchange {
         } else {
             // No options can be applied to stop-limit orders at this time.
             const timeInForce = this.safeString (params, 'timeInForce');
-            params = this.omit (params, 'timeInForce');
             if (timeInForce !== undefined) {
                 if ((timeInForce === 'IOC') || (timeInForce === 'immediate-or-cancel')) {
                     request['options'] = [ 'immediate-or-cancel' ];
@@ -1650,7 +1710,6 @@ export default class gemini extends Exchange {
                 }
             }
             const postOnly = this.safeBool (params, 'postOnly', false);
-            params = this.omit (params, 'postOnly');
             if (postOnly === true) {
                 request['options'] = [ 'maker-or-cancel' ];
             }
@@ -1660,7 +1719,7 @@ export default class gemini extends Exchange {
                 request['options'] = [ options ];
             }
         }
-        const response = await this.privatePostV1OrderNew (this.extend (request, params));
+        const response = await this.privatePostV1OrderNew (this.extend (request, paramsOmitted));
         //
         //      {
         //          "order_id":"106027397702",
@@ -1697,7 +1756,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1743,7 +1802,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1776,8 +1835,9 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag: Dict = tagAndParams[1];
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1788,7 +1848,7 @@ export default class gemini extends Exchange {
             'amount': amount,
             'address': address,
         };
-        const response = await this.privatePostV1WithdrawCurrency (this.extend (request, params));
+        const response = await this.privatePostV1WithdrawCurrency (this.extend (request, paramsWithdrawTag));
         //
         //   for BTC
         //     {
@@ -1819,7 +1879,7 @@ export default class gemini extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override nonce () {
+    override nonce (): number {
         const nonceMethod = this.safeString (this.options, 'nonce', 'milliseconds');
         if (nonceMethod === 'milliseconds') {
             return this.milliseconds ();
@@ -1838,7 +1898,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1919,7 +1979,7 @@ export default class gemini extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined) {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //      {
         //          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -1948,15 +2008,13 @@ export default class gemini extends Exchange {
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const groupedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, networkCode), 'currency');
-        return this.safeValue (networkGroup, code) as DepositAddress;
+        const indexedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
+        const networkCode = this.handleNetworkCodeAndParams (params)[0];
+        return this.safeValue (indexedByNetwork, networkCode) as DepositAddress;
     }
 
     /**
@@ -1969,36 +2027,39 @@ export default class gemini extends Exchange {
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params: Dict = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        code = currency['code'];
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const codeValue: string = currency['code'];
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses() requires a network parameter');
         }
-        const networkId = this.networkCodeToId (networkCode, currency['code']);
+        const networkId = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         const request: Dict = {
             'network': networkId,
         };
-        const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
-        const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
-        return this.groupBy (results, 'network') as DepositAddress[];
+        const response = await this.privatePostV1AddressesNetwork (this.extend (request, paramsNetworkCode));
+        const results = this.parseDepositAddresses (response, [ codeValue ], false, { 'network': networkCode, 'currency': codeValue });
+        // one address structure per network, like every other venue (the endpoint is scoped to a
+        // single network, so the last address the venue lists for it wins — same as before)
+        return this.indexBy (results, 'network') as DepositAddresses;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        let headersSigned: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const apiKey = this.apiKey;
             if (apiKey.indexOf ('account') < 0) {
                 throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
-            const nonce = this.nonce ().toString ();
+            // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+            const nonce = this.incrementingNonce ().toString ();
             const finalUrl = url;
             const request = this.extend ({
                 'request': finalUrl,
@@ -2007,7 +2068,7 @@ export default class gemini extends Exchange {
             let payload = this.json (request);
             payload = this.stringToBase64 (payload);
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
-            headers = {
+            headersSigned = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,
                 'X-GEMINI-PAYLOAD': payload,
@@ -2018,11 +2079,17 @@ export default class gemini extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        url = this.urls['api'][api] + url;
-        if ((method === 'POST') || (method === 'DELETE')) {
-            body = this.json (query);
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const fullUrl = apiUrl + url;
+        const headersResolved = (api === 'private') ? headersSigned : headers;
+        let bodyResolved = body;
+        if ((method === 'POST') || (method === 'DELETE')) {
+            bodyResolved = this.json (query);
+        }
+        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -2062,7 +2129,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async createDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2094,7 +2161,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2128,7 +2195,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}) {
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2149,7 +2216,7 @@ export default class gemini extends Exchange {
         return this.parseOpenInterest (response, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //    {
         //        product_type: 'PerpetualSwapContract',

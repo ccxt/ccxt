@@ -4,6 +4,352 @@
         "uta": false
     },
     "methods": {
+        "fetchLedger": [
+            {
+                "description": "uta spot ledger empty window returns an empty list",
+                "method": "fetchLedger",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789303836609,
+                    "data": {
+                        "list": null,
+                        "cursor": null
+                    }
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "uta funding ledger with coin and since",
+                "method": "fetchLedger",
+                "input": [
+                    "USDT",
+                    1787700000000,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "funding"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789303835335,
+                    "data": {
+                        "list": [
+                            {
+                                "id": "1477174343261219362",
+                                "coin": "USDT",
+                                "groupType": "withdraw",
+                                "type": "withdraw",
+                                "amount": "-28.50000000",
+                                "balance": "0.00000000",
+                                "ts": "1787918826202"
+                            },
+                            {
+                                "id": "1477141273662556067",
+                                "coin": "USDT",
+                                "groupType": "withdraw",
+                                "type": "",
+                                "amount": "30.00000000",
+                                "balance": "30.00000000",
+                                "ts": "1787918664410"
+                            },
+                            {
+                                "id": "1477103021016917536",
+                                "coin": "USDT",
+                                "groupType": "transfer",
+                                "type": "transfer_out",
+                                "amount": "-30.00000000",
+                                "balance": "0.00000000",
+                                "ts": "1787913879280"
+                            },
+                            {
+                                "id": "1477193981444267642",
+                                "coin": "USDT",
+                                "groupType": "deposit",
+                                "type": "deposit",
+                                "amount": "30.00000000",
+                                "balance": "30.00000000",
+                                "ts": "1787913876998"
+                            }
+                        ],
+                        "cursor": "1477193981444267642"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1477193981444267642",
+                        "timestamp": 1787913876998,
+                        "datetime": "2026-08-28T10:44:36.998Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "deposit",
+                        "currency": "USDT",
+                        "amount": 30,
+                        "before": 0,
+                        "after": 30,
+                        "status": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": null
+                        },
+                        "info": {
+                            "id": "1477193981444267642",
+                            "coin": "USDT",
+                            "groupType": "deposit",
+                            "type": "deposit",
+                            "amount": "30.00000000",
+                            "balance": "30.00000000",
+                            "ts": "1787913876998"
+                        }
+                    },
+                    {
+                        "id": "1477103021016917536",
+                        "timestamp": 1787913879280,
+                        "datetime": "2026-08-28T10:44:39.280Z",
+                        "direction": "out",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "amount": 30,
+                        "before": 30,
+                        "after": 0,
+                        "status": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": null
+                        },
+                        "info": {
+                            "id": "1477103021016917536",
+                            "coin": "USDT",
+                            "groupType": "transfer",
+                            "type": "transfer_out",
+                            "amount": "-30.00000000",
+                            "balance": "0.00000000",
+                            "ts": "1787913879280"
+                        }
+                    },
+                    {
+                        "id": "1477141273662556067",
+                        "timestamp": 1787918664410,
+                        "datetime": "2026-08-28T12:04:24.410Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "withdrawal",
+                        "currency": "USDT",
+                        "amount": 30,
+                        "before": 0,
+                        "after": 30,
+                        "status": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": null
+                        },
+                        "info": {
+                            "id": "1477141273662556067",
+                            "coin": "USDT",
+                            "groupType": "withdraw",
+                            "type": "",
+                            "amount": "30.00000000",
+                            "balance": "30.00000000",
+                            "ts": "1787918664410"
+                        }
+                    },
+                    {
+                        "id": "1477174343261219362",
+                        "timestamp": 1787918826202,
+                        "datetime": "2026-08-28T12:07:06.202Z",
+                        "direction": "out",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "withdrawal",
+                        "currency": "USDT",
+                        "amount": 28.5,
+                        "before": 28.5,
+                        "after": 0,
+                        "status": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": null
+                        },
+                        "info": {
+                            "id": "1477174343261219362",
+                            "coin": "USDT",
+                            "groupType": "withdraw",
+                            "type": "withdraw",
+                            "amount": "-28.50000000",
+                            "balance": "0.00000000",
+                            "ts": "1787918826202"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "uta future fetchTradingFees skips rows that resolve to no market of the requested type",
+                "method": "fetchTradingFees",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "future"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789207541959,
+                    "data": [
+                        {
+                            "makerFeeRate": "0.00036",
+                            "takerFeeRate": "0.001",
+                            "symbol": "BTCUSDT"
+                        }
+                    ]
+                },
+                "parsedResponse": {}
+            },
+            {
+                "description": "uta inverse fetchTradingFees skips rows whose id is missing from the loaded markets",
+                "method": "fetchTradingFees",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "subType": "inverse",
+                        "symbol": "BTCUSD_CM"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789207541959,
+                    "data": [
+                        {
+                            "makerFeeRate": "0.0002",
+                            "takerFeeRate": "0.0006",
+                            "symbol": "BTCUSD_CM"
+                        }
+                    ]
+                },
+                "parsedResponse": {}
+            },
+            {
+                "description": "uta linear fetchTradingFees single symbol",
+                "method": "fetchTradingFees",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "symbol": "BTCUSDT"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789206765893,
+                    "data": [
+                        {
+                            "makerFeeRate": "0.00036",
+                            "takerFeeRate": "0.001",
+                            "symbol": "BTCUSDT"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "makerFeeRate": "0.00036",
+                            "takerFeeRate": "0.001",
+                            "symbol": "BTCUSDT"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "maker": 0.00036,
+                        "taker": 0.001,
+                        "percentage": null,
+                        "tierBased": null
+                    }
+                }
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "uta swap fetchTradingFee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789206681959,
+                    "data": {
+                        "makerFeeRate": "0.00036",
+                        "takerFeeRate": "0.001"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "makerFeeRate": "0.00036",
+                        "takerFeeRate": "0.001"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "maker": 0.00036,
+                    "taker": 0.001,
+                    "percentage": null,
+                    "tierBased": null
+                }
+            },
+            {
+                "description": "uta spot fetchTradingFee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789206680715,
+                    "data": {
+                        "makerFeeRate": "0.001",
+                        "takerFeeRate": "0.001"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "makerFeeRate": "0.001",
+                        "takerFeeRate": "0.001"
+                    },
+                    "symbol": "BTC/USDT",
+                    "maker": 0.001,
+                    "taker": 0.001,
+                    "percentage": null,
+                    "tierBased": null
+                }
+            }
+        ],
         "withdraw": [
             {
                 "description": "with_precision",
@@ -50,6 +396,247 @@
                     "comment": null,
                     "internal": null,
                     "fee": null
+                }
+            },
+            {
+                "description": "uta withdraw",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    11.123456789,
+                    "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    null,
+                    {
+                        "network": "SOL",
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1748252642931",
+                    "data": {
+                        "orderId": "1310832081358508033",
+                        "clientOid": "8fbd12e1c44340a5a3a02ab7c4a527b1"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "1310832081358508033",
+                    "info": {
+                        "orderId": "1310832081358508033",
+                        "clientOid": "8fbd12e1c44340a5a3a02ab7c4a527b1"
+                    },
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": "SOL",
+                    "addressFrom": null,
+                    "address": "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    "addressTo": "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    "amount": 11.123456789,
+                    "type": "withdrawal",
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "uta fetch USDT deposits",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDT",
+                    1700000000000,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1787918939871,
+                    "data": [
+                        {
+                            "orderId": "1477183242218870001",
+                            "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+                            "coin": "USDT",
+                            "type": "deposit",
+                            "size": "30",
+                            "status": "success",
+                            "toAddress": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                            "dest": "on_chain",
+                            "chain": "TRC20",
+                            "createdTime": "1787913850359",
+                            "updatedTime": "1787913880178",
+                            "fromAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                            "clientOid": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1477183242218870001",
+                        "info": {
+                            "orderId": "1477183242218870001",
+                            "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+                            "coin": "USDT",
+                            "type": "deposit",
+                            "size": "30",
+                            "status": "success",
+                            "toAddress": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                            "dest": "on_chain",
+                            "chain": "TRC20",
+                            "createdTime": "1787913850359",
+                            "updatedTime": "1787913880178",
+                            "fromAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                            "clientOid": null
+                        },
+                        "txid": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+                        "timestamp": 1787913850359,
+                        "datetime": "2026-08-28T10:44:10.359Z",
+                        "network": "TRC20",
+                        "addressFrom": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                        "address": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                        "addressTo": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                        "amount": 30,
+                        "type": "deposit",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": 1787913880178,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "uta fetch USDT withdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDT",
+                    1700000000000,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1787918941219,
+                    "data": [
+                        {
+                            "orderId": "1477203433330230002",
+                            "recordId": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+                            "coin": "USDT",
+                            "type": "withdraw",
+                            "size": "30",
+                            "status": "success",
+                            "toAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                            "dest": "on_chain",
+                            "chain": "TRC20",
+                            "createdTime": "1787918664295",
+                            "updatedTime": "1787918826202",
+                            "fromAddress": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+                            "fee": "-1.5",
+                            "confirm": "5",
+                            "clientOid": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1477203433330230002",
+                        "info": {
+                            "orderId": "1477203433330230002",
+                            "recordId": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+                            "coin": "USDT",
+                            "type": "withdraw",
+                            "size": "30",
+                            "status": "success",
+                            "toAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                            "dest": "on_chain",
+                            "chain": "TRC20",
+                            "createdTime": "1787918664295",
+                            "updatedTime": "1787918826202",
+                            "fromAddress": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+                            "fee": "-1.5",
+                            "confirm": "5",
+                            "clientOid": null
+                        },
+                        "txid": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+                        "timestamp": 1787918664295,
+                        "datetime": "2026-08-28T12:04:24.295Z",
+                        "network": "TRC20",
+                        "addressFrom": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+                        "address": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                        "addressTo": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                        "amount": 28.5,
+                        "type": "withdrawal",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": 1787918826202,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 1.5
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "uta fetchDepositAddress with network TRC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20",
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1740481864545,
+                    "data": {
+                        "coin": "USDT",
+                        "address": "TVzHfTQV1vcDLW9jFANpFmwoBGeGDgnf9L",
+                        "chain": "TRC20",
+                        "tag": null,
+                        "url": "https://tronscan.org/#/transaction/"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "coin": "USDT",
+                        "address": "TVzHfTQV1vcDLW9jFANpFmwoBGeGDgnf9L",
+                        "chain": "TRC20",
+                        "tag": null,
+                        "url": "https://tronscan.org/#/transaction/"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TVzHfTQV1vcDLW9jFANpFmwoBGeGDgnf9L",
+                    "tag": null
                 }
             }
         ],
@@ -3711,62 +4298,80 @@
                     }
                 },
                 "parsedResponse": {
-                    "info": [
-                        {
-                            "coin": "BTC",
-                            "equity": "1",
-                            "usdValue": "108131.66156274",
-                            "balance": "1",
-                            "available": "1",
-                            "debt": "0",
-                            "locked": "0"
-                        },
-                        {
-                            "coin": "WBTC",
-                            "equity": "1",
-                            "usdValue": "108079.95252426",
-                            "balance": "1",
-                            "available": "1",
-                            "debt": "0",
-                            "locked": "0"
-                        },
-                        {
-                            "coin": "USDC",
-                            "equity": "100000",
-                            "usdValue": "100000",
-                            "balance": "100000",
-                            "available": "100000",
-                            "debt": "0",
-                            "locked": "0"
-                        },
-                        {
-                            "coin": "ETH",
-                            "equity": "10",
-                            "usdValue": "26437.44821529",
-                            "balance": "10",
-                            "available": "10",
-                            "debt": "0",
-                            "locked": "0"
-                        },
-                        {
-                            "coin": "SOL",
-                            "equity": "100",
-                            "usdValue": "15791.8554721",
-                            "balance": "100",
-                            "available": "100",
-                            "debt": "0",
-                            "locked": "0"
-                        },
-                        {
-                            "coin": "USDT",
-                            "equity": "10000",
-                            "usdValue": "10003.4",
-                            "balance": "10000",
-                            "available": "10000",
-                            "debt": "0",
-                            "locked": "0"
+                    "info": {
+                        "code": "00000",
+                        "msg": "success",
+                        "requestTime": "1750098758334",
+                        "data": {
+                            "accountEquity": "368444.3177744",
+                            "usdtEquity": "368319.08928405",
+                            "btcEquity": "3.40736757",
+                            "unrealisedPnl": "0",
+                            "usdtUnrealisedPnl": "0",
+                            "btcUnrealizedPnl": "0",
+                            "effEquity": "256783.39028097",
+                            "mmr": "0",
+                            "imr": "0",
+                            "mgnRatio": "0",
+                            "positionMgnRatio": "0",
+                            "assets": [
+                                {
+                                    "coin": "BTC",
+                                    "equity": "1",
+                                    "usdValue": "108131.66156274",
+                                    "balance": "1",
+                                    "available": "1",
+                                    "debt": "0",
+                                    "locked": "0"
+                                },
+                                {
+                                    "coin": "WBTC",
+                                    "equity": "1",
+                                    "usdValue": "108079.95252426",
+                                    "balance": "1",
+                                    "available": "1",
+                                    "debt": "0",
+                                    "locked": "0"
+                                },
+                                {
+                                    "coin": "USDC",
+                                    "equity": "100000",
+                                    "usdValue": "100000",
+                                    "balance": "100000",
+                                    "available": "100000",
+                                    "debt": "0",
+                                    "locked": "0"
+                                },
+                                {
+                                    "coin": "ETH",
+                                    "equity": "10",
+                                    "usdValue": "26437.44821529",
+                                    "balance": "10",
+                                    "available": "10",
+                                    "debt": "0",
+                                    "locked": "0"
+                                },
+                                {
+                                    "coin": "SOL",
+                                    "equity": "100",
+                                    "usdValue": "15791.8554721",
+                                    "balance": "100",
+                                    "available": "100",
+                                    "debt": "0",
+                                    "locked": "0"
+                                },
+                                {
+                                    "coin": "USDT",
+                                    "equity": "10000",
+                                    "usdValue": "10003.4",
+                                    "balance": "10000",
+                                    "available": "10000",
+                                    "debt": "0",
+                                    "locked": "0"
+                                }
+                            ]
                         }
-                    ],
+                    },
                     "BTC": {
                         "free": 1,
                         "used": 0,

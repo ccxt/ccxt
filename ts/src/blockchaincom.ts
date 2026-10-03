@@ -106,6 +106,7 @@ export default class blockchaincom extends Exchange {
                 'private': {
                     'get': {
                         'fees': { 'cost': 1 } as Endpoint<Dict>, // fetchFees
+                        'internal/orders': { 'cost': 1 } as Endpoint<Dict>, // getOrdersInternal
                         'orders': { 'cost': 1 } as Endpoint<List>, // fetchOpenOrders, fetchClosedOrders
                         'orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>, // fetchOrder(id)
                         'trades': { 'cost': 1 } as Endpoint<List>,
@@ -301,7 +302,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         //
         //     "USDC-GBP": {
         //         "base_currency": "USDC",
@@ -329,11 +330,14 @@ export default class blockchaincom extends Exchange {
         const result: List = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeValue (markets, marketId);
+            const market = this.safeDict (markets, marketId);
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const numericId = this.safeNumber (market, 'id');
             let active: Bool = undefined;
             const marketState = this.safeString (market, 'status');
@@ -431,7 +435,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         return await this.fetchL3OrderBook (symbol, limit, params);
     }
 
@@ -445,7 +449,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchL3OrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    override async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -460,7 +464,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty');
     }
 
-    override async fetchL2OrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    override async fetchL2OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -522,7 +526,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -543,7 +547,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -551,7 +555,7 @@ export default class blockchaincom extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseOrderState (state: any) {
+    parseOrderState (state: Str): Str {
         const states: Dict = {
             'OPEN': 'open',
             'REJECTED': 'rejected',
@@ -633,7 +637,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -641,10 +645,8 @@ export default class blockchaincom extends Exchange {
         const orderType = this.safeString (params, 'ordType', type);
         const uppercaseOrderType = orderType.toUpperCase ();
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
-        params = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        const paramsOmitted: Dict = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             // 'stopPx' : limit price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
@@ -656,8 +658,8 @@ export default class blockchaincom extends Exchange {
             'orderQty': this.amountToPrecision (symbol, amount),
             'clOrdId': clientOrderId,
         };
-        const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
-        params = this.omit (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        const triggerPrice = this.safeValueN (paramsOmitted, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
         if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
             if (triggerPrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or triggerPrice param for a ' + uppercaseOrderType + ' order');
@@ -670,12 +672,13 @@ export default class blockchaincom extends Exchange {
                 request['ordType'] = 'STOPLIMIT';
             }
         }
+        const ordType = this.safeString (request, 'ordType');
         let priceRequired = false;
         let stopPriceRequired = false;
-        if (request['ordType'] === 'LIMIT' || request['ordType'] === 'STOPLIMIT') {
+        if (ordType === 'LIMIT' || ordType === 'STOPLIMIT') {
             priceRequired = true;
         }
-        if (request['ordType'] === 'STOP' || request['ordType'] === 'STOPLIMIT') {
+        if (ordType === 'STOP' || ordType === 'STOPLIMIT') {
             stopPriceRequired = true;
         }
         if (priceRequired) {
@@ -684,7 +687,7 @@ export default class blockchaincom extends Exchange {
         if (stopPriceRequired) {
             request['stopPx'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, paramsOmitted2));
         return this.parseOrder (response, market);
     }
 
@@ -698,7 +701,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const request: Dict = {
             'orderId': id,
         };
@@ -718,7 +721,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         // cancels all open orders if no symbol specified
         // cancels all open orders of specified symbol, if symbol is specified
         if (this.markets === undefined) {
@@ -750,7 +753,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -789,7 +792,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const state = 'CANCELED';
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
@@ -805,7 +808,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const state = 'FILLED';
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
@@ -821,12 +824,12 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const state = 'OPEN';
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
 
-    async fetchOrdersByState (state: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -867,12 +870,12 @@ export default class blockchaincom extends Exchange {
         const amountString = this.safeString (trade, 'qty');
         const timestamp = this.safeInteger (trade, 'timestamp');
         const datetime = this.iso8601 (timestamp);
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
+        const symbol = marketResolved['symbol'];
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrency = market['quote'];
+            const feeCurrency = marketResolved['quote'];
             fee = { 'cost': feeCostString, 'currency': feeCurrency };
         }
         return this.safeTrade ({
@@ -889,7 +892,7 @@ export default class blockchaincom extends Exchange {
             'cost': undefined,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -903,7 +906,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -929,7 +932,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -956,7 +959,7 @@ export default class blockchaincom extends Exchange {
         } as DepositAddress;
     }
 
-    parseTransactionState (state: any) {
+    parseTransactionState (state: Str): Str {
         const states: Dict = {
             'COMPLETED': 'ok', //
             'REJECTED': 'failed',
@@ -1050,7 +1053,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1087,7 +1090,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1116,7 +1119,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1138,7 +1141,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1167,7 +1170,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
+    async fetchDeposit (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1187,16 +1190,16 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const accountName = this.safeString (params, 'account', 'primary');
-        params = this.omit (params, 'account');
+        const paramsOmitted: Dict = this.omit (params, 'account');
         const request: Dict = {
             'account': accountName,
         };
-        const response = await this.privateGetAccounts (this.extend (request, params));
+        const response = await this.privateGetAccounts (this.extend (request, paramsOmitted));
         //
         //     {
         //         "primary": [
@@ -1212,13 +1215,13 @@ export default class blockchaincom extends Exchange {
         //         ]
         //     }
         //
-        const balances = this.safeValue (response, accountName);
+        const balances = this.safeList (response, accountName);
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' fetchBalance() could not find the "' + accountName + '" account');
         }
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
+            const entry = this.safeDict (balances, i);
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1239,7 +1242,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         // note: only works with exchange-order-id
         // does not work with clientOrderId
         if (this.markets === undefined) {
@@ -1270,29 +1273,42 @@ export default class blockchaincom extends Exchange {
         return this.parseOrder (response);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const requestPath = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + requestPath;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + requestPath;
         const query = this.omit (params, this.extractParams (path));
+        const isPrivate = (api === 'private');
+        const privateHeaders: Dict = {
+            'X-API-Token': this.secret,
+        };
+        let requestHeaders = headers;
+        if (isPrivate) {
+            requestHeaders = privateHeaders;
+        }
+        const isPrivatePost = isPrivate && (method !== 'GET');
+        let requestBody: Str = body;
+        if (isPrivatePost) {
+            requestBody = this.json (query);
+        }
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (isPrivate) {
             this.checkRequiredCredentials ();
-            headers = {
-                'X-API-Token': this.secret,
-            };
             if ((method === 'GET')) {
                 if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             } else {
-                body = this.json (query);
-                headers['Content-Type'] = 'application/json';
+                privateHeaders['Content-Type'] = 'application/json';
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

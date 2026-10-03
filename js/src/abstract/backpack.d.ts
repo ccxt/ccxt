@@ -5,11 +5,17 @@ interface Exchange {
     publicGetApiV1Collateral(params?: {}): Promise<List>;
     publicGetApiV1BorrowLendMarkets(params?: {}): Promise<List>;
     publicGetApiV1BorrowLendMarketsHistory(params?: {}): Promise<List>;
+    publicGetApiV1BorrowLendApy(params?: {}): Promise<Dict>;
     publicGetApiV1Markets(params?: {}): Promise<List>;
     publicGetApiV1Market(params?: {}): Promise<Dict>;
     publicGetApiV1Ticker(params?: {}): Promise<Dict>;
     publicGetApiV1Tickers(params?: {}): Promise<List>;
     publicGetApiV1Depth(params?: {}): Promise<Dict>;
+    publicGetApiV1Prediction(params?: {}): Promise<List>;
+    publicGetApiV1PredictionTags(params?: {}): Promise<List>;
+    publicGetApiV1MarketSessions(params?: {}): Promise<List>;
+    publicGetApiV1MarketHolidays(params?: {}): Promise<List>;
+    publicGetApiV1Securities(params?: {}): Promise<List>;
     publicGetApiV1Klines(params?: {}): Promise<List>;
     publicGetApiV1MarkPrices(params?: {}): Promise<List>;
     publicGetApiV1OpenInterest(params?: {}): Promise<List>;
@@ -25,6 +31,7 @@ interface Exchange {
     privateGetApiV1AccountLimitsOrder(params?: {}): Promise<Dict>;
     privateGetApiV1AccountLimitsWithdrawal(params?: {}): Promise<Dict>;
     privateGetApiV1BorrowLendPositions(params?: {}): Promise<List>;
+    privateGetApiV1BorrowLendPositionLiquidationPrice(params?: {}): Promise<Dict>;
     privateGetApiV1Capital(params?: {}): Promise<Dict>;
     privateGetApiV1CapitalCollateral(params?: {}): Promise<Dict>;
     privateGetWapiV1CapitalDeposits(params?: {}): Promise<List>;
@@ -37,11 +44,17 @@ interface Exchange {
     privateGetWapiV1HistoryDust(params?: {}): Promise<List>;
     privateGetWapiV1HistoryFills(params?: {}): Promise<List>;
     privateGetWapiV1HistoryFunding(params?: {}): Promise<List>;
+    privateGetWapiV1HistoryPosition(params?: {}): Promise<List>;
     privateGetWapiV1HistoryOrders(params?: {}): Promise<List>;
+    privateGetApiV1Rfqs(params?: {}): Promise<List>;
     privateGetWapiV1HistoryRfq(params?: {}): Promise<List>;
     privateGetWapiV1HistoryQuote(params?: {}): Promise<List>;
+    privateGetWapiV1HistoryRfqFill(params?: {}): Promise<List>;
+    privateGetWapiV1HistoryQuoteFill(params?: {}): Promise<List>;
     privateGetWapiV1HistorySettlement(params?: {}): Promise<List>;
     privateGetWapiV1HistoryStrategies(params?: {}): Promise<List>;
+    privateGetApiV1Strategy(params?: {}): Promise<Dict>;
+    privateGetApiV1Strategies(params?: {}): Promise<List>;
     privateGetApiV1Order(params?: {}): Promise<Dict>;
     privateGetApiV1Orders(params?: {}): Promise<List>;
     privatePostApiV1AccountConvertDust(params?: {}): Promise<Dict>;
@@ -54,8 +67,11 @@ interface Exchange {
     privatePostApiV1RfqRefresh(params?: {}): Promise<Dict>;
     privatePostApiV1RfqCancel(params?: {}): Promise<Dict>;
     privatePostApiV1RfqQuote(params?: {}): Promise<Dict>;
+    privatePostApiV1Strategy(params?: {}): Promise<Dict>;
     privateDeleteApiV1Order(params?: {}): Promise<Dict>;
     privateDeleteApiV1Orders(params?: {}): Promise<List>;
+    privateDeleteApiV1Strategy(params?: {}): Promise<Dict>;
+    privateDeleteApiV1Strategies(params?: {}): Promise<List>;
     privatePatchApiV1Account(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {

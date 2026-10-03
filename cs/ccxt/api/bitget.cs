@@ -683,6 +683,230 @@ public partial class bitget : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketIndexComponents",parameters);
     }
 
+    /// <summary>Calls the publicUtaGetV3MarketRiskReserveAll endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketRiskReserveAll (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketRiskReserveAll",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketRiskReserveHour endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketRiskReserveHour (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketRiskReserveHour",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketScoreWeights endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketScoreWeights (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketScoreWeights",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketFeeGroup endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketFeeGroup (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketFeeGroup",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketCashDividendRecords endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketCashDividendRecords (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketCashDividendRecords",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketSplitRecords endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketSplitRecords (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketSplitRecords",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketLiquidations endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketLiquidations (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketLiquidations",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketRpiOrderbook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketRpiOrderbook (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketRpiOrderbook",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketRpiSymbols endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketRpiSymbols (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketRpiSymbols",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketSpotWhaleFlow endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketSpotWhaleFlow (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketSpotWhaleFlow",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketSpotFundFlow endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketSpotFundFlow (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketSpotFundFlow",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketSpotNetFlow endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketSpotNetFlow (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketSpotNetFlow",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketMarginLongShort endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketMarginLongShort (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketMarginLongShort",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketMarginLoanGrowth endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketMarginLoanGrowth (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketMarginLoanGrowth",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketMarginIsolatedBorrow endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketMarginIsolatedBorrow (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketMarginIsolatedBorrow",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketFuturesActiveBuySell endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketFuturesActiveBuySell (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketFuturesActiveBuySell",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketFuturesLongShort endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketFuturesLongShort (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketFuturesLongShort",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketFuturesPositionLongShort endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketFuturesPositionLongShort (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketFuturesPositionLongShort",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3MarketFuturesAccountLongShort endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3MarketFuturesAccountLongShort (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3MarketFuturesAccountLongShort",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketStockInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketStockInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketStockInfo",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketStates endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketStates (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketStates",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketCalendar endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketCalendar (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketCalendar",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketCompanyOverview endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketCompanyOverview (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketCompanyOverview",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketValuationIndicators endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketValuationIndicators (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketValuationIndicators",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketEarningsForecast endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketEarningsForecast (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketEarningsForecast",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketSuspensionResumptionInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketSuspensionResumptionInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketSuspensionResumptionInfo",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketDividends endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketDividends (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketDividends",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketShareCapitalChange endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketShareCapitalChange (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketShareCapitalChange",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketInnerTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketInnerTrades (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketInnerTrades",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketExecutiveShareholdings endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketExecutiveShareholdings (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketExecutiveShareholdings",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3RealityMarketShareholdDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3RealityMarketShareholdDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3RealityMarketShareholdDetail",parameters);
+    }
+
+    /// <summary>Calls the publicUtaGetV3AccountCustomCollateralCoins endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicUtaGetV3AccountCustomCollateralCoins (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicUtaGetV3AccountCustomCollateralCoins",parameters);
+    }
+
     /// <summary>Calls the privateSpotGetSpotV1WalletDepositAddress endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateSpotGetSpotV1WalletDepositAddress (object parameters = null)
@@ -2363,6 +2587,13 @@ public partial class bitget : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateUserPostV2UserModifyVirtualSubaccountApikey",parameters);
     }
 
+    /// <summary>Calls the privateUserPostV2UserCreateAgentSubaccount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUserPostV2UserCreateAgentSubaccount (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUserPostV2UserCreateAgentSubaccount",parameters);
+    }
+
     /// <summary>Calls the privateP2pGetP2pV1MerchantMerchantList endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateP2pGetP2pV1MerchantMerchantList (object parameters = null)
@@ -2524,6 +2755,55 @@ public partial class bitget : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateBrokerGetV2BrokerManageSubaccountApikeyList",parameters);
     }
 
+    /// <summary>Calls the privateBrokerGetV2BrokerSubCustomerList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateBrokerGetV2BrokerSubCustomerList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateBrokerGetV2BrokerSubCustomerList",parameters);
+    }
+
+    /// <summary>Calls the privateBrokerGetV2BrokerAgentCommission endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateBrokerGetV2BrokerAgentCommission (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateBrokerGetV2BrokerAgentCommission",parameters);
+    }
+
+    /// <summary>Calls the privateBrokerGetV2BrokerCustomerCommissions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateBrokerGetV2BrokerCustomerCommissions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateBrokerGetV2BrokerCustomerCommissions",parameters);
+    }
+
+    /// <summary>Calls the privateBrokerGetV2BrokerCustomerKycResult endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateBrokerGetV2BrokerCustomerKycResult (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateBrokerGetV2BrokerCustomerKycResult",parameters);
+    }
+
+    /// <summary>Calls the privateBrokerGetV2BrokerOrderCommission endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateBrokerGetV2BrokerOrderCommission (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateBrokerGetV2BrokerOrderCommission",parameters);
+    }
+
+    /// <summary>Calls the privateBrokerGetV2BrokerRebateInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateBrokerGetV2BrokerRebateInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateBrokerGetV2BrokerRebateInfo",parameters);
+    }
+
+    /// <summary>Calls the privateBrokerGetV2BrokerTotalCommission endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateBrokerGetV2BrokerTotalCommission (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateBrokerGetV2BrokerTotalCommission",parameters);
+    }
+
     /// <summary>Calls the privateBrokerPostBrokerV1AccountSubCreate endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateBrokerPostBrokerV1AccountSubCreate (object parameters = null)
@@ -2634,6 +2914,34 @@ public partial class bitget : Exchange
     public async Task<Dictionary<string, object>> privateBrokerPostV2BrokerManageModifySubaccountApikey (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateBrokerPostV2BrokerManageModifySubaccountApikey",parameters);
+    }
+
+    /// <summary>Calls the privateBrokerPostV2BrokerCustomerAsset endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateBrokerPostV2BrokerCustomerAsset (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateBrokerPostV2BrokerCustomerAsset",parameters);
+    }
+
+    /// <summary>Calls the privateBrokerPostV2BrokerCustomerDeposit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateBrokerPostV2BrokerCustomerDeposit (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateBrokerPostV2BrokerCustomerDeposit",parameters);
+    }
+
+    /// <summary>Calls the privateBrokerPostV2BrokerCustomerList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateBrokerPostV2BrokerCustomerList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateBrokerPostV2BrokerCustomerList",parameters);
+    }
+
+    /// <summary>Calls the privateBrokerPostV2BrokerCustomerTradeVolume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateBrokerPostV2BrokerCustomerTradeVolume (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateBrokerPostV2BrokerCustomerTradeVolume",parameters);
     }
 
     /// <summary>Calls the privateMarginGetMarginV1CrossAccountRiskRate endpoint.</summary>
@@ -3777,6 +4085,48 @@ public partial class bitget : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateEarnGetV2EarnAccountAssets",parameters);
     }
 
+    /// <summary>Calls the privateEarnGetV2EarnEliteProduct endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnGetV2EarnEliteProduct (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnGetV2EarnEliteProduct",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetV2EarnEliteAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnGetV2EarnEliteAssets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnGetV2EarnEliteAssets",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetV2EarnEliteRecords endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnGetV2EarnEliteRecords (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnGetV2EarnEliteRecords",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetV2EarnEliteSubscribeInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnGetV2EarnEliteSubscribeInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnGetV2EarnEliteSubscribeInfo",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetV2EarnEliteSubscribeResult endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnGetV2EarnEliteSubscribeResult (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnGetV2EarnEliteSubscribeResult",parameters);
+    }
+
+    /// <summary>Calls the privateEarnGetV2EarnEliteRedeemInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnGetV2EarnEliteRedeemInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnGetV2EarnEliteRedeemInfo",parameters);
+    }
+
     /// <summary>Calls the privateEarnPostV2EarnSavingsSubscribe endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateEarnPostV2EarnSavingsSubscribe (object parameters = null)
@@ -3817,6 +4167,20 @@ public partial class bitget : Exchange
     public async Task<Dictionary<string, object>> privateEarnPostV2EarnLoanRevisePledge (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateEarnPostV2EarnLoanRevisePledge",parameters);
+    }
+
+    /// <summary>Calls the privateEarnPostV2EarnEliteSubscribe endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnPostV2EarnEliteSubscribe (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnPostV2EarnEliteSubscribe",parameters);
+    }
+
+    /// <summary>Calls the privateEarnPostV2EarnEliteRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateEarnPostV2EarnEliteRedeem (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateEarnPostV2EarnEliteRedeem",parameters);
     }
 
     /// <summary>Calls the privateCommonGetV2CommonTradeRate endpoint.</summary>
@@ -4190,6 +4554,496 @@ public partial class bitget : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3UserSubApiList",parameters);
     }
 
+    /// <summary>Calls the privateUtaGetV3AccountInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountInfo",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountAllFeeRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountAllFeeRate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountAllFeeRate",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountDeltaInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountDeltaInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountDeltaInfo",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountWithdrawAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountWithdrawAddress (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountWithdrawAddress",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountMaxWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountMaxWithdrawal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountMaxWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountMovePositionHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountMovePositionHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountMovePositionHistory",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountCollateralType endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountCollateralType (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountCollateralType",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountPreSetLeverage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountPreSetLeverage (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountPreSetLeverage",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountEligibleSymbols endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountEligibleSymbols (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountEligibleSymbols",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountEligibleMarginTier endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountEligibleMarginTier (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountEligibleMarginTier",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountEligibleLoanInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountEligibleLoanInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountEligibleLoanInfo",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountEligibleDiscountRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountEligibleDiscountRate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountEligibleDiscountRate",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountFundingFinancialRecords endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountFundingFinancialRecords (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountFundingFinancialRecords",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountRealityOrderbook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountRealityOrderbook (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountRealityOrderbook",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3AccountRealityFills endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3AccountRealityFills (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3AccountRealityFills",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3CopyFuturesTradingPairs endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3CopyFuturesTradingPairs (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3CopyFuturesTradingPairs",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3CopyFuturesPositionSummary endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3CopyFuturesPositionSummary (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3CopyFuturesPositionSummary",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3CopyFuturesMaxTransferable endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3CopyFuturesMaxTransferable (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3CopyFuturesMaxTransferable",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3CopyFuturesTransferRecord endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3CopyFuturesTransferRecord (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3CopyFuturesTransferRecord",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3CopyFuturesCurrentFollower endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3CopyFuturesCurrentFollower (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3CopyFuturesCurrentFollower",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3CopyFuturesHistoryFollower endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3CopyFuturesHistoryFollower (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3CopyFuturesHistoryFollower",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3CopyFuturesProfitSummary endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3CopyFuturesProfitSummary (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3CopyFuturesProfitSummary",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3CopyFuturesProfitDetails endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3CopyFuturesProfitDetails (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3CopyFuturesProfitDetails",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3ConvertSmallAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3ConvertSmallAssets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3ConvertSmallAssets",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3ConvertSmallAssetsHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3ConvertSmallAssetsHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3ConvertSmallAssetsHistory",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3EarnEliteProduct endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3EarnEliteProduct (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3EarnEliteProduct",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3EarnEliteAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3EarnEliteAssets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3EarnEliteAssets",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3EarnEliteSubscribeInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3EarnEliteSubscribeInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3EarnEliteSubscribeInfo",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3EarnEliteRecords endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3EarnEliteRecords (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3EarnEliteRecords",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3EarnEliteSubscribeResult endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3EarnEliteSubscribeResult (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3EarnEliteSubscribeResult",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3EarnEliteRedeemInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3EarnEliteRedeemInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3EarnEliteRedeemInfo",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3TradeLoanData endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3TradeLoanData (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3TradeLoanData",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3TradeStrategySubOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3TradeStrategySubOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3TradeStrategySubOrders",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3TradeGridBotDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3TradeGridBotDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3TradeGridBotDetail",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3TradeGridListDetails endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3TradeGridListDetails (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3TradeGridListDetails",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3TradeGridNeutralBotDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3TradeGridNeutralBotDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3TradeGridNeutralBotDetail",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3TradeGridNeutralListDetails endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3TradeGridNeutralListDetails (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3TradeGridNeutralListDetails",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3UserRateLimitQuota endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3UserRateLimitQuota (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3UserRateLimitQuota",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusMarketOptionQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusMarketOptionQuote (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusMarketOptionQuote",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusMarketOptionChainInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusMarketOptionChainInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusMarketOptionChainInfo",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusMarketOptionExpiryDate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusMarketOptionExpiryDate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusMarketOptionExpiryDate",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusMarketOptionVolume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusMarketOptionVolume (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusMarketOptionVolume",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusMarketDepth endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusMarketDepth (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusMarketDepth",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusMarketStatic endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusMarketStatic (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusMarketStatic",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusMarketQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusMarketQuote (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusMarketQuote",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusMarketTrade endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusMarketTrade (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusMarketTrade",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusMarketIntraday endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusMarketIntraday (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusMarketIntraday",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusMarketHistoryCandlestick endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusMarketHistoryCandlestick (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusMarketHistoryCandlestick",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusMarketCandlestick endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusMarketCandlestick (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusMarketCandlestick",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusTradeTodayOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusTradeTodayOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusTradeTodayOrders",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusTradeHistoryOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusTradeHistoryOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusTradeHistoryOrders",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusTradeOrderDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusTradeOrderDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusTradeOrderDetail",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusTradeTodayExecutions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusTradeTodayExecutions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusTradeTodayExecutions",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusTradeHistoryExecutions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusTradeHistoryExecutions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusTradeHistoryExecutions",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusAssetAccount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusAssetAccount (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusAssetAccount",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusAssetCashFlow endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusAssetCashFlow (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusAssetCashFlow",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusAssetStockPosition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusAssetStockPosition (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusAssetStockPosition",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3StockplusAssetTransferRecords endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3StockplusAssetTransferRecords (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3StockplusAssetTransferRecords",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pAdList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pAdList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pAdList",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pAdInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pAdInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pAdInfo",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pAdLimit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pAdLimit (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pAdLimit",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pMyAds endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pMyAds (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pMyAds",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pPendingOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pPendingOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pPendingOrders",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pAllOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pAllOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pAllOrders",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pOrderInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pOrderInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pOrderInfo",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pUserInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pUserInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pUserInfo",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pCurrencies endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pCurrencies (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pCurrencies",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pPayMethod endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pPayMethod (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pPayMethod",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pBalance endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pBalance (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pBalance",parameters);
+    }
+
+    /// <summary>Calls the privateUtaGetV3P2pExchangeRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaGetV3P2pExchangeRate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaGetV3P2pExchangeRate",parameters);
+    }
+
     /// <summary>Calls the privateUtaPostV3AccountSetLeverage endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateUtaPostV3AccountSetLeverage (object parameters = null)
@@ -4468,6 +5322,230 @@ public partial class bitget : Exchange
     public async Task<Dictionary<string, object>> privateUtaPostV3UserDeleteSubApi (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3UserDeleteSubApi",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3AccountMovePositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3AccountMovePositions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3AccountMovePositions",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3AccountCancelWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3AccountCancelWithdrawal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3AccountCancelWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3AccountSetMargin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3AccountSetMargin (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3AccountSetMargin",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3AccountSetCollateralType endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3AccountSetCollateralType (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3AccountSetCollateralType",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3CopyFuturesTransfer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3CopyFuturesTransfer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3CopyFuturesTransfer",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3ConvertSmallAssetsTrade endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3ConvertSmallAssetsTrade (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3ConvertSmallAssetsTrade",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3EarnEliteSubscribe endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3EarnEliteSubscribe (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3EarnEliteSubscribe",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3EarnEliteRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3EarnEliteRedeem (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3EarnEliteRedeem",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradePlaceRealityOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradePlaceRealityOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradePlaceRealityOrder",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradeCancelRealityOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradeCancelRealityOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradeCancelRealityOrder",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradeGridValidate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradeGridValidate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradeGridValidate",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradeGridCreateBot endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradeGridCreateBot (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradeGridCreateBot",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradeGridModifyBot endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradeGridModifyBot (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradeGridModifyBot",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradeGridModifyGridInterval endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradeGridModifyGridInterval (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradeGridModifyGridInterval",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradeGridAddInvestment endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradeGridAddInvestment (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradeGridAddInvestment",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradeGridCloseBot endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradeGridCloseBot (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradeGridCloseBot",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradeGridValidateNeutral endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradeGridValidateNeutral (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradeGridValidateNeutral",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradeGridCreateNeutralBot endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradeGridCreateNeutralBot (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradeGridCreateNeutralBot",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradeGridModifyNeutralBot endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradeGridModifyNeutralBot (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradeGridModifyNeutralBot",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3TradeGridModifyNeutralGridInterval endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3TradeGridModifyNeutralGridInterval (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3TradeGridModifyNeutralGridInterval",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3UserSetRateLimitQuota endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3UserSetRateLimitQuota (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3UserSetRateLimitQuota",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3UserSubAccountAgentCreate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3UserSubAccountAgentCreate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3UserSubAccountAgentCreate",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3StockplusTradePlaceOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3StockplusTradePlaceOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3StockplusTradePlaceOrder",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3StockplusTradeCancelOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3StockplusTradeCancelOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3StockplusTradeCancelOrder",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3StockplusTradeModifyOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3StockplusTradeModifyOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3StockplusTradeModifyOrder",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3StockplusAssetTransfer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3StockplusAssetTransfer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3StockplusAssetTransfer",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3P2pAdCreate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3P2pAdCreate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3P2pAdCreate",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3P2pAdUpdate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3P2pAdUpdate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3P2pAdUpdate",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3P2pAdOperate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3P2pAdOperate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3P2pAdOperate",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3P2pFeeSimulate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3P2pFeeSimulate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3P2pFeeSimulate",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3P2pOrderPay endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3P2pOrderPay (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3P2pOrderPay",parameters);
+    }
+
+    /// <summary>Calls the privateUtaPostV3P2pOrderRelease endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateUtaPostV3P2pOrderRelease (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateUtaPostV3P2pOrderRelease",parameters);
     }
 
 }

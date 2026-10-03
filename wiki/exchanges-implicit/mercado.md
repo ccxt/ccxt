@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official mercado API documentation:** [mercadobitcoin.com.br](https://www.mercadobitcoin.com.br/api-doc) · [mercadobitcoin.com.br](https://www.mercadobitcoin.com.br/trade-api)
 
-> 21 implicit endpoints across 4 access groups.
+> 25 implicit endpoints across 5 access groups.
 
 ## public
 
@@ -105,4 +105,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `v4PublicNetGetCandles` | GET | `candles` | 1 |
+
+## v4Private
+
+**Base URL**: `https://api.mercadobitcoin.net/api/v4`
+
+| Method | HTTP | Endpoint | Cost |
+| --- | --- | --- | --- |
+| `v4PrivatePostAccounts` | POST | `accounts` | 1 |
+| `v4PrivatePostAccountsAccountIdSymbolTransfersInternal` | POST | `accounts/{accountId}/{symbol}/transfers/internal` | 1 |
+| `v4PrivatePostOauth2Token` | POST | `oauth2/token` | 1 |
+| `v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId` | PATCH | `accounts/{accountId}/wallet/{symbol}/deposits/{depositId}` | 1 |
 

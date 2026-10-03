@@ -13,7 +13,39 @@ package ccxt
 // are required for those flows: Append() and ToArray().  Everything else can be
 // added later if/when the need arises.
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
+
+// ArrayCacheInterface is the value a ws list stream resolves: one of the caches, or a plain list.
+type ArrayCacheInterface interface {
+	ToArray() []any
+	GetLimit(symbol any, limit any) *int64
+}
+
+// ListCache carries a plain resolved list; GetLimit answers the caller's limit like NoopLimit.
+type ListCache []any
+
+func (l ListCache) ToArray() []any                        { return []any(l) }
+func (l ListCache) GetLimit(symbol any, limit any) *int64 { return Int64PtrTyped(limit) }
+
+// AsArrayCache types a received ws list: caches pass through, a list becomes ListCache, absent stays nil.
+func AsArrayCache(v any) ArrayCacheInterface {
+	v = derefScalar(v)
+	switch c := v.(type) {
+	case nil:
+		return nil
+	case ArrayCacheInterface:
+		return c
+	case []any:
+		return ListCache(c)
+	}
+	if list, ok := castToSlice(v); ok {
+		return ListCache(list)
+	}
+	panic(fmt.Sprintf("AsArrayCache: a ws list stream resolved %T", v))
+}
 
 type Appender interface{ Append(any) }
 
@@ -46,7 +78,9 @@ func (c *BaseCache) Clear() {
 // `m[field].(string)` assertion silently misses them and the update is appended
 // as a duplicate row instead of being merged in.
 func cacheKeyOf(m map[string]any, field string) string {
+	// a typed-nil *string id is absent, not the key "<nil>" shared by every id-less row
 	v, ok := m[field]
+	v = derefScalar(v)
 	if !ok || v == nil {
 		return ""
 	}
@@ -57,11 +91,13 @@ func cacheKeyOf(m map[string]any, field string) string {
 // The bool reports whether the row actually carries one, so a genuine timestamp
 // of 0 is not confused with "no timestamp".
 func cacheTimestampOf(item any) (int64, bool) {
-	arr, ok := item.([]any)
+	arr, ok := derefScalar(item).([]any)
 	if !ok || len(arr) == 0 {
 		return 0, false
 	}
-	switch v := arr[0].(type) {
+	// a pointer-carried timestamp must key the row, otherwise every candle
+	// looks keyless and only the newest one survives
+	switch v := derefScalar(arr[0]).(type) {
 	case int:
 		return int64(v), true
 	case int32:
@@ -96,11 +132,11 @@ type ArrayCache struct {
 	nestedNewUpdates bool                      `json:"-"`
 	// newUpdatesBySymbol holds the resolved count per key (mirrors Cache.ts).
 	// Distinct ids/sides live in seenUpdatesBySymbol; getLimit never reads a Set.
-	newUpdatesBySymbol       map[string]int  `json:"-"`
-	seenUpdatesBySymbol      map[string]*Set `json:"-"`
+	newUpdatesBySymbol  map[string]int  `json:"-"`
+	seenUpdatesBySymbol map[string]*Set `json:"-"`
 	// the same, but cleared only by the GLOBAL GetLimit scope - the two poll
 	// scopes are independent, so each needs its own memory of what it has seen
-	seenUpdatesAll map[string]*Set `json:"-"`
+	seenUpdatesAll           map[string]*Set `json:"-"`
 	clearUpdatesBySymbol     map[string]bool `json:"-"`
 	nestedNewUpdatesBySymbol bool            `json:"-"`
 	keyField                 string          `json:"-"`
@@ -108,7 +144,7 @@ type ArrayCache struct {
 
 func NewArrayCache(MaxSize any) *ArrayCache {
 	size := 0
-	switch v := MaxSize.(type) {
+	switch v := derefScalar(MaxSize).(type) {
 	case int:
 		size = v
 	case int64:
@@ -211,14 +247,21 @@ func (c *ArrayCache) Append(item any) {
 			c.Hashmap[symbol] = byId
 		}
 		if old, exists := byId[id]; exists {
-			// overwrite in-place (mirror JS behaviour where the reference is
-			// kept alive).  Shallow copy for now.
+			// merge copy-on-write: never mutate the stored map in place. Previously
+			// returned items (via ToArray -> WatchOrders etc.) share these map
+			// references and are read by user goroutines without holding c.Mu, so an
+			// in-place write here is a fatal "concurrent map read and map write"
 			if om, ok := old.(map[string]any); ok {
 				if nm, ok := item.(map[string]any); ok {
-					for k, v := range nm {
-						om[k] = v
+					merged := make(map[string]any, len(om)+len(nm))
+					for k, v := range om {
+						merged[k] = v
 					}
-					item = om // keep the original reference in the array
+					for k, v := range nm {
+						merged[k] = v
+					}
+					byId[id] = merged
+					item = merged // the array slot is replaced below
 				}
 			}
 			shouldAppend = false
@@ -287,33 +330,6 @@ func (c *ArrayCache) Append(item any) {
 	c.trackAppendLocked(symbol, id)
 }
 
-// func areArraysEqual(a any, b any) bool {
-// 	arrA, okA := a.([]any)
-// 	arrB, okB := b.([]any)
-// 	if !okA || !okB {
-// 		return false
-// 	}
-// 	if len(arrA) != len(arrB) {
-// 		return false
-// 	}
-// 	for i := range arrA {
-// 		// elems can be ints, or map[string]any etc
-// 		if !IsEqual(arrA[i], arrB[i]) {
-// 			return false
-// 		}
-// 		// if arrA[i] != arrB[i] {
-// 		// 	return false
-// 		// }
-// 	}
-// 	return true
-// }
-
-// Clear resets the nesting index along with the array. The keyed subclasses find
-// existing rows through the hashmap, so a clear () that only truncates c.Data
-// leaves the hashmap claiming rows that are gone - the next append then merges
-// into an orphaned reference and the row is silently lost. The update counters
-// have to go too, or GetLimit keeps reporting updates for rows that no longer
-// exist.
 func (c *ArrayCache) Clear() {
 	c.BaseCache.Clear()
 	c.Mu.Lock()
@@ -337,20 +353,14 @@ func (c *ArrayCache) ToArray() []any {
 	return out
 }
 
-// The function returns any so the transpiled code that works with
-// loosely-typed limits continues to compile.
-func (c *ArrayCache) GetLimit(symbol any, limit any) any {
-	// if limit != nil {
-	// 	return limit
-	// }
-	// if symbolStr, ok := symbol.(string); ok && symbolStr != "" {
-	// 	if byId, exists := c.Hashmap[symbolStr]; exists {
-	// 		return len(byId)
-	// 	}
-	// }
-	// return len(c.ToArray())
+// GetLimit mirrors Cache.ts getLimit (symbol: Str, limit: Int): Int - an absent result is a nil pointer.
+func (c *ArrayCache) GetLimit(symbol any, limit any) *int64 {
 	var newUpdatesValue any = nil
 
+	// a typed nil pointer is not == nil, so both arguments must be normalized
+	// or an absent symbol/limit reads as present and truncates the result
+	symbol = derefScalar(symbol)
+	limit = derefScalar(limit)
 	if symbol == nil {
 		newUpdatesValue = c.allNewUpdates
 		c.clearAllUpdates = true
@@ -363,11 +373,11 @@ func (c *ArrayCache) GetLimit(symbol any, limit any) any {
 	}
 
 	if newUpdatesValue == nil {
-		return limit
+		return Int64PtrTyped(limit)
 	} else if limit != nil {
-		return MathMin(newUpdatesValue, limit)
+		return Int64PtrTyped(MathMin(newUpdatesValue, limit))
 	} else {
-		return newUpdatesValue
+		return Int64PtrTyped(newUpdatesValue)
 	}
 }
 
@@ -384,7 +394,7 @@ func (c *ArrayCache) Remove(symbol string) {
 	delete(c.clearUpdatesBySymbol, symbol)
 
 	// Filter out items with this symbol from Data
-	var filteredData []any
+	filteredData := make([]any, 0, len(c.Data))
 	for _, item := range c.Data {
 		if m, ok := item.(map[string]any); ok {
 			if s, ok := m["symbol"].(string); ok && s == symbol {
@@ -409,7 +419,7 @@ type ArrayCacheByTimestamp struct {
 
 func NewArrayCacheByTimestamp(MaxSize any) *ArrayCacheByTimestamp {
 	size := 0
-	switch v := MaxSize.(type) {
+	switch v := derefScalar(MaxSize).(type) {
 	case int:
 		size = v
 	case int64:
@@ -526,12 +536,12 @@ func (c *ArrayCacheByTimestamp) ToArray() []any {
 
 // GetLimit for timestamp cache ignores symbol because entries are not
 // symbol-segmented.  It mirrors the same precedence order as ArrayCache.
-func (c *ArrayCacheByTimestamp) GetLimit(symbol any, limit any) any {
+func (c *ArrayCacheByTimestamp) GetLimit(symbol any, limit any) *int64 {
 	c.clearUpdates = true
-	if limit == nil {
-		return c.newUpdates
+	if derefScalar(limit) == nil {
+		return Int64PtrTyped(c.newUpdates)
 	}
-	return MathMin(c.newUpdates, limit)
+	return Int64PtrTyped(MathMin(c.newUpdates, limit))
 }
 
 // Remove removes all items with the given symbol from the timestamp cache
@@ -540,7 +550,7 @@ func (c *ArrayCacheByTimestamp) Remove(symbol string) {
 	defer c.Mu.Unlock()
 
 	// Filter out items with this symbol from Data
-	var filteredData []any
+	filteredData := make([]any, 0, len(c.Data))
 	for _, item := range c.Data {
 		if m, ok := item.(map[string]any); ok {
 			if s, ok := m["symbol"].(string); ok && s == symbol {
@@ -565,7 +575,7 @@ func NewArrayCacheBySymbolById(optionalArgs ...any) *ArrayCacheBySymbolById {
 }
 
 // GetLimit for nested caches delegates to the inner ArrayCache.
-func (c *ArrayCacheBySymbolById) GetLimit(symbol any, limit any) any {
+func (c *ArrayCacheBySymbolById) GetLimit(symbol any, limit any) *int64 {
 	return c.ArrayCache.GetLimit(symbol, limit)
 }
 
@@ -585,7 +595,7 @@ func NewArrayCacheByOutcomeById(optionalArgs ...any) *ArrayCacheByOutcomeById {
 	return cache
 }
 
-func (c *ArrayCacheByOutcomeById) GetLimit(symbol any, limit any) any {
+func (c *ArrayCacheByOutcomeById) GetLimit(symbol any, limit any) *int64 {
 	return c.ArrayCache.GetLimit(symbol, limit)
 }
 
@@ -635,13 +645,20 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 
 	bySide := c.Hashmap[symbol]
 
-	if _, exists := bySide[side]; exists {
-		if om, ok := bySide[side].(map[string]any); ok {
+	if old, exists := bySide[side]; exists {
+		// merge copy-on-write, same reasoning as ArrayCache.Append: previously
+		// returned items share these map references and are read without c.Mu
+		if om, ok := old.(map[string]any); ok {
 			if nm, ok := item.(map[string]any); ok {
-				for k, v := range nm {
-					om[k] = v
+				merged := make(map[string]any, len(om)+len(nm))
+				for k, v := range om {
+					merged[k] = v
 				}
-				item = om
+				for k, v := range nm {
+					merged[k] = v
+				}
+				bySide[side] = merged
+				item = merged // the array slot is replaced below
 			}
 		}
 		shouldAppend = false
@@ -666,7 +683,7 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 	c.trackAppendLocked(symbol, side)
 }
 
-func (c *ArrayCacheBySymbolBySide) GetLimit(symbol any, limit any) any {
+func (c *ArrayCacheBySymbolBySide) GetLimit(symbol any, limit any) *int64 {
 	return c.ArrayCache.GetLimit(symbol, limit)
 }
 

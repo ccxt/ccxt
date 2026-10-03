@@ -14,6 +14,7 @@ interface Exchange {
     privateGetUserOrders(params?: {}): Promise<List>;
     privateGetUserOrdersUuid(params?: {}): Promise<Dict>;
     privateGetUserPriceAlerts(params?: {}): Promise<List>;
+    privateGetUserWithdrawals(params?: {}): Promise<List>;
     privateGetMerchantGetPaymentUuid(params?: {}): Promise<Dict>;
     privatePostUserAddresses(params?: {}): Promise<Dict>;
     privatePostUserOrders(params?: {}): Promise<Dict>;

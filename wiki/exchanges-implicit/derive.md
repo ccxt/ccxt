@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official derive API documentation:** [docs.derive.xyz](https://docs.derive.xyz/docs/)
 
-> 113 implicit endpoints across 2 access groups.
+> 145 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -67,26 +67,37 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicPostBuildRegisterSessionKeyTx` | POST | `build_register_session_key_tx` | 1 |
 | `publicPostRegisterSessionKey` | POST | `register_session_key` | 1 |
 | `publicPostDeregisterSessionKey` | POST | `deregister_session_key` | 1 |
+| `publicPostGetWalletsFromSessionKey` | POST | `get_wallets_from_session_key` | 1 |
 | `publicPostLogin` | POST | `login` | 1 |
 | `publicPostStatistics` | POST | `statistics` | 1 |
+| `publicPostAllStatistics` | POST | `all_statistics` | 1 |
+| `publicPostUserStatistics` | POST | `user_statistics` | 1 |
+| `publicPostAllUserStatistics` | POST | `all_user_statistics` | 1 |
 | `publicPostGetAllCurrencies` | POST | `get_all_currencies` | 1 |
 | `publicPostGetCurrency` | POST | `get_currency` | 1 |
+| `publicPostGetAsset` | POST | `get_asset` | 1 |
+| `publicPostGetAssets` | POST | `get_assets` | 1 |
 | `publicPostGetInstrument` | POST | `get_instrument` | 1 |
 | `publicPostGetAllInstruments` | POST | `get_all_instruments` | 1 |
 | `publicPostGetInstruments` | POST | `get_instruments` | 1 |
 | `publicPostGetTicker` | POST | `get_ticker` | 1 |
+| `publicPostGetTickers` | POST | `get_tickers` | 1 |
 | `publicPostGetLatestSignedFeeds` | POST | `get_latest_signed_feeds` | 1 |
 | `publicPostGetOptionSettlementPrices` | POST | `get_option_settlement_prices` | 1 |
 | `publicPostGetSpotFeedHistory` | POST | `get_spot_feed_history` | 1 |
 | `publicPostGetSpotFeedHistoryCandles` | POST | `get_spot_feed_history_candles` | 1 |
+| `publicPostGetIndexChartData` | POST | `get_index_chart_data` | 1 |
+| `publicPostGetTradingviewChartData` | POST | `get_tradingview_chart_data` | 1 |
 | `publicPostGetFundingRateHistory` | POST | `get_funding_rate_history` | 1 |
 | `publicPostGetTradeHistory` | POST | `get_trade_history` | 1 |
 | `publicPostGetOptionSettlementHistory` | POST | `get_option_settlement_history` | 1 |
 | `publicPostGetLiquidationHistory` | POST | `get_liquidation_history` | 1 |
 | `publicPostGetInterestRateHistory` | POST | `get_interest_rate_history` | 1 |
+| `publicPostGetPerpImpactTwap` | POST | `get_perp_impact_twap` | 1 |
 | `publicPostGetTransaction` | POST | `get_transaction` | 1 |
 | `publicPostGetMargin` | POST | `get_margin` | 1 |
 | `publicPostMarginWatch` | POST | `margin_watch` | 1 |
+| `publicPostOrderQuote` | POST | `order_quote` | 1 |
 | `publicPostValidateInviteCode` | POST | `validate_invite_code` | 1 |
 | `publicPostGetPoints` | POST | `get_points` | 1 |
 | `publicPostGetAllPoints` | POST | `get_all_points` | 1 |
@@ -94,6 +105,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicPostGetDescendantTree` | POST | `get_descendant_tree` | 1 |
 | `publicPostGetTreeRoots` | POST | `get_tree_roots` | 1 |
 | `publicPostGetSwellPercentPoints` | POST | `get_swell_percent_points` | 1 |
+| `publicPostGetStdrvSnapshots` | POST | `get_stdrv_snapshots` | 1 |
 | `publicPostGetVaultAssets` | POST | `get_vault_assets` | 1 |
 | `publicPostGetEtherfiEffectiveBalances` | POST | `get_etherfi_effective_balances` | 1 |
 | `publicPostGetKelpEffectiveBalances` | POST | `get_kelp_effective_balances` | 1 |
@@ -102,18 +114,25 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicPostGetVaultShare` | POST | `get_vault_share` | 1 |
 | `publicPostGetVaultStatistics` | POST | `get_vault_statistics` | 1 |
 | `publicPostGetVaultBalances` | POST | `get_vault_balances` | 1 |
+| `publicPostGetVaultPools` | POST | `get_vault_pools` | 1 |
+| `publicPostGetVaultRates` | POST | `get_vault_rates` | 1 |
 | `publicPostEstimateIntegratorPoints` | POST | `estimate_integrator_points` | 1 |
 | `publicPostCreateSubaccountDebug` | POST | `create_subaccount_debug` | 1 |
+| `publicPostCreateAccountWithSecret` | POST | `create_account_with_secret` | 1 |
 | `publicPostDepositDebug` | POST | `deposit_debug` | 1 |
 | `publicPostWithdrawDebug` | POST | `withdraw_debug` | 1 |
 | `publicPostSendQuoteDebug` | POST | `send_quote_debug` | 1 |
 | `publicPostExecuteQuoteDebug` | POST | `execute_quote_debug` | 1 |
 | `publicPostGetInviteCode` | POST | `get_invite_code` | 1 |
 | `publicPostRegisterInvite` | POST | `register_invite` | 1 |
+| `publicPostGetAllReferralCodes` | POST | `get_all_referral_codes` | 1 |
+| `publicPostGetReferralPerformance` | POST | `get_referral_performance` | 1 |
 | `publicPostGetTime` | POST | `get_time` | 1 |
 | `publicPostGetLiveIncidents` | POST | `get_live_incidents` | 1 |
 | `publicPostGetMakerPrograms` | POST | `get_maker_programs` | 1 |
 | `publicPostGetMakerProgramScores` | POST | `get_maker_program_scores` | 1 |
+| `publicPostGetDetailedMakerSnapshotHistory` | POST | `get_detailed_maker_snapshot_history` | 1 |
+| `publicPostGetRateLimits` | POST | `getRateLimits` | 1 |
 
 ## private
 
@@ -128,6 +147,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostGetAllPortfolios` | POST | `get_all_portfolios` | 1 |
 | `privatePostChangeSubaccountLabel` | POST | `change_subaccount_label` | 1 |
 | `privatePostGetNotificationsv` | POST | `get_notificationsv` | 1 |
+| `privatePostGetNotifications` | POST | `get_notifications` | 1 |
 | `privatePostUpdateNotifications` | POST | `update_notifications` | 1 |
 | `privatePostDeposit` | POST | `deposit` | 1 |
 | `privatePostWithdraw` | POST | `withdraw` | 1 |
@@ -140,12 +160,17 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostGetOrder` | POST | `get_order` | 1 |
 | `privatePostGetOrders` | POST | `get_orders` | 1 |
 | `privatePostGetOpenOrders` | POST | `get_open_orders` | 1 |
+| `privatePostGetTriggerOrders` | POST | `get_trigger_orders` | 1 |
+| `privatePostGetAlgoOrders` | POST | `get_algo_orders` | 1 |
 | `privatePostCancel` | POST | `cancel` | 1 |
 | `privatePostCancelByLabel` | POST | `cancel_by_label` | 1 |
 | `privatePostCancelByNonce` | POST | `cancel_by_nonce` | 1 |
 | `privatePostCancelByInstrument` | POST | `cancel_by_instrument` | 1 |
 | `privatePostCancelAll` | POST | `cancel_all` | 1 |
 | `privatePostCancelTriggerOrder` | POST | `cancel_trigger_order` | 1 |
+| `privatePostCancelAlgoOrder` | POST | `cancel_algo_order` | 1 |
+| `privatePostCancelAllAlgoOrders` | POST | `cancel_all_algo_orders` | 1 |
+| `privatePostCancelAllTriggerOrders` | POST | `cancel_all_trigger_orders` | 1 |
 | `privatePostGetOrderHistory` | POST | `get_order_history` | 1 |
 | `privatePostGetTradeHistory` | POST | `get_trade_history` | 1 |
 | `privatePostGetDepositHistory` | POST | `get_deposit_history` | 1 |
@@ -161,6 +186,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostGetQuotes` | POST | `get_quotes` | 1 |
 | `privatePostPollQuotes` | POST | `poll_quotes` | 1 |
 | `privatePostExecuteQuote` | POST | `execute_quote` | 1 |
+| `privatePostOrderQuote` | POST | `order_quote` | 1 |
+| `privatePostReplaceQuote` | POST | `replace_quote` | 1 |
 | `privatePostRfqGetBestQuote` | POST | `rfq_get_best_quote` | 1 |
 | `privatePostGetMargin` | POST | `get_margin` | 1 |
 | `privatePostGetCollaterals` | POST | `get_collaterals` | 1 |
@@ -176,6 +203,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostGetLiquidatorHistory` | POST | `get_liquidator_history` | 1 |
 | `privatePostSessionKeys` | POST | `session_keys` | 1 |
 | `privatePostEditSessionKey` | POST | `edit_session_key` | 1 |
+| `privatePostChangeSessionKeyLabel` | POST | `change_session_key_label` | 1 |
 | `privatePostRegisterScopedSessionKey` | POST | `register_scoped_session_key` | 1 |
 | `privatePostGetMmpConfig` | POST | `get_mmp_config` | 1 |
 | `privatePostSetMmpConfig` | POST | `set_mmp_config` | 1 |
@@ -183,4 +211,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostSetCancelOnDisconnect` | POST | `set_cancel_on_disconnect` | 1 |
 | `privatePostGetInviteCode` | POST | `get_invite_code` | 1 |
 | `privatePostRegisterInvite` | POST | `register_invite` | 1 |
+| `privatePostGetContactInfo` | POST | `get_contact_info` | 1 |
+| `privatePostCreateContactInfo` | POST | `create_contact_info` | 1 |
+| `privatePostUpdateContactInfo` | POST | `update_contact_info` | 1 |
+| `privatePostDeleteContactInfo` | POST | `delete_contact_info` | 1 |
 

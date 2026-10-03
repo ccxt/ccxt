@@ -1067,5 +1067,146 @@
         "tierBased": true,
         "percentage": true,
         "delivery": false
+    },
+    "ATH/USDT": {
+        "id": "ATH_USDT",
+        "lowercaseId": "ath_usdt",
+        "symbol": "ATH/USDT",
+        "base": "ATH",
+        "quote": "USDT",
+        "baseId": "ATH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0075,
+        "maker": 0.0075,
+        "precision": {
+            "amount": 0.01,
+            "price": "0.00010000",
+            "base": 1e-08,
+            "quote": 1e-08
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.01,
+                "max": 120000
+            },
+            "price": {
+                "min": 0.0001,
+                "max": 2000
+            },
+            "cost": {
+                "min": 2,
+                "max": null
+            },
+            "market": {
+                "min": 0.01,
+                "max": 120000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "info": {
+            "type": 3,
+            "symbol": "ATH_USDT",
+            "baseAsset": "ATH",
+            "basePrecision": 8,
+            "quoteAsset": "USDT",
+            "quotePrecision": 8,
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.00010000",
+                    "maxPrice": "2000",
+                    "tickSize": "0.00010000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.01000000",
+                    "maxQty": "120000",
+                    "stepSize": "0.01000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MARKET_LOT_SIZE",
+                    "minQty": "0.01000000",
+                    "maxQty": "120000",
+                    "stepSize": "0.01000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ORDERS",
+                    "applyToMarket": false,
+                    "limit": "200"
+                },
+                {
+                    "filterType": "MIN_NOTIONAL",
+                    "minNotional": "2",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NOTIONAL",
+                    "maxNotional": "5000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "NOTIONAL",
+                    "avgPriceMins": "5",
+                    "minNotional": "2",
+                    "maxNotional": "5000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "PERCENT_PRICE",
+                    "multiplierUp": 1.2,
+                    "multiplierDown": 0.8,
+                    "multiplierDecimal": 1,
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                    "multiplierDecimal": 1,
+                    "bidMultiplierUp": 1.2,
+                    "bidMultiplierDown": 0.8,
+                    "askMultiplierUp": 1.2,
+                    "askMultiplierDown": 0.8,
+                    "avgPriceMins": "5",
+                    "applyToMarket": false
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "STOP_LOSS_LIMIT",
+                "STOP_LOSS",
+                "TAKE_PROFIT_LIMIT",
+                "TAKE_PROFIT"
+            ],
+            "icebergEnable": 0,
+            "ocoEnable": 0,
+            "spotTradingEnable": 1,
+            "marginTradingEnable": 0,
+            "permissions": [
+                "SPOT"
+            ],
+            "defaultSelfTradePreventionMode": "",
+            "allowedSelfTradePreventionModes": []
+        },
+        "tierBased": true,
+        "percentage": true,
+        "delivery": false
     }
 }

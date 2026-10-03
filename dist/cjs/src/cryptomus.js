@@ -172,6 +172,7 @@ class cryptomus extends cryptomus$1["default"] {
                     'get': {
                         'v2/user-api/exchange/markets': { 'cost': 1 }, // done
                         'v2/user-api/exchange/market/price': { 'cost': 1 }, // not used
+                        'v2/user-api/exchange/markets/price': { 'cost': 1 },
                         'v1/exchange/market/assets': { 'cost': 1 }, // done
                         'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1 }, // done
                         'v1/exchange/market/tickers': { 'cost': 1 }, // done
@@ -187,13 +188,27 @@ class cryptomus extends cryptomus$1["default"] {
                         'v2/user-api/payment/services': { 'cost': 1 },
                         'v2/user-api/payout/services': { 'cost': 1 },
                         'v2/user-api/transaction/list': { 'cost': 1 },
+                        'v2/user-api/balance': { 'cost': 1 },
+                        'v2/user-api/convert/direction-list': { 'cost': 1 },
+                        'v2/user-api/convert/order-list': { 'cost': 1 },
+                        'v2/user-api/aml/check/balance': { 'cost': 1 },
+                        'v2/user-api/aml/check/currencies': { 'cost': 1 },
+                        'v2/user-api/aml/check/packages': { 'cost': 1 },
+                        'v2/user-api/aml/check/request': { 'cost': 1 },
+                        'v2/user-api/aml/check/request/{id}': { 'cost': 1 },
                     },
                     'post': {
                         'v2/user-api/exchange/orders': { 'cost': 1 }, // done
                         'v2/user-api/exchange/orders/market': { 'cost': 1 }, // done
+                        'v2/user-api/convert': { 'cost': 1 },
+                        'v2/user-api/convert/calculate': { 'cost': 1 },
+                        'v2/user-api/convert/limit': { 'cost': 1 },
+                        'v2/user-api/aml/check/request': { 'cost': 1 },
+                        'v2/user-api/aml/check/request/{id}/report/send': { 'cost': 1 },
                     },
                     'delete': {
                         'v2/user-api/exchange/orders/{orderId}': { 'cost': 1 }, // done
+                        'v2/user-api/convert/{orderUuid}': { 'cost': 1 },
                     },
                 },
             },
@@ -322,6 +337,9 @@ class cryptomus extends cryptomus$1["default"] {
         const quoteId = parts[1];
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const fees = this.safeDict(this.fees, 'trading');
         return this.safeMarketStructure({
             'id': marketId,
@@ -418,7 +436,7 @@ class cryptomus extends cryptomus$1["default"] {
         let code = undefined;
         const networks = {};
         for (let i = 0; i < rawCurrency.length; i++) {
-            const networkEntry = rawCurrency[i];
+            const networkEntry = this.safeDict(rawCurrency, i);
             // set ID on first loop
             if (id === undefined) {
                 id = this.safeString(networkEntry, 'currency_code');
@@ -469,7 +487,7 @@ class cryptomus extends cryptomus$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.publicGetV1ExchangeMarketTickers(params);
         //
         //     {
@@ -484,7 +502,7 @@ class cryptomus extends cryptomus$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data');
-        return this.parseTickers(data, symbols);
+        return this.parseTickers(data, symbolsNormalized);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -496,8 +514,8 @@ class cryptomus extends cryptomus$1["default"] {
         //     }
         //
         const marketId = this.safeString(ticker, 'currency_pair');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const last = this.safeString(ticker, 'last_price');
         return this.safeTicker({
             'symbol': symbol,
@@ -520,7 +538,7 @@ class cryptomus extends cryptomus$1["default"] {
             'baseVolume': this.safeString(ticker, 'base_volume'),
             'quoteVolume': this.safeString(ticker, 'quote_volume'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -541,10 +559,10 @@ class cryptomus extends cryptomus$1["default"] {
         const request = {
             'currencyPair': market['id'],
         };
-        let level = 0;
-        [level, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'level', level);
-        request['level'] = level;
-        const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, params));
+        const level = 0;
+        const [levelOption, paramsLevel] = this.handleOptionIntegerAndParams(params, 'fetchOrderBook', 'level', level);
+        request['level'] = levelOption;
+        const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, paramsLevel));
         //
         //     {
         //         "data": {
@@ -680,7 +698,7 @@ class cryptomus extends cryptomus$1["default"] {
             'info': balance,
         };
         for (let i = 0; i < balance.length; i++) {
-            const balanceEntry = balance[i];
+            const balanceEntry = this.safeDict(balance, i);
             const currencyId = this.safeString(balanceEntry, 'ticker');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -719,20 +737,24 @@ class cryptomus extends cryptomus$1["default"] {
             'tag': 'ccxt',
         };
         const clientOrderId = this.safeString(params, 'clientOrderId');
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, 'clientOrderId') : params;
         if (clientOrderId !== undefined) {
-            params = this.omit(params, 'clientOrderId');
             request['client_order_id'] = clientOrderId;
         }
         const sideBuy = side === 'buy';
         const amountToString = this.numberToString(amount);
         const priceToString = this.numberToString(price);
-        let cost = undefined;
-        [cost, params] = this.handleParamString(params, 'cost');
+        const [costParam, paramsCost] = this.handleParamString(paramsOmitted, 'cost');
+        let cost = costParam;
         let response;
         if (type === 'market') {
+            const requiresPriceAndParams = this.handleOptionBoolAndParams(paramsCost, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            let paramsMarket = paramsCost;
             if (sideBuy) {
-                let createMarketBuyOrderRequiresPrice = true;
-                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                paramsMarket = requiresPriceAndParams[1];
+            }
+            if (sideBuy) {
+                const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
                 if (createMarketBuyOrderRequiresPrice) {
                     if ((price === undefined) && (cost === undefined)) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
@@ -749,7 +771,7 @@ class cryptomus extends cryptomus$1["default"] {
             else {
                 request['quantity'] = amountToString;
             }
-            response = await this.privatePostV2UserApiExchangeOrdersMarket(this.extend(request, params));
+            response = await this.privatePostV2UserApiExchangeOrdersMarket(this.extend(request, paramsMarket));
         }
         else if (type === 'limit') {
             if (price === undefined) {
@@ -757,7 +779,7 @@ class cryptomus extends cryptomus$1["default"] {
             }
             request['quantity'] = amountToString;
             request['price'] = price;
-            response = await this.privatePostV2UserApiExchangeOrders(this.extend(request, params));
+            response = await this.privatePostV2UserApiExchangeOrders(this.extend(request, paramsCost));
         }
         else {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a type parameter (limit or market)');
@@ -980,7 +1002,7 @@ class cryptomus extends cryptomus$1["default"] {
         //
         const id = this.safeString2(order, 'order_id', 'id');
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const dateTime = this.safeString(order, 'createdAt');
         const timestamp = this.parse8601(dateTime);
         const deal = this.safeDict(order, 'deal', {});
@@ -1011,7 +1033,7 @@ class cryptomus extends cryptomus$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1028,7 +1050,7 @@ class cryptomus extends cryptomus$1["default"] {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
     parseOrderStatus(status = undefined) {
         const statuses = {
@@ -1130,7 +1152,7 @@ class cryptomus extends cryptomus$1["default"] {
         const takerFees = [];
         const makerFees = [];
         for (let i = 0; i < feeTiers.length; i++) {
-            const tier = feeTiers[i];
+            const tier = this.safeDict(feeTiers, i);
             const turnover = this.safeNumber(tier, 'from_turnover');
             let taker = this.safeString(tier, 'taker_percent');
             let maker = this.safeString(tier, 'maker_percent');
@@ -1146,21 +1168,24 @@ class cryptomus extends cryptomus$1["default"] {
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = this.implodeParams(path, params);
-        params = this.omit(params, this.extractParams(path));
-        let url = this.urls['api'][api] + '/' + endpoint;
+        const paramsOmitted = this.omit(params, this.extractParams(path));
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials();
             let jsonParams = '';
-            headers = {
+            const privateHeaders = {
                 'userId': this.uid,
             };
             if (method !== 'GET') {
-                body = this.json(params);
-                jsonParams = body;
-                headers['Content-Type'] = 'application/json';
+                jsonParams = this.json(paramsOmitted);
+                privateHeaders['Content-Type'] = 'application/json';
             }
             else {
-                const query = this.urlencode(params);
+                const query = this.urlencode(paramsOmitted);
                 if (query.length !== 0) {
                     url += '?' + query;
                 }
@@ -1168,10 +1193,12 @@ class cryptomus extends cryptomus$1["default"] {
             const jsonParamsBase64 = this.stringToBase64(jsonParams);
             const stringToSign = jsonParamsBase64 + this.secret;
             const signature = this.hash(this.encode(stringToSign), legacy_js.md5);
-            headers['sign'] = signature;
+            privateHeaders['sign'] = signature;
+            const privateBody = (method !== 'GET') ? jsonParams : body;
+            return { 'url': url, 'method': method, 'body': privateBody, 'headers': privateHeaders };
         }
         else {
-            const query = this.urlencode(params);
+            const query = this.urlencode(paramsOmitted);
             if (query.length !== 0) {
                 url += '?' + query;
             }

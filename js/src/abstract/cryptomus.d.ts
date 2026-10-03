@@ -3,6 +3,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     publicGetV2UserApiExchangeMarkets(params?: {}): Promise<Dict>;
     publicGetV2UserApiExchangeMarketPrice(params?: {}): Promise<Dict>;
+    publicGetV2UserApiExchangeMarketsPrice(params?: {}): Promise<Dict>;
     publicGetV1ExchangeMarketAssets(params?: {}): Promise<Dict>;
     publicGetV1ExchangeMarketOrderBookCurrencyPair(params?: {}): Promise<Dict>;
     publicGetV1ExchangeMarketTickers(params?: {}): Promise<Dict>;
@@ -14,9 +15,23 @@ interface Exchange {
     privateGetV2UserApiPaymentServices(params?: {}): Promise<Dict>;
     privateGetV2UserApiPayoutServices(params?: {}): Promise<Dict>;
     privateGetV2UserApiTransactionList(params?: {}): Promise<Dict>;
+    privateGetV2UserApiBalance(params?: {}): Promise<Dict>;
+    privateGetV2UserApiConvertDirectionList(params?: {}): Promise<Dict>;
+    privateGetV2UserApiConvertOrderList(params?: {}): Promise<Dict>;
+    privateGetV2UserApiAmlCheckBalance(params?: {}): Promise<Dict>;
+    privateGetV2UserApiAmlCheckCurrencies(params?: {}): Promise<Dict>;
+    privateGetV2UserApiAmlCheckPackages(params?: {}): Promise<Dict>;
+    privateGetV2UserApiAmlCheckRequest(params?: {}): Promise<Dict>;
+    privateGetV2UserApiAmlCheckRequestId(params?: {}): Promise<Dict>;
     privatePostV2UserApiExchangeOrders(params?: {}): Promise<Dict>;
     privatePostV2UserApiExchangeOrdersMarket(params?: {}): Promise<Dict>;
+    privatePostV2UserApiConvert(params?: {}): Promise<Dict>;
+    privatePostV2UserApiConvertCalculate(params?: {}): Promise<Dict>;
+    privatePostV2UserApiConvertLimit(params?: {}): Promise<Dict>;
+    privatePostV2UserApiAmlCheckRequest(params?: {}): Promise<Dict>;
+    privatePostV2UserApiAmlCheckRequestIdReportSend(params?: {}): Promise<Dict>;
     privateDeleteV2UserApiExchangeOrdersOrderId(params?: {}): Promise<Dict>;
+    privateDeleteV2UserApiConvertOrderUuid(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

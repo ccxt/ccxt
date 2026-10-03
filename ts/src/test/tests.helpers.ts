@@ -31,7 +31,6 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
-
 // ############## detect cli arguments ############## //
 const argv = process.argv.slice (2); // remove first two arguments (which is process and script path "js/src/test/test.js")
 
@@ -48,7 +47,6 @@ const argvExchange = argvs_filtered[0];
 const argvSymbol   = selectArgv (argv, '/');
 const argvMethod   = selectArgv (argv, '()');
 // #################################################### //
-
 
 function getCliArgValue (arg: string) {
     return process.argv.includes (arg) || false;
@@ -197,6 +195,24 @@ function setFetchResponse (exchange: Exchange, mockResponse: any) {
     return exchange;
 }
 
+// Serves a different body per request, keyed by url fragment, for methods that call
+// several endpoints. One shared body cannot serve two endpoints whose api leaves
+// declare different shapes: the typed ports narrow each body to its declared shape
+// and throw on a mismatch. A request matching no fragment gets the first body.
+function setFetchResponseByUrl (exchange: Exchange, responsesByUrl: any) {
+    const fragments = Object.keys (responsesByUrl);
+    exchange.fetch = async (url, method = 'GET', headers: any = undefined, body: any = undefined) => {
+        for (let i = 0; i < fragments.length; i++) {
+            const fragment = fragments[i];
+            if (url.indexOf (fragment) >= 0) {
+                return responsesByUrl[fragment];
+            }
+        }
+        return responsesByUrl[fragments[0]];
+    };
+    return exchange;
+}
+
 function setupWsMockTransport (exchange: any, url: string) {
     // put the ws client for the given url into an "already connected" state
     // with a transport stub, so watch* methods never open a real socket;
@@ -306,7 +322,6 @@ function isAmd64 () {
     return process.arch === "x64";
 }
 
-
 export {
     // errors
     AuthenticationError,
@@ -340,6 +355,7 @@ export {
     getTestFiles,
     getTestFilesSync,
     setFetchResponse,
+    setFetchResponseByUrl,
     setupWsMockTransport,
     injectWsMessage,
     rejectPendingWsFutures,
