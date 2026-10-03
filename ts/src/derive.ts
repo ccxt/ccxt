@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/derive.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint, OHLCV, OpenInterest } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint, OHLCV, OpenInterest, Account, TransferEntry } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -125,7 +125,7 @@ export default class derive extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -3273,6 +3273,107 @@ export default class derive extends Exchange {
             result['USDC'] = usdcAccount;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name derive#transfer
+     * @description transfer a spot asset between subaccounts belonging to the same wallet
+     * @see https://docs.derive.xyz/api-reference/transfers-&-withdrawals/privatetransfer_spot
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount the subaccount id to transfer from
+     * @param {string} toAccount the subaccount id to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.max_fee_usd] the maximum accepted fee in usd, default 0: transfers between existing subaccounts are free
+     * @param {int} [params.new_subaccount_manager] a manager id creates a fresh subaccount under the sender wallet as the destination instead of toAccount, the creation charges a fee so max_fee_usd must cover it
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params: Dict = {}): Promise<TransferEntry> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const currency = this.currency (code);
+        // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
+        const spotAssets = this.safeList (currency['info'], 'spot', []);
+        const spotAsset = this.safeDict (spotAssets, 0, {});
+        const assetAddress = this.safeString (spotAsset, 'address');
+        if (assetAddress === undefined) {
+            throw new BadRequest (this.id + ' transfer() ' + code + ' has no deposit-enabled spot asset');
+        }
+        const fromId = this.parseToInt (fromAccount);
+        const toId = this.parseToInt (toAccount);
+        const amountString = this.numberToString (amount);
+        const maxFeeUsd = this.safeString (params, 'max_fee_usd', '0');
+        const newSubaccountManager = this.safeInteger (params, 'new_subaccount_manager', 0);
+        if ((toId === 0) && (newSubaccountManager === 0)) {
+            throw new ArgumentsRequired (this.id + ' transfer() requires an existing toAccount or params.new_subaccount_manager to create one');
+        }
+        if ((newSubaccountManager !== 0) && (maxFeeUsd === '0')) {
+            throw new ArgumentsRequired (this.id + ' transfer() creating a subaccount charges a fee, set params.max_fee_usd to cover it');
+        }
+        const paramsOmitted: Dict = this.omit (params, [ 'max_fee_usd', 'new_subaccount_manager' ]);
+        const nonce = this.nonceString ();
+        const signatureExpiry = this.safeInteger (paramsOmitted, 'signature_expiry_sec', this.seconds () + 7776000);
+        const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
+        const TRANSFER_MODULE_ADDRESS: Str = '0x01259207A40925b794C8ac320456F7F6c8FE2636'; // shared across mainnet and testnet in v3
+        const transferModuleDataHash = this.hash (this.ethAbiEncode ([
+            'uint', 'uint', 'address', 'uint', 'uint', 'uint',
+        ], [
+            toId,
+            newSubaccountManager, // a non-zero manager id creates a new subaccount instead of crediting an existing one
+            assetAddress,
+            0, // erc20 spot assets always carry sub id 0
+            this.convertToBigInt ((this.parseUnits (amountString) as string)),
+            this.convertToBigInt ((this.parseUnits (maxFeeUsd) as string)),
+        ]), keccak, 'binary');
+        const [ deriveWalletAddress, paramsDeriveWalletAddress ] = this.handleDeriveWalletAddress ('transfer', paramsOmitted);
+        const signature = this.signOrder ([
+            ACTION_TYPEHASH,
+            fromId,
+            this.convertToBigInt (nonce),
+            TRANSFER_MODULE_ADDRESS,
+            transferModuleDataHash,
+            signatureExpiry,
+            deriveWalletAddress,
+            this.walletAddress,
+        ], this.privateKey);
+        const request: Dict = {
+            'subaccount_id': fromId,
+            'to_subaccount_id': toId,
+            'new_subaccount_manager': newSubaccountManager,
+            'asset_name': currency['id'],
+            'sub_id': 0,
+            'amount': amountString,
+            'max_fee_usd': maxFeeUsd,
+            'nonce': nonce,
+            'signer': this.walletAddress,
+            'signature': signature,
+            'signature_expiry_sec': signatureExpiry,
+        };
+        const response = await this.privatePostTransferSpot (this.extend (request, paramsDeriveWalletAddress));
+        const result = this.safeDict (response, 'result', {});
+        const transferEntry = this.parseTransfer (result, currency);
+        // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
+        transferEntry['fromAccount'] = this.numberToString (fromId);
+        transferEntry['toAccount'] = (toId !== 0) ? this.numberToString (toId) : undefined;
+        transferEntry['amount'] = this.parseNumber (amountString);
+        return transferEntry;
+    }
+
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        const timestamp = this.safeInteger (transfer, 'timestamp');
+        return {
+            'info': transfer,
+            'id': this.safeString2 (transfer, 'transaction_id', 'operation_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransactionStatus (this.safeString (transfer, 'status')),
+        };
     }
 
     /**
