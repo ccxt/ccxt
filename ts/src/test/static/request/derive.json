@@ -77,6 +77,33 @@
                 "output": "{\"instrument_name\":\"BTC-20270924-90000-P\"}"
             }
         ],
+        "fetchSettlementHistory": [
+            {
+                "description": "fetchSettlementHistory",
+                "method": "fetchSettlementHistory",
+                "url": "https://testnet.api.derive.xyz/v3/public/get_option_settlement_prices",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": "{\"currency\":\"BTC\"}"
+            }
+        ],
+        "fetchMySettlementHistory": [
+            {
+                "description": "fetchMySettlementHistory",
+                "method": "fetchMySettlementHistory",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_option_settlement_history",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subaccount_id": 86815
+                    }
+                ],
+                "output": "{\"subaccount_id\":86815}"
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetchTrades",
