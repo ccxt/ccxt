@@ -130,7 +130,7 @@ export default class derive extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -3954,6 +3954,91 @@ export default class derive extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         } as BorrowInterest;
+    }
+
+    /**
+     * @method
+     * @name derive#withdraw
+     * @description make a withdrawal to an L1 address, the payout defaults to the owner wallet and a session key may only pay out to the owner wallet or a whitelisted recipient
+     * @see https://docs.derive.xyz/api-reference/transfers-&-withdrawals/privatewithdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the L1 address to withdraw to
+     * @param {string} [tag] not used by derive.withdraw
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.max_fee_usd] the maximum accepted fee in usd, default 1, or 10 with force_batch
+     * @param {bool} [params.force_batch] pay the higher fee to have the withdrawal batch proven immediately
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
+        const spotAssets = this.safeList (currency['info'], 'spot', []);
+        const spotAsset = this.safeDict (spotAssets, 0, {});
+        const assetAddress = this.safeString (spotAsset, 'address');
+        if (assetAddress === undefined) {
+            throw new BadRequest (this.id + ' withdraw() ' + code + ' has no deposit-enabled spot asset');
+        }
+        const erc20 = this.safeDict (spotAsset, 'erc20', {});
+        const decimals = this.safeInteger (erc20, 'decimals');
+        if (decimals === undefined) {
+            throw new BadRequest (this.id + ' withdraw() ' + code + ' carries no erc20 decimals metadata');
+        }
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('withdraw', params);
+        const forceBatch = this.safeBool2 (paramsDeriveSubaccountId, 'force_batch', 'forceBatch', false);
+        const defaultMaxFee = (forceBatch) ? '10' : '1';
+        const maxFeeUsd = this.safeString2 (paramsDeriveSubaccountId, 'max_fee_usd', 'maxFeeUsd', defaultMaxFee);
+        const paramsOmitted: Dict = this.omit (paramsDeriveSubaccountId, [ 'max_fee_usd', 'maxFeeUsd', 'force_batch', 'forceBatch' ]);
+        const amountString = this.numberToString (amount);
+        // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
+        const one = '1';
+        const scale = one.padEnd (decimals + 1, '0');
+        const amountScaled = Precise.stringMul (amountString, scale);
+        const nonce = this.nonceString ();
+        const signatureExpiry = this.safeInteger (paramsOmitted, 'signature_expiry_sec', this.seconds () + 7776000);
+        const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
+        const WITHDRAWAL_MODULE_ADDRESS: Str = '0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083'; // shared across mainnet and testnet in v3
+        const withdrawalModuleDataHash = this.hash (this.ethAbiEncode ([
+            'address', 'uint', 'address', 'uint', 'bool',
+        ], [
+            assetAddress,
+            this.convertToBigInt ((this.parseUnits (maxFeeUsd) as string)),
+            address,
+            this.convertToBigInt ((amountScaled as string)),
+            forceBatch,
+        ]), keccak, 'binary');
+        const [ deriveWalletAddress, paramsDeriveWalletAddress ] = this.handleDeriveWalletAddress ('withdraw', paramsOmitted);
+        const signature = this.signOrder ([
+            ACTION_TYPEHASH,
+            subaccountId,
+            this.convertToBigInt (nonce),
+            WITHDRAWAL_MODULE_ADDRESS,
+            withdrawalModuleDataHash,
+            signatureExpiry,
+            deriveWalletAddress,
+            this.walletAddress,
+        ], this.privateKey);
+        const request: Dict = {
+            'subaccount_id': subaccountId,
+            'asset_name': currency['id'],
+            'amount_in_underlying': amountString,
+            'max_fee_usd': maxFeeUsd,
+            'force_batch': forceBatch,
+            'recipient': address,
+            'nonce': nonce,
+            'signer': this.walletAddress,
+            'signature': signature,
+            'signature_expiry_sec': signatureExpiry,
+        };
+        // never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema
+        const response = await this.privatePostWithdraw (this.extend (request, paramsDeriveWalletAddress));
+        const result = this.safeDict (response, 'result', {});
+        return this.parseTransaction (result, currency);
     }
 
     /**

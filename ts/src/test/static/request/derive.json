@@ -713,6 +713,23 @@
                 "output": "{\"subaccount_id\":86815,\"end_timestamp\":1791030000000}"
             }
         ],
+        "withdraw": [
+            {
+                "description": "withdraw, generated offline against a mocked transport: the live endpoint must never be called",
+                "method": "withdraw",
+                "url": "https://testnet.api.derive.xyz/v3/private/withdraw",
+                "input": [
+                    "USDC",
+                    5,
+                    "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                    null,
+                    {
+                        "subaccount_id": 86815
+                    }
+                ],
+                "output": "{\"subaccount_id\":86815,\"asset_name\":\"USDC\",\"amount_in_underlying\":\"5\",\"max_fee_usd\":\"1\",\"force_batch\":false,\"recipient\":\"0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee\",\"nonce\":\"1791038734896843677\",\"signer\":\"0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee\",\"signature\":\"0x2fbd90d20f415b7b15c644412e764a28b349db4674bc519d8151a948c2005a1c5d0d7abd5fcf8a4b0e0cbead7e60c81c67dddc7a595c592d0a5654dad29e26091b\",\"signature_expiry_sec\":1798814734}"
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "fetchDeposits",
