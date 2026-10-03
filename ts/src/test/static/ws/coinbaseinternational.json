@@ -1,0 +1,2534 @@
+{
+    "exchange": "coinbaseinternational",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "option watch order book",
+                "input": [
+                    "BTC/USD:BTC-270625-30000-C"
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "book.BTC-25JUN27-30000-C.100ms"
+                        ],
+                        "usIn": "1789537728134242",
+                        "usOut": "1789537728134424",
+                        "usDiff": 182,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "book.BTC-25JUN27-30000-C.100ms",
+                            "data": {
+                                "timestamp": 1789537727328,
+                                "type": "snapshot",
+                                "change_id": 174296847244,
+                                "instrument_name": "BTC-25JUN27-30000-C",
+                                "bids": [
+                                    [
+                                        "new",
+                                        0.623,
+                                        11.1
+                                    ],
+                                    [
+                                        "new",
+                                        0.6225,
+                                        21.9
+                                    ],
+                                    [
+                                        "new",
+                                        0.622,
+                                        21.9
+                                    ],
+                                    [
+                                        "new",
+                                        0.6215,
+                                        21.9
+                                    ],
+                                    [
+                                        "new",
+                                        0.621,
+                                        21.9
+                                    ],
+                                    [
+                                        "new",
+                                        0.62,
+                                        22
+                                    ],
+                                    [
+                                        "new",
+                                        0.619,
+                                        28
+                                    ]
+                                ],
+                                "asks": [
+                                    [
+                                        "new",
+                                        0.625,
+                                        1.7
+                                    ],
+                                    [
+                                        "new",
+                                        0.6265,
+                                        21.9
+                                    ],
+                                    [
+                                        "new",
+                                        0.627,
+                                        43.9
+                                    ],
+                                    [
+                                        "new",
+                                        0.6275,
+                                        21.9
+                                    ],
+                                    [
+                                        "new",
+                                        0.628,
+                                        21.9
+                                    ],
+                                    [
+                                        "new",
+                                        0.6285,
+                                        49.9
+                                    ]
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "book.BTC-25JUN27-30000-C.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                0.623,
+                                11.1,
+                                1
+                            ],
+                            [
+                                0.6225,
+                                21.9,
+                                1
+                            ],
+                            [
+                                0.622,
+                                21.9,
+                                1
+                            ],
+                            [
+                                0.6215,
+                                21.9,
+                                1
+                            ],
+                            [
+                                0.621,
+                                21.9,
+                                1
+                            ],
+                            [
+                                0.62,
+                                22,
+                                1
+                            ],
+                            [
+                                0.619,
+                                28,
+                                1
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                0.625,
+                                1.7,
+                                1
+                            ],
+                            [
+                                0.6265,
+                                21.9,
+                                1
+                            ],
+                            [
+                                0.627,
+                                43.9,
+                                1
+                            ],
+                            [
+                                0.6275,
+                                21.9,
+                                1
+                            ],
+                            [
+                                0.628,
+                                21.9,
+                                1
+                            ],
+                            [
+                                0.6285,
+                                49.9,
+                                1
+                            ]
+                        ],
+                        "timestamp": 1789537727328,
+                        "datetime": "2026-09-16T05:48:47.328Z",
+                        "nonce": 174296847244,
+                        "symbol": "BTC/USD:BTC-270625-30000-C"
+                    }
+                ]
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "spot watch OHLCV",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "chart.trades.BTC_USDC.1"
+                        ],
+                        "usIn": "1789537242205054",
+                        "usOut": "1789537242205195",
+                        "usDiff": 141,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "chart.trades.BTC_USDC.1",
+                            "data": {
+                                "close": 75938,
+                                "high": 75938,
+                                "low": 75900,
+                                "open": 75900,
+                                "tick": 1789537200000,
+                                "cost": 1518.6726,
+                                "volume": 0.02
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "chart.trades.BTC_USDC.1"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1789537200000,
+                            75900,
+                            75938,
+                            75900,
+                            75938,
+                            0.02
+                        ]
+                    ]
+                ]
+            },
+            {
+                "description": "linear swap watch OHLCV",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "chart.trades.BTC_USDC-PERPETUAL.1"
+                        ],
+                        "usIn": "1789537225459556",
+                        "usOut": "1789537225459699",
+                        "usDiff": 143,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "chart.trades.BTC_USDC-PERPETUAL.1",
+                            "data": {
+                                "close": 75885.5,
+                                "high": 75887,
+                                "low": 75878.8,
+                                "open": 75880.2,
+                                "tick": 1789537200000,
+                                "cost": 4863.85207,
+                                "volume": 0.0641
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "chart.trades.BTC_USDC-PERPETUAL.1"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1789537200000,
+                            75880.2,
+                            75887,
+                            75878.8,
+                            75885.5,
+                            0.0641
+                        ]
+                    ]
+                ]
+            },
+            {
+                "description": "inverse swap watch OHLCV",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "chart.trades.BTC-PERPETUAL.1"
+                        ],
+                        "usIn": "1789537198043764",
+                        "usOut": "1789537198043930",
+                        "usDiff": 166,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "chart.trades.BTC-PERPETUAL.1",
+                            "data": {
+                                "close": 75871,
+                                "high": 75882.5,
+                                "low": 75871,
+                                "open": 75877,
+                                "tick": 1789537140000,
+                                "cost": 49210,
+                                "volume": 0.64855436
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "chart.trades.BTC-PERPETUAL.1",
+                            "data": {
+                                "close": 75871,
+                                "high": 75882.5,
+                                "low": 75871,
+                                "open": 75877,
+                                "tick": 1789537140000,
+                                "cost": 49210,
+                                "volume": 0.64855436
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "chart.trades.BTC-PERPETUAL.1",
+                            "data": {
+                                "close": 75871,
+                                "high": 75882.5,
+                                "low": 75871,
+                                "open": 75877,
+                                "tick": 1789537140000,
+                                "cost": 50710,
+                                "volume": 0.66832476
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "chart.trades.BTC-PERPETUAL.1"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1789537140000,
+                            75877,
+                            75882.5,
+                            75871,
+                            75871,
+                            0.64855436
+                        ]
+                    ],
+                    [
+                        [
+                            1789537140000,
+                            75877,
+                            75882.5,
+                            75871,
+                            75871,
+                            0.64855436
+                        ]
+                    ],
+                    [
+                        [
+                            1789537140000,
+                            75877,
+                            75882.5,
+                            75871,
+                            75871,
+                            0.66832476
+                        ]
+                    ]
+                ]
+            },
+            {
+                "description": "future watch OHLCV",
+                "input": [
+                    "BTC/USD:BTC-270625"
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "chart.trades.BTC-25JUN27.1"
+                        ],
+                        "usIn": "1789537167769061",
+                        "usOut": "1789537167769224",
+                        "usDiff": 163,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "chart.trades.BTC-25JUN27.1",
+                            "data": {
+                                "close": 78782.5,
+                                "high": 78782.5,
+                                "low": 78782.5,
+                                "open": 78782.5,
+                                "tick": 1789537140000,
+                                "cost": 0,
+                                "volume": 0
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "chart.trades.BTC-25JUN27.1"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1789537140000,
+                            78782.5,
+                            78782.5,
+                            78782.5,
+                            78782.5,
+                            0
+                        ]
+                    ]
+                ]
+            },
+            {
+                "description": "option watch OHLCV",
+                "input": [
+                    "BTC/USD:BTC-270625-30000-C"
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "chart.trades.BTC-25JUN27-30000-C.1"
+                        ],
+                        "usIn": "1789537139019670",
+                        "usOut": "1789537139019756",
+                        "usDiff": 86,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "chart.trades.BTC-25JUN27-30000-C.1",
+                            "data": {
+                                "close": 0.63,
+                                "high": 0.63,
+                                "low": 0.63,
+                                "open": 0.63,
+                                "tick": 1789537080000,
+                                "cost": 0,
+                                "volume": 0
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "chart.trades.BTC-25JUN27-30000-C.1"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1789537080000,
+                            0.63,
+                            0.63,
+                            0.63,
+                            0.63,
+                            0
+                        ]
+                    ]
+                ]
+            }
+        ],
+        "watchBidsAsks": [
+            {
+                "description": "option watch bids asks",
+                "input": [
+                    [
+                        "BTC/USD:BTC-270625-30000-C"
+                    ]
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "quote.BTC-25JUN27-30000-C"
+                        ],
+                        "usIn": "1789537059103265",
+                        "usOut": "1789537059103406",
+                        "usDiff": 141,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC-25JUN27-30000-C",
+                            "data": {
+                                "timestamp": 1789537057642,
+                                "instrument_name": "BTC-25JUN27-30000-C",
+                                "best_ask_price": 0.625,
+                                "best_bid_price": 0.6225,
+                                "best_ask_amount": 23.6,
+                                "best_bid_amount": 23.6
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "quote.BTC-25JUN27-30000-C"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USD:BTC-270625-30000-C": {
+                            "info": {
+                                "timestamp": 1789537057642,
+                                "instrument_name": "BTC-25JUN27-30000-C",
+                                "best_ask_price": 0.625,
+                                "best_bid_price": 0.6225,
+                                "best_ask_amount": 23.6,
+                                "best_bid_amount": 23.6
+                            },
+                            "symbol": "BTC/USD:BTC-270625-30000-C",
+                            "timestamp": 1789537057642,
+                            "datetime": "2026-09-16T05:37:37.642Z",
+                            "bid": 0.6225,
+                            "bidVolume": 23.6,
+                            "ask": 0.625,
+                            "askVolume": 23.6,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "future watch bids asks",
+                "input": [
+                    [
+                        "BTC/USD:BTC-270625"
+                    ]
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "quote.BTC-25JUN27"
+                        ],
+                        "usIn": "1789537021462798",
+                        "usOut": "1789537021463010",
+                        "usDiff": 212,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC-25JUN27",
+                            "data": {
+                                "timestamp": 1789537021388,
+                                "instrument_name": "BTC-25JUN27",
+                                "best_ask_price": 78815,
+                                "best_bid_price": 78777.5,
+                                "best_ask_amount": 20000,
+                                "best_bid_amount": 24000
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC-25JUN27",
+                            "data": {
+                                "timestamp": 1789537021840,
+                                "instrument_name": "BTC-25JUN27",
+                                "best_ask_price": 78815,
+                                "best_bid_price": 78780,
+                                "best_ask_amount": 20000,
+                                "best_bid_amount": 100
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "quote.BTC-25JUN27"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USD:BTC-270625": {
+                            "info": {
+                                "timestamp": 1789537021388,
+                                "instrument_name": "BTC-25JUN27",
+                                "best_ask_price": 78815,
+                                "best_bid_price": 78777.5,
+                                "best_ask_amount": 20000,
+                                "best_bid_amount": 24000
+                            },
+                            "symbol": "BTC/USD:BTC-270625",
+                            "timestamp": 1789537021388,
+                            "datetime": "2026-09-16T05:37:01.388Z",
+                            "bid": 78777.5,
+                            "bidVolume": 24000,
+                            "ask": 78815,
+                            "askVolume": 20000,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USD:BTC-270625": {
+                            "info": {
+                                "timestamp": 1789537021840,
+                                "instrument_name": "BTC-25JUN27",
+                                "best_ask_price": 78815,
+                                "best_bid_price": 78780,
+                                "best_ask_amount": 20000,
+                                "best_bid_amount": 100
+                            },
+                            "symbol": "BTC/USD:BTC-270625",
+                            "timestamp": 1789537021840,
+                            "datetime": "2026-09-16T05:37:01.840Z",
+                            "bid": 78780,
+                            "bidVolume": 100,
+                            "ask": 78815,
+                            "askVolume": 20000,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "inverse swap watch bids asks",
+                "input": [
+                    [
+                        "BTC/USD:BTC"
+                    ]
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "quote.BTC-PERPETUAL"
+                        ],
+                        "usIn": "1789536991397906",
+                        "usOut": "1789536991398057",
+                        "usDiff": 151,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC-PERPETUAL",
+                            "data": {
+                                "timestamp": 1789536991326,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "best_ask_price": 75853,
+                                "best_bid_price": 75852.5,
+                                "best_ask_amount": 7780,
+                                "best_bid_amount": 1960
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC-PERPETUAL",
+                            "data": {
+                                "timestamp": 1789536991752,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "best_ask_price": 75853,
+                                "best_bid_price": 75852.5,
+                                "best_ask_amount": 7780,
+                                "best_bid_amount": 1970
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC-PERPETUAL",
+                            "data": {
+                                "timestamp": 1789536991779,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "best_ask_price": 75853.5,
+                                "best_bid_price": 75852.5,
+                                "best_ask_amount": 4320,
+                                "best_bid_amount": 25590
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC-PERPETUAL",
+                            "data": {
+                                "timestamp": 1789536991790,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "best_ask_price": 75853.5,
+                                "best_bid_price": 75853,
+                                "best_ask_amount": 4320,
+                                "best_bid_amount": 30030
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "quote.BTC-PERPETUAL"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USD:BTC": {
+                            "info": {
+                                "timestamp": 1789536991326,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "best_ask_price": 75853,
+                                "best_bid_price": 75852.5,
+                                "best_ask_amount": 7780,
+                                "best_bid_amount": 1960
+                            },
+                            "symbol": "BTC/USD:BTC",
+                            "timestamp": 1789536991326,
+                            "datetime": "2026-09-16T05:36:31.326Z",
+                            "bid": 75852.5,
+                            "bidVolume": 1960,
+                            "ask": 75853,
+                            "askVolume": 7780,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USD:BTC": {
+                            "info": {
+                                "timestamp": 1789536991752,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "best_ask_price": 75853,
+                                "best_bid_price": 75852.5,
+                                "best_ask_amount": 7780,
+                                "best_bid_amount": 1970
+                            },
+                            "symbol": "BTC/USD:BTC",
+                            "timestamp": 1789536991752,
+                            "datetime": "2026-09-16T05:36:31.752Z",
+                            "bid": 75852.5,
+                            "bidVolume": 1970,
+                            "ask": 75853,
+                            "askVolume": 7780,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USD:BTC": {
+                            "info": {
+                                "timestamp": 1789536991779,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "best_ask_price": 75853.5,
+                                "best_bid_price": 75852.5,
+                                "best_ask_amount": 4320,
+                                "best_bid_amount": 25590
+                            },
+                            "symbol": "BTC/USD:BTC",
+                            "timestamp": 1789536991779,
+                            "datetime": "2026-09-16T05:36:31.779Z",
+                            "bid": 75852.5,
+                            "bidVolume": 25590,
+                            "ask": 75853.5,
+                            "askVolume": 4320,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USD:BTC": {
+                            "info": {
+                                "timestamp": 1789536991790,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "best_ask_price": 75853.5,
+                                "best_bid_price": 75853,
+                                "best_ask_amount": 4320,
+                                "best_bid_amount": 30030
+                            },
+                            "symbol": "BTC/USD:BTC",
+                            "timestamp": 1789536991790,
+                            "datetime": "2026-09-16T05:36:31.790Z",
+                            "bid": 75853,
+                            "bidVolume": 30030,
+                            "ask": 75853.5,
+                            "askVolume": 4320,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "linear swap watch bids asks",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "quote.BTC_USDC-PERPETUAL"
+                        ],
+                        "usIn": "1789536966797806",
+                        "usOut": "1789536966797948",
+                        "usDiff": 142,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC_USDC-PERPETUAL",
+                            "data": {
+                                "timestamp": 1789536966787,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "best_ask_price": 75851.5,
+                                "best_bid_price": 75851.4,
+                                "best_ask_amount": 0.0422,
+                                "best_bid_amount": 0.3067
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC_USDC-PERPETUAL",
+                            "data": {
+                                "timestamp": 1789536967278,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "best_ask_price": 75851.4,
+                                "best_bid_price": 75851.3,
+                                "best_ask_amount": 0.0263,
+                                "best_bid_amount": 0.0066
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC_USDC-PERPETUAL",
+                            "data": {
+                                "timestamp": 1789536967288,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "best_ask_price": 75851.4,
+                                "best_bid_price": 75851.3,
+                                "best_ask_amount": 0.0355,
+                                "best_bid_amount": 0.0066
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC_USDC-PERPETUAL",
+                            "data": {
+                                "timestamp": 1789536967347,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "best_ask_price": 75851.4,
+                                "best_bid_price": 75851.3,
+                                "best_ask_amount": 0.0532,
+                                "best_bid_amount": 0.0066
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "quote.BTC_USDC-PERPETUAL"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDC:USDC": {
+                            "info": {
+                                "timestamp": 1789536966787,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "best_ask_price": 75851.5,
+                                "best_bid_price": 75851.4,
+                                "best_ask_amount": 0.0422,
+                                "best_bid_amount": 0.3067
+                            },
+                            "symbol": "BTC/USDC:USDC",
+                            "timestamp": 1789536966787,
+                            "datetime": "2026-09-16T05:36:06.787Z",
+                            "bid": 75851.4,
+                            "bidVolume": 0.3067,
+                            "ask": 75851.5,
+                            "askVolume": 0.0422,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USDC:USDC": {
+                            "info": {
+                                "timestamp": 1789536967278,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "best_ask_price": 75851.4,
+                                "best_bid_price": 75851.3,
+                                "best_ask_amount": 0.0263,
+                                "best_bid_amount": 0.0066
+                            },
+                            "symbol": "BTC/USDC:USDC",
+                            "timestamp": 1789536967278,
+                            "datetime": "2026-09-16T05:36:07.278Z",
+                            "bid": 75851.3,
+                            "bidVolume": 0.0066,
+                            "ask": 75851.4,
+                            "askVolume": 0.0263,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USDC:USDC": {
+                            "info": {
+                                "timestamp": 1789536967288,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "best_ask_price": 75851.4,
+                                "best_bid_price": 75851.3,
+                                "best_ask_amount": 0.0355,
+                                "best_bid_amount": 0.0066
+                            },
+                            "symbol": "BTC/USDC:USDC",
+                            "timestamp": 1789536967288,
+                            "datetime": "2026-09-16T05:36:07.288Z",
+                            "bid": 75851.3,
+                            "bidVolume": 0.0066,
+                            "ask": 75851.4,
+                            "askVolume": 0.0355,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USDC:USDC": {
+                            "info": {
+                                "timestamp": 1789536967347,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "best_ask_price": 75851.4,
+                                "best_bid_price": 75851.3,
+                                "best_ask_amount": 0.0532,
+                                "best_bid_amount": 0.0066
+                            },
+                            "symbol": "BTC/USDC:USDC",
+                            "timestamp": 1789536967347,
+                            "datetime": "2026-09-16T05:36:07.347Z",
+                            "bid": 75851.3,
+                            "bidVolume": 0.0066,
+                            "ask": 75851.4,
+                            "askVolume": 0.0532,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "spot watch bids asks",
+                "input": [
+                    [
+                        "BTC/USDC"
+                    ]
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "quote.BTC_USDC"
+                        ],
+                        "usIn": "1789536941108525",
+                        "usOut": "1789536941108676",
+                        "usDiff": 151,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "quote.BTC_USDC",
+                            "data": {
+                                "timestamp": 1789536941062,
+                                "instrument_name": "BTC_USDC",
+                                "best_ask_price": 75897,
+                                "best_bid_price": 75767,
+                                "best_ask_amount": 0.0422,
+                                "best_bid_amount": 0.0474
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "quote.BTC_USDC"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDC": {
+                            "info": {
+                                "timestamp": 1789536941062,
+                                "instrument_name": "BTC_USDC",
+                                "best_ask_price": 75897,
+                                "best_bid_price": 75767,
+                                "best_ask_amount": 0.0422,
+                                "best_bid_amount": 0.0474
+                            },
+                            "symbol": "BTC/USDC",
+                            "timestamp": 1789536941062,
+                            "datetime": "2026-09-16T05:35:41.062Z",
+                            "bid": 75767,
+                            "bidVolume": 0.0474,
+                            "ask": 75897,
+                            "askVolume": 0.0422,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchTickers": [
+            {
+                "description": "spot watch tickers",
+                "input": [
+                    [
+                        "BTC/USDC"
+                    ]
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "ticker.BTC_USDC.100ms"
+                        ],
+                        "usIn": "1789536866824287",
+                        "usOut": "1789536866824410",
+                        "usDiff": 123,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC_USDC.100ms",
+                            "data": {
+                                "timestamp": 1789536866062,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77741,
+                                    "low": 74991,
+                                    "price_change": -2.2465,
+                                    "volume": 21.5026,
+                                    "volume_usd": 1639645.96,
+                                    "volume_notional": 1639910.8944
+                                },
+                                "index_price": 75815.68,
+                                "instrument_name": "BTC_USDC",
+                                "last_price": 75759,
+                                "min_price": 74299,
+                                "max_price": 77332,
+                                "mark_price": 75815.68,
+                                "best_ask_price": 75876,
+                                "best_bid_price": 75761,
+                                "best_ask_amount": 0.0422,
+                                "best_bid_amount": 0.0481
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC_USDC.100ms",
+                            "data": {
+                                "timestamp": 1789536867063,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77741,
+                                    "low": 74991,
+                                    "price_change": -2.2465,
+                                    "volume": 21.5026,
+                                    "volume_usd": 1639645.96,
+                                    "volume_notional": 1639910.8944
+                                },
+                                "index_price": 75814.97,
+                                "instrument_name": "BTC_USDC",
+                                "last_price": 75759,
+                                "min_price": 74298,
+                                "max_price": 77332,
+                                "mark_price": 75814.97,
+                                "best_ask_price": 75876,
+                                "best_bid_price": 75761,
+                                "best_ask_amount": 0.0422,
+                                "best_bid_amount": 0.0481
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "ticker.BTC_USDC.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDC": {
+                            "info": {
+                                "timestamp": 1789536866062,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77741,
+                                    "low": 74991,
+                                    "price_change": -2.2465,
+                                    "volume": 21.5026,
+                                    "volume_usd": 1639645.96,
+                                    "volume_notional": 1639910.8944
+                                },
+                                "index_price": 75815.68,
+                                "instrument_name": "BTC_USDC",
+                                "last_price": 75759,
+                                "min_price": 74299,
+                                "max_price": 77332,
+                                "mark_price": 75815.68,
+                                "best_ask_price": 75876,
+                                "best_bid_price": 75761,
+                                "best_ask_amount": 0.0422,
+                                "best_bid_amount": 0.0481
+                            },
+                            "symbol": "BTC/USDC",
+                            "timestamp": 1789536866062,
+                            "datetime": "2026-09-16T05:34:26.062Z",
+                            "bid": 75761,
+                            "bidVolume": 0.0481,
+                            "ask": 75876,
+                            "askVolume": 0.0422,
+                            "high": 77741,
+                            "low": 74991,
+                            "open": null,
+                            "close": 75759,
+                            "last": 75759,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": 76265.70249179169,
+                            "baseVolume": 21.5026,
+                            "quoteVolume": 1639910.8944,
+                            "previousClose": null,
+                            "markPrice": 75815.68,
+                            "indexPrice": 75815.68
+                        }
+                    },
+                    {
+                        "BTC/USDC": {
+                            "info": {
+                                "timestamp": 1789536867063,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77741,
+                                    "low": 74991,
+                                    "price_change": -2.2465,
+                                    "volume": 21.5026,
+                                    "volume_usd": 1639645.96,
+                                    "volume_notional": 1639910.8944
+                                },
+                                "index_price": 75814.97,
+                                "instrument_name": "BTC_USDC",
+                                "last_price": 75759,
+                                "min_price": 74298,
+                                "max_price": 77332,
+                                "mark_price": 75814.97,
+                                "best_ask_price": 75876,
+                                "best_bid_price": 75761,
+                                "best_ask_amount": 0.0422,
+                                "best_bid_amount": 0.0481
+                            },
+                            "symbol": "BTC/USDC",
+                            "timestamp": 1789536867063,
+                            "datetime": "2026-09-16T05:34:27.063Z",
+                            "bid": 75761,
+                            "bidVolume": 0.0481,
+                            "ask": 75876,
+                            "askVolume": 0.0422,
+                            "high": 77741,
+                            "low": 74991,
+                            "open": null,
+                            "close": 75759,
+                            "last": 75759,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": 76265.70249179169,
+                            "baseVolume": 21.5026,
+                            "quoteVolume": 1639910.8944,
+                            "previousClose": null,
+                            "markPrice": 75814.97,
+                            "indexPrice": 75814.97
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "spot watch ticker",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "ticker.BTC_USDC.100ms"
+                        ],
+                        "usIn": "1789536824963827",
+                        "usOut": "1789536824963975",
+                        "usDiff": 148,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC_USDC.100ms",
+                            "data": {
+                                "timestamp": 1789536824062,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77741,
+                                    "low": 74991,
+                                    "price_change": -2.2465,
+                                    "volume": 21.5026,
+                                    "volume_usd": 1639645.96,
+                                    "volume_notional": 1639910.8944
+                                },
+                                "index_price": 75802.79,
+                                "instrument_name": "BTC_USDC",
+                                "last_price": 75759,
+                                "min_price": 74286,
+                                "max_price": 77319,
+                                "mark_price": 75802.79,
+                                "best_ask_price": 75848,
+                                "best_bid_price": 75761,
+                                "best_ask_amount": 0.0422,
+                                "best_bid_amount": 0.0481
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "ticker.BTC_USDC.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "timestamp": 1789536824062,
+                            "state": "open",
+                            "stats": {
+                                "high": 77741,
+                                "low": 74991,
+                                "price_change": -2.2465,
+                                "volume": 21.5026,
+                                "volume_usd": 1639645.96,
+                                "volume_notional": 1639910.8944
+                            },
+                            "index_price": 75802.79,
+                            "instrument_name": "BTC_USDC",
+                            "last_price": 75759,
+                            "min_price": 74286,
+                            "max_price": 77319,
+                            "mark_price": 75802.79,
+                            "best_ask_price": 75848,
+                            "best_bid_price": 75761,
+                            "best_ask_amount": 0.0422,
+                            "best_bid_amount": 0.0481
+                        },
+                        "symbol": "BTC/USDC",
+                        "timestamp": 1789536824062,
+                        "datetime": "2026-09-16T05:33:44.062Z",
+                        "bid": 75761,
+                        "bidVolume": 0.0481,
+                        "ask": 75848,
+                        "askVolume": 0.0422,
+                        "high": 77741,
+                        "low": 74991,
+                        "open": null,
+                        "close": 75759,
+                        "last": 75759,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": 76265.70249179169,
+                        "baseVolume": 21.5026,
+                        "quoteVolume": 1639910.8944,
+                        "previousClose": null,
+                        "markPrice": 75802.79,
+                        "indexPrice": 75802.79
+                    }
+                ]
+            },
+            {
+                "description": "option watch ticker",
+                "input": [
+                    "BTC/USD:BTC-270625-30000-C"
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "ticker.BTC-25JUN27-30000-C.100ms"
+                        ],
+                        "usIn": "1789536780189986",
+                        "usOut": "1789536780190126",
+                        "usDiff": 140,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC-25JUN27-30000-C.100ms",
+                            "data": {
+                                "timestamp": 1789536778682,
+                                "state": "open",
+                                "stats": {
+                                    "high": null,
+                                    "low": null,
+                                    "price_change": null,
+                                    "volume": 0,
+                                    "volume_usd": 0
+                                },
+                                "greeks": {
+                                    "delta": 0.97989,
+                                    "gamma": 0,
+                                    "vega": 33.66819,
+                                    "theta": -3.6787,
+                                    "rho": 216.66131
+                                },
+                                "index_price": 75787.99,
+                                "instrument_name": "BTC-25JUN27-30000-C",
+                                "last_price": 0.63,
+                                "settlement_price": 0.62880826,
+                                "min_price": 0.607,
+                                "max_price": 0.646,
+                                "open_interest": 86.2,
+                                "mark_price": 0.6239,
+                                "interest_rate": 0,
+                                "estimated_delivery_price": 75787.99,
+                                "best_ask_price": 0.625,
+                                "best_bid_price": 0.6225,
+                                "mark_iv": 61.65,
+                                "bid_iv": 58.05,
+                                "ask_iv": 64.08,
+                                "underlying_price": 78744.73,
+                                "underlying_index": "BTC-25JUN27",
+                                "best_ask_amount": 23.6,
+                                "best_bid_amount": 23.6
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "ticker.BTC-25JUN27-30000-C.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "timestamp": 1789536778682,
+                            "state": "open",
+                            "stats": {
+                                "high": null,
+                                "low": null,
+                                "price_change": null,
+                                "volume": 0,
+                                "volume_usd": 0
+                            },
+                            "greeks": {
+                                "delta": 0.97989,
+                                "gamma": 0,
+                                "vega": 33.66819,
+                                "theta": -3.6787,
+                                "rho": 216.66131
+                            },
+                            "index_price": 75787.99,
+                            "instrument_name": "BTC-25JUN27-30000-C",
+                            "last_price": 0.63,
+                            "settlement_price": 0.62880826,
+                            "min_price": 0.607,
+                            "max_price": 0.646,
+                            "open_interest": 86.2,
+                            "mark_price": 0.6239,
+                            "interest_rate": 0,
+                            "estimated_delivery_price": 75787.99,
+                            "best_ask_price": 0.625,
+                            "best_bid_price": 0.6225,
+                            "mark_iv": 61.65,
+                            "bid_iv": 58.05,
+                            "ask_iv": 64.08,
+                            "underlying_price": 78744.73,
+                            "underlying_index": "BTC-25JUN27",
+                            "best_ask_amount": 23.6,
+                            "best_bid_amount": 23.6
+                        },
+                        "symbol": "BTC/USD:BTC-270625-30000-C",
+                        "timestamp": 1789536778682,
+                        "datetime": "2026-09-16T05:32:58.682Z",
+                        "bid": 0.6225,
+                        "bidVolume": 23.6,
+                        "ask": 0.625,
+                        "askVolume": 23.6,
+                        "high": null,
+                        "low": null,
+                        "open": null,
+                        "close": 0.63,
+                        "last": 0.63,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": null,
+                        "baseVolume": 0,
+                        "quoteVolume": null,
+                        "previousClose": null,
+                        "markPrice": 0.6239,
+                        "indexPrice": 75787.99
+                    }
+                ]
+            },
+            {
+                "description": "future watch ticker",
+                "input": [
+                    "BTC/USD:BTC-270625"
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "ticker.BTC-25JUN27.100ms"
+                        ],
+                        "usIn": "1789536741356921",
+                        "usOut": "1789536741357083",
+                        "usDiff": 162,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC-25JUN27.100ms",
+                            "data": {
+                                "timestamp": 1789536741111,
+                                "state": "open",
+                                "stats": {
+                                    "high": 80575,
+                                    "low": 77895,
+                                    "price_change": -1.8747,
+                                    "volume": 28.73681404,
+                                    "volume_usd": 2270860,
+                                    "volume_notional": 2270860
+                                },
+                                "index_price": 75792.16,
+                                "instrument_name": "BTC-25JUN27",
+                                "last_price": 78772.5,
+                                "settlement_price": 79822.45,
+                                "min_price": 77567.5,
+                                "max_price": 79932.5,
+                                "open_interest": 15993630,
+                                "mark_price": 78749.01,
+                                "estimated_delivery_price": 75792.16,
+                                "best_ask_price": 78765,
+                                "best_bid_price": 78732.5,
+                                "best_ask_amount": 20000,
+                                "best_bid_amount": 24030
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "ticker.BTC-25JUN27.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "timestamp": 1789536741111,
+                            "state": "open",
+                            "stats": {
+                                "high": 80575,
+                                "low": 77895,
+                                "price_change": -1.8747,
+                                "volume": 28.73681404,
+                                "volume_usd": 2270860,
+                                "volume_notional": 2270860
+                            },
+                            "index_price": 75792.16,
+                            "instrument_name": "BTC-25JUN27",
+                            "last_price": 78772.5,
+                            "settlement_price": 79822.45,
+                            "min_price": 77567.5,
+                            "max_price": 79932.5,
+                            "open_interest": 15993630,
+                            "mark_price": 78749.01,
+                            "estimated_delivery_price": 75792.16,
+                            "best_ask_price": 78765,
+                            "best_bid_price": 78732.5,
+                            "best_ask_amount": 20000,
+                            "best_bid_amount": 24030
+                        },
+                        "symbol": "BTC/USD:BTC-270625",
+                        "timestamp": 1789536741111,
+                        "datetime": "2026-09-16T05:32:21.111Z",
+                        "bid": 78732.5,
+                        "bidVolume": 24030,
+                        "ask": 78765,
+                        "askVolume": 20000,
+                        "high": 80575,
+                        "low": 77895,
+                        "open": null,
+                        "close": 78772.5,
+                        "last": 78772.5,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": 79022.67790852155,
+                        "baseVolume": 28.73681404,
+                        "quoteVolume": 2270860,
+                        "previousClose": null,
+                        "markPrice": 78749.01,
+                        "indexPrice": 75792.16
+                    }
+                ]
+            },
+            {
+                "description": "inverse swap watch ticker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "ticker.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1789536652847756",
+                        "usOut": "1789536652847917",
+                        "usDiff": 161,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC-PERPETUAL.100ms",
+                            "data": {
+                                "timestamp": 1789536652826,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77709,
+                                    "low": 74920,
+                                    "price_change": -2.1107,
+                                    "volume": 7156.95868949,
+                                    "volume_usd": 545450570,
+                                    "volume_notional": 545450570
+                                },
+                                "index_price": 75789.76,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "last_price": 75806,
+                                "settlement_price": 76904.47,
+                                "min_price": 74665.5,
+                                "max_price": 76940,
+                                "open_interest": 810950750,
+                                "mark_price": 75802.69,
+                                "interest_value": 0.03397534148408925,
+                                "current_funding": 0,
+                                "estimated_delivery_price": 75789.76,
+                                "funding_8h": 0.00001817,
+                                "best_ask_price": 75798.5,
+                                "best_bid_price": 75798,
+                                "best_ask_amount": 290,
+                                "best_bid_amount": 910
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC-PERPETUAL.100ms",
+                            "data": {
+                                "timestamp": 1789536652816,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77709,
+                                    "low": 74920,
+                                    "price_change": -2.1107,
+                                    "volume": 7156.95868949,
+                                    "volume_usd": 545450570,
+                                    "volume_notional": 545450570
+                                },
+                                "index_price": 75789.76,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "last_price": 75806,
+                                "settlement_price": 76904.47,
+                                "min_price": 74665.5,
+                                "max_price": 76940,
+                                "open_interest": 810950750,
+                                "mark_price": 75802.69,
+                                "interest_value": 0.03397534148408925,
+                                "current_funding": 0,
+                                "estimated_delivery_price": 75789.76,
+                                "funding_8h": 0.00001817,
+                                "best_ask_price": 75798.5,
+                                "best_bid_price": 75798,
+                                "best_ask_amount": 290,
+                                "best_bid_amount": 910
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC-PERPETUAL.100ms",
+                            "data": {
+                                "timestamp": 1789536653153,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77709,
+                                    "low": 74920,
+                                    "price_change": -2.1107,
+                                    "volume": 7156.95868949,
+                                    "volume_usd": 545450570,
+                                    "volume_notional": 545450570
+                                },
+                                "index_price": 75788.22,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "last_price": 75806,
+                                "settlement_price": 76904.47,
+                                "min_price": 74664,
+                                "max_price": 76938.5,
+                                "open_interest": 810950750,
+                                "mark_price": 75801.1,
+                                "interest_value": 0.03397534148408925,
+                                "current_funding": 0,
+                                "estimated_delivery_price": 75788.22,
+                                "funding_8h": 0.00001817,
+                                "best_ask_price": 75798.5,
+                                "best_bid_price": 75798,
+                                "best_ask_amount": 290,
+                                "best_bid_amount": 710
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "ticker.BTC-PERPETUAL.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "timestamp": 1789536652826,
+                            "state": "open",
+                            "stats": {
+                                "high": 77709,
+                                "low": 74920,
+                                "price_change": -2.1107,
+                                "volume": 7156.95868949,
+                                "volume_usd": 545450570,
+                                "volume_notional": 545450570
+                            },
+                            "index_price": 75789.76,
+                            "instrument_name": "BTC-PERPETUAL",
+                            "last_price": 75806,
+                            "settlement_price": 76904.47,
+                            "min_price": 74665.5,
+                            "max_price": 76940,
+                            "open_interest": 810950750,
+                            "mark_price": 75802.69,
+                            "interest_value": 0.03397534148408925,
+                            "current_funding": 0,
+                            "estimated_delivery_price": 75789.76,
+                            "funding_8h": 0.00001817,
+                            "best_ask_price": 75798.5,
+                            "best_bid_price": 75798,
+                            "best_ask_amount": 290,
+                            "best_bid_amount": 910
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1789536652826,
+                        "datetime": "2026-09-16T05:30:52.826Z",
+                        "bid": 75798,
+                        "bidVolume": 910,
+                        "ask": 75798.5,
+                        "askVolume": 290,
+                        "high": 77709,
+                        "low": 74920,
+                        "open": null,
+                        "close": 75806,
+                        "last": 75806,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": 76212.61958672399,
+                        "baseVolume": 7156.95868949,
+                        "quoteVolume": 545450570,
+                        "previousClose": null,
+                        "markPrice": 75802.69,
+                        "indexPrice": 75789.76
+                    },
+                    {
+                        "info": {
+                            "timestamp": 1789536652816,
+                            "state": "open",
+                            "stats": {
+                                "high": 77709,
+                                "low": 74920,
+                                "price_change": -2.1107,
+                                "volume": 7156.95868949,
+                                "volume_usd": 545450570,
+                                "volume_notional": 545450570
+                            },
+                            "index_price": 75789.76,
+                            "instrument_name": "BTC-PERPETUAL",
+                            "last_price": 75806,
+                            "settlement_price": 76904.47,
+                            "min_price": 74665.5,
+                            "max_price": 76940,
+                            "open_interest": 810950750,
+                            "mark_price": 75802.69,
+                            "interest_value": 0.03397534148408925,
+                            "current_funding": 0,
+                            "estimated_delivery_price": 75789.76,
+                            "funding_8h": 0.00001817,
+                            "best_ask_price": 75798.5,
+                            "best_bid_price": 75798,
+                            "best_ask_amount": 290,
+                            "best_bid_amount": 910
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1789536652816,
+                        "datetime": "2026-09-16T05:30:52.816Z",
+                        "bid": 75798,
+                        "bidVolume": 910,
+                        "ask": 75798.5,
+                        "askVolume": 290,
+                        "high": 77709,
+                        "low": 74920,
+                        "open": null,
+                        "close": 75806,
+                        "last": 75806,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": 76212.61958672399,
+                        "baseVolume": 7156.95868949,
+                        "quoteVolume": 545450570,
+                        "previousClose": null,
+                        "markPrice": 75802.69,
+                        "indexPrice": 75789.76
+                    },
+                    {
+                        "info": {
+                            "timestamp": 1789536653153,
+                            "state": "open",
+                            "stats": {
+                                "high": 77709,
+                                "low": 74920,
+                                "price_change": -2.1107,
+                                "volume": 7156.95868949,
+                                "volume_usd": 545450570,
+                                "volume_notional": 545450570
+                            },
+                            "index_price": 75788.22,
+                            "instrument_name": "BTC-PERPETUAL",
+                            "last_price": 75806,
+                            "settlement_price": 76904.47,
+                            "min_price": 74664,
+                            "max_price": 76938.5,
+                            "open_interest": 810950750,
+                            "mark_price": 75801.1,
+                            "interest_value": 0.03397534148408925,
+                            "current_funding": 0,
+                            "estimated_delivery_price": 75788.22,
+                            "funding_8h": 0.00001817,
+                            "best_ask_price": 75798.5,
+                            "best_bid_price": 75798,
+                            "best_ask_amount": 290,
+                            "best_bid_amount": 710
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1789536653153,
+                        "datetime": "2026-09-16T05:30:53.153Z",
+                        "bid": 75798,
+                        "bidVolume": 710,
+                        "ask": 75798.5,
+                        "askVolume": 290,
+                        "high": 77709,
+                        "low": 74920,
+                        "open": null,
+                        "close": 75806,
+                        "last": 75806,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": 76212.61958672399,
+                        "baseVolume": 7156.95868949,
+                        "quoteVolume": 545450570,
+                        "previousClose": null,
+                        "markPrice": 75801.1,
+                        "indexPrice": 75788.22
+                    }
+                ]
+            },
+            {
+                "description": "linear swap watch ticker",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "url": "wss://streams.drb.coinbase.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "ticker.BTC_USDC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1789536584957122",
+                        "usOut": "1789536584957241",
+                        "usDiff": 119,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC_USDC-PERPETUAL.100ms",
+                            "data": {
+                                "timestamp": 1789536584943,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77726.3,
+                                    "low": 74940.3,
+                                    "price_change": -2.0838,
+                                    "volume": 5913.5457,
+                                    "volume_usd": 451805788.5,
+                                    "volume_notional": 451878326.6999801
+                                },
+                                "index_price": 75822.25,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "last_price": 75851.3,
+                                "settlement_price": 76907.12,
+                                "min_price": 74704.5,
+                                "max_price": 76979.8,
+                                "open_interest": 447.9352,
+                                "mark_price": 75842.14,
+                                "interest_value": 588073584.2420113,
+                                "current_funding": 0.00001232,
+                                "estimated_delivery_price": 75822.25,
+                                "funding_8h": 0.00007762,
+                                "best_ask_price": 75851.4,
+                                "best_bid_price": 75851.3,
+                                "best_ask_amount": 0.2479,
+                                "best_bid_amount": 0.0072
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC_USDC-PERPETUAL.100ms",
+                            "data": {
+                                "timestamp": 1789536585100,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77726.3,
+                                    "low": 74940.3,
+                                    "price_change": -2.0838,
+                                    "volume": 5913.5457,
+                                    "volume_usd": 451805788.5,
+                                    "volume_notional": 451878326.6999801
+                                },
+                                "index_price": 75822.25,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "last_price": 75851.3,
+                                "settlement_price": 76907.12,
+                                "min_price": 74704.5,
+                                "max_price": 76979.8,
+                                "open_interest": 447.9352,
+                                "mark_price": 75842.14,
+                                "interest_value": 588073584.2420113,
+                                "current_funding": 0.00001232,
+                                "estimated_delivery_price": 75822.25,
+                                "funding_8h": 0.00007762,
+                                "best_ask_price": 75851.4,
+                                "best_bid_price": 75851.3,
+                                "best_ask_amount": 0.2555,
+                                "best_bid_amount": 0.0072
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC_USDC-PERPETUAL.100ms",
+                            "data": {
+                                "timestamp": 1789536585378,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77726.3,
+                                    "low": 74940.3,
+                                    "price_change": -2.075,
+                                    "volume": 5913.5495,
+                                    "volume_usd": 451806076.7,
+                                    "volume_notional": 451878614.9254001
+                                },
+                                "index_price": 75822.33,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "last_price": 75851.3,
+                                "settlement_price": 76907.12,
+                                "min_price": 74704.5,
+                                "max_price": 76979.9,
+                                "open_interest": 447.9352,
+                                "mark_price": 75842.22,
+                                "interest_value": 588073986.9759538,
+                                "current_funding": 0.00001232,
+                                "estimated_delivery_price": 75822.33,
+                                "funding_8h": 0.00007762,
+                                "best_ask_price": 75851.4,
+                                "best_bid_price": 75851.3,
+                                "best_ask_amount": 0.2555,
+                                "best_bid_amount": 0.0072
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC_USDC-PERPETUAL.100ms",
+                            "data": {
+                                "timestamp": 1789536585886,
+                                "state": "open",
+                                "stats": {
+                                    "high": 77726.3,
+                                    "low": 74940.3,
+                                    "price_change": -2.075,
+                                    "volume": 5913.5495,
+                                    "volume_usd": 451806076.7,
+                                    "volume_notional": 451878614.9254001
+                                },
+                                "index_price": 75822.33,
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "last_price": 75846.4,
+                                "settlement_price": 76907.12,
+                                "min_price": 74704.8,
+                                "max_price": 76980.2,
+                                "open_interest": 447.9352,
+                                "mark_price": 75842.52,
+                                "interest_value": 588074678.249754,
+                                "current_funding": 0.00001628,
+                                "estimated_delivery_price": 75822.33,
+                                "funding_8h": 0.00007762,
+                                "best_ask_price": 75851.4,
+                                "best_bid_price": 75851.3,
+                                "best_ask_amount": 0.2777,
+                                "best_bid_amount": 0.0072
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "ticker.BTC_USDC-PERPETUAL.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "timestamp": 1789536584943,
+                            "state": "open",
+                            "stats": {
+                                "high": 77726.3,
+                                "low": 74940.3,
+                                "price_change": -2.0838,
+                                "volume": 5913.5457,
+                                "volume_usd": 451805788.5,
+                                "volume_notional": 451878326.6999801
+                            },
+                            "index_price": 75822.25,
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "last_price": 75851.3,
+                            "settlement_price": 76907.12,
+                            "min_price": 74704.5,
+                            "max_price": 76979.8,
+                            "open_interest": 447.9352,
+                            "mark_price": 75842.14,
+                            "interest_value": 588073584.2420113,
+                            "current_funding": 0.00001232,
+                            "estimated_delivery_price": 75822.25,
+                            "funding_8h": 0.00007762,
+                            "best_ask_price": 75851.4,
+                            "best_bid_price": 75851.3,
+                            "best_ask_amount": 0.2479,
+                            "best_bid_amount": 0.0072
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1789536584943,
+                        "datetime": "2026-09-16T05:29:44.943Z",
+                        "bid": 75851.3,
+                        "bidVolume": 0.0072,
+                        "ask": 75851.4,
+                        "askVolume": 0.2479,
+                        "high": 77726.3,
+                        "low": 74940.3,
+                        "open": null,
+                        "close": 75851.3,
+                        "last": 75851.3,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": 76414.10916972876,
+                        "baseVolume": 5913.5457,
+                        "quoteVolume": 451878326.6999801,
+                        "previousClose": null,
+                        "markPrice": 75842.14,
+                        "indexPrice": 75822.25
+                    },
+                    {
+                        "info": {
+                            "timestamp": 1789536585100,
+                            "state": "open",
+                            "stats": {
+                                "high": 77726.3,
+                                "low": 74940.3,
+                                "price_change": -2.0838,
+                                "volume": 5913.5457,
+                                "volume_usd": 451805788.5,
+                                "volume_notional": 451878326.6999801
+                            },
+                            "index_price": 75822.25,
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "last_price": 75851.3,
+                            "settlement_price": 76907.12,
+                            "min_price": 74704.5,
+                            "max_price": 76979.8,
+                            "open_interest": 447.9352,
+                            "mark_price": 75842.14,
+                            "interest_value": 588073584.2420113,
+                            "current_funding": 0.00001232,
+                            "estimated_delivery_price": 75822.25,
+                            "funding_8h": 0.00007762,
+                            "best_ask_price": 75851.4,
+                            "best_bid_price": 75851.3,
+                            "best_ask_amount": 0.2555,
+                            "best_bid_amount": 0.0072
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1789536585100,
+                        "datetime": "2026-09-16T05:29:45.100Z",
+                        "bid": 75851.3,
+                        "bidVolume": 0.0072,
+                        "ask": 75851.4,
+                        "askVolume": 0.2555,
+                        "high": 77726.3,
+                        "low": 74940.3,
+                        "open": null,
+                        "close": 75851.3,
+                        "last": 75851.3,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": 76414.10916972876,
+                        "baseVolume": 5913.5457,
+                        "quoteVolume": 451878326.6999801,
+                        "previousClose": null,
+                        "markPrice": 75842.14,
+                        "indexPrice": 75822.25
+                    },
+                    {
+                        "info": {
+                            "timestamp": 1789536585378,
+                            "state": "open",
+                            "stats": {
+                                "high": 77726.3,
+                                "low": 74940.3,
+                                "price_change": -2.075,
+                                "volume": 5913.5495,
+                                "volume_usd": 451806076.7,
+                                "volume_notional": 451878614.9254001
+                            },
+                            "index_price": 75822.33,
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "last_price": 75851.3,
+                            "settlement_price": 76907.12,
+                            "min_price": 74704.5,
+                            "max_price": 76979.9,
+                            "open_interest": 447.9352,
+                            "mark_price": 75842.22,
+                            "interest_value": 588073986.9759538,
+                            "current_funding": 0.00001232,
+                            "estimated_delivery_price": 75822.33,
+                            "funding_8h": 0.00007762,
+                            "best_ask_price": 75851.4,
+                            "best_bid_price": 75851.3,
+                            "best_ask_amount": 0.2555,
+                            "best_bid_amount": 0.0072
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1789536585378,
+                        "datetime": "2026-09-16T05:29:45.378Z",
+                        "bid": 75851.3,
+                        "bidVolume": 0.0072,
+                        "ask": 75851.4,
+                        "askVolume": 0.2555,
+                        "high": 77726.3,
+                        "low": 74940.3,
+                        "open": null,
+                        "close": 75851.3,
+                        "last": 75851.3,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": 76414.10880646219,
+                        "baseVolume": 5913.5495,
+                        "quoteVolume": 451878614.9254001,
+                        "previousClose": null,
+                        "markPrice": 75842.22,
+                        "indexPrice": 75822.33
+                    },
+                    {
+                        "info": {
+                            "timestamp": 1789536585886,
+                            "state": "open",
+                            "stats": {
+                                "high": 77726.3,
+                                "low": 74940.3,
+                                "price_change": -2.075,
+                                "volume": 5913.5495,
+                                "volume_usd": 451806076.7,
+                                "volume_notional": 451878614.9254001
+                            },
+                            "index_price": 75822.33,
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "last_price": 75846.4,
+                            "settlement_price": 76907.12,
+                            "min_price": 74704.8,
+                            "max_price": 76980.2,
+                            "open_interest": 447.9352,
+                            "mark_price": 75842.52,
+                            "interest_value": 588074678.249754,
+                            "current_funding": 0.00001628,
+                            "estimated_delivery_price": 75822.33,
+                            "funding_8h": 0.00007762,
+                            "best_ask_price": 75851.4,
+                            "best_bid_price": 75851.3,
+                            "best_ask_amount": 0.2777,
+                            "best_bid_amount": 0.0072
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1789536585886,
+                        "datetime": "2026-09-16T05:29:45.886Z",
+                        "bid": 75851.3,
+                        "bidVolume": 0.0072,
+                        "ask": 75851.4,
+                        "askVolume": 0.2777,
+                        "high": 77726.3,
+                        "low": 74940.3,
+                        "open": null,
+                        "close": 75846.4,
+                        "last": 75846.4,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": 76414.10880646219,
+                        "baseVolume": 5913.5495,
+                        "quoteVolume": 451878614.9254001,
+                        "previousClose": null,
+                        "markPrice": 75842.52,
+                        "indexPrice": 75822.33
+                    }
+                ]
+            }
+        ]
+    }
+}

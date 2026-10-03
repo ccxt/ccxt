@@ -220,10 +220,10 @@
           ]
         },
         {
-          "description": "swap trade",
+          "description": "future trade",
           "method": "fetchMyTrades",
           "input": [
-            "ADA/USDC:USDC",
+            "BTC/USD:USD-240426",
             null,
             1
           ],
@@ -235,10 +235,10 @@
                 "order_id": "efed4cba-7395-4b02-b927-0c1dce00e0d8",
                 "trade_time": "2024-04-09T11:45:50.552204Z",
                 "trade_type": "FILL",
-                "price": "0.6091",
-                "size": "20",
-                "commission": "0.0036",
-                "product_id": "ADA-PERP-INTX",
+                "price": "71000",
+                "size": "2",
+                "commission": "0.5",
+                "product_id": "BIT-26APR24-CDE",
                 "sequence_timestamp": "2024-04-09T11:45:50.653257Z",
                 "liquidity_indicator": "TAKER",
                 "size_in_quote": false,
@@ -257,10 +257,10 @@
                 "order_id": "efed4cba-7395-4b02-b927-0c1dce00e0d8",
                 "trade_time": "2024-04-09T11:45:50.552204Z",
                 "trade_type": "FILL",
-                "price": "0.6091",
-                "size": "20",
-                "commission": "0.0036",
-                "product_id": "ADA-PERP-INTX",
+                "price": "71000",
+                "size": "2",
+                "commission": "0.5",
+                "product_id": "BIT-26APR24-CDE",
                 "sequence_timestamp": "2024-04-09T11:45:50.653257Z",
                 "liquidity_indicator": "TAKER",
                 "size_in_quote": false,
@@ -272,21 +272,21 @@
               "order": "efed4cba-7395-4b02-b927-0c1dce00e0d8",
               "timestamp": 1712663150552,
               "datetime": "2024-04-09T11:45:50.552204Z",
-              "symbol": "ADA/USDC:USDC",
+              "symbol": "BTC/USD:USD-240426",
               "type": null,
               "side": "buy",
               "takerOrMaker": "taker",
-              "price": 0.6091,
-              "amount": 20,
-              "cost": 12.182,
+              "price": 71000,
+              "amount": 2,
+              "cost": 1420,
               "fee": {
-                "cost": 0.0036,
-                "currency": "USDC"
+                "currency": "USD",
+                "cost": 0.5
               },
               "fees": [
                 {
-                  "cost": 0.0036,
-                  "currency": "USDC"
+                  "currency": "USD",
+                  "cost": 0.5
                 }
               ]
             }
@@ -433,243 +433,51 @@
       ],
       "fetchPositions": [
         {
-          "description": "ada position",
+          "description": "future position",
           "method": "fetchPositions",
           "input": [
             [
-              "ADA/USDC:USDC"
-            ],
-            {
-              "portfolio": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f"
-            }
+              "BTC/USD:USD-240426"
+            ]
           ],
           "httpResponse": {
             "positions": [
               {
-                "product_id": "1r4njf84-0-0",
-                "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
-                "symbol": "ADA-PERP-INTX",
-                "vwap": {
-                  "value": "0.5648",
-                  "currency": "USDC"
-                },
-                "position_side": "POSITION_SIDE_LONG",
-                "net_size": "20",
-                "buy_order_size": "0",
-                "sell_order_size": "0",
-                "im_contribution": "0.1",
-                "unrealized_pnl": {
-                  "value": "0.018",
-                  "currency": "USDC"
-                },
-                "mark_price": {
-                  "value": "0.5657",
-                  "currency": "USDC"
-                },
-                "liquidation_price": {
-                  "value": "0",
-                  "currency": "USDC"
-                },
-                "leverage": "1",
-                "im_notional": {
-                  "value": "11.296",
-                  "currency": "USDC"
-                },
-                "mm_notional": {
-                  "value": "0.745536",
-                  "currency": "USDC"
-                },
-                "position_notional": {
-                  "value": "11.296",
-                  "currency": "USDC"
-                },
-                "margin_type": "MARGIN_TYPE_CROSS",
-                "liquidation_buffer": "18.621364",
-                "liquidation_percentage": "4848.5055",
-                "portfolio_summary": {
-                  "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
-                  "collateral": "19.3489",
-                  "position_notional": "11.296",
-                  "open_position_notional": "11.296",
-                  "pending_fees": "0",
-                  "borrow": "0",
-                  "accrued_interest": "0",
-                  "rolling_debt": "0",
-                  "portfolio_initial_margin": "0.1",
-                  "portfolio_im_notional": {
-                    "value": "11.296",
-                    "currency": "USDC"
-                  },
-                  "portfolio_maintenance_margin": "0.066",
-                  "portfolio_mm_notional": {
-                    "value": "0.745536",
-                    "currency": "USDC"
-                  },
-                  "liquidation_percentage": "4848.5055",
-                  "liquidation_buffer": "18.621364",
-                  "margin_type": "MARGIN_TYPE_CROSS",
-                  "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
-                  "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
-                  "unrealized_pnl": {
-                    "value": "0.018",
-                    "currency": "USDC"
-                  },
-                  "buying_power": {
-                    "value": "8.0709",
-                    "currency": "USDC"
-                  },
-                  "total_balance": {
-                    "value": "19.3669",
-                    "currency": "USDC"
-                  },
-                  "max_withdrawal": {
-                    "value": "8.0529",
-                    "currency": "USDC"
-                  }
-                },
-                "entry_vwap": {
-                  "value": "0.6091",
-                  "currency": "USDC"
-                }
+                "product_id": "BIT-26APR24-CDE",
+                "expiration_time": "2024-04-26T15:00:00Z",
+                "side": "LONG",
+                "number_of_contracts": "2",
+                "current_price": "71145",
+                "avg_entry_price": "70980",
+                "unrealized_pnl": "33",
+                "daily_realized_pnl": "0"
               }
-            ],
-            "portfolio_summary": {
-              "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
-              "collateral": "",
-              "position_notional": "",
-              "open_position_notional": "",
-              "pending_fees": "",
-              "borrow": "",
-              "accrued_interest": "",
-              "rolling_debt": "",
-              "portfolio_initial_margin": "",
-              "portfolio_im_notional": null,
-              "portfolio_maintenance_margin": "",
-              "portfolio_mm_notional": null,
-              "liquidation_percentage": "",
-              "liquidation_buffer": "",
-              "margin_type": "MARGIN_TYPE_UNSPECIFIED",
-              "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
-              "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_UNSPECIFIED",
-              "unrealized_pnl": {
-                "value": "0",
-                "currency": "USDC"
-              },
-              "buying_power": {
-                "value": "8.0709",
-                "currency": "USDC"
-              },
-              "total_balance": {
-                "value": "0",
-                "currency": "USDC"
-              },
-              "max_withdrawal": {
-                "value": "8.0529",
-                "currency": "USDC"
-              }
-            }
+            ]
           },
           "parsedResponse": [
             {
               "info": {
-                "product_id": "1r4njf84-0-0",
-                "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
-                "symbol": "ADA-PERP-INTX",
-                "vwap": {
-                  "value": "0.5648",
-                  "currency": "USDC"
-                },
-                "position_side": "POSITION_SIDE_LONG",
-                "net_size": "20",
-                "buy_order_size": "0",
-                "sell_order_size": "0",
-                "im_contribution": "0.1",
-                "unrealized_pnl": {
-                  "value": "0.018",
-                  "currency": "USDC"
-                },
-                "mark_price": {
-                  "value": "0.5657",
-                  "currency": "USDC"
-                },
-                "liquidation_price": {
-                  "value": "0",
-                  "currency": "USDC"
-                },
-                "leverage": "1",
-                "im_notional": {
-                  "value": "11.296",
-                  "currency": "USDC"
-                },
-                "mm_notional": {
-                  "value": "0.745536",
-                  "currency": "USDC"
-                },
-                "position_notional": {
-                  "value": "11.296",
-                  "currency": "USDC"
-                },
-                "margin_type": "MARGIN_TYPE_CROSS",
-                "liquidation_buffer": "18.621364",
-                "liquidation_percentage": "4848.5055",
-                "portfolio_summary": {
-                  "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
-                  "collateral": "19.3489",
-                  "position_notional": "11.296",
-                  "open_position_notional": "11.296",
-                  "pending_fees": "0",
-                  "borrow": "0",
-                  "accrued_interest": "0",
-                  "rolling_debt": "0",
-                  "portfolio_initial_margin": "0.1",
-                  "portfolio_im_notional": {
-                    "value": "11.296",
-                    "currency": "USDC"
-                  },
-                  "portfolio_maintenance_margin": "0.066",
-                  "portfolio_mm_notional": {
-                    "value": "0.745536",
-                    "currency": "USDC"
-                  },
-                  "liquidation_percentage": "4848.5055",
-                  "liquidation_buffer": "18.621364",
-                  "margin_type": "MARGIN_TYPE_CROSS",
-                  "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
-                  "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
-                  "unrealized_pnl": {
-                    "value": "0.018",
-                    "currency": "USDC"
-                  },
-                  "buying_power": {
-                    "value": "8.0709",
-                    "currency": "USDC"
-                  },
-                  "total_balance": {
-                    "value": "19.3669",
-                    "currency": "USDC"
-                  },
-                  "max_withdrawal": {
-                    "value": "8.0529",
-                    "currency": "USDC"
-                  }
-                },
-                "entry_vwap": {
-                  "value": "0.6091",
-                  "currency": "USDC"
-                }
+                "product_id": "BIT-26APR24-CDE",
+                "expiration_time": "2024-04-26T15:00:00Z",
+                "side": "LONG",
+                "number_of_contracts": "2",
+                "current_price": "71145",
+                "avg_entry_price": "70980",
+                "unrealized_pnl": "33",
+                "daily_realized_pnl": "0"
               },
-              "id": "1r4njf84-0-0",
-              "symbol": "ADA/USDC:USDC",
-              "notional": 11.296,
-              "marginMode": "cross",
-              "liquidationPrice": 0,
-              "entryPrice": 0.5648,
-              "unrealizedPnl": 0.018,
-              "realizedPnl": null,
+              "id": "BIT-26APR24-CDE",
+              "symbol": "BTC/USD:USD-240426",
+              "notional": null,
+              "marginMode": null,
+              "liquidationPrice": null,
+              "entryPrice": 70980,
+              "unrealizedPnl": 33,
+              "realizedPnl": 0,
               "percentage": null,
-              "contracts": 20,
-              "contractSize": 1,
-              "markPrice": null,
+              "contracts": 2,
+              "contractSize": 0.01,
+              "markPrice": 71145,
               "lastPrice": null,
               "side": "long",
               "hedged": null,
@@ -678,10 +486,10 @@
               "lastUpdateTimestamp": null,
               "maintenanceMargin": null,
               "maintenanceMarginPercentage": null,
-              "collateral": 19.3489,
+              "collateral": null,
               "initialMargin": null,
               "initialMarginPercentage": null,
-              "leverage": 1,
+              "leverage": null,
               "marginRatio": null,
               "stopLossPrice": null,
               "takeProfitPrice": null
@@ -1094,6 +902,59 @@
             "total": {
               "MASK": 0,
               "ADA": 5.04716
+            }
+          }
+        },
+        {
+          "description": "CFM balance summary",
+          "method": "fetchBalance",
+          "input": [
+            {
+              "type": "swap"
+            }
+          ],
+          "httpResponse": {
+            "balance_summary": {
+              "total_usd_balance": {
+                "value": "1000.00",
+                "currency": "USD",
+                "cbrn": ""
+              },
+              "futures_buying_power": {
+                "value": "750.00",
+                "currency": "USD",
+                "cbrn": ""
+              }
+            }
+          },
+          "parsedResponse": {
+            "info": {
+              "balance_summary": {
+                "total_usd_balance": {
+                  "value": "1000.00",
+                  "currency": "USD",
+                  "cbrn": ""
+                },
+                "futures_buying_power": {
+                  "value": "750.00",
+                  "currency": "USD",
+                  "cbrn": ""
+                }
+              }
+            },
+            "USD": {
+              "free": 750,
+              "used": 250,
+              "total": 1000
+            },
+            "free": {
+              "USD": 750
+            },
+            "used": {
+              "USD": 250
+            },
+            "total": {
+              "USD": 1000
             }
           }
         }
