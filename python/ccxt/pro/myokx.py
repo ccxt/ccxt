@@ -11,12 +11,12 @@ class myokx(okx):
     def describe(self) -> object:
         return self.deep_extend(super(myokx, self).describe(), {
             'id': 'myokx',
-            'name': 'MyOKX(EEA)',
+            'name': 'MyOKX (EEA)',
             'hostname': 'eea.okx.com',
             'urls': {
                 'api': {
                     'rest': 'https://{hostname}',
-                    'ws': 'wss://wseea.okx.com:8443/ws/v5',
+                    'ws': 'wss://wseea.okx.com:443/ws/v5',
                 },
                 'www': 'https://my.okx.com',
                 'doc': 'https://my.okx.com/docs-v5/en/#overview',
@@ -26,7 +26,7 @@ class myokx(okx):
                     'discount': 0.2,
                 },
                 'test': {
-                    'ws': 'wss://wseeapap.okx.com:8443/ws/v5',
+                    'ws': 'wss://wseeapap.okx.com:443/ws/v5',
                 },
             },
             'has': {

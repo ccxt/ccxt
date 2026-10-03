@@ -338,6 +338,9 @@ export default class cryptomus extends Exchange {
         const quoteId = parts[1];
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const fees = this.safeDict(this.fees, 'trading');
         return this.safeMarketStructure({
             'id': marketId,
@@ -434,7 +437,7 @@ export default class cryptomus extends Exchange {
         let code = undefined;
         const networks = {};
         for (let i = 0; i < rawCurrency.length; i++) {
-            const networkEntry = rawCurrency[i];
+            const networkEntry = this.safeDict(rawCurrency, i);
             // set ID on first loop
             if (id === undefined) {
                 id = this.safeString(networkEntry, 'currency_code');
@@ -485,7 +488,7 @@ export default class cryptomus extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.publicGetV1ExchangeMarketTickers(params);
         //
         //     {
@@ -500,7 +503,7 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data');
-        return this.parseTickers(data, symbols);
+        return this.parseTickers(data, symbolsNormalized);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -512,8 +515,8 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const marketId = this.safeString(ticker, 'currency_pair');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const last = this.safeString(ticker, 'last_price');
         return this.safeTicker({
             'symbol': symbol,
@@ -536,7 +539,7 @@ export default class cryptomus extends Exchange {
             'baseVolume': this.safeString(ticker, 'base_volume'),
             'quoteVolume': this.safeString(ticker, 'quote_volume'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -557,10 +560,10 @@ export default class cryptomus extends Exchange {
         const request = {
             'currencyPair': market['id'],
         };
-        let level = 0;
-        [level, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'level', level);
-        request['level'] = level;
-        const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, params));
+        const level = 0;
+        const [levelOption, paramsLevel] = this.handleOptionIntegerAndParams(params, 'fetchOrderBook', 'level', level);
+        request['level'] = levelOption;
+        const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, paramsLevel));
         //
         //     {
         //         "data": {
@@ -696,7 +699,7 @@ export default class cryptomus extends Exchange {
             'info': balance,
         };
         for (let i = 0; i < balance.length; i++) {
-            const balanceEntry = balance[i];
+            const balanceEntry = this.safeDict(balance, i);
             const currencyId = this.safeString(balanceEntry, 'ticker');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -735,20 +738,24 @@ export default class cryptomus extends Exchange {
             'tag': 'ccxt',
         };
         const clientOrderId = this.safeString(params, 'clientOrderId');
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, 'clientOrderId') : params;
         if (clientOrderId !== undefined) {
-            params = this.omit(params, 'clientOrderId');
             request['client_order_id'] = clientOrderId;
         }
         const sideBuy = side === 'buy';
         const amountToString = this.numberToString(amount);
         const priceToString = this.numberToString(price);
-        let cost = undefined;
-        [cost, params] = this.handleParamString(params, 'cost');
+        const [costParam, paramsCost] = this.handleParamString(paramsOmitted, 'cost');
+        let cost = costParam;
         let response;
         if (type === 'market') {
+            const requiresPriceAndParams = this.handleOptionBoolAndParams(paramsCost, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            let paramsMarket = paramsCost;
             if (sideBuy) {
-                let createMarketBuyOrderRequiresPrice = true;
-                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                paramsMarket = requiresPriceAndParams[1];
+            }
+            if (sideBuy) {
+                const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
                 if (createMarketBuyOrderRequiresPrice) {
                     if ((price === undefined) && (cost === undefined)) {
                         throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
@@ -765,7 +772,7 @@ export default class cryptomus extends Exchange {
             else {
                 request['quantity'] = amountToString;
             }
-            response = await this.privatePostV2UserApiExchangeOrdersMarket(this.extend(request, params));
+            response = await this.privatePostV2UserApiExchangeOrdersMarket(this.extend(request, paramsMarket));
         }
         else if (type === 'limit') {
             if (price === undefined) {
@@ -773,7 +780,7 @@ export default class cryptomus extends Exchange {
             }
             request['quantity'] = amountToString;
             request['price'] = price;
-            response = await this.privatePostV2UserApiExchangeOrders(this.extend(request, params));
+            response = await this.privatePostV2UserApiExchangeOrders(this.extend(request, paramsCost));
         }
         else {
             throw new ArgumentsRequired(this.id + ' createOrder() requires a type parameter (limit or market)');
@@ -996,7 +1003,7 @@ export default class cryptomus extends Exchange {
         //
         const id = this.safeString2(order, 'order_id', 'id');
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const dateTime = this.safeString(order, 'createdAt');
         const timestamp = this.parse8601(dateTime);
         const deal = this.safeDict(order, 'deal', {});
@@ -1027,7 +1034,7 @@ export default class cryptomus extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1044,7 +1051,7 @@ export default class cryptomus extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
     parseOrderStatus(status = undefined) {
         const statuses = {
@@ -1146,7 +1153,7 @@ export default class cryptomus extends Exchange {
         const takerFees = [];
         const makerFees = [];
         for (let i = 0; i < feeTiers.length; i++) {
-            const tier = feeTiers[i];
+            const tier = this.safeDict(feeTiers, i);
             const turnover = this.safeNumber(tier, 'from_turnover');
             let taker = this.safeString(tier, 'taker_percent');
             let maker = this.safeString(tier, 'maker_percent');
@@ -1162,21 +1169,24 @@ export default class cryptomus extends Exchange {
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = this.implodeParams(path, params);
-        params = this.omit(params, this.extractParams(path));
-        let url = this.urls['api'][api] + '/' + endpoint;
+        const paramsOmitted = this.omit(params, this.extractParams(path));
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials();
             let jsonParams = '';
-            headers = {
+            const privateHeaders = {
                 'userId': this.uid,
             };
             if (method !== 'GET') {
-                body = this.json(params);
-                jsonParams = body;
-                headers['Content-Type'] = 'application/json';
+                jsonParams = this.json(paramsOmitted);
+                privateHeaders['Content-Type'] = 'application/json';
             }
             else {
-                const query = this.urlencode(params);
+                const query = this.urlencode(paramsOmitted);
                 if (query.length !== 0) {
                     url += '?' + query;
                 }
@@ -1184,10 +1194,12 @@ export default class cryptomus extends Exchange {
             const jsonParamsBase64 = this.stringToBase64(jsonParams);
             const stringToSign = jsonParamsBase64 + this.secret;
             const signature = this.hash(this.encode(stringToSign), md5);
-            headers['sign'] = signature;
+            privateHeaders['sign'] = signature;
+            const privateBody = (method !== 'GET') ? jsonParams : body;
+            return { 'url': url, 'method': method, 'body': privateBody, 'headers': privateHeaders };
         }
         else {
-            const query = this.urlencode(params);
+            const query = this.urlencode(paramsOmitted);
             if (query.length !== 0) {
                 url += '?' + query;
             }

@@ -6,9 +6,11 @@ import io.github.ccxt.api.FoxbitApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.LedgerEntry;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -24,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Foxbit extends FoxbitApi
 {
@@ -116,7 +119,7 @@ public class Foxbit extends FoxbitApi
                 put( "www", "https://app.foxbit.com.br" );
                 put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.foxbit.com.br")) );
             }} );
-            put( "precisionMode", DECIMAL_PLACES );
+            put( "precisionMode", TICK_SIZE );
             put( "exceptions", new HashMap<String, Object>() {{
                 put( "exact", new HashMap<String, Object>() {{
                     put( "400", BadRequest.class );
@@ -402,12 +405,11 @@ public class Foxbit extends FoxbitApi
         }});
     }
 
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.v3PublicGetCurrencies(parameters)).join();
             // {
             //   "data": [
@@ -446,60 +448,58 @@ public class Foxbit extends FoxbitApi
             //     }
             //   ]
             // }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
-        Long precision = this.safeInteger(rawCurrency, "precision");
         String currencyId = this.safeString(rawCurrency, "symbol");
         String name = this.safeString(rawCurrency, "name");
-        String code = this.safeCurrencyCode(currencyId);
-        Object depositInfo = this.safeDict(rawCurrency, "deposit_info");
-        Object withdrawInfo = this.safeDict(rawCurrency, "withdraw_info");
-        Object networks = this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
+        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        Map<String, Object> depositInfo = (Map<String, Object>) this.safeDict(rawCurrency, "deposit_info", (Object) null);
+        Map<String, Object> withdrawInfo = (Map<String, Object>) this.safeDict(rawCurrency, "withdraw_info", (Object) null);
+        List<Object> networks = (List<Object>) this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
         String type = this.safeStringLower(rawCurrency, "type");
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
-        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
+        for (var j = 0; j < ((List<?>)networks).size(); j++)
         {
-            Object network = Helpers.GetValue(networks, j);
+            Map<String, Object> network = (Map<String, Object>) this.safeDict(networks, j, (Object) null);
             String networkId = this.safeString(network, "code");
-            Object networkCode = this.networkIdToCode(networkId, code);
-            Object networkWithdrawInfo = this.safeDict(network, "withdraw_info");
-            Object networkDepositInfo = this.safeDict(network, "deposit_info");
-            Boolean isWithdrawEnabled = Helpers.isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
-            Boolean isDepositEnabled = Helpers.isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
-            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            String networkCode = this.networkIdToCode(networkId, code);
+            Map<String, Object> networkWithdrawInfo = (Map<String, Object>) this.safeDict(network, "withdraw_info", (Object) null);
+            Map<String, Object> networkDepositInfo = (Map<String, Object>) this.safeDict(network, "deposit_info", (Object) null);
+            Boolean isWithdrawEnabled = java.util.Objects.equals(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
+            Boolean isDepositEnabled = java.util.Objects.equals(this.safeString(networkDepositInfo, "status"), "ENABLED");
+            if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(parsedNetworks, networkCode, new HashMap<String, Object>() {{
-    put( "info", rawCurrency );
-    put( "id", networkId );
-    put( "network", finalNetworkCode );
-    put( "name", Foxbit.this.safeString(network, "name") );
-    put( "deposit", isDepositEnabled );
-    put( "withdraw", isWithdrawEnabled );
-    put( "active", true );
-    put( "precision", precision );
-    put( "fee", Foxbit.this.safeNumber(networkWithdrawInfo, "fee") );
-    put( "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("info", rawCurrency);
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("name", this.safeString(network, "name"));
+                mapLiteral1.put("deposit", isDepositEnabled);
+                mapLiteral1.put("withdraw", isWithdrawEnabled);
+                mapLiteral1.put("active", true);
+                mapLiteral1.put("precision", null);
+                mapLiteral1.put("fee", this.safeNumber(networkWithdrawInfo, "fee", (Object) null));
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "amount", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
         }} );
         put( "deposit", new HashMap<String, Object>() {{
-            put( "min", Foxbit.this.safeNumber(depositInfo, "min_amount") );
+            put( "min", Foxbit.this.safeNumber(depositInfo, "min_amount", (Object) null) );
             put( "max", null );
         }} );
         put( "withdraw", new HashMap<String, Object>() {{
-            put( "min", Foxbit.this.safeNumber(withdrawInfo, "min_amount") );
+            put( "min", Foxbit.this.safeNumber(withdrawInfo, "min_amount", (Object) null) );
             put( "max", null );
         }} );
-    }} );
-}});
+    }});
+                parsedNetworks.put(networkCode, mapLiteral1);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -511,19 +511,19 @@ public class Foxbit extends FoxbitApi
             put( "type", type );
             put( "deposit", Foxbit.this.safeBool(depositInfo, "enabled", false) );
             put( "withdraw", Foxbit.this.safeBool(withdrawInfo, "enabled", false) );
-            put( "fee", Foxbit.this.safeNumber(withdrawInfo, "fee") );
-            put( "precision", precision );
+            put( "fee", Foxbit.this.safeNumber(withdrawInfo, "fee", (Object) null) );
+            put( "precision", Foxbit.this.parseNumber(Foxbit.this.parsePrecision(Foxbit.this.safeString(rawCurrency, "precision"))) );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "deposit", new HashMap<String, Object>() {{
-                    put( "min", Foxbit.this.safeNumber(depositInfo, "min_amount") );
+                    put( "min", Foxbit.this.safeNumber(depositInfo, "min_amount", (Object) null) );
                     put( "max", null );
                 }} );
                 put( "withdraw", new HashMap<String, Object>() {{
-                    put( "min", Foxbit.this.safeNumber(withdrawInfo, "min_amount") );
+                    put( "min", Foxbit.this.safeNumber(withdrawInfo, "min_amount", (Object) null) );
                     put( "max", null );
                 }} );
             }} );
@@ -539,12 +539,11 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.v3PublicGetMarkets(parameters)).join();
             // {
             //     "data": [
@@ -640,7 +639,7 @@ public class Foxbit extends FoxbitApi
             //       }
             //     ]
             //   }
-            Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -655,19 +654,18 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", market.get("id") );
             }};
             Map<String, Object> response = (this.v3PublicGetMarketsMarketTicker24hr(this.extend(request, parameters))).join();
             //  {
@@ -701,8 +699,8 @@ public class Foxbit extends FoxbitApi
             //      }
             //    ]
             //  }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
 
@@ -717,18 +715,16 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> response = (this.v3PublicGetMarketsTicker24hr(parameters)).join();
             //  {
             //    "data": [
@@ -751,8 +747,8 @@ public class Foxbit extends FoxbitApi
             //      }
             //    ]
             //  }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(data, symbols);
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -765,15 +761,14 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.v3PrivateGetMeFeesTrading(parameters)).join();
             // [
@@ -783,15 +778,15 @@ public class Foxbit extends FoxbitApi
             //         "taker": "0.005"
             //     }
             // ]
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+            for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "market_symbol");
-                Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Object symbol = Helpers.GetValue(market, "symbol");
-                Helpers.addElementToObject(result, symbol, this.parseTradingFee(entry, market));
+                Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+                String symbol = (String) market.get("symbol");
+                result.put(symbol, this.parseTradingFee((Map<String, Object>) (entry), market));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -808,24 +803,20 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object defaultLimit = 20;
-            final Object finalLimit = limit;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
-                put( "depth", ((Helpers.isTrue((Helpers.isEqual(finalLimit, null))))) ? defaultLimit : finalLimit );
-            }};
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("depth", (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit);
             Map<String, Object> response = (this.v3PublicGetMarketsMarketOrderbook(this.extend(request, parameters))).join();
             //  {
             //    "sequence_id": 1234567890,
@@ -852,7 +843,7 @@ public class Foxbit extends FoxbitApi
             //    ]
             //  }
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(response, symbol, timestamp);
+            return this.parseOrderBook(response, symbol, timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -868,28 +859,25 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", market.get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
-                if (Helpers.isTrue(Helpers.isGreaterThan(limit, 200)))
+                request.put("page_size", limit);
+                if ((limit > 200))
                 {
-                    Helpers.addElementToObject(request, "page_size", 200);
+                    request.put("page_size", 200);
                 }
             }
             // [
@@ -902,9 +890,9 @@ public class Foxbit extends FoxbitApi
             //     }
             // ]
             Map<String, Object> response = (this.v3PublicGetMarketsMarketTradesHistory(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -920,35 +908,31 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String interval = this.safeString(this.timeframes, timeframe, timeframe);
+            Map<String, Object> market = this.market(symbol);
+            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", market.get("id") );
                 put( "interval", interval );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_time", this.iso8601(since));
+                request.put("start_time", this.iso8601(since));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", limit);
-                if (Helpers.isTrue(Helpers.isGreaterThan(limit, 500)))
+                request.put("limit", limit);
+                if ((limit > 500))
                 {
-                    Helpers.addElementToObject(request, "limit", 500);
+                    request.put("limit", 500);
                 }
             }
             List<Object> response = (this.v3PublicGetMarketsMarketCandlesticks(this.extend(request, parameters))).join();
@@ -967,8 +951,8 @@ public class Foxbit extends FoxbitApi
             //         "15466.34096391" // taker buy quote volume
             //     ]
             // ]
-            return this.parseOHLCVs(this.toArray(response), market, interval, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+            return this.parseOHLCVs(this.toArray(response), market, interval, since, limit, false);
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -980,15 +964,14 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.v3PrivateGetAccounts(parameters)).join();
             // {
@@ -1001,15 +984,15 @@ public class Foxbit extends FoxbitApi
             //         }
             //     ]
             // }
-            Object accounts = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> accounts = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
+            for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
-                Object account = Helpers.GetValue(accounts, i);
+                Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
                 String currencyId = this.safeString(account, "currency_symbol");
-                String currencyCode = this.safeCurrencyCode(currencyId);
+                String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 String total = this.safeString(account, "balance");
                 String used = this.safeString(account, "balance_locked");
                 String free = this.safeString(account, "balance_available");
@@ -1018,9 +1001,9 @@ public class Foxbit extends FoxbitApi
                     put( "used", used );
                     put( "total", total );
                 }};
-                if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
+                if (!java.util.Objects.equals(currencyCode, null))
                 {
-                    Helpers.addElementToObject(result, currencyCode, balanceObj);
+                    result.put(currencyCode, balanceObj);
                 }
             }
             return this.safeBalance(result);
@@ -1039,17 +1022,13 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatus("ACTIVE", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1064,71 +1043,59 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatus("FILLED", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatus("CANCELED", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByStatus(Object status, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOrdersByStatus(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "state", status );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "market_symbol", Helpers.GetValue(market, "id"));
+                request.put("market_symbol", market.get("id"));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_time", this.iso8601(since));
+                request.put("start_time", this.iso8601(since));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
-                if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
+                request.put("page_size", limit);
+                if ((limit > 100))
                 {
-                    Helpers.addElementToObject(request, "page_size", 100);
+                    request.put("page_size", 100);
                 }
             }
             Map<String, Object> response = (this.v3PrivateGetOrders(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data);
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -1150,82 +1117,72 @@ public class Foxbit extends FoxbitApi
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            type = ((String)type).toUpperCase();
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "LIMIT")) && Helpers.isTrue(!Helpers.isEqual(type, "MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_LIMIT"))) && Helpers.isTrue(!Helpers.isEqual(type, "INSTANT"))))
+            Map<String, Object> market = this.market(symbol);
+            String typeValue = ((String)type).toUpperCase();
+            if (!java.util.Objects.equals(typeValue, "LIMIT") && !java.util.Objects.equals(typeValue, "MARKET") && !java.util.Objects.equals(typeValue, "STOP_MARKET") && !java.util.Objects.equals(typeValue, "STOP_LIMIT") && !java.util.Objects.equals(typeValue, "INSTANT"))
             {
-                throw new InvalidOrder(Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
+                throw new InvalidOrder((("Invalid order type: " + typeValue) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
             }
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-            Object postOnly = this.safeBool(parameters, "postOnly", false);
-            Double triggerPrice = this.safeNumber(parameters, "triggerPrice");
-            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+            Double triggerPrice = this.safeNumber(parameters, "triggerPrice", (Object) null);
+            this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market_symbol", market.get("id"));
+            request.put("side", ((String)side).toUpperCase());
+            request.put("type", typeValue);
+            if (java.util.Objects.equals(typeValue, "STOP_MARKET") || java.util.Objects.equals(typeValue, "STOP_LIMIT"))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
-            }
-            final Object finalSide = side;
-            final Object finalType = type;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market_symbol", Helpers.GetValue(market, "id") );
-                put( "side", ((String)finalSide).toUpperCase() );
-                put( "type", finalType );
-            }};
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "STOP_MARKET")) || Helpers.isTrue(Helpers.isEqual(type, "STOP_LIMIT"))))
-            {
-                if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
+                if (java.util.Objects.equals(triggerPrice, null))
                 {
-                    throw new InvalidOrder(Helpers.add(Helpers.add("Invalid order type: ", type), ". Must have triggerPrice.")) ;
+                    throw new InvalidOrder((("Invalid order type: " + typeValue) + ". Must have triggerPrice.")) ;
                 }
             }
-            if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
+            if (!java.util.Objects.equals(timeInForce, null))
             {
-                if (Helpers.isTrue(Helpers.isEqual(timeInForce, "PO")))
+                if (java.util.Objects.equals(timeInForce, "PO"))
                 {
-                    Helpers.addElementToObject(request, "post_only", true);
+                    request.put("post_only", true);
                 } else
                 {
-                    Helpers.addElementToObject(request, "time_in_force", timeInForce);
+                    request.put("time_in_force", timeInForce);
                 }
             }
-            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
+            if (java.util.Objects.equals(postOnly, true))
             {
-                Helpers.addElementToObject(request, "post_only", true);
+                request.put("post_only", true);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+            if (!java.util.Objects.equals(triggerPrice, null))
             {
-                Helpers.addElementToObject(request, "stop_price", this.priceToPrecision(symbol, triggerPrice));
+                request.put("stop_price", this.priceToPrecision(symbol, triggerPrice));
             }
-            if (Helpers.isTrue(Helpers.isEqual(type, "INSTANT")))
+            if (java.util.Objects.equals(typeValue, "INSTANT"))
             {
-                Helpers.addElementToObject(request, "amount", this.priceToPrecision(symbol, amount));
+                request.put("amount", this.priceToPrecision(symbol, amount));
             } else
             {
-                Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
+                request.put("quantity", this.amountToPrecision(symbol, amount));
             }
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "LIMIT")) || Helpers.isTrue(Helpers.isEqual(type, "STOP_LIMIT"))))
+            if (java.util.Objects.equals(typeValue, "LIMIT") || java.util.Objects.equals(typeValue, "STOP_LIMIT"))
             {
-                Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+            if (!java.util.Objects.equals(clientOrderId, null))
             {
-                Helpers.addElementToObject(request, "client_order_id", clientOrderId);
+                request.put("client_order_id", clientOrderId);
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly", "triggerPrice", "clientOrderId")));
-            Map<String, Object> response = (this.v3PrivatePostOrders(this.extend(request, parameters))).join();
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly", "triggerPrice", "clientOrderId")));
+            Map<String, Object> response = (this.v3PrivatePostOrders(this.extend(request, paramsOmitted))).join();
             // {
             //     "id": 1234567890,
             //     "sn": "OKMAKSDHRVVREK",
@@ -1245,75 +1202,72 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
+    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+            for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = this.safeDict(orders, i);
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 String symbol = this.safeString(order, "symbol");
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String type = this.safeStringUpper(order, "type");
                 Object orderParams = this.safeDict(order, "params", new HashMap<String, Object>() {{}});
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "LIMIT")) && Helpers.isTrue(!Helpers.isEqual(type, "MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_LIMIT"))) && Helpers.isTrue(!Helpers.isEqual(type, "INSTANT"))))
+                if (!java.util.Objects.equals(type, "LIMIT") && !java.util.Objects.equals(type, "MARKET") && !java.util.Objects.equals(type, "STOP_MARKET") && !java.util.Objects.equals(type, "STOP_LIMIT") && !java.util.Objects.equals(type, "INSTANT"))
                 {
-                    throw new InvalidOrder(Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
+                    throw new InvalidOrder((("Invalid order type: " + type) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
                 }
                 String timeInForce = this.safeStringUpper(orderParams, "timeInForce");
-                Object postOnly = this.safeBool(orderParams, "postOnly", false);
-                Double triggerPrice = this.safeNumber(orderParams, "triggerPrice");
-                final Object finalType = type;
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "market_symbol", Helpers.GetValue(market, "id") );
-                    put( "side", Foxbit.this.safeStringUpper(order, "side") );
-                    put( "type", finalType );
-                }};
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "STOP_MARKET")) || Helpers.isTrue(Helpers.isEqual(type, "STOP_LIMIT"))))
+                Boolean postOnly = (Boolean) this.safeBool(orderParams, "postOnly", false);
+                Double triggerPrice = this.safeNumber(orderParams, "triggerPrice", (Object) null);
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("market_symbol", market.get("id"));
+                request.put("side", this.safeStringUpper(order, "side"));
+                request.put("type", type);
+                if (java.util.Objects.equals(type, "STOP_MARKET") || java.util.Objects.equals(type, "STOP_LIMIT"))
                 {
-                    if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
+                    if (java.util.Objects.equals(triggerPrice, null))
                     {
-                        throw new InvalidOrder(Helpers.add(Helpers.add("Invalid order type: ", type), ". Must have triggerPrice.")) ;
+                        throw new InvalidOrder((("Invalid order type: " + type) + ". Must have triggerPrice.")) ;
                     }
                 }
-                if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
+                if (!java.util.Objects.equals(timeInForce, null))
                 {
-                    if (Helpers.isTrue(Helpers.isEqual(timeInForce, "PO")))
+                    if (java.util.Objects.equals(timeInForce, "PO"))
                     {
-                        Helpers.addElementToObject(request, "post_only", true);
+                        request.put("post_only", true);
                     } else
                     {
-                        Helpers.addElementToObject(request, "time_in_force", timeInForce);
+                        request.put("time_in_force", timeInForce);
                     }
                     ((Map<String,Object>)orderParams).remove("timeInForce");
                 }
-                if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
+                if (java.util.Objects.equals(postOnly, true))
                 {
-                    Helpers.addElementToObject(request, "post_only", true);
+                    request.put("post_only", true);
                     ((Map<String,Object>)orderParams).remove("postOnly");
                 }
-                if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+                if (!java.util.Objects.equals(triggerPrice, null))
                 {
-                    Helpers.addElementToObject(request, "stop_price", this.priceToPrecision(symbol, triggerPrice));
+                    request.put("stop_price", this.priceToPrecision(symbol, triggerPrice));
                     ((Map<String,Object>)orderParams).remove("triggerPrice");
                 }
-                if (Helpers.isTrue(Helpers.isEqual(type, "INSTANT")))
+                if (java.util.Objects.equals(type, "INSTANT"))
                 {
-                    Helpers.addElementToObject(request, "amount", this.priceToPrecision(symbol, this.safeString(order, "amount")));
+                    request.put("amount", this.priceToPrecision(symbol, this.safeString(order, "amount")));
                 } else
                 {
-                    Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, this.safeString(order, "amount")));
+                    request.put("quantity", this.amountToPrecision(symbol, this.safeString(order, "amount")));
                 }
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "LIMIT")) || Helpers.isTrue(Helpers.isEqual(type, "STOP_LIMIT"))))
+                if (java.util.Objects.equals(type, "LIMIT") || java.util.Objects.equals(type, "STOP_LIMIT"))
                 {
-                    Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, this.safeString(order, "price")));
+                    request.put("price", this.priceToPrecision(symbol, this.safeString(order, "price")));
                 }
                 ((List<Object>)ordersRequests).add(this.extend(request, orderParams));
             }
@@ -1336,9 +1290,9 @@ public class Foxbit extends FoxbitApi
             //         }
             //     ]
             // }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1352,16 +1306,14 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", Foxbit.this.parseNumber(id) );
@@ -1376,9 +1328,9 @@ public class Foxbit extends FoxbitApi
             //         }
             //     ]
             // }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseOrder(result);
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            return this.parseOrder(result, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -1392,25 +1344,23 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "ALL" );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Helpers.addElementToObject(request, "type", "MARKET");
-                Helpers.addElementToObject(request, "market_symbol", Helpers.GetValue(market, "id"));
+                Map<String, Object> market = this.market(symbol);
+                request.put("type", "MARKET");
+                request.put("market_symbol", market.get("id"));
             }
             Map<String, Object> response = (this.v3PrivatePutOrdersCancel(this.extend(request, parameters))).join();
             // {
@@ -1423,8 +1373,8 @@ public class Foxbit extends FoxbitApi
             // }
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+    }}, (Map<String, Object>) null)));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1438,16 +1388,14 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -1472,7 +1420,7 @@ public class Foxbit extends FoxbitApi
             //     "remark": "A remarkable note for the order.",
             //     "funds_received": "290.0"
             // }
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -1490,36 +1438,32 @@ public class Foxbit extends FoxbitApi
      * @param {string} [params.side] Enum: BUY, SELL
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "market_symbol", Helpers.GetValue(market, "id"));
+                request.put("market_symbol", market.get("id"));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_time", this.iso8601(since));
+                request.put("start_time", this.iso8601(since));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
-                if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
+                request.put("page_size", limit);
+                if ((limit > 100))
                 {
-                    Helpers.addElementToObject(request, "page_size", 100);
+                    request.put("page_size", 100);
                 }
             }
             Map<String, Object> response = (this.v3PrivateGetOrders(this.extend(request, parameters))).join();
@@ -1546,9 +1490,9 @@ public class Foxbit extends FoxbitApi
             //         }
             //     ]
             // }
-            Object list = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(list, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            List<Object> list = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseOrders(list, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1563,37 +1507,33 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market_symbol", Helpers.GetValue(market, "id") );
+                put( "market_symbol", market.get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_time", this.iso8601(since));
+                request.put("start_time", this.iso8601(since));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
-                if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
+                request.put("page_size", limit);
+                if ((limit > 100))
                 {
-                    Helpers.addElementToObject(request, "page_size", 100);
+                    request.put("page_size", 100);
                 }
             }
             Map<String, Object> response = (this.v3PrivateGetTrades(this.extend(request, parameters))).join();
@@ -1611,9 +1551,9 @@ public class Foxbit extends FoxbitApi
             //         "created_at": "2021-02-15T22:06:32.999Z"
             //     ]
             // }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1627,26 +1567,25 @@ public class Foxbit extends FoxbitApi
      * @param {string} [params.networkCode] the blockchain network to create a deposit address on
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency_symbol", Helpers.GetValue(currency, "id") );
+                put( "currency_symbol", currency.get("id") );
             }};
-            List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
-            var paramsOmited = ((List<Object>) networkCodeparamsOmitedVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
+            if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(request, "network_code", this.networkCodeToId(networkCode, code));
+                request.put("network_code", this.networkCodeToId(networkCode, code));
             }
             Map<String, Object> response = (this.v3PrivateGetDepositsAddress(this.extend(request, paramsOmited))).join();
             // {
@@ -1659,7 +1598,7 @@ public class Foxbit extends FoxbitApi
             //         "code": "btc"
             //     }
             // }
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -1675,36 +1614,32 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            Map<String, Object> currency = null;
+            if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
-                if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
+                request.put("page_size", limit);
+                if ((limit > 100))
                 {
-                    Helpers.addElementToObject(request, "page_size", 100);
+                    request.put("page_size", 100);
                 }
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_time", this.iso8601(since));
+                request.put("start_time", this.iso8601(since));
             }
             Map<String, Object> response = (this.v3PrivateGetDeposits(this.extend(request, parameters))).join();
             // {
@@ -1723,9 +1658,9 @@ public class Foxbit extends FoxbitApi
             //         }
             //     ]
             // }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -1740,36 +1675,32 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            Map<String, Object> currency = null;
+            if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency(code);
+                currency = this.currency((String) (code));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
-                if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
+                request.put("page_size", limit);
+                if ((limit > 100))
                 {
-                    Helpers.addElementToObject(request, "page_size", 100);
+                    request.put("page_size", 100);
                 }
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_time", this.iso8601(since));
+                request.put("start_time", this.iso8601(since));
             }
             Map<String, Object> response = (this.v3PrivateGetWithdrawals(this.extend(request, parameters))).join();
             // {
@@ -1803,9 +1734,9 @@ public class Foxbit extends FoxbitApi
             //         }
             //     ]
             // }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -1821,21 +1752,17 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchTransactions(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchTransactions(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            Object withdrawals = (this.fetchWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-            Object deposits = (this.fetchDeposits((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            List<Transaction> withdrawals = (this.fetchWithdrawals(code, since, limit, parameters)).join();
+            List<Transaction> deposits = (this.fetchDeposits(code, since, limit, parameters)).join();
             List<Object> allTransactions = (List<Object>) this.arrayConcat(withdrawals, deposits);
             List<Object> result = this.sortBy(allTransactions, "timestamp");
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -1847,12 +1774,11 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.statusPublicGetStatus(parameters)).join();
             // {
             //     "data": {
@@ -1868,8 +1794,8 @@ public class Foxbit extends FoxbitApi
             //     "meta": {
             //     }
             // }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object attributes = this.safeDict(data, "attributes", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> attributes = (Map<String, Object>) this.safeDict(data, "attributes", new HashMap<String, Object>() {{}});
             String statusRaw = this.safeString(attributes, "status");
             Map<String, Object> statusMap = new HashMap<String, Object>() {{
                 put( "NORMAL", "ok" );
@@ -1900,66 +1826,50 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol2, Object type2, Object side2, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
-        final Object type3 = type2;
-        final Object side3 = side2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object type = type3;
-            Object side = side3;
-            Object amount = Helpers.getArg(optionalArgs, 0, null);
-            Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            this.checkRequiredArgument("editOrder", symbol, "symbol", new ArrayList<Object>(Arrays.asList()));
+            String typeValue = ((String)type).toUpperCase();
+            if (!java.util.Objects.equals(typeValue, "LIMIT") && !java.util.Objects.equals(typeValue, "MARKET") && !java.util.Objects.equals(typeValue, "STOP_MARKET") && !java.util.Objects.equals(typeValue, "INSTANT"))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a symbol argument")) ;
+                throw new InvalidOrder((("Invalid order type: " + typeValue) + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;
             }
-            type = ((String)type).toUpperCase();
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "LIMIT")) && Helpers.isTrue(!Helpers.isEqual(type, "MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "INSTANT"))))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                throw new InvalidOrder(Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
-            {
-                (this.loadMarkets()).join();
-            }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (Helpers.isTrue(Helpers.isEqual(side, null)))
-            {
-                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a side argument")) ;
-            }
-            final Object finalType = type;
-            final Object finalSide = side;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "mode", "ALLOW_FAILURE" );
-                put( "cancel", new HashMap<String, Object>() {{
+            Map<String, Object> market = this.market(symbol);
+            this.checkRequiredArgument("editOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("mode", "ALLOW_FAILURE");
+            request.put("cancel", new HashMap<String, Object>() {{
                     put( "type", "ID" );
                     put( "id", Foxbit.this.parseNumber(id) );
-                }} );
-                put( "create", new HashMap<String, Object>() {{
-                    put( "type", finalType );
-                    put( "side", ((String)finalSide).toUpperCase() );
-                    put( "market_symbol", Helpers.GetValue(market, "id") );
-                }} );
-            }};
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "LIMIT")) || Helpers.isTrue(Helpers.isEqual(type, "MARKET"))))
+                }});
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("type", typeValue);
+            mapLiteral2.put("side", ((String)side).toUpperCase());
+            mapLiteral2.put("market_symbol", market.get("id"));
+            request.put("create", mapLiteral2);
+            if (java.util.Objects.equals(typeValue, "LIMIT") || java.util.Objects.equals(typeValue, "MARKET"))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "create"), "quantity", this.amountToPrecision(symbol, amount));
-                if (Helpers.isTrue(Helpers.isEqual(type, "LIMIT")))
+                Helpers.addElementToObject(request.get("create"), "quantity", this.amountToPrecision(symbol, amount));
+                if (java.util.Objects.equals(typeValue, "LIMIT"))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(request, "create"), "price", this.priceToPrecision(symbol, price));
+                    Helpers.addElementToObject(request.get("create"), "price", this.priceToPrecision(symbol, price));
                 }
             }
-            if (Helpers.isTrue(Helpers.isEqual(type, "STOP_MARKET")))
+            if (java.util.Objects.equals(typeValue, "STOP_MARKET"))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "create"), "stop_price", this.priceToPrecision(symbol, price));
-                Helpers.addElementToObject(Helpers.GetValue(request, "create"), "quantity", this.amountToPrecision(symbol, amount));
+                Helpers.addElementToObject(request.get("create"), "stop_price", this.priceToPrecision(symbol, price));
+                Helpers.addElementToObject(request.get("create"), "quantity", this.amountToPrecision(symbol, amount));
             }
-            if (Helpers.isTrue(Helpers.isEqual(type, "INSTANT")))
+            if (java.util.Objects.equals(typeValue, "INSTANT"))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "create"), "amount", this.priceToPrecision(symbol, amount));
+                Helpers.addElementToObject(request.get("create"), "amount", this.priceToPrecision(symbol, amount));
             }
             Map<String, Object> response = (this.v3PrivatePostOrdersCancelReplace(this.extend(request, parameters))).join();
             // {
@@ -1971,7 +1881,7 @@ public class Foxbit extends FoxbitApi
             //         "client_order_id": "451637946501"
             //     }
             // }
-            Object created = this.safeDict(response, "create", new HashMap<String, Object>() {{}});
+            Map<String, Object> created = (Map<String, Object>) this.safeDict(response, "create", new HashMap<String, Object>() {{}});
             return this.parseOrder(created, market);
         }).thenApply(Order::new);
 
@@ -1989,39 +1899,36 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
+            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency_symbol", Helpers.GetValue(currency, "id") );
+                put( "currency_symbol", currency.get("id") );
                 put( "amount", Foxbit.this.numberToString(amount) );
                 put( "destination_address", address );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
+            if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
-                Helpers.addElementToObject(request, "destination_tag", tag);
+                request.put("destination_tag", tagWithdrawTag);
             }
-            String networkCode = null;
-            List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
-            networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsWithdrawTag));
+            String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
+            Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
+            if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(request, "network_code", this.networkCodeToId(networkCode, code));
+                request.put("network_code", this.networkCodeToId(networkCode, code));
             }
-            Map<String, Object> response = (this.v3PrivatePostWithdrawals(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v3PrivatePostWithdrawals(this.extend(request, paramsNetworkCode))).join();
             // {
             //     "amount": "2",
             //     "currency_symbol": "xrp",
@@ -2029,7 +1936,7 @@ public class Foxbit extends FoxbitApi
             //     "destination_address": "0x1234567890123456789012345678",
             //     "destination_tag": "123456"
             // }
-            return this.parseTransaction(response);
+            return this.parseTransaction((Map<String, Object>) (response), (Object) null, (Object) null, (Object) null);
         }).thenApply(Transaction::new);
 
     }
@@ -2045,98 +1952,96 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(Helpers.isEqual(code, null)))
+            if (java.util.Objects.equals(code, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchLedger() requires a code argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchLedger() requires a code argument")) ;
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
-                if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
+                request.put("page_size", limit);
+                if ((limit > 100))
                 {
-                    Helpers.addElementToObject(request, "page_size", 100);
+                    request.put("page_size", 100);
                 }
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_time", this.iso8601(since));
+                request.put("start_time", this.iso8601(since));
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Helpers.addElementToObject(request, "symbol", Helpers.GetValue(currency, "id"));
+            Map<String, Object> currency = this.currency((String) (code));
+            request.put("symbol", currency.get("id"));
             Map<String, Object> response = (this.v3PrivateGetAccountsSymbolTransactions(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol");
-        Object baseAssets = this.safeDict(market, "base");
+        Map<String, Object> baseAssets = (Map<String, Object>) this.safeDict(market, "base", (Object) null);
         String baseId = this.safeString(baseAssets, "symbol");
-        Object quoteAssets = this.safeDict(market, "quote");
+        Map<String, Object> quoteAssets = (Map<String, Object>) this.safeDict(market, "quote", (Object) null);
         String quoteId = this.safeString(quoteAssets, "symbol");
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object fees = this.safeDict(market, "default_fees");
-        final Object finalBase = base;
-        return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "symbol", symbol );
-            put( "base", finalBase );
-            put( "quote", quote );
-            put( "baseId", baseId );
-            put( "quoteId", quoteId );
-            put( "active", true );
-            put( "type", "spot" );
-            put( "spot", true );
-            put( "margin", false );
-            put( "future", false );
-            put( "swap", false );
-            put( "option", false );
-            put( "contract", false );
-            put( "settle", null );
-            put( "settleId", null );
-            put( "contractSize", null );
-            put( "linear", null );
-            put( "inverse", null );
-            put( "expiry", null );
-            put( "expiryDatetime", null );
-            put( "strike", null );
-            put( "optionType", null );
-            put( "taker", Foxbit.this.safeNumber(fees, "taker") );
-            put( "maker", Foxbit.this.safeNumber(fees, "maker") );
-            put( "percentage", true );
-            put( "tierBased", false );
-            put( "feeSide", "get" );
-            put( "precision", new HashMap<String, Object>() {{
-                put( "price", Foxbit.this.safeInteger(quoteAssets, "precision") );
-                put( "amount", Foxbit.this.safeInteger(baseAssets, "precision") );
-                put( "cost", Foxbit.this.safeInteger(quoteAssets, "precision") );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
+        String symbol = ((base + "/") + quote);
+        Map<String, Object> fees = (Map<String, Object>) this.safeDict(market, "default_fees", (Object) null);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("base", base);
+        mapLiteral3.put("quote", quote);
+        mapLiteral3.put("baseId", baseId);
+        mapLiteral3.put("quoteId", quoteId);
+        mapLiteral3.put("active", true);
+        mapLiteral3.put("type", "spot");
+        mapLiteral3.put("spot", true);
+        mapLiteral3.put("margin", false);
+        mapLiteral3.put("future", false);
+        mapLiteral3.put("swap", false);
+        mapLiteral3.put("option", false);
+        mapLiteral3.put("contract", false);
+        mapLiteral3.put("settle", null);
+        mapLiteral3.put("settleId", null);
+        mapLiteral3.put("contractSize", null);
+        mapLiteral3.put("linear", null);
+        mapLiteral3.put("inverse", null);
+        mapLiteral3.put("expiry", null);
+        mapLiteral3.put("expiryDatetime", null);
+        mapLiteral3.put("strike", null);
+        mapLiteral3.put("optionType", null);
+        mapLiteral3.put("taker", this.safeNumber(fees, "taker", (Object) null));
+        mapLiteral3.put("maker", this.safeNumber(fees, "maker", (Object) null));
+        mapLiteral3.put("percentage", true);
+        mapLiteral3.put("tierBased", false);
+        mapLiteral3.put("feeSide", "get");
+        mapLiteral3.put("precision", new HashMap<String, Object>() {{
+                put( "price", Foxbit.this.safeNumber(market, "price_increment", (Object) null) );
+                put( "amount", Foxbit.this.safeNumber(market, "quantity_increment", (Object) null) );
+            }});
+        mapLiteral3.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Foxbit.this.safeNumber(market, "quantity_min") );
+                    put( "min", Foxbit.this.safeNumber(market, "quantity_min", (Object) null) );
                     put( "max", null );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
-                    put( "min", Foxbit.this.safeNumber(market, "price_min") );
+                    put( "min", Foxbit.this.safeNumber(market, "price_min", (Object) null) );
                     put( "max", null );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
@@ -2147,47 +2052,45 @@ public class Foxbit extends FoxbitApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }} );
-            put( "info", market );
-        }});
+            }});
+        mapLiteral3.put("info", market);
+        return this.safeMarketStructure(mapLiteral3);
     }
 
-    public Object parseTradingFee(Object entry, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> entry, Map<String, Object> market)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         return new HashMap<String, Object>() {{
             put( "info", entry );
             put( "symbol", Foxbit.this.safeString(market, "symbol") );
-            put( "maker", Foxbit.this.safeNumber(entry, "maker") );
-            put( "taker", Foxbit.this.safeNumber(entry, "taker") );
+            put( "maker", Foxbit.this.safeNumber(entry, "maker", (Object) null) );
+            put( "taker", Foxbit.this.safeNumber(entry, "taker", (Object) null) );
             put( "percentage", true );
             put( "tierBased", true );
         }};
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "market_symbol");
-        String symbol = this.safeSymbol(marketId, market, null, "spot");
-        Object rolling_24h = Helpers.GetValue(ticker, "rolling_24h");
-        Object best = this.safeDict(ticker, "best");
-        Object bestAsk = this.safeDict(best, "ask");
-        Object bestBid = this.safeDict(best, "bid");
-        Object lastTrade = Helpers.GetValue(ticker, "last_trade");
+        String symbol = this.safeSymbol(marketId, market, (String) null, "spot");
+        Map<String, Object> rolling_24h = (Map<String, Object>) this.safeDict(ticker, "rolling_24h", (Object) null);
+        Map<String, Object> best = (Map<String, Object>) this.safeDict(ticker, "best", (Object) null);
+        Map<String, Object> bestAsk = (Map<String, Object>) this.safeDict(best, "ask", (Object) null);
+        Map<String, Object> bestBid = (Map<String, Object>) this.safeDict(best, "bid", (Object) null);
+        Map<String, Object> lastTrade = (Map<String, Object>) this.safeDict(ticker, "last_trade", (Object) null);
         String lastPrice = this.safeString(lastTrade, "price");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", Foxbit.this.parseDate(Foxbit.this.safeString(lastTrade, "date")) );
             put( "datetime", Foxbit.this.iso8601(Foxbit.this.parseDate(Foxbit.this.safeString(lastTrade, "date"))) );
-            put( "high", Foxbit.this.safeNumber(rolling_24h, "high") );
-            put( "low", Foxbit.this.safeNumber(rolling_24h, "low") );
-            put( "bid", Foxbit.this.safeNumber(bestBid, "price") );
-            put( "bidVolume", Foxbit.this.safeNumber(bestBid, "volume") );
-            put( "ask", Foxbit.this.safeNumber(bestAsk, "price") );
-            put( "askVolume", Foxbit.this.safeNumber(bestAsk, "volume") );
+            put( "high", Foxbit.this.safeNumber(rolling_24h, "high", (Object) null) );
+            put( "low", Foxbit.this.safeNumber(rolling_24h, "low", (Object) null) );
+            put( "bid", Foxbit.this.safeNumber(bestBid, "price", (Object) null) );
+            put( "bidVolume", Foxbit.this.safeNumber(bestBid, "volume", (Object) null) );
+            put( "ask", Foxbit.this.safeNumber(bestAsk, "price", (Object) null) );
+            put( "askVolume", Foxbit.this.safeNumber(bestAsk, "volume", (Object) null) );
             put( "vwap", null );
-            put( "open", Foxbit.this.safeNumber(rolling_24h, "open") );
+            put( "open", Foxbit.this.safeNumber(rolling_24h, "open", (Object) null) );
             put( "close", lastPrice );
             put( "last", lastPrice );
             put( "previousClose", null );
@@ -2200,15 +2103,13 @@ public class Foxbit extends FoxbitApi
         }}, market);
     }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 6)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 6, (Object) null)));
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.parseDate(this.safeString(trade, "created_at"));
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "volume", this.safeString(trade, "quantity"));
@@ -2216,8 +2117,8 @@ public class Foxbit extends FoxbitApi
         String side = this.safeStringLower(trade, "taker_side", privateSideField);
         String cost = Precise.stringMul(price, amount);
         Map<String, Object> fee = new HashMap<String, Object>() {{
-            put( "currency", Foxbit.this.safeSymbol(Foxbit.this.safeString(trade, "fee_currency_symbol")) );
-            put( "cost", Foxbit.this.safeNumber(trade, "fee") );
+            put( "currency", Foxbit.this.safeSymbol(Foxbit.this.safeString(trade, "fee_currency_symbol"), (Map<String, Object>) null, (String) null, (String) null) );
+            put( "cost", Foxbit.this.safeNumber(trade, "fee", (Object) null) );
             put( "rate", null );
         }};
         return this.safeTrade(new HashMap<String, Object>() {{
@@ -2237,7 +2138,7 @@ public class Foxbit extends FoxbitApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PARTIALLY_CANCELED", "open" );
@@ -2250,17 +2151,17 @@ public class Foxbit extends FoxbitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeString(order, "market_symbol");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(symbol, null))))
+        String symbol = this.safeString(order, "market_symbol");
+        Map<String, Object> marketResolved = market;
+        if ((java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(symbol, null)))
         {
-            market = this.market(symbol);
+            marketResolved = this.market(symbol);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(market, null)))
+        if (!java.util.Objects.equals(marketResolved, null))
         {
-            symbol = Helpers.GetValue(market, "symbol");
+            symbol = this.safeString(marketResolved, "symbol");
         }
         Object timestamp = this.parseDate(this.safeString(order, "created_at"));
         String price = this.safeString(order, "price");
@@ -2268,68 +2169,60 @@ public class Foxbit extends FoxbitApi
         String remaining = this.safeString(order, "quantity");
         // TODO: validate logic of amount here, should this be calculated?
         String amount = null;
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(remaining, null)) && Helpers.isTrue(!Helpers.isEqual(filled, null))))
+        if (!java.util.Objects.equals(remaining, null) && !java.util.Objects.equals(filled, null))
         {
             amount = Precise.stringAdd(remaining, filled);
         }
         String cost = this.safeString(order, "funds_received");
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(cost, null))) || Helpers.isTrue((Helpers.isEqual(cost, "")))))
+        if ((java.util.Objects.equals(cost, null)) || (java.util.Objects.equals(cost, "")))
         {
             String priceAverage = this.safeString(order, "price_avg");
             String priceToCalculate = this.safeString(order, "price", priceAverage);
             cost = Precise.stringMul(priceToCalculate, amount);
         }
         String side = this.safeStringLower(order, "side");
-        String feeCurrency = this.safeStringUpper(market, "quoteId");
-        if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+        String feeCurrency = this.safeStringUpper(marketResolved, "quoteId");
+        if (java.util.Objects.equals(side, "buy"))
         {
-            feeCurrency = this.safeStringUpper(market, "baseId");
+            feeCurrency = this.safeStringUpper(marketResolved, "baseId");
         }
-        final Object finalMarket = market;
-        final Object finalSide = side;
-        final Object finalCost = cost;
-        final Object finalAmount = amount;
-        final Object finalFilled = filled;
-        final Object finalRemaining = remaining;
-        final Object finalFeeCurrency = feeCurrency;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "id", Foxbit.this.safeString(order, "id") );
-            put( "info", order );
-            put( "clientOrderId", Foxbit.this.safeString(order, "client_order_id") );
-            put( "timestamp", timestamp );
-            put( "datetime", Foxbit.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", null );
-            put( "status", Foxbit.this.parseOrderStatus(Foxbit.this.safeString(order, "state")) );
-            put( "symbol", Foxbit.this.safeString(finalMarket, "symbol") );
-            put( "type", Foxbit.this.safeString(order, "type") );
-            put( "timeInForce", Foxbit.this.safeString(order, "time_in_force") );
-            put( "postOnly", Foxbit.this.safeBool(order, "post_only") );
-            put( "reduceOnly", null );
-            put( "side", finalSide );
-            put( "price", Foxbit.this.parseNumber(price) );
-            put( "triggerPrice", Foxbit.this.safeNumber(order, "stop_price") );
-            put( "takeProfitPrice", null );
-            put( "stopLossPrice", null );
-            put( "cost", Foxbit.this.parseNumber(finalCost) );
-            put( "average", Foxbit.this.safeNumber(order, "price_avg") );
-            put( "amount", Foxbit.this.parseNumber(finalAmount) );
-            put( "filled", Foxbit.this.parseNumber(finalFilled) );
-            put( "remaining", Foxbit.this.parseNumber(finalRemaining) );
-            put( "trades", null );
-            put( "fee", new HashMap<String, Object>() {{
-                put( "currency", finalFeeCurrency );
-                put( "cost", Foxbit.this.safeNumber(order, "fee_paid") );
-            }} );
-        }});
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", this.safeString(order, "id"));
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("status", this.parseOrderStatus(this.safeString(order, "state")));
+        mapLiteral4.put("symbol", this.safeString(marketResolved, "symbol"));
+        mapLiteral4.put("type", this.safeString(order, "type"));
+        mapLiteral4.put("timeInForce", this.safeString(order, "time_in_force"));
+        mapLiteral4.put("postOnly", this.safeBool(order, "post_only", (Object) null));
+        mapLiteral4.put("reduceOnly", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", this.parseNumber(price));
+        mapLiteral4.put("triggerPrice", this.safeNumber(order, "stop_price", (Object) null));
+        mapLiteral4.put("takeProfitPrice", null);
+        mapLiteral4.put("stopLossPrice", null);
+        mapLiteral4.put("cost", this.parseNumber(cost));
+        mapLiteral4.put("average", this.safeNumber(order, "price_avg", (Object) null));
+        mapLiteral4.put("amount", this.parseNumber(amount));
+        mapLiteral4.put("filled", this.parseNumber(filled));
+        mapLiteral4.put("remaining", this.parseNumber(remaining));
+        mapLiteral4.put("trades", null);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("currency", feeCurrency);
+        mapLiteral5.put("cost", this.safeNumber(order, "fee_paid", (Object) null));
+        mapLiteral4.put("fee", mapLiteral5);
+        return this.safeOrder(mapLiteral4, (Map<String, Object>) null);
     }
 
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object network = this.safeDict(depositAddress, "network");
+        Map<String, Object> network = (Map<String, Object>) this.safeDict(depositAddress, "network", (Object) null);
         String networkId = this.safeString(network, "code");
-        String currencyCode = this.safeCurrencyCode(null, currency);
-        Object unifiedNetwork = this.networkIdToCode(networkId, currencyCode);
+        String currencyCode = this.safeCurrencyCode((String) (null), currency);
+        String unifiedNetwork = this.networkIdToCode(networkId, currencyCode);
         return new HashMap<String, Object>() {{
             put( "address", Foxbit.this.safeString(depositAddress, "address") );
             put( "tag", Foxbit.this.safeString(depositAddress, "tag") );
@@ -2339,7 +2232,7 @@ public class Foxbit extends FoxbitApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "SUBMITTING", "pending" );
@@ -2358,16 +2251,13 @@ public class Foxbit extends FoxbitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object currency, Object since, Object limit)
     {
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object since = Helpers.getArg(optionalArgs, 1, null);
-        Object limit = Helpers.getArg(optionalArgs, 2, null);
-        Object cryptoDetails = this.safeDict(transaction, "details_crypto");
+        Map<String, Object> cryptoDetails = (Map<String, Object>) this.safeDict(transaction, "details_crypto", (Object) null);
         String address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
         String sn = this.safeString(transaction, "sn");
         String type = "withdrawal";
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(sn, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(sn, 0), "D"))))
+        if (!java.util.Objects.equals(sn, null) && java.util.Objects.equals((sn == null || 0 >= sn.length() ? null : String.valueOf(sn.charAt(0))), "D"))
         {
             type = "deposit";
         }
@@ -2375,50 +2265,52 @@ public class Foxbit extends FoxbitApi
         String amount = this.safeString(transaction, "amount");
         String currencySymbol = this.safeString(transaction, "currency_symbol");
         String actualAmount = amount;
-        String currencyCode = this.safeCurrencyCode(currencySymbol);
+        String currencyCode = this.safeCurrencyCode(currencySymbol, (Map<String, Object>) null);
         String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         String created_at = this.safeString(transaction, "created_at");
         Object timestamp = this.parseDate(created_at);
         String datetime = this.iso8601(timestamp);
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fee, null)) && Helpers.isTrue(!Helpers.isEqual(amount, null))))
+        if (!java.util.Objects.equals(fee, null) && !java.util.Objects.equals(amount, null))
         {
             // actualAmount = amount - fee;
             actualAmount = Precise.stringSub(amount, fee);
         }
         String feeRate = Precise.stringDiv(fee, actualAmount);
-        final Object finalFee = fee;
-        Map<String, Object> feeObj = new HashMap<String, Object>() {{
-            put( "cost", Foxbit.this.parseNumber(finalFee) );
-            put( "currency", currencyCode );
-            put( "rate", Foxbit.this.parseNumber(feeRate) );
-        }};
-        final Object finalType = type;
-        final Object finalAmount = amount;
-        return new HashMap<String, Object>() {{
-            put( "info", transaction );
-            put( "id", Foxbit.this.safeString(transaction, "sn") );
-            put( "txid", Foxbit.this.safeString(cryptoDetails, "transaction_id") );
-            put( "timestamp", timestamp );
-            put( "datetime", datetime );
-            put( "network", Foxbit.this.safeString(transaction, "network_code") );
-            put( "address", address );
-            put( "addressTo", address );
-            put( "addressFrom", null );
-            put( "tag", Foxbit.this.safeString(transaction, "destination_tag") );
-            put( "tagTo", Foxbit.this.safeString(transaction, "destination_tag") );
-            put( "tagFrom", null );
-            put( "type", finalType );
-            put( "amount", Foxbit.this.parseNumber(finalAmount) );
-            put( "currency", currencyCode );
-            put( "status", status );
-            put( "updated", null );
-            put( "fee", feeObj );
-            put( "comment", null );
-            put( "internal", null );
-        }};
+        Map<String, Object> feeObj = new HashMap<String, Object>();
+        feeObj.put("cost", this.parseNumber(fee));
+        feeObj.put("currency", currencyCode);
+        feeObj.put("rate", this.parseNumber(feeRate));
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "sn"));
+            h2kMap0.put("txid", this.safeString(cryptoDetails, "transaction_id"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", datetime);
+            h2kMap0.put("network", this.safeString(transaction, "network_code"));
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressTo", address);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("tag", this.safeString(transaction, "destination_tag"));
+            h2kMap0.put("tagTo", this.safeString(transaction, "destination_tag"));
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", this.parseNumber(amount));
+            h2kMap0.put("currency", currencyCode);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("fee", feeObj);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            return h2kMap0;
+        }
+    }
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    {
+        return this.parseTransaction(transaction, (Object) (currency), (Object) null, (Object) null);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "DEPOSITING", "transaction" );
@@ -2430,7 +2322,7 @@ public class Foxbit extends FoxbitApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         // {
         //     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
@@ -2443,169 +2335,165 @@ public class Foxbit extends FoxbitApi
         //     "locked_amount": "0.0001",
         //     "reason_type": "DEPOSITING"
         // }
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(item, "uuid");
         String createdAt = this.safeString(item, "created_at");
         Long timestamp = this.parse8601(createdAt);
         String reasonType = this.safeString(item, "reason_type");
-        Object type = this.parseLedgerEntryType(reasonType);
+        String type = this.parseLedgerEntryType(reasonType);
         String exchangeSymbol = this.safeString(item, "currency_symbol");
-        String currencySymbol = this.safeCurrencyCode(exchangeSymbol);
+        String currencySymbol = this.safeCurrencyCode(exchangeSymbol, (Map<String, Object>) null);
         String direction = "in";
-        Double amount = this.safeNumber(item, "amount");
+        Double amount = this.safeNumber(item, "amount", (Object) null);
         Object realAmount = amount;
-        Double balance = this.safeNumber(item, "balance");
+        Double balance = this.safeNumber(item, "balance", (Object) null);
         Map<String, Object> fee = new HashMap<String, Object>() {{
-            put( "cost", Foxbit.this.safeNumber(item, "fee") );
+            put( "cost", Foxbit.this.safeNumber(item, "fee", (Object) null) );
             put( "currency", currencySymbol );
         }};
-        if (Helpers.isTrue(Helpers.isEqual(amount, null)))
+        if (java.util.Objects.equals(amount, null))
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
+            throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
         }
-        if (Helpers.isTrue(Helpers.isLessThan(amount, 0)))
+        if ((amount == null || !(amount >= 0)))
         {
             direction = "out";
-            if (Helpers.isTrue(Helpers.isEqual(amount, null)))
+            if (java.util.Objects.equals(amount, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
+                throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
             }
-            realAmount = Helpers.multiply(amount, Helpers.opNeg(1));
+            realAmount = Helpers.multiply(amount, -1);
         }
-        if (Helpers.isTrue(Helpers.isEqual(balance, null)))
+        if (java.util.Objects.equals(balance, null))
         {
-            throw new ExchangeError(Helpers.add(this.id, " parseLedgerEntry() missing balance")) ;
+            throw new ExchangeError((this.id + " parseLedgerEntry() missing balance")) ;
         }
-        if (Helpers.isTrue(Helpers.isEqual(amount, null)))
+        if (java.util.Objects.equals(amount, null))
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
+            throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
         }
-        final Object finalDirection = direction;
-        final Object finalRealAmount = realAmount;
-        final Object finalBalance = balance;
-        final Object finalAmount = amount;
-        return new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "info", item );
-            put( "timestamp", timestamp );
-            put( "datetime", Foxbit.this.iso8601(timestamp) );
-            put( "direction", finalDirection );
-            put( "account", null );
-            put( "referenceId", null );
-            put( "referenceAccount", null );
-            put( "type", type );
-            put( "currency", currencySymbol );
-            put( "amount", finalRealAmount );
-            put( "before", Helpers.subtract(finalBalance, finalAmount) );
-            put( "after", finalBalance );
-            put( "status", "ok" );
-            put( "fee", fee );
-        }};
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("id", id);
+            h2kMap1.put("info", item);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("direction", direction);
+            h2kMap1.put("account", null);
+            h2kMap1.put("referenceId", null);
+            h2kMap1.put("referenceAccount", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("currency", currencySymbol);
+            h2kMap1.put("amount", realAmount);
+            h2kMap1.put("before", (balance - amount));
+            h2kMap1.put("after", balance);
+            h2kMap1.put("status", "ok");
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = Helpers.getArg(optionalArgs, 0, new ArrayList<Object>(Arrays.asList()));
-        Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
-        Object body = Helpers.getArg(optionalArgs, 4, null);
         Object version = Helpers.GetValue(api, 0);
         Object urlPath = Helpers.GetValue(api, 1);
-        Object fullPath = Helpers.add(Helpers.add(Helpers.add("/rest/", version), "/"), this.implodeParams(path, parameters));
-        if (Helpers.isTrue(Helpers.isEqual(version, "status")))
+        String fullPath = ((("/rest/" + version) + "/") + this.implodeParams(path, parameters));
+        if (java.util.Objects.equals(version, "status"))
         {
             fullPath = "/status";
             urlPath = "status";
         }
-        Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), urlPath), fullPath);
-        parameters = this.omit(parameters, this.extractParams(path));
+        String apiUrl = this.safeString(this.urls.get("api"), urlPath);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + fullPath);
+        Object paramsOmitted = this.omit(parameters, this.extractParams(path));
         Long timestamp = this.milliseconds();
-        Object query = "";
-        Object signatureQuery = "";
-        if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
+        String query = "";
+        String signatureQuery = "";
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            Object paramKeys = Helpers.objectKeys(parameters);
-            Object paramKeysLength = Helpers.getArrayLength(paramKeys);
-            if (Helpers.isTrue(Helpers.isGreaterThan(paramKeysLength, 0)))
+            List<String> paramKeys = new ArrayList<String>(((Map<String, Object>)paramsOmitted).keySet());
+            Integer paramKeysLength = ((List<?>)paramKeys).size();
+            if ((paramKeysLength != null && paramKeysLength > 0))
             {
-                query = this.urlencode(parameters);
-                url = Helpers.add(url, Helpers.add("?", query));
+                query = this.urlencode(paramsOmitted);
+                url = (url + ("?" + query));
             }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(paramKeys)); i++)
+            for (var i = 0; i < ((List<?>)paramKeys).size(); i++)
             {
-                Object key = Helpers.GetValue(paramKeys, i);
-                String value = this.safeString(parameters, key);
-                if (Helpers.isTrue(!Helpers.isEqual(value, null)))
+                String key = (paramKeys == null || i < 0 || i >= paramKeys.size() ? null : paramKeys.get(i));
+                String value = this.safeString(paramsOmitted, key);
+                if (!java.util.Objects.equals(value, null))
                 {
-                    signatureQuery = Helpers.add(signatureQuery, Helpers.add(Helpers.add(key, "="), value));
+                    signatureQuery = (signatureQuery + ((key + "=") + value));
                 }
-                if (Helpers.isTrue(Helpers.isLessThan(i, Helpers.subtract(paramKeysLength, 1))))
+                if (i < (((long) paramKeysLength) - 1L))
                 {
-                    signatureQuery = Helpers.add(signatureQuery, "&");
+                    signatureQuery = (signatureQuery + "&");
                 }
             }
         }
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT"))))
+        String requestBody = body;
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
         {
-            body = this.json(parameters);
+            requestBody = this.json(paramsOmitted);
         }
-        Object bodyToSignature = "";
-        if (Helpers.isTrue(!Helpers.isEqual(body, null)))
+        String bodyToSignature = "";
+        if (!java.util.Objects.equals(requestBody, null))
         {
-            bodyToSignature = body;
+            bodyToSignature = requestBody;
         }
-        headers = new HashMap<String, Object>() {{
+        Map<String, Object> headersValue = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
             put( "X-FB-CLIENT", "ccxt" );
             put( "X-FB-CLIENT-VERSION", Foxbit.this.getCcxtVersion() );
         }};
-        if (Helpers.isTrue(Helpers.isEqual(urlPath, "private")))
+        if (java.util.Objects.equals(urlPath, "private"))
         {
-            this.checkRequiredCredentials();
-            Object preHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.numberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature);
-            Object signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256(), "hex");
-            Helpers.addElementToObject(headers, "X-FB-ACCESS-KEY", this.apiKey);
-            Helpers.addElementToObject(headers, "X-FB-ACCESS-TIMESTAMP", this.numberToString(timestamp));
-            Helpers.addElementToObject(headers, "X-FB-ACCESS-SIGNATURE", signature);
+            this.checkRequiredCredentials(true);
+            String preHash = ((((this.numberToString(timestamp) + java.util.Objects.requireNonNullElse(method, "GET")) + fullPath) + signatureQuery) + bodyToSignature);
+            String signature = (String) this.hmac(this.encode(preHash), this.encode(this.secret), sha256(), "hex");
+            headersValue.put("X-FB-ACCESS-KEY", this.apiKey);
+            headersValue.put("X-FB-ACCESS-TIMESTAMP", this.numberToString(timestamp));
+            headersValue.put("X-FB-ACCESS-SIGNATURE", signature);
         }
-        final Object finalUrl = url;
-        final Object finalMethod = method;
-        final Object finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", headersValue);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isTrue(Helpers.isEqual(response, null)))
+        if (java.util.Objects.equals(response, null))
         {
             return null;
         }
-        Object error = this.safeDict(response, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
         String code = this.safeString(error, "code");
-        Object details = this.safeList(error, "details");
+        List<Object> details = (List<Object>) this.safeList(error, "details", (Object) null);
         String message = this.safeString(error, "message");
         Object detailsString = "";
-        if (Helpers.isTrue(!Helpers.isEqual(details, null)))
+        if (!java.util.Objects.equals(details, null))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
+            for (var i = 0; i < ((List<?>)details).size(); i++)
             {
-                detailsString = Helpers.add(Helpers.add(detailsString, Helpers.GetValue(details, i)), " ");
+                detailsString = (Helpers.add(detailsString, (details == null || i < 0 || i >= details.size() ? null : details.get(i))) + " ");
             }
         }
-        if (Helpers.isTrue(!Helpers.isEqual(error, null)))
+        if (!java.util.Objects.equals(error, null))
         {
-            Object feedback = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), message), " details: "), detailsString);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), detailsString, feedback);
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, feedback);
-            throw new ExchangeError((String)feedback) ;
+            String feedback = ((((this.id + " ") + message) + " details: ") + detailsString);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), detailsString, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

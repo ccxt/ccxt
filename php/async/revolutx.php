@@ -77,33 +77,33 @@ class revolutx extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        '2.0/public/order-book/{symbol}' => 1,
-                        '1.0/public/tickers' => 1,
-                        '1.0/public/candles/{symbol}' => 1,
-                        '1.0/public/trades/all' => 1,
-                        '1.0/public/configuration/currencies' => 1,
-                        '1.0/public/configuration/pairs' => 1,
+                        '2.0/public/order-book/{symbol}' => array( 'cost' => 1 ),
+                        '1.0/public/tickers' => array( 'cost' => 1 ),
+                        '1.0/public/candles/{symbol}' => array( 'cost' => 1 ),
+                        '1.0/public/trades/all' => array( 'cost' => 1 ),
+                        '1.0/public/configuration/currencies' => array( 'cost' => 1 ),
+                        '1.0/public/configuration/pairs' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         '1.0/balances' => 1,
-                        '1.0/orders/active' => 1,
-                        '1.0/orders/historical' => 1,
-                        '1.0/orders/{venue_order_id}' => 1,
+                        '1.0/orders/active' => array( 'cost' => 1 ),
+                        '1.0/orders/historical' => array( 'cost' => 1 ),
+                        '1.0/orders/{venue_order_id}' => array( 'cost' => 1 ),
                         '1.0/orders/fills/{venue_order_id}' => 1,
-                        '1.0/trades/private/{symbol}' => 1,
+                        '1.0/trades/private/{symbol}' => array( 'cost' => 1 ),
                         '1.0/transactions' => 1,
                     ),
                     'post' => array(
-                        '1.0/orders' => 1,
+                        '1.0/orders' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        '1.0/orders/{venue_order_id}' => 1,
+                        '1.0/orders/{venue_order_id}' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         '1.0/orders' => 1,
-                        '1.0/orders/{venue_order_id}' => 1,
+                        '1.0/orders/{venue_order_id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -214,12 +214,19 @@ class revolutx extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $implodedPath = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $queryKeys = is_array($query) ? array_keys($query) : array();
         $queryLength = count($queryKeys);
-        $url = $this->urls['api'][$api] . '/' . $implodedPath;
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $baseUrl = $baseApiUrl;
+        $url = $baseUrl . '/' . $implodedPath;
         $queryString = '';
         if ($api === 'private') {
             $this->check_required_credentials();
@@ -235,22 +242,20 @@ class revolutx extends Exchange {
                     $url .= '?' . $queryString;
                 }
             } else {
-                $body = $this->json($query);
+                $requestBody = $this->json($query);
             }
             $requestPath = '/api/' . $implodedPath;
-            $bodyString = '';
-            if ($body !== null) {
-                $bodyString = $body;
-            }
+            $bodyValue = ($requestBody !== null) ? $requestBody : $body;
+            $bodyString = ($bodyValue !== null) ? $bodyValue : '';
             $message = $timestamp . strtoupper($method) . $requestPath . $queryString . $bodyString;
             $signature = $this->eddsa($this->encode($message), $this->privateKey, 'ed25519');
-            $headers = array(
+            $requestHeaders = array(
                 'X-Revx-API-Key' => $this->apiKey,
                 'X-Revx-Timestamp' => $timestamp,
                 'X-Revx-Signature' => $signature,
             );
             if ($method === 'POST' || $method === 'PUT') {
-                $headers['Content-Type'] = 'application/json';
+                $requestHeaders['Content-Type'] = 'application/json';
             }
         } else {
             if ($method === 'GET') {
@@ -259,11 +264,13 @@ class revolutx extends Exchange {
                     $url .= '?' . $queryString;
                 }
             } else {
-                $body = $this->json($query);
-                $headers = array( 'Content-Type' => 'application/json' );
+                $requestBody = $this->json($query);
+                $requestHeaders = array( 'Content-Type' => 'application/json' );
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
+        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
     public function parse_market(array $market): array {
@@ -365,11 +372,11 @@ class revolutx extends Exchange {
         $response = Async\await($this->publicGet10PublicConfigurationPairs($this->extend($request, $params)));
         //
         //     {
-        //         "BTC/USD" => {
-        //             "base" => "BTC", "quote" => "USD",
-        //             "base_step" => "0.0000001", "quote_step" => "0.01",
-        //             "min_order_size" => "0.0000001", "max_order_size" => "1000",
-        //             "min_order_size_quote" => "0.01", "status" => "active"
+        //         "BTC/USD": {
+        //             "base": "BTC", "quote": "USD",
+        //             "base_step": "0.0000001", "quote_step": "0.01",
+        //             "min_order_size": "0.0000001", "max_order_size": "1000",
+        //             "min_order_size_quote": "0.01", "status": "active"
         //         }
         //     }
         //
@@ -381,6 +388,9 @@ class revolutx extends Exchange {
             $market = $this->safe_dict($markets, $key, array());
             $base = $this->safe_string($market, 'base');
             $quote = $this->safe_string($market, 'quote');
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $marketId = $base . '-' . $quote;
             $marketData = $this->extend($market, array( 'id' => $marketId ));
             $result[] = $this->parse_market($marketData);
@@ -455,8 +465,8 @@ class revolutx extends Exchange {
         $response = Async\await($this->publicGet10PublicConfigurationCurrencies($this->extend($request, $params)));
         //
         //     {
-        //         "BTC" => array( "symbol" => "BTC", "name" => "Bitcoin", "scale" => 8, "asset_type" => "crypto", "status" => "active" ),
-        //         "USD" => array( "symbol" => "$", "name" => "US Dollar", "scale" => 2, "asset_type" => "fiat", "status" => "active" )
+        //         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
+        //         "USD": { "symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active" }
         //     }
         //
         $currencies = $this->safe_dict($response, 'data', $response);
@@ -562,12 +572,12 @@ class revolutx extends Exchange {
         $response = Async\await($this->publicGet10PublicTickers($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
-        //             { "symbol" => "BTC/USD", "bid" => "119950.00", "ask" => "120050.00", "mid" => "120000.00",
-        //               "last_price" => "119980.00", "low_24h" => "115000.00", "high_24h" => "122500.00",
-        //               "price_change_24h" => "2480.00", "volume_24h" => "135.42000000", "region" => "EEA" }
-        //         ),
-        //         "metadata" => array( "timestamp" => 1785313433816 )
+        //         "data": [
+        //             { "symbol": "BTC/USD", "bid": "119950.00", "ask": "120050.00", "mid": "120000.00",
+        //               "last_price": "119980.00", "low_24h": "115000.00", "high_24h": "122500.00",
+        //               "price_change_24h": "2480.00", "volume_24h": "135.42000000", "region": "EEA" }
+        //         ],
+        //         "metadata": { "timestamp": 1785313433816 }
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -618,7 +628,7 @@ class revolutx extends Exchange {
         $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
         $ticker = $this->safe_dict($tickers, $symbol);
         if ($ticker === null) {
-            throw new ExchangeError($this->id . ' fetchTicker() could not find $ticker for $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchTicker() could not find ticker for symbol ' . $symbol);
         }
         return $ticker;
     }
@@ -656,11 +666,11 @@ class revolutx extends Exchange {
         $response = Async\await($this->publicGet20PublicOrderBookSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
-        //             "asks" => array( array( "price" => "4005.00", "quantity" => "1.7000", "count" => 3 ) ),
-        //             "bids" => array( array( "price" => "4000.00", "quantity" => "0.25", "count" => 1 ) )
-        //         ),
-        //         "metadata" => array( "region" => "UK", "timestamp" => 1785313433816 )
+        //         "data": {
+        //             "asks": [ { "price": "4005.00", "quantity": "1.7000", "count": 3 } ],
+        //             "bids": [ { "price": "4000.00", "quantity": "0.25", "count": 1 } ]
+        //         },
+        //         "metadata": { "region": "UK", "timestamp": 1785313433816 }
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -729,11 +739,11 @@ class revolutx extends Exchange {
         $response = Async\await($this->publicGet10PublicCandlesSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
-        //             { "start" => 1785309833816, "open" => "119800.00", "high" => "120100.00",
-        //               "low" => "119700.00", "close" => "120000.00", "volume" => "0.25000000" }
-        //         ),
-        //         "metadata" => array( "region" => "EEA", "timestamp" => 1785313433816 )
+        //         "data": [
+        //             { "start": 1785309833816, "open": "119800.00", "high": "120100.00",
+        //               "low": "119700.00", "close": "120000.00", "volume": "0.25000000" }
+        //         ],
+        //         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -789,7 +799,7 @@ class revolutx extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest $trade to fetch
-         * @param {int} [$limit] the maximum number of trades to return (1-1900, default 1900)
+         * @param {int} [$limit] the maximum number of trades to return (1-100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest $trade to fetch
          * @param {string} [$params->cursor] pagination $cursor from the previous $response
@@ -816,7 +826,7 @@ class revolutx extends Exchange {
             $request['end_date'] = $this->milliseconds();
         }
         if ($limit !== null) {
-            $request['limit'] = min($limit, 1900);
+            $request['limit'] = min($limit, 100);
         }
         $cursor = $this->safe_string($params, 'cursor');
         if ($cursor !== null) {
@@ -825,11 +835,11 @@ class revolutx extends Exchange {
         $response = Async\await($this->publicGet10PublicTradesAll($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
-        //             { "id" => "3b2b202b-7668-43cf-a6c8-b3354e7f4c52", "symbol" => "BTC/USD",
-        //               "price" => "119980.00", "quantity" => "0.01000000", "side" => "sell", "timestamp" => 1785313433816 }
-        //         ),
-        //         "metadata" => array( "timestamp" => 1785313433816, "next_cursor" => "..." )
+        //         "data": [
+        //             { "id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52", "symbol": "BTC/USD",
+        //               "price": "119980.00", "quantity": "0.01000000", "side": "sell", "timestamp": 1785313433816 }
+        //         ],
+        //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -859,10 +869,10 @@ class revolutx extends Exchange {
         }
         $response = Async\await($this->privateGet10Balances($params));
         //
-        //     array(
-        //         array( "currency" => "BTC", "available" => "1.25000000", "reserved" => "0.10000000", "total" => "1.35000000" ),
-        //         array( "currency" => "USD", "available" => "50000.00", "reserved" => "1000.00", "total" => "51000.00", "staked" => "32.00000000" )
-        //     )
+        //     [
+        //         { "currency": "BTC", "available": "1.25000000", "reserved": "0.10000000", "total": "1.35000000" },
+        //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
+        //     ]
         //
         $data = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) ? $response : $this->safe_list($response, 'data', array());
         $result = array( 'info' => $response );
@@ -1027,10 +1037,10 @@ class revolutx extends Exchange {
             $orderConfiguration['limit'] = $limitConfig;
         } elseif ($type === 'market') {
             if ($timeInForce !== null) {
-                throw new InvalidOrder($this->id . ' createOrder() $timeInForce is only supported for limit orders');
+                throw new InvalidOrder($this->id . ' createOrder() timeInForce is only supported for limit orders');
             }
             if ($executionInstructions !== null) {
-                throw new InvalidOrder($this->id . ' createOrder() $executionInstructions are only supported for limit orders');
+                throw new InvalidOrder($this->id . ' createOrder() executionInstructions are only supported for limit orders');
             }
             $marketConfig = array();
             if ($cost !== null) {
@@ -1040,7 +1050,7 @@ class revolutx extends Exchange {
             }
             $orderConfiguration['market'] = $marketConfig;
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() does not support $order $type ' . $type);
+            throw new InvalidOrder($this->id . ' createOrder() does not support order type ' . $type);
         }
         $request = array(
             'client_order_id' => $clientOrderId,
@@ -1051,9 +1061,9 @@ class revolutx extends Exchange {
         $response = Async\await($this->privatePost10Orders($this->extend($request, $this->omit($params, array( 'cost', 'quote_size', 'clientOrderId', 'client_order_id', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' )))));
         //
         //     {
-        //         "data" => array(
-        //             array( "venue_order_id" => "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id" => "...", "state" => "new" )
-        //         )
+        //         "data": [
+        //             { "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new" }
+        //         ]
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -1144,14 +1154,14 @@ class revolutx extends Exchange {
         $response = Async\await($this->privateGet10OrdersVenueOrderId($this->extend($request, $params)));
         //
         //     {
-        //         "data" => {
-        //             "id" => "uuid", "client_order_id" => "uuid", "symbol" => "BTC/USD",
-        //             "side" => "buy", "type" => "limit", "quantity" => "0.002", "filled_quantity" => "0",
-        //             "leaves_quantity" => "0.002", "amount" => "240.00", "filled_amount" => "0",
-        //             "price" => "120000.00", "average_fill_price" => "0", "total_fee" => "0",
-        //             "fee_currency" => "USD", "status" => "new", "time_in_force" => "gtc",
-        //             "execution_instructions" => ["allow_taker"],
-        //             "created_date" => 1785309833816, "updated_date" => 1785313433816
+        //         "data": {
+        //             "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD",
+        //             "side": "buy", "type": "limit", "quantity": "0.002", "filled_quantity": "0",
+        //             "leaves_quantity": "0.002", "amount": "240.00", "filled_amount": "0",
+        //             "price": "120000.00", "average_fill_price": "0", "total_fee": "0",
+        //             "fee_currency": "USD", "status": "new", "time_in_force": "gtc",
+        //             "execution_instructions": ["allow_taker"],
+        //             "created_date": 1785309833816, "updated_date": 1785313433816
         //         }
         //     }
         //
@@ -1213,8 +1223,8 @@ class revolutx extends Exchange {
         $response = Async\await($this->privateGet10OrdersActive($this->extend($request, $this->omit($params, array( 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'side' )))));
         //
         //     {
-        //         "data" => array( array( "id" => "uuid", "client_order_id" => "uuid", "symbol" => "BTC/USD", ... ) ),
-        //         "metadata" => array( "timestamp" => 1785313433816, "next_cursor" => "..." )
+        //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
+        //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1377,7 +1387,7 @@ class revolutx extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol parameter');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol parameter');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1407,12 +1417,12 @@ class revolutx extends Exchange {
         $response = Async\await($this->privateGet10TradesPrivateSymbol($this->extend($request, $this->omit($params, array( 'until' )))));
         //
         //     {
-        //         "data" => array(
-        //             { "tdt" => 1785309833816, "p" => "119900.00", "q" => "0.00100000",
-        //               "tid" => "ad3e8787ab623ba5a1dfea53819be6f9", "oid" => "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c",
-        //               "s" => "buy", "im" => false }
-        //         ),
-        //         "metadata" => array( "timestamp" => 1785313433816, "next_cursor" => "..." )
+        //         "data": [
+        //             { "tdt": 1785309833816, "p": "119900.00", "q": "0.00100000",
+        //               "tid": "ad3e8787ab623ba5a1dfea53819be6f9", "oid": "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c",
+        //               "s": "buy", "im": false }
+        //         ],
+        //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1447,7 +1457,7 @@ class revolutx extends Exchange {
          * @param {string[]} [$params->executionInstructions] e.g. ['post_only']
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        // note => the exchange assigns a new venue_order_id on replace — the returned $order carries the new $id
+        // note: the exchange assigns a new venue_order_id on replace — the returned order carries the new id
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1477,9 +1487,9 @@ class revolutx extends Exchange {
         $response = Async\await($this->privatePut10OrdersVenueOrderId($this->extend($request, $this->omit($params, array( 'clientOrderId', 'client_order_id', 'cost', 'quote_size', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' )))));
         //
         //     {
-        //         "data" => array(
-        //             array( "venue_order_id" => "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id" => "...", "state" => "new" )
-        //         )
+        //         "data": [
+        //             { "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new" }
+        //         ]
         //     }
         //
         $data = $this->safe_value($response, 'data', array());

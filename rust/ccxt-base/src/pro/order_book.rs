@@ -58,34 +58,34 @@ fn build_book(kind: &str, snapshot: Value, depth: Value) -> Value {
         BOOK_COUNTED => (SIDE_COUNTED, true),
         _            => (SIDE_PLAIN,   true),
     };
-    let bids_deltas = crate::get_value(&snapshot, &Value::Str("bids".to_string()));
-    let asks_deltas = crate::get_value(&snapshot, &Value::Str("asks".to_string()));
+    let bids_deltas = crate::get_value(&snapshot, &Value::Str("bids".into()));
+    let asks_deltas = crate::get_value(&snapshot, &Value::Str("asks".into()));
     let bids = new_side(side_kind, /*is_bid=*/ true,  max_depth, &bids_deltas);
     let asks = new_side(side_kind, /*is_bid=*/ false, max_depth, &asks_deltas);
 
-    let timestamp = match crate::get_value(&snapshot, &Value::Str("timestamp".to_string())) {
+    let timestamp = match crate::get_value(&snapshot, &Value::Str("timestamp".into())) {
         Value::Int(n)   => Some(n),
         Value::Float(f) => Some(f as i64),
         _ => None,
     };
     let datetime = timestamp.and_then(iso8601_millis);
-    let nonce = match crate::get_value(&snapshot, &Value::Str("nonce".to_string())) {
+    let nonce = match crate::get_value(&snapshot, &Value::Str("nonce".into())) {
         Value::Int(n)   => Value::Int(n),
         Value::Float(f) => Value::Int(f as i64),
         _ => Value::Null,
     };
-    let symbol = crate::get_value(&snapshot, &Value::Str("symbol".to_string()));
+    let symbol = crate::get_value(&snapshot, &Value::Str("symbol".into()));
 
     // Scalar meta lives in the shared book store (keyed by `__book_id`) so WS
     // handlers that mutate a cloned book — okx's seqId nonce — propagate.
     let book_id = crate::value::alloc_book_id();
     crate::value::book_meta_set(book_id, "timestamp", timestamp.map(Value::Int).unwrap_or(Value::Null));
-    crate::value::book_meta_set(book_id, "datetime",  datetime.map(Value::Str).unwrap_or(Value::Null));
+    crate::value::book_meta_set(book_id, "datetime",  datetime.map(|s| Value::Str(s.into())).unwrap_or(Value::Null));
     crate::value::book_meta_set(book_id, "nonce",     nonce);
     crate::value::book_meta_set(book_id, "symbol",    symbol);
 
     let mut m = IndexMap::new();
-    m.insert("__bookKind".to_string(), Value::Str(kind.to_string()));
+    m.insert("__bookKind".to_string(), Value::Str(kind.to_string().into()));
     m.insert("__book_id".to_string(),  Value::Int(book_id));
     m.insert("_depth".to_string(),     Value::Int(max_depth));
     m.insert("bids".to_string(),       bids);

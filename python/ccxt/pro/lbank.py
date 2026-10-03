@@ -59,7 +59,7 @@ class lbank(ccxt.async_support.lbank):
             },
         })
 
-    def request_id(self):
+    def request_id(self) -> float:
         self.lock_id()
         previousValue = self.safe_integer(self.options, 'requestId', 0)
         newValue = self.sum(previousValue, 1)
@@ -73,7 +73,7 @@ class lbank(ccxt.async_support.lbank):
         if (market is not None) and (market['contract'] is True):
             raise NotSupported(self.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet')
 
-    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
@@ -91,8 +91,8 @@ class lbank(ccxt.async_support.lbank):
         market = self.market(symbol)
         self.check_contract_market(market, 'fetchOHLCVWs')
         url = self.urls['api']['ws']
-        watchOHLCVOptions = self.safe_value(self.options, 'watchOHLCV', {})
-        timeframes = self.safe_value(watchOHLCVOptions, 'timeframes', {})
+        watchOHLCVOptions = self.safe_dict(self.options, 'watchOHLCV', {})
+        timeframes = self.safe_dict(watchOHLCVOptions, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = 'fetchOHLCV:' + market['symbol'] + ':' + timeframeId
         message = {
@@ -109,7 +109,7 @@ class lbank(ccxt.async_support.lbank):
         requestId = self.request_id()
         return await self.watch(url, messageHash, request, requestId, request)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
@@ -126,8 +126,8 @@ class lbank(ccxt.async_support.lbank):
             await self.load_markets()
         market = self.market(symbol)
         self.check_contract_market(market, 'watchOHLCV')
-        watchOHLCVOptions = self.safe_value(self.options, 'watchOHLCV', {})
-        timeframes = self.safe_value(watchOHLCVOptions, 'timeframes', {})
+        watchOHLCVOptions = self.safe_dict(self.options, 'watchOHLCV', {})
+        timeframes = self.safe_dict(watchOHLCVOptions, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId
         url = self.urls['api']['ws']
@@ -139,11 +139,12 @@ class lbank(ccxt.async_support.lbank):
         }
         request = self.deep_extend(subscribe, params)
         ohlcv = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
-    def handle_ohlcv(self, client: object, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         # request
         #    {
@@ -197,11 +198,11 @@ class lbank(ccxt.async_support.lbank):
         #
         marketId = self.safe_string(message, 'pair')
         symbol = self.safe_symbol(marketId, None, '_')
-        watchOHLCVOptions = self.safe_value(self.options, 'watchOHLCV', {})
-        timeframes = self.safe_value(watchOHLCVOptions, 'timeframes', {})
-        records = self.safe_value(message, 'records')
+        watchOHLCVOptions = self.safe_dict(self.options, 'watchOHLCV', {})
+        timeframes = self.safe_dict(watchOHLCVOptions, 'timeframes', {})
+        records = self.safe_list(message, 'records')
         if records is not None:  # from request
-            rawOHLCV = self.safe_value(records, 0, [])
+            rawOHLCV = self.safe_list(records, 0, [])
             parsed = [
                 self.safe_integer(rawOHLCV, 0),
                 self.safe_number(rawOHLCV, 1),
@@ -212,7 +213,7 @@ class lbank(ccxt.async_support.lbank):
             ]
             timeframeId = self.safe_string(message, 'kbar')
             timeframe = self.find_timeframe(timeframeId, timeframes)
-            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.ohlcvs[symbol], timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -222,7 +223,7 @@ class lbank(ccxt.async_support.lbank):
             messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId
             client.resolve(stored, messageHash)
         else:  # from subscription
-            rawOHLCV = self.safe_value(message, 'kbar', {})
+            rawOHLCV = self.safe_dict(message, 'kbar', {})
             timeframeId = self.safe_string(rawOHLCV, 'slot')
             datetime = self.safe_string(rawOHLCV, 't')
             parsed = [
@@ -234,7 +235,7 @@ class lbank(ccxt.async_support.lbank):
                 self.safe_number(rawOHLCV, 'v'),
             ]
             timeframe = self.find_timeframe(timeframeId, timeframes)
-            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.ohlcvs[symbol], timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -244,7 +245,7 @@ class lbank(ccxt.async_support.lbank):
             messageHash = 'ohlcv:' + symbol + ':' + timeframeId
             client.resolve(stored, messageHash)
 
-    async def fetch_ticker_ws(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker_ws(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
@@ -269,7 +270,7 @@ class lbank(ccxt.async_support.lbank):
         requestId = self.request_id()
         return await self.watch(url, messageHash, request, requestId, request)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://www.lbank.com/en-US/docs/index.html#market
@@ -293,7 +294,7 @@ class lbank(ccxt.async_support.lbank):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_ticker(self, client: object, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #     {
         #         "tick":{
@@ -325,7 +326,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTicker:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "tick":{
@@ -350,7 +351,7 @@ class lbank(ccxt.async_support.lbank):
         marketId = self.safe_string(ticker, 'pair')
         symbol = self.safe_symbol(marketId, market)
         datetime = self.safe_string(ticker, 'TS')
-        tickerData = self.safe_value(ticker, 'tick')
+        tickerData = self.safe_dict(ticker, 'tick')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': self.parse8601(datetime),
@@ -374,7 +375,7 @@ class lbank(ccxt.async_support.lbank):
             'info': ticker,
         }, market)
 
-    async def fetch_trades_ws(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades_ws(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -392,19 +393,18 @@ class lbank(ccxt.async_support.lbank):
         self.check_contract_market(market, 'fetchTradesWs')
         url = self.urls['api']['ws']
         messageHash = 'fetchTrades:' + market['symbol']
-        if limit is None:
-            limit = 10
+        limitResolved = 10 if (limit is None) else limit
         message = {
             'action': 'request',
             'request': 'trade',
             'pair': market['id'],
-            'size': limit,
+            'size': limitResolved,
         }
         request = self.deep_extend(message, params)
         requestId = self.request_id()
         return await self.watch(url, messageHash, request, requestId, request)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://www.lbank.com/en-US/docs/index.html#trade-record
@@ -432,11 +432,11 @@ class lbank(ccxt.async_support.lbank):
         result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
         return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
 
-    def handle_trades(self, client: object, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         # request
         #     {
-        #         columns: ['timestamp', 'price', 'volume', 'direction'],
+        #         columns: [ 'timestamp', 'price', 'volume', 'direction' ],
         #         SERVER: 'V2',
         #         count: 100,
         #         trades: [],
@@ -450,7 +450,7 @@ class lbank(ccxt.async_support.lbank):
         #             "volume":6.3607,
         #             "amount":77148.9303,
         #             "price":12129,
-        #             "direction":"sell",  # buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        #             "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         #             "TS":"2019-06-28T19:55:49.460"
         #         },
         #         "type":"trade",
@@ -467,8 +467,8 @@ class lbank(ccxt.async_support.lbank):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        rawTrade = self.safe_value(message, 'trade')
-        rawTrades = self.safe_value(message, 'trades', [rawTrade])
+        rawTrade = self.safe_dict(message, 'trade')
+        rawTrades = self.safe_list(message, 'trades', [rawTrade])
         for i in range(0, len(rawTrades)):
             trade = self.parse_ws_trade(rawTrades[i], market)
             trade['symbol'] = symbol
@@ -479,21 +479,25 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTrades:' + symbol
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: dict | list, market: Market = None) -> Trade:
         #
         # request
-        #    ['timestamp', 'price', 'volume', 'direction']
+        #    [ 'timestamp', 'price', 'volume', 'direction' ]
         # subscribe
         #    {
         #        "volume":6.3607,
         #        "amount":77148.9303,
         #        "price":12129,
-        #        "direction":"sell",  # buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        #        "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         #        "TS":"2019-06-28T19:55:49.460"
         #    }
         #
         timestamp = self.safe_integer(trade, 0)
-        datetime = (self.iso8601(timestamp)) if (timestamp is not None) else (self.safe_string(trade, 'TS'))
+        datetime = None
+        if timestamp is not None:
+            datetime = (self.iso8601(timestamp))
+        else:
+            datetime = (self.safe_string(trade, 'TS'))
         if timestamp is None:
             timestamp = self.parse8601(datetime)
         rawSide = self.safe_string_2(trade, 'direction', 3)
@@ -520,7 +524,7 @@ class lbank(ccxt.async_support.lbank):
             'info': trade,
         }, market)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders
@@ -538,11 +542,11 @@ class lbank(ccxt.async_support.lbank):
         url = self.urls['api']['ws']
         messageHash = None
         pair = 'all'
+        symbolResolved = None if (symbol is None) else self.symbol(symbol)
         if symbol is None:
             messageHash = 'orders:all'
         else:
             market = self.market(symbol)
-            symbol = self.symbol(symbol)
             messageHash = 'orders:' + market['symbol']
             pair = market['id']
         message = {
@@ -553,9 +557,9 @@ class lbank(ccxt.async_support.lbank):
         }
         request = self.deep_extend(message, params)
         orders = await self.watch(url, messageHash, request, messageHash, request)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limit, True)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: dict):
         #
         #     {
         #         "orderUpdate":{
@@ -589,7 +593,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'orders:' + symbol
         client.resolve(myOrders, messageHash)
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "orderUpdate":{
@@ -631,7 +635,7 @@ class lbank(ccxt.async_support.lbank):
         #         "TS": "2024-01-19T23:05:18.548"
         #     }
         #
-        orderUpdate = self.safe_value(order, 'orderUpdate', {})
+        orderUpdate = self.safe_dict(order, 'orderUpdate', {})
         rawType = self.safe_string(orderUpdate, 'type', '')
         typeParts = rawType.split('_')
         side = self.safe_string(typeParts, 0)
@@ -670,7 +674,7 @@ class lbank(ccxt.async_support.lbank):
             'trades': None,
         }, market)
 
-    def parse_ws_order_status(self, status: object):
+    def parse_ws_order_status(self, status: Str) -> Str:
         statuses = {
             '-1': 'canceled',  # Withdrawn
             '0': 'open',   # Unsettled
@@ -680,7 +684,7 @@ class lbank(ccxt.async_support.lbank):
         }
         return self.safe_string(statuses, status, status)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -702,7 +706,7 @@ class lbank(ccxt.async_support.lbank):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         #     {
         #         "data": {
@@ -735,7 +739,7 @@ class lbank(ccxt.async_support.lbank):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
-    async def fetch_order_book_ws(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book_ws(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
         https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
@@ -752,19 +756,18 @@ class lbank(ccxt.async_support.lbank):
         self.check_contract_market(market, 'fetchOrderBookWs')
         url = self.urls['api']['ws']
         messageHash = 'fetchOrderbook:' + market['symbol']
-        if limit is None:
-            limit = 100
+        limitResolved = 100 if (limit is None) else limit
         subscribe = {
             'action': 'request',
             'request': 'depth',
-            'depth': limit,
+            'depth': limitResolved,
             'pair': market['id'],
         }
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
         https://www.lbank.com/en-US/docs/index.html#market-depth
@@ -781,20 +784,19 @@ class lbank(ccxt.async_support.lbank):
         self.check_contract_market(market, 'watchOrderBook')
         url = self.urls['api']['ws']
         messageHash = 'orderbook:' + market['symbol']
-        params = self.omit(params, 'aggregation')
-        if limit is None:
-            limit = 100
+        paramsOmitted = self.omit(params, 'aggregation')
+        limitResolved = 100 if (limit is None) else limit
         subscribe = {
             'action': 'subscribe',
             'subscribe': 'depth',
-            'depth': limit,
+            'depth': limitResolved,
             'pair': market['id'],
         }
-        request = self.deep_extend(subscribe, params)
+        request = self.deep_extend(subscribe, paramsOmitted)
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: object, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # request
         #    {
@@ -856,7 +858,7 @@ class lbank(ccxt.async_support.lbank):
         orderBook = self.safe_value(message, 'depth', message)
         datetime = self.safe_string(message, 'TS')
         timestamp = self.parse8601(datetime)
-        # orderbook = self.safe_value(self.orderbooks, symbol)
+        # let orderbook = this.safeValue (this.orderbooks, symbol);
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book({})
         orderbook = self.orderbooks[symbol]
@@ -867,7 +869,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchOrderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: dict):
         #
         #    {
         #        SERVER: 'V2',
@@ -880,11 +882,11 @@ class lbank(ccxt.async_support.lbank):
         error = ExchangeError(self.id + ' ' + errMsg)
         client.reject(error)
 
-    async def handle_ping(self, client: Client, message: object):
+    async def handle_ping(self, client: Client, message: dict):
         #
-        #  {ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping'}
+        #  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         #
-        # lbank closes the socket if self app-level ping is unanswered within a minute, but does not
+        # lbank closes the socket if this app-level ping is unanswered within a minute, but does not
         # reliably answer RFC 6455 ping frames; treat the inbound ping as a pong so keepAlive doesn't tear down a healthy socket
         client.lastPong = self.milliseconds()
         pingId = self.safe_string(message, 'ping')
@@ -896,7 +898,7 @@ class lbank(ccxt.async_support.lbank):
         except Exception as e:
             self.on_error(client, e)
 
-    def handle_message(self, client: object, message: object):
+    def handle_message(self, client: Client, message: dict):
         status = self.safe_string(message, 'status')
         if status == 'error':
             self.handle_error_message(client, message)
@@ -917,11 +919,11 @@ class lbank(ccxt.async_support.lbank):
         if handler is not None:
             handler(client, message)
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}) -> Str:
         # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
         # concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
         # subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
-        # overwritten. the flight lives in client.futures of self exchange's own ws client under
+        # overwritten. the flight lives in client.futures of this exchange's own ws client under
         # a key that is not a messageHash, and settles via client.resolve / client.reject only
         self.check_required_credentials()
         url = self.urls['api']['ws']
@@ -932,16 +934,16 @@ class lbank(ccxt.async_support.lbank):
             # a flight is already in progress - wake when the leader settles
             # it: the subscribeKey is then in the bucket
             await client.future(messageHash)
-            return client.subscriptions['authenticated']['key']
+            return self.safe_string(self.safe_dict(client.subscriptions, 'authenticated'), 'key')
         future = client.reusableFuture(messageHash)
         try:
-            authenticated = self.safe_value(client.subscriptions, 'authenticated')
+            authenticated = self.safe_dict(client.subscriptions, 'authenticated')
             if authenticated is None:
                 response = await self.spotPrivatePostSubscribeGetKey(params)
                 #
                 # {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 #
-                result = self.safe_value(response, 'result')
+                result = self.safe_bool(response, 'result')
                 if result is not True:
                     raise ExchangeError(self.id + ' failed to get subscribe key')
                 client.subscriptions['authenticated'] = {
@@ -966,10 +968,10 @@ class lbank(ccxt.async_support.lbank):
             # futures map happens inside the base class
             client.resolve(client.subscriptions['authenticated']['key'], messageHash)
         except Exception as e:
-            # reject the flight - all waiters raise and the next caller
+            # reject the flight - all waiters throw and the next caller
             # re-leads instead of deadlocking on a dead flight
             client.reject(e, messageHash)
         # rethrows a rejected flight to the leader and attaches the handler
         # that keeps an alone leader from crashing on an unhandled rejection
         await future
-        return client.subscriptions['authenticated']['key']
+        return self.safe_string(self.safe_dict(client.subscriptions, 'authenticated'), 'key')

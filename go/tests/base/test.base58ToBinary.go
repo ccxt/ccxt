@@ -13,5 +13,6 @@ func TestBase58ToBinary() {
 	}, map[string]any{}, exchange)
 	// todo: can be implemented stringToBinary in future
 	//
+
 	assert(ccxt.IsEqual(exchange.ParseNumber(nil), nil), "GO skip trick")
 }

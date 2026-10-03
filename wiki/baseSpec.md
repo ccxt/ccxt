@@ -156,7 +156,6 @@ cancel all open orders in a market
 * [bingx](/exchanges/bingx.md#cancelallorders)
 * [bitfinex](/exchanges/bitfinex.md#cancelallorders)
 * [bitget](/exchanges/bitget.md#cancelallorders)
-* [bitmex](/exchanges/bitmex.md#cancelallorders)
 * [bitopro](/exchanges/bitopro.md#cancelallorders)
 * [bitrue](/exchanges/bitrue.md#cancelallorders)
 * [bitso](/exchanges/bitso.md#cancelallorders)
@@ -232,7 +231,6 @@ dead man's switch, cancel all orders after the given timeout
 
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#cancelallordersafter)
-* [bitmex](/exchanges/bitmex.md#cancelallordersafter)
 * [bitvavo](/exchanges/bitvavo.md#cancelallordersafter)
 * [btse](/exchanges/btse.md#cancelallordersafter)
 * [bybit](/exchanges/bybit.md#cancelallordersafter)
@@ -369,7 +367,6 @@ cancels an open order
 * [bitflyer](/exchanges/bitflyer.md#cancelorder)
 * [bitget](/exchanges/bitget.md#cancelorder)
 * [bithumb](/exchanges/bithumb.md#cancelorder)
-* [bitmex](/exchanges/bitmex.md#cancelorder)
 * [bitopro](/exchanges/bitopro.md#cancelorder)
 * [bitrue](/exchanges/bitrue.md#cancelorder)
 * [bitso](/exchanges/bitso.md#cancelorder)
@@ -506,7 +503,6 @@ cancel multiple orders
 * [bitfinex](/exchanges/bitfinex.md#cancelorders)
 * [bitget](/exchanges/bitget.md#cancelorders)
 * [bithumb](/exchanges/bithumb.md#cancelorders)
-* [bitmex](/exchanges/bitmex.md#cancelorders)
 * [bitopro](/exchanges/bitopro.md#cancelorders)
 * [bitso](/exchanges/bitso.md#cancelorders)
 * [bittrade](/exchanges/bittrade.md#cancelorders)
@@ -559,6 +555,7 @@ cancel multiple orders for multiple symbols
 ##### Supported exchanges
 * [bybit](/exchanges/bybit.md#cancelordersforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#cancelordersforsymbols)
+* [digifinex](/exchanges/digifinex.md#cancelordersforsymbols)
 * [gate](/exchanges/gate.md#cancelordersforsymbols)
 * [hyperliquid](/exchanges/hyperliquid.md#cancelordersforsymbols)
 * [okx](/exchanges/okx.md#cancelordersforsymbols)
@@ -720,7 +717,6 @@ closes open positions for a market
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#closeposition)
 * [bitget](/exchanges/bitget.md#closeposition)
-* [bitmex](/exchanges/bitmex.md#closeposition)
 * [blofin](/exchanges/blofin.md#closeposition)
 * [btse](/exchanges/btse.md#closeposition)
 * [coinbase](/exchanges/coinbase.md#closeposition)
@@ -1063,6 +1059,7 @@ create a trade order
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.timeInForce | <code>string</code> | No | 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC' |
 | params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the quote currency |
 
 ##### Supported exchanges
@@ -1080,7 +1077,6 @@ create a trade order
 * [bitflyer](/exchanges/bitflyer.md#createorder)
 * [bitget](/exchanges/bitget.md#createorder)
 * [bithumb](/exchanges/bithumb.md#createorder)
-* [bitmex](/exchanges/bitmex.md#createorder)
 * [bitopro](/exchanges/bitopro.md#createorder)
 * [bitrue](/exchanges/bitrue.md#createorder)
 * [bitso](/exchanges/bitso.md#createorder)
@@ -1598,7 +1594,7 @@ edit a trade order
 | price | <code>float</code> | No | the price for the order, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>string</code> | No | the price to trigger a stop order |
-| params.timeInForce | <code>string</code> | No | for crypto trading either 'gtc' or 'ioc' can be used |
+| params.timeInForce | <code>string</code> | No | 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC' |
 | params.clientOrderId | <code>string</code> | No | a unique identifier for the order, automatically generated if not sent |
 
 ##### Supported exchanges
@@ -1887,7 +1883,9 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure). note that `info` is
+the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
 
 
 | Param | Type | Required | Description |
@@ -1909,7 +1907,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [bitflyer](/exchanges/bitflyer.md#fetchbalance)
 * [bitget](/exchanges/bitget.md#fetchbalance)
 * [bithumb](/exchanges/bithumb.md#fetchbalance)
-* [bitmex](/exchanges/bitmex.md#fetchbalance)
 * [bitopro](/exchanges/bitopro.md#fetchbalance)
 * [bitrue](/exchanges/bitrue.md#fetchbalance)
 * [bitso](/exchanges/bitso.md#fetchbalance)
@@ -2259,7 +2256,6 @@ fetches information on multiple closed orders made by the user
 * [bitflyer](/exchanges/bitflyer.md#fetchclosedorders)
 * [bitget](/exchanges/bitget.md#fetchclosedorders)
 * [bithumb](/exchanges/bithumb.md#fetchclosedorders)
-* [bitmex](/exchanges/bitmex.md#fetchclosedorders)
 * [bitopro](/exchanges/bitopro.md#fetchclosedorders)
 * [bitrue](/exchanges/bitrue.md#fetchclosedorders)
 * [bitteam](/exchanges/bitteam.md#fetchclosedorders)
@@ -2634,7 +2630,6 @@ fetches all available currencies on an exchange
 * [bingx](/exchanges/bingx.md#fetchcurrencies)
 * [bitfinex](/exchanges/bitfinex.md#fetchcurrencies)
 * [bitget](/exchanges/bitget.md#fetchcurrencies)
-* [bitmex](/exchanges/bitmex.md#fetchcurrencies)
 * [bitopro](/exchanges/bitopro.md#fetchcurrencies)
 * [bitrue](/exchanges/bitrue.md#fetchcurrencies)
 * [bitso](/exchanges/bitso.md#fetchcurrencies)
@@ -2642,6 +2637,7 @@ fetches all available currencies on an exchange
 * [bitteam](/exchanges/bitteam.md#fetchcurrencies)
 * [bittrade](/exchanges/bittrade.md#fetchcurrencies)
 * [bitvavo](/exchanges/bitvavo.md#fetchcurrencies)
+* [blofin](/exchanges/blofin.md#fetchcurrencies)
 * [bullish](/exchanges/bullish.md#fetchcurrencies)
 * [bybit](/exchanges/bybit.md#fetchcurrencies)
 * [cex](/exchanges/cex.md#fetchcurrencies)
@@ -2712,7 +2708,7 @@ fetches all available currencies on an exchange
 <a name="fetchDeposit" id="fetchdeposit"></a>
 
 ## fetchDeposit
-fetch information on a deposit
+fetch data on a currency deposit via the deposit id, looks back 30 days for uta accounts and 90 days otherwise
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
@@ -2721,15 +2717,16 @@ fetch information on a deposit
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | deposit id |
-| code | <code>string</code> | Yes | unified currency code |
+| code | <code>string</code> | No | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.txid | <code>string</code> | No | the transaction id for the deposit |
-| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 ##### Supported exchanges
+* [bitget](/exchanges/bitget.md#fetchdeposit)
 * [bithumb](/exchanges/bithumb.md#fetchdeposit)
 * [bitso](/exchanges/bitso.md#fetchdeposit)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchdeposit)
+* [blofin](/exchanges/blofin.md#fetchdeposit)
 * [coinbase](/exchanges/coinbase.md#fetchdeposit)
 * [okx](/exchanges/okx.md#fetchdeposit)
 * [upbit](/exchanges/upbit.md#fetchdeposit)
@@ -2763,11 +2760,11 @@ fetch the deposit address for a currency associated with this account
 * [bitfinex](/exchanges/bitfinex.md#fetchdepositaddress)
 * [bitget](/exchanges/bitget.md#fetchdepositaddress)
 * [bithumb](/exchanges/bithumb.md#fetchdepositaddress)
-* [bitmex](/exchanges/bitmex.md#fetchdepositaddress)
 * [bitso](/exchanges/bitso.md#fetchdepositaddress)
 * [bitstamp](/exchanges/bitstamp.md#fetchdepositaddress)
 * [bitvavo](/exchanges/bitvavo.md#fetchdepositaddress)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchdepositaddress)
+* [blofin](/exchanges/blofin.md#fetchdepositaddress)
 * [bullish](/exchanges/bullish.md#fetchdepositaddress)
 * [bybit](/exchanges/bybit.md#fetchdepositaddress)
 * [cex](/exchanges/cex.md#fetchdepositaddress)
@@ -2956,12 +2953,12 @@ fetch deposit and withdraw fees
 * [binance](/exchanges/binance.md#fetchdepositwithdrawfees)
 * [bingx](/exchanges/bingx.md#fetchdepositwithdrawfees)
 * [bitget](/exchanges/bitget.md#fetchdepositwithdrawfees)
-* [bitmex](/exchanges/bitmex.md#fetchdepositwithdrawfees)
 * [bitopro](/exchanges/bitopro.md#fetchdepositwithdrawfees)
 * [bitrue](/exchanges/bitrue.md#fetchdepositwithdrawfees)
 * [bitso](/exchanges/bitso.md#fetchdepositwithdrawfees)
 * [bitstamp](/exchanges/bitstamp.md#fetchdepositwithdrawfees)
 * [bitvavo](/exchanges/bitvavo.md#fetchdepositwithdrawfees)
+* [blofin](/exchanges/blofin.md#fetchdepositwithdrawfees)
 * [bybit](/exchanges/bybit.md#fetchdepositwithdrawfees)
 * [coinex](/exchanges/coinex.md#fetchdepositwithdrawfees)
 * [cryptocom](/exchanges/cryptocom.md#fetchdepositwithdrawfees)
@@ -3048,6 +3045,7 @@ fetch all deposits made to an account
 * [nado](/exchanges/nado.md#fetchdeposits)
 * [ndax](/exchanges/ndax.md#fetchdeposits)
 * [okx](/exchanges/okx.md#fetchdeposits)
+* [pacifica](/exchanges/pacifica.md#fetchdeposits)
 * [paradex](/exchanges/paradex.md#fetchdeposits)
 * [phemex](/exchanges/phemex.md#fetchdeposits)
 * [poloniex](/exchanges/poloniex.md#fetchdeposits)
@@ -3080,7 +3078,6 @@ fetch history of deposits and withdrawals
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchdepositswithdrawals)
 * [bitfinex](/exchanges/bitfinex.md#fetchdepositswithdrawals)
-* [bitmex](/exchanges/bitmex.md#fetchdepositswithdrawals)
 * [bitstamp](/exchanges/bitstamp.md#fetchdepositswithdrawals)
 * [bitteam](/exchanges/bitteam.md#fetchdepositswithdrawals)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchdepositswithdrawals)
@@ -3161,6 +3158,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [grvt](/exchanges/grvt.md#fetchfundinghistory)
 * [htx](/exchanges/htx.md#fetchfundinghistory)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchfundinghistory)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchfundinghistory)
 * [kucoin](/exchanges/kucoin.md#fetchfundinghistory)
 * [mexc](/exchanges/mexc.md#fetchfundinghistory)
 * [modetrade](/exchanges/modetrade.md#fetchfundinghistory)
@@ -3325,7 +3323,6 @@ fetches historical funding rate prices
 * [bingx](/exchanges/bingx.md#fetchfundingratehistory)
 * [bitfinex](/exchanges/bitfinex.md#fetchfundingratehistory)
 * [bitget](/exchanges/bitget.md#fetchfundingratehistory)
-* [bitmex](/exchanges/bitmex.md#fetchfundingratehistory)
 * [bitstamp](/exchanges/bitstamp.md#fetchfundingratehistory)
 * [blofin](/exchanges/blofin.md#fetchfundingratehistory)
 * [btse](/exchanges/btse.md#fetchfundingratehistory)
@@ -3385,7 +3382,6 @@ fetch the current funding rate for multiple symbols
 * [bingx](/exchanges/bingx.md#fetchfundingrates)
 * [bitfinex](/exchanges/bitfinex.md#fetchfundingrates)
 * [bitget](/exchanges/bitget.md#fetchfundingrates)
-* [bitmex](/exchanges/bitmex.md#fetchfundingrates)
 * [btse](/exchanges/btse.md#fetchfundingrates)
 * [bybit](/exchanges/bybit.md#fetchfundingrates)
 * [coinex](/exchanges/coinex.md#fetchfundingrates)
@@ -3397,6 +3393,7 @@ fetch the current funding rate for multiple symbols
 * [htx](/exchanges/htx.md#fetchfundingrates)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchfundingrates)
 * [krakenfutures](/exchanges/krakenfutures.md#fetchfundingrates)
+* [kucoin](/exchanges/kucoin.md#fetchfundingrates)
 * [lbank](/exchanges/lbank.md#fetchfundingrates)
 * [lighter](/exchanges/lighter.md#fetchfundingrates)
 * [modetrade](/exchanges/modetrade.md#fetchfundingrates)
@@ -3565,7 +3562,6 @@ fetch the history of changes, actions done by the user or operations that altere
 * [binance](/exchanges/binance.md#fetchledger)
 * [bitfinex](/exchanges/bitfinex.md#fetchledger)
 * [bitget](/exchanges/bitget.md#fetchledger)
-* [bitmex](/exchanges/bitmex.md#fetchledger)
 * [bitso](/exchanges/bitso.md#fetchledger)
 * [bitstamp](/exchanges/bitstamp.md#fetchledger)
 * [bitvavo](/exchanges/bitvavo.md#fetchledger)
@@ -3717,7 +3713,6 @@ fetch the set leverage for all markets
 ##### Supported exchanges
 * [aster](/exchanges/aster.md#fetchleverages)
 * [binance](/exchanges/binance.md#fetchleverages)
-* [bitmex](/exchanges/bitmex.md#fetchleverages)
 * [blofin](/exchanges/blofin.md#fetchleverages)
 * [gate](/exchanges/gate.md#fetchleverages)
 * [grvt](/exchanges/grvt.md#fetchleverages)
@@ -3747,7 +3742,6 @@ retrieves the public liquidations of a trading pair
 
 ##### Supported exchanges
 * [bitfinex](/exchanges/bitfinex.md#fetchliquidations)
-* [bitmex](/exchanges/bitmex.md#fetchliquidations)
 * [deribit](/exchanges/deribit.md#fetchliquidations)
 * [gate](/exchanges/gate.md#fetchliquidations)
 * [htx](/exchanges/htx.md#fetchliquidations)
@@ -3988,7 +3982,6 @@ retrieves data on all markets for alpaca
 * [bitflyer](/exchanges/bitflyer.md#fetchmarkets)
 * [bitget](/exchanges/bitget.md#fetchmarkets)
 * [bithumb](/exchanges/bithumb.md#fetchmarkets)
-* [bitmex](/exchanges/bitmex.md#fetchmarkets)
 * [bitopro](/exchanges/bitopro.md#fetchmarkets)
 * [bitrue](/exchanges/bitrue.md#fetchmarkets)
 * [bitso](/exchanges/bitso.md#fetchmarkets)
@@ -4244,7 +4237,6 @@ fetch all trades made by the user
 * [bitfinex](/exchanges/bitfinex.md#fetchmytrades)
 * [bitflyer](/exchanges/bitflyer.md#fetchmytrades)
 * [bitget](/exchanges/bitget.md#fetchmytrades)
-* [bitmex](/exchanges/bitmex.md#fetchmytrades)
 * [bitopro](/exchanges/bitopro.md#fetchmytrades)
 * [bitrue](/exchanges/bitrue.md#fetchmytrades)
 * [bitso](/exchanges/bitso.md#fetchmytrades)
@@ -4403,7 +4395,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [bitfinex](/exchanges/bitfinex.md#fetchohlcv)
 * [bitget](/exchanges/bitget.md#fetchohlcv)
 * [bithumb](/exchanges/bithumb.md#fetchohlcv)
-* [bitmex](/exchanges/bitmex.md#fetchohlcv)
 * [bitopro](/exchanges/bitopro.md#fetchohlcv)
 * [bitrue](/exchanges/bitrue.md#fetchohlcv)
 * [bitso](/exchanges/bitso.md#fetchohlcv)
@@ -4589,7 +4580,6 @@ Retrieves the open interest for a list of symbols
 
 ##### Supported exchanges
 * [bitfinex](/exchanges/bitfinex.md#fetchopeninterests)
-* [bitmex](/exchanges/bitmex.md#fetchopeninterests)
 * [btse](/exchanges/btse.md#fetchopeninterests)
 * [hitbtc](/exchanges/hitbtc.md#fetchopeninterests)
 * [htx](/exchanges/htx.md#fetchopeninterests)
@@ -4665,7 +4655,6 @@ fetch all unfilled currently open orders
 * [bitflyer](/exchanges/bitflyer.md#fetchopenorders)
 * [bitget](/exchanges/bitget.md#fetchopenorders)
 * [bithumb](/exchanges/bithumb.md#fetchopenorders)
-* [bitmex](/exchanges/bitmex.md#fetchopenorders)
 * [bitopro](/exchanges/bitopro.md#fetchopenorders)
 * [bitrue](/exchanges/bitrue.md#fetchopenorders)
 * [bitso](/exchanges/bitso.md#fetchopenorders)
@@ -4864,7 +4853,6 @@ fetches information on an order made by the user
 * [bitflyer](/exchanges/bitflyer.md#fetchorder)
 * [bitget](/exchanges/bitget.md#fetchorder)
 * [bithumb](/exchanges/bithumb.md#fetchorder)
-* [bitmex](/exchanges/bitmex.md#fetchorder)
 * [bitopro](/exchanges/bitopro.md#fetchorder)
 * [bitrue](/exchanges/bitrue.md#fetchorder)
 * [bitso](/exchanges/bitso.md#fetchorder)
@@ -4964,7 +4952,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [bitflyer](/exchanges/bitflyer.md#fetchorderbook)
 * [bitget](/exchanges/bitget.md#fetchorderbook)
 * [bithumb](/exchanges/bithumb.md#fetchorderbook)
-* [bitmex](/exchanges/bitmex.md#fetchorderbook)
 * [bitopro](/exchanges/bitopro.md#fetchorderbook)
 * [bitrue](/exchanges/bitrue.md#fetchorderbook)
 * [bitso](/exchanges/bitso.md#fetchorderbook)
@@ -5209,7 +5196,6 @@ fetches information on multiple orders made by the user
 * [bingx](/exchanges/bingx.md#fetchorders)
 * [bitflyer](/exchanges/bitflyer.md#fetchorders)
 * [bithumb](/exchanges/bithumb.md#fetchorders)
-* [bitmex](/exchanges/bitmex.md#fetchorders)
 * [bitopro](/exchanges/bitopro.md#fetchorders)
 * [bitteam](/exchanges/bitteam.md#fetchorders)
 * [bittrade](/exchanges/bittrade.md#fetchorders)
@@ -5541,7 +5527,6 @@ fetch all open positions
 * [bitfinex](/exchanges/bitfinex.md#fetchpositions)
 * [bitflyer](/exchanges/bitflyer.md#fetchpositions)
 * [bitget](/exchanges/bitget.md#fetchpositions)
-* [bitmex](/exchanges/bitmex.md#fetchpositions)
 * [blofin](/exchanges/blofin.md#fetchpositions)
 * [btse](/exchanges/btse.md#fetchpositions)
 * [bullish](/exchanges/bullish.md#fetchpositions)
@@ -5605,7 +5590,6 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols tha
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#fetchpositionsadlrank)
-* [bitmex](/exchanges/bitmex.md#fetchpositionsadlrank)
 * [blofin](/exchanges/blofin.md#fetchpositionsadlrank)
 * [bybit](/exchanges/bybit.md#fetchpositionsadlrank)
 * [delta](/exchanges/delta.md#fetchpositionsadlrank)
@@ -5666,6 +5650,7 @@ fetches historical positions
 * [bydfi](/exchanges/bydfi.md#fetchpositionshistory)
 * [extended](/exchanges/extended.md#fetchpositionshistory)
 * [gate](/exchanges/gate.md#fetchpositionshistory)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchpositionshistory)
 * [kucoin](/exchanges/kucoin.md#fetchpositionshistory)
 * [mexc](/exchanges/mexc.md#fetchpositionshistory)
 * [mudrex](/exchanges/mudrex.md#fetchpositionshistory)
@@ -5732,7 +5717,6 @@ fetches historical settlement records
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#fetchsettlementhistory)
-* [bitmex](/exchanges/bitmex.md#fetchsettlementhistory)
 * [bybit](/exchanges/bybit.md#fetchsettlementhistory)
 * [cryptocom](/exchanges/cryptocom.md#fetchsettlementhistory)
 * [delta](/exchanges/delta.md#fetchsettlementhistory)
@@ -5910,7 +5894,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [bitflyer](/exchanges/bitflyer.md#fetchticker)
 * [bitget](/exchanges/bitget.md#fetchticker)
 * [bithumb](/exchanges/bithumb.md#fetchticker)
-* [bitmex](/exchanges/bitmex.md#fetchticker)
 * [bitopro](/exchanges/bitopro.md#fetchticker)
 * [bitrue](/exchanges/bitrue.md#fetchticker)
 * [bitso](/exchanges/bitso.md#fetchticker)
@@ -5977,6 +5960,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [tokocrypto](/exchanges/tokocrypto.md#fetchticker)
 * [upbit](/exchanges/upbit.md#fetchticker)
 * [whitebit](/exchanges/whitebit.md#fetchticker)
+* [woo](/exchanges/woo.md#fetchticker)
 * [woofipro](/exchanges/woofipro.md#fetchticker)
 * [xt](/exchanges/xt.md#fetchticker)
 * [zaif](/exchanges/zaif.md#fetchticker)
@@ -6034,7 +6018,6 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [bitfinex](/exchanges/bitfinex.md#fetchtickers)
 * [bitget](/exchanges/bitget.md#fetchtickers)
 * [bithumb](/exchanges/bithumb.md#fetchtickers)
-* [bitmex](/exchanges/bitmex.md#fetchtickers)
 * [bitopro](/exchanges/bitopro.md#fetchtickers)
 * [bitrue](/exchanges/bitrue.md#fetchtickers)
 * [bitstamp](/exchanges/bitstamp.md#fetchtickers)
@@ -6097,6 +6080,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [upbit](/exchanges/upbit.md#fetchtickers)
 * [weex](/exchanges/weex.md#fetchtickers)
 * [whitebit](/exchanges/whitebit.md#fetchtickers)
+* [woo](/exchanges/woo.md#fetchtickers)
 * [woofipro](/exchanges/woofipro.md#fetchtickers)
 * [xt](/exchanges/xt.md#fetchtickers)
 * [zebpay](/exchanges/zebpay.md#fetchtickers)
@@ -6205,7 +6189,6 @@ get the list of most recent trades for a particular symbol
 * [bitflyer](/exchanges/bitflyer.md#fetchtrades)
 * [bitget](/exchanges/bitget.md#fetchtrades)
 * [bithumb](/exchanges/bithumb.md#fetchtrades)
-* [bitmex](/exchanges/bitmex.md#fetchtrades)
 * [bitopro](/exchanges/bitopro.md#fetchtrades)
 * [bitrue](/exchanges/bitrue.md#fetchtrades)
 * [bitso](/exchanges/bitso.md#fetchtrades)
@@ -6710,7 +6693,7 @@ fetch the historical volatility of an option market based on an underlying asset
 <a name="fetchWithdrawal" id="fetchwithdrawal"></a>
 
 ## fetchWithdrawal
-fetch data on a currency withdrawal via the withdrawal id
+fetch data on a currency withdrawal via the withdrawal id, looks back 30 days for uta accounts and 90 days otherwise
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
@@ -6719,15 +6702,16 @@ fetch data on a currency withdrawal via the withdrawal id
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | withdrawal id |
-| code | <code>string</code> | No | the currency code |
+| code | <code>string</code> | No | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.txid | <code>string</code> | No | the transaction id for the withdrawal |
-| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 ##### Supported exchanges
+* [bitget](/exchanges/bitget.md#fetchwithdrawal)
 * [bithumb](/exchanges/bithumb.md#fetchwithdrawal)
 * [bitopro](/exchanges/bitopro.md#fetchwithdrawal)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchwithdrawal)
+* [blofin](/exchanges/blofin.md#fetchwithdrawal)
 * [hollaex](/exchanges/hollaex.md#fetchwithdrawal)
 * [okx](/exchanges/okx.md#fetchwithdrawal)
 * [upbit](/exchanges/upbit.md#fetchwithdrawal)
@@ -6821,6 +6805,7 @@ fetch all withdrawals made from an account
 * [nado](/exchanges/nado.md#fetchwithdrawals)
 * [ndax](/exchanges/ndax.md#fetchwithdrawals)
 * [okx](/exchanges/okx.md#fetchwithdrawals)
+* [pacifica](/exchanges/pacifica.md#fetchwithdrawals)
 * [paradex](/exchanges/paradex.md#fetchwithdrawals)
 * [phemex](/exchanges/phemex.md#fetchwithdrawals)
 * [poloniex](/exchanges/poloniex.md#fetchwithdrawals)
@@ -7185,7 +7170,6 @@ set the level of leverage for a market
 * [binance](/exchanges/binance.md#setleverage)
 * [bingx](/exchanges/bingx.md#setleverage)
 * [bitget](/exchanges/bitget.md#setleverage)
-* [bitmex](/exchanges/bitmex.md#setleverage)
 * [bitrue](/exchanges/bitrue.md#setleverage)
 * [blofin](/exchanges/blofin.md#setleverage)
 * [btse](/exchanges/btse.md#setleverage)
@@ -7268,7 +7252,6 @@ set margin mode to 'cross' or 'isolated'
 * [binance](/exchanges/binance.md#setmarginmode)
 * [bingx](/exchanges/bingx.md#setmarginmode)
 * [bitget](/exchanges/bitget.md#setmarginmode)
-* [bitmex](/exchanges/bitmex.md#setmarginmode)
 * [blofin](/exchanges/blofin.md#setmarginmode)
 * [btse](/exchanges/btse.md#setmarginmode)
 * [bybit](/exchanges/bybit.md#setmarginmode)
@@ -8043,7 +8026,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [bitfinex](/exchanges/bitfinex.md#watchbalance)
 * [bitget](/exchanges/bitget.md#watchbalance)
 * [bithumb](/exchanges/bithumb.md#watchbalance)
-* [bitmex](/exchanges/bitmex.md#watchbalance)
 * [bitopro](/exchanges/bitopro.md#watchbalance)
 * [bitrue](/exchanges/bitrue.md#watchbalance)
 * [blockchaincom](/exchanges/blockchaincom.md#watchbalance)
@@ -8177,7 +8159,6 @@ watch the public liquidations of a trading pair
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchliquidations)
-* [bitmex](/exchanges/bitmex.md#watchliquidations)
 * [bybit](/exchanges/bybit.md#watchliquidations)
 * [lighter](/exchanges/lighter.md#watchliquidations)
 
@@ -8201,7 +8182,6 @@ watch the public liquidations of a trading pair
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchliquidationsforsymbols)
-* [bitmex](/exchanges/bitmex.md#watchliquidationsforsymbols)
 * [okx](/exchanges/okx.md#watchliquidationsforsymbols)
 
 ---
@@ -8324,7 +8304,6 @@ watches information on multiple trades made by the user
 * [bingx](/exchanges/bingx.md#watchmytrades)
 * [bitfinex](/exchanges/bitfinex.md#watchmytrades)
 * [bitget](/exchanges/bitget.md#watchmytrades)
-* [bitmex](/exchanges/bitmex.md#watchmytrades)
 * [bitopro](/exchanges/bitopro.md#watchmytrades)
 * [bitvavo](/exchanges/bitvavo.md#watchmytrades)
 * [bullish](/exchanges/bullish.md#watchmytrades)
@@ -8386,7 +8365,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [bingx](/exchanges/bingx.md#watchohlcv)
 * [bitfinex](/exchanges/bitfinex.md#watchohlcv)
 * [bitget](/exchanges/bitget.md#watchohlcv)
-* [bitmex](/exchanges/bitmex.md#watchohlcv)
 * [bitrue](/exchanges/bitrue.md#watchohlcv)
 * [bittrade](/exchanges/bittrade.md#watchohlcv)
 * [bitvavo](/exchanges/bitvavo.md#watchohlcv)
@@ -8484,9 +8462,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [bitfinex](/exchanges/bitfinex.md#watchorderbook)
 * [bitget](/exchanges/bitget.md#watchorderbook)
 * [bithumb](/exchanges/bithumb.md#watchorderbook)
-* [bitmex](/exchanges/bitmex.md#watchorderbook)
 * [bitopro](/exchanges/bitopro.md#watchorderbook)
-* [bitstamp](/exchanges/bitstamp.md#watchorderbook)
 * [bittrade](/exchanges/bittrade.md#watchorderbook)
 * [bitvavo](/exchanges/bitvavo.md#watchorderbook)
 * [blockchaincom](/exchanges/blockchaincom.md#watchorderbook)
@@ -8554,7 +8530,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [backpack](/exchanges/backpack.md#watchorderbookforsymbols)
 * [binance](/exchanges/binance.md#watchorderbookforsymbols)
 * [bitget](/exchanges/bitget.md#watchorderbookforsymbols)
-* [bitmex](/exchanges/bitmex.md#watchorderbookforsymbols)
 * [bitvavo](/exchanges/bitvavo.md#watchorderbookforsymbols)
 * [blofin](/exchanges/blofin.md#watchorderbookforsymbols)
 * [bybit](/exchanges/bybit.md#watchorderbookforsymbols)
@@ -8598,9 +8573,7 @@ watches information on multiple orders made by the user
 * [bitfinex](/exchanges/bitfinex.md#watchorders)
 * [bitget](/exchanges/bitget.md#watchorders)
 * [bithumb](/exchanges/bithumb.md#watchorders)
-* [bitmex](/exchanges/bitmex.md#watchorders)
 * [bitrue](/exchanges/bitrue.md#watchorders)
-* [bitstamp](/exchanges/bitstamp.md#watchorders)
 * [bitvavo](/exchanges/bitvavo.md#watchorders)
 * [biofin](/exchanges/biofin.md#watchorders)
 * [bullish](/exchanges/bullish.md#watchorders)
@@ -8702,7 +8675,6 @@ watch all open positions
 * [binance](/exchanges/binance.md#watchpositions)
 * [bingx](/exchanges/bingx.md#watchpositions)
 * [bitget](/exchanges/bitget.md#watchpositions)
-* [bitmex](/exchanges/bitmex.md#watchpositions)
 * [blofin](/exchanges/blofin.md#watchpositions)
 * [bullish](/exchanges/bullish.md#watchpositions)
 * [bybit](/exchanges/bybit.md#watchpositions)
@@ -8750,7 +8722,6 @@ watches a price ticker, a statistical calculation with the information calculate
 * [bitfinex](/exchanges/bitfinex.md#watchticker)
 * [bitget](/exchanges/bitget.md#watchticker)
 * [bithumb](/exchanges/bithumb.md#watchticker)
-* [bitmex](/exchanges/bitmex.md#watchticker)
 * [bitopro](/exchanges/bitopro.md#watchticker)
 * [bitrue](/exchanges/bitrue.md#watchticker)
 * [bittrade](/exchanges/bittrade.md#watchticker)
@@ -8813,7 +8784,6 @@ watches a price ticker, a statistical calculation with the information calculate
 * [binance](/exchanges/binance.md#watchtickers)
 * [bitget](/exchanges/bitget.md#watchtickers)
 * [bithumb](/exchanges/bithumb.md#watchtickers)
-* [bitmex](/exchanges/bitmex.md#watchtickers)
 * [bitvavo](/exchanges/bitvavo.md#watchtickers)
 * [blofin](/exchanges/blofin.md#watchtickers)
 * [bybit](/exchanges/bybit.md#watchtickers)
@@ -8869,10 +8839,8 @@ watches information on multiple trades made in a market
 * [bitfinex](/exchanges/bitfinex.md#watchtrades)
 * [bitget](/exchanges/bitget.md#watchtrades)
 * [bithumb](/exchanges/bithumb.md#watchtrades)
-* [bitmex](/exchanges/bitmex.md#watchtrades)
 * [bitopro](/exchanges/bitopro.md#watchtrades)
 * [bitrue](/exchanges/bitrue.md#watchtrades)
-* [bitstamp](/exchanges/bitstamp.md#watchtrades)
 * [bittrade](/exchanges/bittrade.md#watchtrades)
 * [bitvavo](/exchanges/bitvavo.md#watchtrades)
 * [blockchaincom](/exchanges/blockchaincom.md#watchtrades)
@@ -8939,7 +8907,6 @@ get the list of most recent trades for a list of symbols
 * [backpack](/exchanges/backpack.md#watchtradesforsymbols)
 * [binance](/exchanges/binance.md#watchtradesforsymbols)
 * [bitget](/exchanges/bitget.md#watchtradesforsymbols)
-* [bitmex](/exchanges/bitmex.md#watchtradesforsymbols)
 * [bitvavo](/exchanges/bitvavo.md#watchtradesforsymbols)
 * [blofin](/exchanges/blofin.md#watchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#watchtradesforsymbols)
@@ -8987,7 +8954,6 @@ make a withdrawal
 * [bitflyer](/exchanges/bitflyer.md#withdraw)
 * [bitget](/exchanges/bitget.md#withdraw)
 * [bithumb](/exchanges/bithumb.md#withdraw)
-* [bitmex](/exchanges/bitmex.md#withdraw)
 * [bitopro](/exchanges/bitopro.md#withdraw)
 * [bitrue](/exchanges/bitrue.md#withdraw)
 * [bitso](/exchanges/bitso.md#withdraw)
@@ -8995,6 +8961,7 @@ make a withdrawal
 * [bittrade](/exchanges/bittrade.md#withdraw)
 * [bitvavo](/exchanges/bitvavo.md#withdraw)
 * [blockchaincom](/exchanges/blockchaincom.md#withdraw)
+* [blofin](/exchanges/blofin.md#withdraw)
 * [btcmarkets](/exchanges/btcmarkets.md#withdraw)
 * [bullish](/exchanges/bullish.md#withdraw)
 * [bybit](/exchanges/bybit.md#withdraw)

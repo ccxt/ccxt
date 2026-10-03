@@ -2,8 +2,10 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -15,7 +17,7 @@ public class TestWatchPosition extends BaseTest {
     public CompletableFuture<Object> testWatchPosition(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "watchPosition";
         Object now = exchange.milliseconds();
@@ -26,7 +28,7 @@ public class TestWatchPosition extends BaseTest {
             Boolean success = true;
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPosition", new Object[]{symbol})).join();
+                response = (exchange.watchPosition(Helpers.toStringArg(symbol), new HashMap<String, Object>() {{}})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -37,9 +39,9 @@ public class TestWatchPosition extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
+            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
             {
-                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
+                Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + symbol) + " must return a dictionary. ") + exchange.json(response)));
                 now = exchange.milliseconds();
                 TestPosition.testPosition(exchange, skippedProperties, method, response, symbol, now);
             }

@@ -13,16 +13,21 @@ import (
 // 	ROUND_UP   = 1
 // )
 
-// Function to replace parameters in the path
-func (this *BaseExchange) ImplodeParams(path any, parameter any) any {
+// Function to replace parameters in the path; an absent path is "" (ts implodeParams),
+// any other non-string path panics
+func (this *BaseExchange) ImplodeParams(path any, parameter any) string {
+	path = derefScalar(path)
+	if path == nil {
+		return ""
+	}
 	pathStr, ok := path.(string)
 	if !ok {
-		return path
+		panic(ArgumentsRequired(fmt.Sprintf("implodeParams() expects a string path, got %T", path)))
 	}
 
-	paramValue := reflect.ValueOf(parameter)
+	paramValue := reflect.ValueOf(derefScalar(parameter))
 	if paramValue.Kind() != reflect.Map {
-		return path
+		return pathStr
 	}
 
 	// Iterate over the map keys and replace placeholders in the path
@@ -33,13 +38,18 @@ func (this *BaseExchange) ImplodeParams(path any, parameter any) any {
 		}
 
 		valueStr := ""
-		valueInterface := value.Interface()
+		// a pointer-carried scalar must render as the value it points at, not as
+		// its address; a typed nil behaves as an absent parameter
+		valueInterface := derefScalar(value.Interface())
+		if valueInterface == nil {
+			continue
+		}
 		if IsNumber(valueInterface) {
 			valueStr = NumberToString(valueInterface)
 		} else {
-			valueStr = fmt.Sprintf("%v", value)
+			valueStr = fmt.Sprintf("%v", valueInterface)
 		}
-		if value.Kind() != reflect.Slice {
+		if reflect.ValueOf(valueInterface).Kind() != reflect.Slice {
 			placeholder := "{" + key.String() + "}"
 			pathStr = strings.ReplaceAll(pathStr, placeholder, valueStr)
 		}
@@ -47,8 +57,14 @@ func (this *BaseExchange) ImplodeParams(path any, parameter any) any {
 	return pathStr
 }
 
+func (this *BaseExchange) ImplodeHostname(url any) string {
+	return this.ImplodeParams(url, map[string]any{
+		"hostname": this.Hostname,
+	})
+}
+
 func ParseTimeframe(timeframe2 any) int64 {
-	timeframe := timeframe2.(string)
+	timeframe := derefScalar(timeframe2).(string)
 
 	if len(timeframe) < 2 {
 		return 0
@@ -99,10 +115,12 @@ func FloorDiv(value int64, divisor int64) int64 {
 }
 
 func (this *BaseExchange) RoundTimeframe(timeframe any, timestamp any, direction ...any) any {
+	timeframe = derefScalar(timeframe)
+	timestamp = derefScalar(timestamp)
 	// Default direction is ROUND_DOWN
 	roundDirection := ROUND_DOWN
 	if len(direction) > 0 {
-		if dir, ok := direction[0].(int); ok {
+		if dir, ok := derefScalar(direction[0]).(int); ok {
 			roundDirection = dir
 		}
 	}

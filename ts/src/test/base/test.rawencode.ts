@@ -9,7 +9,6 @@ function testRawencode () {
         'id': 'sampleexchange',
     });
 
-
     // todo: add sort
     // todo: add nulls
     const dict2 = {

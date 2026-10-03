@@ -449,7 +449,7 @@ places a limit or market order on the CLOB for the given outcome token
 | params.funder | <code>string</code> | No | the wallet that holds the USDC collateral; defaults to options.funder or the signing address |
 | params.tickSize | <code>string</code> | No | the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted |
 | params.negRisk | <code>bool</code> | No | whether the market is a neg-risk market; read from the outcome when omitted |
-| params.salt | <code>string</code> | No | order salt; defaults to the current time in ms (pin it for idempotent retries) |
+| params.salt | <code>string</code> | No | order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries) |
 | params.timestamp | <code>string</code> | No | order timestamp; defaults to the current time in ms |
 | params.expiration | <code>string</code> | No | unix-seconds expiration for GTD orders; defaults to '0' (no expiry) |
 | params.builderCode | <code>string</code> | No | builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder |

@@ -6,6 +6,7 @@ import io.github.ccxt.api.BithumbApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.OHLCV;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Bithumb extends BithumbApi
 {
@@ -546,35 +548,31 @@ public class Bithumb extends BithumbApi
         }});
     }
 
-    public Object safeMarket(Object... optionalArgs)
+    public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
     {
         // bithumb has a different type of conflict in markets, because
         // their ids are the base currency (BTC for instance), so we can have
         // multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)
         // since they're the same we just need to return one
-        Object marketId = Helpers.getArg(optionalArgs, 0, null);
-        Object market = Helpers.getArg(optionalArgs, 1, null);
-        Object delimiter = Helpers.getArg(optionalArgs, 2, null);
-        Object marketType = Helpers.getArg(optionalArgs, 3, null);
         return super.safeMarket(marketId, market, delimiter, "spot");
     }
 
-    public Object amountToPrecision(Object symbol, Object amount)
+    public String amountToPrecision(Object symbol, Object amount)
     {
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        return this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), DECIMAL_PLACES);
+        Map<String, Object> market = this.market(symbol);
+        return this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)market.get("precision")).get("amount"), DECIMAL_PLACES);
     }
 
-    public Object getGen2MarketId(Object market)
+    public String getGen2MarketId(Map<String, Object> market)
     {
         String marketId = this.safeString(market, "id");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketId, "-"), 0)))))
+        if ((!java.util.Objects.equals(marketId, null)) && (((String)marketId).indexOf("-") >= 0))
         {
             return marketId;
         }
         String quoteId = this.safeString2(market, "quoteId", "quote");
         String baseId = this.safeString2(market, "baseId", "base");
-        return Helpers.add(Helpers.add(quoteId, "-"), baseId);
+        return ((quoteId + "-") + baseId);
     }
 
     /**
@@ -587,22 +585,20 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMarkets", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation != null && generation == 2))
             {
-                Helpers.addElementToObject(request, "isDetails", true);
-                List<Object> response = (this.publicGetV1MarketAll(this.extend(request, parameters))).join();
+                request.put("isDetails", true);
+                List<Object> response = (this.publicGetV1MarketAll(this.extend(request, paramsGeneration))).join();
                 //
                 //     [
                 //         {
@@ -613,61 +609,56 @@ public class Bithumb extends BithumbApi
                 //         },
                 //     ]
                 //
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+                for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    Object entry = Helpers.GetValue(response, i);
+                    Object entry = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                     String marketId = this.safeString(entry, "market");
                     Object baseId = null;
                     Object quoteId = null;
                     Object base = null;
-                    Object quote = null;
-                    if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
+                    String quote = null;
+                    if (!java.util.Objects.equals(marketId, null))
                     {
-                        Object parts = Helpers.split(marketId, "-");
+                        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
                         // to match gen 1, the quoteId is the first currency derived from the market id
-                        baseId = Helpers.GetValue(parts, 1);
-                        quoteId = Helpers.GetValue(parts, 0);
-                        base = this.safeCurrencyCode(baseId);
-                        quote = this.safeCurrencyCode(quoteId);
+                        baseId = (parts == null || 1 >= parts.size() ? null : parts.get(1));
+                        quoteId = (parts == null || 0 >= parts.size() ? null : parts.get(0));
+                        base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+                        quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
                     }
-                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
+                    if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                     {
                         continue;
                     }
-    final Object finalMarketId = marketId;
-                    final Object finalBase = base;
-                    final Object finalQuote = quote;
-                    final Object finalBaseId = baseId;
-                    final Object finalQuoteId = quoteId;
-                                    ((List<Object>)result).add(new HashMap<String, Object>() {{
-                        put( "id", finalMarketId );
-                        put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
-                        put( "base", finalBase );
-                        put( "quote", finalQuote );
-                        put( "settle", null );
-                        put( "baseId", finalBaseId );
-                        put( "quoteId", finalQuoteId );
-                        put( "settleId", null );
-                        put( "type", "spot" );
-                        put( "spot", true );
-                        put( "margin", false );
-                        put( "swap", false );
-                        put( "future", false );
-                        put( "option", false );
-                        put( "active", true );
-                        put( "contract", false );
-                        put( "linear", null );
-                        put( "inverse", null );
-                        put( "contractSize", null );
-                        put( "expiry", null );
-                        put( "expiryDatetime", null );
-                        put( "strike", null );
-                        put( "optionType", null );
-                        put( "precision", new HashMap<String, Object>() {{
-                            put( "amount", Helpers.parseInt("4") );
-                            put( "price", Helpers.parseInt("4") );
-                        }} );
-                        put( "limits", new HashMap<String, Object>() {{
+                    ((List<Object>)result).add(Helpers.newMap(
+                        "id", marketId,
+                        "symbol", ((base + "/") + quote),
+                        "base", base,
+                        "quote", quote,
+                        "settle", null,
+                        "baseId", baseId,
+                        "quoteId", quoteId,
+                        "settleId", null,
+                        "type", "spot",
+                        "spot", true,
+                        "margin", false,
+                        "swap", false,
+                        "future", false,
+                        "option", false,
+                        "active", true,
+                        "contract", false,
+                        "linear", null,
+                        "inverse", null,
+                        "contractSize", null,
+                        "expiry", null,
+                        "expiryDatetime", null,
+                        "strike", null,
+                        "optionType", null,
+                        "precision", new HashMap<String, Object>() {{
+                            put( "amount", Long.parseLong("4") );
+                            put( "price", Long.parseLong("4") );
+                        }},
+                        "limits", new HashMap<String, Object>() {{
                             put( "leverage", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
@@ -684,82 +675,81 @@ public class Bithumb extends BithumbApi
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                        }} );
-                        put( "created", null );
-                        put( "info", entry );
-                    }});
+                        }},
+                        "created", null,
+                        "info", entry
+                    ));
                 }
             } else
             {
-                Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                Object quotes = Helpers.objectKeys(quoteCurrencies);
+                Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
+                List<String> quotes = new ArrayList<String>(quoteCurrencies.keySet());
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
+                for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
-                    Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(quotes, i));
-                    ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
+                    request.put("quoteId", (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i)));
+                    ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
                 }
-                Object results = (Helpers.promiseAll(promises)).join();
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
+                Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
-                    Object quote = Helpers.GetValue(quotes, i);
-                    Object quoteId = quote;
-                    Object response = Helpers.GetValue(results, i);
-                    Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                    Object extension = this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
-                    Object currencyIds = Helpers.objectKeys(data);
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
+                    String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
+                    String quoteId = quote;
+                    Map<String, Object> response = (Map<String, Object>) this.safeDict(results, i, (Object) null);
+                    Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Map<String, Object> extension = (Map<String, Object>) this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
+                    List<String> currencyIds = new ArrayList<String>(data.keySet());
+                    for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                     {
-                        Object currencyId = Helpers.GetValue(currencyIds, j);
-                        if (Helpers.isTrue(Helpers.isEqual(currencyId, "date")))
+                        String currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
+                        if (java.util.Objects.equals(currencyId, "date"))
                         {
                             continue;
                         }
-                        Object market = Helpers.GetValue(data, currencyId);
-                        String base = this.safeCurrencyCode(currencyId);
-                        Boolean active = true;
-                        if (Helpers.isTrue(Helpers.isArray(market)))
+                        Object market = (data == null || currencyId == null ? null : data.get(currencyId));
+                        String base = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                        if (java.util.Objects.equals(base, null))
                         {
-                            Object numElements = Helpers.getArrayLength(market);
-                            if (Helpers.isTrue(Helpers.isEqual(numElements, 0)))
+                            continue;
+                        }
+                        Boolean active = true;
+                        if ((market instanceof List))
+                        {
+                            Integer numElements = ((List<?>)market).size();
+                            if (java.util.Objects.equals(numElements, 0))
                             {
                                 active = false;
                             }
                         }
-                        final Object finalCurrencyId = currencyId;
-                        final Object finalBase = base;
-                        final Object finalQuote = quote;
-                        final Object finalQuoteId = quoteId;
-                        final Object finalActive = active;
-                        Map<String, Object> entry = this.deepExtend(new HashMap<String, Object>() {{
-                            put( "id", finalCurrencyId );
-                            put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
-                            put( "base", finalBase );
-                            put( "quote", finalQuote );
-                            put( "settle", null );
-                            put( "baseId", finalCurrencyId );
-                            put( "quoteId", finalQuoteId );
-                            put( "settleId", null );
-                            put( "type", "spot" );
-                            put( "spot", true );
-                            put( "margin", false );
-                            put( "swap", false );
-                            put( "future", false );
-                            put( "option", false );
-                            put( "active", finalActive );
-                            put( "contract", false );
-                            put( "linear", null );
-                            put( "inverse", null );
-                            put( "contractSize", null );
-                            put( "expiry", null );
-                            put( "expiryDatetime", null );
-                            put( "strike", null );
-                            put( "optionType", null );
-                            put( "precision", new HashMap<String, Object>() {{
-                                put( "amount", Helpers.parseInt("4") );
-                                put( "price", Helpers.parseInt("4") );
-                            }} );
-                            put( "limits", new HashMap<String, Object>() {{
+                        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                        mapLiteral1.put("id", currencyId);
+                        mapLiteral1.put("symbol", ((base + "/") + quote));
+                        mapLiteral1.put("base", base);
+                        mapLiteral1.put("quote", quote);
+                        mapLiteral1.put("settle", null);
+                        mapLiteral1.put("baseId", currencyId);
+                        mapLiteral1.put("quoteId", quoteId);
+                        mapLiteral1.put("settleId", null);
+                        mapLiteral1.put("type", "spot");
+                        mapLiteral1.put("spot", true);
+                        mapLiteral1.put("margin", false);
+                        mapLiteral1.put("swap", false);
+                        mapLiteral1.put("future", false);
+                        mapLiteral1.put("option", false);
+                        mapLiteral1.put("active", active);
+                        mapLiteral1.put("contract", false);
+                        mapLiteral1.put("linear", null);
+                        mapLiteral1.put("inverse", null);
+                        mapLiteral1.put("contractSize", null);
+                        mapLiteral1.put("expiry", null);
+                        mapLiteral1.put("expiryDatetime", null);
+                        mapLiteral1.put("strike", null);
+                        mapLiteral1.put("optionType", null);
+                        mapLiteral1.put("precision", new HashMap<String, Object>() {{
+                                put( "amount", Long.parseLong("4") );
+                                put( "price", Long.parseLong("4") );
+                            }});
+                        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                                 put( "leverage", new HashMap<String, Object>() {{
                                     put( "min", null );
                                     put( "max", null );
@@ -773,10 +763,10 @@ public class Bithumb extends BithumbApi
                                     put( "max", null );
                                 }} );
                                 put( "cost", new HashMap<String, Object>() {{}} );
-                            }} );
-                            put( "created", null );
-                            put( "info", market );
-                        }}, extension);
+                            }});
+                        mapLiteral1.put("created", null);
+                        mapLiteral1.put("info", market);
+                        Map<String,Object> entry = this.deepExtend(mapLiteral1, extension);
                         ((List<Object>)result).add(entry);
                     }
                 }
@@ -786,7 +776,7 @@ public class Bithumb extends BithumbApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         // generation 1
@@ -816,36 +806,36 @@ public class Bithumb extends BithumbApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object balances = this.safeDict(response, "data");
-        if (Helpers.isTrue(!Helpers.isEqual(balances, null)))
+        Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+        if (!java.util.Objects.equals(balances, null))
         {
-            Object codes = Helpers.objectKeys(this.currencies);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
+            List<Object> codes = Helpers.objectKeys(this.currencies);
+            for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
-                Object code = Helpers.GetValue(codes, i);
-                Object account = this.account();
-                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+                Map<String, Object> account = this.account();
+                Map<String, Object> currency = this.currency((String) (code));
                 String lowerCurrencyId = this.safeStringLower(currency, "id");
-                Helpers.addElementToObject(account, "total", this.safeString(balances, Helpers.add("total_", lowerCurrencyId)));
-                Helpers.addElementToObject(account, "used", this.safeString(balances, Helpers.add("in_use_", lowerCurrencyId)));
-                Helpers.addElementToObject(account, "free", this.safeString(balances, Helpers.add("available_", lowerCurrencyId)));
-                Helpers.addElementToObject(result, code, account);
+                account.put("total", this.safeString(balances, ("total_" + lowerCurrencyId)));
+                account.put("used", this.safeString(balances, ("in_use_" + lowerCurrencyId)));
+                account.put("free", this.safeString(balances, ("available_" + lowerCurrencyId)));
+                result.put((String)code, account);
             }
         } else
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(response); i++)
             {
-                Object entry = Helpers.GetValue(response, i);
-                Object account = this.account();
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+                Map<String, Object> account = this.account();
                 String currencyId = this.safeString(entry, "currency");
-                String code = this.safeCurrencyCode(currencyId);
-                if (Helpers.isTrue(Helpers.isEqual(code, null)))
+                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                if (java.util.Objects.equals(code, null))
                 {
                     continue;
                 }
-                Helpers.addElementToObject(account, "free", this.safeString(entry, "balance"));
-                Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
-                Helpers.addElementToObject(result, code, account);
+                account.put("free", this.safeString(entry, "balance"));
+                account.put("used", this.safeString(entry, "locked"));
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -861,30 +851,28 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchBalance", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            if ((generation != null && generation == 2))
             {
-                response = (this.privateGetV1Accounts(parameters)).join();
+                response = (this.privateGetV1Accounts(paramsGeneration)).join();
             } else
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "currency", "ALL" );
                 }};
-                response = (this.privatePostInfoBalance(this.extend(request, parameters))).join();
+                response = (this.privatePostInfoBalance(this.extend(request, paramsGeneration))).join();
             }
             return this.parseBalance(response);
         }).thenApply(Balances::new);
@@ -903,30 +891,27 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
-            Object data = null;
-            Object timestamp = null;
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            Map<String, Object> data = null;
+            Long timestamp = null;
+            if ((generation != null && generation == 2))
             {
-                Helpers.addElementToObject(request, "markets", this.getGen2MarketId(market));
-                response = (this.publicGetV1Orderbook(this.extend(request, parameters))).join();
+                request.put("markets", this.getGen2MarketId((Map<String, Object>) (market)));
+                response = (this.publicGetV1Orderbook(this.extend(request, paramsGeneration))).join();
                 //
                 //     [
                 //         {
@@ -945,14 +930,14 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     ]
                 //
-                Object result = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> result = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(result, "timestamp");
-                Object orderBookUnits = this.safeList(result, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
+                List<Object> orderBookUnits = (List<Object>) this.safeList(result, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
                 List<Object> bids = new ArrayList<Object>(Arrays.asList());
                 List<Object> asks = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderBookUnits)); i++)
+                for (var i = 0; i < ((List<?>)orderBookUnits).size(); i++)
                 {
-                    Object entry = Helpers.GetValue(orderBookUnits, i);
+                    Map<String, Object> entry = (Map<String, Object>) this.safeDict(orderBookUnits, i, (Object) null);
                     ((List<Object>)bids).add(new HashMap<String, Object>() {{
                         put( "price", Bithumb.this.safeString(entry, "bid_price") );
                         put( "quantity", Bithumb.this.safeString(entry, "bid_size") );
@@ -968,13 +953,13 @@ public class Bithumb extends BithumbApi
                 }};
             } else
             {
-                Helpers.addElementToObject(request, "baseId", Helpers.GetValue(market, "baseId"));
-                Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(market, "quoteId"));
-                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                request.put("baseId", market.get("baseId"));
+                request.put("quoteId", market.get("quoteId"));
+                if (!java.util.Objects.equals(limit, null))
                 {
-                    Helpers.addElementToObject(request, "count", limit); // default 30, max 30
+                    request.put("count", limit); // default 30, max 30
                 }
-                response = (this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, parameters))).join();
+                response = (this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
                 //
                 //     {
                 //         "status":"0000",
@@ -995,15 +980,15 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     }
                 //
-                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(data, "timestamp");
             }
-            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
+            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity", 2);
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // generation 1: fetchTicker, fetchTickers
@@ -1092,20 +1077,19 @@ public class Bithumb extends BithumbApi
         //         "stream_type": "REALTIME"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = (Long) this.safeInteger2(ticker, "date", "trade_timestamp");
         String marketId = this.safeString(ticker, "market");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String close = this.safeString2(ticker, "closing_price", "trade_price");
         String change = this.safeString2(ticker, "signed_change_price", "change_price");
         String percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
         String open = this.safeString(ticker, "opening_price");
         Object nonZeroOpen = this.omitZero(open);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((!Helpers.isEqual(nonZeroOpen, null)))) && Helpers.isTrue((!Helpers.isEqual(close, null)))))
+        if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(nonZeroOpen, null)) && (!java.util.Objects.equals(close, null)))
         {
             String computedChange = Precise.stringSub(close, open);
             // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(change, null))) && Helpers.isTrue(Precise.stringEq(change, "0"))) && !Helpers.isTrue(Precise.stringEq(computedChange, "0"))))
+            if ((!java.util.Objects.equals(change, null)) && Precise.stringEq(change, "0") && !Precise.stringEq(computedChange, "0"))
             {
                 change = computedChange;
                 percentage = null;
@@ -1114,41 +1098,36 @@ public class Bithumb extends BithumbApi
         String high = this.safeString2(ticker, "max_price", "high_price");
         String low = this.safeString2(ticker, "min_price", "low_price");
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(close, null))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue(Precise.stringGt(close, high))))
+        if ((!java.util.Objects.equals(close, null)) && (!java.util.Objects.equals(high, null)) && Precise.stringGt(close, high))
         {
             high = close;
         }
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(close, null))) && Helpers.isTrue((!Helpers.isEqual(low, null)))) && Helpers.isTrue(Precise.stringLt(close, low))))
+        if ((!java.util.Objects.equals(close, null)) && (!java.util.Objects.equals(low, null)) && Precise.stringLt(close, low))
         {
             low = close;
         }
-        final Object finalHigh = high;
-        final Object finalLow = low;
-        final Object finalClose = close;
-        final Object finalChange = change;
-        final Object finalPercentage = percentage;
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", symbol );
-            put( "timestamp", timestamp );
-            put( "datetime", Bithumb.this.iso8601(timestamp) );
-            put( "high", finalHigh );
-            put( "low", finalLow );
-            put( "bid", Bithumb.this.safeString(ticker, "buy_price") );
-            put( "bidVolume", Bithumb.this.safeString(ticker, "acc_bid_volume") );
-            put( "ask", Bithumb.this.safeString(ticker, "sell_price") );
-            put( "askVolume", Bithumb.this.safeString(ticker, "acc_ask_volume") );
-            put( "vwap", null );
-            put( "open", open );
-            put( "close", finalClose );
-            put( "last", finalClose );
-            put( "previousClose", Bithumb.this.safeString(ticker, "prev_closing_price") );
-            put( "change", finalChange );
-            put( "percentage", finalPercentage );
-            put( "average", null );
-            put( "baseVolume", Bithumb.this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h") );
-            put( "quoteVolume", Bithumb.this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h") );
-            put( "info", ticker );
-        }}, market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("high", high);
+        mapLiteral2.put("low", low);
+        mapLiteral2.put("bid", this.safeString(ticker, "buy_price"));
+        mapLiteral2.put("bidVolume", this.safeString(ticker, "acc_bid_volume"));
+        mapLiteral2.put("ask", this.safeString(ticker, "sell_price"));
+        mapLiteral2.put("askVolume", this.safeString(ticker, "acc_ask_volume"));
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("open", open);
+        mapLiteral2.put("close", close);
+        mapLiteral2.put("last", close);
+        mapLiteral2.put("previousClose", this.safeString(ticker, "prev_closing_price"));
+        mapLiteral2.put("change", change);
+        mapLiteral2.put("percentage", percentage);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h"));
+        mapLiteral2.put("quoteVolume", this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h"));
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, market);
     }
 
     /**
@@ -1162,65 +1141,62 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTickers", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            if ((generation != null && generation == 2))
             {
                 // Bithumb v2 ticker payloads are inconsistent for all-market calls,
                 // so we aggregate 300 markets per request only when symbols are not provided.
                 Object marketIds = new ArrayList<Object>(Arrays.asList());
-                Object symbolsForMarketIds = ((Helpers.isTrue((Helpers.isEqual(symbols, null))))) ? this.symbols : symbols;
-                Object symbolsForMarketIdsLength = Helpers.getArrayLength(symbolsForMarketIds);
-                for (var i = 0; Helpers.isLessThan(i, symbolsForMarketIdsLength); i++)
+                List<String> symbolsForMarketIds = (((java.util.Objects.equals(symbols, null)))) ? this.symbols : symbols;
+                Integer symbolsForMarketIdsLength = ((List<?>)symbolsForMarketIds).size();
+                for (var i = 0; (symbolsForMarketIdsLength != null && i < symbolsForMarketIdsLength); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbolsForMarketIds, i));
-                    ((List<Object>)marketIds).add(this.getGen2MarketId(market));
+                    Map<String, Object> market = this.market((symbolsForMarketIds == null || i < 0 || i >= symbolsForMarketIds.size() ? null : symbolsForMarketIds.get(i)));
+                    ((List<Object>)marketIds).add(this.getGen2MarketId((Map<String, Object>) (market)));
                 }
-                Object marketIdsLength = Helpers.getArrayLength(marketIds);
-                if (Helpers.isTrue(Helpers.isEqual(marketIdsLength, 0)))
+                Integer marketIdsLength = ((List<?>)marketIds).size();
+                if (java.util.Objects.equals(marketIdsLength, 0))
                 {
                     return result;
                 }
                 List<Object> marketIdsChunks = new ArrayList<Object>(Arrays.asList());
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+                if (!java.util.Objects.equals(symbols, null))
                 {
-                    Helpers.addElementToObject(request, "markets", String.join(",", (List<String>)marketIds));
+                    request.put("markets", String.join(",", (List<String>)marketIds));
                     ((List<Object>)marketIdsChunks).add(marketIds);
-                    ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, parameters)));
+                    ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
                 } else
                 {
-                    Object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
-                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(maxMarketIdsPerRequest, null))) || Helpers.isTrue((Helpers.isLessThan(maxMarketIdsPerRequest, 1)))))
+                    Long maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
+                    if ((java.util.Objects.equals(maxMarketIdsPerRequest, null)) || (((maxMarketIdsPerRequest == null || maxMarketIdsPerRequest < 1))))
                     {
-                        maxMarketIdsPerRequest = 300;
+                        maxMarketIdsPerRequest = 300L;
                     }
                     Object marketIdsChunk = new ArrayList<Object>(Arrays.asList());
-                    for (var i = 0; Helpers.isLessThan(i, marketIdsLength); i++)
+                    for (var i = 0; (marketIdsLength != null && i < marketIdsLength); i++)
                     {
-                        ((List<Object>)marketIdsChunk).add(Helpers.GetValue(marketIds, i));
-                        Object marketIdsChunkLength = Helpers.getArrayLength(marketIdsChunk);
-                        Boolean isLastMarketId = (Helpers.isEqual(i, (Helpers.subtract(marketIdsLength, 1))));
-                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest))) || Helpers.isTrue(isLastMarketId)))
+                        ((List<Object>)marketIdsChunk).add((marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i)));
+                        Integer marketIdsChunkLength = ((List<?>)marketIdsChunk).size();
+                        Boolean isLastMarketId = ((i == ((((long) marketIdsLength) - 1L))));
+                        if (((maxMarketIdsPerRequest == null || (marketIdsChunkLength != null && marketIdsChunkLength >= maxMarketIdsPerRequest))) || Boolean.TRUE.equals(isLastMarketId))
                         {
                             ((List<Object>)marketIdsChunks).add(marketIdsChunk);
-                            Helpers.addElementToObject(request, "markets", String.join(",", (List<String>)marketIdsChunk));
-                            ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, parameters)));
+                            request.put("markets", String.join(",", (List<String>)marketIdsChunk));
+                            ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
                             marketIdsChunk = new ArrayList<Object>(Arrays.asList());
                         }
                     }
@@ -1257,111 +1233,115 @@ public class Bithumb extends BithumbApi
                 //         },
                 //     ]
                 //
-                Object responses = (Helpers.promiseAll(promises)).join();
-                Object responsesLength = Helpers.getArrayLength(responses);
-                for (var i = 0; Helpers.isLessThan(i, responsesLength); i++)
+                Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                Integer responsesLength = ((List<?>)responses).size();
+                for (var i = 0; (responsesLength != null && i < responsesLength); i++)
                 {
-                    Object response = Helpers.GetValue(responses, i);
-                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(this.isDictionary(response)) && Helpers.isTrue((Helpers.inOp(response, "data")))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(response, "data"), null)))))
+                    Object response = (responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i));
+                    if (Boolean.TRUE.equals(this.isDictionary(response)) && (Helpers.inOp(response, "data")) && (!java.util.Objects.equals(Helpers.GetValue(response, "data"), null)))
                     {
                         response = Helpers.GetValue(response, "data");
                     }
                     String expectedMarketId = null;
                     Object marketIdsChunk = this.safeList(marketIdsChunks, i, new ArrayList<Object>(Arrays.asList()));
                     String firstMarketId = this.safeString(marketIdsChunk, 0);
-                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(firstMarketId, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(marketIdsChunk, 1), null)))))
+                    if ((!java.util.Objects.equals(firstMarketId, null)) && (java.util.Objects.equals(this.safeString(marketIdsChunk, 1), null)))
                     {
                         expectedMarketId = firstMarketId;
                     }
                     Object tickers = new ArrayList<Object>(Arrays.asList());
-                    if (Helpers.isTrue(Helpers.isArray(response)))
+                    if ((response instanceof List))
                     {
                         tickers = response;
-                    } else if (Helpers.isTrue(this.isDictionary(response)))
+                    } else if (Boolean.TRUE.equals(this.isDictionary(response)))
                     {
-                        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(response, "market"))) || Helpers.isTrue((Helpers.inOp(response, "trade_date")))) || Helpers.isTrue((Helpers.inOp(response, "trade_timestamp")))))
+                        if ((Helpers.inOp(response, "market")) || (Helpers.inOp(response, "trade_date")) || (Helpers.inOp(response, "trade_timestamp")))
                         {
                             tickers = new ArrayList<Object>(Arrays.asList(response));
                         } else
                         {
-                            Object ids = Helpers.objectKeys(response);
-                            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(ids)); j++)
+                            List<Object> ids = Helpers.objectKeys(response);
+                            for (var j = 0; j < ((List<?>)ids).size(); j++)
                             {
-                                Object id = Helpers.GetValue(ids, j);
-                                Object ticker = this.safeDict(response, id);
-                                if (Helpers.isTrue(!Helpers.isEqual(ticker, null)))
+                                Object id = (ids == null || j < 0 || j >= ids.size() ? null : ids.get(j));
+                                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, id, (Object) null);
+                                if (!java.util.Objects.equals(ticker, null))
                                 {
-                                    Helpers.addElementToObject(ticker, "market", this.safeString(ticker, "market", id));
+                                    ticker.put("market", this.safeString(ticker, "market", id));
                                     ((List<Object>)tickers).add(ticker);
                                 }
                             }
                         }
                     }
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tickers)); j++)
+                    for (var j = 0; j < ((List<?>)tickers).size(); j++)
                     {
-                        Object entry = Helpers.GetValue(tickers, j);
+                        Object entry = (tickers == null || j < 0 || j >= ((List<?>)tickers).size() ? null : ((List<?>)tickers).get(j));
                         String marketId = this.safeString(entry, "market", expectedMarketId);
-                        if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+                        if (java.util.Objects.equals(marketId, null))
                         {
                             continue;
                         }
-                        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                        String symbol = this.safeSymbol(marketId, market);
-                        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+                        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+                        if (java.util.Objects.equals(symbol, null))
                         {
                             continue;
                         }
-                        Helpers.addElementToObject(result, symbol, this.parseTicker(entry, market));
+                        result.put(symbol, this.parseTicker(entry, market));
                     }
                 }
             } else
             {
-                Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                Object quotes = Helpers.objectKeys(quoteCurrencies);
-                if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+                Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
+                Object quotes = new ArrayList<Object>(quoteCurrencies.keySet());
+                if (!java.util.Objects.equals(symbols, null))
                 {
                     Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
-                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                    for (var i = 0; i < ((List<?>)symbols).size(); i++)
                     {
-                        Object symbol = Helpers.GetValue(symbols, i);
-                        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                        String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                        Map<String, Object> market = this.market(symbol);
                         String quoteId = this.safeString(market, "quoteId");
-                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(quoteId, null))) && Helpers.isTrue((Helpers.inOp(quoteCurrencies, quoteId)))))
+                        if ((!java.util.Objects.equals(quoteId, null)) && (quoteCurrencies.containsKey(quoteId)))
                         {
-                            Helpers.addElementToObject(requiredQuotes, quoteId, true);
+                            requiredQuotes.put(quoteId, true);
                         }
                     }
-                    Object requiredQuoteIds = Helpers.objectKeys(requiredQuotes);
+                    List<Object> requiredQuoteIds = new ArrayList<Object>(requiredQuotes.keySet());
                     String populatedQuotes = this.safeString(requiredQuoteIds, 0);
-                    if (Helpers.isTrue(!Helpers.isEqual(populatedQuotes, null)))
+                    if (!java.util.Objects.equals(populatedQuotes, null))
                     {
                         quotes = requiredQuoteIds;
                     }
                 }
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
+                for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
-                    Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(quotes, i));
-                    ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
+                    request.put("quoteId", (quotes == null || i < 0 || i >= ((List<?>)quotes).size() ? null : ((List<?>)quotes).get(i)));
+                    ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
                 }
-                Object responses = (Helpers.promiseAll(promises)).join();
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
+                Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
-                    Object quote = Helpers.GetValue(quotes, i);
-                    Object response = Helpers.GetValue(responses, i);
-                    Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Object quote = (quotes == null || i < 0 || i >= ((List<?>)quotes).size() ? null : ((List<?>)quotes).get(i));
+                    Object response = this.safeDict(responses, i, (Object) null);
+                    Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");
                     Object tickers = this.omit(data, "date");
-                    Object currencyIds = Helpers.objectKeys(tickers);
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
+                    List<Object> currencyIds = Helpers.objectKeys(tickers);
+                    for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                     {
-                        Object currencyId = Helpers.GetValue(currencyIds, j);
-                        Object ticker = Helpers.GetValue(data, currencyId);
-                        String base = this.safeCurrencyCode(currencyId);
-                        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                        Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
+                        Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
+                        Object ticker = (data == null || currencyId == null ? null : data.get(currencyId));
+                        String base = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                        {
+                            continue;
+                        }
+                        String symbol = ((base + "/") + quote);
+                        Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
                         Helpers.addElementToObject(ticker, "date", timestamp);
-                        Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
+                        result.put(symbol, this.parseTicker(ticker, market));
                     }
                 }
             }
@@ -1381,28 +1361,26 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTicker", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTicker", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
-            Object data = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            Map<String, Object> data = new HashMap<String, Object>() {{}};
+            if ((generation != null && generation == 2))
             {
-                Helpers.addElementToObject(request, "markets", this.getGen2MarketId(market));
-                response = (this.publicGetV1Ticker(this.extend(request, parameters))).join();
+                request.put("markets", this.getGen2MarketId((Map<String, Object>) (market)));
+                response = (this.publicGetV1Ticker(this.extend(request, paramsGeneration))).join();
                 //
                 //     [
                 //         {
@@ -1435,12 +1413,12 @@ public class Bithumb extends BithumbApi
                 //         },
                 //     ]
                 //
-                data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             } else
             {
-                Helpers.addElementToObject(request, "baseId", Helpers.GetValue(market, "baseId"));
-                Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(market, "quoteId"));
-                response = (this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, parameters))).join();
+                request.put("baseId", market.get("baseId"));
+                request.put("quoteId", market.get("quoteId"));
+                response = (this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
                 //
                 //     {
                 //         "status":"0000",
@@ -1460,14 +1438,14 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     }
                 //
-                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         // generation 1
@@ -1497,16 +1475,15 @@ public class Bithumb extends BithumbApi
         //         "unit": 1
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = null;
-        if (Helpers.isTrue(Helpers.isArray(ohlcv)))
+        Long timestamp = null;
+        if ((ohlcv instanceof List))
         {
             timestamp = this.safeInteger2(ohlcv, 0, "timestamp");
         } else
         {
             timestamp = this.parse8601(this.safeString2(ohlcv, "candle_date_time_utc", "candle_date_time_kst"));
         }
-        return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber2(ohlcv, 1, "opening_price"), this.safeNumber2(ohlcv, 3, "high_price"), this.safeNumber2(ohlcv, 4, "low_price"), this.safeNumber2(ohlcv, 2, "trade_price"), this.safeNumber2(ohlcv, 5, "candle_acc_trade_volume")));
+        return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber2(ohlcv, 1, "opening_price", (Object) null), this.safeNumber2(ohlcv, 3, "high_price", (Object) null), this.safeNumber2(ohlcv, 4, "low_price", (Object) null), this.safeNumber2(ohlcv, 2, "trade_price", (Object) null), this.safeNumber2(ohlcv, 5, "candle_acc_trade_volume", (Object) null)));
     }
 
     /**
@@ -1526,52 +1503,47 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object data = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            if ((generation != null && generation == 2))
             {
-                Helpers.addElementToObject(request, "market", this.getGen2MarketId(market));
-                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                request.put("market", this.getGen2MarketId((Map<String, Object>) (market)));
+                if (!java.util.Objects.equals(limit, null))
                 {
-                    Helpers.addElementToObject(request, "count", limit);
+                    request.put("count", limit);
                 }
-                if (Helpers.isTrue(Helpers.isEqual(timeframe, "1d")))
+                if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1d"))
                 {
-                    response = (this.publicGetV1CandlesDays(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(Helpers.isEqual(timeframe, "1w")))
+                    response = (this.publicGetV1CandlesDays(this.extend(request, paramsGeneration))).join();
+                } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1w"))
                 {
-                    response = (this.publicGetV1CandlesWeeks(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(Helpers.isEqual(timeframe, "1M")))
+                    response = (this.publicGetV1CandlesWeeks(this.extend(request, paramsGeneration))).join();
+                } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1M"))
                 {
-                    response = (this.publicGetV1CandlesMonths(this.extend(request, parameters))).join();
+                    response = (this.publicGetV1CandlesMonths(this.extend(request, paramsGeneration))).join();
                 } else
                 {
-                    Long timeframeInteger = this.safeInteger(this.timeframes, timeframe);
-                    if (Helpers.isTrue(Helpers.isEqual(timeframeInteger, null)))
+                    Long timeframeInteger = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
+                    if (java.util.Objects.equals(timeframeInteger, null))
                     {
-                        throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe)) ;
+                        throw new BadRequest(((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1m"))) ;
                     }
-                    Helpers.addElementToObject(request, "unit", timeframeInteger);
-                    response = (this.publicGetV1CandlesMinutesUnit(this.extend(request, parameters))).join();
+                    request.put("unit", timeframeInteger);
+                    response = (this.publicGetV1CandlesMinutesUnit(this.extend(request, paramsGeneration))).join();
                 }
                 //
                 //     [
@@ -1606,10 +1578,10 @@ public class Bithumb extends BithumbApi
                     put( "1w", "1w" );
                     put( "1M", "1mm" );
                 }};
-                Helpers.addElementToObject(request, "interval", this.safeString(legacyTimeframes, timeframe, timeframe));
-                Helpers.addElementToObject(request, "baseId", Helpers.GetValue(market, "baseId"));
-                Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(market, "quoteId"));
-                response = (this.publicGetPublicCandlestickBaseIdQuoteIdInterval(this.extend(request, parameters))).join();
+                request.put("interval", this.safeString(legacyTimeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
+                request.put("baseId", market.get("baseId"));
+                request.put("quoteId", market.get("quoteId"));
+                response = (this.publicGetPublicCandlestickBaseIdQuoteIdInterval(this.extend(request, paramsGeneration))).join();
                 //
                 //     {
                 //         "status": "0000",
@@ -1635,12 +1607,12 @@ public class Bithumb extends BithumbApi
                 //
                 data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // generation 1: fetchTrades (public)
@@ -1699,38 +1671,37 @@ public class Bithumb extends BithumbApi
         //     }
         //
         // a workaround for their bug in date format, hours are not 0-padded
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(trade, "timestamp");
-        Boolean isGenerationTwo = (!Helpers.isEqual(timestamp, null));
+        Boolean isGenerationTwo = (!java.util.Objects.equals(timestamp, null));
         String transactionDatetime = this.safeString(trade, "transaction_date");
-        if (Helpers.isTrue(!Helpers.isEqual(transactionDatetime, null)))
+        if (!java.util.Objects.equals(transactionDatetime, null))
         {
-            Object parts = Helpers.split(transactionDatetime, " ");
-            Object numParts = Helpers.getArrayLength(parts);
-            if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)transactionDatetime).split(java.util.regex.Pattern.quote(" "))));
+            Integer numParts = ((List<?>)parts).size();
+            if ((numParts != null && numParts > 1))
             {
-                Object transactionDate = Helpers.GetValue(parts, 0);
-                String transactionTime = (String) Helpers.GetValue(parts, 1);
-                if (Helpers.isTrue(Helpers.isLessThan(transactionTime.length(), 8)))
+                Object transactionDate = (parts == null || 0 >= parts.size() ? null : parts.get(0));
+                String transactionTime = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
+                if (transactionTime.length() < 8)
                 {
-                    transactionTime = Helpers.add("0", transactionTime);
+                    transactionTime = ("0" + transactionTime);
                 }
-                timestamp = this.parse8601(Helpers.add(Helpers.add(transactionDate, " "), transactionTime));
+                timestamp = this.parse8601(((transactionDate + " ") + transactionTime));
             } else
             {
                 timestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
             }
         }
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timestamp, null))) && Helpers.isTrue((!Helpers.isTrue(isGenerationTwo)))))
+        if ((!java.util.Objects.equals(timestamp, null)) && (!Boolean.TRUE.equals(isGenerationTwo)))
         {
-            timestamp = Helpers.subtract(timestamp, Helpers.multiply(9, 3600000)); // they report UTC + 9 hours, server in Korean timezone
+            timestamp = Helpers.subtract(timestamp, (9L * 3600000L)); // they report UTC + 9 hours, server in Korean timezone
         }
-        Object type = null;
+        List<String> type = null;
         String side = this.safeStringLower2(trade, "ask_bid", "type");
-        if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
+        if (java.util.Objects.equals(side, "bid"))
         {
             side = "buy";
-        } else if (Helpers.isTrue(Helpers.isEqual(side, "ask")))
+        } else if (java.util.Objects.equals(side, "ask"))
         {
             side = "sell";
         } else
@@ -1739,46 +1710,40 @@ public class Bithumb extends BithumbApi
         }
         String id = this.safeString2(trade, "cont_no", "sequential_id");
         String marketId = this.safeString(trade, "market");
-        market = this.safeMarket(marketId, market);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String priceString = this.safeString2(trade, "price", "trade_price");
         Object amountString = this.safeString(trade, "trade_volume");
-        if (Helpers.isTrue(Helpers.isEqual(amountString, null)))
+        if (java.util.Objects.equals(amountString, null))
         {
             amountString = this.fixCommaNumber(this.safeString2(trade, "units_traded", "units"));
         }
         String costString = this.safeString(trade, "total");
-        Object fee = null;
+        Map<String, Object> fee = null;
         String feeCostString = this.safeString(trade, "fee");
-        if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
+        if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCurrencyId = this.safeString(trade, "fee_currency");
             Object feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
-            final Object finalFeeCostString = feeCostString;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalFeeCostString );
-                put( "currency", feeCurrencyCode );
-            }};
+            fee = Helpers.newMap(
+                "cost", feeCostString,
+                "currency", feeCurrencyCode
+            );
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalMarket = market;
-        final Object finalSide = side;
-        final Object finalAmountString = amountString;
-        final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "info", trade );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Bithumb.this.iso8601(finalTimestamp) );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "order", null );
-            put( "type", type );
-            put( "side", finalSide );
-            put( "takerOrMaker", null );
-            put( "price", priceString );
-            put( "amount", finalAmountString );
-            put( "cost", costString );
-            put( "fee", finalFee );
-        }}, market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("order", null);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", null);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", costString);
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1794,34 +1759,30 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTrades", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "count", limit);
+                request.put("count", limit);
             }
             Object response = null;
             Object data = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            if ((generation != null && generation == 2))
             {
-                Helpers.addElementToObject(request, "market", this.getGen2MarketId(market));
-                response = (this.publicGetV1TradesTicks(this.extend(request, parameters))).join();
+                request.put("market", this.getGen2MarketId((Map<String, Object>) (market)));
+                response = (this.publicGetV1TradesTicks(this.extend(request, paramsGeneration))).join();
                 //
                 //     [
                 //         {
@@ -1841,9 +1802,9 @@ public class Bithumb extends BithumbApi
                 data = response;
             } else
             {
-                Helpers.addElementToObject(request, "baseId", Helpers.GetValue(market, "baseId"));
-                Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(market, "quoteId"));
-                response = (this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, parameters))).join();
+                request.put("baseId", market.get("baseId"));
+                request.put("quoteId", market.get("quoteId"));
+                response = (this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
                 //
                 //     {
                 //         "status":"0000",
@@ -1860,8 +1821,8 @@ public class Bithumb extends BithumbApi
                 //
                 data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1878,62 +1839,60 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
+    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrders", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrders", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " createOrders is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " createOrders is only supported for the generation 2 API")) ;
             }
-            Object ordersCount = Helpers.getArrayLength(orders);
-            if (Helpers.isTrue(Helpers.isEqual(ordersCount, 0)))
+            Integer ordersCount = ((List<?>)orders).size();
+            if (java.util.Objects.equals(ordersCount, 0))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires a non-empty orders array")) ;
+                throw new ArgumentsRequired((this.id + " createOrders() requires a non-empty orders array")) ;
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            Object orderSymbols = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+            List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 String symbol = this.safeString(rawOrder, "symbol");
-                if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                if (java.util.Objects.equals(symbol, null))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires each order to have a symbol")) ;
+                    throw new ArgumentsRequired((this.id + " createOrders() requires each order to have a symbol")) ;
                 }
-                ((List<Object>)orderSymbols).add(symbol);
+                orderSymbols.add(symbol);
                 String type = this.safeString(rawOrder, "type");
-                if (Helpers.isTrue(Helpers.isEqual(type, null)))
+                if (java.util.Objects.equals(type, null))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires each order to have a type")) ;
+                    throw new ArgumentsRequired((this.id + " createOrders() requires each order to have a type")) ;
                 }
                 String side = this.safeString(rawOrder, "side");
-                if (Helpers.isTrue(Helpers.isEqual(side, null)))
+                if (java.util.Objects.equals(side, null))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires each order to have a side")) ;
+                    throw new ArgumentsRequired((this.id + " createOrders() requires each order to have a side")) ;
                 }
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderRequest = this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
+            orderSymbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
+            Map<String, Object> market = this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "batch_orders", ordersRequests );
             }};
-            Map<String, Object> response = (this.privatePostV2OrdersBatch(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostV2OrdersBatch(this.extend(request, paramsGeneration))).join();
             //
             //     {
             //         "batch_orders_response": [
@@ -1948,116 +1907,112 @@ public class Bithumb extends BithumbApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "batch_orders_response", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            List<Object> data = (List<Object>) this.safeList(response, "batch_orders_response", new ArrayList<Object>(Arrays.asList()));
+            return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         /**
-        * @method
-        * @ignore
-        * @name bithumb#createOrderRequest
-        * @description helper function to build the request *for generation 2 createOrder and createOrders only*
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
-        */
-        Object price = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+         * @method
+         * @ignore
+         * @name bithumb#createOrderRequest
+         * @description helper function to build the request *for generation 2 createOrder and createOrders only*
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
+        Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "market", Bithumb.this.getGen2MarketId(market) );
+            put( "market", Bithumb.this.getGen2MarketId((Map<String, Object>) (market)) );
         }};
         String sideRequest = null;
-        if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+        if (java.util.Objects.equals(side, "buy"))
         {
             sideRequest = "bid";
-        } else if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
+        } else if (java.util.Objects.equals(side, "sell"))
         {
             sideRequest = "ask";
         } else
         {
-            throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " createOrder() invalid side "), side)) ;
+            throw new InvalidOrder(((this.id + " createOrder() invalid side ") + side)) ;
         }
-        Helpers.addElementToObject(request, "side", sideRequest);
-        String timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force");
-        if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
+        request.put("side", sideRequest);
+        String timeInForceRaw = this.safeString2(parameters, "timeInForce", "time_in_force");
+        String timeInForce = (((java.util.Objects.equals(timeInForceRaw, null)))) ? "GTC" : timeInForceRaw;
+        Map<String, Object> paramsTimeInForce = (((java.util.Objects.equals(timeInForceRaw, null)))) ? parameters : this.omit(parameters, "timeInForce");
+        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsTimeInForce);
+        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
+        var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Boolean isPostOnly = Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO"));
+        Object paramsOrder = paramsPostOnly;
+        if (Boolean.TRUE.equals(isPostOnly))
         {
-            timeInForce = "GTC";
-        } else
-        {
-            parameters = this.omit(parameters, "timeInForce");
+            paramsOrder = this.omit(paramsPostOnly, "postOnly");
         }
-        Boolean postOnly = false;
-        List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
-        postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-        parameters = ((List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(Helpers.isTrue(postOnly) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO")))))
+        if (Boolean.TRUE.equals(isPostOnly))
         {
-            Helpers.addElementToObject(request, "time_in_force", "post_only");
-            parameters = this.omit(parameters, "postOnly");
-        } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "FOK")))
+            request.put("time_in_force", "post_only");
+        } else if (java.util.Objects.equals(timeInForce, "FOK"))
         {
-            Helpers.addElementToObject(request, "time_in_force", "fok");
-        } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "IOC")))
+            request.put("time_in_force", "fok");
+        } else if (java.util.Objects.equals(timeInForce, "IOC"))
         {
-            Helpers.addElementToObject(request, "time_in_force", "ioc");
+            request.put("time_in_force", "ioc");
         }
-        if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
+        if (java.util.Objects.equals(type, "limit"))
         {
-            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
-            Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount));
-            Helpers.addElementToObject(request, "order_type", "limit");
+            request.put("price", this.priceToPrecision(symbol, price));
+            request.put("volume", this.amountToPrecision(symbol, amount));
+            request.put("order_type", "limit");
         } else
         {
             String typeRequest = null;
-            if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+            if (java.util.Objects.equals(side, "buy"))
             {
                 typeRequest = "price";
                 // for market buy it requires the amount of quote currency to spend
-                String cost = this.safeString(parameters, "cost");
-                parameters = this.omit(parameters, "cost");
-                Object createMarketBuyOrderRequiresPrice = true;
-                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
-                parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                String cost = this.safeString(paramsOrder, "cost");
+                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (this.omit(paramsOrder, "cost")), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
+                Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
+                paramsOrder = paramsRequiresPrice;
+                if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
-                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isEqual(cost, null)))))
+                    if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
                     {
-                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         cost = Precise.stringMul(amountString, priceString);
                     }
                 } else
                 {
-                    cost = ((Helpers.isTrue((Helpers.isEqual(cost, null))))) ? this.numberToString(amount) : cost;
+                    cost = (((java.util.Objects.equals(cost, null)))) ? this.numberToString(amount) : cost;
                 }
-                Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, cost));
+                request.put("price", this.priceToPrecision(symbol, cost));
             } else
             {
-                Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount));
+                request.put("volume", this.amountToPrecision(symbol, amount));
                 typeRequest = "market";
             }
-            Helpers.addElementToObject(request, "order_type", typeRequest);
+            request.put("order_type", typeRequest);
         }
-        String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-        if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+        String clientOrderId = this.safeString2(paramsOrder, "clientOrderId", "client_order_id");
+        if (!java.util.Objects.equals(clientOrderId, null))
         {
-            Helpers.addElementToObject(request, "client_order_id", clientOrderId);
-            parameters = this.omit(parameters, "clientOrderId");
+            request.put("client_order_id", clientOrderId);
         }
-        return this.extend(request, parameters);
+        Object paramsRequest = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOrder, "clientOrderId") : paramsOrder;
+        return (Map<String, Object>) (this.extend(request, paramsRequest));
     }
 
     /**
@@ -2082,72 +2037,63 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrder", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Object request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> response = null;
+            if ((generation != null && generation == 2))
             {
-                request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+                request = this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, paramsGeneration);
                 response = (this.privatePostV2Orders(request)).join();
             } else
             {
-                Helpers.addElementToObject(request, "order_currency", Helpers.GetValue(market, "base"));
-                Helpers.addElementToObject(request, "payment_currency", Helpers.GetValue(market, "quote"));
-                Helpers.addElementToObject(request, "units", this.amountToPrecision(symbol, amount));
-                if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
+                ((Map<String, Object>)request).put("order_currency", market.get("base"));
+                ((Map<String, Object>)request).put("payment_currency", market.get("quote"));
+                ((Map<String, Object>)request).put("units", this.amountToPrecision(symbol, amount));
+                if (java.util.Objects.equals(type, "limit"))
                 {
-                    Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+                    ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
                     String typeRequest = null;
-                    if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+                    if (java.util.Objects.equals(side, "buy"))
                     {
                         typeRequest = "bid";
                     } else
                     {
                         typeRequest = "ask";
                     }
-                    Helpers.addElementToObject(request, "type", typeRequest);
-                    response = (this.privatePostTradePlace(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+                    ((Map<String, Object>)request).put("type", typeRequest);
+                    response = (this.privatePostTradePlace(this.extend(request, paramsGeneration))).join();
+                } else if (java.util.Objects.equals(side, "buy"))
                 {
-                    response = (this.privatePostTradeMarketBuy(this.extend(request, parameters))).join();
+                    response = (this.privatePostTradeMarketBuy(this.extend(request, paramsGeneration))).join();
                 } else
                 {
-                    response = (this.privatePostTradeMarketSell(this.extend(request, parameters))).join();
+                    response = (this.privatePostTradeMarketSell(this.extend(request, paramsGeneration))).join();
                 }
             }
             String id = this.safeString(response, "order_id");
-            if (Helpers.isTrue(Helpers.isEqual(id, null)))
+            if (java.util.Objects.equals(id, null))
             {
-                throw new InvalidOrder(Helpers.add(this.id, " createOrder() did not return an order id")) ;
+                throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
             }
-            final Object finalResponse = response;
-            final Object finalType = type;
-            final Object finalSide = side;
-            final Object finalId = id;
-            return this.extend(this.parseOrder(response, market), new HashMap<String, Object>() {{
-                put( "info", finalResponse );
-                put( "symbol", symbol );
-                put( "type", finalType );
-                put( "side", finalSide );
-                put( "id", finalId );
-            }});
+            return this.extend(this.parseOrder(response, market), Helpers.newMap(
+                "info", response,
+                "symbol", symbol,
+                "type", type,
+                "side", side,
+                "id", id
+            ));
         }).thenApply(Order::new);
 
     }
@@ -2163,26 +2109,24 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
             }
-            Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
+            ((Map<String, Object>)paramsGeneration).put("createMarketBuyOrderRequiresPrice", false);
+            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, paramsGeneration)).join();
         }).thenApply(Order::new);
 
     }
@@ -2202,47 +2146,43 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createTwapOrder(String symbol, Object side2, Object amount2, Object duration, Object... optionalArgs)
+    public CompletableFuture<Order> createTwapOrder(String symbol, String side, Object amount, Object duration, Map<String, Object> parameters)
     {
-        final Object side3 = side2;
-        final Object amount3 = amount2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object side = side3;
-            Object amount = amount3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createTwapOrder", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createTwapOrder", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " createTwapOrder() is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " createTwapOrder() is only supported for the generation 2 API")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object durationString = this.numberToString(duration);
+            Map<String, Object> market = this.market(symbol);
+            String durationString = this.numberToString(duration);
             String durationSeconds = Precise.stringDiv(durationString, "1000");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Bithumb.this.getGen2MarketId(market) );
+                put( "market", Bithumb.this.getGen2MarketId((Map<String, Object>) (market)) );
                 put( "duration", durationSeconds );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
+            if (!java.util.Objects.equals(amount, null))
             {
-                Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount)); // required for sale
+                request.put("volume", this.amountToPrecision(symbol, amount)); // required for sale
             }
             String sideRequest = null;
-            if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+            if (java.util.Objects.equals(side, "buy"))
             {
                 sideRequest = "bid";
             } else
             {
                 sideRequest = "ask";
             }
-            Helpers.addElementToObject(request, "side", sideRequest);
-            Map<String, Object> response = (this.privatePostV1Twap(this.extend(request, parameters))).join();
+            request.put("side", sideRequest);
+            Map<String, Object> response = (this.privatePostV1Twap(this.extend(request, paramsGeneration))).join();
             //
             //     {
             //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
@@ -2269,41 +2209,38 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrder", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrder", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            Map<String, Object> market = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            Object twap = this.safeBool(parameters, "twap", false);
-            parameters = this.omit(parameters, "twap");
+            Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
-            Object data = null;
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            Map<String, Object> response = null;
+            Map<String, Object> data = null;
+            if ((generation != null && generation == 2))
             {
-                if (Helpers.isTrue(twap))
+                if (Boolean.TRUE.equals(twap))
                 {
-                    if (Helpers.isTrue(!Helpers.isEqual(market, null)))
+                    if (!java.util.Objects.equals(market, null))
                     {
-                        Helpers.addElementToObject(request, "market", this.getGen2MarketId(market));
+                        request.put("market", this.getGen2MarketId((Map<String, Object>) (market)));
                     }
-                    Helpers.addElementToObject(request, "uuids", new ArrayList<Object>(Arrays.asList(id)));
-                    response = (this.privateGetV1Twap(this.extend(request, parameters))).join();
+                    request.put("uuids", new ArrayList<Object>(Arrays.asList(id)));
+                    response = (this.privateGetV1Twap(this.extend(request, paramsOmitted))).join();
                     //
                     //     {
                     //         "has_next": false,
@@ -2328,20 +2265,20 @@ public class Bithumb extends BithumbApi
                     //         ]
                     //     }
                     //
-                    Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-                    data = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
+                    List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+                    data = (Map<String, Object>) this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
                 } else
                 {
-                    String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-                    if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+                    String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
+                    Map<String, Object> paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : paramsOmitted;
+                    if (!java.util.Objects.equals(clientOrderId, null))
                     {
-                        Helpers.addElementToObject(request, "client_order_id", clientOrderId);
-                        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+                        request.put("client_order_id", clientOrderId);
                     } else
                     {
-                        Helpers.addElementToObject(request, "uuid", id);
+                        request.put("uuid", id);
                     }
-                    response = (this.privateGetV1Order(this.extend(request, parameters))).join();
+                    response = (this.privateGetV1Order(this.extend(request, paramsClientOrderId))).join();
                     //
                     //     {
                     //         "uuid": "C0101000003152406454",
@@ -2368,21 +2305,21 @@ public class Bithumb extends BithumbApi
                 }
             } else
             {
-                if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                if (java.util.Objects.equals(symbol, null))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                    throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
                 }
-                Object marketDefined = market;
+                Map<String, Object> marketDefined = market;
                 String base = this.safeString(marketDefined, "base");
                 String quote = this.safeString(marketDefined, "quote");
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a market with defined base and quote")) ;
+                    throw new ArgumentsRequired((this.id + " fetchOrder() requires a market with defined base and quote")) ;
                 }
-                Helpers.addElementToObject(request, "order_id", id);
-                Helpers.addElementToObject(request, "order_currency", base);
-                Helpers.addElementToObject(request, "payment_currency", quote);
-                response = (this.privatePostInfoOrderDetail(this.extend(request, parameters))).join();
+                request.put("order_id", id);
+                request.put("order_currency", base);
+                request.put("payment_currency", quote);
+                response = (this.privatePostInfoOrderDetail(this.extend(request, paramsOmitted))).join();
                 //
                 //     {
                 //         "status": "0000",
@@ -2410,7 +2347,7 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     }
                 //
-                data = this.safeDict(response, "data");
+                data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             }
             Map<String, Object> orderData = new HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -2421,7 +2358,7 @@ public class Bithumb extends BithumbApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Pending", "open" );
@@ -2436,7 +2373,7 @@ public class Bithumb extends BithumbApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //
@@ -2554,18 +2491,17 @@ public class Bithumb extends BithumbApi
         //         "cancel_type": "user"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         String datetime = this.safeString(order, "created_at");
         Object timestamp = null;
-        if (Helpers.isTrue(!Helpers.isEqual(datetime, null)))
+        if (!java.util.Objects.equals(datetime, null))
         {
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))
+            if (((String)datetime).indexOf("+09:00") > -1)
             {
-                Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
+                String normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
                 Long normalizedTimestamp = this.parse8601(normalized);
-                if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
+                if (!java.util.Objects.equals(normalizedTimestamp, null))
                 {
-                    timestamp = Helpers.subtract(normalizedTimestamp, Helpers.multiply(9, 3600000));
+                    timestamp = (normalizedTimestamp - (9L * 3600000L));
                 } else
                 {
                     timestamp = this.parse8601(datetime);
@@ -2581,10 +2517,10 @@ public class Bithumb extends BithumbApi
         }
         String sideProperty = this.safeString2(order, "type", "side");
         String side = null;
-        if (Helpers.isTrue(Helpers.isEqual(sideProperty, "bid")))
+        if (java.util.Objects.equals(sideProperty, "bid"))
         {
             side = "buy";
-        } else if (Helpers.isTrue(Helpers.isEqual(sideProperty, "ask")))
+        } else if (java.util.Objects.equals(sideProperty, "ask"))
         {
             side = "sell";
         }
@@ -2592,9 +2528,9 @@ public class Bithumb extends BithumbApi
         String price = this.safeString2(order, "order_price", "price");
         String type = this.safeString2(order, "order_type", "ord_type");
         String progressCount = this.safeString(order, "progress_count");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, null))) && Helpers.isTrue((!Helpers.isEqual(price, null)))) && Helpers.isTrue((Helpers.isEqual(progressCount, null)))))
+        if ((java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(price, null)) && (java.util.Objects.equals(progressCount, null)))
         {
-            if (Helpers.isTrue(Precise.stringEquals(price, "0")))
+            if (Precise.stringEquals(price, "0"))
             {
                 type = "market";
             } else
@@ -2604,91 +2540,78 @@ public class Bithumb extends BithumbApi
         }
         Object amount = this.fixCommaNumber(this.safeStringN(order, new ArrayList<Object>(Arrays.asList("order_qty", "units", "volume"))));
         Object remaining = this.fixCommaNumber(this.safeString2(order, "units_remaining", "remaining_volume"));
-        if (Helpers.isTrue(Helpers.isEqual(remaining, null)))
+        if (java.util.Objects.equals(remaining, null))
         {
-            if (Helpers.isTrue(Helpers.isEqual(status, "closed")))
+            if (java.util.Objects.equals(status, "closed"))
             {
                 remaining = "0";
-            } else if (Helpers.isTrue(!Helpers.isEqual(status, "canceled")))
+            } else if (!java.util.Objects.equals(status, "canceled"))
             {
                 remaining = amount;
             }
         }
-        Object symbol = null;
+        String symbol = null;
         String baseId = this.safeString(order, "order_currency");
         String quoteId = this.safeString(order, "payment_currency");
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && Helpers.isTrue((!Helpers.isEqual(quote, null)))))
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
-            symbol = Helpers.add(Helpers.add(base, "/"), quote);
+            symbol = ((base + "/") + quote);
         }
-        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+        String marketId = this.safeString(order, "market");
+        Object marketResolved = (((java.util.Objects.equals(symbol, null)))) ? this.safeMarket(marketId, market, (String) null, (String) null) : market;
+        if (java.util.Objects.equals(symbol, null))
         {
-            String marketId = this.safeString(order, "market");
-            market = this.safeMarket(marketId, market);
-            symbol = Helpers.GetValue(market, "symbol");
+            symbol = this.safeString(marketResolved, "symbol");
         }
         String id = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("order_id", "uuid", "algo_order_id")));
-        Object rawTrades = this.safeList2(order, "contract", "trades", new ArrayList<Object>(Arrays.asList()));
-        Double feeCost = this.safeNumber(order, "reserved_fee");
-        Object fee = null;
-        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        List<Object> rawTrades = (List<Object>) this.safeList2(order, "contract", "trades", new ArrayList<Object>(Arrays.asList()));
+        Double feeCost = this.safeNumber(order, "reserved_fee", (Object) null);
+        Map<String, Object> fee = null;
+        if (!java.util.Objects.equals(feeCost, null))
         {
-            Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(market, null)))
+            String currency = null;
+            if (!java.util.Objects.equals(marketResolved, null))
             {
-                currency = Helpers.GetValue(market, "quote");
+                currency = this.safeString(marketResolved, "quote");
             }
-            final Object finalCurrency = currency;
-            final Object finalFeeCost = feeCost;
-            fee = new HashMap<String, Object>() {{
-                put( "currency", finalCurrency );
-                put( "cost", finalFeeCost );
-                put( "rate", null );
-            }};
+            fee = Helpers.newMap(
+                "currency", currency,
+                "cost", feeCost,
+                "rate", null
+            );
         }
-        Object postOnly = null;
+        Boolean postOnly = null;
         String timeInForce = this.safeStringUpper(order, "time_in_force");
-        if (Helpers.isTrue(Helpers.isEqual(timeInForce, "POST_ONLY")))
+        if (java.util.Objects.equals(timeInForce, "POST_ONLY"))
         {
             timeInForce = "PO";
             postOnly = true;
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalDatetime = datetime;
-        final Object finalSymbol = symbol;
-        final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalPostOnly = postOnly;
-        final Object finalSide = side;
-        final Object finalPrice = price;
-        final Object finalRemaining = remaining;
-        final Object finalStatus = status;
-        final Object finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "info", order );
-            put( "id", id );
-            put( "clientOrderId", Bithumb.this.safeString(order, "client_order_id") );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", finalDatetime );
-            put( "lastTradeTimestamp", null );
-            put( "symbol", finalSymbol );
-            put( "type", finalType );
-            put( "timeInForce", finalTimeInForce );
-            put( "postOnly", finalPostOnly );
-            put( "side", finalSide );
-            put( "price", finalPrice );
-            put( "triggerPrice", null );
-            put( "amount", amount );
-            put( "cost", null );
-            put( "average", Bithumb.this.safeNumber(order, "avg_trade_price") );
-            put( "filled", null );
-            put( "remaining", finalRemaining );
-            put( "status", finalStatus );
-            put( "fee", finalFee );
-            put( "trades", rawTrades );
-        }}, market);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", datetime);
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("postOnly", postOnly);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", null);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("average", this.safeNumber(order, "avg_trade_price", (Object) null));
+        mapLiteral4.put("filled", null);
+        mapLiteral4.put("remaining", remaining);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("trades", rawTrades);
+        return this.safeOrder(mapLiteral4, Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -2707,61 +2630,53 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOpenOrders", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object market = null;
-            Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            Map<String, Object> market = null;
+            Map<String, Object> response = null;
+            if ((generation != null && generation == 2))
             {
-                Object twap = this.safeBool(parameters, "twap", false);
-                if (Helpers.isTrue(twap))
+                Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
+                if (Boolean.TRUE.equals(twap))
                 {
-                    Helpers.addElementToObject(parameters, "state", "progress");
+                    ((Map<String, Object>)paramsGeneration).put("state", "progress");
                 } else
                 {
-                    Helpers.addElementToObject(parameters, "state", "wait");
+                    ((Map<String, Object>)paramsGeneration).put("state", "wait");
                 }
-                Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-                return this.filterBySinceLimit(orders, since, limit);
+                List<Order> orders = (this.fetchOrders(symbol, since, limit, paramsGeneration)).join();
+                return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
             } else
             {
-                if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                if (java.util.Objects.equals(symbol, null))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                    throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
                 }
                 market = this.market(symbol);
-                if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+                if (!java.util.Objects.equals(since, null))
                 {
-                    Helpers.addElementToObject(request, "after", since);
+                    request.put("after", since);
                 }
-                if (Helpers.isTrue(Helpers.isEqual(limit, null)))
-                {
-                    limit = 100;
-                }
-                Helpers.addElementToObject(request, "count", limit);
-                Helpers.addElementToObject(request, "order_currency", Helpers.GetValue(market, "base"));
-                Helpers.addElementToObject(request, "payment_currency", Helpers.GetValue(market, "quote"));
-                response = (this.privatePostInfoOrders(this.extend(request, parameters))).join();
+                request.put("count", limitResolved);
+                request.put("order_currency", market.get("base"));
+                request.put("payment_currency", market.get("quote"));
+                response = (this.privatePostInfoOrders(this.extend(request, paramsGeneration))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseOrders(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2781,54 +2696,53 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrders", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " fetchOrders is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " fetchOrders is only supported for the generation 2 API")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object twap = this.safeBool(parameters, "twap", false);
-            parameters = this.omit(parameters, "twap");
-            if (!Helpers.isTrue(twap))
+            Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
+            List<Object> clientOrderIds = null;
+            if (Boolean.TRUE.equals(twap))
             {
-                Object clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
-                if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
-                {
-                    Helpers.addElementToObject(request, "client_order_ids", clientOrderIds);
-                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds")));
-                }
+                clientOrderIds = null;
+            } else
+            {
+                clientOrderIds = (List<Object>) this.safeList2(paramsOmitted, "client_order_ids", "clientOrderIds", (Object) null);
             }
-            Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            Map<String, Object> paramsRequest = (((!java.util.Objects.equals(clientOrderIds, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : paramsOmitted;
+            if (!java.util.Objects.equals(clientOrderIds, null))
+            {
+                request.put("client_order_ids", clientOrderIds);
+            }
+            Map<String, Object> market = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "market", this.getGen2MarketId(market));
+                request.put("market", this.getGen2MarketId((Map<String, Object>) (market)));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                request.put("limit", limit);
             }
             Object response = null;
             Object data = null;
-            if (Helpers.isTrue(twap))
+            if (Boolean.TRUE.equals(twap))
             {
-                response = (this.privateGetV1Twap(this.extend(request, parameters))).join();
+                response = (this.privateGetV1Twap(this.extend(request, paramsRequest))).join();
                 //
                 //     {
                 //         "has_next": false,
@@ -2856,7 +2770,7 @@ public class Bithumb extends BithumbApi
                 data = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                response = (this.privateGetV1Orders(this.extend(request, parameters))).join();
+                response = (this.privateGetV1Orders(this.extend(request, paramsRequest))).join();
                 //
                 //     [
                 //         {
@@ -2882,8 +2796,8 @@ public class Bithumb extends BithumbApi
                 //
                 data = response;
             }
-            return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2902,19 +2816,15 @@ public class Bithumb extends BithumbApi
      * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(parameters, "state", "done");
-            Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-            return this.filterBySinceLimit(orders, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            parameters.put("state", "done");
+            List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+            return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2933,19 +2843,15 @@ public class Bithumb extends BithumbApi
      * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(parameters, "state", "cancel");
-            Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-            return this.filterBySinceLimit(orders, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            parameters.put("state", "cancel");
+            List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+            return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2964,86 +2870,88 @@ public class Bithumb extends BithumbApi
      * @param {bool} [params.twap] if you want to cancel a generation 2 twap order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrder", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            Map<String, Object> market = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
-            Object twap = this.safeBool(parameters, "twap", false);
-            parameters = this.omit(parameters, "twap");
-            if (Helpers.isTrue(twap))
+            Map<String, Object> response = null;
+            Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
+            String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
+            Boolean useClientOrderId = !Boolean.TRUE.equals(twap) && ((generation != null && generation == 2)) && (!java.util.Objects.equals(clientOrderId, null));
+            Map<String, Object> paramsRequest = paramsOmitted;
+            if (Boolean.TRUE.equals(useClientOrderId))
             {
-                Helpers.addElementToObject(request, "algo_order_id", id);
+                paramsRequest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+            }
+            if (Boolean.TRUE.equals(twap))
+            {
+                request.put("algo_order_id", id);
             } else
             {
-                String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(generation, 2))) && Helpers.isTrue((!Helpers.isEqual(clientOrderId, null)))))
+                if (Boolean.TRUE.equals(useClientOrderId))
                 {
-                    Helpers.addElementToObject(request, "client_order_id", clientOrderId);
-                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+                    request.put("client_order_id", clientOrderId);
                 } else
                 {
-                    Helpers.addElementToObject(request, "order_id", id);
+                    request.put("order_id", id);
                 }
             }
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            if ((generation != null && generation == 2))
             {
-                if (Helpers.isTrue(twap))
+                if (Boolean.TRUE.equals(twap))
                 {
-                    response = (this.privateDeleteV1Twap(this.extend(request, parameters))).join();
+                    response = (this.privateDeleteV1Twap(this.extend(request, paramsRequest))).join();
                 } else
                 {
-                    response = (this.privateDeleteV2Order(this.extend(request, parameters))).join();
+                    response = (this.privateDeleteV2Order(this.extend(request, paramsRequest))).join();
                 }
             } else
             {
-                if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                if (java.util.Objects.equals(symbol, null))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                    throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
                 }
-                Object marketDefined = market;
+                Map<String, Object> marketDefined = market;
                 String base = this.safeString(marketDefined, "base");
                 String quote = this.safeString(marketDefined, "quote");
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a market with defined base and quote")) ;
+                    throw new ArgumentsRequired((this.id + " cancelOrder() requires a market with defined base and quote")) ;
                 }
-                Boolean side_in_params = (Helpers.inOp(parameters, "side"));
-                if (!Helpers.isTrue(side_in_params))
+                Boolean side_in_params = (paramsRequest.containsKey("side"));
+                if (!Boolean.TRUE.equals(side_in_params))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)")) ;
+                    throw new ArgumentsRequired((this.id + " cancelOrder() requires a `side` parameter (sell or buy)")) ;
                 }
                 String side = null;
-                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(parameters, "side"), "buy")))
+                if (java.util.Objects.equals(this.safeString(paramsRequest, "side"), "buy"))
                 {
                     side = "bid";
                 } else
                 {
                     side = "ask";
                 }
-                parameters = this.omit(parameters, "side");
+                Map<String, Object> paramsSide = this.omit(paramsRequest, "side");
                 // https://github.com/ccxt/ccxt/issues/6771
-                Helpers.addElementToObject(request, "type", side);
-                Helpers.addElementToObject(request, "order_currency", base);
-                Helpers.addElementToObject(request, "payment_currency", quote);
-                response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
+                request.put("type", side);
+                request.put("order_currency", base);
+                request.put("payment_currency", quote);
+                response = (this.privatePostTradeCancel(this.extend(request, paramsSide))).join();
             }
             return this.extend(this.parseOrder(response, market), new HashMap<String, Object>() {{
                 put( "id", id );
@@ -3064,41 +2972,38 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrders", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " cancelOrders is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " cancelOrders is only supported for the generation 2 API")) ;
             }
-            Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            Map<String, Object> market = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
-            if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
+            List<Object> clientOrderIds = (List<Object>) this.safeList2(paramsGeneration, "client_order_ids", "clientOrderIds", (Object) null);
+            Map<String, Object> paramsRequest = (((!java.util.Objects.equals(clientOrderIds, null)))) ? this.omit(paramsGeneration, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : paramsGeneration;
+            if (!java.util.Objects.equals(clientOrderIds, null))
             {
-                Helpers.addElementToObject(request, "client_order_ids", clientOrderIds);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds")));
+                request.put("client_order_ids", clientOrderIds);
             } else
             {
-                Helpers.addElementToObject(request, "order_ids", ids);
+                request.put("order_ids", ids);
             }
-            Map<String, Object> response = (this.privatePostV2OrdersCancel(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostV2OrdersCancel(this.extend(request, paramsRequest))).join();
             //
             //     {
             //         "success": [
@@ -3110,22 +3015,21 @@ public class Bithumb extends BithumbApi
             //         "fail": []
             //     }
             //
-            Object data = this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            List<Object> data = (List<Object>) this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
+            return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public CompletableFuture<Order> cancelUnifiedOrder(Object order, Object... optionalArgs)
+    public CompletableFuture<Order> cancelUnifiedOrder(Object order, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "side", Helpers.GetValue(order, "side") );
+                put( "side", ((Map<String, Object>)order).get("side") );
             }};
-            return (this.cancelOrder((Object)(((String)Helpers.GetValue(order, "id"))), (Object)(Helpers.GetValue(order, "symbol")), (Object)(this.extend(request, parameters)))).join();
+            return (this.cancelOrder(((String)((Map<String, Object>)order).get("id")), Helpers.toStringArg(((Map<String, Object>)order).get("symbol")), this.extend(request, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -3156,115 +3060,117 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
-        final Object code3 = code2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object code = code3;
-            Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "withdraw", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "withdraw", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (paramsGeneration));
+            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
-            String network = this.safeString2(parameters, "network", "net_type");
-            parameters = this.omit(parameters, "network");
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            String network = this.safeString2(paramsWithdrawTag, "network", "net_type");
+            Map<String, Object> paramsNetwork = this.omit(paramsWithdrawTag, "network");
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             Object destinationRequest = null;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, "XRP")) || Helpers.isTrue(Helpers.isEqual(code, "XMR"))) || Helpers.isTrue(Helpers.isEqual(code, "EOS"))) || Helpers.isTrue(Helpers.isEqual(code, "STEEM"))) || Helpers.isTrue(Helpers.isEqual(code, "TON"))))
+            Boolean requiresDestination = (java.util.Objects.equals(code, "XRP") || java.util.Objects.equals(code, "XMR") || java.util.Objects.equals(code, "EOS") || java.util.Objects.equals(code, "STEEM") || java.util.Objects.equals(code, "TON"));
+            Map<String, Object> paramsDestination = paramsNetwork;
+            if (Boolean.TRUE.equals(requiresDestination))
             {
-                String destination = this.safeString2(parameters, "destination", "secondary_address");
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("destination", "secondary_address")));
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tag, null))) && Helpers.isTrue((Helpers.isEqual(destination, null)))))
+                paramsDestination = this.omit(paramsNetwork, new ArrayList<Object>(Arrays.asList("destination", "secondary_address")));
+            }
+            if (Boolean.TRUE.equals(requiresDestination))
+            {
+                String destination = this.safeString2(paramsNetwork, "destination", "secondary_address");
+                if ((java.util.Objects.equals(tagWithdrawTag, null)) && (java.util.Objects.equals(destination, null)))
                 {
-                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " withdraw() requires a tag argument or an extra destination param")) ;
-                } else if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
+                    throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a tag argument or an extra destination param")) ;
+                } else if (!java.util.Objects.equals(tagWithdrawTag, null))
                 {
-                    destinationRequest = tag;
+                    destinationRequest = tagWithdrawTag;
                 } else
                 {
                     destinationRequest = destination;
                 }
             }
-            String receiverType = this.safeString2(parameters, "receiver_type", "cust_type_cd");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("receiver_type", "cust_type_cd")));
-            if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
+            String receiverType = this.safeString2(paramsDestination, "receiver_type", "cust_type_cd");
+            Map<String, Object> paramsReceiverType = this.omit(paramsDestination, new ArrayList<Object>(Arrays.asList("receiver_type", "cust_type_cd")));
+            if ((generation != null && generation == 2))
             {
-                if (Helpers.isTrue(Helpers.isEqual(code, "KRW")))
+                if (java.util.Objects.equals(code, "KRW"))
                 {
-                    String twoFactorType = this.safeString(parameters, "two_factor_type");
-                    if (Helpers.isTrue(Helpers.isEqual(twoFactorType, null)))
+                    String twoFactorType = this.safeString(paramsReceiverType, "two_factor_type");
+                    if (java.util.Objects.equals(twoFactorType, null))
                     {
-                        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
+                        throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
                     }
                     Map<String, Object> krwRequest = new HashMap<String, Object>() {{
                         put( "amount", Bithumb.this.numberToString(amount) );
                     }}; // KRW withdraw only accepts amount and two_factor_type parameters
-                    response = (this.privatePostV1WithdrawsKrw(this.extend(krwRequest, parameters))).join();
+                    response = (this.privatePostV1WithdrawsKrw(this.extend(krwRequest, paramsReceiverType))).join();
                 } else
                 {
-                    if (Helpers.isTrue(Helpers.isEqual(network, null)))
+                    if (java.util.Objects.equals(network, null))
                     {
-                        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " withdraw() requires a network parameter")) ;
+                        throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a network parameter")) ;
                     }
-                    Helpers.addElementToObject(request, "address", address);
-                    Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
-                    Helpers.addElementToObject(request, "net_type", network);
-                    Helpers.addElementToObject(request, "amount", this.numberToString(amount));
-                    if (Helpers.isTrue(!Helpers.isEqual(destinationRequest, null)))
+                    request.put("address", address);
+                    request.put("currency", currency.get("id"));
+                    request.put("net_type", network);
+                    request.put("amount", this.numberToString(amount));
+                    if (!java.util.Objects.equals(destinationRequest, null))
                     {
-                        Helpers.addElementToObject(request, "secondary_address", destinationRequest);
+                        request.put("secondary_address", destinationRequest);
                     }
-                    if (Helpers.isTrue(!Helpers.isEqual(receiverType, null)))
+                    if (!java.util.Objects.equals(receiverType, null))
                     {
-                        Helpers.addElementToObject(request, "receiver_type", receiverType);
+                        request.put("receiver_type", receiverType);
                     }
-                    response = (this.privatePostV1WithdrawsCoin(this.extend(request, parameters))).join();
+                    response = (this.privatePostV1WithdrawsCoin(this.extend(request, paramsReceiverType))).join();
                 }
             } else
             {
-                Helpers.addElementToObject(request, "address", address);
-                Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
-                Helpers.addElementToObject(request, "units", amount);
-                if (Helpers.isTrue(!Helpers.isEqual(network, null)))
+                request.put("address", address);
+                request.put("currency", currency.get("id"));
+                request.put("units", amount);
+                if (!java.util.Objects.equals(network, null))
                 {
-                    Helpers.addElementToObject(request, "net_type", network);
+                    request.put("net_type", network);
                 }
-                if (Helpers.isTrue(!Helpers.isEqual(destinationRequest, null)))
+                if (!java.util.Objects.equals(destinationRequest, null))
                 {
-                    Helpers.addElementToObject(request, "destination", destinationRequest);
+                    request.put("destination", destinationRequest);
                 }
-                if (Helpers.isTrue(!Helpers.isEqual(receiverType, null)))
+                if (!java.util.Objects.equals(receiverType, null))
                 {
-                    if (Helpers.isTrue(Helpers.isEqual(receiverType, "corporation")))
+                    if (java.util.Objects.equals(receiverType, "corporation"))
                     {
-                        Helpers.addElementToObject(request, "cust_type_cd", "Corporation 02");
-                    } else if (Helpers.isTrue(Helpers.isEqual(receiverType, "personal")))
+                        request.put("cust_type_cd", "Corporation 02");
+                    } else if (java.util.Objects.equals(receiverType, "personal"))
                     {
-                        Helpers.addElementToObject(request, "cust_type_cd", "Individual 01");
+                        request.put("cust_type_cd", "Individual 01");
                     } else
                     {
-                        Helpers.addElementToObject(request, "cust_type_cd", receiverType);
+                        request.put("cust_type_cd", receiverType);
                     }
                 }
-                response = (this.privatePostTradeBtcWithdrawal(this.extend(request, parameters))).join();
+                response = (this.privatePostTradeBtcWithdrawal(this.extend(request, paramsReceiverType))).join();
             }
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // generation 1: withdraw
@@ -3288,56 +3194,53 @@ public class Bithumb extends BithumbApi
         //         "txid": null
         //     }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
         String type = this.safeString(transaction, "type");
         String currencyId = this.safeString(transaction, "currency");
-        currency = this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         String datetime = this.safeString(transaction, "created_at");
         Object timestamp = this.parse8601(datetime);
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(datetime, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))))
+        if ((!java.util.Objects.equals(datetime, null)) && (((String)datetime).indexOf("+09:00") > -1))
         {
-            Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
+            String normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
             Long normalizedTimestamp = this.parse8601(normalized);
-            if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
+            if (!java.util.Objects.equals(normalizedTimestamp, null))
             {
-                timestamp = Helpers.subtract(normalizedTimestamp, Helpers.multiply(9, 3600000));
+                timestamp = (normalizedTimestamp - (9L * 3600000L));
             }
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalDatetime = datetime;
-        final Object finalCurrency = currency;
-        return new HashMap<String, Object>() {{
-            put( "id", Bithumb.this.safeString(transaction, "uuid") );
-            put( "txid", Bithumb.this.safeString(transaction, "txid") );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", finalDatetime );
-            put( "network", Bithumb.this.safeString(transaction, "net_type") );
-            put( "addressFrom", null );
-            put( "address", null );
-            put( "addressTo", null );
-            put( "amount", Bithumb.this.safeNumber(transaction, "amount") );
-            put( "type", type );
-            put( "currency", Helpers.GetValue(finalCurrency, "code") );
-            put( "status", Bithumb.this.parseTransactionStatusByType(Bithumb.this.safeString(transaction, "state"), type) );
-            put( "updated", null );
-            put( "tagFrom", null );
-            put( "tag", null );
-            put( "tagTo", null );
-            put( "comment", null );
-            put( "internal", null );
-            put( "fee", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString(transaction, "uuid"));
+            h2kMap0.put("txid", this.safeString(transaction, "txid"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", datetime);
+            h2kMap0.put("network", this.safeString(transaction, "net_type"));
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("type", type);
+            h2kMap0.put("currency", currencyResolved.get("code"));
+            h2kMap0.put("status", this.parseTransactionStatusByType(this.safeString(transaction, "state"), type));
+            h2kMap0.put("updated", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", new HashMap<String, Object>() {{
                 put( "currency", null );
-                put( "cost", Bithumb.this.safeNumber(transaction, "fee") );
+                put( "cost", Bithumb.this.safeNumber(transaction, "fee", (Object) null) );
                 put( "rate", null );
-            }} );
-            put( "info", transaction );
-        }};
+            }});
+            h2kMap0.put("info", transaction);
+            return h2kMap0;
+        }
     }
 
-    public Object parseTransactionStatusByType(Object status, Object... optionalArgs)
+    public String parseTransactionStatusByType(String status, String type)
     {
-        Object type = Helpers.getArg(optionalArgs, 0, null);
-        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        if (java.util.Objects.equals(type, null))
         {
             return status;
         }
@@ -3359,7 +3262,7 @@ public class Bithumb extends BithumbApi
                 put( "CANCELLED", "canceled" );
             }} );
         }};
-        Object statuses = this.safeDict(statusesByType, ((String)type), new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, ((String)type), new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -3372,25 +3275,23 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list response from the exchange
      */
-    public CompletableFuture<Object> fetchWithdrawalWhitelist(Object... optionalArgs)
+    public CompletableFuture<Object> fetchWithdrawalWhitelist(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
             }
-            List<Object> response = (this.privateGetV1WithdrawsCoinAddresses(parameters)).join();
+            List<Object> response = (this.privateGetV1WithdrawsCoinAddresses(paramsGeneration)).join();
             //
             //     [
             //         {
@@ -3422,38 +3323,35 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchWithdrawal(String id2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
     {
-        final Object id3 = id2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object id = id3;
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawal", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchWithdrawal", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " fetchWithdrawal() is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " fetchWithdrawal() is only supported for the generation 2 API")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(code, null)))
+            if (java.util.Objects.equals(code, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchWithdrawal() requires a code argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchWithdrawal() requires a code argument")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", Helpers.GetValue(currency, "id") );
+                put( "currency", currency.get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(id, null)))
+            if (!java.util.Objects.equals(id, null))
             {
-                Helpers.addElementToObject(request, "uuid", id);
+                request.put("uuid", id);
             }
-            Map<String, Object> response = (this.privateGetV1Withdraw(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetV1Withdraw(this.extend(request, paramsGeneration))).join();
             //
             //     {
             //         "type": "withdraw",
@@ -3469,7 +3367,7 @@ public class Bithumb extends BithumbApi
             //         "txid": null
             //     }
             //
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         });
 
     }
@@ -3492,46 +3390,41 @@ public class Bithumb extends BithumbApi
      * @param {string[]} [params.txids] an array of txid strings
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchWithdrawals", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " fetchWithdrawals() is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " fetchWithdrawals() is only supported for the generation 2 API")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                request.put("limit", limit);
             }
-            Object response = null;
-            Object currency = null;
-            if (Helpers.isTrue(Helpers.isEqual(code, "KRW")))
+            List<Object> response = null;
+            Map<String, Object> currency = null;
+            if (java.util.Objects.equals(code, "KRW"))
             {
-                currency = this.currency(code);
-                response = (this.privateGetV1WithdrawsKrw(this.extend(request, parameters))).join();
+                currency = this.currency((String) (code));
+                response = (this.privateGetV1WithdrawsKrw(this.extend(request, paramsGeneration))).join();
             } else
             {
-                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                if (!java.util.Objects.equals(code, null))
                 {
-                    currency = this.currency(code);
-                    Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
+                    currency = this.currency((String) (code));
+                    request.put("currency", currency.get("id"));
                 }
-                response = (this.privateGetV1Withdraws(this.extend(request, parameters))).join();
+                response = (this.privateGetV1Withdraws(this.extend(request, paramsGeneration))).join();
             }
             //
             //     [
@@ -3550,8 +3443,8 @@ public class Bithumb extends BithumbApi
             //         }
             //     ]
             //
-            return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -3567,38 +3460,35 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchDeposit(String id2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchDeposit(String id, String code, Map<String, Object> parameters)
     {
-        final Object id3 = id2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object id = id3;
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposit", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDeposit", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " fetchDeposit() is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " fetchDeposit() is only supported for the generation 2 API")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(code, null)))
+            if (java.util.Objects.equals(code, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDeposit() requires a code argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchDeposit() requires a code argument")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", Helpers.GetValue(currency, "id") );
+                put( "currency", currency.get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(id, null)))
+            if (!java.util.Objects.equals(id, null))
             {
-                Helpers.addElementToObject(request, "uuid", id);
+                request.put("uuid", id);
             }
-            Map<String, Object> response = (this.privateGetV1Deposit(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetV1Deposit(this.extend(request, paramsGeneration))).join();
             //
             //     {
             //         "type": "deposit",
@@ -3614,7 +3504,7 @@ public class Bithumb extends BithumbApi
             //         "txid": null
             //     }
             //
-            return this.parseTransaction(response, currency);
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         });
 
     }
@@ -3637,46 +3527,41 @@ public class Bithumb extends BithumbApi
      * @param {string[]} [params.txids] an array of txid strings
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDeposits", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " fetchDeposits() is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " fetchDeposits() is only supported for the generation 2 API")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                request.put("limit", limit);
             }
-            Object response = null;
-            Object currency = null;
-            if (Helpers.isTrue(Helpers.isEqual(code, "KRW")))
+            List<Object> response = null;
+            Map<String, Object> currency = null;
+            if (java.util.Objects.equals(code, "KRW"))
             {
-                currency = this.currency(code);
-                response = (this.privateGetV1DepositsKrw(this.extend(request, parameters))).join();
+                currency = this.currency((String) (code));
+                response = (this.privateGetV1DepositsKrw(this.extend(request, paramsGeneration))).join();
             } else
             {
-                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                if (!java.util.Objects.equals(code, null))
                 {
-                    currency = this.currency(code);
-                    Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
+                    currency = this.currency((String) (code));
+                    request.put("currency", currency.get("id"));
                 }
-                response = (this.privateGetV1Deposits(this.extend(request, parameters))).join();
+                response = (this.privateGetV1Deposits(this.extend(request, paramsGeneration))).join();
             }
             //
             //     [
@@ -3695,8 +3580,8 @@ public class Bithumb extends BithumbApi
             //         }
             //     ]
             //
-            return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -3711,36 +3596,34 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.network] the blockchain network to create a deposit address on
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createDepositAddress", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createDepositAddress", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " createDepositAddress() is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " createDepositAddress() is only supported for the generation 2 API")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", Helpers.GetValue(currency, "id") );
+                put( "currency", currency.get("id") );
             }};
-            String network = this.safeString2(parameters, "network", "net_type");
-            parameters = this.omit(parameters, "network");
-            if (Helpers.isTrue(Helpers.isEqual(network, null)))
+            String network = this.safeString2(paramsGeneration, "network", "net_type");
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "network");
+            if (java.util.Objects.equals(network, null))
             {
-                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " createDepositAddress() requires a network parameter")) ;
+                throw new ArgumentsRequired((((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
             }
-            Helpers.addElementToObject(request, "net_type", network);
-            Map<String, Object> response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters))).join();
+            request.put("net_type", network);
+            Map<String, Object> response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "currency": "BTC",
@@ -3749,7 +3632,7 @@ public class Bithumb extends BithumbApi
             //         "secondary_address": null
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3765,36 +3648,34 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.network] network for fetch deposit address
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddress", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDepositAddress", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " fetchDepositAddress() is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " fetchDepositAddress() is only supported for the generation 2 API")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", Helpers.GetValue(currency, "id") );
+                put( "currency", currency.get("id") );
             }};
-            String network = this.safeString2(parameters, "network", "net_type");
-            parameters = this.omit(parameters, "network");
-            if (Helpers.isTrue(Helpers.isEqual(network, null)))
+            String network = this.safeString2(paramsGeneration, "network", "net_type");
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "network");
+            if (java.util.Objects.equals(network, null))
             {
-                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " fetchDepositAddress() requires a network parameter")) ;
+                throw new ArgumentsRequired((((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;
             }
-            Helpers.addElementToObject(request, "net_type", network);
-            Map<String, Object> response = (this.privateGetV1DepositsCoinAddress(this.extend(request, parameters))).join();
+            request.put("net_type", network);
+            Map<String, Object> response = (this.privateGetV1DepositsCoinAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "currency": "BTC",
@@ -3803,7 +3684,7 @@ public class Bithumb extends BithumbApi
             //         "secondary_address": null
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3818,26 +3699,23 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
      */
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object... optionalArgs)
+    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object codes = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddresses", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDepositAddresses", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if ((generation == null || generation != 2))
             {
-                throw new BadRequest(Helpers.add(this.id, " fetchDepositAddresses() is only supported for the generation 2 API")) ;
+                throw new BadRequest((this.id + " fetchDepositAddresses() is only supported for the generation 2 API")) ;
             }
-            List<Object> response = (this.privateGetV1DepositsCoinAddresses(parameters)).join();
+            List<Object> response = (this.privateGetV1DepositsCoinAddresses(paramsGeneration)).join();
             //
             //     [
             //         {
@@ -3849,11 +3727,11 @@ public class Bithumb extends BithumbApi
             //     ]
             //
             return this.parseDepositAddresses(response, codes, false, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseDepositAddress(Object response, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> response, Map<String, Object> currency)
     {
         //
         // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
@@ -3865,112 +3743,118 @@ public class Bithumb extends BithumbApi
         //         "secondary_address": null
         //     }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(response, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(response, "deposit_address");
-        if (Helpers.isTrue(Helpers.isEqual(address, null)))
+        if (java.util.Objects.equals(address, null))
         {
-            throw new ExchangeError(Helpers.add(this.id, " parseDepositAddress() could not find deposit_address")) ;
+            throw new ExchangeError((this.id + " parseDepositAddress() could not find deposit_address")) ;
         }
         this.checkAddress(address);
-        final Object finalAddress = address;
-        return new HashMap<String, Object>() {{
-            put( "info", response );
-            put( "currency", code );
-            put( "network", Bithumb.this.safeString(response, "net_type") );
-            put( "address", finalAddress );
-            put( "tag", Bithumb.this.safeString(response, "secondary_address") );
-        }};
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", response);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("network", this.safeString(response, "net_type"));
+            h2kMap1.put("address", address);
+            h2kMap1.put("tag", this.safeString(response, "secondary_address"));
+            return h2kMap1;
+        }
     }
 
-    public Object fixCommaNumber(Object numberStr)
+    public Object fixCommaNumber(String numberStr)
     {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
-        if (Helpers.isTrue(Helpers.isEqual(numberStr, null)))
+        if (java.util.Objects.equals(numberStr, null))
         {
             return null;
         }
-        Object finalNumberStr = numberStr;
-        while (Helpers.isGreaterThan(Helpers.getIndexOf(finalNumberStr, ","), Helpers.opNeg(1)))
+        String finalNumberStr = numberStr;
+        while (((String)finalNumberStr).indexOf(",") > -1)
         {
-            finalNumberStr = Helpers.replace(((String)finalNumberStr), ",", "");
+            finalNumberStr = Helpers.replace(finalNumberStr, (String)",", (String)"");
         }
         return finalNumberStr;
     }
 
-    public Object nonce()
+    public Long nonce()
     {
         return this.milliseconds();
     }
 
-    public Object urlencodeWithArrayBrackets(Object query)
+    public Object urlencodeWithArrayBrackets(Map<String, Object> query)
     {
-        Object keys = Helpers.objectKeys(query);
-        Object result = "";
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        List<String> keys = new ArrayList<String>(query.keySet());
+        String result = "";
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
-            Object value = Helpers.GetValue(query, key);
-            if (Helpers.isTrue(Helpers.isArray(value)))
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            Object value = (query == null || key == null ? null : query.get(key));
+            if ((value instanceof List))
             {
-                Object encodedKey = Helpers.add(this.encodeURIComponent(key), "[]");
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(value)); j++)
+                String encodedKey = (this.encodeURIComponent(key) + "[]");
+                for (var j = 0; j < ((List<?>)value).size(); j++)
                 {
-                    Object item = Helpers.GetValue(value, j);
+                    Object item = (value == null || j < 0 || j >= ((List<?>)value).size() ? null : ((List<?>)value).get(j));
                     String valueString = this.safeString(value, j);
-                    if (Helpers.isTrue(Helpers.isEqual(valueString, null)))
+                    if (java.util.Objects.equals(valueString, null))
                     {
                         valueString = this.json(item);
                     }
-                    if (Helpers.isTrue(Helpers.isGreaterThan(((String)result).length(), 0)))
+                    if (result.length() > 0)
                     {
-                        result = Helpers.add(result, "&");
+                        result = (result + "&");
                     }
-                    result = Helpers.add(result, Helpers.add(Helpers.add(encodedKey, "="), this.encodeURIComponent(valueString)));
+                    result = (result + ((encodedKey + "=") + this.encodeURIComponent(valueString)));
                 }
             } else
             {
-                if (Helpers.isTrue(Helpers.isGreaterThan(((String)result).length(), 0)))
+                if (result.length() > 0)
                 {
-                    result = Helpers.add(result, "&");
+                    result = (result + "&");
                 }
-                Object encodedKey = this.encodeURIComponent(key);
+                String encodedKey = this.encodeURIComponent(key);
                 String valueString = this.safeString(query, key);
-                Object encodedValue = this.encodeURIComponent(valueString);
-                result = Helpers.add(result, Helpers.add(Helpers.add(encodedKey, "="), encodedValue));
+                String encodedValue = this.encodeURIComponent(valueString);
+                result = (result + ((encodedKey + "=") + encodedValue));
             }
         }
         return result;
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = Helpers.getArg(optionalArgs, 0, "public");
-        Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
-        Object body = Helpers.getArg(optionalArgs, 4, null);
-        String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
-        Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api)), endpoint);
-        Object query = this.omit(parameters, this.extractParams(path));
-        Object queryKeys = Helpers.objectKeys(query);
-        Object queryKeysLength = Helpers.getArrayLength(queryKeys);
-        Boolean hasQuery = (Helpers.isGreaterThan(queryKeysLength, 0));
-        if (Helpers.isTrue(Helpers.isEqual(api, "public")))
+        Map<String, Object> requestHeaders = null;
+        Object requestBody = null;
+        String endpoint = ("/" + this.implodeParams(path, parameters));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        if (java.util.Objects.equals(apiUrl, null))
         {
-            if (Helpers.isTrue(hasQuery))
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (this.implodeHostname(apiUrl) + endpoint);
+        Object query = this.omit(parameters, this.extractParams(path));
+        List<Object> queryKeys = Helpers.objectKeys(query);
+        Integer queryKeysLength = ((List<?>)queryKeys).size();
+        Boolean hasQuery = ((queryKeysLength != null && queryKeysLength > 0));
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        {
+            requestHeaders = new HashMap<String, Object>() {{
+                put( "OPEN-API-PARTNER", "CCXT" );
+            }};
+            if (Boolean.TRUE.equals(hasQuery))
             {
-                url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
+                url = (url + ("?" + this.urlencode(query)));
             }
         } else
         {
-            this.checkRequiredCredentials();
-            Boolean isVersionedApi = (Helpers.isTrue(endpoint.startsWith(((String)"/v1/"))) || Helpers.isTrue(endpoint.startsWith(((String)"/v2/"))));
-            if (Helpers.isTrue(isVersionedApi))
+            this.checkRequiredCredentials(true);
+            Boolean isVersionedApi = ((endpoint.startsWith(((String)"/v1/"))) || (endpoint.startsWith(((String)"/v2/"))));
+            if (Boolean.TRUE.equals(isVersionedApi))
             {
-                headers = new HashMap<String, Object>() {{
+                requestHeaders = new HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
+                    put( "OPEN-API-PARTNER", "CCXT" );
                 }};
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "access_key", Bithumb.this.apiKey );
@@ -3978,64 +3862,64 @@ public class Bithumb extends BithumbApi
                     put( "timestamp", Bithumb.this.milliseconds() );
                 }};
                 Object auth = null;
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(method, "GET"))) && Helpers.isTrue((!Helpers.isEqual(method, "DELETE")))))
+                if ((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
                 {
-                    Helpers.addElementToObject(headers, "Content-Type", "application/json");
-                    if (Helpers.isTrue(hasQuery))
+                    requestHeaders.put("Content-Type", "application/json");
+                    if (Boolean.TRUE.equals(hasQuery))
                     {
-                        body = this.json(query);
-                        auth = this.urlencodeWithArrayBrackets(query);
+                        requestBody = this.json(query);
+                        auth = this.urlencodeWithArrayBrackets((Map<String, Object>) (query));
                     }
-                } else if (Helpers.isTrue(hasQuery))
+                } else if (Boolean.TRUE.equals(hasQuery))
                 {
-                    auth = this.urlencodeWithArrayBrackets(query);
-                    url = Helpers.add(url, Helpers.add("?", auth));
+                    auth = this.urlencodeWithArrayBrackets((Map<String, Object>) (query));
+                    url = (url + ("?" + auth));
                 }
-                if (Helpers.isTrue(hasQuery))
+                if (Boolean.TRUE.equals(hasQuery))
                 {
-                    Object authString = ((Helpers.isTrue((Helpers.isEqual(auth, null))))) ? "" : auth;
-                    Helpers.addElementToObject(request, "query_hash", this.hash(this.encode(authString), sha512()));
-                    Helpers.addElementToObject(request, "query_hash_alg", "SHA512");
+                    Object authString = (((java.util.Objects.equals(auth, null)))) ? "" : auth;
+                    request.put("query_hash", this.hash(this.encode(authString), sha512()));
+                    request.put("query_hash_alg", "SHA512");
                 }
-                Object token = jwt(request, this.encode(this.secret), sha256());
-                Helpers.addElementToObject(headers, "Authorization", Helpers.add("Bearer ", token));
+                String token = jwt(request, this.encode(this.secret), sha256());
+                requestHeaders.put("Authorization", ("Bearer " + token));
             } else
             {
-                final Object finalEndpoint = endpoint;
-                body = this.urlencode(this.extend(new HashMap<String, Object>() {{
-                    put( "endpoint", finalEndpoint );
-                }}, query));
+                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                mapLiteral5.put("endpoint", endpoint);
+                requestBody = this.urlencode(this.extend(mapLiteral5, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                Object bodyParts = Helpers.split(body, "%20");
-                body = String.join("+", (List<String>)bodyParts);
-                Object nonce = String.valueOf(this.nonce());
-                Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());
-                Object signature64 = this.stringToBase64(signature);
-                headers = new HashMap<String, Object>() {{
+                Object bodyParts = new ArrayList<Object>(Arrays.asList(((String)requestBody).split(java.util.regex.Pattern.quote("%20"))));
+                requestBody = String.join("+", (List<String>)bodyParts);
+                String nonce = String.valueOf(this.nonce());
+                Object auth = ((((endpoint + "\\") + requestBody) + "\\") + nonce); // eslint-disable-line quotes
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512());
+                String signature64 = this.stringToBase64(signature);
+                requestHeaders = new HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
                     put( "Content-Type", "application/x-www-form-urlencoded" );
                     put( "Api-Key", Bithumb.this.apiKey );
                     put( "Api-Sign", signature64 );
                     put( "Api-Nonce", nonce );
+                    put( "OPEN-API-PARTNER", "CCXT" );
                 }};
             }
         }
-        final Object finalUrl = url;
-        final Object finalMethod = method;
-        final Object finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
+        Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
+        Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResult);
+            h2kMap2.put("headers", headersResult);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isTrue(Helpers.isEqual(response, null)))
+        if (java.util.Objects.equals(response, null))
         {
             return null;  // fallback to default error handler
         }
@@ -4043,23 +3927,23 @@ public class Bithumb extends BithumbApi
         //
         //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
         //
-        Object error = this.safeDict(response, "error");
-        if (Helpers.isTrue(!Helpers.isEqual(error, null)))
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
+        if (!java.util.Objects.equals(error, null))
         {
             String errorName = this.safeString(error, "name");
             String message = this.safeString(error, "message");
-            Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
-            if (Helpers.isTrue(!Helpers.isEqual(errorName, null)))
+            Object feedback = ((this.id + " ") + message);
+            if (!java.util.Objects.equals(errorName, null))
             {
                 this.throwExactlyMatchedException(this.exceptions, errorName, feedback);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(message, null)))
+            if (!java.util.Objects.equals(message, null))
             {
                 this.throwExactlyMatchedException(this.exceptions, message, feedback);
             }
             throw new ExchangeError((String)feedback) ;
         }
-        if (Helpers.isTrue(Helpers.inOp(response, "status")))
+        if (Helpers.inOp(response, "status"))
         {
             // generation 1:
             //
@@ -4067,17 +3951,17 @@ public class Bithumb extends BithumbApi
             //
             String status = this.safeString(response, "status");
             String message = this.safeString(response, "message");
-            if (Helpers.isTrue(!Helpers.isEqual(status, null)))
+            if (!java.util.Objects.equals(status, null))
             {
-                if (Helpers.isTrue(Helpers.isEqual(status, "0000")))
+                if (java.util.Objects.equals(status, "0000"))
                 {
                     return null;  // no error
-                } else if (Helpers.isTrue(Helpers.isEqual(message, "거래 진행중인 내역이 존재하지 않습니다.")))
+                } else if (java.util.Objects.equals(message, "거래 진행중인 내역이 존재하지 않습니다."))
                 {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return null;  // no error
                 }
-                Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
+                Object feedback = ((this.id + " ") + message);
                 this.throwExactlyMatchedException(this.exceptions, status, feedback);
                 this.throwExactlyMatchedException(this.exceptions, message, feedback);
                 throw new ExchangeError((String)feedback) ;

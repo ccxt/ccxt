@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class Gateeu extends io.github.ccxt.exchanges.Gateeu
         // the ws describe-data must be applied on top of the rest describe,
         // otherwise the explicit-undefined watch* defaults of the rest 'has'
         // block wipe the parent's ws capability flags in the deep extend
-        Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
+        Map<String,Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new HashMap<String, Object>() {{
             put( "id", "gateeu" );
             put( "name", "Gate EU" );

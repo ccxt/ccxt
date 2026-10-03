@@ -6,6 +6,8 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -17,15 +19,15 @@ public class TestFetchOpenOrders extends BaseTest {
     public CompletableFuture<Object> testFetchOpenOrders(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchOpenOrders";
-        Object orders = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOpenOrders", new Object[]{symbol})).join();
+        Object orders = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOpenOrders", new Object[]{Helpers.toStringArg(symbol), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
         Object now = exchange.milliseconds();
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+        for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object order = Helpers.GetValue(orders, i);
+            Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
             TestOrder.testOrder(exchange, skippedProperties, method, order, symbol, now);
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, order, "status", new ArrayList<Object>(Arrays.asList("open")));
         }

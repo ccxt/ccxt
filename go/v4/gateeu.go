@@ -58,6 +58,9 @@ func (this *Gateeu) Describe() any {
 			"fetchMarkets": map[string]any{
 				"types": []any{"spot"},
 			},
+			"fetchOrderBook": map[string]any{
+				"maxSpotLimit": 100,
+			},
 			"mica": true,
 		},
 	})

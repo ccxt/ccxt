@@ -209,10 +209,10 @@ class apex extends Exchange {
             ),
             'exceptions' => array(
                 // Uncodumented explanation of error strings:
-                // - oc_diff => order cost needed to place this order
-                // - new_oc => total order cost of open orders including the order you are trying to open
-                // - ob => order balance - the total cost of current open orders
-                // - ab => available balance
+                // - oc_diff: order cost needed to place this order
+                // - new_oc: total order cost of open orders including the order you are trying to open
+                // - ob: order balance - the total cost of current open orders
+                // - ab: available balance
                 'exact' => array(
                     '20006' => 'apikey sign error', // apikey sign error
                     '20016' => 'request para error', // apikey sign error
@@ -313,7 +313,7 @@ class apex extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array()) {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_time(...))($params);
     }
 
@@ -330,8 +330,8 @@ class apex extends Exchange {
         $data = $this->safe_dict($response, 'data', array());
         //
         // {
-        //    "data" => {
-        //    "time" => 1738837534454
+        //    "data": {
+        //    "time": 1738837534454
         //     }
         // }
         return $this->safe_integer($data, 'time');
@@ -340,23 +340,22 @@ class apex extends Exchange {
     public function parse_balance(mixed $response): array {
         //
         // {
-        //     "totalEquityValue" => "100.000000",
-        //     "availableBalance" => "100.000000",
-        //     "initialMargin" => "100.000000",
-        //     "maintenanceMargin" => "100.000000",
-        //     "symbolToOraclePrice" => {
-        //     "BTC-USDC" => {
-        //         "oraclePrice" => "20000",
-        //             "createdTime" => 124566
+        //     "totalEquityValue": "100.000000",
+        //     "availableBalance": "100.000000",
+        //     "initialMargin": "100.000000",
+        //     "maintenanceMargin": "100.000000",
+        //     "symbolToOraclePrice": {
+        //     "BTC-USDC": {
+        //         "oraclePrice": "20000",
+        //             "createdTime": 124566
         //     }
         // }
         // }
         //
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $code = 'USDT';
         $account = $this->account();
@@ -435,94 +434,94 @@ class apex extends Exchange {
         $data = $this->safe_dict($response, 'data', array());
         $spotConfig = $this->safe_dict($data, 'spotConfig', array());
         $multiChain = $this->safe_dict($spotConfig, 'multiChain', array());
-        // "spotConfig" => {
-        //     "assets" => array(
+        // "spotConfig": {
+        //     "assets": [
         //         {
-        //             "tokenId" => "141",
-        //             "token" => "USDT",
-        //             "displayName" => "Tether USD Coin",
-        //             "decimals" => 18,
-        //             "showStep" => "0.01",
-        //             "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
-        //             "l2WithdrawFee" => "0",
-        //             "enableCollateral" => true,
-        //             "enableCrossCollateral" => false,
-        //             "crossCollateralDiscountRate" => null,
-        //             "isGray" => false
+        //             "tokenId": "141",
+        //             "token": "USDT",
+        //             "displayName": "Tether USD Coin",
+        //             "decimals": 18,
+        //             "showStep": "0.01",
+        //             "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
+        //             "l2WithdrawFee": "0",
+        //             "enableCollateral": true,
+        //             "enableCrossCollateral": false,
+        //             "crossCollateralDiscountRate": null,
+        //             "isGray": false
         //         }
-        //     ),
-        // "multiChain" => {
-        //  "chains" => array(
+        //     ],
+        // "multiChain": {
+        //  "chains": [
         //      {
-        //          "chain" => "Arbitrum One",
-        //          "chainId" => "9",
-        //          "chainType" => "0",
-        //          "l1ChainId" => "42161",
-        //          "chainIconUrl" => "https://static-omni.apex.exchange/chains/chain_logos/Arbitrum.svg",
-        //          "contractAddress" => "0x3169844a120c0f517b4eb4a750c08d8518c8466a",
-        //          "swapContractAddress" => "0x9e07b6Aef1bbD9E513fc2Eb8873e311E80B4f855",
-        //          "stopDeposit" => false,
-        //          "feeLess" => false,
-        //          "gasLess" => false,
-        //          "gasToken" => "ETH",
-        //          "dynamicFee" => true,
-        //          "gasTokenDecimals" => 18,
-        //          "feeGasLimit" => 300000,
-        //          "blockTimeSeconds" => 2,
-        //          "rpcUrl" => "https://arb.omni.apex.exchange",
-        //          "minSwapUsdtAmount" => "",
-        //          "maxSwapUsdtAmount" => "",
-        //          "webRpcUrl" => "https://arb.omni.apex.exchange",
-        //          "webTxUrl" => "https://arbiscan.io/tx/",
-        //          "backupRpcUrl" => "https://arb-mainnet.g.alchemy.com/v2/rGlYUbRHtUav5mfeThCPtsV9GLPt2Xq5",
-        //          "txConfirm" => 20,
-        //          "withdrawGasFeeLess" => false,
-        //          "tokens" => array(
-        //              array(
-        //                  "decimals" => 6,
-        //                  "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
-        //                  "token" => "USDT",
-        //                  "tokenAddress" => "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
-        //                  "pullOff" => false,
-        //                  "withdrawEnable" => true,
-        //                  "slippage" => "",
-        //                  "isDefaultToken" => false,
-        //                  "displayToken" => "USDT",
-        //                  "needResetApproval" => true,
-        //                  "minFee" => "2",
-        //                  "maxFee" => "40",
-        //                  "feeRate" => "0.0001",
-        //                  "maxWithdraw" => "",
-        //                  "minDeposit" => "",
-        //                  "minWithdraw" => "",
-        //                  "maxFastWithdrawAmount" => "40000",
-        //                  "minFastWithdrawAmount" => "1",
-        //                  "isGray" => false
-        //              ),
+        //          "chain": "Arbitrum One",
+        //          "chainId": "9",
+        //          "chainType": "0",
+        //          "l1ChainId": "42161",
+        //          "chainIconUrl": "https://static-omni.apex.exchange/chains/chain_logos/Arbitrum.svg",
+        //          "contractAddress": "0x3169844a120c0f517b4eb4a750c08d8518c8466a",
+        //          "swapContractAddress": "0x9e07b6Aef1bbD9E513fc2Eb8873e311E80B4f855",
+        //          "stopDeposit": false,
+        //          "feeLess": false,
+        //          "gasLess": false,
+        //          "gasToken": "ETH",
+        //          "dynamicFee": true,
+        //          "gasTokenDecimals": 18,
+        //          "feeGasLimit": 300000,
+        //          "blockTimeSeconds": 2,
+        //          "rpcUrl": "https://arb.omni.apex.exchange",
+        //          "minSwapUsdtAmount": "",
+        //          "maxSwapUsdtAmount": "",
+        //          "webRpcUrl": "https://arb.omni.apex.exchange",
+        //          "webTxUrl": "https://arbiscan.io/tx/",
+        //          "backupRpcUrl": "https://arb-mainnet.g.alchemy.com/v2/rGlYUbRHtUav5mfeThCPtsV9GLPt2Xq5",
+        //          "txConfirm": 20,
+        //          "withdrawGasFeeLess": false,
+        //          "tokens": [
         //              {
-        //                  "decimals" => 6,
-        //                  "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
-        //                  "token" => "USDC",
-        //                  "tokenAddress" => "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
-        //                  "pullOff" => false,
-        //                  "withdrawEnable" => true,
-        //                  "slippage" => "",
-        //                  "isDefaultToken" => false,
-        //                  "displayToken" => "USDC",
-        //                  "needResetApproval" => true,
-        //                  "minFee" => "2",
-        //                  "maxFee" => "20",
-        //                  "feeRate" => "0.0001",
-        //                  "maxWithdraw" => "",
-        //                  "minDeposit" => "",
-        //                  "minWithdraw" => "",
-        //                  "maxFastWithdrawAmount" => "1",
-        //                  "minFastWithdrawAmount" => "1",
-        //                  "isGray" => false
+        //                  "decimals": 6,
+        //                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
+        //                  "token": "USDT",
+        //                  "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+        //                  "pullOff": false,
+        //                  "withdrawEnable": true,
+        //                  "slippage": "",
+        //                  "isDefaultToken": false,
+        //                  "displayToken": "USDT",
+        //                  "needResetApproval": true,
+        //                  "minFee": "2",
+        //                  "maxFee": "40",
+        //                  "feeRate": "0.0001",
+        //                  "maxWithdraw": "",
+        //                  "minDeposit": "",
+        //                  "minWithdraw": "",
+        //                  "maxFastWithdrawAmount": "40000",
+        //                  "minFastWithdrawAmount": "1",
+        //                  "isGray": false
+        //              },
+        //              {
+        //                  "decimals": 6,
+        //                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
+        //                  "token": "USDC",
+        //                  "tokenAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+        //                  "pullOff": false,
+        //                  "withdrawEnable": true,
+        //                  "slippage": "",
+        //                  "isDefaultToken": false,
+        //                  "displayToken": "USDC",
+        //                  "needResetApproval": true,
+        //                  "minFee": "2",
+        //                  "maxFee": "20",
+        //                  "feeRate": "0.0001",
+        //                  "maxWithdraw": "",
+        //                  "minDeposit": "",
+        //                  "minWithdraw": "",
+        //                  "maxFastWithdrawAmount": "1",
+        //                  "minFastWithdrawAmount": "1",
+        //                  "isGray": false
         //              }
-        //          )
+        //          ]
         //        }
-        //     )
+        //     ]
         // }
         $rows = $this->safe_list($spotConfig, 'assets', array());
         $chains = $this->safe_list($multiChain, 'chains', array());
@@ -539,10 +538,10 @@ class apex extends Exchange {
         $networks = array();
         $chains = $this->options['_temp_currencies_chains'];
         for ($j = 0; $j < count($chains); $j++) {
-            $chain = $chains[$j];
+            $chain = $this->safe_dict($chains, $j);
             $tokens = $this->safe_list($chain, 'tokens', array());
             for ($f = 0; $f < count($tokens); $f++) {
-                $token = $tokens[$f];
+                $token = $this->safe_dict($tokens, $f);
                 $tokenName = $this->safe_string($token, 'token');
                 if ($tokenName === $currencyId) {
                     $networkId = $this->safe_string($chain, 'chainId');
@@ -553,7 +552,7 @@ class apex extends Exchange {
                             'id' => $networkId,
                             'network' => $networkCode,
                             'active' => null,
-                            'deposit' => ($this->safe_bool($chain, 'depositDisable') !== true),
+                            'deposit' => (!$this->safe_bool($chain, 'depositDisable', false)),
                             'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
                             'fee' => $this->safe_number($token, 'minFee'),
                             'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
@@ -623,58 +622,58 @@ class apex extends Exchange {
         $contractConfig = $this->safe_dict($data, 'contractConfig', array());
         $perpetualContract = $this->safe_list($contractConfig, 'perpetualContract', array());
         // {
-        //     "perpetualContract":array(
+        //     "perpetualContract":[
         //         {
-        //             "baselinePositionValue" => "50000.0000",
-        //             "crossId" => 30002,
-        //             "crossSymbolId" => 10,
-        //             "crossSymbolName" => "BTCUSDT",
-        //             "digitMerge" => "0.1,0.2,0.4,1,2",
-        //             "displayMaxLeverage" => "100",
-        //             "displayMinLeverage" => "1",
-        //             "enableDisplay" => true,
-        //             "enableOpenPosition" => true,
-        //             "enableTrade" => true,
-        //             "fundingImpactMarginNotional" => "6",
-        //             "fundingInterestRate" => "0.0003",
-        //             "incrementalInitialMarginRate" => "0.00250",
-        //             "incrementalMaintenanceMarginRate" => "0.00100",
-        //             "incrementalPositionValue" => "50000.0000",
-        //             "initialMarginRate" => "0.01",
-        //             "maintenanceMarginRate" => "0.005",
-        //             "maxOrderSize" => "50",
-        //             "maxPositionSize" => "100",
-        //             "minOrderSize" => "0.0010",
-        //             "maxMarketPriceRange" => "0.025",
-        //             "settleAssetId" => "USDT",
-        //             "baseTokenId" => "BTC",
-        //             "stepSize" => "0.001",
-        //             "symbol" => "BTC-USDT",
-        //             "symbolDisplayName" => "BTCUSDT",
-        //             "tickSize" => "0.1",
-        //             "maxMaintenanceMarginRate" => "0.5000",
-        //             "maxPositionValue" => "5000000.0000",
-        //             "tagIconUrl" => "https://static-omni.apex.exchange/icon/LABLE_HOT.svg",
-        //             "tag" => "HOT",
-        //             "riskTip" => false,
-        //             "defaultInitialMarginRate" => "0.05",
-        //             "klineStartTime" => 0,
-        //             "maxMarketSizeBuffer" => "0.98",
-        //             "enableFundingSettlement" => true,
-        //             "indexPriceDecimals" => 2,
-        //             "indexPriceVarRate" => "0.001",
-        //             "openPositionOiLimitRate" => "0.05",
-        //             "fundingMaxRate" => "0.000234",
-        //             "fundingMinRate" => "-0.000234",
-        //             "fundingMaxValue" => "",
-        //             "enableFundingMxValue" => true,
-        //             "l2PairId" => "50001",
-        //             "settleTimeStamp" => 0,
-        //             "isPrelaunch" => false,
-        //             "riskLimitConfig" => array(),
-        //             "category" => "L1"
+        //             "baselinePositionValue": "50000.0000",
+        //             "crossId": 30002,
+        //             "crossSymbolId": 10,
+        //             "crossSymbolName": "BTCUSDT",
+        //             "digitMerge": "0.1,0.2,0.4,1,2",
+        //             "displayMaxLeverage": "100",
+        //             "displayMinLeverage": "1",
+        //             "enableDisplay": true,
+        //             "enableOpenPosition": true,
+        //             "enableTrade": true,
+        //             "fundingImpactMarginNotional": "6",
+        //             "fundingInterestRate": "0.0003",
+        //             "incrementalInitialMarginRate": "0.00250",
+        //             "incrementalMaintenanceMarginRate": "0.00100",
+        //             "incrementalPositionValue": "50000.0000",
+        //             "initialMarginRate": "0.01",
+        //             "maintenanceMarginRate": "0.005",
+        //             "maxOrderSize": "50",
+        //             "maxPositionSize": "100",
+        //             "minOrderSize": "0.0010",
+        //             "maxMarketPriceRange": "0.025",
+        //             "settleAssetId": "USDT",
+        //             "baseTokenId": "BTC",
+        //             "stepSize": "0.001",
+        //             "symbol": "BTC-USDT",
+        //             "symbolDisplayName": "BTCUSDT",
+        //             "tickSize": "0.1",
+        //             "maxMaintenanceMarginRate": "0.5000",
+        //             "maxPositionValue": "5000000.0000",
+        //             "tagIconUrl": "https://static-omni.apex.exchange/icon/LABLE_HOT.svg",
+        //             "tag": "HOT",
+        //             "riskTip": false,
+        //             "defaultInitialMarginRate": "0.05",
+        //             "klineStartTime": 0,
+        //             "maxMarketSizeBuffer": "0.98",
+        //             "enableFundingSettlement": true,
+        //             "indexPriceDecimals": 2,
+        //             "indexPriceVarRate": "0.001",
+        //             "openPositionOiLimitRate": "0.05",
+        //             "fundingMaxRate": "0.000234",
+        //             "fundingMinRate": "-0.000234",
+        //             "fundingMaxValue": "",
+        //             "enableFundingMxValue": true,
+        //             "l2PairId": "50001",
+        //             "settleTimeStamp": 0,
+        //             "isPrelaunch": false,
+        //             "riskLimitConfig": {},
+        //             "category": "L1"
         //         }
-        //     )
+        //     ]
         // }
         return $this->parse_markets($perpetualContract);
     }
@@ -688,6 +687,9 @@ class apex extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $settleId = $this->safe_string($market, 'settleAssetId');
         $settle = $this->safe_currency_code($settleId);
+        if (($baseId === null) || ($quote === null) || ($settle === null)) {
+            return null;
+        }
         $symbol = $baseId . '/' . $quote . ':' . $settle;
         $expiry = 0;
         $takerFee = $this->parse_number('0.0002');
@@ -749,26 +751,25 @@ class apex extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
-        //     "symbol" => "BTCUSDT",
-        //     "price24hPcnt" => "0.450141",
-        //     "lastPrice" => "43511.50",
-        //     "highPrice24h" => "43513.50",
-        //     "lowPrice24h" => "29996.00",
-        //     "markPrice" => "43513.50",
-        //     "indexPrice" => "40828.94",
-        //     "openInterest" => "2036854775808",
-        //     "turnover24h" => "5626085.23749999",
-        //     "volume24h" => "169.317",
-        //     "fundingRate" => "0",
-        //     "predictedFundingRate" => "0",
-        //     "nextFundingTime" => "10:00:00",
-        //     "tradeCount" => 100
+        //     "symbol": "BTCUSDT",
+        //     "price24hPcnt": "0.450141",
+        //     "lastPrice": "43511.50",
+        //     "highPrice24h": "43513.50",
+        //     "lowPrice24h": "29996.00",
+        //     "markPrice": "43513.50",
+        //     "indexPrice": "40828.94",
+        //     "openInterest": "2036854775808",
+        //     "turnover24h": "5626085.23749999",
+        //     "volume24h": "169.317",
+        //     "fundingRate": "0",
+        //     "predictedFundingRate": "0",
+        //     "nextFundingTime": "10:00:00",
+        //     "tradeCount": 100
         // }
         //
-        $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $last = $this->safe_string($ticker, 'lastPrice');
         $percentage = $this->safe_string($ticker, 'price24hPcnt');
         $quoteVolume = $this->safe_string($ticker, 'turnover24h');
@@ -777,8 +778,8 @@ class apex extends Exchange {
         $low = $this->safe_string($ticker, 'lowPrice24h');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $high,
             'low' => $low,
             'bid' => null,
@@ -798,7 +799,7 @@ class apex extends Exchange {
             'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -876,33 +877,32 @@ class apex extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'symbol' => $this->safe_string($market, 'id2'),
         );
-        if ($limit === null) {
-            $limit = 200; // default is 200 when requested with `$since`
-        }
-        $request['limit'] = $limit; // max 200, default 200
-        list($request, $params) = $this->handle_until_option('end', $request, $params, 0.001);
+        // default is 200 when requested with `since`, max 200
+        $limitResolved = ($limit === null) ? 200 : min($limit, 200);
+        $request['limit'] = $limitResolved;
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $params, 0.001);
         if ($since !== null) {
-            $request['start'] = (int) floor($since / 1000);
+            $requestUntil['start'] = (int) floor($since / 1000);
         }
-        $response = Async\await($this->publicGetV3Klines($this->extend($request, $params)));
+        $response = Async\await($this->publicGetV3Klines($this->extend($requestUntil, $paramsUntil)));
         $data = $this->safe_dict($response, 'data', array());
         $OHLCVs = $this->safe_list($data, $this->safe_string($market, 'id2'), array());
-        return $this->parse_ohlcvs($OHLCVs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($OHLCVs, $market, $timeframe, $since, $limitResolved);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //  {
-        //     "start" => 1647511440000,
-        //     "symbol" => "BTC-USD",
-        //     "interval" => "1",
-        //     "low" => "40000",
-        //     "high" => "45000",
-        //     "open" => "45000",
-        //     "close" => "40000",
-        //     "volume" => "1.002",
-        //     "turnover" => "3"
-        //  } array("s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466")
+        //     "start": 1647511440000,
+        //     "symbol": "BTC-USD",
+        //     "interval": "1",
+        //     "low": "40000",
+        //     "high": "45000",
+        //     "open": "45000",
+        //     "close": "40000",
+        //     "volume": "1.002",
+        //     "turnover": "3"
+        //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
         return array(
             $this->safe_integer_2($ohlcv, 'start', 't'),
@@ -936,35 +936,32 @@ class apex extends Exchange {
         $request = array(
             'symbol' => $this->safe_string($market, 'id2'),
         );
-        if ($limit === null) {
-            $limit = 100; // default is 200 when requested with `since`
-        }
-        $request['limit'] = $limit; // max 100, default 100
+        $request['limit'] = ($limit === null) ? 100 : $limit; // max 100, default 100
         $response = Async\await($this->publicGetV3Depth($this->extend($request, $params)));
         //
         // {
-        //     "a" => array(
-        //     array(
+        //     "a": [
+        //     [
         //         "96576.3",
         //         "0.399"
-        //     ),
-        //     array(
+        //     ],
+        //     [
         //         "96577.6",
         //         "0.106"
-        //     )
-        // ),
-        //     "b" => array(
-        //     array(
+        //     ]
+        // ],
+        //     "b": [
+        //     [
         //         "96565.2",
         //         "0.131"
-        //     ),
-        //     array(
+        //     ],
+        //     [
         //         "96565.1",
         //         "0.038"
-        //     )
-        // ),
-        //     "s" => "BTCUSDT",
-        //     "u" => 18665465
+        //     ]
+        // ],
+        //     "s": "BTCUSDT",
+        //     "u": 18665465
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -999,50 +996,48 @@ class apex extends Exchange {
         $request = array(
             'symbol' => $this->safe_string($market, 'id2'),
         );
-        if ($limit === null) {
-            $limit = 500; // default is 50
-        }
-        $request['limit'] = $limit;
+        $limitResolved = ($limit === null) ? 500 : $limit; // default is 50
+        $request['limit'] = $limitResolved;
         $response = Async\await($this->publicGetV3Trades($this->extend($request, $params)));
         //
-        // array(
-        //  array(
-        //      "i" => "993f7f85-9215-5723-9078-2186ae140847",
-        //      "p" => "96534.3",
-        //      "S" => "Sell",
-        //      "v" => "0.261",
-        //      "s" => "BTCUSDT",
-        //      "T" => 1739118072710
-        //  ),
+        // [
         //  {
-        //      "i" => "c947c9cf-8c18-5784-89c3-91bdf86ddde8",
-        //      "p" => "96513.5",
-        //      "S" => "Sell",
-        //      "v" => "0.042",
-        //      "s" => "BTCUSDT",
-        //      "T" => 1739118075944
+        //      "i": "993f7f85-9215-5723-9078-2186ae140847",
+        //      "p": "96534.3",
+        //      "S": "Sell",
+        //      "v": "0.261",
+        //      "s": "BTCUSDT",
+        //      "T": 1739118072710
+        //  },
+        //  {
+        //      "i": "c947c9cf-8c18-5784-89c3-91bdf86ddde8",
+        //      "p": "96513.5",
+        //      "S": "Sell",
+        //      "v": "0.042",
+        //      "s": "BTCUSDT",
+        //      "T": 1739118075944
         //  }
-        //  )
+        //  ]
         //
         $trades = $this->safe_list($response, 'data', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_trades($trades, $market, $since, $limitResolved);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
         //
-        // array(
+        // [
         //  {
-        //      "i" => "993f7f85-9215-5723-9078-2186ae140847",
-        //      "p" => "96534.3",
-        //      "S" => "Sell",
-        //      "v" => "0.261",
-        //      "s" => "BTCUSDT",
-        //      "T" => 1739118072710
+        //      "i": "993f7f85-9215-5723-9078-2186ae140847",
+        //      "p": "96534.3",
+        //      "S": "Sell",
+        //      "v": "0.261",
+        //      "s": "BTCUSDT",
+        //      "T": 1739118072710
         //  }
-        //  )
+        //  ]
         //
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $id = $this->safe_string_2($trade, 'i', 'id');
         $timestamp = $this->safe_integer_n($trade, array( 't', 'T', 'createdAt' ));
         $priceString = $this->safe_string_2($trade, 'p', 'price');
@@ -1056,7 +1051,7 @@ class apex extends Exchange {
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'takerOrMaker' => null,
             'side' => $side,
@@ -1064,10 +1059,10 @@ class apex extends Exchange {
             'amount' => $amountString,
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -1094,37 +1089,36 @@ class apex extends Exchange {
         return $this->parse_open_interest($rawTicker, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         // {
-        //     "symbol" => "BTCUSDT",
-        //     "price24hPcnt" => "0.450141",
-        //     "lastPrice" => "43511.50",
-        //     "highPrice24h" => "43513.50",
-        //     "lowPrice24h" => "29996.00",
-        //     "markPrice" => "43513.50",
-        //     "indexPrice" => "40828.94",
-        //     "openInterest" => "2036854775808",
-        //     "turnover24h" => "5626085.23749999",
-        //     "volume24h" => "169.317",
-        //     "fundingRate" => "0",
-        //     "predictedFundingRate" => "0",
-        //     "nextFundingTime" => "10:00:00",
-        //     "tradeCount" => 100
+        //     "symbol": "BTCUSDT",
+        //     "price24hPcnt": "0.450141",
+        //     "lastPrice": "43511.50",
+        //     "highPrice24h": "43513.50",
+        //     "lowPrice24h": "29996.00",
+        //     "markPrice": "43513.50",
+        //     "indexPrice": "40828.94",
+        //     "openInterest": "2036854775808",
+        //     "turnover24h": "5626085.23749999",
+        //     "volume24h": "169.317",
+        //     "fundingRate": "0",
+        //     "predictedFundingRate": "0",
+        //     "nextFundingTime": "10:00:00",
+        //     "tradeCount": 100
         // }
         //
-        $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($interest, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         return $this->safe_open_interest(array(
             'symbol' => $symbol,
             'openInterestAmount' => $this->safe_string($interest, 'openInterest'),
             'openInterestValue' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $interest,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1146,7 +1140,7 @@ class apex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1171,16 +1165,16 @@ class apex extends Exchange {
         $response = Async\await($this->publicGetV3HistoryFunding($this->extend($request, $params)));
         //
         // {
-        //     "historyFunds" => array(
+        //     "historyFunds": [
         //     {
-        //         "symbol" => "BTC-USD",
-        //         "rate" => "0.0000125000",
-        //         "price" => "31297.5000008009374142",
-        //         "fundingTime" => 12315555,
-        //         "fundingTimestamp" => 12315555
+        //         "symbol": "BTC-USD",
+        //         "rate": "0.0000125000",
+        //         "price": "31297.5000008009374142",
+        //         "fundingTime": 12315555,
+        //         "fundingTimestamp": 12315555
         //     }
-        // ),
-        //     "totalSize" => 11
+        // ],
+        //     "totalSize": 11
         // }
         //
         $rates = array();
@@ -1205,55 +1199,55 @@ class apex extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         // {
-        //     "id" => "1234",
-        //     "clientId" => "1234",
-        //     "accountId" => "12345",
-        //     "symbol" => "BTC-USD",
-        //     "side" => "SELL",
-        //     "price" => "18000",
-        //     "limitFee" => "100",
-        //     "fee" => "100",
-        //     "triggerPrice" => "1.2",
-        //     "trailingPercent" => "0.12",
-        //     "size" => "100",
-        //     "remainingSize" => "100",
-        //     "type" => "LIMIT",
-        //     "createdAt" => 1647502440973,
-        //     "updatedTime" => 1647502440973,
-        //     "expiresAt" => 1647502440973,
-        //     "status" => "PENDING",
-        //     "timeInForce" => "GOOD_TIL_CANCEL",
-        //     "postOnly" => false,
-        //     "reduceOnly" => false,
-        //     "stopPnl" => false,
-        //     "latestMatchFillPrice" => "reason",
-        //     "cumMatchFillSize" => "0.1",
-        //     "cumMatchFillValue" => "1000",
-        //     "cumMatchFillFee" => "1",
-        //     "cumSuccessFillSize" => "0.1",
-        //     "cumSuccessFillValue" => "1000",
-        //     "cumSuccessFillFee" => "1",
-        //     "triggerPriceType" => "INDEX",
-        //     "isOpenTpslOrder" => true,
-        //     "isSetOpenTp" => true,
-        //     "isSetOpenSl" => false,
-        //     "openTpParam" => array(
-        //     "side" => "SELL",
-        //         "price" => "18000",
-        //         "limitFee" => "100",
-        //         "clientOrderId" => "111100",
-        //         "triggerPrice" => "1.2",
-        //         "trailingPercent" => "0.12",
-        //         "size" => "100"
-        // ),
-        //     "openSlParam" => {
-        //     "side" => "SELL",
-        //         "price" => "18000",
-        //         "limitFee" => "100",
-        //         "clientOrderId" => "111100",
-        //         "triggerPrice" => "1.2",
-        //         "trailingPercent" => "0.12",
-        //         "size" => "100"
+        //     "id": "1234",
+        //     "clientId": "1234",
+        //     "accountId": "12345",
+        //     "symbol": "BTC-USD",
+        //     "side": "SELL",
+        //     "price": "18000",
+        //     "limitFee": "100",
+        //     "fee": "100",
+        //     "triggerPrice": "1.2",
+        //     "trailingPercent": "0.12",
+        //     "size": "100",
+        //     "remainingSize": "100",
+        //     "type": "LIMIT",
+        //     "createdAt": 1647502440973,
+        //     "updatedTime": 1647502440973,
+        //     "expiresAt": 1647502440973,
+        //     "status": "PENDING",
+        //     "timeInForce": "GOOD_TIL_CANCEL",
+        //     "postOnly": false,
+        //     "reduceOnly": false,
+        //     "stopPnl": false,
+        //     "latestMatchFillPrice": "reason",
+        //     "cumMatchFillSize": "0.1",
+        //     "cumMatchFillValue": "1000",
+        //     "cumMatchFillFee": "1",
+        //     "cumSuccessFillSize": "0.1",
+        //     "cumSuccessFillValue": "1000",
+        //     "cumSuccessFillFee": "1",
+        //     "triggerPriceType": "INDEX",
+        //     "isOpenTpslOrder": true,
+        //     "isSetOpenTp": true,
+        //     "isSetOpenSl": false,
+        //     "openTpParam": {
+        //     "side": "SELL",
+        //         "price": "18000",
+        //         "limitFee": "100",
+        //         "clientOrderId": "111100",
+        //         "triggerPrice": "1.2",
+        //         "trailingPercent": "0.12",
+        //         "size": "100"
+        // },
+        //     "openSlParam": {
+        //     "side": "SELL",
+        //         "price": "18000",
+        //         "limitFee": "100",
+        //         "clientOrderId": "111100",
+        //         "triggerPrice": "1.2",
+        //         "trailingPercent": "0.12",
+        //         "size": "100"
         // }
         // }
         //
@@ -1261,14 +1255,14 @@ class apex extends Exchange {
         $orderId = $this->safe_string($order, 'id');
         $clientOrderId = $this->safe_string($order, 'clientId');
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'size');
         $orderType = $this->safe_string($order, 'type');
         $status = $this->safe_string($order, 'status');
         $side = $this->safe_string_lower($order, 'side');
-        // $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
+        // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         $remaining = $this->omit_zero($this->safe_string($order, 'remainingSize'));
         $lastUpdateTimestamp = $this->safe_integer($order, 'updatedTime');
         return $this->safe_order(array(
@@ -1297,10 +1291,10 @@ class apex extends Exchange {
             'trades' => null,
             'fee' => array(
                 'cost' => $this->safe_string($order, 'fee'),
-                'currency' => $market['settleId'],
+                'currency' => $marketResolved['settleId'],
             ),
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_time_in_force(?string $timeInForce) {
@@ -1341,13 +1335,14 @@ class apex extends Exchange {
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
+        $marketResolved = null;
         if ($market === null && $marketId !== null) {
             $marketsMap = $this->markets;
             $marketsById = $this->markets_by_id;
             if (($marketsMap !== null) && (is_array($marketsMap) && array_key_exists($marketId ?? '', $marketsMap))) {
-                $market = $marketsMap[$marketId];
+                $marketResolved = $marketsMap[$marketId];
             } elseif (($marketsById !== null) && (is_array($marketsById) && array_key_exists($marketId ?? '', $marketsById))) {
-                $market = $marketsById[$marketId];
+                $marketResolved = $marketsById[$marketId];
             } else {
                 $newMarketId = $this->add_hyphen_before_usdt($marketId);
                 if (($marketsById !== null) && (is_array($marketsById) && array_key_exists($newMarketId ?? '', $marketsById))) {
@@ -1355,18 +1350,24 @@ class apex extends Exchange {
                     $numMarkets = count($markets);
                     if ($numMarkets > 0) {
                         if ($marketsById[$newMarketId][0]['id2'] === $marketId) {
-                            $market = $marketsById[$newMarketId][0];
+                            $marketResolved = $marketsById[$newMarketId][0];
                         }
                     }
                 }
             }
         }
-        return parent::safe_market($marketId, $market, $delimiter, $marketType);
+        $marketValue = ($marketResolved === null) ? $market : $marketResolved;
+        return parent::safe_market($marketId, $marketValue, $delimiter, $marketType);
     }
 
     public function generate_random_client_id_omni(?string $_accountId) {
         $hasAccountId = ($_accountId !== null) && ($_accountId !== '');
-        $accountId = $hasAccountId ? $_accountId : (string) $this->rand_number(12);
+        $accountId = null;
+        if ($hasAccountId) {
+            $accountId = $_accountId;
+        } else {
+            $accountId = (string) $this->rand_number(12);
+        }
         return 'apexomni-' . $accountId . '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
     }
 
@@ -1401,7 +1402,7 @@ class apex extends Exchange {
         return $this->options['accountId'];
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1431,9 +1432,7 @@ class apex extends Exchange {
         }
         $market = $this->market($symbol);
         $orderType = strtoupper($type);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $orderSide = strtoupper($side);
         $orderSize = $this->amount_to_precision($symbol, $amount);
         $orderPrice = '0';
@@ -1457,7 +1456,7 @@ class apex extends Exchange {
         }
         $isMarket = $orderType === 'MARKET';
         if ($isMarket && ($price === null)) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for $market orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for market orders');
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1471,15 +1470,15 @@ class apex extends Exchange {
                 $timeInForce = 'IMMEDIATE_OR_CANCEL';
             }
         }
-        $params = $this->omit($params, 'timeInForce');
-        $params = $this->omit($params, 'postOnly');
-        $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+        $paramsOmitted = $this->omit($params, 'timeInForce');
+        $paramsOmitted2 = $this->omit($paramsOmitted, 'postOnly');
+        $clientOrderId = $this->safe_string_n($paramsOmitted2, array( 'clientId', 'clientOrderId', 'client_order_id' ));
         $accountId = Async\await($this->get_account_id());
         if ($clientOrderId === null) {
             $clientOrderId = $this->generate_random_client_id_omni($accountId);
         }
         $finalClientOrderId = $clientOrderId; // java req
-        $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
+        $paramsOmitted3 = $this->omit($paramsOmitted2, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
         $finalOrderPrice = $orderPrice; // java req
         $orderToSign = array(
             'accountId' => $accountId,
@@ -1512,7 +1511,7 @@ class apex extends Exchange {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $request['signature'] = $signature;
-        $response = Async\await($this->privatePostV3Order($this->extend($request, $params)));
+        $response = Async\await($this->privatePostV3Order($this->extend($request, $paramsOmitted3)));
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
@@ -1561,7 +1560,7 @@ class apex extends Exchange {
         $accountId = $this->safe_string($accountData, 'id', '');
         $currency = array();
         $assets = array();
-        if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
+        if (strtolower($fromAccount) === 'contract') {
             $assets = $contractAssets;
         } else {
             $assets = $spotAssets;
@@ -1582,8 +1581,8 @@ class apex extends Exchange {
             $clientOrderId = $this->generate_random_client_id_omni($this->safe_string($this->options, 'accountId'));
         }
         $finalClientOrderId = $clientOrderId; // java req
-        $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-        if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
+        $paramsOmitted = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+        if (strtolower($fromAccount) === 'contract') {
             $formattedUint32 = '4294967295';
             $zkSignAccountId = Precise::string_mod($accountId, $formattedUint32);
             $expireTime = $timestampSeconds + 3600 * 24 * 28;
@@ -1608,7 +1607,7 @@ class apex extends Exchange {
                 'token' => $code,
                 'ethAddress' => $ethAddress,
             );
-            $response = Async\await($this->privatePostV3ContractTransferOut($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV3ContractTransferOut($this->extend($request, $paramsOmitted)));
             $data = $this->safe_dict($response, 'data', array());
             $currentTime = $this->milliseconds();
             $parsedAmount = $this->parse_number($amount);
@@ -1650,7 +1649,7 @@ class apex extends Exchange {
                 'receiverAddress' => $receiverAddress,
                 'nonce' => $finalNonce,
             );
-            $response = Async\await($this->privatePostV3TransferOut($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV3TransferOut($this->extend($request, $paramsOmitted)));
             $data = $this->safe_dict($response, 'data', array());
             $currentTime = $this->milliseconds();
             return $this->extend($this->parse_transfer($data, $this->currency($code)), array(
@@ -1709,7 +1708,7 @@ class apex extends Exchange {
         return array( $this->parse_order($data, $market) );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1729,8 +1728,7 @@ class apex extends Exchange {
         $response = null;
         if ($clientOrderId !== null) {
             $request['id'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-            $response = Async\await($this->privatePostV3DeleteClientOrderId($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV3DeleteClientOrderId($this->extend($request, $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' )))));
         } else {
             $request['id'] = $id;
             $response = Async\await($this->privatePostV3DeleteOrder($this->extend($request, $params)));
@@ -1739,7 +1737,7 @@ class apex extends Exchange {
         return $this->safe_order($data);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1764,8 +1762,7 @@ class apex extends Exchange {
         $response = null;
         if ($clientOrderId !== null) {
             $request['id'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-            $response = Async\await($this->privateGetV3OrderByClientOrderId($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV3OrderByClientOrderId($this->extend($request, $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' )))));
         } else {
             $request['id'] = $id;
             $response = Async\await($this->privateGetV3Order($this->extend($request, $params)));
@@ -1838,15 +1835,15 @@ class apex extends Exchange {
         $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
         if ($endTimeExclusive !== null) {
             $request['endTimeExclusive'] = $endTimeExclusive;
-            $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
         }
-        $response = Async\await($this->privateGetV3HistoryOrders($this->extend($request, $params)));
+        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $response = Async\await($this->privateGetV3HistoryOrders($this->extend($request, $paramsOmitted)));
         $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -1873,14 +1870,14 @@ class apex extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'clientId' ));
-        $response = Async\await($this->privateGetV3OrderFills($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'clientId' ));
+        $response = Async\await($this->privateGetV3OrderFills($this->extend($request, $paramsOmitted)));
         $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_trades($orders, null, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1918,15 +1915,15 @@ class apex extends Exchange {
         $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
         if ($endTimeExclusive !== null) {
             $request['endTimeExclusive'] = $endTimeExclusive;
-            $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
         }
-        $response = Async\await($this->privateGetV3Fills($this->extend($request, $params)));
+        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $response = Async\await($this->privateGetV3Fills($this->extend($request, $paramsOmitted)));
         $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_trades($orders, $market, $since, $limit);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -1962,37 +1959,37 @@ class apex extends Exchange {
         }
         $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
         if ($endTimeExclusive !== null) {
-            $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
             $request['endTimeExclusive'] = $endTimeExclusive;
         }
-        $response = Async\await($this->privateGetV3Funding($this->extend($request, $params)));
+        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $response = Async\await($this->privateGetV3Funding($this->extend($request, $paramsOmitted)));
         $data = $this->safe_dict($response, 'data', array());
         $fundingValues = $this->safe_list($data, 'fundingValues', array());
         return $this->parse_incomes($fundingValues, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         // {
-        //     "id" => "1234",
-        //     "symbol" => "BTC-USDT",
-        //     "fundingValue" => "10000",
-        //     "rate" => "0.0000125000",
-        //     "positionSize" => "500",
-        //     "price" => "90",
-        //     "side" => "LONG",
-        //     "status" => "SUCCESS",
-        //     "fundingTime" => 1647502440973,
-        //     "transactionId" => "1234556"
+        //     "id": "1234",
+        //     "symbol": "BTC-USDT",
+        //     "fundingValue": "10000",
+        //     "rate": "0.0000125000",
+        //     "positionSize": "500",
+        //     "price": "90",
+        //     "side": "LONG",
+        //     "status": "SUCCESS",
+        //     "fundingTime": 1647502440973,
+        //     "transactionId": "1234556"
         // }
         //
         $marketId = $this->safe_string($income, 'symbol');
-        $market = $this->safe_market($marketId, $market, null, 'contract');
+        $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
         $code = 'USDT';
         $timestamp = $this->safe_integer($income, 'fundingTime');
         return array(
             'info' => $income,
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $this->safe_symbol($marketId, $marketResolved),
             'code' => $code,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2018,7 +2015,7 @@ class apex extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2058,25 +2055,25 @@ class apex extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
-        //     "symbol" => "BTC-USDT",
-        //     "status" => "",
-        //     "side" => "LONG",
-        //     "size" => "0.000",
-        //     "entryPrice" => "0.00",
-        //     "exitPrice" => "",
-        //     "createdAt" => 1690366452416,
-        //     "updatedTime" => 1690366452416,
-        //     "fee" => "0.000000",
-        //     "fundingFee" => "0.000000",
-        //     "lightNumbers" => "",
-        //     "customInitialMarginRate" => "0"
+        //     "symbol": "BTC-USDT",
+        //     "status": "",
+        //     "side": "LONG",
+        //     "size": "0.000",
+        //     "entryPrice": "0.00",
+        //     "exitPrice": "",
+        //     "createdAt": 1690366452416,
+        //     "updatedTime": 1690366452416,
+        //     "fee": "0.000000",
+        //     "fundingFee": "0.000000",
+        //     "lightNumbers": "",
+        //     "customInitialMarginRate": "0"
         // }
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $side = $this->safe_string_lower($position, 'side');
         $quantity = $this->safe_string($position, 'size');
         $timestamp = $this->safe_integer($position, 'updatedTime');
@@ -2112,9 +2109,13 @@ class apex extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
-        $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
-        $headers = array(
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($baseApiUrl) . '/' . $path;
+        $headersValue = array(
             'User-Agent' => 'apex-CCXT',
             'Accept' => 'application/json',
             'Content-Type' => 'application/x-www-form-urlencoded',
@@ -2138,18 +2139,18 @@ class apex extends Exchange {
                 $messageString = $messageString . $signBody;
             }
             $signature = $this->hmac($this->encode($messageString), $this->encode(base64_encode($this->secret)), 'sha256', 'base64');
-            $headers['APEX-SIGNATURE'] = $signature;
-            $headers['APEX-API-KEY'] = $this->apiKey;
-            $headers['APEX-TIMESTAMP'] = $timestamp;
-            $headers['APEX-PASSPHRASE'] = $this->password;
+            $headersValue['APEX-SIGNATURE'] = $signature;
+            $headersValue['APEX-API-KEY'] = $this->apiKey;
+            $headersValue['APEX-TIMESTAMP'] = $timestamp;
+            $headersValue['APEX-PASSPHRASE'] = $this->password;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $signBody, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $signBody, 'headers' => $headersValue );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
-        // array("code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":array("price":"0"))
-        // array("code":400,"msg":"strconv.ParseInt => parsing \"dsfdfsd\" => invalid syntax","timeCost":5320995)
+        // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
+        // {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}
         //
         if ($response === null) {
             return null;

@@ -52,6 +52,9 @@ class gateeu extends gate["default"] {
                 'fetchMarkets': {
                     'types': ['spot'],
                 },
+                'fetchOrderBook': {
+                    'maxSpotLimit': 100, // this venue returns an empty book above 100
+                },
                 'mica': true,
             },
         });

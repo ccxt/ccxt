@@ -4,6 +4,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -15,10 +16,10 @@ public class TestFetchStatus extends BaseTest {
     public CompletableFuture<Object> testFetchStatus(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchStatus";
-        Object status = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchStatus", new Object[]{})).join();
+        Object status = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchStatus", new Object[]{new HashMap<String, Object>() {{}}})).join();
         TestStatus.testStatus(exchange, skippedProperties, method, status, exchange.milliseconds());
         return true;
         });

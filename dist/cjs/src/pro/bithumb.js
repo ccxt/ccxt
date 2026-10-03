@@ -73,14 +73,13 @@ class bithumb extends bithumb$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let generation = undefined;
-        [generation, params] = this.handleOptionAndParams(params, 'watchTicker', 'generation', 2);
+        const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'watchTicker', 'generation', 2);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market(symbol);
         const messageHash = 'ticker:' + market['symbol'];
-        const tickTypes = this.safeString(params, 'tickTypes', '24H');
-        params = this.omit(params, 'tickTypes');
+        const tickTypes = this.safeString(paramsGeneration, 'tickTypes', '24H');
+        const paramsOmitted = this.omit(paramsGeneration, 'tickTypes');
         let request = {
             'type': 'ticker',
             'symbols': [market['base'] + '_' + market['quote']],
@@ -93,11 +92,11 @@ class bithumb extends bithumb$1["default"] {
                 this.extend({
                     'type': 'ticker',
                     'codes': [marketIdRequest],
-                }, params),
+                }, paramsOmitted),
             ];
             return await this.watch(url, messageHash, request, messageHash);
         }
-        return await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        return await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash);
     }
     /**
      * @method
@@ -115,23 +114,20 @@ class bithumb extends bithumb$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let generation = undefined;
-        [generation, params] = this.handleOptionAndParams(params, 'watchTickers', 'generation', 2);
+        const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'watchTickers', 'generation', 2);
         const isGenerationTwo = (generation === 2);
-        symbols = this.marketSymbols(symbols, undefined, false, true, true);
-        const symbolsLength = (symbols === undefined) ? 0 : symbols.length;
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
+        const symbolsLength = (symbolsNormalized === undefined) ? 0 : symbolsNormalized.length;
         if (isGenerationTwo && (symbolsLength === 0)) {
             throw new errors.ArgumentsRequired(this.id + ' watchTickers() requires symbols for the generation 2 API');
         }
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        }
-        const symbolsLengthDefined = symbols.length;
+        const symbolsResolved = (symbolsNormalized === undefined) ? this.symbols : symbolsNormalized;
+        const symbolsLengthDefined = symbolsResolved.length;
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const streamMarketIds = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsLengthDefined; i++) {
-            const symbol = symbols[i];
+            const symbol = symbolsResolved[i];
             const market = this.market(symbol);
             let streamMarketId = undefined;
             if (isGenerationTwo) {
@@ -143,8 +139,8 @@ class bithumb extends bithumb$1["default"] {
             streamMarketIds.push(streamMarketId);
             messageHashes.push('ticker:' + market['symbol']);
         }
-        const tickTypes = this.safeString(params, 'tickTypes', '24H');
-        params = this.omit(params, 'tickTypes');
+        const tickTypes = this.safeString(paramsGeneration, 'tickTypes', '24H');
+        const paramsOmitted = this.omit(paramsGeneration, 'tickTypes');
         let message = {
             'type': 'ticker',
             'symbols': streamMarketIds,
@@ -156,19 +152,22 @@ class bithumb extends bithumb$1["default"] {
                 this.extend({
                     'type': 'ticker',
                     'codes': streamMarketIds,
-                }, params),
+                }, paramsOmitted),
             ];
         }
         else {
-            message = this.extend(message, params);
+            message = this.extend(message, paramsOmitted);
         }
         const newTicker = await this.watchMultiple(url, messageHashes, message, messageHashes);
         if (this.newUpdates) {
             const result = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString(newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.tickers, 'symbol', symbolsResolved);
     }
     handleTicker(client, message) {
         //
@@ -374,13 +373,12 @@ class bithumb extends bithumb$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let generation = undefined;
-        [generation, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'generation', 2);
+        const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'watchOrderBook', 'generation', 2);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook' + ':' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'orderbook' + ':' + symbolValue;
         let request = {
             'type': 'orderbookdepth',
             'symbols': [market['base'] + '_' + market['quote']],
@@ -392,11 +390,11 @@ class bithumb extends bithumb$1["default"] {
                 this.extend({
                     'type': 'orderbook',
                     'codes': [marketIdRequest],
-                }, params),
+                }, paramsGeneration),
             ];
         }
         else {
-            request = this.extend(request, params);
+            request = this.extend(request, paramsGeneration);
         }
         const orderbook = await this.watch(url, messageHash, request, messageHash);
         return orderbook.limit();
@@ -467,7 +465,7 @@ class bithumb extends bithumb$1["default"] {
                 this.orderbooks[legacySymbol] = ob;
             }
             const legacyOrderbook = this.orderbooks[legacySymbol];
-            this.handleDeltas(legacyOrderbook, list);
+            this.handleBookDeltas(legacyOrderbook, list);
             legacyOrderbook['timestamp'] = legacyTimestamp;
             legacyOrderbook['datetime'] = this.iso8601(legacyTimestamp);
             const legacyMessageHash = 'orderbook' + ':' + legacySymbol;
@@ -480,7 +478,7 @@ class bithumb extends bithumb$1["default"] {
             return;
         }
         const streamType = this.safeString(message, 'stream_type');
-        const options = this.safeValue(this.options, 'watchOrderBook', {});
+        const options = this.safeDict(this.options, 'watchOrderBook', {});
         const obLimit = this.safeInteger(options, 'limit', 1000);
         if (!(symbol in this.orderbooks) || (streamType === 'SNAPSHOT')) {
             this.orderbooks[symbol] = this.orderBook({}, obLimit);
@@ -492,7 +490,7 @@ class bithumb extends bithumb$1["default"] {
         const asks = orderbook['asks'];
         const units = this.safeList(message, 'orderbook_units', []);
         for (let i = 0; i < units.length; i++) {
-            const entry = units[i];
+            const entry = this.safeDict(units, i);
             const bidPrice = this.safeNumber(entry, 'bid_price');
             const bidSize = this.safeNumber(entry, 'bid_size');
             const askPrice = this.safeNumber(entry, 'ask_price');
@@ -517,7 +515,7 @@ class bithumb extends bithumb$1["default"] {
         const messageHash = 'orderbook' + ':' + symbol;
         client.resolve(orderbook, messageHash);
     }
-    handleDelta(orderbook, delta) {
+    handleBookDelta(orderbook, delta) {
         //
         //    {
         //        symbol: "ETH_BTC",
@@ -528,14 +526,17 @@ class bithumb extends bithumb$1["default"] {
         //    }
         //
         const sideId = this.safeString(delta, 'orderType');
-        const side = (sideId === 'bid') ? 'bids' : 'asks';
+        let side = 'asks';
+        if (sideId === 'bid') {
+            side = 'bids';
+        }
         const bidAsk = this.parseOrderBookBidAsk(delta, 'price', 'quantity');
         const orderbookSide = orderbook[side];
         orderbookSide.storeArray(bidAsk);
     }
-    handleDeltas(orderbook, deltas) {
+    handleBookDeltas(orderbook, deltas) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta(orderbook, deltas[i]);
+            this.handleBookDelta(orderbook, deltas[i]);
         }
     }
     /**
@@ -555,13 +556,12 @@ class bithumb extends bithumb$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let generation = undefined;
-        [generation, params] = this.handleOptionAndParams(params, 'watchTrades', 'generation', 2);
+        const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'watchTrades', 'generation', 2);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trade:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'trade:' + symbolValue;
         let request = {
             'type': 'transaction',
             'symbols': [market['base'] + '_' + market['quote']],
@@ -573,17 +573,18 @@ class bithumb extends bithumb$1["default"] {
                 this.extend({
                     'type': 'trade',
                     'codes': [marketIdRequest],
-                }, params),
+                }, paramsGeneration),
             ];
         }
         else {
-            request = this.extend(request, params);
+            request = this.extend(request, paramsGeneration);
         }
         const trades = await this.watch(url, messageHash, request, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -774,8 +775,7 @@ class bithumb extends bithumb$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let generation = undefined;
-        [generation, params] = this.handleOptionAndParams(params, 'watchBalance', 'generation', 2);
+        const generation = this.handleOptionIntegerAndParams(params, 'watchBalance', 'generation', 2)[0];
         if (generation !== 2) {
             throw new errors.BadRequest(this.id + ' watchBalance() is only supported for the generation 2 API');
         }
@@ -808,7 +808,7 @@ class bithumb extends bithumb$1["default"] {
             this.balance = {};
         }
         for (let i = 0; i < assets.length; i++) {
-            const asset = assets[i];
+            const asset = this.safeDict(assets, i);
             const currencyId = this.safeString(asset, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -892,8 +892,7 @@ class bithumb extends bithumb$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let generation = undefined;
-        [generation, params] = this.handleOptionAndParams(params, 'watchOrders', 'generation', 2);
+        const generation = this.handleOptionIntegerAndParams(params, 'watchOrders', 'generation', 2)[0];
         if (generation !== 2) {
             throw new errors.BadRequest(this.id + ' watchOrders() is only supported for the generation 2 API');
         }
@@ -902,16 +901,18 @@ class bithumb extends bithumb$1["default"] {
         let messageHash = 'myOrder';
         const codes = this.safeList(params, 'codes', []);
         const request = this.buildGen2SubscriptionRequest(messageHash, { 'type': messageHash, 'codes': codes });
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
+            symbolResolved = this.safeString(market, 'symbol');
+            messageHash = messageHash + ':' + symbolResolved;
         }
         const orders = await this.watch(url, messageHash, request, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     handleOrders(client, message) {
         //

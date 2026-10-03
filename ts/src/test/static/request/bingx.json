@@ -1243,6 +1243,20 @@
         ],
         "fetchClosedOrders": [
             {
+                "description": "Spot closed orders with since and until",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/historyOrders?endTime=1740500000000&startTime=1740000000000&symbol=LTC-USDT&timestamp=1740518148275&signature=0000000000000000000000000000000000000000000000000000000000000000",
+                "input": [
+                    "LTC/USDT",
+                    1740000000000,
+                    null,
+                    {
+                        "until": 1740500000000
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch closed orders with limit",
                 "method": "fetchClosedOrders",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/historyOrders?pageSize=50&symbol=LTC-USDT&timestamp=1740518148275&signature=2797718cce7debcdd081aa813738210bf8f56e100aeefa9e51871847c15d0ddf",
@@ -1288,6 +1302,47 @@
                     {
                         "twap": true,
                         "until": 1732697788022
+                    }
+                ]
+            },
+            {
+                "description": "Spot closed orders without symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/historyOrders?timestamp=1699458294623&signature=80016769e53019f01380e74b927ad3e36f5980e32c3de4a3a4bcfe9fc68efa7a",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Linear swap fetch closed orders without symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allOrders?timestamp=1699458294851&signature=d1622ab21a981576341cb05abaece32622e00a0b296c69e937e792c157e3e687",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap",
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch closed orders without symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?timestamp=1721961756401&signature=e9cfa075457e0a4e8346e2dd32fa082cfb631ecaf87ca7ff414a1fe1096c5a8c",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap",
+                        "subType": "inverse"
                     }
                 ]
             }
@@ -1483,15 +1538,30 @@
         ],
         "transfer": [
             {
-                "description": "transfer LTC from inverse swap to spot using the subType parameter",
+                "description": "transfer XRP from inverse swap to spot using the subType parameter",
                 "disabledGO": true,
                 "method": "transfer",
-                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=0.05&asset=LTC&fromAccount=USDTMPerp&timestamp=1752202170056&toAccount=spot&signature=1759012ec5ebbca1ad6a823da98ce4689dbf667aa5a01ee9ea553e23f2f1e010",       
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=1&asset=XRP&fromAccount=coinMPerp&timestamp=1790873599567&toAccount=spot&signature=33832570dab98c247777fd3eb14175b1f208ac75b7353ad5e7e86ebfb879bfdf",
                 "input": [
-                    "LTC",
-                    0.05,
+                    "XRP",
+                    1,
                     "swap",
                     "spot",
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "transfer XRP from spot to inverse swap using the subType parameter",
+                "disabledGO": true,
+                "method": "transfer",
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=1&asset=XRP&fromAccount=spot&timestamp=1790873597997&toAccount=coinMPerp&signature=c988f9c3996be4387895a7c1a2490b1b388bc11dcfb94dff7c8df77a2b78b667",
+                "input": [
+                    "XRP",
+                    1,
+                    "spot",
+                    "swap",
                     {
                         "subType": "inverse"
                     }
@@ -1596,6 +1666,22 @@
             }
         ],
         "editOrder": [
+            {
+                "description": "spot edit order with cancelReplaceMode",
+                "method": "editOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order/cancelReplace?cancelOrderId=2105697526710435840&cancelReplaceMode=ALLOW_FAILURE&price=29000&quantity=0.0002&side=BUY&symbol=BTC-USDT&timestamp=1790872390993&type=LIMIT&signature=847bac298ae237333917a1b7f57d9bd4c59f48360d5caf3c690f64c60cbbee97",
+                "input": [
+                    "2105697526710435840",
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0002,
+                    29000,
+                    {
+                        "cancelReplaceMode": "ALLOW_FAILURE"
+                    }
+                ]
+            },
             {
                 "disabled": true,
                 "description": "trigger order with stoploss & takeprofit",

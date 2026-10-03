@@ -185,7 +185,7 @@ class mudrex(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path: object, api='public', method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         apiUrls = self.safe_dict(self.urls, 'api', {})
         base = self.safe_string(apiUrls, api)
         if base is None:
@@ -244,8 +244,8 @@ class mudrex(Exchange, ImplicitAPI):
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
-        #     [1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741]
-        #     [timestampInSeconds, open, high, low, close, volume]
+        #     [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ]
+        #     [ timestampInSeconds, open, high, low, close, volume ]
         #
         return [
             self.safe_timestamp(ohlcv, 0),
@@ -256,7 +256,7 @@ class mudrex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -275,14 +275,13 @@ class mudrex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         priceType = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
-        # the endpoint expects the pair in "BASE/QUOTE" format(comma-separated for multiple)
+        # the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
         assetPair = market['baseId'] + '/' + market['quoteId']
         request = {
             'assets': assetPair,
             'aggregation': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        # the endpoint requires an explicit time window(in seconds)
+        # the endpoint requires an explicit time window (in seconds)
         duration = self.parse_timeframe(timeframe)
         requestLimit = limit
         if requestLimit is None:
@@ -297,24 +296,24 @@ class mudrex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchOHLCV() missing startTime')
         endTime = startTime + duration * requestLimit
         until = self.safe_integer(params, 'until')
+        paramsOmitted = self.omit(params, ['price', 'until'])
         if until is not None:
-            params = self.omit(params, 'until')
             endTime = self.parse_to_int(until / 1000)
         elif endTime > now:
             endTime = now
         request['start_time'] = startTime
         request['end_time'] = endTime
-        response = None
+        response: dict
         if priceType == 'mark':
-            response = await self.marketGetPriceMarkKline(self.extend(request, params))
+            response = await self.marketGetPriceMarkKline(self.extend(request, paramsOmitted))
         else:
-            response = await self.marketGetPriceKline(self.extend(request, params))
+            response = await self.marketGetPriceKline(self.extend(request, paramsOmitted))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "asset_ticks": {
-        #                 "btc/usdt": [[1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741]]
+        #                 "btc/usdt": [ [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ] ]
         #             }
         #         }
         #     }
@@ -324,7 +323,7 @@ class mudrex(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(assetTicks, assetPair.lower(), [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    async def fetch_mark_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_mark_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical mark price candlestick data containing the open, high, low, and close price of a market
 
@@ -339,7 +338,7 @@ class mudrex(Exchange, ImplicitAPI):
         """
         return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(params, {'price': 'mark'}))
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -360,7 +359,7 @@ class mudrex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -391,8 +390,8 @@ class mudrex(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         ms = self.safe_string(ticker, 'symbol')
-        market = self.safe_market(ms, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(ms, market)
+        symbol = marketResolved['symbol']
         pct = self.safe_number(ticker, 'change_perc')
         return self.safe_ticker({
             'symbol': symbol,
@@ -415,9 +414,9 @@ class mudrex(Exchange, ImplicitAPI):
             'baseVolume': None,
             'quoteVolume': self.safe_number(ticker, 'volume'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for the exchange
 
@@ -439,7 +438,7 @@ class mudrex(Exchange, ImplicitAPI):
                 items = self.safe_list(data, 'items', [])
                 # hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 itemsLength = len(items)
-                if (itemsLength is None) or (itemsLength == 0):
+                if itemsLength == 0:
                     items = self.safe_list(data, 'results', [])
                     itemsLength = len(items)
                 if (itemsLength == 0) and ('symbol' in data):
@@ -447,7 +446,7 @@ class mudrex(Exchange, ImplicitAPI):
             else:
                 items = self.to_array(data)
             numItems = len(items)
-            if (numItems is None) or (numItems == 0):
+            if numItems == 0:
                 paging = False
                 break
             for i in range(0, numItems):
@@ -455,7 +454,7 @@ class mudrex(Exchange, ImplicitAPI):
             if numItems < pageLimit:
                 paging = False
             else:
-                # self.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                # this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 offset = self.sum(offset, pageLimit)
         result = []
         for i in range(0, len(aggregated)):
@@ -523,7 +522,7 @@ class mudrex(Exchange, ImplicitAPI):
             'created': None,
         })
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -536,20 +535,19 @@ class mudrex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        type = None
-        type, params = self.handle_market_type_and_params('fetchBalance', None, params, 'swap')
-        requested = self.safe_string_n(params, ['trade_currency', 'tradeCurrency', 'currency'])
-        params = self.omit(params, ['trade_currency', 'tradeCurrency', 'currency'])
+        type, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, params, 'swap')
+        requested = self.safe_string_n(paramsMarketType, ['trade_currency', 'tradeCurrency', 'currency'])
+        paramsOmitted = self.omit(paramsMarketType, ['trade_currency', 'tradeCurrency', 'currency'])
         request = {}
         response = None
         if type == 'spot':
             if requested is not None:
                 request['currency'] = requested
-            response = await self.privateGetWalletFunds(self.extend(request, params))
+            response = await self.privateGetWalletFunds(self.extend(request, paramsOmitted))
         else:
             if requested is not None:
                 request['trade_currency'] = requested
-            response = await self.privateGetFuturesFunds(self.extend(request, params))
+            response = await self.privateGetFuturesFunds(self.extend(request, paramsOmitted))
         currency = requested
         if currency is None:
             currency = 'USDT'
@@ -577,7 +575,7 @@ class mudrex(Exchange, ImplicitAPI):
         result[currency] = account
         return self.safe_balance(result)
 
-    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    async def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
@@ -604,7 +602,7 @@ class mudrex(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_number(data, 'leverage'),
         }
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -628,11 +626,11 @@ class mudrex(Exchange, ImplicitAPI):
             'margin_type': marginType,
             'leverage': leverage,
         }
-        params = self.omit(params, ['marginType'])
-        response = await self.privatePostFuturesAssetIdLeverage(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['marginType'])
+        response = await self.privatePostFuturesAssetIdLeverage(self.extend(request, paramsOmitted))
         return response
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -659,7 +657,7 @@ class mudrex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        # standalone stop-loss / take-profit orders(stopLossPrice/takeProfitPrice) are attached to
+        # standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
         # an existing position through the riskorder endpoint, so a positionId is required
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
@@ -667,7 +665,7 @@ class mudrex(Exchange, ImplicitAPI):
             positionId = self.safe_string_2(params, 'positionId', 'position_id')
             if positionId is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order')
-            params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id'])
+            paramsOmitted = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id'])
             riskRequest = {
                 'position_id': positionId,
             }
@@ -677,7 +675,7 @@ class mudrex(Exchange, ImplicitAPI):
             if stopLossPrice is not None:
                 riskRequest['is_stoploss'] = True
                 riskRequest['stoploss_price'] = self.price_to_precision(symbol, stopLossPrice)
-            riskResponse = await self.privatePostFuturesPositionsPositionIdRiskorder(self.extend(riskRequest, params))
+            riskResponse = await self.privatePostFuturesPositionsPositionIdRiskorder(self.extend(riskRequest, paramsOmitted))
             riskData = self.safe_dict(riskResponse, 'data', riskResponse)
             return self.parse_order(riskData, market)
         lev = self.safe_integer(params, 'leverage', 1)
@@ -702,8 +700,8 @@ class mudrex(Exchange, ImplicitAPI):
         if stopLoss is not None:
             request['is_stoploss'] = True
             request['stoploss_price'] = self.price_to_precision(symbol, self.safe_string_n(stopLoss, ['triggerPrice', 'stopPrice', 'price']))
-        params = self.omit(params, ['leverage', 'reduceOnly', 'takeProfit', 'stopLoss'])
-        response = await self.privatePostFuturesAssetIdOrder(self.extend(request, params))
+        orderParams = self.omit(params, ['leverage', 'reduceOnly', 'takeProfit', 'stopLoss'])
+        response = await self.privatePostFuturesAssetIdOrder(self.extend(request, orderParams))
         data = self.safe_dict(response, 'data', response)
         # the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
         merged = self.extend(data, {'order_type': request['order_type'], 'trigger_type': request['trigger_type']})
@@ -711,7 +709,7 @@ class mudrex(Exchange, ImplicitAPI):
         order['info'] = data
         return order
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -760,7 +758,7 @@ class mudrex(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         oms = self.safe_string(order, 'symbol')
-        market = self.safe_market(oms, market)
+        marketResolved = self.safe_market(oms, market)
         oid = self.safe_string_2(order, 'order_id', 'id')
         rawSide = self.safe_string_upper(order, 'order_type')
         side = None
@@ -790,7 +788,7 @@ class mudrex(Exchange, ImplicitAPI):
             typ = 'limit'
         ts = self.parse8601(self.safe_string(order, 'created_at'))
         status = self.parse_order_status(self.safe_string_lower(order, 'status'))
-        sym = market['symbol']
+        sym = marketResolved['symbol']
         return self.safe_order({
             'info': order,
             'id': oid,
@@ -818,9 +816,9 @@ class mudrex(Exchange, ImplicitAPI):
             'fees': [],
             'lastUpdateTimestamp': self.parse8601(self.safe_string(order, 'updated_at')),
             'reduceOnly': self.safe_bool(order, 'reduce_only'),
-        }, market)
+        }, marketResolved)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -843,7 +841,7 @@ class mudrex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', response)
         return self.parse_order(data, market)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -866,7 +864,7 @@ class mudrex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', response)
         return self.parse_order(data, market)
 
-    async def fetch_orders_by_state(self, state: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders_by_state(self, state: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
  @ignore
         fetches a list of orders filtered by their state
@@ -883,7 +881,7 @@ class mudrex(Exchange, ImplicitAPI):
         if limit is not None:
             q['limit'] = limit
         request = self.extend(q, params)
-        response = None
+        response: dict
         if state == 'closed':
             response = await self.privateGetFuturesOrdersHistory(request)
         else:
@@ -898,7 +896,7 @@ class mudrex(Exchange, ImplicitAPI):
             orders.append(self.parse_order(rows[i], market))
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -912,7 +910,7 @@ class mudrex(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state('closed', symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -926,7 +924,7 @@ class mudrex(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state('open', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -940,7 +938,7 @@ class mudrex(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state('closed', symbol, since, limit, params)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -966,9 +964,9 @@ class mudrex(Exchange, ImplicitAPI):
             m = self.safe_market(symRaw)
             pos = self.parse_position(p, m)
             outPos.append(pos)
-        return self.filter_by_array_positions(outPos, 'symbol', symbols, False)
+        return self.filter_by_array_positions(outPos, 'symbol', symbols)
 
-    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         fetches the history of closed positions
 
@@ -983,14 +981,14 @@ class mudrex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         request = {}
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetFuturesPositionsHistory(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": [
         #             {
         #                 "id": "019f1ed6-...",
@@ -1010,14 +1008,14 @@ class mudrex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        positions = self.parse_positions(data, symbols)
+        positions = self.parse_positions(data, symbolsNormalized)
         return self.filter_by_since_limit(positions, since, limit)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, market)
         ms = self.safe_string(position, 'symbol')
-        symbol = self.safe_symbol(ms, market)
-        # open positions use "order_type", closed positions(history) use "position_type"
+        symbol = self.safe_symbol(ms, marketResolved)
+        # open positions use "order_type", closed positions (history) use "position_type"
         rawSide = self.safe_string_upper_2(position, 'order_type', 'position_type')
         side = None
         if rawSide == 'LONG':
@@ -1029,7 +1027,7 @@ class mudrex(Exchange, ImplicitAPI):
             ts = self.parse8601(self.safe_string(position, 'created_at'))
         quantityString = self.safe_string(position, 'quantity')
         entryPriceString = self.safe_string(position, 'entry_price')
-        contractSizeString = self.safe_string(market, 'contractSize', '1')
+        contractSizeString = self.safe_string(marketResolved, 'contractSize', '1')
         notional = None
         if (quantityString is not None) and (entryPriceString is not None):
             notional = self.parse_number(Precise.string_mul(Precise.string_mul(quantityString, entryPriceString), contractSizeString))
@@ -1044,7 +1042,7 @@ class mudrex(Exchange, ImplicitAPI):
             'hedged': False,
             'side': side,
             'contracts': self.safe_number(position, 'quantity'),
-            'contractSize': self.safe_number(market, 'contractSize'),
+            'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'entryPrice': self.safe_number(position, 'entry_price'),
             'markPrice': None,
             'lastPrice': self.safe_number(position, 'closed_price'),  # exit price for closed positions
@@ -1062,7 +1060,7 @@ class mudrex(Exchange, ImplicitAPI):
             'percentage': None,
         }
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+    async def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes an open position for a market
 
@@ -1101,14 +1099,14 @@ class mudrex(Exchange, ImplicitAPI):
             lp = self.safe_string(params, 'limit_price')
             if orderType == 'LIMIT' and lp is not None:
                 request['limit_price'] = lp
-            params = self.omit(params, ['order_type', 'limit_price', 'amount', 'position_id'])
-            partialResponse = await self.privatePostFuturesPositionsPositionIdClosePartial(self.extend(request, params))
+            partialParams = self.omit(params, ['order_type', 'limit_price', 'amount', 'position_id'])
+            partialResponse = await self.privatePostFuturesPositionsPositionIdClosePartial(self.extend(request, partialParams))
             return partialResponse
-        params = self.omit(params, ['position_id'])
-        response = await self.privatePostFuturesPositionsPositionIdClose(self.extend(request, params))
+        closeParams = self.omit(params, ['position_id'])
+        response = await self.privatePostFuturesPositionsPositionIdClose(self.extend(request, closeParams))
         return response
 
-    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin to a position
 
@@ -1136,11 +1134,11 @@ class mudrex(Exchange, ImplicitAPI):
             'position_id': positionId,
             'margin': self.cost_to_precision(symbol, amount),
         }
-        params = self.omit(params, ['position_id'])
-        response = await self.privatePostFuturesPositionsPositionIdAddMargin(self.extend(request, params))
-        return response
+        paramsOmitted = self.omit(params, ['position_id'])
+        response = await self.privatePostFuturesPositionsPositionIdAddMargin(self.extend(request, paramsOmitted))
+        return self.extend(response, {})
 
-    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         remove margin from a position
 
@@ -1153,7 +1151,7 @@ class mudrex(Exchange, ImplicitAPI):
         """
         return await self.add_margin(symbol, -amount, params)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
 
@@ -1172,8 +1170,7 @@ class mudrex(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        maxCalls = None
-        maxCalls, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginationCalls', 10)
+        maxCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, 'fetchMyTrades', 'paginationCalls', 10)
         pageSize = 0
         if limit is not None:
             # every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
@@ -1188,7 +1185,7 @@ class mudrex(Exchange, ImplicitAPI):
             if pageSize > 0:
                 request['limit'] = pageSize
                 request['offset'] = offset
-            response = await self.privateGetFuturesFeeHistory(self.extend(request, params))
+            response = await self.privateGetFuturesFeeHistory(self.extend(request, paramsPaginationCalls))
             data = self.safe_list(response, 'data', [])
             dataLength = len(data)
             for i in range(0, dataLength):
@@ -1202,7 +1199,7 @@ class mudrex(Exchange, ImplicitAPI):
             paging = False
             # the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if (limit is not None) and (dataLength == pageSize) and (transactionsCount < limit) and (calls < maxCalls):
-                # self.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                # this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 offset = self.sum(offset, pageSize)
                 paging = True
         # a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
@@ -1225,7 +1222,7 @@ class mudrex(Exchange, ImplicitAPI):
             rebate = None
             for j in range(0, len(rebateKeys)):
                 if rebateKeys[j] == transactionKeys[i]:
-                    rebate = rebateAmounts[j]
+                    rebate = self.safe_string(rebateAmounts, j)
                     # blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     rebateKeys[j] = None
                     break
@@ -1252,10 +1249,10 @@ class mudrex(Exchange, ImplicitAPI):
         #     }
         #
         ms = self.safe_string(trade, 'symbol')
-        market = self.safe_market(ms, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(ms, market)
+        symbol = marketResolved['symbol']
         ts = self.parse8601(self.safe_string(trade, 'created_at'))
-        # exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays None
+        # exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         side = self.safe_string_lower(trade, 'order_type')
         tradeSide = None
         if side == 'long':
@@ -1292,9 +1289,9 @@ class mudrex(Exchange, ImplicitAPI):
             'amount': None,
             'cost': self.safe_string(trade, 'transaction_amount'),
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -1329,7 +1326,7 @@ class mudrex(Exchange, ImplicitAPI):
             tradeCurrency = self.safe_string_2(params, 'trade_currency', 'tradeCurrency')
             if tradeCurrency == 'INR':
                 useInr = True
-        response = None
+        response: dict
         if useInr:
             response = await self.privatePostFuturesTransfersInr(self.extend(body, params))
         else:

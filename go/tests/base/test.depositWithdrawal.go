@@ -35,7 +35,7 @@ func TestDepositWithdrawal(exchange ccxt.ICoreExchange, skippedProperties any, m
 	AssertInArray(exchange, skippedProperties, method, entry, "type", []any{"deposit", "withdrawal"})
 	AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0")
 	AssertFeeStructure(exchange, skippedProperties, method, entry, "fee")
-	if IsTrue(IsEqual(GetValue(entry, "type"), "deposit")) {
+	if IsEqual(GetValue(entry, "type"), "deposit") {
 		AssertType(exchange, skippedProperties, entry, "addressFrom", format)
 	} else {
 		AssertType(exchange, skippedProperties, entry, "addressTo", format)

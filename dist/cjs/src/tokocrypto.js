@@ -704,7 +704,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         });
     }
     nonce() {
-        return this.milliseconds() - this.options['timeDifference'];
+        return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
     /**
      * @method
@@ -772,10 +772,10 @@ class tokocrypto extends tokocrypto$1["default"] {
         //         "timestamp":1659492212507
         //     }
         //
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference();
         }
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const list = this.safeList(data, 'list', []);
         const result = [];
         for (let i = 0; i < list.length; i++) {
@@ -787,15 +787,18 @@ class tokocrypto extends tokocrypto$1["default"] {
             const settleId = this.safeString(market, 'marginAsset');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode(settleId);
             const symbol = base + '/' + quote;
-            const filters = this.safeValue(market, 'filters', []);
+            const filters = this.safeList(market, 'filters', []);
             const filtersByType = this.indexBy(filters, 'filterType');
             const status = this.safeString(market, 'spotTradingEnable');
             let active = (status === '1');
             const permissions = this.safeList(market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
-                if (permissions[j] === 'TRD_GRP_003') {
+                if (this.safeString(permissions, j) === 'TRD_GRP_003') {
                     active = false;
                     break;
                 }
@@ -867,7 +870,7 @@ class tokocrypto extends tokocrypto$1["default"] {
                 entry['precision']['price'] = filter['tickSize'];
             }
             if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeValue(filtersByType, 'LOT_SIZE', {});
+                const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
                 entry['precision']['amount'] = this.safeNumber(filter, 'stepSize');
                 entry['limits']['amount'] = {
                     'min': this.safeNumber(filter, 'minQty'),
@@ -875,14 +878,14 @@ class tokocrypto extends tokocrypto$1["default"] {
                 };
             }
             if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter = this.safeValue(filtersByType, 'MARKET_LOT_SIZE', {});
+                const filter = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
                 entry['limits']['market'] = {
                     'min': this.safeNumber(filter, 'minQty'),
                     'max': this.safeNumber(filter, 'maxQty'),
                 };
             }
             if ('MIN_NOTIONAL' in filtersByType) {
-                const filter = this.safeValue(filtersByType, 'MIN_NOTIONAL', {});
+                const filter = this.safeDict(filtersByType, 'MIN_NOTIONAL', {});
                 entry['limits']['cost']['min'] = this.safeNumber2(filter, 'minNotional', 'notional');
             }
             result.push(entry);
@@ -946,7 +949,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         //         },
         //         "timestamp":1692262634599
         //     }
-        const data = this.safeValue(response, 'data', response);
+        const data = this.safeDict(response, 'data', response);
         const timestamp = this.safeInteger2(response, 'T', 'timestamp');
         const orderbook = this.parseOrderBook(data, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger(data, 'lastUpdateId');
@@ -1056,7 +1059,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         id = this.safeString2(trade, 'id', 'tradeId', id);
         let side = undefined;
         const orderId = this.safeString(trade, 'orderId');
-        const buyerMaker = this.safeValue2(trade, 'm', 'isBuyerMaker');
+        const buyerMaker = this.safeBool2(trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = (buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
@@ -1067,7 +1070,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         }
         else {
             if ('isBuyer' in trade) {
-                side = (trade['isBuyer'] === true) ? 'buy' : 'sell'; // this is a true side
+                side = (this.safeBool(trade, 'isBuyer', false)) ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee = undefined;
@@ -1078,10 +1081,10 @@ class tokocrypto extends tokocrypto$1["default"] {
             };
         }
         if ('isMaker' in trade) {
-            takerOrMaker = (trade['isMaker'] === true) ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool(trade, 'isMaker', false)) ? 'maker' : 'taker';
         }
         if ('maker' in trade) {
-            takerOrMaker = (trade['maker'] === true) ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool(trade, 'maker', false)) ? 'maker' : 'taker';
         }
         return this.safeTrade({
             'info': trade,
@@ -1467,11 +1470,11 @@ class tokocrypto extends tokocrypto$1["default"] {
         const maxLimit = 1500;
         const price = this.safeString(params, 'price');
         const until = this.safeInteger(params, 'until');
-        params = this.omit(params, ['price', 'until']);
-        limit = (limit === undefined) ? defaultLimit : Math.min(limit, maxLimit);
+        const paramsOmitted = this.omit(params, ['price', 'until']);
+        const limitValue = (limit === undefined) ? defaultLimit : Math.min(limit, maxLimit);
         const request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitValue,
         };
         if (price === 'index') {
             request['pair'] = market['id']; // Index price takes this argument instead of symbol
@@ -1488,10 +1491,10 @@ class tokocrypto extends tokocrypto$1["default"] {
         }
         let response = undefined;
         if (this.isNativeMarket(market)) {
-            response = await this.publicGetOpenV1MarketKlines(this.extend(request, params));
+            response = await this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.binanceGetKlines(this.extend(request, params));
+            response = await this.binanceGetKlines(this.extend(request, paramsOmitted));
         }
         //
         // binanceGetKlines
@@ -1540,7 +1543,7 @@ class tokocrypto extends tokocrypto$1["default"] {
                 data = this.safeList(dataDict, 'list', []);
             }
         }
-        return this.parseOHLCVs(data, market, timeframe, since, limit);
+        return this.parseOHLCVs(data, market, timeframe, since, limitValue);
     }
     /**
      * @method
@@ -1596,10 +1599,10 @@ class tokocrypto extends tokocrypto$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const balances = this.safeList(data, 'accountAssets', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const currencyId = this.safeString(balance, 'asset');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -1750,7 +1753,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         else if (side === '1') {
             side = 'sell';
         }
-        const fills = this.safeValue(order, 'fills', []);
+        const fills = this.safeList(order, 'fills', []);
         const clientOrderId = this.safeString2(order, 'clientOrderId', 'clientId');
         let timeInForce = this.safeString(order, 'timeInForce');
         if (timeInForce === 'GTX') {
@@ -1815,15 +1818,13 @@ class tokocrypto extends tokocrypto$1["default"] {
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId');
         const postOnly = this.safeBool(params, 'postOnly', false);
         // only supported for spot/margin api
-        if (postOnly === true) {
-            type = 'LIMIT_MAKER';
-        }
-        params = this.omit(params, ['clientId', 'clientOrderId']);
-        const initialUppercaseType = type.toUpperCase();
+        const typeResolved = (postOnly === true) ? 'LIMIT_MAKER' : type;
+        const initialUppercaseType = typeResolved.toUpperCase();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        const triggerKeys = (triggerPrice !== undefined) ? ['triggerPrice', 'stopPrice'] : [];
+        let paramsRequest = this.omit(params, this.arrayConcat(['clientId', 'clientOrderId'], triggerKeys));
         if (triggerPrice !== undefined) {
-            params = this.omit(params, ['triggerPrice', 'stopPrice']);
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
             }
@@ -1834,10 +1835,10 @@ class tokocrypto extends tokocrypto$1["default"] {
         const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
         if (!this.inArray(uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
-                throw new errors.InvalidOrder(this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                throw new errors.InvalidOrder(this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + typeResolved + ' orders');
             }
             else {
-                throw new errors.InvalidOrder(this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+                throw new errors.InvalidOrder(this.id + ' ' + typeResolved + ' is not a valid order type for the ' + symbol + ' market');
             }
         }
         const reverseOrderTypeMapping = {
@@ -1860,7 +1861,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             request['side'] = 1;
         }
         if (clientOrderId === undefined) {
-            const broker = this.safeValue(this.options, 'broker');
+            const broker = this.safeDict(this.options, 'broker');
             if (broker !== undefined) {
                 const brokerId = this.safeString(broker, 'marketType');
                 if (brokerId !== undefined) {
@@ -1891,9 +1892,9 @@ class tokocrypto extends tokocrypto$1["default"] {
                 const precision = market['precision']['price'];
                 let quoteAmount = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
-                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber2(params, 'cost', 'quoteOrderQty');
-                params = this.omit(params, ['cost', 'quoteOrderQty']);
+                [createMarketBuyOrderRequiresPrice, paramsRequest] = this.handleOptionBoolAndParams(paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber2(paramsRequest, 'cost', 'quoteOrderQty');
+                paramsRequest = this.omit(paramsRequest, ['cost', 'quoteOrderQty']);
                 if (cost !== undefined) {
                     quoteAmount = cost;
                 }
@@ -1941,19 +1942,19 @@ class tokocrypto extends tokocrypto$1["default"] {
         }
         if (priceIsRequired) {
             if (price === undefined) {
-                throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for a ' + typeResolved + ' order');
             }
             request['price'] = this.priceToPrecision(symbol, price);
         }
         if (triggerPriceIsRequired) {
             if (triggerPrice === undefined) {
-                throw new errors.InvalidOrder(this.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order');
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires a triggerPrice extra param for a ' + typeResolved + ' order');
             }
             else {
                 request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
         }
-        const response = await this.privatePostOpenV1Orders(this.extend(request, params));
+        const response = await this.privatePostOpenV1Orders(this.extend(request, paramsRequest));
         //
         //     {
         //         "code": 0,
@@ -2030,8 +2031,8 @@ class tokocrypto extends tokocrypto$1["default"] {
         //         "timestamp": 1662710056523
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const list = this.safeValue(data, 'list', []);
+        const data = this.safeDict(response, 'data', {});
+        const list = this.safeList(data, 'list', []);
         const rawOrder = this.safeDict(list, 0, {});
         return this.parseOrder(rawOrder);
     }
@@ -2104,7 +2105,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         //         "timestamp": 1572860756458
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'list', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -2209,14 +2210,14 @@ class tokocrypto extends tokocrypto$1["default"] {
         if (since !== undefined) {
             request['startTime'] = since;
         }
+        const paramsOmitted = (endTime !== undefined) ? this.omit(params, ['endTime', 'until']) : params;
         if (endTime !== undefined) {
             request['endTime'] = endTime;
-            params = this.omit(params, ['endTime', 'until']);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenV1OrdersTrades(this.extend(request, params));
+        const response = await this.privateGetOpenV1OrdersTrades(this.extend(request, paramsOmitted));
         //
         //     {
         //         "code": 0,
@@ -2242,7 +2243,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         //         "timestamp": 1573723498893
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const trades = this.safeList(data, 'list', []);
         return this.parseTrades(trades, market, since, limit);
     }
@@ -2264,16 +2265,16 @@ class tokocrypto extends tokocrypto$1["default"] {
             'asset': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        const networks = this.safeValue(this.options, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
+        const paramsOmitted = (network !== undefined) ? this.omit(params, 'network') : params;
         if (network !== undefined) {
             request['network'] = network;
-            params = this.omit(params, 'network');
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        const response = await this.privateGetOpenV1DepositsAddress(this.extend(request, params));
+        const response = await this.privateGetOpenV1DepositsAddress(this.extend(request, paramsOmitted));
         //
         //     {
         //         "code":0,
@@ -2289,7 +2290,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         //         "timestamp":1660685915746
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const address = this.safeString(data, 'address');
         let tag = this.safeString(data, 'addressTag', '');
         if (tag.length === 0) {
@@ -2363,7 +2364,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         //         "timestamp":1659758865998
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const deposits = this.safeList(data, 'list', []);
         return this.parseTransactions(deposits, currency, since, limit);
     }
@@ -2422,7 +2423,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         //         "timestamp":1659759062187
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const withdrawals = this.safeList(data, 'list', []);
         return this.parseTransactions(withdrawals, currency, since, limit);
     }
@@ -2442,7 +2443,7 @@ class tokocrypto extends tokocrypto$1["default"] {
                 '10': 'ok', // Completed
             },
         };
-        const statuses = this.safeValue(statusesByType, type, {});
+        const statuses = this.safeDict(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -2534,7 +2535,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         }
         let id = this.safeString(transaction, 'id');
         if (id === undefined) {
-            const data = this.safeValue(transaction, 'data', {});
+            const data = this.safeDict(transaction, 'data', {});
             id = this.safeString(data, 'withdrawId');
             type = 'withdrawal';
         }
@@ -2574,7 +2575,7 @@ class tokocrypto extends tokocrypto$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2588,10 +2589,10 @@ class tokocrypto extends tokocrypto$1["default"] {
             // 'addressTag': 'string', // for coins like XRP, XMR, etc
             'amount': this.numberToString(amount),
         };
-        if (tag !== undefined) {
-            request['addressTag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['addressTag'] = tagWithdrawTag;
         }
-        const [networkCode, query] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, query] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         const networkId = this.networkCodeToId(networkCode, code);
         if (networkId !== undefined) {
             request['network'] = networkId.toUpperCase();
@@ -2613,7 +2614,11 @@ class tokocrypto extends tokocrypto$1["default"] {
         if (!(api in this.urls['api']['rest'])) {
             throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
-        let url = this.urls['api']['rest'][api];
+        const baseApiUrl = this.safeString(this.urls['api']['rest'], api);
+        if (baseApiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = baseApiUrl;
         url += '/' + path;
         if (api === 'wapi') {
             url += '.html';
@@ -2622,13 +2627,12 @@ class tokocrypto extends tokocrypto$1["default"] {
         if (userDataStream) {
             if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 // v1 special case for userDataStream
-                headers = {
+                const headersStream = {
                     'X-MBX-APIKEY': this.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                if (method !== 'GET') {
-                    body = this.urlencode(params);
-                }
+                const bodyStream = (method !== 'GET') ? this.urlencode(params) : body;
+                return { 'url': url, 'method': method, 'body': bodyStream, 'headers': headersStream };
             }
             else {
                 throw new errors.AuthenticationError(this.id + ' userDataStream endpoint requires `apiKey` credential');
@@ -2659,16 +2663,21 @@ class tokocrypto extends tokocrypto$1["default"] {
             }
             const signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
             query += '&' + 'signature=' + signature;
-            headers = {
+            const headersSigned = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
+            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (api === 'wapi');
+            let bodySigned = query;
+            if (queryInUrl) {
+                bodySigned = body;
+            }
+            if (queryInUrl) {
                 url += '?' + query;
             }
             else {
-                body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
+            return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         }
         else {
             if (Object.keys(params).length > 0) {
@@ -2701,9 +2710,9 @@ class tokocrypto extends tokocrypto$1["default"] {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool(response, 'success', true);
+        let parsedMessage = undefined;
         if (success !== true) {
             const messageInner = this.safeString(response, 'msg');
-            let parsedMessage = undefined;
             if (messageInner !== undefined) {
                 try {
                     parsedMessage = JSON.parse(messageInner);
@@ -2712,18 +2721,16 @@ class tokocrypto extends tokocrypto$1["default"] {
                     // do nothing
                     parsedMessage = undefined;
                 }
-                if (parsedMessage !== undefined) {
-                    response = parsedMessage;
-                }
             }
         }
-        const message = this.safeString(response, 'msg');
+        const responseParsed = (parsedMessage !== undefined) ? parsedMessage : response;
+        const message = this.safeString(responseParsed, 'msg');
         if (message !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, this.id + ' ' + message);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, this.id + ' ' + message);
         }
         // checks against error codes
-        const error = this.safeString(response, 'code');
+        const error = this.safeString(responseParsed, 'code');
         if (error !== undefined) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
@@ -2733,7 +2740,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error === '-2015') && (this.options['hasAlreadyAuthenticatedSuccessfully'] === true)) {
+            if ((error === '-2015') && (this.safeBool(this.options, 'hasAlreadyAuthenticatedSuccessfully', false))) {
                 throw new errors.DDoSProtection(this.id + ' ' + body);
             }
             const feedback = this.id + ' ' + body;

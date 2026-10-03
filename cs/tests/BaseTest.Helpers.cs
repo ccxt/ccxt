@@ -401,6 +401,7 @@ public partial class testMainClass : BaseTest
             return row;
         }
         var result = new dict();
+        var indexer = type.GetProperty("Item", new[] { typeof(string) });
         foreach (var field in fields)
         {
             var fieldValue = field.GetValue(value);
@@ -409,9 +410,11 @@ public partial class testMainClass : BaseTest
             // LeverageTiers, ...) hold a Dictionary<string, T> where T is a unified
             // struct or a list of them; the unified shape is that dictionary itself,
             // keyed by symbol/currency, so splat its entries instead of nesting them.
+            // Only unwrap dictionaries exposed by the container's string indexer.
             if (fieldType.IsGenericType
                 && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)
                 && fieldType.GetGenericArguments()[0] == typeof(string)
+                && indexer != null && indexer.PropertyType == fieldType.GetGenericArguments()[1]
                 && isProjectable(fieldType.GetGenericArguments()[1]))
             {
                 if (fieldValue is System.Collections.IDictionary inner)
@@ -577,8 +580,16 @@ public partial class testMainClass : BaseTest
         var exchange = exchange2 as BaseExchange;
 
         exchange.fetchResponse = response;
+        exchange.fetchResponseByUrl = null; // a plain body (or the undefined reset) drops any url-keyed mock
         return exchange;
 
+    }
+
+    public BaseExchange setFetchResponseByUrl(object exchange2, object responsesByUrl)
+    {
+        var exchange = exchange2 as BaseExchange;
+        exchange.fetchResponseByUrl = responsesByUrl;
+        return exchange;
     }
 
     public object setupWsMockTransport(object exchange2, object url)

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import independentreserveRest from '../independentreserve.js';
-import { NotSupported, ChecksumError } from '../base/errors.js';
+import { NotSupported, ChecksumError, ExchangeError } from '../base/errors.js';
 import { ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from '../base/functions/number.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
@@ -54,9 +54,13 @@ export default class independentreserve extends independentreserveRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const url = this.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
-        const messageHash = 'trades:' + symbol;
+        const symbolValue = market['symbol'];
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError(this.id + ' watchTrades() has no websocket url');
+        }
+        const url = wsUrl + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
+        const messageHash = 'trades:' + symbolValue;
         const trades = await this.watch(url, messageHash, undefined, messageHash);
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
@@ -79,7 +83,7 @@ export default class independentreserve extends independentreserveRest {
         //        "Event": "Trade"
         //    }
         //
-        const data = this.safeValue(message, 'Data', {});
+        const data = this.safeDict(message, 'Data', {});
         const marketId = this.safeString(data, 'Pair');
         const symbol = this.safeSymbol(marketId, undefined, '-');
         const messageHash = 'trades:' + symbol;
@@ -139,13 +143,15 @@ export default class independentreserve extends independentreserveRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        if (limit === undefined) {
-            limit = 100;
+        const symbolValue = market['symbol'];
+        const limitResolved = (limit === undefined) ? 100 : limit;
+        const limitString = this.numberToString(limitResolved);
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError(this.id + ' watchOrderBook() has no websocket url');
         }
-        const limitString = this.numberToString(limit);
-        const url = this.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
-        const messageHash = 'orderbook:' + symbol + ':' + limitString;
+        const url = wsUrl + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
+        const messageHash = 'orderbook:' + symbolValue + ':' + limitString;
         const subscription = {
             'receivedSnapshot': false,
         };
@@ -186,10 +192,13 @@ export default class independentreserve extends independentreserveRest {
         const quoteId = this.safeString(parts, 3);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return;
+        }
         const symbol = base + '/' + quote;
         const orderBook = this.safeDict(message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;
-        const subscription = this.safeValue(client.subscriptions, messageHash, {});
+        const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const receivedSnapshot = this.safeBool(subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger(message, 'Time');
         // let orderbook = this.safeValue (this.orderbooks, symbol);

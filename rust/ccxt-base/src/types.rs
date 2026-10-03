@@ -98,7 +98,7 @@ impl Market {
         m.active  = safe_bool(&v, "active", Some(true)).unwrap_or(true);
         m.taker   = safe_number(&v, "taker", None);
         m.maker   = safe_number(&v, "maker", None);
-        let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string()));
+        let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string().into()));
         let limits = sub(&v, "limits");
         m.limits = MarketLimits {
             amount:   MinMax::from_value(&sub(&limits, "amount")),
@@ -209,7 +209,7 @@ impl Trade {
         t.price          = safe_number(&v, "price",     None);
         t.amount         = safe_number(&v, "amount",    None);
         t.cost           = safe_number(&v, "cost",      None);
-        t.fee            = match crate::get_value(&v, &Value::Str("fee".to_string())) {
+        t.fee            = match crate::get_value(&v, &Value::Str("fee".into())) {
             fee @ Value::Dict(_) => Some(Fee::from_value(fee)),
             _ => None,
         };
@@ -276,8 +276,8 @@ impl Order {
         o.stop_loss_price   = safe_number(&v, "stopLossPrice",   None);
         o.post_only       = safe_bool(&v, "postOnly",   None);
         o.reduce_only     = safe_bool(&v, "reduceOnly", None);
-        o.trades          = vec_from_value(&crate::get_value(&v, &Value::Str("trades".to_string())), Trade::from_value);
-        o.fee             = match crate::get_value(&v, &Value::Str("fee".to_string())) {
+        o.trades          = vec_from_value(&crate::get_value(&v, &Value::Str("trades".into())), Trade::from_value);
+        o.fee             = match crate::get_value(&v, &Value::Str("fee".into())) {
             Value::Dict(m) => Some((*m).clone()),
             _ => None,
         };
@@ -313,7 +313,7 @@ impl OrderBook {
         // valid book entry and would corrupt best-bid/ask and depth math
         // downstream (review #7).
         let extract_side = |key: &str| -> Vec<[f64; 2]> {
-            let side = get_value(&v, &Value::Str(key.to_string()));
+            let side = get_value(&v, &Value::Str(key.to_string().into()));
             // A resolved WS book keeps its sides as shared markers (entries in
             // the side store), not inline arrays — read those levels straight
             // from the store as `[price, amount]` pairs (no intermediate Value
@@ -364,11 +364,11 @@ impl Balances {
     pub fn from_value(v: Value) -> Self {
         use crate::value::get_value;
         let mut b = Balances::default();
-        b.info = get_value(&v, &Value::Str("info".to_string()));
+        b.info = get_value(&v, &Value::Str("info".into()));
         // The top-level `free`/`used`/`total` keys are dicts of
         // `<currency-code> → number`. Walk them and collect.
         let extract = |key: &str| -> HashMap<String, f64> {
-            let m = get_value(&v, &Value::Str(key.to_string()));
+            let m = get_value(&v, &Value::Str(key.to_string().into()));
             match m {
                 Value::Dict(d) => d.iter().filter_map(|(k, val)| {
                     let n = match val {
@@ -433,7 +433,7 @@ impl Transaction {
         t.currency     = safe_string(&v, "currency",    None);
         t.status       = safe_string(&v, "status",      None);
         t.updated      = safe_integer(&v, "updated",    None);
-        t.fee          = match crate::get_value(&v, &Value::Str("fee".to_string())) {
+        t.fee          = match crate::get_value(&v, &Value::Str("fee".into())) {
             fee @ Value::Dict(_) => Some(Fee::from_value(fee)),
             _ => None,
         };
@@ -611,7 +611,7 @@ impl LedgerEntry {
         l.before    = safe_number(&v, "before",    None);
         l.after     = safe_number(&v, "after",     None);
         l.status    = safe_string(&v, "status",    None);
-        l.fee       = match crate::get_value(&v, &Value::Str("fee".to_string())) {
+        l.fee       = match crate::get_value(&v, &Value::Str("fee".into())) {
             fee @ Value::Dict(_) => Some(Fee::from_value(fee)),
             _ => None,
         };
@@ -1405,7 +1405,7 @@ pub struct DepositWithdrawFeeNetwork {
 
 impl DepositWithdrawFee {
     pub fn from_value(v: Value) -> Self {
-        let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string()));
+        let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string().into()));
         let mut d = DepositWithdrawFee::default();
         d.withdraw = DepositWithdrawFeeLeg::from_value(&sub(&v, "withdraw"));
         d.deposit  = DepositWithdrawFeeLeg::from_value(&sub(&v, "deposit"));

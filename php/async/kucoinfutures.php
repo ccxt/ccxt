@@ -42,7 +42,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_bids_asks(...))($symbols, $params);
     }
 
@@ -84,31 +84,30 @@ class kucoinfutures extends kucoin {
             'amount' => $amountToPrecision,
         );
         $toAccountString = $this->parse_transfer_type($toAccount);
-        $response = null;
         if ($toAccountString === 'TRADE' || $toAccountString === 'MAIN') {
             $request['recAccountType'] = $toAccountString;
             $response = Async\await($this->futuresPrivatePostTransferOut($this->extend($request, $params)));
             //
             //     {
-            //         "code" => "200000",
-            //         "data" => {
-            //             "applyId" => "6738754373ceee00011ec3f8",
-            //             "bizNo" => "6738754373ceee00011ec3f7",
-            //             "payAccountType" => "CONTRACT",
-            //             "payTag" => "DEFAULT",
-            //             "remark" => "",
-            //             "recAccountType" => "MAIN",
-            //             "recTag" => "DEFAULT",
-            //             "recRemark" => "",
-            //             "recSystem" => "KUCOIN",
-            //             "status" => "PROCESSING",
-            //             "currency" => "USDT",
-            //             "amount" => "5",
-            //             "fee" => "0",
-            //             "sn" => 1519769124846692,
-            //             "reason" => "",
-            //             "createdAt" => 1731753283000,
-            //             "updatedAt" => 1731753283000
+            //         "code": "200000",
+            //         "data": {
+            //             "applyId": "6738754373ceee00011ec3f8",
+            //             "bizNo": "6738754373ceee00011ec3f7",
+            //             "payAccountType": "CONTRACT",
+            //             "payTag": "DEFAULT",
+            //             "remark": "",
+            //             "recAccountType": "MAIN",
+            //             "recTag": "DEFAULT",
+            //             "recRemark": "",
+            //             "recSystem": "KUCOIN",
+            //             "status": "PROCESSING",
+            //             "currency": "USDT",
+            //             "amount": "5",
+            //             "fee": "0",
+            //             "sn": 1519769124846692,
+            //             "reason": "",
+            //             "createdAt": 1731753283000,
+            //             "updatedAt": 1731753283000
             //         }
             //     }
             //
@@ -117,9 +116,9 @@ class kucoinfutures extends kucoin {
             $response = Async\await($this->futuresPrivatePostTransferIn($this->extend($request, $params)));
             //
             //    {
-            //        "code" => "200000",
-            //        "data" => {
-            //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out $request ID
+            //        "code": "200000",
+            //        "data": {
+            //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
             //        }
             //    }
             //
@@ -134,7 +133,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function parse_transfer_type(mixed $transferType) {
+    public function parse_transfer_type(?string $transferType): ?string {
         $transferTypes = array(
             'spot' => 'TRADE',
             'funding' => 'MAIN',

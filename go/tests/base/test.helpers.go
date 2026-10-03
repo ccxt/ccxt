@@ -173,6 +173,13 @@ func IsEqual(a, b interface{}) bool {
 	return ccxt.IsEqual(a, b)
 }
 
+// the printer's bounds-checked element read wraps its result in DerefScalar() (the go/v4
+// helper of that name); this package keeps the emitted code free of the `ccxt.` qualifier
+// through its local set of wrappers
+func DerefScalar(v any) any {
+	return ccxt.DerefScalar(v)
+}
+
 func NormalizeAndConvert(a, b interface{}) (reflect.Value, reflect.Value, bool) {
 	return ccxt.NormalizeAndConvert(a, b)
 }
@@ -285,6 +292,10 @@ func Contains(v interface{}, substr interface{}) bool {
 	return ccxt.Contains(v, substr)
 }
 
+func StringArg(v interface{}) string {
+	return ccxt.StringArg(v)
+}
+
 func ToString(v interface{}) string {
 	return ccxt.ToString(v)
 }
@@ -345,6 +356,82 @@ func GetArg(v []interface{}, index int, def interface{}) interface{} {
 	return ccxt.GetArg(v, index, def)
 }
 
+func MapTyped(v any) map[string]any {
+	return ccxt.MapTyped(v)
+}
+
+func SafeStringPtr(v any) *string {
+	return ccxt.SafeStringPtr(v)
+}
+
+func TupleSlice[T any](value T, params map[string]any) []any {
+	return ccxt.TupleSlice(value, params)
+}
+
+func SafeBoolPtr(v any) *bool {
+	return ccxt.SafeBoolPtr(v)
+}
+
+func ListTyped(v any) []any {
+	return ccxt.ListTyped(v)
+}
+
+func GetArgMap(args []any, index int, def map[string]any) map[string]any {
+	return ccxt.GetArgMap(args, index, def)
+}
+
+func GetArgAnySlice(args []any, index int, def []any) []any {
+	return ccxt.GetArgAnySlice(args, index, def)
+}
+
+func GetArgStringSlice(args []any, index int, def []string) []string {
+	return ccxt.GetArgStringSlice(args, index, def)
+}
+
+func GetArgMapSlice(args []any, index int, def []map[string]any) []map[string]any {
+	return ccxt.GetArgMapSlice(args, index, def)
+}
+
+func GetArgString(args []any, index int, def string) string {
+	return ccxt.GetArgString(args, index, def)
+}
+
+func GetArgBool(args []any, index int, def bool) bool {
+	return ccxt.GetArgBool(args, index, def)
+}
+
+func GetArgInt64(args []any, index int, def int64) int64 {
+	return ccxt.GetArgInt64(args, index, def)
+}
+
+func GetArgFloat64(args []any, index int, def float64) float64 {
+	return ccxt.GetArgFloat64(args, index, def)
+}
+
+func GetArgStringPtr(args []any, index int, def *string) *string {
+	return ccxt.GetArgStringPtr(args, index, def)
+}
+
+func GetArgInt64Ptr(args []any, index int, def *int64) *int64 {
+	return ccxt.GetArgInt64Ptr(args, index, def)
+}
+
+func Int64PtrTyped(v any) *int64 {
+	return ccxt.Int64PtrTyped(v)
+}
+
+func Float64PtrTyped(v any) *float64 {
+	return ccxt.Float64PtrTyped(v)
+}
+
+func GetArgFloat64Ptr(args []any, index int, def *float64) *float64 {
+	return ccxt.GetArgFloat64Ptr(args, index, def)
+}
+
+func GetArgBoolPtr(args []any, index int, def *bool) *bool {
+	return ccxt.GetArgBoolPtr(args, index, def)
+}
+
 func Ternary(cond bool, whenTrue interface{}, whenFalse interface{}) interface{} {
 	return ccxt.Ternary(cond, whenTrue, whenFalse)
 }
@@ -357,8 +444,12 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 	return ccxt.Slice(str2, idx1, idx2)
 }
 
-func promiseAll(tasksInterface interface{}) <-chan interface{} {
+func promiseAll(tasksInterface interface{}) <-chan ccxt.AsyncResult[any] {
 	return ccxt.PromiseAll(tasksInterface)
+}
+
+func PromiseAllTyped[T any, R ccxt.TypedOutcome[T]](tasks ...<-chan R) <-chan ccxt.AsyncResult[[]T] {
+	return ccxt.PromiseAllTyped[T, R](tasks...)
 }
 
 func ParseInt(number interface{}) int64 {
@@ -405,13 +496,12 @@ func Capitalize(s string) string {
 	return ccxt.Capitalize(s)
 }
 
-func CallInternalMethod(cache *sync.Map, itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+func CallInternalMethod(cache *sync.Map, itf interface{}, name2 string, args ...interface{}) <-chan ccxt.AsyncResult[any] {
 	return ccxt.CallInternalMethod(cache, itf, name2, args...)
 }
 
-func PanicOnError(msg interface{}) {
-	// Print("Inside panic onError: " + ToString(msg))
-	ccxt.PanicOnError(msg)
+func PanicOnError(msg interface{}) interface{} {
+	return ccxt.PanicOnError(msg)
 }
 
 func getCallerName() string {
@@ -426,10 +516,20 @@ func Print(v ...interface{}) {
 	fmt.Println(v...)
 }
 
-func ReturnPanicError(ch chan interface{}) {
-	ccxt.ReturnPanicError(ch)
+func ReturnPanicError[T any](ch chan ccxt.AsyncResult[T]) {
+	// recover() only stops a panic when called directly by the deferred function,
+	// so this cannot delegate to ccxt.ReturnPanicError
+	if r := recover(); r != nil {
+		if r != "break" {
+			ch <- ccxt.AsyncResult[T]{Err: ccxt.RecoveredError(r)}
+		}
+	}
 }
 
-func callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
+func callDynamically(name2 interface{}, args ...interface{}) <-chan ccxt.AsyncResult[any] {
 	panic("not implemented")
 }
+
+// StructToMap normalises a unified struct (ccxt.Ticker, ...) into its map shape so the
+// static asserts compare it like the stored json.
+var StructToMap = ccxt.StructToMap

@@ -51,7 +51,7 @@ fn new_marker(kind: &str, max_size: Value) -> Value {
     state.insert("_clearUpdates".to_string(),     Value::Bool(false));
     let id = crate::value::alloc_cache_id(state);
     let mut m = IndexMap::new();
-    m.insert("__cacheKind".to_string(),       Value::Str(kind.to_string()));
+    m.insert("__cacheKind".to_string(),       Value::Str(kind.to_string().into()));
     m.insert("__cache_id".to_string(),        Value::Int(id));
     m.insert("maxSize".to_string(),           max_size);
     Value::Map(m)

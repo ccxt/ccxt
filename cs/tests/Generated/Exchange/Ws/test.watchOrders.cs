@@ -12,17 +12,17 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchOrders";
         Int64 now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        Int64 ends = (now + 15000);
+        while (now < ends)
         {
             object response = null;
             bool success = true;
             try
             {
                 response = detypeForComparison(await exchange.WatchOrders(((string)symbol)));
-                if (isTrue(isEqual(response, null)))
+                if ((response == null))
                 {
-                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                    throw new Exception (add(exchange.id, " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {
@@ -34,15 +34,15 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            if ((success == true))
             {
-                if (isTrue(isEqual(response, null)))
+                if ((response == null))
                 {
-                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                    throw new Exception (add(exchange.id, " watch returned undefined response")) ;
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testOrder(exchange, skippedProperties, method, getValue(response, i), symbol, now);
                 }

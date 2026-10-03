@@ -4,6 +4,8 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -15,14 +17,14 @@ public class TestFetchOpenInterestHistory extends BaseTest {
     public CompletableFuture<Object> testFetchOpenInterestHistory(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchOpenInterestHistory";
-        Object openInterestHistory = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOpenInterestHistory", new Object[]{symbol})).join();
+        Object openInterestHistory = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOpenInterestHistory", new Object[]{symbol, "1h", (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, openInterestHistory, symbol);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(openInterestHistory)); i++)
+        for (var i = 0; i < ((List<?>)openInterestHistory).size(); i++)
         {
-            TestOpenInterest.testOpenInterest(exchange, skippedProperties, method, Helpers.GetValue(openInterestHistory, i));
+            TestOpenInterest.testOpenInterest(exchange, skippedProperties, method, (openInterestHistory == null || i < 0 || i >= ((List<?>)openInterestHistory).size() ? null : ((List<?>)openInterestHistory).get(i)));
         }
         return true;
         });

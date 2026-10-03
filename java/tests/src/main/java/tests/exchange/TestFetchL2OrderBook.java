@@ -4,6 +4,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -15,10 +16,10 @@ public class TestFetchL2OrderBook extends BaseTest {
     public CompletableFuture<Object> testFetchL2OrderBook(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchL2OrderBook";
-        Object orderBook = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchL2OrderBook", new Object[]{symbol})).join();
+        Object orderBook = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchL2OrderBook", new Object[]{symbol, (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestOrderBook.testOrderBook(exchange, skippedProperties, method, orderBook, symbol);
         return true;
         });

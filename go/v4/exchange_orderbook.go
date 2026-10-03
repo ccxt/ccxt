@@ -11,12 +11,14 @@ import (
 // }
 
 type OrderBookInterface interface {
-	Limit() any
+	Limit() OrderBookInterface
 	Update(snapshot any) any
 	Reset(optionalArgs ...any) any
 	GetCache() *any
 	SetCache(cache any)
 	GetNonce() any
+	GetAsks() IOrderBookSide
+	GetBids() IOrderBookSide
 	GetValue(key string, defaultValue any) any
 	ToMap() map[string]any
 	Copy() OrderBookInterface
@@ -124,7 +126,7 @@ func NewWsOrderBook(snapshot any, depth any) *WsOrderBook {
 	}
 }
 
-func (this *WsOrderBook) Limit() any {
+func (this *WsOrderBook) Limit() OrderBookInterface {
 	// Ensure child sides are depth-limited in-place and return the same pointer
 	this.Asks.Limit()
 	this.Bids.Limit()
@@ -249,18 +251,20 @@ func (this *WsOrderBook) String() string {
 }
 
 func normalizeToFloat64SliceSlice(value any) [][]float64 {
-	raw, ok := value.([]any)
+	// bid/ask levels may carry typed pointers from the Safe* accessors
+	raw, ok := derefScalar(value).([]any)
 	if !ok {
 		return [][]float64{}
 	}
 	result := make([][]float64, 0, len(raw))
 	for _, row := range raw {
-		rowArr, ok := row.([]any)
+		rowArr, ok := derefScalar(row).([]any)
 		if !ok {
 			continue
 		}
 		floatRow := make([]float64, 0, len(rowArr))
 		for _, num := range rowArr {
+			num = derefScalar(num)
 			if f, ok := num.(float64); ok {
 				floatRow = append(floatRow, f)
 			} else if i, ok := num.(int); ok {
@@ -449,7 +453,23 @@ func (this *WsOrderBook) Copy() OrderBookInterface {
 func (this *WsOrderBook) GetNonce() any {
 	return this.Nonce
 }
-func (this *CountedOrderBook) Limit() any {
+
+// GetAsks / GetBids answer the same side GetValue(book, "asks"|"bids") reads
+func (this *WsOrderBook) GetAsks() IOrderBookSide {
+	return this.Asks
+}
+func (this *WsOrderBook) GetBids() IOrderBookSide {
+	return this.Bids
+}
+
+// OrderBookTyped unboxes a stored ws order book; anything else reads as nil
+func OrderBookTyped(v any) OrderBookInterface {
+	if ob, ok := v.(OrderBookInterface); ok {
+		return ob
+	}
+	return nil
+}
+func (this *CountedOrderBook) Limit() OrderBookInterface {
 	return this.WsOrderBook.Limit()
 }
 func (this *CountedOrderBook) Update(snapshot any) any {
@@ -467,7 +487,7 @@ func (this *CountedOrderBook) SetCache(cache any) {
 func (this *CountedOrderBook) GetValue(key string, defaultValue any) any {
 	return this.WsOrderBook.GetValue(key, defaultValue)
 }
-func (this *IndexedOrderBook) Limit() any {
+func (this *IndexedOrderBook) Limit() OrderBookInterface {
 	return this.WsOrderBook.Limit()
 }
 func (this *IndexedOrderBook) Update(snapshot any) any {

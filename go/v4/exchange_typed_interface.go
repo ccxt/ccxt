@@ -45,7 +45,7 @@ type IExchange interface {
 	FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error)
 	FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error)
 	FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error)
-	FetchPaymentMethods(params ...any) (map[string]any, error)
+	FetchPaymentMethods(params ...any) ([]map[string]any, error)
 	FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error)
 	FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error)
 	FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error)
@@ -274,9 +274,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "bithumb":
 		itf := NewBithumb(options)
 		return itf
-	case "bitmex":
-		itf := NewBitmex(options)
-		return itf
 	case "bitopro":
 		itf := NewBitopro(options)
 		return itf
@@ -324,6 +321,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "bybiteu":
 		itf := NewBybiteu(options)
+		return itf
+	case "bybitid":
+		itf := NewBybitid(options)
 		return itf
 	case "bydfi":
 		itf := NewBydfi(options)

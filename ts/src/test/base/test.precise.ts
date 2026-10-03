@@ -1,9 +1,7 @@
 
 
-
 import assert from 'assert';
 import Precise from '../../base/Precise.js';
-
 
 function testPrecise () {
 

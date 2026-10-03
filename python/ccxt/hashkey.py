@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hashkey import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -508,7 +508,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-1000': ExchangeError,  # An unknown error occurred while processing the request
                     '-1001': ExchangeError,  # Internal error
                     '-100010': BadSymbol,  # Invalid Symbols!
-                    '-100012': BadSymbol,  # Parameter symbol [str] missing!
+                    '-100012': BadSymbol,  # Parameter symbol [String] missing!
                     '-1002': AuthenticationError,  # Unauthorized operation
                     '-1004': BadRequest,  # Bad request
                     '-1005': PermissionDenied,  # No permission
@@ -517,7 +517,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-1014': InvalidOrder,  # Unsupported order combination
                     '-1015': InvalidOrder,  # Too many new orders
                     '-1020': OperationRejected,  # Unsupported operation
-                    '-1021': InvalidNonce,  # Timestamp for self request is outside of the recvWindow
+                    '-1021': InvalidNonce,  # Timestamp for this request is outside of the recvWindow
                     '-1024': BadRequest,  # Duplicate request
                     '-1101': ExchangeNotAvailable,  # Feature has been offline
                     '-1115': InvalidOrder,  # Invalid timeInForce
@@ -539,7 +539,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-1142': OrderNotFillable,  # Order has been cancelled
                     '-1143': OrderNotFound,  # Order not found on order book
                     '-1144': OperationRejected,  # Order has been locked
-                    '-1145': NotSupported,  # Cancellation on self order type not supported
+                    '-1145': NotSupported,  # Cancellation on this order type not supported
                     '-1146': RequestTimeout,  # Order creation timeout
                     '-1147': RequestTimeout,  # Order cancellation timeout
                     '-1148': InvalidOrder,  # Order amount precision too large
@@ -573,7 +573,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-1176': BadRequest,  # Invalid fiat withdrawal status
                     '-1177': InvalidOrder,  # Invalid fiat order type
                     '-1178': AccountNotEnabled,  # Brokerage account does not exist
-                    '-1179': AccountSuspended,  # Address owner is not True
+                    '-1179': AccountSuspended,  # Address owner is not true
                     '-1181': ExchangeError,  # System error
                     '-1193': OperationRejected,  # Order creation count exceeds the limit
                     '-1194': OperationRejected,  # Market order creation forbidden
@@ -600,8 +600,8 @@ class hashkey(Exchange, ImplicitAPI):
                     '-2017': OperationRejected,  # Open orders exceeds the limit of the trading pair
                     '-2018': OperationRejected,  # Trade user creation exceeds the limit
                     '-2019': PermissionDenied,  # Trader and omnibus user not allowed to login app
-                    '-2020': PermissionDenied,  # Not allowed to trade self trading pair
-                    '-2021': PermissionDenied,  # Not allowed to trade self trading pair
+                    '-2020': PermissionDenied,  # Not allowed to trade this trading pair
+                    '-2021': PermissionDenied,  # Not allowed to trade this trading pair
                     '-2022': OperationRejected,  # Order batch size exceeds the limit
                     '-2023': AuthenticationError,  # Need to pass KYC verification
                     '-2024': AccountNotEnabled,  # Fiat account does not exist
@@ -624,7 +624,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-2041': BadRequest,  # Token does not exist
                     '-2042': OperationRejected,  # You have passed the trade limit, please pay attention to the risks
                     '-2043': OperationRejected,  # Maximum allowed leverage reached, please lower your leverage
-                    '-2044': BadRequest,  # This order price is unreasonable to exceed(or be lower than) the liquidation price
+                    '-2044': BadRequest,  # This order price is unreasonable to exceed (or be lower than) the liquidation price
                     '-2045': BadRequest,  # Price too low, please order again!
                     '-2046': BadRequest,  # Price too high, please order again!
                     '-2048': BadRequest,  # Exceed the maximum number of conditional orders of %s
@@ -648,7 +648,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-4005': BadRequest,  # Assets are not listed
                     '-4006': AccountNotEnabled,  # KYC is not certified
                     '-4007': NotSupported,  # Withdrawal channels are not supported
-                    '-4008': AccountNotEnabled,  # This currency does not support self customer type
+                    '-4008': AccountNotEnabled,  # This currency does not support this customer type
                     '-4009': PermissionDenied,  # No withdrawal permission
                     '-4010': PermissionDenied,  # Withdrawals on the same day exceed the maximum limit for a single day
                     '-4011': ExchangeError,  # System error
@@ -660,7 +660,7 @@ class hashkey(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -677,7 +677,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_status(self, params={}) -> Status:
+    def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -698,7 +698,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for the exchange
 
@@ -726,13 +726,13 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "quoteAsset": "USDT",
         #                 "quoteAssetName": "USDT",
         #                 "quotePrecision": "0.0000001",
-        #                 "retailAllowed": True,
-        #                 "piAllowed": True,
-        #                 "corporateAllowed": True,
-        #                 "omnibusAllowed": True,
-        #                 "icebergAllowed": False,
-        #                 "isAggregate": False,
-        #                 "allowMargin": False,
+        #                 "retailAllowed": true,
+        #                 "piAllowed": true,
+        #                 "corporateAllowed": true,
+        #                 "omnibusAllowed": true,
+        #                 "icebergAllowed": false,
+        #                 "isAggregate": false,
+        #                 "allowMargin": false,
         #                 "filters": [
         #                     {
         #                         "minPrice": "0.01",
@@ -783,7 +783,7 @@ class hashkey(Exchange, ImplicitAPI):
         #                 ]
         #             }
         #         ],
-        #         "options": [],
+        #         "options": [ ],
         #         "contracts": [
         #             {
         #                 "filters": [
@@ -836,8 +836,8 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "baseAssetPrecision": "0.001",
         #                 "quoteAsset": "USDT",
         #                 "quoteAssetPrecision": "0.1",
-        #                 "icebergAllowed": False,
-        #                 "inverse": False,
+        #                 "icebergAllowed": false,
+        #                 "inverse": false,
         #                 "index": "USDT",
         #                 "marginToken": "USDT",
         #                 "marginPrecision": "0.0001",
@@ -849,14 +849,14 @@ class hashkey(Exchange, ImplicitAPI):
         #                         "quantity": "1000.00",
         #                         "initialMargin": "0.10",
         #                         "maintMargin": "0.005",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     },
         #                     {
         #                         "riskLimitId": "200000723",
         #                         "quantity": "2000.00",
         #                         "initialMargin": "0.10",
         #                         "maintMargin": "0.01",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     }
         #                 ]
         #             }
@@ -867,8 +867,8 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "coinId": "BTC",
         #                 "coinName": "BTC",
         #                 "coinFullName": "Bitcoin",
-        #                 "allowWithdraw": True,
-        #                 "allowDeposit": True,
+        #                 "allowWithdraw": true,
+        #                 "allowDeposit": true,
         #                 "tokenType": "CHAIN_TOKEN",
         #                 "chainTypes": [
         #                     {
@@ -877,8 +877,8 @@ class hashkey(Exchange, ImplicitAPI):
         #                         "minWithdrawQuantity": "0.002",
         #                         "maxWithdrawQuantity": "0",
         #                         "minDepositQuantity": "0.0005",
-        #                         "allowDeposit": True,
-        #                         "allowWithdraw": True
+        #                         "allowDeposit": true,
+        #                         "allowWithdraw": true
         #                     }
         #                 ]
         #             }
@@ -904,13 +904,13 @@ class hashkey(Exchange, ImplicitAPI):
         #         "quoteAsset": "USDT",
         #         "quoteAssetName": "USDT",
         #         "quotePrecision": "0.0000001",
-        #         "retailAllowed": True,
-        #         "piAllowed": True,
-        #         "corporateAllowed": True,
-        #         "omnibusAllowed": True,
-        #         "icebergAllowed": False,
-        #         "isAggregate": False,
-        #         "allowMargin": False,
+        #         "retailAllowed": true,
+        #         "piAllowed": true,
+        #         "corporateAllowed": true,
+        #         "omnibusAllowed": true,
+        #         "icebergAllowed": false,
+        #         "isAggregate": false,
+        #         "allowMargin": false,
         #         "filters": [
         #             {
         #                 "minPrice": "0.01",
@@ -1013,8 +1013,8 @@ class hashkey(Exchange, ImplicitAPI):
         #         "baseAssetPrecision": "0.001",
         #         "quoteAsset": "USDT",
         #         "quoteAssetPrecision": "0.1",
-        #         "icebergAllowed": False,
-        #         "inverse": False,
+        #         "icebergAllowed": false,
+        #         "inverse": false,
         #         "index": "USDT",
         #         "marginToken": "USDT",
         #         "marginPrecision": "0.0001",
@@ -1026,14 +1026,14 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "quantity": "1000.00",
         #                 "initialMargin": "0.10",
         #                 "maintMargin": "0.005",
-        #                 "isWhite": False
+        #                 "isWhite": false
         #             },
         #             {
         #                 "riskLimitId": "200000723",
         #                 "quantity": "2000.00",
         #                 "initialMargin": "0.10",
         #                 "maintMargin": "0.01",
-        #                 "isWhite": False
+        #                 "isWhite": false
         #             }
         #         ]
         #     }
@@ -1057,6 +1057,8 @@ class hashkey(Exchange, ImplicitAPI):
             baseId = self.safe_string(market, 'underlying')
             suffix += ':' + settleId
         base = self.safe_currency_code(baseId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote + suffix
         status = self.safe_string(market, 'status')
         active = status == 'TRADING'
@@ -1098,7 +1100,11 @@ class hashkey(Exchange, ImplicitAPI):
                 minLeverage = self.parse_to_int(Precise.string_div('1', maxInitialMargin))
                 maxLeverage = self.parse_to_int(Precise.string_div('1', minInitialMargin))
         tradingFees = self.safe_dict(self.fees, 'trading')
-        fees = self.safe_dict(tradingFees, 'spot') if isSpot else self.safe_dict(tradingFees, 'swap')
+        fees = None
+        if isSpot:
+            fees = self.safe_dict(tradingFees, 'spot')
+        else:
+            fees = self.safe_dict(tradingFees, 'swap')
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
@@ -1155,7 +1161,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -1175,8 +1181,8 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "coinId": "BTC",
         #                 "coinName": "BTC",
         #                 "coinFullName": "Bitcoin",
-        #                 "allowWithdraw": True,
-        #                 "allowDeposit": True,
+        #                 "allowWithdraw": true,
+        #                 "allowDeposit": true,
         #                 "tokenType": "CHAIN_TOKEN",
         #                 "chainTypes": [
         #                     {
@@ -1185,8 +1191,8 @@ class hashkey(Exchange, ImplicitAPI):
         #                         "minWithdrawQuantity": "0.002",
         #                         "maxWithdrawQuantity": "0",
         #                         "minDepositQuantity": "0.0005",
-        #                         "allowDeposit": True,
-        #                         "allowWithdraw": True
+        #                         "allowDeposit": true,
+        #                         "allowWithdraw": true
         #                     }
         #                 ]
         #             }
@@ -1226,7 +1232,9 @@ class hashkey(Exchange, ImplicitAPI):
                     'info': network,
                 }
         rawType = self.safe_string(rawCurrency, 'tokenType')
-        type = 'fiat' if (rawType == 'REAL_MONEY') else 'crypto'
+        type = 'crypto'
+        if rawType == 'REAL_MONEY':
+            type = 'fiat'
         return self.safe_currency_structure({
             'id': currencyId,
             'code': code,
@@ -1251,7 +1259,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1289,7 +1297,7 @@ class hashkey(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 't')
         return self.parse_order_book(response, symbol, timestamp, 'b', 'a')
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1316,14 +1324,14 @@ class hashkey(Exchange, ImplicitAPI):
         #             "t": 1721682745779,
         #             "p": "67835.99",
         #             "q": "0.00017",
-        #             "ibm": True
+        #             "ibm": true
         #         },
         #         ...
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1350,25 +1358,22 @@ class hashkey(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params)
+        marketType, paramsMarketType = self.handle_market_type_and_params(methodName, market, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(paramsMarketType, methodName, 'until')
         if until is not None:
             request['endTime'] = until
-        accountId = None
-        accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
+        accountId, paramsAccountId = self.handle_option_string_and_params(paramsUntil, methodName, 'accountId')
         response = None
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
             if accountId is not None:
                 request['accountId'] = accountId
-            response = self.privateGetApiV1AccountTrades(self.extend(request, params))
+            response = self.privateGetApiV1AccountTrades(self.extend(request, paramsAccountId))
             #
             #     [
             #         {
@@ -1384,8 +1389,8 @@ class hashkey(Exchange, ImplicitAPI):
             #             "commission": "0.0000012",
             #             "commissionAsset": "ETH",
             #             "time": "1722082982097",
-            #             "isBuyer": True,
-            #             "isMaker": False,
+            #             "isBuyer": true,
+            #             "isMaker": false,
             #             "fee": {
             #                 "feeCoinId": "ETH",
             #                 "feeCoinName": "ETH",
@@ -1404,9 +1409,9 @@ class hashkey(Exchange, ImplicitAPI):
             request['symbol'] = self.safe_string(market, 'id')
             if accountId is not None:
                 request['subAccountId'] = accountId
-                response = self.privateGetApiV1FuturesSubAccountUserTrades(self.extend(request, params))
+                response = self.privateGetApiV1FuturesSubAccountUserTrades(self.extend(request, paramsAccountId))
             else:
-                response = self.privateGetApiV1FuturesUserTrades(self.extend(request, params))
+                response = self.privateGetApiV1FuturesUserTrades(self.extend(request, paramsAccountId))
                 #
                 #     [
                 #         {
@@ -1422,7 +1427,7 @@ class hashkey(Exchange, ImplicitAPI):
                 #             "type": "LIMIT",
                 #             "side": "BUY_OPEN",
                 #             "realizedPnl": "0",
-                #             "isMarker": False
+                #             "isMarker": false
                 #         }
                 #     ]
                 #
@@ -1438,7 +1443,7 @@ class hashkey(Exchange, ImplicitAPI):
         #         "t": 1721682745779,
         #         "p": "67835.99",
         #         "q": "0.00017",
-        #         "ibm": True
+        #         "ibm": true
         #     }
         #
         # fetchMyTrades spot
@@ -1456,8 +1461,8 @@ class hashkey(Exchange, ImplicitAPI):
         #         "commission": "0.0000012",
         #         "commissionAsset": "ETH",
         #         "time": "1722082982097",
-        #         "isBuyer": True,
-        #         "isMaker": False,
+        #         "isBuyer": true,
+        #         "isMaker": false,
         #         "fee": {
         #             "feeCoinId": "ETH",
         #             "feeCoinName": "ETH",
@@ -1482,11 +1487,11 @@ class hashkey(Exchange, ImplicitAPI):
         #         "type": "LIMIT",
         #         "side": "BUY_OPEN",
         #         "realizedPnl": "0",
-        #         "isMarker": False
+        #         "isMarker": false
         #     }
         timestamp = self.safe_integer_2(trade, 't', 'time')
         marketId = self.safe_string(trade, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         side = self.safe_string_lower(trade, 'side')  # swap trades have side param
         if side is not None:
             side = self.safe_string(side.split('_'), 0)
@@ -1518,7 +1523,7 @@ class hashkey(Exchange, ImplicitAPI):
             'id': self.safe_string_2(trade, 'id', 'tradeId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'side': side,
             'price': self.safe_string_2(trade, 'p', 'price'),
             'amount': self.safe_string_n(trade, ['q', 'qty', 'quantity']),
@@ -1528,9 +1533,9 @@ class hashkey(Exchange, ImplicitAPI):
             'order': self.safe_string(trade, 'orderId'),
             'fee': fee,
             'info': trade,
-        }, market)
+        }, marketResolved)
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://hashkeyglobal-apidoc.readme.io/reference/get-kline
@@ -1548,25 +1553,23 @@ class hashkey(Exchange, ImplicitAPI):
         methodName = 'fetchOHLCV'
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, methodName, 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, methodName, 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000)
         market = self.market(symbol)
-        timeframe = self.safe_string(self.timeframes, timeframe, timeframe)
+        timeframeValue = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'symbol': market['id'],
-            'interval': timeframe,
+            'interval': timeframeValue,
         }
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(paramsPaginate, methodName, 'until')
         if until is not None:
             request['endTime'] = until
-        response = self.publicGetQuoteV1Klines(self.extend(request, params))
+        response = self.publicGetQuoteV1Klines(self.extend(request, paramsUntil))
         #
         #     [
         #         [
@@ -1584,7 +1587,7 @@ class hashkey(Exchange, ImplicitAPI):
         #     ]
         #
         ohlcvs = self.to_array(response)
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        return self.parse_ohlcvs(ohlcvs, market, timeframeValue, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -1609,7 +1612,7 @@ class hashkey(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1645,7 +1648,7 @@ class hashkey(Exchange, ImplicitAPI):
         ticker = self.safe_dict(response, 0, {})
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1657,11 +1660,11 @@ class hashkey(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = self.publicGetQuoteV1Ticker24hr(params)
-        return self.parse_tickers(response, symbols)
+        return self.parse_tickers(response, symbolsNormalized)
 
-    def parse_ticker(self, ticker: object, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "t": 1721685896846,
@@ -1678,13 +1681,13 @@ class hashkey(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(ticker, 't')
         marketId = self.safe_string(ticker, 's')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         last = self.safe_string(ticker, 'c')
         baseVolume = self.safe_string(ticker, 'v')
-        if (market['contract'] is True) and (market['contractSize'] is not None):
+        if (marketResolved['contract'] is True) and (marketResolved['contractSize'] is not None):
             # 'v' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(market['contractSize']))
+            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(marketResolved['contractSize']))
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1706,9 +1709,9 @@ class hashkey(Exchange, ImplicitAPI):
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'qv'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
-    def fetch_last_prices(self, symbols: Strings = None, params={}) -> LastPrices:
+    def fetch_last_prices(self, symbols: Strings = None, params: dict = {}) -> LastPrices:
         """
         fetches the last price for multiple markets
 
@@ -1721,7 +1724,7 @@ class hashkey(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         request = {}
         response = self.publicGetQuoteV1TickerPrice(self.extend(request, params))
         #
@@ -1733,13 +1736,13 @@ class hashkey(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_last_prices(response, symbols)
+        return self.parse_last_prices(response, symbolsNormalized)
 
-    def parse_last_price(self, entry: object, market: Market = None) -> LastPrice:
+    def parse_last_price(self, entry: dict, market: Market = None) -> LastPrice:
         marketId = self.safe_string(entry, 's')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         return {
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': None,
             'datetime': None,
             # dormant listings carry a literal zero price meaning never traded,
@@ -1749,7 +1752,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': entry,
         }
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1765,9 +1768,9 @@ class hashkey(Exchange, ImplicitAPI):
         request = {}
         methodName = 'fetchBalance'
         marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, None, params, marketType)
-        if marketType == 'swap':
-            response = self.privateGetApiV1FuturesBalance(params)
+        marketTypeOption, paramsMarketType = self.handle_market_type_and_params(methodName, None, params, marketType)
+        if marketTypeOption == 'swap':
+            response = self.privateGetApiV1FuturesBalance(paramsMarketType)
             #
             #     [
             #         {
@@ -1782,8 +1785,8 @@ class hashkey(Exchange, ImplicitAPI):
             #
             balance = self.safe_dict(response, 0, {})
             return self.parse_swap_balance(balance)
-        elif marketType == 'spot':
-            response = self.privateGetApiV1Account(self.extend(request, params))
+        elif marketTypeOption == 'spot':
+            response = self.privateGetApiV1Account(self.extend(request, paramsMarketType))
             #
             #     {
             #         "balances": [
@@ -1802,7 +1805,7 @@ class hashkey(Exchange, ImplicitAPI):
             #
             return self.parse_balance(response)
         else:
-            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
+            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketTypeOption + ' type of markets')
 
     def parse_balance(self, balance: object) -> Balances:
         #
@@ -1826,7 +1829,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(balance, 'balances', [])
         for i in range(0, len(balances)):
-            balanceEntry = balances[i]
+            balanceEntry = self.safe_dict(balances, i)
             currencyId = self.safe_string(balanceEntry, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1837,7 +1840,7 @@ class hashkey(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def parse_swap_balance(self, balance: object) -> Balances:
+    def parse_swap_balance(self, balance: dict) -> Balances:
         #
         #     {
         #         "balance": "30.63364672",
@@ -1862,7 +1865,7 @@ class hashkey(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -1879,19 +1882,17 @@ class hashkey(Exchange, ImplicitAPI):
         request = {
             'coin': currency['id'],
         }
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
-        if networkCode is None:
-            networkCode = self.default_network_code(code)
+        networkCodeInParams, paramsNetworkCode = self.handle_network_code_and_params(params)
+        networkCode = self.default_network_code(code) if (networkCodeInParams is None) else networkCodeInParams
         request['chainType'] = self.network_code_to_id(networkCode, code)
-        response = self.privateGetApiV1AccountDepositAddress(self.extend(request, params))
+        response = self.privateGetApiV1AccountDepositAddress(self.extend(request, paramsNetworkCode))
         #
         #     {
-        #         "canDeposit": True,
+        #         "canDeposit": true,
         #         "address": "0x61AAd7F763e2C7fF1CC996918740F67f9dC8BF4e",
         #         "addressExt": "",
         #         "minQuantity": "1",
-        #         "needAddressTag": False,
+        #         "needAddressTag": false,
         #         "requiredConfirmTimes": 64,
         #         "canWithdrawConfirmTimes": 64,
         #         "coinType": "ERC20_TOKEN"
@@ -1901,14 +1902,14 @@ class hashkey(Exchange, ImplicitAPI):
         depositAddress['network'] = networkCode
         return depositAddress
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
-        #         "canDeposit": True,
+        #         "canDeposit": true,
         #         "address": "0x61AAd7F763e2C7fF1CC996918740F67f9dC8BF4e",
         #         "addressExt": "",
         #         "minQuantity": "1",
-        #         "needAddressTag": False,
+        #         "needAddressTag": false,
         #         "requiredConfirmTimes": 64,
         #         "canWithdrawConfirmTimes": 64,
         #         "coinType": "ERC20_TOKEN"
@@ -1927,7 +1928,7 @@ class hashkey(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1953,11 +1954,10 @@ class hashkey(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
         if until is not None:
             request['endTime'] = until
-        response = self.privateGetApiV1AccountDepositOrders(self.extend(request, params))
+        response = self.privateGetApiV1AccountDepositOrders(self.extend(request, paramsUntil))
         #
         #     [
         #         {
@@ -1974,7 +1974,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1999,11 +1999,10 @@ class hashkey(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
         if until is not None:
             request['endTime'] = until
-        response = self.privateGetApiV1AccountWithdrawOrders(self.extend(request, params))
+        response = self.privateGetApiV1AccountWithdrawOrders(self.extend(request, paramsUntil))
         #
         #     [
         #         {
@@ -2027,7 +2026,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2043,7 +2042,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param str [params.platform]: the platform to withdraw to(hashkey, HashKey HK)
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -2052,16 +2051,15 @@ class hashkey(Exchange, ImplicitAPI):
             'address': address,
             'quantity': amount,
         }
-        if tag is not None:
-            request['addressExt'] = tag
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        if tagWithdrawTag is not None:
+            request['addressExt'] = tagWithdrawTag
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
-            request['chainType'] = self.network_code_to_id(networkCode, currency['code'])
-        response = self.privatePostApiV1AccountWithdraw(self.extend(request, params))
+            request['chainType'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
+        response = self.privatePostApiV1AccountWithdraw(self.extend(request, paramsNetworkCode))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "id": "0",
         #         "orderId": "W611267400947572736",
         #         "accountId": "1732885739589466115"
@@ -2069,12 +2067,12 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction: object, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #  fetchDeposits
         #     {
         #         "time": "1721641082163",
-        #         "coin": "TRXUSDT",  # todo how to parse it?
+        #         "coin": "TRXUSDT", // todo how to parse it?
         #         "coinName": "TRXUSDT",
         #         "address": "TBA6CypYJizwA9XdC7Ubgc5F1bxrQ7SqPt",
         #         "quantity": "86.00000000000000000000",
@@ -2104,7 +2102,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         # withdraw
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "id": "0",
         #         "orderId": "W611267400947572736",
         #         "accountId": "1732885739589466115"
@@ -2173,7 +2171,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -2200,7 +2198,7 @@ class hashkey(Exchange, ImplicitAPI):
         response = self.privatePostApiV1AccountAssetTransfer(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1722260230773,
         #         "clientOrderId": "",
         #         "orderId": "1740839420695806720"
@@ -2208,7 +2206,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer: object, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         timestamp = self.safe_integer(transfer, 'timestamp')
         currencyId = self.safe_string(currency, 'id')
         status = None
@@ -2227,7 +2225,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def fetch_accounts(self, params={}) -> list[Account]:
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -2252,7 +2250,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_accounts(response, params)
 
-    def parse_account(self, account: object):
+    def parse_account(self, account: dict) -> Account:
         accountLabel = self.safe_string(account, 'accountLabel')
         label = ''
         if accountLabel == 'Main Trading Account' or accountLabel == 'Main Future Account':
@@ -2268,7 +2266,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def parse_account_type(self, type: object):
+    def parse_account_type(self, type: Str):
         types = {
             '1': 'spot account',
             '3': 'swap account',
@@ -2295,7 +2293,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_integer(types, type, type)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2313,8 +2311,7 @@ class hashkey(Exchange, ImplicitAPI):
         methodName = 'fetchLedger'
         if since is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a since argument')
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
         if until is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires an until argument')
         if self.markets is None:
@@ -2325,15 +2322,13 @@ class hashkey(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         request['endTime'] = until
-        flowType = None
-        flowType, params = self.handle_option_and_params(params, methodName, 'flowType')
+        flowType, paramsFlowType = self.handle_option_string_and_params(paramsUntil, methodName, 'flowType')
         if flowType is not None:
             request['flowType'] = self.encode_flow_type(flowType)
-        accountType = None
-        accountType, params = self.handle_option_and_params(params, methodName, 'accountType')
+        accountType, paramsAccountType = self.handle_option_string_and_params(paramsFlowType, methodName, 'accountType')
         if accountType is not None:
             request['accountType'] = self.encode_account_type(accountType)
-        response = self.privateGetApiV1AccountBalanceFlow(self.extend(request, params))
+        response = self.privateGetApiV1AccountBalanceFlow(self.extend(request, paramsAccountType))
         #
         #     [
         #         {
@@ -2354,7 +2349,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             '1': 'trade',  # transfer
             '2': 'fee',  # trade
@@ -2386,7 +2381,7 @@ class hashkey(Exchange, ImplicitAPI):
         type = self.parse_ledger_entry_type(self.safe_string(item, 'flowTypeValue'))
         currencyId = self.safe_string(item, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         amountString = self.safe_string(item, 'change')
         amount = self.parse_number(amountString)
         direction = 'in'
@@ -2412,9 +2407,9 @@ class hashkey(Exchange, ImplicitAPI):
             'after': after,
             'status': status,
             'fee': None,
-        }, currency)
+        }, currencyResolved)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -2446,7 +2441,7 @@ class hashkey(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' createOrder() is not supported for ' + market['type'] + ' type of markets')
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -2464,7 +2459,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
-    def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order on spot market
 
@@ -2498,7 +2493,6 @@ class hashkey(Exchange, ImplicitAPI):
         response = {}
         test = self.safe_bool(params, 'test')
         if test is True:
-            params = self.omit(params, 'test')
             response = self.privatePostApiV1SpotOrderTest(request)
         elif isMarketBuy and (cost is None):
             response = self.privatePostApiV11SpotOrder(request)  # the endpoint for market buy orders by amount
@@ -2583,7 +2577,7 @@ class hashkey(Exchange, ImplicitAPI):
             #
         return self.parse_order(response, market)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -2617,32 +2611,31 @@ class hashkey(Exchange, ImplicitAPI):
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
-        type = type.upper()
+        typeValue = type.upper()
         request = {
             'symbol': market['id'],
             'side': side.upper(),
-            'type': type,
+            'type': typeValue,
         }
         if amount is not None:
             request['quantity'] = self.amount_to_precision(symbol, amount)
-        cost = None
-        cost, params = self.handle_param_string(params, 'cost')
+        cost, paramsCost = self.handle_param_string(params, 'cost')
         if cost is not None:
             request['quantity'] = self.cost_to_precision(symbol, cost)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        isMarketOrder = type == 'MARKET'
-        postOnly = False
-        postOnly, params = self.handle_post_only(isMarketOrder, type == 'LIMIT_MAKER', params)
-        if postOnly and (type == 'LIMIT'):
+        isMarketOrder = typeValue == 'MARKET'
+        postOnly, paramsPostOnly = self.handle_post_only(isMarketOrder, typeValue == 'LIMIT_MAKER', paramsCost)
+        if postOnly and (typeValue == 'LIMIT'):
             request['type'] = 'LIMIT_MAKER'
         clientOrderId = None
-        clientOrderId, params = self.handle_param_string(params, 'clientOrderId')
+        paramsClientOrderId = {}
+        clientOrderId, paramsClientOrderId = self.handle_param_string(paramsPostOnly, 'clientOrderId')
         if clientOrderId is not None:
-            params['newClientOrderId'] = clientOrderId
-        return self.extend(request, params)
+            paramsClientOrderId['newClientOrderId'] = clientOrderId
+        return self.extend(request, paramsClientOrderId)
 
-    def create_swap_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
+    def create_swap_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         """
  @ignore
         helper function to build request
@@ -2671,31 +2664,29 @@ class hashkey(Exchange, ImplicitAPI):
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
             request['priceType'] = 'INPUT'
-        reduceOnly = False
-        reduceOnly, params = self.handle_param_bool(params, 'reduceOnly', reduceOnly)
+        reduceOnly, paramsReduceOnly = self.handle_param_bool(params, 'reduceOnly', False)
         suffix = '_OPEN'
         if reduceOnly is True:
             suffix = '_CLOSE'
         request['side'] = side.upper() + suffix
-        timeInForce = None
-        timeInForce, params = self.handle_param_string(params, 'timeInForce')
-        postOnly = False
-        postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'LIMIT_MAKER', params)
+        timeInForceParam, paramsTimeInForce = self.handle_param_string(paramsReduceOnly, 'timeInForce')
+        postOnly, paramsPostOnly = self.handle_post_only(isMarketOrder, timeInForceParam == 'LIMIT_MAKER', paramsTimeInForce)
+        timeInForce = timeInForceParam
         if postOnly:
             timeInForce = 'LIMIT_MAKER'
         if timeInForce is not None:
             request['timeInForce'] = timeInForce
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        clientOrderId = self.safe_string(paramsPostOnly, 'clientOrderId')
         if clientOrderId is None:
             request['clientOrderId'] = self.uuid()
-        triggerPrice = self.safe_string(params, 'triggerPrice')
+        triggerPrice = self.safe_string(paramsPostOnly, 'triggerPrice')
+        paramsOmitted = self.omit(paramsPostOnly, 'triggerPrice') if (triggerPrice is not None) else paramsPostOnly
         if triggerPrice is not None:
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['type'] = 'STOP'
-            params = self.omit(params, 'triggerPrice')
-        return self.extend(request, params)
+        return self.extend(request, paramsOmitted)
 
-    def create_swap_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    def create_swap_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order on swap market
 
@@ -2742,7 +2733,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def create_orders(self, orders: list[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders(all orders should be of the same symbol)
 
@@ -2757,7 +2748,7 @@ class hashkey(Exchange, ImplicitAPI):
             self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -2769,7 +2760,7 @@ class hashkey(Exchange, ImplicitAPI):
             if clientOrderId is None:
                 orderRequest['clientOrderId'] = self.uuid()  # both spot and swap endpoints require clientOrderId
             ordersRequests.append(orderRequest)
-        firstOrder = ordersRequests[0]
+        firstOrder = self.safe_dict(ordersRequests, 0)
         firstSymbol = self.safe_string(firstOrder, 'symbol')
         market = self.market(firstSymbol)
         request = {
@@ -2830,7 +2821,7 @@ class hashkey(Exchange, ImplicitAPI):
             #                     "timeInForce": "GTC",
             #                     "status": "NEW",
             #                     "priceType": "INPUT",
-            #                     "isLiquidationOrder": False,
+            #                     "isLiquidationOrder": false,
             #                     "indexPrice": "0",
             #                     "liquidationType": ""
             #                 }
@@ -2852,7 +2843,7 @@ class hashkey(Exchange, ImplicitAPI):
             responseOrders.append(responseOrder)
         return self.parse_orders(responseOrders)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -2879,11 +2870,10 @@ class hashkey(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
+        marketType, paramsMarketType = self.handle_market_type_and_params(methodName, market, params, 'spot')
         response = None
         if marketType == 'spot':
-            response = self.privateDeleteApiV1SpotOrder(self.extend(request, params))
+            response = self.privateDeleteApiV1SpotOrder(self.extend(request, paramsMarketType))
             #
             #     {
             #         "accountId": "1732885739589466112",
@@ -2901,15 +2891,14 @@ class hashkey(Exchange, ImplicitAPI):
             #     }
             #
         elif marketType == 'swap':
-            isTrigger = False
-            isTrigger, params = self.handle_trigger_option_and_params(params, methodName, isTrigger)
+            isTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMarketType, methodName, False)
             if isTrigger is True:
                 request['type'] = 'STOP'
             else:
                 request['type'] = 'LIMIT'
             if market is not None:
                 request['symbol'] = market['id']
-            response = self.privateDeleteApiV1FuturesOrder(self.extend(request, params))
+            response = self.privateDeleteApiV1FuturesOrder(self.extend(request, paramsTrigger))
             #
             #     {
             #         "time": "1722432302919",
@@ -2928,7 +2917,7 @@ class hashkey(Exchange, ImplicitAPI):
             #         "timeInForce": "GTC",
             #         "status": "NEW",
             #         "priceType": "INPUT",
-            #         "isLiquidationOrder": False,
+            #         "isLiquidationOrder": false,
             #         "indexPrice": "0",
             #         "liquidationType": ""
             #     }
@@ -2937,7 +2926,7 @@ class hashkey(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
         return self.parse_order(response)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -2966,12 +2955,12 @@ class hashkey(Exchange, ImplicitAPI):
         if market['spot'] is True:
             response = self.privateDeleteApiV1SpotOpenOrders(self.extend(request, params))
             #
-            #     {"success": True}
+            #     { "success": true }
             #
         elif market['swap'] is True:
             response = self.privateDeleteApiV1FuturesBatchOrders(self.extend(request, params))
             #
-            #     {"message": "success", "timestamp": "1723127222198", "code": "0000"}
+            #     { "message": "success", "timestamp": "1723127222198", "code": "0000" }
             #
         else:
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets')
@@ -2979,7 +2968,7 @@ class hashkey(Exchange, ImplicitAPI):
         order['info'] = response
         return [order]
 
-    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -3002,9 +2991,9 @@ class hashkey(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
+        marketTypeOption = self.handle_market_type_and_params(methodName, market, params, marketType)[0]
         response: dict
-        if marketType == 'spot':
+        if marketTypeOption == 'spot':
             response = self.privateDeleteApiV1SpotCancelOrderByIds(request)
             #
             #     {
@@ -3012,15 +3001,15 @@ class hashkey(Exchange, ImplicitAPI):
             #         "result": []
             #     }
             #
-        elif marketType == 'swap':
+        elif marketTypeOption == 'swap':
             response = self.privateDeleteApiV1FuturesCancelOrderByIds(request)
         else:
-            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
+            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketTypeOption + ' type of markets')
         order = self.safe_order(response)
         order['info'] = response
         return [order]
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -3042,20 +3031,18 @@ class hashkey(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {}
-        clientOrderId = None
-        clientOrderId, params = self.handle_param_string(params, 'clientOrderId')
+        clientOrderId, paramsClientOrderId = self.handle_param_string(params, 'clientOrderId')
         if clientOrderId is None:
             request['orderId'] = id
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
+        marketType, paramsMarketType = self.handle_market_type_and_params(methodName, market, paramsClientOrderId, 'spot')
         response = None
         if marketType == 'spot':
             if clientOrderId is not None:
                 request['origClientOrderId'] = clientOrderId
-            response = self.privateGetApiV1SpotOrder(self.extend(request, params))
+            response = self.privateGetApiV1SpotOrder(self.extend(request, paramsMarketType))
             #
             #     {
             #         "accountId": "1732885739589466112",
@@ -3078,7 +3065,7 @@ class hashkey(Exchange, ImplicitAPI):
             #         "icebergQty": "0.0",
             #         "time": "1722004623186",
             #         "updateTime": "1722004623406",
-            #         "isWorking": True,
+            #         "isWorking": true,
             #         "reqAmount": "20",
             #         "feeCoin": "",
             #         "feeAmount": "0",
@@ -3086,11 +3073,10 @@ class hashkey(Exchange, ImplicitAPI):
             #     }
             #
         elif marketType == 'swap':
-            isTrigger = False
-            isTrigger, params = self.handle_trigger_option_and_params(params, methodName, isTrigger)
+            isTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMarketType, methodName, False)
             if isTrigger is True:
                 request['type'] = 'STOP'
-            response = self.privateGetApiV1FuturesOrder(self.extend(request, params))
+            response = self.privateGetApiV1FuturesOrder(self.extend(request, paramsTrigger))
             #
             #     {
             #         "time": "1722429951611",
@@ -3109,7 +3095,7 @@ class hashkey(Exchange, ImplicitAPI):
             #         "timeInForce": "IOC",
             #         "status": "FILLED",
             #         "priceType": "MARKET",
-            #         "isLiquidationOrder": False,
+            #         "isLiquidationOrder": false,
             #         "indexPrice": "0",
             #         "liquidationType": ""
             #     }
@@ -3118,7 +3104,7 @@ class hashkey(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -3148,16 +3134,16 @@ class hashkey(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
-        params = self.extend({'methodName': methodName}, params)
-        if marketType == 'spot':
-            return self.fetch_open_spot_orders(symbol, since, limit, params)
-        elif marketType == 'swap':
-            return self.fetch_open_swap_orders(symbol, since, limit, params)
+        marketTypeOption, paramsMarketType = self.handle_market_type_and_params(methodName, market, params, marketType)
+        paramsExtended = self.extend({'methodName': methodName}, paramsMarketType)
+        if marketTypeOption == 'spot':
+            return self.fetch_open_spot_orders(symbol, since, limit, paramsExtended)
+        elif marketTypeOption == 'swap':
+            return self.fetch_open_swap_orders(symbol, since, limit, paramsExtended)
         else:
-            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
+            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketTypeOption + ' type of markets')
 
-    def fetch_open_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
  @ignore
         fetch all unfilled currently open orders for spot markets
@@ -3177,22 +3163,21 @@ class hashkey(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         methodName = 'fetchOpenSpotOrders'
-        methodName, params = self.handle_param_string(params, 'methodName', methodName)
+        methodNameOption, paramsMethodName = self.handle_param_string(params, 'methodName', methodName)
         market = None
         request = {}
         response = None
-        accountId = None
-        accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
+        accountId, paramsAccountId = self.handle_option_string_and_params(paramsMethodName, methodNameOption, 'accountId')
         if accountId is not None:
             request['subAccountId'] = accountId
-            response = self.privateGetApiV1SpotSubAccountOpenOrders(self.extend(request, params))
+            response = self.privateGetApiV1SpotSubAccountOpenOrders(self.extend(request, paramsAccountId))
         else:
             if symbol is not None:
                 market = self.market(symbol)
                 request['symbol'] = market['id']
             if limit is not None:
                 request['limit'] = limit
-            response = self.privateGetApiV1SpotOpenOrders(self.extend(request, params))
+            response = self.privateGetApiV1SpotOpenOrders(self.extend(request, paramsAccountId))
             #
             #     [
             #         {
@@ -3216,14 +3201,14 @@ class hashkey(Exchange, ImplicitAPI):
             #             "icebergQty": "0.0",
             #             "time": "1722099538193",
             #             "updateTime": "1722099538197",
-            #             "isWorking": True,
+            #             "isWorking": true,
             #             "reqAmount": "0"
             #         }
             #     ]
             #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_swap_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_swap_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
  @ignore
         fetch all unfilled currently open orders for swap markets
@@ -3242,29 +3227,28 @@ class hashkey(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         methodName = 'fetchOpenSwapOrders'
-        methodName, params = self.handle_param_string(params, 'methodName', methodName)
+        methodNameOption, paramsMethodName = self.handle_param_string(params, 'methodName', methodName)
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for swap market orders')
+            raise ArgumentsRequired(self.id + ' ' + methodNameOption + '() requires a symbol argument for swap market orders')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
         isTrigger = False
-        isTrigger, params = self.handle_trigger_option_and_params(params, methodName, isTrigger)
-        if isTrigger is True:
+        isTriggerTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMethodName, methodNameOption, isTrigger)
+        if isTriggerTrigger is True:
             request['type'] = 'STOP'
         else:
             request['type'] = 'LIMIT'
         if limit is not None:
             request['limit'] = limit
         response = None
-        accountId = None
-        accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
+        accountId, paramsAccountId = self.handle_option_string_and_params(paramsTrigger, methodNameOption, 'accountId')
         if accountId is not None:
             request['subAccountId'] = accountId
-            response = self.privateGetApiV1FuturesSubAccountOpenOrders(self.extend(request, params))
+            response = self.privateGetApiV1FuturesSubAccountOpenOrders(self.extend(request, paramsAccountId))
         else:
-            response = self.privateGetApiV1FuturesOpenOrders(self.extend(request, params))
+            response = self.privateGetApiV1FuturesOpenOrders(self.extend(request, paramsAccountId))
             # 'LIMIT'
             #     [
             #         {
@@ -3284,7 +3268,7 @@ class hashkey(Exchange, ImplicitAPI):
             #             "timeInForce": "GTC",
             #             "status": "NEW",
             #             "priceType": "INPUT",
-            #             "isLiquidationOrder": False,
+            #             "isLiquidationOrder": false,
             #             "indexPrice": "0",
             #             "liquidationType": ""
             #         }
@@ -3310,7 +3294,7 @@ class hashkey(Exchange, ImplicitAPI):
             #     ]
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple canceled and closed orders made by the user
 
@@ -3341,24 +3325,21 @@ class hashkey(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
         if until is not None:
             request['endTime'] = until
-        accountId = None
-        accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
+        accountId, paramsAccountId = self.handle_option_string_and_params(paramsUntil, methodName, 'accountId')
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
+        marketType, paramsMarketType = self.handle_market_type_and_params(methodName, market, paramsAccountId, 'spot')
         response = None
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
             if accountId is not None:
                 request['accountId'] = accountId
-            response = self.privateGetApiV1SpotTradeOrders(self.extend(request, params))
+            response = self.privateGetApiV1SpotTradeOrders(self.extend(request, paramsMarketType))
             #
             #     [
             #         {
@@ -3382,7 +3363,7 @@ class hashkey(Exchange, ImplicitAPI):
             #             "icebergQty": "0.0",
             #             "time": "1722082982093",
             #             "updateTime": "1722082982097",
-            #             "isWorking": True,
+            #             "isWorking": true,
             #             "reqAmount": "0"
             #         },
             #         ...
@@ -3392,17 +3373,16 @@ class hashkey(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for swap markets')
             request['symbol'] = self.safe_string(market, 'id')
-            isTrigger = False
-            isTrigger, params = self.handle_trigger_option_and_params(params, methodName, isTrigger)
+            isTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMarketType, methodName, False)
             if isTrigger is True:
                 request['type'] = 'STOP'
             else:
                 request['type'] = 'LIMIT'
             if accountId is not None:
                 request['subAccountId'] = accountId
-                response = self.privateGetApiV1FuturesSubAccountHistoryOrders(self.extend(request, params))
+                response = self.privateGetApiV1FuturesSubAccountHistoryOrders(self.extend(request, paramsTrigger))
             else:
-                response = self.privateGetApiV1FuturesHistoryOrders(self.extend(request, params))
+                response = self.privateGetApiV1FuturesHistoryOrders(self.extend(request, paramsTrigger))
                 #
                 #     [
                 #         {
@@ -3422,7 +3402,7 @@ class hashkey(Exchange, ImplicitAPI):
                 #             "timeInForce": "IOC",
                 #             "status": "FILLED",
                 #             "priceType": "MARKET",
-                #             "isLiquidationOrder": False,
+                #             "isLiquidationOrder": false,
                 #             "indexPrice": "0",
                 #             "liquidationType": ""
                 #         }
@@ -3432,18 +3412,18 @@ class hashkey(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
         return self.parse_orders(response, market, since, limit)
 
-    def check_type_param(self, methodName: object, params: object):
+    def check_type_param(self, methodName: str, params: dict):
         # some hashkey endpoints have a type param for swap markets that defines the type of an order
         # type param is reserved in ccxt for defining the type of the market
         # current method warns user if he provides the exchange specific value in type parameter
         paramsType = self.safe_string(params, 'type')
         if (paramsType is not None) and (paramsType != 'spot') and (paramsType != 'swap'):
-            raise BadRequest(self.id + ' ' + methodName + '() type parameter can not be "' + paramsType + '". It should define the type of the market("spot" or "swap"). To define the type of an order use the trigger parameter(True for trigger orders)')
+            raise BadRequest(self.id + ' ' + methodName + ' () type parameter can not be "' + paramsType + '". It should define the type of the market ("spot" or "swap"). To define the type of an order use the trigger parameter (True for trigger orders)')
 
     def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue: Bool = None) -> list:
         isTrigger = defaultValue
-        isTrigger, params = self.handle_option_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
-        return [isTrigger, params]
+        isTriggerStop, paramsStop = self.handle_option_bool_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
+        return [isTriggerStop, paramsStop]
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -3488,7 +3468,7 @@ class hashkey(Exchange, ImplicitAPI):
         #         "icebergQty": "0.0",
         #         "time": "1722004623186",
         #         "updateTime": "1722004623406",
-        #         "isWorking": True,
+        #         "isWorking": true,
         #         "reqAmount": "20",
         #         "feeCoin": "",
         #         "feeAmount": "0",
@@ -3550,13 +3530,13 @@ class hashkey(Exchange, ImplicitAPI):
         #         "timeInForce": "IOC",
         #         "status": "FILLED",
         #         "priceType": "MARKET",
-        #         "isLiquidationOrder": False,
+        #         "isLiquidationOrder": false,
         #         "indexPrice": "0",
         #         "liquidationType": ""
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'transactTime', 'time')
         status = self.safe_string(order, 'status')
         type = self.safe_string(order, 'type')
@@ -3589,7 +3569,7 @@ class hashkey(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
             'status': self.parse_order_status(status),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'side': side,
@@ -3605,12 +3585,12 @@ class hashkey(Exchange, ImplicitAPI):
             'trades': None,
             'fee': {
                 'currency': self.safe_currency_code(feeCurrncyId),
-                'amount': self.omit_zero(self.safe_string(order, 'feeAmount')),
+                'cost': self.omit_zero(self.safe_string(order, 'feeAmount')),
             },
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
             'info': order,
-        }, market)
+        }, marketResolved)
 
     def parse_order_side_and_reduce_only(self, unparsed: object):
         parts = unparsed.split('_')
@@ -3638,17 +3618,18 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type_time_in_force_and_post_only(self, type: object, timeInForce: object):
+    def parse_order_type_time_in_force_and_post_only(self, type: Str, timeInForce: Str) -> list:
         postOnly = None
-        if type == 'LIMIT_MAKER':
+        isMakerTimeInForce = (timeInForce == 'LIMIT_MAKER') or (timeInForce == 'MAKER')
+        if (type == 'LIMIT_MAKER') or isMakerTimeInForce:
             postOnly = True
-        elif (timeInForce == 'LIMIT_MAKER') or (timeInForce == 'MAKER'):
-            postOnly = True
-            timeInForce = 'PO'
-        type = self.parse_order_type(type)
-        return [type, timeInForce, postOnly]
+        timeInForceParsed = timeInForce
+        if (type != 'LIMIT_MAKER') and isMakerTimeInForce:
+            timeInForceParsed = 'PO'
+        typeValue = self.parse_order_type(type)
+        return [typeValue, timeInForceParsed, postOnly]
 
-    def parse_order_type(self, type: object):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -3657,7 +3638,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -3677,13 +3658,13 @@ class hashkey(Exchange, ImplicitAPI):
         response = self.publicGetApiV1FuturesFundingRate(self.extend(request, params))
         #
         #     [
-        #         {"symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000"}
+        #         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         #     ]
         #
         rate = self.safe_dict(response, 0, {})
         return self.parse_funding_rate(rate, market)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
 
@@ -3695,18 +3676,18 @@ class hashkey(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         request = {
             'timestamp': self.milliseconds(),
         }
         response = self.publicGetApiV1FuturesFundingRate(self.extend(request, params))
         #
         #     [
-        #         {"symbol": "BTCUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000"},
-        #         {"symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000"}
+        #         { "symbol": "BTCUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" },
+        #         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         #     ]
         #
-        return self.parse_funding_rates(response, symbols)
+        return self.parse_funding_rates(response, symbolsNormalized)
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
@@ -3717,12 +3698,12 @@ class hashkey(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
-        market = self.safe_market(marketId, market, None, 'swap')
+        marketResolved = self.safe_market(marketId, market, None, 'swap')
         fundingRate = self.safe_number(contract, 'rate')
         fundingTimestamp = self.safe_integer(contract, 'nextSettleTime')
         return {
             'info': contract,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'markPrice': None,
             'indexPrice': None,
             'interestRate': None,
@@ -3741,7 +3722,7 @@ class hashkey(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -3792,7 +3773,7 @@ class hashkey(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch open positions for a market
 
@@ -3815,7 +3796,7 @@ class hashkey(Exchange, ImplicitAPI):
             self.load_markets()
         return self.fetch_positions_for_symbol(symbols[0], self.extend({'methodName': 'fetchPositions'}, params))
 
-    def fetch_positions_for_symbol(self, symbol: str, params={}) -> list[Position]:
+    def fetch_positions_for_symbol(self, symbol: str, params: dict = {}) -> list[Position]:
         """
         fetch open positions for a single market
 
@@ -3831,13 +3812,13 @@ class hashkey(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         methodName = 'fetchPosition'
-        methodName, params = self.handle_param_string(params, 'methodName', methodName)
+        methodNameOption, paramsMethodName = self.handle_param_string(params, 'methodName', methodName)
         if market['swap'] is not True:
-            raise NotSupported(self.id + ' ' + methodName + '() supports swap markets only')
+            raise NotSupported(self.id + ' ' + methodNameOption + '() supports swap markets only')
         request = {
             'symbol': market['id'],
         }
-        response = self.privateGetApiV1FuturesPositions(self.extend(request, params))
+        response = self.privateGetApiV1FuturesPositions(self.extend(request, paramsMethodName))
         #
         #     [
         #         {
@@ -3861,10 +3842,10 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_positions(response, [symbol])
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         marketId = self.safe_string(position, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         return self.safe_position({
             'symbol': symbol,
             'id': None,
@@ -3896,7 +3877,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': position,
         })
 
-    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
@@ -3936,7 +3917,7 @@ class hashkey(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}) -> Leverage:
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}) -> Leverage:
         """
         set the level of leverage for a market
 
@@ -3966,7 +3947,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_leverage(response, market)
 
-    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}) -> dict:
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}) -> dict:
         """
         set margin mode to 'cross' or 'isolated'
 
@@ -3981,21 +3962,20 @@ class hashkey(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        marginMode = marginMode.upper()
-        if marginMode == 'CROSSED':
-            marginMode = 'CROSS'
-        if (marginMode != 'CROSS') and (marginMode != 'ISOLATED'):
+        marginModeUpper = marginMode.upper()
+        marginModeValue = 'CROSS' if (marginModeUpper == 'CROSSED') else marginModeUpper
+        if (marginModeValue != 'CROSS') and (marginModeValue != 'ISOLATED'):
             raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be either cross or isolated')
         market = self.market(symbol)
         if market['swap'] is not True:
             raise BadSymbol(self.id + ' setMarginMode() supports swap markets only')
         request = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': marginModeValue,
         }
         return self.privatePostApiV1FuturesMarginType(self.extend(request, params))
 
-    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin
 
@@ -4009,7 +3989,7 @@ class hashkey(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
-    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         remove margin from a position
 
@@ -4023,17 +4003,16 @@ class hashkey(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def modify_margin_helper(self, symbol: str, amount: object, type: object, params={}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: Num, type: str, params: dict = {}) -> MarginModification:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
         if market['swap'] is not True:
             raise BadSymbol(self.id + ' modifyMarginHelper() supports swap markets only')
-        side = None
-        side, params = self.handle_param_string(params, 'side')
-        if side is None:
+        sideParam, paramsSide = self.handle_param_string(params, 'side')
+        if sideParam is None:
             raise ArgumentsRequired(self.id + ' ' + type + 'Margin() requires a params["side"] argument, either "long" or "short"')
-        side = side.upper()
+        side = sideParam.upper()
         if (side != 'LONG') and (side != 'SHORT'):
             raise ArgumentsRequired(self.id + ' ' + type + 'Margin() params["side"] must be either long or short')
         amountString = self.number_to_string(amount)
@@ -4044,7 +4023,7 @@ class hashkey(Exchange, ImplicitAPI):
             'side': side,
             'amount': amountString,
         }
-        response = self.privatePostApiV1FuturesPositionMargin(self.extend(request, params))
+        response = self.privatePostApiV1FuturesPositionMargin(self.extend(request, paramsSide))
         #
         #     {
         #         "code": "0000",
@@ -4060,24 +4039,24 @@ class hashkey(Exchange, ImplicitAPI):
 
     def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         marketId = self.safe_string(data, 'symbol')
-        market = self.safe_market(marketId, market, None, 'swap')
+        marketResolved = self.safe_market(marketId, market, None, 'swap')
         timestamp = self.safe_integer(data, 'timestamp')
         errorCode = self.safe_string(data, 'code')
         success = errorCode == '0000'
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': None,
             'marginMode': 'isolated',
             'amount': None,
             'total': self.safe_number(data, 'margin'),
-            'code': market['settle'],
+            'code': marketResolved['settle'],
             'status': 'ok' if (success) else 'failed',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
 
-    def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
+    def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
@@ -4092,8 +4071,8 @@ class hashkey(Exchange, ImplicitAPI):
         response = self.publicGetApiV1ExchangeInfo(params)
         # response is the same as in fetchMarkets()
         data = self.safe_list(response, 'contracts', [])
-        symbols = self.market_symbols(symbols)
-        return self.parse_leverage_tiers(data, symbols, 'symbol')
+        symbolsNormalized = self.market_symbols(symbols)
+        return self.parse_leverage_tiers(data, symbolsNormalized, 'symbol')
 
     def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         #
@@ -4148,8 +4127,8 @@ class hashkey(Exchange, ImplicitAPI):
         #         "baseAssetPrecision": "0.001",
         #         "quoteAsset": "USDT",
         #         "quoteAssetPrecision": "0.1",
-        #         "icebergAllowed": False,
-        #         "inverse": False,
+        #         "icebergAllowed": false,
+        #         "inverse": false,
         #         "index": "USDT",
         #         "marginToken": "USDT",
         #         "marginPrecision": "0.0001",
@@ -4161,29 +4140,29 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "quantity": "1000.00",
         #                 "initialMargin": "0.10",
         #                 "maintMargin": "0.005",
-        #                 "isWhite": False
+        #                 "isWhite": false
         #             },
         #             {
         #                 "riskLimitId": "200000723",
         #                 "quantity": "2000.00",
         #                 "initialMargin": "0.10",
         #                 "maintMargin": "0.01",
-        #                 "isWhite": False
+        #                 "isWhite": false
         #             }
         #         ]
         #     }
         #
         riskLimits = self.safe_list(info, 'riskLimits', [])
         marketId = self.safe_string(info, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         tiers = []
         for i in range(0, len(riskLimits)):
             tier = riskLimits[i]
             initialMarginRate = self.safe_string(tier, 'initialMargin')
             tiers.append({
                 'tier': self.sum(i, 1),
-                'symbol': self.safe_symbol(marketId, market),
-                'currency': market['settle'],
+                'symbol': self.safe_symbol(marketId, marketResolved),
+                'currency': marketResolved['settle'],
                 'minNotional': None,
                 'maxNotional': self.safe_number(tier, 'quantity'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintMargin'),
@@ -4192,7 +4171,7 @@ class hashkey(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -4210,7 +4189,8 @@ class hashkey(Exchange, ImplicitAPI):
         response = None
         if market['spot'] is True:
             response = self.fetch_trading_fees(params)
-            return self.safe_dict(response, symbol)
+            fee = self.safe_dict(response, symbol)
+            return fee
         elif market['swap'] is True:
             response = self.privateGetApiV1FuturesCommissionRate(self.extend({'symbol': market['id']}, params))
             return self.parse_trading_fee(response, market)
@@ -4225,7 +4205,7 @@ class hashkey(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets')
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         *for spot markets only* fetch the trading fees for multiple markets
 
@@ -4290,18 +4270,21 @@ class hashkey(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(fee, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         return {
             'info': fee,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'maker': self.safe_number_2(fee, 'openMakerFee', 'actualMakerRate'),
             'taker': self.safe_number_2(fee, 'openTakerFee', 'actualTakerRate'),
             'percentage': True,
             'tierBased': True,
         }
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
-        url = self.urls['api'][api] + '/' + path
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + path
         query = None
         if api == 'private':
             self.check_required_credentials()
@@ -4312,14 +4295,15 @@ class hashkey(Exchange, ImplicitAPI):
             recvWindow = self.safe_integer(self.options, 'recvWindow')
             if recvWindow is not None:
                 additionalParams['recvWindow'] = recvWindow
-            headers = {
+            headersSigned = {
                 'X-HK-APIKEY': self.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
             signature = None
+            bodySigned = None
             if (method == 'POST') and ((path == 'api/v1/spot/batchOrders') or (path == 'api/v1/futures/batchOrders')):
-                headers['Content-Type'] = 'application/json'
-                body = self.json(self.safe_list(params, 'orders'))
+                headersSigned['Content-Type'] = 'application/json'
+                bodySigned = self.json(self.safe_list(params, 'orders'))
                 signature = self.hmac(self.encode(self.custom_urlencode(additionalParams)), self.encode(self.secret), hashlib.sha256)
                 query = self.custom_urlencode(self.extend(additionalParams, {'signature': signature}))
                 url += '?' + query
@@ -4331,9 +4315,11 @@ class hashkey(Exchange, ImplicitAPI):
                 if method == 'GET':
                     url += '?' + query
                 else:
-                    body = query
-            headers['INPUT-SOURCE'] = self.safe_string(self.options, 'broker', '10000700011')
-            headers['broker_sign'] = signature
+                    bodySigned = query
+            headersSigned['INPUT-SOURCE'] = self.safe_string(self.options, 'broker', '10000700011')
+            headersSigned['broker_sign'] = signature
+            bodyResolved = body if (method == 'GET') else bodySigned
+            return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersSigned}
         else:
             query = self.urlencode(params)
             if len(query) != 0:
@@ -4345,7 +4331,7 @@ class hashkey(Exchange, ImplicitAPI):
         result = result.replace('%2C', ',')
         return result
 
-    def handle_errors(self, code: int, reason: str, url: object, method: object, headers: object, body: object, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         errorInArray = False

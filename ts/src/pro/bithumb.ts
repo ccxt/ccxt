@@ -8,6 +8,7 @@ import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order,
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, BadRequest, ExchangeError } from '../base/errors.js';
 import { jwt } from '../base/functions/rsa.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 //  ---------------------------------------------------------------------------
 
 export default class bithumb extends bithumbRest {
@@ -72,18 +73,17 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchTicker', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'watchTicker', 'generation', 2);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
-        const tickTypes = this.safeString (params, 'tickTypes', '24H');
-        params = this.omit (params, 'tickTypes');
+        const tickTypes = this.safeString (paramsGeneration, 'tickTypes', '24H');
+        const paramsOmitted: Dict = this.omit (paramsGeneration, 'tickTypes');
         let request: Dict | Dict[] = {
             'type': 'ticker',
             'symbols': [ market['base'] + '_' + market['quote'] ],
@@ -96,11 +96,11 @@ export default class bithumb extends bithumbRest {
                 this.extend ({
                     'type': 'ticker',
                     'codes': [ marketIdRequest ],
-                }, params),
+                }, paramsOmitted),
             ];
             return await this.watch (url, messageHash, request, messageHash);
         }
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.extend (request, paramsOmitted), messageHash);
     }
 
     /**
@@ -115,29 +115,26 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchTickers', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'watchTickers', 'generation', 2);
         const isGenerationTwo = (generation === 2);
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const symbolsLength = (symbols === undefined) ? 0 : symbols.length;
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false, true, true);
+        const symbolsLength = (symbolsNormalized === undefined) ? 0 : symbolsNormalized.length;
         if (isGenerationTwo && (symbolsLength === 0)) {
             throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for the generation 2 API');
         }
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        }
-        const symbolsLengthDefined = symbols.length;
+        const symbolsResolved: string[] = (symbolsNormalized === undefined) ? this.symbols : symbolsNormalized;
+        const symbolsLengthDefined = symbolsResolved.length;
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const streamMarketIds: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsLengthDefined; i++) {
-            const symbol = symbols[i];
+            const symbol = symbolsResolved[i];
             const market = this.market (symbol);
-            let streamMarketId = undefined;
+            let streamMarketId: Str = undefined;
             if (isGenerationTwo) {
                 streamMarketId = this.getGen2MarketId (market);
             } else {
@@ -146,8 +143,8 @@ export default class bithumb extends bithumbRest {
             streamMarketIds.push (streamMarketId);
             messageHashes.push ('ticker:' + market['symbol']);
         }
-        const tickTypes = this.safeString (params, 'tickTypes', '24H');
-        params = this.omit (params, 'tickTypes');
+        const tickTypes = this.safeString (paramsGeneration, 'tickTypes', '24H');
+        const paramsOmitted: Dict = this.omit (paramsGeneration, 'tickTypes');
         let message: Dict | Dict[] = {
             'type': 'ticker',
             'symbols': streamMarketIds,
@@ -159,21 +156,24 @@ export default class bithumb extends bithumbRest {
                 this.extend ({
                     'type': 'ticker',
                     'codes': streamMarketIds,
-                }, params),
+                }, paramsOmitted),
             ];
         } else {
-            message = this.extend (message, params);
+            message = this.extend (message, paramsOmitted);
         }
         const newTicker = await this.watchMultiple (url, messageHashes, message, messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsResolved);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         //
         // generation 1
         //
@@ -249,7 +249,7 @@ export default class bithumb extends bithumbRest {
         if (marketId === undefined) {
             return;
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if (isGenerationTwo) {
             symbol = this.safeSymbol (marketId, undefined, '-');
         } else {
@@ -264,7 +264,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드
@@ -373,17 +373,16 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'watchOrderBook', 'generation', 2);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook' + ':' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'orderbook' + ':' + symbolValue;
         let request: Dict | Dict[] = {
             'type': 'orderbookdepth',
             'symbols': [ market['base'] + '_' + market['quote'] ],
@@ -395,16 +394,16 @@ export default class bithumb extends bithumbRest {
                 this.extend ({
                     'type': 'orderbook',
                     'codes': [ marketIdRequest ],
-                }, params),
+                }, paramsGeneration),
             ];
         } else {
-            request = this.extend (request, params);
+            request = this.extend (request, paramsGeneration);
         }
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // generation 1
         //
@@ -470,7 +469,7 @@ export default class bithumb extends bithumbRest {
                 this.orderbooks[legacySymbol] = ob;
             }
             const legacyOrderbook = this.orderbooks[legacySymbol];
-            this.handleDeltas (legacyOrderbook, list);
+            this.handleBookDeltas (legacyOrderbook, list);
             legacyOrderbook['timestamp'] = legacyTimestamp;
             legacyOrderbook['datetime'] = this.iso8601 (legacyTimestamp);
             const legacyMessageHash = 'orderbook' + ':' + legacySymbol;
@@ -483,7 +482,7 @@ export default class bithumb extends bithumbRest {
             return;
         }
         const streamType = this.safeString (message, 'stream_type');
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const obLimit = this.safeInteger (options, 'limit', 1000);
         if (!(symbol in this.orderbooks) || (streamType === 'SNAPSHOT')) {
             this.orderbooks[symbol] = this.orderBook ({}, obLimit);
@@ -493,9 +492,9 @@ export default class bithumb extends bithumbRest {
         orderbook['symbol'] = symbol;
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
-        const units = this.safeList (message, 'orderbook_units', []);
+        const units: Dict[] = this.safeList (message, 'orderbook_units', []);
         for (let i = 0; i < units.length; i++) {
-            const entry = units[i];
+            const entry = this.safeDict (units, i);
             const bidPrice = this.safeNumber (entry, 'bid_price');
             const bidSize = this.safeNumber (entry, 'bid_size');
             const askPrice = this.safeNumber (entry, 'ask_price');
@@ -508,7 +507,7 @@ export default class bithumb extends bithumbRest {
             }
         }
         const gen2TimestampStr = this.safeString2 (message, 'timestamp', 'datetime') as string;
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (gen2TimestampStr !== undefined) {
             timestamp = this.parseToInt (gen2TimestampStr.slice (0, 13));
         }
@@ -521,7 +520,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         //
         //    {
         //        symbol: "ETH_BTC",
@@ -532,15 +531,18 @@ export default class bithumb extends bithumbRest {
         //    }
         //
         const sideId = this.safeString (delta, 'orderType');
-        const side = (sideId === 'bid') ? 'bids' : 'asks';
+        let side: 'asks' | 'bids' = 'asks';
+        if (sideId === 'bid') {
+            side = 'bids';
+        }
         const bidAsk = this.parseOrderBookBidAsk (delta, 'price', 'quantity');
         const orderbookSide = orderbook[side];
         orderbookSide.storeArray (bidAsk);
     }
 
-    override handleDeltas (orderbook: any, deltas: any) {
+    override handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (orderbook, deltas[i]);
+            this.handleBookDelta (orderbook, deltas[i]);
         }
     }
 
@@ -557,17 +559,16 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchTrades', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'watchTrades', 'generation', 2);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trade:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'trade:' + symbolValue;
         let request: Dict | Dict[] = {
             'type': 'transaction',
             'symbols': [ market['base'] + '_' + market['quote'] ],
@@ -579,19 +580,20 @@ export default class bithumb extends bithumbRest {
                 this.extend ({
                     'type': 'trade',
                     'codes': [ marketIdRequest ],
-                }, params),
+                }, paramsGeneration),
             ];
         } else {
-            request = this.extend (request, params);
+            request = this.extend (request, paramsGeneration);
         }
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
-    handleTrades (client: any, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         // generation 1
         //
@@ -644,7 +646,7 @@ export default class bithumb extends bithumbRest {
             }
             const code = this.safeString (rawTrade, 'code');
             const isGenerationTwo = (code !== undefined);
-            let fallbackSymbol = undefined;
+            let fallbackSymbol: Str = undefined;
             if (isGenerationTwo) {
                 fallbackSymbol = this.safeSymbol (marketId, undefined, '-');
             } else {
@@ -664,7 +666,7 @@ export default class bithumb extends bithumbRest {
         }
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // generation 1
         //
@@ -728,7 +730,7 @@ export default class bithumb extends bithumbRest {
         }, market);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //        "status" : "5100",
@@ -776,12 +778,11 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchBalance', 'generation', 2);
+        const generation = this.handleOptionIntegerAndParams (params, 'watchBalance', 'generation', 2)[0];
         if (generation !== 2) {
             throw new BadRequest (this.id + ' watchBalance() is only supported for the generation 2 API');
         }
@@ -793,7 +794,7 @@ export default class bithumb extends bithumbRest {
         return balance;
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         //    {
         //        "type": "myAsset",
@@ -810,12 +811,12 @@ export default class bithumb extends bithumbRest {
         //    }
         //
         const messageHash = 'myAsset';
-        const assets = this.safeList (message, 'assets', []);
+        const assets: Dict[] = this.safeList (message, 'assets', []);
         if (this.balance === undefined) {
             this.balance = {};
         }
         for (let i = 0; i < assets.length; i++) {
-            const asset = assets[i];
+            const asset = this.safeDict (assets, i);
             const currencyId = this.safeString (asset, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -861,7 +862,7 @@ export default class bithumb extends bithumbRest {
         return request;
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}): Promise<Client> {
         this.checkRequiredCredentials ();
         const wsOptions = this.safeDict (this.options, 'ws', {});
         const authenticated = this.safeString (wsOptions, 'token');
@@ -898,12 +899,11 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchOrders', 'generation', 2);
+        const generation = this.handleOptionIntegerAndParams (params, 'watchOrders', 'generation', 2)[0];
         if (generation !== 2) {
             throw new BadRequest (this.id + ' watchOrders() is only supported for the generation 2 API');
         }
@@ -912,19 +912,21 @@ export default class bithumb extends bithumbRest {
         let messageHash = 'myOrder';
         const codes = this.safeList (params, 'codes', []);
         const request = this.buildGen2SubscriptionRequest (messageHash, { 'type': messageHash, 'codes': codes });
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
+            symbolResolved = this.safeString (market, 'symbol');
+            messageHash = messageHash + ':' + symbolResolved;
         }
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: Dict) {
         //
         //    {
         //        "type": "myOrder",
@@ -964,7 +966,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (cachedOrders, symbolSpecificMessageHash);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //    {
         //        "type": "myOrder",

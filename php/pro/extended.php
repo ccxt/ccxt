@@ -71,35 +71,35 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'orderbook:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'orderbook:' . $symbolValue;
         $query = $this->urlencode($params);
-        $url = $this->urls['api']['ws'] . '/orderbooks/' . $market['id'];
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/orderbooks/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
         $orderbook = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'limit' => $limit,
         )));
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "ts" => 1701563440000,
-        //         "type" => "SNAPSHOT",
-        //         "data" => array(
-        //             "m" => "BTC-USD",
-        //             "b" => array(
-        //                 array( "p" => "25670", "q" => "0.1" )
-        //             ),
-        //             "a" => array(
-        //                 array( "p" => "25770", "q" => "0.1" )
-        //             )
-        //         ),
-        //         "seq" => 1
+        //         "ts": 1701563440000,
+        //         "type": "SNAPSHOT",
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "b": [
+        //                 { "p": "25670", "q": "0.1" }
+        //             ],
+        //             "a": [
+        //                 { "p": "25770", "q": "0.1" }
+        //             ]
+        //         },
+        //         "seq": 1
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -158,7 +158,7 @@ class extended extends \ccxt\async\extended {
 
     private function do_watch_private(string $messageHash, ?array $subscription = null) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws'] . '/account';
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/account';
         if (($this->clients === null) || !(is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             $defaultOptions = array(
                 'ws' => array(
@@ -203,19 +203,21 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $messageHash = 'orders';
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $this->safe_string($market, 'symbol');
+            $messageHash .= ':' . $symbolResolved;
         }
         $orders = Async\await($this->watch_private($messageHash, array(
-            'symbol' => $symbol,
+            'symbol' => $symbolResolved,
             'limit' => $limit,
         )));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function watch_balance($params = array()): PromiseInterface {
@@ -237,36 +239,42 @@ class extended extends \ccxt\async\extended {
         return Async\await($this->watch_private('balance', $params));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
-        //         "type" => "BALANCE",
-        //         "data" => {
-        //             "balance" => array(
-        //                 "collateralName" => "BTC",
-        //                 "balance" => "100.000000",
-        //                 "equity" => "20.000000",
-        //                 "availableForTrade" => "3.000000",
-        //                 "availableForWithdrawal" => "4.000000",
-        //                 "updatedTime" => 1699976104901
-        //             ),
-        //             "spotBalances" => array(
-        //                 array(
-        //                     "asset" => "BTC",
-        //                     "balance" => "0.5",
-        //                     "availableToWithdraw" => "0.5",
-        //                     "updatedAt" => 1701563440
+        //         "type": "BALANCE",
+        //         "data": {
+        //             "balance": {
+        //                 "collateralName": "BTC",
+        //                 "balance": "100.000000",
+        //                 "equity": "20.000000",
+        //                 "availableForTrade": "3.000000",
+        //                 "availableForWithdrawal": "4.000000",
+        //                 "updatedTime": 1699976104901
+        //             },
+        //             "spotBalances": [
+        //                 {
+        //                     "asset": "BTC",
+        //                     "balance": "0.5",
+        //                     "availableToWithdraw": "0.5",
+        //                     "updatedAt": 1701563440
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715885952304,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715885952304,
+        //         "seq": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
         $data = $this->safe_dict($message, 'data', array());
-        $result = array(
-            'info' => $data,
-        );
+        $this->balance['info'] = $data;
         $balance = $this->safe_dict($data, 'balance');
         if ($balance !== null) {
             $currencyId = $this->safe_string($balance, 'collateralName');
@@ -275,7 +283,7 @@ class extended extends \ccxt\async\extended {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'availableForWithdrawal');
                 $account['total'] = $this->safe_string($balance, 'balance');
-                $result[$code] = $account;
+                $this->balance[$code] = $account;
             }
         }
         $spotBalances = $this->safe_list($data, 'spotBalances', array());
@@ -287,13 +295,13 @@ class extended extends \ccxt\async\extended {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($spotBalance, 'availableToWithdraw');
                 $account['total'] = $this->safe_string($spotBalance, 'balance');
-                $result[$code] = $account;
+                $this->balance[$code] = $account;
             }
         }
         $timestamp = $this->safe_integer($message, 'ts');
-        $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp);
-        $this->balance = $this->safe_balance($this->deep_extend($this->balance, $result));
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, 'balance');
     }
 
@@ -317,46 +325,48 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $messageHash = 'myTrades';
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $this->safe_string($market, 'symbol');
+            $messageHash .= ':' . $symbolResolved;
         }
         $trades = Async\await($this->watch_private($messageHash, array(
-            'symbol' => $symbol,
+            'symbol' => $symbolResolved,
             'limit' => $limit,
         )));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //     {
-        //         "type" => "TRADE",
-        //         "data" => {
-        //             "trades" => array(
-        //                 array(
-        //                     "id" => 1784963886257016832,
-        //                     "accountId" => 3017,
-        //                     "market" => "BTC-USD",
-        //                     "orderId" => 9223372036854775808,
-        //                     "externalOrderId" => "ext-1",
-        //                     "side" => "BUY",
-        //                     "price" => "58853.4000000000000000",
-        //                     "qty" => "0.0900000000000000",
-        //                     "value" => "5296.8060000000000000",
-        //                     "fee" => "0.0000000000000000",
-        //                     "tradeType" => "DELEVERAGE",
-        //                     "createdTime" => 1701563440000,
-        //                     "isTaker" => true
+        //         "type": "TRADE",
+        //         "data": {
+        //             "trades": [
+        //                 {
+        //                     "id": 1784963886257016832,
+        //                     "accountId": 3017,
+        //                     "market": "BTC-USD",
+        //                     "orderId": 9223372036854775808,
+        //                     "externalOrderId": "ext-1",
+        //                     "side": "BUY",
+        //                     "price": "58853.4000000000000000",
+        //                     "qty": "0.0900000000000000",
+        //                     "value": "5296.8060000000000000",
+        //                     "fee": "0.0000000000000000",
+        //                     "tradeType": "DELEVERAGE",
+        //                     "createdTime": 1701563440000,
+        //                     "isTaker": true
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715886400000,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715886400000,
+        //         "seq": 1
         //     }
         //
         if ($this->myTrades === null) {
@@ -411,43 +421,43 @@ class extended extends \ccxt\async\extended {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $messageHash = 'positions';
-        if ($symbols !== null) {
-            $messageHash .= '::' . implode(',', $symbols);
+        if ($symbolsNormalized !== null) {
+            $messageHash .= '::' . implode(',', $symbolsNormalized);
         }
         $positions = Async\await($this->watch_private($messageHash, array(
-            'symbols' => $symbols,
+            'symbols' => $symbolsNormalized,
             'limit' => $limit,
         )));
         if ($this->newUpdates) {
             return $positions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
-    public function handle_positions(Client $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
-        //         "type" => "POSITION",
-        //         "data" => {
-        //             "positions" => array(
-        //                 array(
-        //                     "id" => 1,
-        //                     "accountId" => 1,
-        //                     "market" => "BTC-USD",
-        //                     "side" => "LONG",
-        //                     "leverage" => "10",
-        //                     "size" => "0.1",
-        //                     "value" => "4000",
-        //                     "openPrice" => "39000",
-        //                     "markPrice" => "40000",
-        //                     "updatedAt" => 1701563440000
+        //         "type": "POSITION",
+        //         "data": {
+        //             "positions": [
+        //                 {
+        //                     "id": 1,
+        //                     "accountId": 1,
+        //                     "market": "BTC-USD",
+        //                     "side": "LONG",
+        //                     "leverage": "10",
+        //                     "size": "0.1",
+        //                     "value": "4000",
+        //                     "openPrice": "39000",
+        //                     "markPrice": "40000",
+        //                     "updatedAt": 1701563440000
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715886400000,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715886400000,
+        //         "seq": 1
         //     }
         //
         if ($this->positions === null) {
@@ -485,35 +495,35 @@ class extended extends \ccxt\async\extended {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         //
         //     {
-        //         "type" => "ORDER",
-        //         "data" => {
-        //             "orders" => array(
-        //                 array(
-        //                     "id" => 1791181340771614723,
-        //                     "accountId" => 1791181340771614721,
-        //                     "externalId" => "-1771812132822291885",
-        //                     "market" => "BTC-USD",
-        //                     "type" => "LIMIT",
-        //                     "side" => "BUY",
-        //                     "status" => "NEW",
-        //                     "price" => "12400.000000",
-        //                     "averagePrice" => "13140.000000",
-        //                     "qty" => "10.000000",
-        //                     "filledQty" => "3.513000",
-        //                     "payedFee" => "0.513000",
-        //                     "reduceOnly" => true,
-        //                     "postOnly" => false,
-        //                     "createdTime" => 1715885888571,
-        //                     "updatedTime" => 1715885888571,
-        //                     "expireTime" => 1715885888571
+        //         "type": "ORDER",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "id": 1791181340771614723,
+        //                     "accountId": 1791181340771614721,
+        //                     "externalId": "-1771812132822291885",
+        //                     "market": "BTC-USD",
+        //                     "type": "LIMIT",
+        //                     "side": "BUY",
+        //                     "status": "NEW",
+        //                     "price": "12400.000000",
+        //                     "averagePrice": "13140.000000",
+        //                     "qty": "10.000000",
+        //                     "filledQty": "3.513000",
+        //                     "payedFee": "0.513000",
+        //                     "reduceOnly": true,
+        //                     "postOnly": false,
+        //                     "createdTime": 1715885888571,
+        //                     "updatedTime": 1715885888571,
+        //                     "expireTime": 1715885888571
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715885884837,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715885884837,
+        //         "seq": 1
         //     }
         //
         if ($this->orders === null) {
@@ -567,29 +577,29 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'fundingRate:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'fundingRate:' . $symbolValue;
         $query = $this->urlencode($params);
-        $url = $this->urls['api']['ws'] . '/funding/' . $market['id'];
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/funding/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
         return Async\await($this->watch($url, $messageHash, null, $messageHash, array(
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'messageHash' => $messageHash,
         )));
     }
 
-    public function handle_funding_rate(Client $client, mixed $message) {
+    public function handle_funding_rate(Client $client, array $message) {
         //
         //     {
-        //         "ts" => 1701563440000,
-        //         "data" => array(
-        //             "m" => "BTC-USD",
-        //             "T" => 1701563440000,
-        //             "f" => "0.001"
-        //         ),
-        //         "seq" => 2
+        //         "ts": 1701563440000,
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "T": 1701563440000,
+        //             "f": "0.001"
+        //         },
+        //         "seq": 2
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -600,14 +610,14 @@ class extended extends \ccxt\async\extended {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function parse_ws_funding_rate(mixed $fundingRate, ?array $market = null, mixed $message = null): array {
+    public function parse_ws_funding_rate(array $fundingRate, ?array $market = null, ?array $message = null): array {
         $marketId = $this->safe_string($fundingRate, 'm');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($message, 'ts');
         $fundingTimestamp = $this->safe_integer($fundingRate, 'T');
         return array(
             'info' => $fundingRate,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'markPrice' => null,
             'indexPrice' => null,
             'interestRate' => null,
@@ -645,31 +655,31 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'markPrice:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'markPrice:' . $symbolValue;
         $query = $this->urlencode($params);
-        $url = $this->urls['api']['ws'] . '/prices/mark/' . $market['id'];
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/prices/mark/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
         return Async\await($this->watch($url, $messageHash, null, $messageHash, array(
             'name' => 'markPrice',
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'messageHash' => $messageHash,
         )));
     }
 
-    public function handle_mark_price(Client $client, mixed $message) {
+    public function handle_mark_price(Client $client, array $message) {
         //
         //     {
-        //         "type" => "MP",
-        //         "data" => array(
-        //             "m" => "BTC-USD",
-        //             "p" => "80988.400408625006",
-        //             "ts" => 0
-        //         ),
-        //         "ts" => 1778641421485,
-        //         "seq" => 1
+        //         "type": "MP",
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "p": "80988.400408625006",
+        //             "ts": 0
+        //         },
+        //         "ts": 1778641421485,
+        //         "seq": 1
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -712,39 +722,40 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'trades:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'trades:' . $symbolValue;
         $query = $this->urlencode($params);
-        $url = $this->urls['api']['ws'] . '/publicTrades/' . $market['id'];
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/publicTrades/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
         $trades = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'limit' => $limit,
         )));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         "ts" => 1701563440000,
-        //         "data" => array(
+        //         "ts": 1701563440000,
+        //         "data": [
         //             {
-        //                 "m" => "BTC-USD",
-        //                 "S" => "BUY",
-        //                 "tT" => "TRADE",
-        //                 "T" => 1701563440000,
-        //                 "p" => "25670",
-        //                 "q" => "0.1",
-        //                 "i" => 25124
+        //                 "m": "BTC-USD",
+        //                 "S": "BUY",
+        //                 "tT": "TRADE",
+        //                 "T": 1701563440000,
+        //                 "p": "25670",
+        //                 "q": "0.1",
+        //                 "i": 25124
         //             }
-        //         ),
-        //         "seq" => 2
+        //         ],
+        //         "seq": 2
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -800,7 +811,7 @@ class extended extends \ccxt\async\extended {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $price = $this->safe_string($params, 'price');
         $candleType = $this->safe_string($params, 'candleType');
         if ($candleType === null) {
@@ -812,40 +823,41 @@ class extended extends \ccxt\async\extended {
                 $candleType = 'trades';
             }
         }
-        $params = $this->omit($params, array( 'candleType', 'price' ));
+        $paramsOmitted = $this->omit($params, array( 'candleType', 'price' ));
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe . ':' . $candleType;
-        $query = $this->urlencode($this->extend(array( 'interval' => $interval ), $params));
-        $url = $this->urls['api']['ws'] . '/candles/' . $market['id'] . '/' . $candleType . '?' . $query;
+        $messageHash = 'ohlcv:' . $symbolValue . ':' . $timeframe . ':' . $candleType;
+        $query = $this->urlencode($this->extend(array( 'interval' => $interval ), $paramsOmitted));
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/candles/' . $market['id'] . '/' . $candleType . '?' . $query;
         $ohlcv = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
             'name' => 'ohlcv',
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'timeframe' => $timeframe,
             'candleType' => $candleType,
             'limit' => $limit,
             'messageHash' => $messageHash,
         )));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         "ts" => 1695738675123,
-        //         "data" => array(
+        //         "ts": 1695738675123,
+        //         "data": [
         //             {
-        //                 "T" => 1695738674000,
-        //                 "o" => "1000.0000",
-        //                 "l" => "800.0000",
-        //                 "h" => "2400.0000",
-        //                 "c" => "2100.0000",
-        //                 "v" => "10.0000"
+        //                 "T": 1695738674000,
+        //                 "o": "1000.0000",
+        //                 "l": "800.0000",
+        //                 "h": "2400.0000",
+        //                 "c": "2100.0000",
+        //                 "v": "10.0000"
         //             }
-        //         ),
-        //         "seq" => 1
+        //         ],
+        //         "seq": 1
         //     }
         //
         $subscription = $this->find_subscription($client, 'ohlcv');
@@ -855,9 +867,14 @@ class extended extends \ccxt\async\extended {
         $symbol = $this->safe_string($subscription, 'symbol');
         $timeframe = $this->safe_string($subscription, 'timeframe');
         $candleType = $this->safe_string($subscription, 'candleType');
-        $cacheKey = ($candleType === 'trades') ? $timeframe : $timeframe . ':' . $candleType;
+        $cacheKey = null;
+        if ($candleType === 'trades') {
+            $cacheKey = $timeframe;
+        } else {
+            $cacheKey = $timeframe . ':' . $candleType;
+        }
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $cacheKey);
         if ($stored === null) {
             $defaultLimit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -892,11 +909,11 @@ class extended extends \ccxt\async\extended {
         return null;
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
-        //     array( "status" => "ERROR", "error" => array( "code" => 1001, "message" => "Market not found." ) )
+        //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
-        $error = $this->safe_value($message, 'error');
+        $error = $this->safe_dict($message, 'error');
         if ($error === null) {
             return false;
         }
@@ -908,7 +925,7 @@ class extended extends \ccxt\async\extended {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }

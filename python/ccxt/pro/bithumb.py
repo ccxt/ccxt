@@ -58,7 +58,7 @@ class bithumb(ccxt.async_support.bithumb):
     def handle_pong(self, client: Client, message: object):
         client.lastPong = self.milliseconds()
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -73,14 +73,13 @@ class bithumb(ccxt.async_support.bithumb):
         """
         if self.markets is None:
             await self.load_markets()
-        generation = None
-        generation, params = self.handle_option_and_params(params, 'watchTicker', 'generation', 2)
+        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'watchTicker', 'generation', 2)
         isGenerationTwo = (generation == 2)
         url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
-        tickTypes = self.safe_string(params, 'tickTypes', '24H')
-        params = self.omit(params, 'tickTypes')
+        tickTypes = self.safe_string(paramsGeneration, 'tickTypes', '24H')
+        paramsOmitted = self.omit(paramsGeneration, 'tickTypes')
         request = {
             'type': 'ticker',
             'symbols': [market['base'] + '_' + market['quote']],
@@ -93,12 +92,12 @@ class bithumb(ccxt.async_support.bithumb):
                 self.extend({
                     'type': 'ticker',
                     'codes': [marketIdRequest],
-                }, params),
+                }, paramsOmitted),
             ]
             return await self.watch(url, messageHash, request, messageHash)
-        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        return await self.watch(url, messageHash, self.extend(request, paramsOmitted), messageHash)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -113,21 +112,19 @@ class bithumb(ccxt.async_support.bithumb):
         """
         if self.markets is None:
             await self.load_markets()
-        generation = None
-        generation, params = self.handle_option_and_params(params, 'watchTickers', 'generation', 2)
+        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'watchTickers', 'generation', 2)
         isGenerationTwo = (generation == 2)
-        symbols = self.market_symbols(symbols, None, False, True, True)
-        symbolsLength = 0 if (symbols is None) else len(symbols)
+        symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
+        symbolsLength = 0 if (symbolsNormalized is None) else len(symbolsNormalized)
         if isGenerationTwo and (symbolsLength == 0):
             raise ArgumentsRequired(self.id + ' watchTickers() requires symbols for the generation 2 API')
-        if symbols is None:
-            symbols = self.symbols
-        symbolsLengthDefined = len(symbols)
+        symbolsResolved = self.symbols if (symbolsNormalized is None) else symbolsNormalized
+        symbolsLengthDefined = len(symbolsResolved)
         url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         streamMarketIds = []
         messageHashes = []
         for i in range(0, symbolsLengthDefined):
-            symbol = symbols[i]
+            symbol = symbolsResolved[i]
             market = self.market(symbol)
             streamMarketId = None
             if isGenerationTwo:
@@ -136,8 +133,8 @@ class bithumb(ccxt.async_support.bithumb):
                 streamMarketId = (market['base'] + '_' + market['quote'])
             streamMarketIds.append(streamMarketId)
             messageHashes.append('ticker:' + market['symbol'])
-        tickTypes = self.safe_string(params, 'tickTypes', '24H')
-        params = self.omit(params, 'tickTypes')
+        tickTypes = self.safe_string(paramsGeneration, 'tickTypes', '24H')
+        paramsOmitted = self.omit(paramsGeneration, 'tickTypes')
         message = {
             'type': 'ticker',
             'symbols': streamMarketIds,
@@ -149,40 +146,42 @@ class bithumb(ccxt.async_support.bithumb):
                 self.extend({
                     'type': 'ticker',
                     'codes': streamMarketIds,
-                }, params),
+                }, paramsOmitted),
             ]
         else:
-            message = self.extend(message, params)
+            message = self.extend(message, paramsOmitted)
         newTicker = await self.watch_multiple(url, messageHashes, message, messageHashes)
         if self.newUpdates:
             result = {}
-            result[newTicker['symbol']] = newTicker
+            newTickerSymbol = self.safe_string(newTicker, 'symbol')
+            if newTickerSymbol is not None:
+                result[newTickerSymbol] = newTicker
             return result
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return self.filter_by_array(self.tickers, 'symbol', symbolsResolved)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         # generation 1
         #
         #    {
         #        "type" : "ticker",
         #        "content" : {
-        #            "symbol" : "BTC_KRW",           # 통화코드
-        #            "tickType" : "24H",                 # 변동 기준시간- 30M, 1H, 12H, 24H, MID
-        #            "date" : "20200129",                # 일자
-        #            "time" : "121844",                  # 시간
-        #            "openPrice" : "2302",               # 시가
-        #            "closePrice" : "2317",              # 종가
-        #            "lowPrice" : "2272",                # 저가
-        #            "highPrice" : "2344",               # 고가
-        #            "value" : "2831915078.07065789",    # 누적거래금액
-        #            "volume" : "1222314.51355788",  # 누적거래량
-        #            "sellVolume" : "760129.34079004",   # 매도누적거래량
-        #            "buyVolume" : "462185.17276784",    # 매수누적거래량
-        #            "prevClosePrice" : "2326",          # 전일종가
-        #            "chgRate" : "0.65",                 # 변동률
-        #            "chgAmt" : "15",                    # 변동금액
-        #            "volumePower" : "60.80"         # 체결강도
+        #            "symbol" : "BTC_KRW",           // 통화코드
+        #            "tickType" : "24H",                 // 변동 기준시간- 30M, 1H, 12H, 24H, MID
+        #            "date" : "20200129",                // 일자
+        #            "time" : "121844",                  // 시간
+        #            "openPrice" : "2302",               // 시가
+        #            "closePrice" : "2317",              // 종가
+        #            "lowPrice" : "2272",                // 저가
+        #            "highPrice" : "2344",               // 고가
+        #            "value" : "2831915078.07065789",    // 누적거래금액
+        #            "volume" : "1222314.51355788",  // 누적거래량
+        #            "sellVolume" : "760129.34079004",   // 매도누적거래량
+        #            "buyVolume" : "462185.17276784",    // 매수누적거래량
+        #            "prevClosePrice" : "2326",          // 전일종가
+        #            "chgRate" : "0.65",                 // 변동률
+        #            "chgAmt" : "15",                    // 변동금액
+        #            "volumePower" : "60.80"         // 체결강도
         #        }
         #    }
         #
@@ -217,7 +216,7 @@ class bithumb(ccxt.async_support.bithumb):
         #         "lowest_52_week_price": 81110000,
         #         "lowest_52_week_date": "2026-02-06",
         #         "market_state": "ACTIVE",
-        #         "is_trading_suspended": False,
+        #         "is_trading_suspended": false,
         #         "delisting_date": "",
         #         "market_warning": "NONE",
         #         "timestamp": 1783655148485,
@@ -246,25 +245,25 @@ class bithumb(ccxt.async_support.bithumb):
         self.tickers[symbol] = ticker
         client.resolve(self.tickers[symbol], messageHash)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
-        #        "symbol" : "BTC_KRW",           # 통화코드
-        #        "tickType" : "24H",                 # 변동 기준시간- 30M, 1H, 12H, 24H, MID
-        #        "date" : "20200129",                # 일자
-        #        "time" : "121844",                  # 시간
-        #        "openPrice" : "2302",               # 시가
-        #        "closePrice" : "2317",              # 종가
-        #        "lowPrice" : "2272",                # 저가
-        #        "highPrice" : "2344",               # 고가
-        #        "value" : "2831915078.07065789",    # 누적거래금액
-        #        "volume" : "1222314.51355788",  # 누적거래량
-        #        "sellVolume" : "760129.34079004",   # 매도누적거래량
-        #        "buyVolume" : "462185.17276784",    # 매수누적거래량
-        #        "prevClosePrice" : "2326",          # 전일종가
-        #        "chgRate" : "0.65",                 # 변동률
-        #        "chgAmt" : "15",                    # 변동금액
-        #        "volumePower" : "60.80"         # 체결강도
+        #        "symbol" : "BTC_KRW",           // 통화코드
+        #        "tickType" : "24H",                 // 변동 기준시간- 30M, 1H, 12H, 24H, MID
+        #        "date" : "20200129",                // 일자
+        #        "time" : "121844",                  // 시간
+        #        "openPrice" : "2302",               // 시가
+        #        "closePrice" : "2317",              // 종가
+        #        "lowPrice" : "2272",                // 저가
+        #        "highPrice" : "2344",               // 고가
+        #        "value" : "2831915078.07065789",    // 누적거래금액
+        #        "volume" : "1222314.51355788",  // 누적거래량
+        #        "sellVolume" : "760129.34079004",   // 매도누적거래량
+        #        "buyVolume" : "462185.17276784",    // 매수누적거래량
+        #        "prevClosePrice" : "2326",          // 전일종가
+        #        "chgRate" : "0.65",                 // 변동률
+        #        "chgAmt" : "15",                    // 변동금액
+        #        "volumePower" : "60.80"         // 체결강도
         #    }
         #
         # generation 2
@@ -298,7 +297,7 @@ class bithumb(ccxt.async_support.bithumb):
         #         "lowest_52_week_price": 81110000,
         #         "lowest_52_week_date": "2026-02-06",
         #         "market_state": "ACTIVE",
-        #         "is_trading_suspended": False,
+        #         "is_trading_suspended": false,
         #         "delisting_date": "",
         #         "market_warning": "NONE",
         #         "timestamp": 1783655148485,
@@ -340,7 +339,7 @@ class bithumb(ccxt.async_support.bithumb):
             'info': ticker,
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -355,13 +354,12 @@ class bithumb(ccxt.async_support.bithumb):
         """
         if self.markets is None:
             await self.load_markets()
-        generation = None
-        generation, params = self.handle_option_and_params(params, 'watchOrderBook', 'generation', 2)
+        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'watchOrderBook', 'generation', 2)
         isGenerationTwo = (generation == 2)
         url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'orderbook' + ':' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'orderbook' + ':' + symbolValue
         request = {
             'type': 'orderbookdepth',
             'symbols': [market['base'] + '_' + market['quote']],
@@ -373,14 +371,14 @@ class bithumb(ccxt.async_support.bithumb):
                 self.extend({
                     'type': 'orderbook',
                     'codes': [marketIdRequest],
-                }, params),
+                }, paramsGeneration),
             ]
         else:
-            request = self.extend(request, params)
+            request = self.extend(request, paramsGeneration)
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # generation 1
         #
@@ -390,10 +388,10 @@ class bithumb(ccxt.async_support.bithumb):
         #            "list" : [
         #                {
         #                    "symbol" : "BTC_KRW",
-        #                    "orderType" : "ask",        # 주문타입 – bid / ask
-        #                    "price" : "10593000",       # 호가
-        #                    "quantity" : "1.11223318",  # 잔량
-        #                    "total" : "3"               # 건수
+        #                    "orderType" : "ask",        // 주문타입 – bid / ask
+        #                    "price" : "10593000",       // 호가
+        #                    "quantity" : "1.11223318",  // 잔량
+        #                    "total" : "3"               // 건수
         #                },
         #                {"symbol" : "BTC_KRW", "orderType" : "ask", "price" : "10596000", "quantity" : "0.5495", "total" : "8"},
         #                {"symbol" : "BTC_KRW", "orderType" : "ask", "price" : "10598000", "quantity" : "18.2085", "total" : "10"},
@@ -402,7 +400,7 @@ class bithumb(ccxt.async_support.bithumb):
         #                {"symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10571000", "quantity" : "1.469", "total" : "3"},
         #                {"symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10569000", "quantity" : "0.5152", "total" : "2"}
         #            ],
-        #            "datetime":1580268255864325     # 일시
+        #            "datetime":1580268255864325     // 일시
         #        }
         #    }
         #
@@ -443,7 +441,7 @@ class bithumb(ccxt.async_support.bithumb):
                 ob['symbol'] = legacySymbol
                 self.orderbooks[legacySymbol] = ob
             legacyOrderbook = self.orderbooks[legacySymbol]
-            self.handle_deltas(legacyOrderbook, list)
+            self.handle_book_deltas(legacyOrderbook, list)
             legacyOrderbook['timestamp'] = legacyTimestamp
             legacyOrderbook['datetime'] = self.iso8601(legacyTimestamp)
             legacyMessageHash = 'orderbook' + ':' + legacySymbol
@@ -454,7 +452,7 @@ class bithumb(ccxt.async_support.bithumb):
         if symbol is None:
             return
         streamType = self.safe_string(message, 'stream_type')
-        options = self.safe_value(self.options, 'watchOrderBook', {})
+        options = self.safe_dict(self.options, 'watchOrderBook', {})
         obLimit = self.safe_integer(options, 'limit', 1000)
         if not (symbol in self.orderbooks) or (streamType == 'SNAPSHOT'):
             self.orderbooks[symbol] = self.order_book({}, obLimit)
@@ -465,7 +463,7 @@ class bithumb(ccxt.async_support.bithumb):
         asks = orderbook['asks']
         units = self.safe_list(message, 'orderbook_units', [])
         for i in range(0, len(units)):
-            entry = units[i]
+            entry = self.safe_dict(units, i)
             bidPrice = self.safe_number(entry, 'bid_price')
             bidSize = self.safe_number(entry, 'bid_size')
             askPrice = self.safe_number(entry, 'ask_price')
@@ -485,7 +483,7 @@ class bithumb(ccxt.async_support.bithumb):
         messageHash = 'orderbook' + ':' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, orderbook: object, delta: object):
+    def handle_book_delta(self, orderbook: object, delta: object):
         #
         #    {
         #        symbol: "ETH_BTC",
@@ -496,16 +494,18 @@ class bithumb(ccxt.async_support.bithumb):
         #    }
         #
         sideId = self.safe_string(delta, 'orderType')
-        side = 'bids' if (sideId == 'bid') else 'asks'
+        side = 'asks'
+        if sideId == 'bid':
+            side = 'bids'
         bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'quantity')
         orderbookSide = orderbook[side]
         orderbookSide.storeArray(bidAsk)
 
-    def handle_deltas(self, orderbook: object, deltas: object):
+    def handle_book_deltas(self, orderbook: object, deltas: object):
         for i in range(0, len(deltas)):
-            self.handle_delta(orderbook, deltas[i])
+            self.handle_book_delta(orderbook, deltas[i])
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -521,13 +521,12 @@ class bithumb(ccxt.async_support.bithumb):
         """
         if self.markets is None:
             await self.load_markets()
-        generation = None
-        generation, params = self.handle_option_and_params(params, 'watchTrades', 'generation', 2)
+        generation, paramsGeneration = self.handle_option_integer_and_params(params, 'watchTrades', 'generation', 2)
         isGenerationTwo = (generation == 2)
         url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'trade:' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'trade:' + symbolValue
         request = {
             'type': 'transaction',
             'symbols': [market['base'] + '_' + market['quote']],
@@ -539,16 +538,17 @@ class bithumb(ccxt.async_support.bithumb):
                 self.extend({
                     'type': 'trade',
                     'codes': [marketIdRequest],
-                }, params),
+                }, paramsGeneration),
             ]
         else:
-            request = self.extend(request, params)
+            request = self.extend(request, paramsGeneration)
         trades = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
-    def handle_trades(self, client: object, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         # generation 1
         #
@@ -615,7 +615,7 @@ class bithumb(ccxt.async_support.bithumb):
             messageHash = 'trade' + ':' + symbol
             client.resolve(trades, messageHash)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # generation 1
         #
@@ -677,7 +677,7 @@ class bithumb(ccxt.async_support.bithumb):
             'fee': None,
         }, market)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #    {
         #        "status" : "5100",
@@ -709,7 +709,7 @@ class bithumb(ccxt.async_support.bithumb):
             client.reject(e)
             return False
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -721,8 +721,7 @@ class bithumb(ccxt.async_support.bithumb):
         """
         if self.markets is None:
             await self.load_markets()
-        generation = None
-        generation, params = self.handle_option_and_params(params, 'watchBalance', 'generation', 2)
+        generation = self.handle_option_integer_and_params(params, 'watchBalance', 'generation', 2)[0]
         if generation != 2:
             raise BadRequest(self.id + ' watchBalance() is only supported for the generation 2 API')
         await self.authenticate()
@@ -732,7 +731,7 @@ class bithumb(ccxt.async_support.bithumb):
         balance = await self.watch(url, messageHash, request, messageHash)
         return balance
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         #    {
         #        "type": "myAsset",
@@ -753,7 +752,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.balance is None:
             self.balance = {}
         for i in range(0, len(assets)):
-            asset = assets[i]
+            asset = self.safe_dict(assets, i)
             currencyId = self.safe_string(asset, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -792,7 +791,7 @@ class bithumb(ccxt.async_support.bithumb):
             request.append(subscriptions[keys[i]])
         return request
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}) -> Client:
         self.check_required_credentials()
         wsOptions = self.safe_dict(self.options, 'ws', {})
         authenticated = self.safe_string(wsOptions, 'token')
@@ -814,7 +813,7 @@ class bithumb(ccxt.async_support.bithumb):
         client = self.client(url)
         return client
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -830,8 +829,7 @@ class bithumb(ccxt.async_support.bithumb):
         """
         if self.markets is None:
             await self.load_markets()
-        generation = None
-        generation, params = self.handle_option_and_params(params, 'watchOrders', 'generation', 2)
+        generation = self.handle_option_integer_and_params(params, 'watchOrders', 'generation', 2)[0]
         if generation != 2:
             raise BadRequest(self.id + ' watchOrders() is only supported for the generation 2 API')
         await self.authenticate()
@@ -839,16 +837,18 @@ class bithumb(ccxt.async_support.bithumb):
         messageHash = 'myOrder'
         codes = self.safe_list(params, 'codes', [])
         request = self.build_gen2_subscription_request(messageHash, {'type': messageHash, 'codes': codes})
+        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
-            messageHash = messageHash + ':' + symbol
+            symbolResolved = self.safe_string(market, 'symbol')
+            messageHash = messageHash + ':' + symbolResolved
         orders = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: dict):
         #
         #    {
         #        "type": "myOrder",
@@ -876,7 +876,7 @@ class bithumb(ccxt.async_support.bithumb):
         messageHash = 'myOrder'
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
-        # orderId = self.safe_string(parsed, 'id')
+        # const orderId = this.safeString (parsed, 'id');
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -886,7 +886,7 @@ class bithumb(ccxt.async_support.bithumb):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
         #        "type": "myOrder",

@@ -6,7 +6,7 @@ import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, NetworkError, OperationFailed, OperationRejected, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, int, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict, Status, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, int, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict, Status, Endpoint, FundingHistory, OpenInterest } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -523,7 +523,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicGetApiV1Assets (params);
         //
         //     [
@@ -554,7 +554,7 @@ export default class backpack extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (currencyId);
-        const networks = this.safeList (rawCurrency, 'tokens', []);
+        const networks: Dict[] = this.safeList (rawCurrency, 'tokens', []);
         const parsedNetworks: Dict = {};
         for (let j = 0; j < networks.length; j++) {
             const network = networks[j];
@@ -625,8 +625,8 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const response = await this.publicGetApiV1Markets (params);
@@ -727,6 +727,9 @@ export default class backpack extends Exchange {
         const quoteId = this.safeString (market, 'quoteSymbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         const filters = this.safeDict (market, 'filters', {});
         const priceFilter = this.safeDict (filters, 'price', {});
@@ -809,7 +812,7 @@ export default class backpack extends Exchange {
         });
     }
 
-    parseMarketType (type: any) {
+    parseMarketType (type: Str): Str {
         const types = {
             'SPOT': 'spot',
             'PERP': 'swap',
@@ -831,7 +834,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -850,7 +853,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -880,8 +883,8 @@ export default class backpack extends Exchange {
         //     }, ...
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         const open = this.safeString (ticker, 'firstPrice');
         const last = this.safeString (ticker, 'lastPrice');
         const high = this.safeString (ticker, 'high');
@@ -918,7 +921,7 @@ export default class backpack extends Exchange {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
         return parsedTicker;
     }
 
@@ -932,7 +935,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -977,41 +980,49 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const duration = this.parseTimeframe (timeframe);
         const request: Dict = {
             'symbol': market['id'],
             'interval': interval,
         };
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt (until / 1000); // convert milliseconds to seconds
         }
         const defaultLimit = 100;
+        let limitResolved: Int = limit;
+        if ((since === undefined) && (limit === undefined)) {
+            limitResolved = defaultLimit;
+        }
         if (since === undefined) {
-            if (limit === undefined) {
-                limit = defaultLimit;
-            }
-            const duration = this.parseTimeframe (timeframe);
             const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt (until / 1000) : this.seconds ();
-            const startTime = endTime - (limit * duration);
+            const windowLimit = (limit === undefined) ? defaultLimit : limit;
+            const startTime = endTime - (windowLimit * duration);
             request['startTime'] = startTime;
         } else {
             request['startTime'] = this.parseToInt (since / 1000); // convert milliseconds to seconds
         }
-        const price = this.safeString (params, 'price');
+        if (until === undefined) {
+            const currentMs = this.seconds (); // default to current time in seconds
+            const windowLimit = (limit === undefined) ? defaultLimit : limit;
+            const windowEnd = this.sum (request['startTime'], windowLimit * duration); // sum (): `+` on a dict value is string concatenation in php
+            const minTimestamp = Math.min (currentMs, windowEnd);
+            request['endTime'] = this.parseToInt (minTimestamp); // default to current time in seconds if until is not specified
+        }
+        const price = this.safeString (paramsUntil, 'price');
+        const paramsOmitted: Dict = (price !== undefined) ? this.omit (paramsUntil, 'price') : paramsUntil;
         if (price !== undefined) {
             request['priceType'] = this.capitalize (price);
-            params = this.omit (params, 'price');
         }
-        const response = await this.publicGetApiV1Klines (this.extend (request, params));
+        const response = await this.publicGetApiV1Klines (this.extend (request, paramsOmitted));
         const ohlcvs = this.toArray (response);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limitResolved);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1050,7 +1061,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1077,8 +1088,8 @@ export default class backpack extends Exchange {
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         const nextFundingTimestamp = this.safeInteger (contract, 'nextFundingTimestamp');
         return {
             'info': contract,
@@ -1111,7 +1122,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}) {
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1127,7 +1138,7 @@ export default class backpack extends Exchange {
         return this.parseOpenInterest (interest, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //     [
         //         {
@@ -1160,7 +1171,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -1199,7 +1210,7 @@ export default class backpack extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     /**
@@ -1215,7 +1226,7 @@ export default class backpack extends Exchange {
      * @param {int} [params.offset] the number of trades to skip, default is 0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1250,7 +1261,7 @@ export default class backpack extends Exchange {
      * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1267,15 +1278,15 @@ export default class backpack extends Exchange {
             request['limit'] = limit;
         }
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, [ 'until' ]) : params;
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
             request['to'] = until;
         }
-        const fillType = this.safeString (params, 'fillType');
+        const fillType = this.safeString (paramsOmitted, 'fillType');
         if (fillType === undefined) {
             request['fillType'] = 'User'; // default
         }
-        const response = await this.privateGetWapiV1HistoryFills (this.extend (request, params));
+        const response = await this.privateGetWapiV1HistoryFills (this.extend (request, paramsOmitted));
         const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
     }
@@ -1310,7 +1321,7 @@ export default class backpack extends Exchange {
         //
         const id = this.safeString2 (trade, 'id', 'tradeId');
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
         const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
@@ -1344,7 +1355,7 @@ export default class backpack extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': id,
             'order': orderId,
             'type': undefined,
@@ -1354,7 +1365,7 @@ export default class backpack extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1365,7 +1376,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Status> {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         const response = await this.publicGetApiV1Status (params);
         //
         //     {
@@ -1394,7 +1405,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicGetApiV1Time (params);
         //
         //     1753131712992
@@ -1410,7 +1421,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1433,7 +1444,7 @@ export default class backpack extends Exchange {
         for (let i = 0; i < balanceKeys.length; i++) {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode (id);
-            const balance = response[id];
+            const balance = this.safeDict (response, id);
             const account = this.account ();
             const locked = this.safeString (balance, 'locked');
             const staked = this.safeString (balance, 'staked');
@@ -1459,7 +1470,7 @@ export default class backpack extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1475,12 +1486,11 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, 'fetchDeposits', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetWapiV1CapitalDeposits (this.extend (request, params));
+        const response = await this.privateGetWapiV1CapitalDeposits (this.extend (request, paramsUntil));
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1496,7 +1506,7 @@ export default class backpack extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1511,12 +1521,11 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, 'fetchWithdrawals', 'until');
         if (until !== undefined) {
             request['to'] = until;
         }
-        const response = await this.privateGetWapiV1CapitalWithdrawals (this.extend (request, params));
+        const response = await this.privateGetWapiV1CapitalWithdrawals (this.extend (request, paramsUntil));
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1533,7 +1542,7 @@ export default class backpack extends Exchange {
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1547,7 +1556,7 @@ export default class backpack extends Exchange {
             request['clientId'] = tag; // memo or tag
         }
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode, currency['code']);
+        const networkId = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
@@ -1556,7 +1565,7 @@ export default class backpack extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override parseTransaction (transaction: any, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //     [
@@ -1698,24 +1707,23 @@ export default class backpack extends Exchange {
      * @param {string} [params.networkCode] the network to fetch the deposit address (mandatory)
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes');
         }
         const currency = this.currency (code);
         const request: Dict = {
-            'blockchain': this.networkCodeToId (networkCode, currency['code']),
+            'blockchain': this.networkCodeToId (networkCode, this.safeString (currency, 'code')),
         };
-        const response = await this.privateGetWapiV1CapitalDepositAddress (this.extend (request, params));
+        const response = await this.privateGetWapiV1CapitalDepositAddress (this.extend (request, paramsNetworkCode));
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -1723,10 +1731,10 @@ export default class backpack extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         const currencyId = this.safeString (depositAddress, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         return {
             'info': depositAddress,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'network': undefined, // network is not returned by the API
             'address': address,
             'tag': undefined,
@@ -1763,7 +1771,7 @@ export default class backpack extends Exchange {
      * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1782,13 +1790,13 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -1803,7 +1811,7 @@ export default class backpack extends Exchange {
         return this.parseOrders (response);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1818,7 +1826,11 @@ export default class backpack extends Exchange {
         };
         const triggerPrice = this.safeString (params, 'triggerPrice');
         const isTriggerOrder = triggerPrice !== undefined;
-        const quantityKey = isTriggerOrder ? 'triggerQuantity' : 'quantity';
+        let quantityKey: Str = 'quantity';
+        if (isTriggerOrder) {
+            quantityKey = 'triggerQuantity';
+        }
+        const omitKeys: string[] = [];
         // handle basic limit/market order types
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1827,7 +1839,8 @@ export default class backpack extends Exchange {
             const cost = this.safeString2 (params, 'cost', 'quoteQuantity');
             if (cost !== undefined) {
                 request['quoteQuantity'] = this.costToPrecision (symbol, cost);
-                params = this.omit (params, [ 'cost', 'quoteQuantity' ]);
+                omitKeys.push ('cost');
+                omitKeys.push ('quoteQuantity');
             } else {
                 request[quantityKey] = this.amountToPrecision (symbol, amount);
             }
@@ -1835,19 +1848,19 @@ export default class backpack extends Exchange {
         // trigger orders
         if (isTriggerOrder) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            params = this.omit (params, 'triggerPrice');
+            omitKeys.push ('triggerPrice');
         }
         const clientOrderId = this.safeInteger (params, 'clientOrderId'); // the exchange requires uint
         if (clientOrderId !== undefined) {
             request['clientId'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
+            omitKeys.push ('clientOrderId');
         }
-        let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (type === 'market', false, params);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', false, this.omit (params, omitKeys));
         if (postOnly) {
-            params['postOnly'] = true;
+            paramsPostOnly['postOnly'] = true;
         }
-        const takeProfit = this.safeDict (params, 'takeProfit');
+        const bracketKeys: string[] = [];
+        const takeProfit = this.safeDict (paramsPostOnly, 'takeProfit');
         if (takeProfit !== undefined) {
             const takeProfitTriggerPrice = this.safeString (takeProfit, 'triggerPrice');
             if (takeProfitTriggerPrice !== undefined) {
@@ -1857,9 +1870,9 @@ export default class backpack extends Exchange {
             if (takeProfitPrice !== undefined) {
                 request['takeProfitLimitPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
             }
-            params = this.omit (params, 'takeProfit');
+            bracketKeys.push ('takeProfit');
         }
-        const stopLoss = this.safeDict (params, 'stopLoss');
+        const stopLoss = this.safeDict (paramsPostOnly, 'stopLoss');
         if (stopLoss !== undefined) {
             const stopLossTriggerPrice = this.safeString (stopLoss, 'triggerPrice');
             if (stopLossTriggerPrice !== undefined) {
@@ -1869,10 +1882,9 @@ export default class backpack extends Exchange {
             if (stopLossPrice !== undefined) {
                 request['stopLossLimitPrice'] = this.priceToPrecision (symbol, stopLossPrice);
             }
-            params = this.omit (params, 'stopLoss');
+            bracketKeys.push ('stopLoss');
         }
-        let selfTradePrevention: Str = undefined;
-        [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
+        const [ selfTradePrevention, paramsSelfTradePrevention ] = this.handleOptionStringAndParams (this.omit (paramsPostOnly, bracketKeys), 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (selfTradePrevention === 'EXPIRE_MAKER') {
                 request['selfTradePrevention'] = 'RejectMaker';
@@ -1882,10 +1894,10 @@ export default class backpack extends Exchange {
                 request['selfTradePrevention'] = 'RejectBoth';
             }
         }
-        return this.extend (request, params);
+        return this.extend (request, paramsSelfTradePrevention);
     }
 
-    encodeOrderSide (side: any) {
+    encodeOrderSide (side: Str): Str {
         const sides: Dict = {
             'buy': 'Bid',
             'sell': 'Ask',
@@ -1904,7 +1916,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1928,7 +1940,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1954,7 +1966,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1979,7 +1991,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2005,7 +2017,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2194,7 +2206,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2203,11 +2215,11 @@ export default class backpack extends Exchange {
         if (this.isEmpty (symbols)) {
             return positions;
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         // fetchPositions
         //     {
@@ -2244,8 +2256,8 @@ export default class backpack extends Exchange {
         //
         const id = this.safeString (position, 'positionId');
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const entryPrice = this.safeString (position, 'entryPrice');
         const markPrice = this.safeString (position, 'markPrice');
         const netCost = this.safeString (position, 'netCost');
@@ -2305,7 +2317,7 @@ export default class backpack extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2322,7 +2334,7 @@ export default class backpack extends Exchange {
         return this.parseIncomes (response, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //     {
         //         "fundingRate": "0.0001",
@@ -2351,14 +2363,24 @@ export default class backpack extends Exchange {
         };
     }
 
-    override nonce () {
-        return this.milliseconds () - this.options['timeDifference'];
+    override nonce (): number {
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let endpoint = '/' + path;
-        let url = this.urls['api'][api];
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl;
         const sortedParams = Array.isArray (params) ? params : this.keysort (params);
+        let headersSigned: NullableDict = undefined;
+        let bodySigned: Str = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const ts = this.nonce ().toString ();
@@ -2379,7 +2401,7 @@ export default class backpack extends Exchange {
             const secretBytes = this.base64ToBinary (this.secret);
             const seed = this.arraySlice (secretBytes, 0, 32);
             const signature = eddsa (this.encode (payload), seed, ed25519);
-            headers = {
+            headersSigned = {
                 'X-Timestamp': ts,
                 'X-Window': recvWindow,
                 'X-API-Key': this.apiKey,
@@ -2387,8 +2409,8 @@ export default class backpack extends Exchange {
                 'X-Broker-Id': '1400',
             };
             if (method !== 'GET') {
-                body = this.json (sortedParams);
-                headers['Content-Type'] = 'application/json';
+                bodySigned = this.json (sortedParams);
+                headersSigned['Content-Type'] = 'application/json';
             }
         }
         if (method === 'GET') {
@@ -2398,10 +2420,15 @@ export default class backpack extends Exchange {
             }
         }
         url += endpoint;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = (api === 'private') ? headersSigned : headers;
+        let bodyResolved = body;
+        if ((api === 'private') && (method !== 'GET')) {
+            bodyResolved = bodySigned;
+        }
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    generateBatchPayload (params: any, ts: any, recvWindow: any, instruction: any) {
+    generateBatchPayload (params: any, ts: string, recvWindow: string, instruction: string): string {
         let payload = '';
         for (let i = 0; i < params.length; i++) {
             const order = this.safeDict (params, i, {});

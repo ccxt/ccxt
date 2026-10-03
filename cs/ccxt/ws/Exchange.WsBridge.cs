@@ -2,11 +2,13 @@ namespace ccxt;
 
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 public partial class BaseExchange
 {
 
     private Dictionary<string, long[]> wsBackoffState = new Dictionary<string, long[]>();
+    private readonly object wsBackoffStateSync = new object();
 
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
@@ -19,32 +21,36 @@ public partial class BaseExchange
         var maxDelay = this.safeInteger(backoff, "max", 60000) ?? 60000;
         var stableAfter = this.safeInteger(backoff, "stableAfter", 30000) ?? 30000;
         var now = this.milliseconds();
-        long attempts = 0;
-        long lastAttempt = 0;
-        if (this.wsBackoffState.ContainsKey(url))
+        lock (wsBackoffStateSync)
         {
-            attempts = this.wsBackoffState[url][0];
-            lastAttempt = this.wsBackoffState[url][1];
+            long attempts = 0;
+            long lastAttempt = 0;
+            if (this.wsBackoffState.TryGetValue(url, out var history))
+            {
+                attempts = history[0];
+                lastAttempt = history[1];
+            }
+            if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter))
+            {
+                attempts = 0; // the previous connection was healthy long enough, start fresh
+            }
+            this.wsBackoffState[url] = new long[] { attempts + 1, now };
+            if (attempts == 0)
+            {
+                return 0; // first dial or recovered, connect immediately
+            }
+            var delay = baseDelay;
+            var capped = Math.Min(attempts, 20); // overflow guard
+            for (long i = 1; i < capped; i++)
+            {
+                delay = delay * factor;
+            }
+            var jitterMillis = now % 1000; // rng-free jitter
+            var jittered = (long)(delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
+            return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
         }
-        if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter))
-        {
-            attempts = 0; // the previous connection was healthy long enough, start fresh
-        }
-        this.wsBackoffState[url] = new long[] { attempts + 1, now };
-        if (attempts == 0)
-        {
-            return 0; // first dial or recovered, connect immediately
-        }
-        var delay = baseDelay;
-        var capped = Math.Min(attempts, 20); // overflow guard
-        for (long i = 1; i < capped; i++)
-        {
-            delay = delay * factor;
-        }
-        var jitterMillis = now % 1000; // rng-free jitter
-        var jittered = (long)(delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
-        return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
     }
+
     public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
     public static ClientWebSocket ws = null;
 
@@ -80,12 +86,10 @@ public partial class BaseExchange
 
     public virtual void onClose(WebSocketClient client, object error = null)
     {
-        if (client.error)
+        if (client.error == null)
         {
-            // what do we do here?
-        }
-        else
-        {
+            // server disconnected a working connection
+            client.reset(error ?? new NetworkError("connection closed by remote server"));
             this.CleanupClients(client, error);
         }
     }
@@ -97,29 +101,12 @@ public partial class BaseExchange
 
     public void CleanupClients(WebSocketClient client, object error = null)
     {
-        // var client = (WebSocketClient)client2;
-        var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
-        if (urlClient != null) //  && urlClient.error
-        {
-            rejectFutures(urlClient, error);
-            // this.clients.Remove(client.url);
-            this.clients.TryRemove(client.url, out _);
-        }
-    }
-
-    void rejectFutures(WebSocketClient urlClient, object error)
-    {
-        // futures are keyed by messageHash while subscriptions are keyed by
-        // subscribeHash, the previous per key lookup only matched when the two
-        // strings were equal and left consumers hanging otherwise, mirror the js
-        // Client.reset behavior instead and reject every pending future, see
-        // https://github.com/ccxt/ccxt/issues/23490 and https://github.com/ccxt/ccxt/issues/21565
-        foreach (var KeyValue in urlClient.futures)
-        {
-            KeyValue.Value.reject(error);
-        }
-        urlClient.futures.Clear();
-        urlClient.subscriptions.Clear();
+        // detach the client that errored, by reference: a reconnect may have
+        // installed a healthy replacement under the same url in the meantime.
+        // the client already rejected its futures in onError.
+        // see https://github.com/ccxt/ccxt/issues/30463
+        ((ICollection<KeyValuePair<string, WebSocketClient>>)this.clients)
+            .Remove(new KeyValuePair<string, WebSocketClient>(client.url, client));
     }
 
     public virtual void handleMessage(WebSocketClient client, object messageContent)
@@ -323,7 +310,7 @@ public partial class Exchange
                 if (isTrue(isGreaterThanOrEqual(index, 0)))
                 {
                     stored.reset(orderBook);
-                    this.handleDeltas(stored, arraySlice(cache, index));
+                    this.handleBookDeltas(stored, arraySlice(cache, index));
                     stored.cache.Clear();
                     client.resolve(stored, messageHash);
                     return;
@@ -337,7 +324,10 @@ public partial class Exchange
             error = e;
         }
         (client).reject(error, messageHash);
-        this.clients.TryRemove(client.url, out _);
+        // close the dropped connection, otherwise its receive and ping loops keep running
+        // (Close() sets client.error itself, so onClose skips it)
+        _ = client.Close();
+        this.CleanupClients(client, error);
         ((System.Collections.Generic.IDictionary<string, object>)this.orderbooks)[(string)symbol] = this.orderBook();
     }
 }

@@ -82,33 +82,33 @@ class revolutx(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        '2.0/public/order-book/{symbol}': 1,
-                        '1.0/public/tickers': 1,
-                        '1.0/public/candles/{symbol}': 1,
-                        '1.0/public/trades/all': 1,
-                        '1.0/public/configuration/currencies': 1,
-                        '1.0/public/configuration/pairs': 1,
+                        '2.0/public/order-book/{symbol}': {'cost': 1},
+                        '1.0/public/tickers': {'cost': 1},
+                        '1.0/public/candles/{symbol}': {'cost': 1},
+                        '1.0/public/trades/all': {'cost': 1},
+                        '1.0/public/configuration/currencies': {'cost': 1},
+                        '1.0/public/configuration/pairs': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
                         '1.0/balances': 1,
-                        '1.0/orders/active': 1,
-                        '1.0/orders/historical': 1,
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/active': {'cost': 1},
+                        '1.0/orders/historical': {'cost': 1},
+                        '1.0/orders/{venue_order_id}': {'cost': 1},
                         '1.0/orders/fills/{venue_order_id}': 1,
-                        '1.0/trades/private/{symbol}': 1,
+                        '1.0/trades/private/{symbol}': {'cost': 1},
                         '1.0/transactions': 1,
                     },
                     'post': {
-                        '1.0/orders': 1,
+                        '1.0/orders': {'cost': 1},
                     },
                     'put': {
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/{venue_order_id}': {'cost': 1},
                     },
                     'delete': {
                         '1.0/orders': 1,
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/{venue_order_id}': {'cost': 1},
                     },
                 },
             },
@@ -218,12 +218,18 @@ class revolutx(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        requestHeaders = None
+        requestBody = None
         implodedPath = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         queryKeys = list(query.keys())
         queryLength = len(queryKeys)
-        url = self.urls['api'][api] + '/' + implodedPath
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = baseApiUrl
+        url = baseUrl + '/' + implodedPath
         queryString = ''
         if api == 'private':
             self.check_required_credentials()
@@ -237,29 +243,30 @@ class revolutx(Exchange, ImplicitAPI):
                     queryString = self.urlencode(query)
                     url += '?' + queryString
             else:
-                body = self.json(query)
+                requestBody = self.json(query)
             requestPath = '/api/' + implodedPath
-            bodyString = ''
-            if body is not None:
-                bodyString = body
+            bodyValue = requestBody if (requestBody is not None) else body
+            bodyString = bodyValue if (bodyValue is not None) else ''
             message = timestamp + method.upper() + requestPath + queryString + bodyString
             signature = self.eddsa(self.encode(message), self.privateKey, 'ed25519')
-            headers = {
+            requestHeaders = {
                 'X-Revx-API-Key': self.apiKey,
                 'X-Revx-Timestamp': timestamp,
                 'X-Revx-Signature': signature,
             }
             if method == 'POST' or method == 'PUT':
-                headers['Content-Type'] = 'application/json'
+                requestHeaders['Content-Type'] = 'application/json'
         else:
             if method == 'GET':
                 if queryLength > 0:
                     queryString = self.urlencode(query)
                     url += '?' + queryString
             else:
-                body = self.json(query)
-                headers = {'Content-Type': 'application/json'}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                requestBody = self.json(query)
+                requestHeaders = {'Content-Type': 'application/json'}
+        headersResult = requestHeaders if (requestHeaders is not None) else headers
+        bodyResult = requestBody if (requestBody is not None) else body
+        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def parse_market(self, market: dict) -> MarketInterface:
         """
@@ -337,7 +344,7 @@ class revolutx(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves all available markets on the exchange
 
@@ -370,6 +377,8 @@ class revolutx(Exchange, ImplicitAPI):
             market = self.safe_dict(markets, key, {})
             base = self.safe_string(market, 'base')
             quote = self.safe_string(market, 'quote')
+            if (base is None) or (quote is None):
+                continue
             marketId = base + '-' + quote
             marketData = self.extend(market, {'id': marketId})
             result.append(self.parse_market(marketData))
@@ -419,7 +428,7 @@ class revolutx(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on the exchange
 
@@ -436,8 +445,8 @@ class revolutx(Exchange, ImplicitAPI):
         response = self.publicGet10PublicConfigurationCurrencies(self.extend(request, params))
         #
         #     {
-        #         "BTC": {"symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active"},
-        #         "USD": {"symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active"}
+        #         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
+        #         "USD": { "symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active" }
         #     }
         #
         currencies = self.safe_dict(response, 'data', response)
@@ -502,7 +511,7 @@ class revolutx(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -530,11 +539,11 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"symbol": "BTC/USD", "bid": "119950.00", "ask": "120050.00", "mid": "120000.00",
+        #             { "symbol": "BTC/USD", "bid": "119950.00", "ask": "120050.00", "mid": "120000.00",
         #               "last_price": "119980.00", "low_24h": "115000.00", "high_24h": "122500.00",
-        #               "price_change_24h": "2480.00", "volume_24h": "135.42000000", "region": "EEA"}
+        #               "price_change_24h": "2480.00", "volume_24h": "135.42000000", "region": "EEA" }
         #         ],
-        #         "metadata": {"timestamp": 1785313433816}
+        #         "metadata": { "timestamp": 1785313433816 }
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -558,7 +567,7 @@ class revolutx(Exchange, ImplicitAPI):
             return filtered
         return result
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker for a given market symbol
 
@@ -577,7 +586,7 @@ class revolutx(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchTicker() could not find ticker for symbol ' + symbol)
         return ticker
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches the current order book snapshot for a given market symbol
 
@@ -604,10 +613,10 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": {
-        #             "asks": [{"price": "4005.00", "quantity": "1.7000", "count": 3}],
-        #             "bids": [{"price": "4000.00", "quantity": "0.25", "count": 1}]
+        #             "asks": [ { "price": "4005.00", "quantity": "1.7000", "count": 3 } ],
+        #             "bids": [ { "price": "4000.00", "quantity": "0.25", "count": 1 } ]
         #         },
-        #         "metadata": {"region": "UK", "timestamp": 1785313433816}
+        #         "metadata": { "region": "UK", "timestamp": 1785313433816 }
         #     }
         #
         data = self.safe_dict(response, 'data', {})
@@ -631,7 +640,7 @@ class revolutx(Exchange, ImplicitAPI):
         volume = self.safe_number(ohlcv, 'volume')
         return [timestamp, open, high, low, close, volume]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data for a given market symbol
 
@@ -667,10 +676,10 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"start": 1785309833816, "open": "119800.00", "high": "120100.00",
-        #               "low": "119700.00", "close": "120000.00", "volume": "0.25000000"}
+        #             { "start": 1785309833816, "open": "119800.00", "high": "120100.00",
+        #               "low": "119700.00", "close": "120000.00", "volume": "0.25000000" }
         #         ],
-        #         "metadata": {"region": "EEA", "timestamp": 1785313433816}
+        #         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -711,7 +720,7 @@ class revolutx(Exchange, ImplicitAPI):
             'fees': [],
         }
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetches the public trade history for a given market symbol
 
@@ -719,7 +728,7 @@ class revolutx(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum number of trades to return(1-1900, default 1900)
+        :param int [limit]: the maximum number of trades to return(1-100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest trade to fetch
         :param str [params.cursor]: pagination cursor from the previous response
@@ -741,7 +750,7 @@ class revolutx(Exchange, ImplicitAPI):
         elif since is not None:
             request['end_date'] = self.milliseconds()
         if limit is not None:
-            request['limit'] = min(limit, 1900)
+            request['limit'] = min(limit, 100)
         cursor = self.safe_string(params, 'cursor')
         if cursor is not None:
             request['cursor'] = cursor
@@ -749,10 +758,10 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52", "symbol": "BTC/USD",
-        #               "price": "119980.00", "quantity": "0.01000000", "side": "sell", "timestamp": 1785313433816}
+        #             { "id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52", "symbol": "BTC/USD",
+        #               "price": "119980.00", "quantity": "0.01000000", "side": "sell", "timestamp": 1785313433816 }
         #         ],
-        #         "metadata": {"timestamp": 1785313433816, "next_cursor": "..."}
+        #         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -762,7 +771,7 @@ class revolutx(Exchange, ImplicitAPI):
             result.append(self.parse_trade(trade, market))
         return self.filter_by_symbol_since_limit(self.sort_by(result, 'timestamp'), symbol, since, limit)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         fetches the current balance for the authenticated user
 
@@ -776,8 +785,8 @@ class revolutx(Exchange, ImplicitAPI):
         response = self.privateGet10Balances(params)
         #
         #     [
-        #         {"currency": "BTC", "available": "1.25000000", "reserved": "0.10000000", "total": "1.35000000"},
-        #         {"currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000"}
+        #         { "currency": "BTC", "available": "1.25000000", "reserved": "0.10000000", "total": "1.35000000" },
+        #         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         #     ]
         #
         data = response if isinstance(response, list) else self.safe_list(response, 'data', [])
@@ -885,7 +894,7 @@ class revolutx(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -946,7 +955,7 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new"}
+        #             { "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new" }
         #         ]
         #     }
         #
@@ -963,7 +972,7 @@ class revolutx(Exchange, ImplicitAPI):
         }), market)
         return order
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order by its id
 
@@ -986,7 +995,7 @@ class revolutx(Exchange, ImplicitAPI):
             'status': 'canceled',
         })
 
-    def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancels all open orders
 
@@ -1001,7 +1010,7 @@ class revolutx(Exchange, ImplicitAPI):
         self.privateDelete10Orders(params)
         return []
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches an order by its id
 
@@ -1037,7 +1046,7 @@ class revolutx(Exchange, ImplicitAPI):
             market = self.market(symbol)
         return self.parse_order(data, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches all open orders for the authenticated user
 
@@ -1076,8 +1085,8 @@ class revolutx(Exchange, ImplicitAPI):
         response = self.privateGet10OrdersActive(self.extend(request, self.omit(params, ['cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'side'])))
         #
         #     {
-        #         "data": [{"id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ...}],
-        #         "metadata": {"timestamp": 1785313433816, "next_cursor": "..."}
+        #         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
+        #         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -1087,7 +1096,7 @@ class revolutx(Exchange, ImplicitAPI):
             result.append(self.parse_order(order))
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches historical orders for the authenticated user
 
@@ -1140,7 +1149,7 @@ class revolutx(Exchange, ImplicitAPI):
             result.append(self.parse_order(order))
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches closed(filled, cancelled, rejected) orders for the authenticated user
 
@@ -1195,7 +1204,7 @@ class revolutx(Exchange, ImplicitAPI):
             'fees': [],
         }
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetches the trade history for the authenticated user
 
@@ -1238,11 +1247,11 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"tdt": 1785309833816, "p": "119900.00", "q": "0.00100000",
+        #             { "tdt": 1785309833816, "p": "119900.00", "q": "0.00100000",
         #               "tid": "ad3e8787ab623ba5a1dfea53819be6f9", "oid": "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c",
-        #               "s": "buy", "im": False}
+        #               "s": "buy", "im": false }
         #         ],
-        #         "metadata": {"timestamp": 1785313433816, "next_cursor": "..."}
+        #         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -1252,7 +1261,7 @@ class revolutx(Exchange, ImplicitAPI):
             result.append(self.parse_my_trade(trade, market))
         return result
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         replaces an existing order
 
@@ -1297,7 +1306,7 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new"}
+        #             { "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new" }
         #         ]
         #     }
         #

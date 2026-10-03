@@ -38,10 +38,10 @@ class hollaex extends \ccxt\async\hollaex {
             ),
             'options' => array(
                 'watchBalance' => array(
-                    // 'api-expires' => null,
+                    // 'api-expires': undefined,
                 ),
                 'watchOrders' => array(
-                    // 'api-expires' => null,
+                    // 'api-expires': undefined,
                 ),
             ),
             'streaming' => array(
@@ -50,8 +50,8 @@ class hollaex extends \ccxt\async\hollaex {
             'exceptions' => array(
                 'ws' => array(
                     'exact' => array(
-                        'Bearer or HMAC authentication required' => '\\ccxt\\BadSymbol', // array( error => 'Bearer or HMAC authentication required' )
-                        'Error => wrong input' => '\\ccxt\\BadRequest', // array( error => 'Error => wrong input' )
+                        'Bearer or HMAC authentication required' => '\\ccxt\\BadSymbol', // { error: 'Bearer or HMAC authentication required' }
+                        'Error => wrong input' => '\\ccxt\\BadRequest', // { error: 'Error: wrong input' }
                     ),
                 ),
             ),
@@ -82,25 +82,25 @@ class hollaex extends \ccxt\async\hollaex {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "topic":"orderbook",
         //         "action":"partial",
         //         "symbol":"ltc-usdt",
-        //         "data":array(
-        //             "bids":array(
+        //         "data":{
+        //             "bids":[
         //                 [104.29, 5.2264],
         //                 [103.86,1.3629],
         //                 [101.82,0.5942]
-        //             ),
-        //             "asks":array(
+        //             ],
+        //             "asks":[
         //                 [104.81,9.5531],
         //                 [105.54,0.6416],
         //                 [106.18,1.4141],
-        //             ),
+        //             ],
         //             "timestamp":"2022-04-12T08:17:05.932Z"
-        //         ),
+        //         },
         //         "time":1649751425
         //     }
         //
@@ -111,7 +111,7 @@ class hollaex extends \ccxt\async\hollaex {
         if ($symbol === null) {
             return;
         }
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $timestamp = $this->safe_string($data, 'timestamp');
         $timestampMs = $this->parse8601($timestamp);
         $snapshot = $this->parse_order_book($data, $symbol, $timestampMs);
@@ -126,8 +126,10 @@ class hollaex extends \ccxt\async\hollaex {
             }
             $orderbook->reset($snapshot);
         }
-        $messageHash = $channel . ':' . $marketId;
-        $client->resolve($orderbook, $messageHash);
+        if ($channel !== null) {
+            $messageHash = $channel . ':' . $marketId;
+            $client->resolve($orderbook, $messageHash);
+        }
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -150,29 +152,30 @@ class hollaex extends \ccxt\async\hollaex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $messageHash = 'trade' . ':' . $market['id'];
         $trades = Async\await($this->watch_public($messageHash, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "trade",
-        //         "action" => "partial",
-        //         "symbol" => "btc-usdt",
-        //         "data" => array(
-        //             array(
-        //                 "size" => 0.05145,
-        //                 "price" => 41977.9,
-        //                 "side" => "buy",
-        //                 "timestamp" => "2022-04-11T09:40:10.881Z"
-        //             ),
-        //         )
+        //         "topic": "trade",
+        //         "action": "partial",
+        //         "symbol": "btc-usdt",
+        //         "data": [
+        //             {
+        //                 "size": 0.05145,
+        //                 "price": 41977.9,
+        //                 "side": "buy",
+        //                 "timestamp": "2022-04-11T09:40:10.881Z"
+        //             },
+        //         ]
         //     }
         //
         $channel = $this->safe_string($message, 'topic');
@@ -185,13 +188,15 @@ class hollaex extends \ccxt\async\hollaex {
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $parsedTrades = $this->parse_trades($data, $market);
         for ($j = 0; $j < count($parsedTrades); $j++) {
             $stored->append($parsedTrades[$j]);
         }
-        $messageHash = $channel . ':' . $marketId;
-        $client->resolve($stored, $messageHash);
+        if ($channel !== null) {
+            $messageHash = $channel . ':' . $marketId;
+            $client->resolve($stored, $messageHash);
+        }
         $client->resolve($stored, $channel);
     }
 
@@ -216,26 +221,28 @@ class hollaex extends \ccxt\async\hollaex {
         }
         $messageHash = 'usertrade';
         $market = null;
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $market['id'];
         }
         $trades = Async\await($this->watch_private($messageHash, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message, ?array $subscription = null) {
+    public function handle_my_trades(Client $client, array $message, ?array $subscription = null) {
         //
         // {
         //     "topic":"usertrade",
         //     "action":"insert",
         //     "user_id":"103",
         //     "symbol":"xht-usdt",
-        //     "data":array(
+        //     "data":[
         //        {
         //           "size":1,
         //           "side":"buy",
@@ -247,13 +254,13 @@ class hollaex extends \ccxt\async\hollaex {
         //           "fee_coin":"xht",
         //           "is_same":true
         //        }
-        //     ),
+        //     ],
         //     "time":1652434215
         // }
         //
         $channel = $this->safe_string($message, 'topic');
         $rawTrades = $this->safe_value($message, 'data');
-        // usually the first $message is an empty array
+        // usually the first message is an empty array
         // when the user does not have any trades yet
         $dataLength = count($rawTrades);
         if ($dataLength === 0) {
@@ -276,13 +283,15 @@ class hollaex extends \ccxt\async\hollaex {
                 $marketIds[$marketId] = true;
             }
         }
-        // non-$symbol specific
+        // non-symbol specific
         $client->resolve($this->myTrades, $channel);
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
-            $messageHash = $channel . ':' . $marketId;
-            $client->resolve($this->myTrades, $messageHash);
+            if ($channel !== null) {
+                $messageHash = $channel . ':' . $marketId;
+                $client->resolve($this->myTrades, $messageHash);
+            }
         }
     }
 
@@ -307,64 +316,66 @@ class hollaex extends \ccxt\async\hollaex {
         }
         $messageHash = 'order';
         $market = null;
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $market['id'];
         }
         $orders = Async\await($this->watch_private($messageHash, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function handle_order(Client $client, mixed $message, ?array $subscription = null) {
+    public function handle_order(Client $client, array $message, ?array $subscription = null) {
         //
         //     {
-        //         "topic" => "order",
-        //         "action" => "insert",
-        //         "user_id" => 155328,
-        //         "symbol" => "ltc-usdt",
-        //         "data" => array(
-        //             "symbol" => "ltc-usdt",
-        //             "side" => "buy",
-        //             "size" => 0.05,
-        //             "type" => "market",
-        //             "price" => 0,
-        //             "fee_structure" => array( maker => 0.1, taker => 0.1 ),
-        //             "fee_coin" => "ltc",
-        //             "id" => "ce38fd48-b336-400b-812b-60c636454231",
-        //             "created_by" => 155328,
-        //             "filled" => 0.05,
-        //             "method" => "market",
-        //             "created_at" => "2022-04-11T14:09:00.760Z",
-        //             "updated_at" => "2022-04-11T14:09:00.760Z",
-        //             "status" => "filled"
-        //         ),
-        //         "time" => 1649686140
+        //         "topic": "order",
+        //         "action": "insert",
+        //         "user_id": 155328,
+        //         "symbol": "ltc-usdt",
+        //         "data": {
+        //             "symbol": "ltc-usdt",
+        //             "side": "buy",
+        //             "size": 0.05,
+        //             "type": "market",
+        //             "price": 0,
+        //             "fee_structure": { maker: 0.1, taker: 0.1 },
+        //             "fee_coin": "ltc",
+        //             "id": "ce38fd48-b336-400b-812b-60c636454231",
+        //             "created_by": 155328,
+        //             "filled": 0.05,
+        //             "method": "market",
+        //             "created_at": "2022-04-11T14:09:00.760Z",
+        //             "updated_at": "2022-04-11T14:09:00.760Z",
+        //             "status": "filled"
+        //         },
+        //         "time": 1649686140
         //     }
         //
         //    {
         //        "topic":"order",
         //        "action":"partial",
         //        "user_id":155328,
-        //        "data":array(
+        //        "data":[
         //           {
         //              "created_at":"2022-05-13T08:19:07.694Z",
         //              "fee":0,
-        //              "meta":array(
+        //              "meta":{
         //
-        //              ),
+        //              },
         //              "symbol":"ltc-usdt",
         //              "side":"buy",
         //              "size":0.1,
         //              "type":"limit",
         //              "price":55,
-        //              "fee_structure":array(
+        //              "fee_structure":{
         //                 "maker":0.1,
         //                 "taker":0.1
-        //              ),
+        //              },
         //              "fee_coin":"ltc",
         //              "id":"d5e77182-ad4c-4ac9-8ce4-a97f9b43e33c",
         //              "created_by":155328,
@@ -373,13 +384,13 @@ class hollaex extends \ccxt\async\hollaex {
         //              "updated_at":"2022-05-13T08:19:07.694Z",
         //              "stop":null
         //           }
-        //        ),
+        //        ],
         //        "time":1652430035
         //       }
         //
         $channel = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data', array());
-        // usually the first $message is an empty array
+        // usually the first message is an empty array
         $dataLength = count($data);
         if ($dataLength === 0) {
             return;
@@ -407,13 +418,15 @@ class hollaex extends \ccxt\async\hollaex {
                 $marketIds[$marketId] = true;
             }
         }
-        // non-$symbol specific
+        // non-symbol specific
         $client->resolve($this->orders, $channel);
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
-            $messageHash = $channel . ':' . $marketId;
-            $client->resolve($this->orders, $messageHash);
+            if ($channel !== null) {
+                $messageHash = $channel . ':' . $marketId;
+                $client->resolve($this->orders, $messageHash);
+            }
         }
     }
 
@@ -434,21 +447,21 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\await($this->watch_private($messageHash, $params));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "wallet",
-        //         "action" => "partial",
-        //         "user_id" => 155328,
-        //         "data" => array(
-        //             "eth_balance" => 0,
-        //             "eth_available" => 0,
-        //             "usdt_balance" => 18.94344188,
-        //             "usdt_available" => 18.94344188,
-        //             "ltc_balance" => 0.00005,
-        //             "ltc_available" => 0.00005,
-        //         ),
-        //         "time" => 1649687396
+        //         "topic": "wallet",
+        //         "action": "partial",
+        //         "user_id": 155328,
+        //         "data": {
+        //             "eth_balance": 0,
+        //             "eth_available": 0,
+        //             "usdt_balance": 18.94344188,
+        //             "usdt_available": 18.94344188,
+        //             "ltc_balance": 0.00005,
+        //             "ltc_available": 0.00005,
+        //         },
+        //         "time": 1649687396
         //     }
         //
         $messageHash = $this->safe_string($message, 'topic');
@@ -478,11 +491,11 @@ class hollaex extends \ccxt\async\hollaex {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_public(mixed $messageHash, $params = array()) {
+    public function watch_public(string $messageHash, $params = array()) {
         return Async\async(self::do_watch_public(...))($messageHash, $params);
     }
 
-    private function do_watch_public(mixed $messageHash, $params = array()) {
+    private function do_watch_public(string $messageHash, $params = array()) {
         $url = $this->urls['api']['ws'];
         $request = array(
             'op' => 'subscribe',
@@ -492,22 +505,22 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function watch_private(mixed $messageHash, $params = array()) {
+    public function watch_private(string $messageHash, $params = array()) {
         return Async\async(self::do_watch_private(...))($messageHash, $params);
     }
 
-    private function do_watch_private(mixed $messageHash, $params = array()) {
+    private function do_watch_private(string $messageHash, $params = array()) {
         $this->check_required_credentials();
         $expires = $this->safe_string($this->options, 'ws-expires');
         if ($expires === null) {
             $timeout = intval(($this->timeout / (string) 1000));
             $expires = $this->sum($this->seconds(), $timeout);
             if ($expires === null) {
-                throw new ArgumentsRequired($this->id . ' watchPrivate() $expires is required');
+                throw new ArgumentsRequired($this->id . ' watchPrivate() expires is required');
             }
             $expires = (string) $expires;
-            // we need to memoize these values to avoid generating a new $url on each method execution
-            // that would trigger a new connection on each received $message
+            // we need to memoize these values to avoid generating a new url on each method execution
+            // that would trigger a new connection on each received message
             $this->options['ws-expires'] = $expires;
         }
         $url = $this->urls['api']['ws'];
@@ -527,10 +540,10 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\await($this->watch($signedUrl, $messageHash, $message, $messageHash));
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
-        //     array( $error => "Bearer or HMAC authentication required" )
-        //     array( $error => "Error => wrong input" )
+        //     { error: "Bearer or HMAC authentication required" }
+        //     { error: "Error: wrong input" }
         //
         $error = $this->safe_integer($message, 'error');
         try {
@@ -546,89 +559,89 @@ class hollaex extends \ccxt\async\hollaex {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         // pong
         //
-        //     array( $message => "pong" )
+        //     { message: "pong" }
         //
         // trade
         //
         //     {
-        //         "topic" => "trade",
-        //         "action" => "partial",
-        //         "symbol" => "btc-usdt",
-        //         "data" => array(
-        //             array(
-        //                 "size" => 0.05145,
-        //                 "price" => 41977.9,
-        //                 "side" => "buy",
-        //                 "timestamp" => "2022-04-11T09:40:10.881Z"
-        //             ),
-        //         )
+        //         "topic": "trade",
+        //         "action": "partial",
+        //         "symbol": "btc-usdt",
+        //         "data": [
+        //             {
+        //                 "size": 0.05145,
+        //                 "price": 41977.9,
+        //                 "side": "buy",
+        //                 "timestamp": "2022-04-11T09:40:10.881Z"
+        //             },
+        //         ]
         //     }
         //
         // orderbook
         //
         //     {
-        //         "topic" => "orderbook",
-        //         "action" => "partial",
-        //         "symbol" => "ltc-usdt",
-        //         "data" => array(
-        //             "bids" => array(
+        //         "topic": "orderbook",
+        //         "action": "partial",
+        //         "symbol": "ltc-usdt",
+        //         "data": {
+        //             "bids": [
         //                 [104.29, 5.2264],
         //                 [103.86,1.3629],
         //                 [101.82,0.5942]
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 [104.81,9.5531],
         //                 [105.54,0.6416],
         //                 [106.18,1.4141],
-        //             ),
-        //             "timestamp" => "2022-04-11T10:37:01.227Z"
-        //         ),
-        //         "time" => 1649673421
+        //             ],
+        //             "timestamp": "2022-04-11T10:37:01.227Z"
+        //         },
+        //         "time": 1649673421
         //     }
         //
         // order
         //
         //     {
-        //         "topic" => "order",
-        //         "action" => "insert",
-        //         "user_id" => 155328,
-        //         "symbol" => "ltc-usdt",
-        //         "data" => array(
-        //             "symbol" => "ltc-usdt",
-        //             "side" => "buy",
-        //             "size" => 0.05,
-        //             "type" => "market",
-        //             "price" => 0,
-        //             "fee_structure" => array( maker => 0.1, taker => 0.1 ),
-        //             "fee_coin" => "ltc",
-        //             "id" => "ce38fd48-b336-400b-812b-60c636454231",
-        //             "created_by" => 155328,
-        //             "filled" => 0.05,
-        //             "method" => "market",
-        //             "created_at" => "2022-04-11T14:09:00.760Z",
-        //             "updated_at" => "2022-04-11T14:09:00.760Z",
-        //             "status" => "filled"
-        //         ),
-        //         "time" => 1649686140
+        //         "topic": "order",
+        //         "action": "insert",
+        //         "user_id": 155328,
+        //         "symbol": "ltc-usdt",
+        //         "data": {
+        //             "symbol": "ltc-usdt",
+        //             "side": "buy",
+        //             "size": 0.05,
+        //             "type": "market",
+        //             "price": 0,
+        //             "fee_structure": { maker: 0.1, taker: 0.1 },
+        //             "fee_coin": "ltc",
+        //             "id": "ce38fd48-b336-400b-812b-60c636454231",
+        //             "created_by": 155328,
+        //             "filled": 0.05,
+        //             "method": "market",
+        //             "created_at": "2022-04-11T14:09:00.760Z",
+        //             "updated_at": "2022-04-11T14:09:00.760Z",
+        //             "status": "filled"
+        //         },
+        //         "time": 1649686140
         //     }
         //
         // balance
         //
         //     {
-        //         "topic" => "wallet",
-        //         "action" => "partial",
-        //         "user_id" => 155328,
-        //         "data" => {
-        //             "eth_balance" => 0,
-        //             "eth_available" => 0,
-        //             "usdt_balance" => 18.94344188,
-        //             "usdt_available" => 18.94344188,
-        //             "ltc_balance" => 0.00005,
-        //             "ltc_available" => 0.00005,
+        //         "topic": "wallet",
+        //         "action": "partial",
+        //         "user_id": 155328,
+        //         "data": {
+        //             "eth_balance": 0,
+        //             "eth_available": 0,
+        //             "usdt_balance": 18.94344188,
+        //             "usdt_available": 18.94344188,
+        //             "ltc_balance": 0.00005,
+        //             "ltc_available": 0.00005,
         //         }
         //     }
         //
@@ -647,19 +660,19 @@ class hollaex extends \ccxt\async\hollaex {
             'wallet' => array($this, 'handle_balance'),
             'usertrade' => array($this, 'handle_my_trades'),
         );
-        $topic = $this->safe_value($message, 'topic');
+        $topic = $this->safe_string($message, 'topic');
         $method = $this->safe_value($methods, $topic);
         if ($method !== null) {
             $method($client, $message);
         }
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         // hollaex does not support built-in ws protocol-level ping-pong
         return array( 'op' => 'ping' );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         $client->lastPong = $this->milliseconds();
         return $message;
     }

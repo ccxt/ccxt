@@ -170,30 +170,30 @@ class coincheck(Exchange, ImplicitAPI):
             },
             'markets': {
                 'BTC/JPY': self.safe_market_structure({'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'type': 'spot', 'spot': True}),  # the only real pair
-                # 'ETH/JPY': {'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy'},
+                # 'ETH/JPY': { 'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy' },
                 'ETC/JPY': self.safe_market_structure({'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY', 'baseId': 'etc', 'quoteId': 'jpy', 'type': 'spot', 'spot': True}),
-                # 'DAO/JPY': {'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY', 'baseId': 'dao', 'quoteId': 'jpy'},
-                # 'LSK/JPY': {'id': 'lsk_jpy', 'symbol': 'LSK/JPY', 'base': 'LSK', 'quote': 'JPY', 'baseId': 'lsk', 'quoteId': 'jpy'},
+                # 'DAO/JPY': { 'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY', 'baseId': 'dao', 'quoteId': 'jpy' },
+                # 'LSK/JPY': { 'id': 'lsk_jpy', 'symbol': 'LSK/JPY', 'base': 'LSK', 'quote': 'JPY', 'baseId': 'lsk', 'quoteId': 'jpy' },
                 'FCT/JPY': self.safe_market_structure({'id': 'fct_jpy', 'symbol': 'FCT/JPY', 'base': 'FCT', 'quote': 'JPY', 'baseId': 'fct', 'quoteId': 'jpy', 'type': 'spot', 'spot': True}),
                 'MONA/JPY': self.safe_market_structure({'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY', 'baseId': 'mona', 'quoteId': 'jpy', 'type': 'spot', 'spot': True}),
-                # 'XMR/JPY': {'id': 'xmr_jpy', 'symbol': 'XMR/JPY', 'base': 'XMR', 'quote': 'JPY', 'baseId': 'xmr', 'quoteId': 'jpy'},
-                # 'REP/JPY': {'id': 'rep_jpy', 'symbol': 'REP/JPY', 'base': 'REP', 'quote': 'JPY', 'baseId': 'rep', 'quoteId': 'jpy'},
-                # 'XRP/JPY': {'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy'},
-                # 'ZEC/JPY': {'id': 'zec_jpy', 'symbol': 'ZEC/JPY', 'base': 'ZEC', 'quote': 'JPY', 'baseId': 'zec', 'quoteId': 'jpy'},
-                # 'XEM/JPY': {'id': 'xem_jpy', 'symbol': 'XEM/JPY', 'base': 'XEM', 'quote': 'JPY', 'baseId': 'xem', 'quoteId': 'jpy'},
-                # 'LTC/JPY': {'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy'},
-                # 'DASH/JPY': {'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY', 'baseId': 'dash', 'quoteId': 'jpy'},
-                # 'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc'},
+                # 'XMR/JPY': { 'id': 'xmr_jpy', 'symbol': 'XMR/JPY', 'base': 'XMR', 'quote': 'JPY', 'baseId': 'xmr', 'quoteId': 'jpy' },
+                # 'REP/JPY': { 'id': 'rep_jpy', 'symbol': 'REP/JPY', 'base': 'REP', 'quote': 'JPY', 'baseId': 'rep', 'quoteId': 'jpy' },
+                # 'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy' },
+                # 'ZEC/JPY': { 'id': 'zec_jpy', 'symbol': 'ZEC/JPY', 'base': 'ZEC', 'quote': 'JPY', 'baseId': 'zec', 'quoteId': 'jpy' },
+                # 'XEM/JPY': { 'id': 'xem_jpy', 'symbol': 'XEM/JPY', 'base': 'XEM', 'quote': 'JPY', 'baseId': 'xem', 'quoteId': 'jpy' },
+                # 'LTC/JPY': { 'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy' },
+                # 'DASH/JPY': { 'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY', 'baseId': 'dash', 'quoteId': 'jpy' },
+                # 'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
                 'ETC/BTC': self.safe_market_structure({'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'etc', 'quoteId': 'btc', 'type': 'spot', 'spot': True}),
-                # 'LSK/BTC': {'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc'},
-                # 'FCT/BTC': {'id': 'fct_btc', 'symbol': 'FCT/BTC', 'base': 'FCT', 'quote': 'BTC', 'baseId': 'fct', 'quoteId': 'btc'},
-                # 'XMR/BTC': {'id': 'xmr_btc', 'symbol': 'XMR/BTC', 'base': 'XMR', 'quote': 'BTC', 'baseId': 'xmr', 'quoteId': 'btc'},
-                # 'REP/BTC': {'id': 'rep_btc', 'symbol': 'REP/BTC', 'base': 'REP', 'quote': 'BTC', 'baseId': 'rep', 'quoteId': 'btc'},
-                # 'XRP/BTC': {'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc'},
-                # 'ZEC/BTC': {'id': 'zec_btc', 'symbol': 'ZEC/BTC', 'base': 'ZEC', 'quote': 'BTC', 'baseId': 'zec', 'quoteId': 'btc'},
-                # 'XEM/BTC': {'id': 'xem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'xem', 'quoteId': 'btc'},
-                # 'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc'},
-                # 'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc'},
+                # 'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc' },
+                # 'FCT/BTC': { 'id': 'fct_btc', 'symbol': 'FCT/BTC', 'base': 'FCT', 'quote': 'BTC', 'baseId': 'fct', 'quoteId': 'btc' },
+                # 'XMR/BTC': { 'id': 'xmr_btc', 'symbol': 'XMR/BTC', 'base': 'XMR', 'quote': 'BTC', 'baseId': 'xmr', 'quoteId': 'btc' },
+                # 'REP/BTC': { 'id': 'rep_btc', 'symbol': 'REP/BTC', 'base': 'REP', 'quote': 'BTC', 'baseId': 'rep', 'quoteId': 'btc' },
+                # 'XRP/BTC': { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc' },
+                # 'ZEC/BTC': { 'id': 'zec_btc', 'symbol': 'ZEC/BTC', 'base': 'ZEC', 'quote': 'BTC', 'baseId': 'zec', 'quoteId': 'btc' },
+                # 'XEM/BTC': { 'id': 'xem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'xem', 'quoteId': 'btc' },
+                # 'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
+                # 'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc' },
             },
             'features': {
                 'spot': {
@@ -282,7 +282,7 @@ class coincheck(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def fetch_status(self, params={}) -> Status:
+    def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -300,9 +300,9 @@ class coincheck(Exchange, ImplicitAPI):
         #                 "status": "available",
         #                 "timestamp": 1782787596,
         #                 "availability": {
-        #                     "order": True,
-        #                     "market_order": True,
-        #                     "cancel": True
+        #                     "order": true,
+        #                     "market_order": true,
+        #                     "cancel": true
         #                 }
         #             }
         #         ]
@@ -312,7 +312,7 @@ class coincheck(Exchange, ImplicitAPI):
         status = 'ok'
         updated = None
         for i in range(0, len(exchangeStatuses)):
-            exchangeStatus = exchangeStatuses[i]
+            exchangeStatus = self.safe_dict(exchangeStatuses, i)
             rawStatus = self.safe_string(exchangeStatus, 'status')
             if updated is None:
                 updated = self.safe_timestamp(exchangeStatus, 'timestamp')
@@ -326,7 +326,7 @@ class coincheck(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -340,7 +340,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = self.privateGetAccountsBalance(params)
         return self.parse_balance(response)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -359,7 +359,7 @@ class coincheck(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         response = self.privateGetExchangeOrdersOpens(params)
-        rawOrders = self.safe_value(response, 'orders', [])
+        rawOrders = self.safe_list(response, 'orders', [])
         parsedOrders = self.parse_orders(rawOrders, market, since, limit)
         result = []
         for i in range(0, len(parsedOrders)):
@@ -370,14 +370,14 @@ class coincheck(Exchange, ImplicitAPI):
         #
         # fetchOpenOrders
         #
-        #     {                       id:  202835,
+        #     {                        id:  202835,
         #                      "order_type": "buy",
         #                            "rate":  26890,
         #                            "pair": "btc_jpy",
         #                  "pending_amount": "0.5527",
         #       "pending_market_buy_amount":  null,
         #                  "stop_loss_rate":  null,
-        #                      "created_at": "2015-01-10T05:55:38.000Z"}
+        #                      "created_at": "2015-01-10T05:55:38.000Z" }
         #
         # todo: add formats for fetchOrder, fetchClosedOrders here
         #
@@ -414,7 +414,7 @@ class coincheck(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -472,7 +472,7 @@ class coincheck(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -506,7 +506,7 @@ class coincheck(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #      {
         #          "id": "206849494",
@@ -517,7 +517,7 @@ class coincheck(Exchange, ImplicitAPI):
         #          "created_at": "2021-12-08T14:10:33.000Z"
         #      }
         #
-        # fetchMyTrades(private) - example from docs
+        # fetchMyTrades (private) - example from docs
         #
         #      {
         #          "id": 38,
@@ -539,10 +539,10 @@ class coincheck(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'id')
         priceString = self.safe_string(trade, 'rate')
         marketId = self.safe_string(trade, 'pair')
-        market = self.safe_market(marketId, market, '_')
-        baseId = market['baseId']
-        quoteId = market['quoteId']
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, '_')
+        baseId = marketResolved['baseId']
+        quoteId = marketResolved['quoteId']
+        symbol = marketResolved['symbol']
         takerOrMaker = None
         amountString = None
         costString = None
@@ -554,7 +554,7 @@ class coincheck(Exchange, ImplicitAPI):
                 takerOrMaker = 'taker'
             elif self.safe_string(trade, 'liquidity') == 'M':
                 takerOrMaker = 'maker'
-            funds = self.safe_value(trade, 'funds', {})
+            funds = self.safe_dict(trade, 'funds', {})
             amountString = self.safe_string(funds, baseId)
             costString = self.safe_string(funds, quoteId)
             fee = {
@@ -580,9 +580,9 @@ class coincheck(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -603,7 +603,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = self.privateGetExchangeOrdersTransactionsPagination(self.extend(request, params))
         #
         #      {
-        #          "success": True,
+        #          "success": true,
         #          "data": [
         #                      {
         #                          "id": 38,
@@ -626,7 +626,7 @@ class coincheck(Exchange, ImplicitAPI):
         transactions = self.safe_list(response, 'data', [])
         return self.parse_trades(transactions, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -660,7 +660,7 @@ class coincheck(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -674,7 +674,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = self.privateGetAccounts(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "id": "7487995",
         #         "email": "some@email.com",
         #         "identity_status": "identity_pending",
@@ -683,15 +683,15 @@ class coincheck(Exchange, ImplicitAPI):
         #         "taker_fee": "0.0",
         #         "maker_fee": "0.0",
         #         "exchange_fees": {
-        #           "btc_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
-        #           "etc_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
-        #           "fct_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
-        #           "mona_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
-        #           "plt_jpy": {taker_fee: '0.0', maker_fee: "0.0"}
+        #           "btc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        #           "etc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        #           "fct_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        #           "mona_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        #           "plt_jpy": { taker_fee: '0.0', maker_fee: "0.0" }
         #         }
         #     }
         #
-        fees = self.safe_value(response, 'exchange_fees', {})
+        fees = self.safe_dict(response, 'exchange_fees', {})
         result = {}
         symbols = self.symbols
         if symbols is None:
@@ -699,7 +699,7 @@ class coincheck(Exchange, ImplicitAPI):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            fee = self.safe_value(fees, market['id'], {})
+            fee = self.safe_dict(fees, market['id'], {})
             result[symbol] = {
                 'info': fee,
                 'symbol': symbol,
@@ -710,7 +710,7 @@ class coincheck(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -736,7 +736,6 @@ class coincheck(Exchange, ImplicitAPI):
                 request['amount'] = amount
             else:
                 cost = self.safe_number(params, 'cost')
-                params = self.omit(params, 'cost')
                 if cost is not None:
                     raise ArgumentsRequired(self.id + ' createOrder() : you should use "cost" parameter instead of "amount" argument to create market buy orders')
                 request['market_buy_amount'] = cost
@@ -744,14 +743,14 @@ class coincheck(Exchange, ImplicitAPI):
             request['order_type'] = side
             request['rate'] = price
             request['amount'] = amount
-        response = self.privatePostExchangeOrders(self.extend(request, params))
+        response = self.privatePostExchangeOrders(self.extend(request, self.omit(params, 'cost')))
         id = self.safe_string(response, 'id')
         return self.safe_order({
             'id': id,
             'info': response,
         }, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -768,13 +767,13 @@ class coincheck(Exchange, ImplicitAPI):
         response = self.privateDeleteExchangeOrdersId(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "id": 12345
         #    }
         #
         return self.parse_order(response)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -797,7 +796,7 @@ class coincheck(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = self.privateGetDepositMoney(self.extend(request, params))
         # {
-        #   "success": True,
+        #   "success": true,
         #   "deposits": [
         #     {
         #       "id": 2,
@@ -822,7 +821,7 @@ class coincheck(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'deposits', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -844,7 +843,7 @@ class coincheck(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = self.privateGetWithdraws(self.extend(request, params))
         #  {
-        #   "success": True,
+        #   "success": true,
         #   "pagination": {
         #     "limit": 25,
         #     "order": "desc",
@@ -860,7 +859,7 @@ class coincheck(Exchange, ImplicitAPI):
         #       "created_at": "2014-12-04T15:00:00.000Z",
         #       "bank_account_id": 243,
         #       "fee": "400.0",
-        #       "is_fast": True
+        #       "is_fast": true
         #     }
         #   ]
         # }
@@ -904,7 +903,7 @@ class coincheck(Exchange, ImplicitAPI):
         #       "created_at": "2014-12-04T15:00:00.000Z",
         #       "bank_account_id": 243,
         #       "fee": "400.0",
-        #       "is_fast": True
+        #       "is_fast": true
         #  }
         #
         id = self.safe_string(transaction, 'id')
@@ -945,11 +944,16 @@ class coincheck(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
-        url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        bodySigned = None
+        headersSigned = None
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if len(query) > 0:
@@ -963,16 +967,18 @@ class coincheck(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(self.keysort(query))
             else:
                 if len(query) > 0:
-                    body = self.urlencode(self.keysort(query))
-                    queryString = body
+                    bodySigned = self.urlencode(self.keysort(query))
+                    queryString = bodySigned
             auth = nonce + url + queryString
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        headersResolved = headers if (headersSigned is None) else headersSigned
+        bodyResolved = body if (bodySigned is None) else bodySigned
+        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

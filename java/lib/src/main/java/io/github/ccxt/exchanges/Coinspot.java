@@ -6,6 +6,7 @@ import io.github.ccxt.api.CoinspotApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Coinspot extends CoinspotApi
 {
@@ -605,43 +607,43 @@ public class Coinspot extends CoinspotApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object balances = this.safeValue2(response, "balance", "balances");
-        if (Helpers.isTrue(Helpers.isArray(balances)))
+        if ((balances instanceof List))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
+            for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object currencies = Helpers.GetValue(balances, i);
-                Object currencyIds = Helpers.objectKeys(currencies);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
+                Object currencies = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
+                List<Object> currencyIds = Helpers.objectKeys(currencies);
+                for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                 {
-                    Object currencyId = Helpers.GetValue(currencyIds, j);
-                    Object balance = Helpers.GetValue(currencies, currencyId);
-                    String code = this.safeCurrencyCode(currencyId);
-                    Object account = this.account();
-                    Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
+                    Map<String, Object> balance = (Map<String, Object>) this.safeDict(currencies, currencyId, (Object) null);
+                    String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                    Map<String, Object> account = this.account();
+                    account.put("total", this.safeString(balance, "balance"));
+                    if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(result, code, account);
+                        result.put(code, account);
                     }
                 }
             }
         } else
         {
-            Object currencyIds = Helpers.objectKeys(balances);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
+            List<Object> currencyIds = Helpers.objectKeys(balances);
+            for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
-                Object currencyId = Helpers.GetValue(currencyIds, i);
-                String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
-                Helpers.addElementToObject(account, "total", this.safeString(balances, currencyId));
-                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+                String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                Map<String, Object> account = this.account();
+                account.put("total", this.safeString(balances, currencyId));
+                if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    result.put(code, account);
                 }
             }
         }
@@ -656,19 +658,18 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
-            Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "private_post_ro_my_balances"))) || Helpers.isTrue((Helpers.isEqual(method, "privatePostRoMyBalances")))))
+            Map<String, Object> response = null;
+            if ((java.util.Objects.equals(method, "private_post_ro_my_balances")) || (java.util.Objects.equals(method, "privatePostRoMyBalances")))
             {
                 response = (this.privatePostRoMyBalances(parameters)).join();
             } else
@@ -706,28 +707,26 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "cointype", Helpers.GetValue(market, "id") );
+                put( "cointype", market.get("id") );
             }};
             Map<String, Object> orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
-            return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), null, "buyorders", "sellorders", "rate", "amount");
+            return this.parseOrderBook(orderbook, market.get("symbol"), (Long) null, "buyorders", "sellorders", "rate", "amount", 2);
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -738,8 +737,7 @@ public class Coinspot extends CoinspotApi
         //         }
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -774,21 +772,20 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             String id = this.safeString(market, "id", "");
             id = id.toLowerCase();
-            Object prices = this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
+            Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
             //
             //     {
             //         "status":"ok",
@@ -801,7 +798,7 @@ public class Coinspot extends CoinspotApi
             //         }
             //     }
             //
-            Object ticker = this.safeDict(prices, id, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(prices, id, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -816,16 +813,14 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             //
@@ -846,17 +841,17 @@ public class Coinspot extends CoinspotApi
             //    }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object prices = this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
-            Object ids = Helpers.objectKeys(prices);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
+            Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
+            List<String> ids = new ArrayList<String>(prices.keySet());
+            for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object id = Helpers.GetValue(ids, i);
-                Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
-                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
+                String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
+                Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
+                if (java.util.Objects.equals(market.get("spot"), true))
                 {
-                    Object symbol = Helpers.GetValue(market, "symbol");
-                    Object ticker = Helpers.GetValue(prices, id);
-                    Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
+                    String symbol = (String) market.get("symbol");
+                    Object ticker = (prices == null || id == null ? null : prices.get(id));
+                    result.put(symbol, this.parseTicker(ticker, market));
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -875,21 +870,18 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "cointype", Helpers.GetValue(market, "id") );
+                put( "cointype", market.get("id") );
             }};
             Map<String, Object> response = (this.privatePostOrdersHistory(this.extend(request, parameters))).join();
             //
@@ -900,9 +892,9 @@ public class Coinspot extends CoinspotApi
             //         ],
             //     }
             //
-            Object trades = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            List<Object> trades = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -917,28 +909,24 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            Map<String, Object> market = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "startdate", this.yyyymmdd(since));
+                request.put("startdate", this.yyyymmdd(since));
             }
             Map<String, Object> response = (this.privatePostRoMyTransactions(this.extend(request, parameters))).join();
             //  {
@@ -967,23 +955,23 @@ public class Coinspot extends CoinspotApi
             //          },
             //      ]
             // }
-            Object buyTrades = this.safeList(response, "buyorders", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(buyTrades)); i++)
+            List<Object> buyTrades = (List<Object>) this.safeList(response, "buyorders", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < ((List<?>)buyTrades).size(); i++)
             {
-                Helpers.addElementToObject(Helpers.GetValue(buyTrades, i), "side", "buy");
+                ((Map<String, Object>)(buyTrades == null || i < 0 || i >= buyTrades.size() ? null : buyTrades.get(i))).put("side", "buy");
             }
-            Object sellTrades = this.safeList(response, "sellorders", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sellTrades)); i++)
+            List<Object> sellTrades = (List<Object>) this.safeList(response, "sellorders", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < ((List<?>)sellTrades).size(); i++)
             {
-                Helpers.addElementToObject(Helpers.GetValue(sellTrades, i), "side", "sell");
+                ((Map<String, Object>)(sellTrades == null || i < 0 || i >= sellTrades.size() ? null : sellTrades.get(i))).put("side", "sell");
             }
             List<Object> trades = (List<Object>) this.arrayConcat(buyTrades, sellTrades);
-            return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // public fetchTrades
@@ -1010,18 +998,17 @@ public class Coinspot extends CoinspotApi
         //       "side": "buy",
         //       "price": 0.5168600000125209
         //     }
-        Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = null;
+        Long timestamp = null;
         String priceString = null;
-        Object fee = null;
+        Map<String, Object> fee = null;
         String audTotal = this.safeString(trade, "audtotal");
         String costString = this.safeString(trade, "total", audTotal);
         String side = this.safeString(trade, "side");
         String amountString = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "market");
-        String symbol = this.safeSymbol(marketId, market, "/");
+        String symbol = this.safeSymbol(marketId, market, "/", (String) null);
         Long solddate = this.safeInteger(trade, "solddate");
-        if (Helpers.isTrue(!Helpers.isEqual(solddate, null)))
+        if (!java.util.Objects.equals(solddate, null))
         {
             priceString = this.safeString(trade, "rate");
             timestamp = solddate;
@@ -1037,27 +1024,24 @@ public class Coinspot extends CoinspotApi
             String feeCurrencyId = "AUD";
             fee = new HashMap<String, Object>() {{
                 put( "cost", Coinspot.this.parseNumber(feeCost) );
-                put( "currency", Coinspot.this.safeCurrencyCode(feeCurrencyId) );
+                put( "currency", Coinspot.this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null) );
             }};
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalPriceString = priceString;
-        final Object finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "info", trade );
-            put( "id", null );
-            put( "symbol", symbol );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Coinspot.this.iso8601(finalTimestamp) );
-            put( "order", null );
-            put( "type", null );
-            put( "side", side );
-            put( "takerOrMaker", null );
-            put( "price", Coinspot.this.parseNumber(finalPriceString) );
-            put( "amount", Coinspot.this.parseNumber(amountString) );
-            put( "cost", Coinspot.this.parseNumber(costString) );
-            put( "fee", finalFee );
-        }}, market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("id", null);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("order", null);
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("takerOrMaker", null);
+        mapLiteral1.put("price", this.parseNumber(priceString));
+        mapLiteral1.put("amount", this.parseNumber(amountString));
+        mapLiteral1.put("cost", this.parseNumber(costString));
+        mapLiteral1.put("fee", fee);
+        return this.safeTrade(mapLiteral1, market);
     }
 
     /**
@@ -1073,52 +1057,44 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
+            String sideUpper = ((String)side).toUpperCase();
+            if (java.util.Objects.equals(type, "market"))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
             }
-            Object sideUpper = ((String)side).toUpperCase();
-            if (Helpers.isTrue(Helpers.isEqual(type, "market")))
-            {
-                throw new ExchangeError(Helpers.add(this.id, " createOrder() allows limit orders only")) ;
-            }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "cointype", Helpers.GetValue(market, "id") );
+                put( "cointype", market.get("id") );
                 put( "amount", amount );
                 put( "rate", price );
             }};
-            Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(sideUpper, "BUY")))
+            Map<String, Object> response = null;
+            if (java.util.Objects.equals(sideUpper, "BUY"))
             {
                 response = (this.privatePostMyBuy(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.isEqual(sideUpper, "SELL")))
+            } else if (java.util.Objects.equals(sideUpper, "SELL"))
             {
                 response = (this.privatePostMySell(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported(Helpers.add(this.id, " createOrder only support buy/sell side")) ;
+                throw new NotSupported((this.id + " createOrder only support buy/sell side")) ;
             }
             //
             // status - ok, error
             //
-            final Object finalResponse = response;
-            return this.safeOrder(new HashMap<String, Object>() {{
-                put( "info", finalResponse );
-            }});
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("info", response);
+            return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -1134,90 +1110,99 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             String side = this.safeString(parameters, "side");
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(side, "buy")) && Helpers.isTrue(!Helpers.isEqual(side, "sell"))))
+            if (!java.util.Objects.equals(side, "buy") && !java.util.Objects.equals(side, "sell"))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
+                throw new ArgumentsRequired((this.id + " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
             }
-            parameters = this.omit(parameters, "side");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "side");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+            Map<String, Object> response = null;
+            if (java.util.Objects.equals(side, "buy"))
             {
-                response = (this.privatePostMyBuyCancel(this.extend(request, parameters))).join();
+                response = (this.privatePostMyBuyCancel(this.extend(request, paramsOmitted))).join();
             } else
             {
-                response = (this.privatePostMySellCancel(this.extend(request, parameters))).join();
+                response = (this.privatePostMySellCancel(this.extend(request, paramsOmitted))).join();
             }
             //
             // status - ok, error
             //
-            final Object finalResponse = response;
-            return this.safeOrder(new HashMap<String, Object>() {{
-                put( "info", finalResponse );
-            }});
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("info", response);
+            return this.safeOrder(mapLiteral3, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isTrue(Helpers.isEqual(response, null)))
+        if (java.util.Objects.equals(response, null))
         {
             return null;  // fallback to default error handler
         }
         String status = this.safeString(response, "status");
-        if (Helpers.isTrue(Helpers.isEqual(status, "error")))
+        if (java.util.Objects.equals(status, "error"))
         {
-            Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
-            throw new ExchangeError((String)feedback) ;
+            String feedback = ((this.id + " ") + this.json(response));
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Long nonce()
     {
-        Object api = Helpers.getArg(optionalArgs, 0, "public");
-        Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
-        Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object isVersionedApi = Helpers.isArray(api);
-        Object version = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 0) : null;
-        Object accessType = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 1) : api;
-        String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
-        Object fullPath = ((Helpers.isTrue((!Helpers.isEqual(version, null))))) ? Helpers.add(Helpers.add("/", version), endpoint) : endpoint;
-        Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), accessType), fullPath);
-        if (Helpers.isTrue(Helpers.isEqual(accessType, "private")))
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
+
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    {
+        Object requestHeaders = headers;
+        String requestBody = body;
+        Boolean isVersionedApi = false;
+        Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 0) : null;
+        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1) : java.util.Objects.requireNonNullElse(api, "public");
+        String endpoint = ("/" + this.implodeParams(path, parameters));
+        String fullPath = endpoint;
+        if (!java.util.Objects.equals(version, null))
         {
-            this.checkRequiredCredentials();
-            Object nonce = this.nonce();
-            body = this.json(this.extend(new HashMap<String, Object>() {{
+            fullPath = (("/" + version) + endpoint);
+        }
+        String apiUrl = this.safeString(this.urls.get("api"), accessType);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + fullPath);
+        if (java.util.Objects.equals(accessType, "private"))
+        {
+            this.checkRequiredCredentials(true);
+            // coinspot requires an increasing nonce
+            Object nonce = this.incrementingNonce();
+            requestBody = this.json(this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters));
-            final Object finalBody = body;
-            headers = new HashMap<String, Object>() {{
-                put( "Content-Type", "application/json" );
-                put( "key", Coinspot.this.apiKey );
-                put( "sign", Coinspot.this.hmac(Coinspot.this.encode(finalBody), Coinspot.this.encode(Coinspot.this.secret), sha512()) );
-            }};
+            requestHeaders = Helpers.newMap(
+                "Content-Type", "application/json",
+                "key", this.apiKey,
+                "sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512())
+            );
         }
-        final Object finalBody_2 = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", url );
-            put( "method", method );
-            put( "body", finalBody_2 );
-            put( "headers", finalHeaders );
-        }};
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", requestBody);
+            h2kMap0.put("headers", requestHeaders);
+            return h2kMap0;
+        }
     }
 }

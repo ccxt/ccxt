@@ -20,6 +20,7 @@ import {
     PREDICTION_EXCHANGE_METHODS, PREDICTION_BASE_TS, isWsApi,
 } from './generateJavaWrappers.js';
 import type { MethodInfo } from './generateJavaWrappers.js';
+import { nativeTypedList } from './javaUtilImports.js';
 
 export type JavaTier = 'rest' | 'ws' | 'prediction';
 
@@ -91,7 +92,10 @@ export function typedReturnTable(tier: JavaTier): Map<string, MethodInfo> {
         if (m.javaReturnType === 'Object') continue;
         table.set(m.name, m);
     }
+    for (const m of BASE_ASYNC_HELPERS) table.set(m.name, m);
     if (tier === 'prediction') {
+        // base async helpers with a structure Promise<T> and no venue override
+        for (const m of PREDICTION_BASE_ASYNC_HELPERS) table.set(m.name, m);
         const shared = baseTierDeclaredNames();
         for (const m of restMethods()) {
             if (shared.has(m.name) && table.has(m.name)) table.set(m.name, m);
@@ -99,6 +103,15 @@ export function typedReturnTable(tier: JavaTier): Map<string, MethodInfo> {
     }
     return table;
 }
+
+// isUTAEnabled (): Promise<boolean> (base stub + kucoin), not a unified wrapper
+const BASE_ASYNC_HELPERS: MethodInfo[] = [
+    { name: 'isUTAEnabled', javaReturnType: 'Boolean', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
+];
+// loadOutcome (): Promise<PredictionOutcomeMarket> sends the outcome dict on every path
+const PREDICTION_BASE_ASYNC_HELPERS: MethodInfo[] = [
+    { name: 'loadOutcome', javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
+];
 
 const JAVA_BUILTINS = new Set([ 'List', 'Map', 'String', 'Object', 'Long', 'Double', 'Boolean' ]);
 
@@ -112,13 +125,23 @@ export function qualifyJavaType(javaType: string): string {
 
 /** Lambda / constructor reference converting the raw supplyAsync result into the typed value. */
 export function coreConverter(m: MethodInfo): string {
-    if (m.isArray && m.elementType) return `res -> Helpers.toTypedList(res, io.github.ccxt.types.${m.elementType}::new)`;
+    if (m.isArray && m.elementType) return `res -> ${nativeTypedList('io.github.ccxt.types.' + m.elementType)}`;
     if (m.javaReturnType === 'Long') return 'res -> (res instanceof Number n) ? n.longValue() : null';
     if (m.javaReturnType === 'Double') return 'res -> (res instanceof Number n) ? n.doubleValue() : null';
     if (m.javaReturnType === 'String') return 'res -> (String) res';
     if (m.javaReturnType === 'Boolean') return 'res -> (Boolean) res';
     if (m.javaReturnType === 'Map<String, Object>') return 'res -> (java.util.Map<String, Object>) res';
     return `io.github.ccxt.types.${m.javaReturnType}::new`;
+}
+
+/** Static helper every generated async lambda is passed to (ast-transpiler java `asyncSupplier`); it defaults to VIRTUAL_EXECUTOR. */
+export const JAVA_ASYNC_SUPPLIER = 'BaseExchange.supplyAsync';
+/** Import that makes JAVA_ASYNC_SUPPLIER resolve outside package io.github.ccxt. */
+export const JAVA_ASYNC_SUPPLIER_IMPORT = 'import io.github.ccxt.BaseExchange;';
+
+/** True for a trimmed line closing a generated supplyAsync lambda: `});`. */
+export function isAsyncLambdaClose(line: string): boolean {
+    return line.startsWith('})');
 }
 
 const DECL_RE = /^(\s*)public (?:java\.util\.concurrent\.)?CompletableFuture<Object> (\w+)\((.*)$/;
@@ -140,12 +163,20 @@ export function typeCoreReturns(source: string, table: Map<string, MethodInfo>):
         // keeps the 4-space indent: anchor on the body brace, not the declaration
         const bodyIndent = lines[i + 1] !== undefined && /^\s*\{$/.test(lines[i + 1]) ? lines[i + 1].slice(0, lines[i + 1].indexOf('{')) : indent;
         const close = bodyIndent + '}';
-        const supplyClose = bodyIndent + '    });';
+        const supplyIndent = bodyIndent + '    ';
         let converted = false;
         for (let j = i + 1; j < lines.length; j++) {
             if (lines[j] === close) break;
-            if (lines[j] === supplyClose) {
-                lines[j] = `${bodyIndent}    }).thenApply(${coreConverter(m)});`;
+            const trimmed = lines[j].trim();
+            // an `Object...` front returns its typed core's future unchanged
+            if (trimmed.startsWith(`return this.${name}(`)) {
+                converted = true;
+                break;
+            }
+            if (lines[j].startsWith(supplyIndent) && lines[j].length === supplyIndent.length + trimmed.length
+                && isAsyncLambdaClose(trimmed) && trimmed.endsWith(');')) {
+                // `});` -> `}).thenApply(f);`  /  `}, EXECUTOR);` -> `}, EXECUTOR).thenApply(f);`
+                lines[j] = `${supplyIndent}${trimmed.slice(0, -1)}.thenApply(${coreConverter(m)});`;
                 converted = true;
                 break;
             }

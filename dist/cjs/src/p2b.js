@@ -378,6 +378,9 @@ class p2b extends p2b$1["default"] {
         const quoteId = this.safeString(market, 'money');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const limits = this.safeDict(market, 'limits');
         const maxAmount = this.safeString(limits, 'max_amount');
         const maxPrice = this.safeString(limits, 'max_price');
@@ -470,7 +473,7 @@ class p2b extends p2b$1["default"] {
         //        current_time: '1699252644.487566'
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseTickers(result, symbols);
     }
     /**
@@ -511,9 +514,8 @@ class p2b extends p2b$1["default"] {
         //        current_time: '1699252958.859391'
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
-        const timestamp = this.safeIntegerProduct(response, 'cache_time', 1000);
-        return this.extend({ 'timestamp': timestamp, 'datetime': this.iso8601(timestamp) }, this.parseTicker(result, market));
+        const result = this.safeDict(response, 'result', {});
+        return this.parseTicker(result, market);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -548,31 +550,32 @@ class p2b extends p2b$1["default"] {
         //    }
         //
         const timestamp = this.safeIntegerProduct(ticker, 'at', 1000);
+        let tickerInner = ticker;
         if ('ticker' in ticker) {
-            ticker = this.safeValue(ticker, 'ticker');
+            tickerInner = this.safeDict(ticker, 'ticker');
         }
-        const last = this.safeString(ticker, 'last');
+        const last = this.safeString(tickerInner, 'last');
         return this.safeTicker({
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': this.safeString(ticker, 'high'),
-            'low': this.safeString(ticker, 'low'),
-            'bid': this.safeString(ticker, 'bid'),
+            'high': this.safeString(tickerInner, 'high'),
+            'low': this.safeString(tickerInner, 'low'),
+            'bid': this.safeString(tickerInner, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeString(ticker, 'ask'),
+            'ask': this.safeString(tickerInner, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
+            'open': this.safeString(tickerInner, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString(ticker, 'change'),
+            'percentage': this.safeString(tickerInner, 'change'),
             'average': undefined,
-            'baseVolume': this.safeString2(ticker, 'vol', 'volume'),
-            'quoteVolume': this.safeString(ticker, 'deal'),
-            'info': ticker,
+            'baseVolume': this.safeString2(tickerInner, 'vol', 'volume'),
+            'quoteVolume': this.safeString(tickerInner, 'deal'),
+            'info': tickerInner,
         }, market);
     }
     /**
@@ -625,7 +628,7 @@ class p2b extends p2b$1["default"] {
         //        "current_time": 1698733470.469274
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const timestamp = this.safeIntegerProduct(response, 'current_time', 1000);
         return this.parseOrderBook(result, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
@@ -851,7 +854,7 @@ class p2b extends p2b$1["default"] {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseBalance(result);
     }
     parseBalance(response) {
@@ -873,7 +876,7 @@ class p2b extends p2b$1["default"] {
         const keys = Object.keys(response);
         for (let i = 0; i < keys.length; i++) {
             const currencyId = keys[i];
-            const balance = response[currencyId];
+            const balance = this.safeDict(response, currencyId);
             const code = this.safeCurrencyCode(currencyId);
             const used = this.safeString(balance, 'freeze');
             const available = this.safeString(balance, 'available');
@@ -1093,7 +1096,7 @@ class p2b extends p2b$1["default"] {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const records = this.safeList(result, 'records', []);
         return this.parseTrades(records, market, since, limit);
     }
@@ -1120,7 +1123,7 @@ class p2b extends p2b$1["default"] {
             await this.loadMarkets();
         }
         let until = this.safeInteger(params, 'until');
-        params = this.omit(params, 'until');
+        const paramsOmitted = this.omit(params, 'until');
         if (until === undefined) {
             if (since === undefined) {
                 until = this.milliseconds();
@@ -1129,14 +1132,12 @@ class p2b extends p2b$1["default"] {
                 until = since + 86400000;
             }
         }
-        if (since === undefined) {
-            since = until - 86400000;
-        }
-        if ((until - since) > 86400000) {
+        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
+        if ((until - sinceResolved) > 86400000) {
             throw new errors.BadRequest(this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const market = this.market(symbol);
-        const sinceSec = this.parseToInt(since / 1000);
+        const sinceSec = this.parseToInt(sinceResolved / 1000);
         const untilSec = this.parseToInt(until / 1000);
         const request = {
             'market': market['id'],
@@ -1146,7 +1147,7 @@ class p2b extends p2b$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostAccountMarketDealHistory(this.extend(request, params));
+        const response = await this.privatePostAccountMarketDealHistory(this.extend(request, paramsOmitted));
         //
         //    {
         //        "success": true,
@@ -1173,9 +1174,9 @@ class p2b extends p2b$1["default"] {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const deals = this.safeList(result, 'deals', []);
-        return this.parseTrades(deals, market, since, limit);
+        return this.parseTrades(deals, market, sinceResolved, limit);
     }
     /**
      * @method
@@ -1197,7 +1198,7 @@ class p2b extends p2b$1["default"] {
             await this.loadMarkets();
         }
         let until = this.safeInteger(params, 'until');
-        params = this.omit(params, 'until');
+        const paramsOmitted = this.omit(params, 'until');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1210,13 +1211,11 @@ class p2b extends p2b$1["default"] {
                 until = since + 86400000;
             }
         }
-        if (since === undefined) {
-            since = until - 86400000;
-        }
-        if ((until - since) > 86400000) {
+        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
+        if ((until - sinceResolved) > 86400000) {
             throw new errors.BadRequest(this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
-        const sinceSec = this.parseToInt(since / 1000);
+        const sinceSec = this.parseToInt(sinceResolved / 1000);
         const untilSec = this.parseToInt(until / 1000);
         const request = {
             'startTime': sinceSec,
@@ -1228,7 +1227,7 @@ class p2b extends p2b$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostAccountOrderHistory(this.extend(request, params));
+        const response = await this.privatePostAccountOrderHistory(this.extend(request, paramsOmitted));
         //
         //    {
         //        "success": true,
@@ -1255,13 +1254,13 @@ class p2b extends p2b$1["default"] {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         let orders = [];
         const keys = Object.keys(result);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const marketOrders = result[marketId];
-            const parsedOrders = this.parseOrders(marketOrders, market, since, limit);
+            const parsedOrders = this.parseOrders(marketOrders, market, sinceResolved, limit);
             orders = this.arrayConcat(orders, parsedOrders);
         }
         return orders;
@@ -1306,7 +1305,7 @@ class p2b extends p2b$1["default"] {
         //
         const timestamp = this.safeIntegerProduct2(order, 'timestamp', 'ctime', 1000);
         const marketId = this.safeString(order, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         return this.safeOrder({
             'info': order,
             'id': this.safeString2(order, 'id', 'orderId'),
@@ -1314,7 +1313,7 @@ class p2b extends p2b$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.safeString(order, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1328,31 +1327,39 @@ class p2b extends p2b$1["default"] {
             'remaining': this.safeString(order, 'left'),
             'status': undefined,
             'fee': {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': this.safeString(order, 'dealFee'),
             },
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.implodeParams(path, params);
-        params = this.omit(params, this.extractParams(path));
+        const baseApiUrl = this.safeString(this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = baseApiUrl;
+        let url = baseUrl + '/' + this.implodeParams(path, params);
+        const paramsOmitted = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
-            if (Object.keys(params).length > 0) {
-                url += '?' + this.urlencode(params);
+            if (Object.keys(paramsOmitted).length > 0) {
+                url += '?' + this.urlencode(paramsOmitted);
             }
         }
         if (api === 'private') {
-            params['request'] = '/api/v2/' + path;
-            params['nonce'] = this.nonce().toString();
-            const payload = this.stringToBase64(this.json(params)); // Body json encoded in base64
-            headers = {
+            paramsOmitted['request'] = '/api/v2/' + path;
+            // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
+            // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
+            paramsOmitted['nonce'] = this.incrementingNonce().toString();
+            const payload = this.stringToBase64(this.json(paramsOmitted)); // Body json encoded in base64
+            const headersSigned = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha512),
             };
-            body = this.json(params);
+            const bodyJson = this.json(paramsOmitted);
+            return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

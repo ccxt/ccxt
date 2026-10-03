@@ -268,7 +268,6 @@ function testWsCache () {
 
     assert (outsideLimit === limited);
 
-
     // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolById, same order should not increase the limit
 
@@ -323,7 +322,6 @@ function testWsCache () {
     limited = timestampCache2.getLimit (undefined, outsideLimit);
 
     assert (outsideLimit === limited);
-
 
     // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolById, watch all orders, same symbol and order id gets updated

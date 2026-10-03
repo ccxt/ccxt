@@ -479,7 +479,7 @@ export default class whitebit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference();
         }
         const markets = await this.v4PublicGetMarkets();
@@ -512,13 +512,18 @@ export default class whitebit extends Exchange {
         const id = this.safeString(market, 'name');
         const baseId = this.safeString(market, 'stock');
         let quoteId = this.safeString(market, 'money');
-        quoteId = (quoteId === 'PERP') ? 'USDT' : quoteId;
+        if (quoteId === 'PERP') {
+            quoteId = 'USDT';
+        }
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const active = this.safeValue(market, 'tradesEnabled');
-        const isCollateral = this.safeValue(market, 'isCollateral');
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
+        const active = this.safeBool(market, 'tradesEnabled');
+        const isCollateral = this.safeBool(market, 'isCollateral');
         const typeId = this.safeString(market, 'type');
-        let type;
+        let type = undefined;
         let settle = undefined;
         let settleId = undefined;
         let symbol = base + '/' + quote;
@@ -790,11 +795,11 @@ export default class whitebit extends Exchange {
             const currency = currenciesIds[i];
             const data = this.safeDict(response, currency, {});
             const code = this.safeCurrencyCode(currency);
-            const withdraw = this.safeValue(data, 'withdraw', {});
+            const withdraw = this.safeDict(data, 'withdraw', {});
             if (code !== undefined) {
                 withdrawFees[code] = this.safeString(withdraw, 'fixed');
             }
-            const deposit = this.safeValue(data, 'deposit', {});
+            const deposit = this.safeDict(data, 'deposit', {});
             if (code !== undefined) {
                 depositFees[code] = this.safeString(deposit, 'fixed');
             }
@@ -907,7 +912,7 @@ export default class whitebit extends Exchange {
         //    }
         //
         const depositWithdrawFees = {};
-        codes = this.marketCodes(codes);
+        const codesValue = this.marketCodes(codes);
         const currencyIds = Object.keys(response);
         for (let i = 0; i < currencyIds.length; i++) {
             const entry = currencyIds[i];
@@ -915,15 +920,15 @@ export default class whitebit extends Exchange {
             const currencyId = splitEntry[0];
             const feeInfo = response[entry];
             const code = this.safeCurrencyCode(currencyId);
-            if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
-                const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+            if ((code !== undefined) && ((codesValue === undefined) || (this.inArray(code, codesValue)))) {
+                const depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
                 depositWithdrawFees[code]['info'][entry] = feeInfo;
                 let networkId = this.safeString(splitEntry, 1);
-                const withdraw = this.safeValue(feeInfo, 'withdraw');
-                const deposit = this.safeValue(feeInfo, 'deposit');
+                const withdraw = this.safeDict(feeInfo, 'withdraw');
+                const deposit = this.safeDict(feeInfo, 'deposit');
                 const withdrawFee = this.safeNumber(withdraw, 'fixed');
                 const depositFee = this.safeNumber(deposit, 'fixed');
                 const withdrawResult = {
@@ -994,7 +999,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const fee = this.safeValue(response, market['baseId'], {});
+            const fee = this.safeDict(response, market['baseId'], {});
             let makerFee = this.safeString(fee, 'maker_fee');
             let takerFee = this.safeString(fee, 'taker_fee');
             makerFee = Precise.stringDiv(makerFee, '100');
@@ -1081,7 +1086,7 @@ export default class whitebit extends Exchange {
             if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
-            const symbol = market['symbol'];
+            const symbol = marketSymbol;
             // Filter by symbols if specified
             if (symbols !== undefined) {
                 let symbolFound = false;
@@ -1220,7 +1225,7 @@ export default class whitebit extends Exchange {
             for (let j = 0; j < feeKeys.length; j++) {
                 const feeKey = feeKeys[j];
                 const fee = this.safeDict(feesData, feeKey);
-                if ((fee !== undefined && fee !== null) && fee['ticker'] === code) {
+                if ((fee !== undefined && fee !== null) && this.safeString(fee, 'ticker') === code) {
                     feeData = fee;
                     break;
                 }
@@ -1403,13 +1408,13 @@ export default class whitebit extends Exchange {
         //     }
         //
         const marketId = this.safeString2(ticker, 'tradingPairs', 'ticker_id');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         // last price is provided as "last" or "last_price"
         const last = this.safeStringN(ticker, ['last', 'last_price', 'lastPrice']);
         // if "close" is provided, use it, otherwise use <last>
         const close = this.safeString(ticker, 'close', last);
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'high': this.safeString(ticker, 'high'),
@@ -1430,7 +1435,7 @@ export default class whitebit extends Exchange {
             'quoteVolume': this.safeStringN(ticker, ['quote_volume', 'deal', 'quoteVolume24h', 'money_volume']),
             'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1452,7 +1457,7 @@ export default class whitebit extends Exchange {
         // Extract control parameters from params
         const checkActive = this.safeBool(params, 'checkActive', true);
         const checkExecuted = this.safeBool(params, 'checkExecuted', true);
-        params = this.omit(params, ['checkActive', 'checkExecuted']);
+        const paramsOmitted = this.omit(params, ['checkActive', 'checkExecuted']);
         const request = {
             'orderId': id,
         };
@@ -1464,7 +1469,7 @@ export default class whitebit extends Exchange {
         // Try active orders first (if enabled)
         if (checkActive === true) {
             try {
-                const response = await this.v4PrivatePostOrders(this.extend(request, params));
+                const response = await this.v4PrivatePostOrders(this.extend(request, paramsOmitted));
                 // Search for order in active orders response (array format)
                 const orders = this.toArray(response);
                 for (let i = 0; i < orders.length; i++) {
@@ -1486,7 +1491,7 @@ export default class whitebit extends Exchange {
         // Try executed orders (if enabled)
         if (checkExecuted === true) {
             try {
-                const response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, params));
+                const response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, paramsOmitted));
                 // Search for order in executed orders response (object format)
                 const marketIds = Object.keys(response);
                 for (let i = 0; i < marketIds.length; i++) {
@@ -1526,11 +1531,11 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         let onlyContractSymbols = true;
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
                 if (market['contract'] !== true) {
                     onlyContractSymbols = false;
@@ -1541,10 +1546,9 @@ export default class whitebit extends Exchange {
         else {
             onlyContractSymbols = false;
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', undefined, params);
-        let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'fetchTickers', 'method', method);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchTickers', undefined, params);
+        const [methodOption, paramsMethod] = this.handleOptionStringAndParams(paramsMarketType, 'fetchTickers', 'method');
+        let method = methodOption;
         if (method === undefined) {
             // if the user did not specify a method, choose it based on market type and symbols
             if (onlyContractSymbols || (marketType === 'swap')) {
@@ -1567,7 +1571,7 @@ export default class whitebit extends Exchange {
             //          "change":"2.12"
             //      },
             //
-            response = await this.v4PublicGetTicker(params);
+            response = await this.v4PublicGetTicker(paramsMethod);
         }
         else if (method === 'v4PublicGetFutures') {
             //
@@ -1609,14 +1613,14 @@ export default class whitebit extends Exchange {
             //         ]
             //     }
             //
-            response = await this.v4PublicGetFutures(params);
+            response = await this.v4PublicGetFutures(paramsMethod);
         }
         else {
-            response = await this.v2PublicGetTicker(params);
+            response = await this.v2PublicGetTicker(paramsMethod);
         }
         const resultList = this.safeList(response, 'result');
         if (resultList !== undefined) {
-            return this.parseTickers(resultList, symbols);
+            return this.parseTickers(resultList, symbolsNormalized);
         }
         const marketIds = Object.keys(response);
         const result = {};
@@ -1627,7 +1631,7 @@ export default class whitebit extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArrayTickers(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -1775,7 +1779,7 @@ export default class whitebit extends Exchange {
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
                 const marketNew = this.safeMarket(marketId, undefined, '_');
-                const rawTrades = this.safeValue(response, marketId, []);
+                const rawTrades = this.safeList(response, marketId, []);
                 const parsed = this.parseTrades(rawTrades, marketNew, since, limit);
                 results = this.arrayConcat(results, parsed);
             }
@@ -1827,7 +1831,7 @@ export default class whitebit extends Exchange {
         //          "feeAsset": "USDT"
         //      }
         //
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         const timestamp = this.safeTimestamp2(trade, 'time', 'trade_timestamp');
         const orderId = this.safeString2(trade, 'dealOrderId', 'orderId');
         const cost = this.safeString(trade, 'deal');
@@ -1835,7 +1839,7 @@ export default class whitebit extends Exchange {
         const amount = this.safeString2(trade, 'amount', 'quote_volume');
         const id = this.safeString2(trade, 'id', 'tradeID');
         const side = this.safeString2(trade, 'type', 'side');
-        const symbol = market['symbol'];
+        const symbol = marketResolved['symbol'];
         const role = this.safeInteger(trade, 'role');
         let takerOrMaker = undefined;
         if (role !== undefined) {
@@ -1863,7 +1867,7 @@ export default class whitebit extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1886,17 +1890,15 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
+        const maxLimit = 1440;
+        const sinceLimit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        const limitResolved = (since !== undefined) ? sinceLimit : limit;
         if (since !== undefined) {
-            const maxLimit = 1440;
-            if (limit === undefined) {
-                limit = maxLimit;
-            }
-            limit = Math.min(limit, maxLimit);
             const start = this.parseToInt(since / 1000);
             request['start'] = start;
         }
-        if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 1440);
+        if (limitResolved !== undefined) {
+            request['limit'] = Math.min(limitResolved, 1440);
         }
         const response = await this.v1PublicGetKline(this.extend(request, params));
         //
@@ -1911,7 +1913,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const result = this.safeList(response, 'result', []);
-        return this.parseOHLCVs(result, market, timeframe, since, limit);
+        return this.parseOHLCVs(result, market, timeframe, since, limitResolved);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -2036,8 +2038,7 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'side': side,
         };
-        let cost = undefined;
-        [cost, params] = this.handleParamString(params, 'cost');
+        const [cost, paramsCost] = this.handleParamString(params, 'cost');
         if (cost !== undefined) {
             if ((side !== 'buy') || (type !== 'market')) {
                 throw new InvalidOrder(this.id + ' createOrder() cost is only supported for market buy orders');
@@ -2047,7 +2048,7 @@ export default class whitebit extends Exchange {
         else {
             request['amount'] = this.amountToPrecision(symbol, amount);
         }
-        const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
+        const clientOrderId = this.safeString2(paramsCost, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString(this.options, 'brokerId');
             if (brokerId !== undefined) {
@@ -2056,18 +2057,18 @@ export default class whitebit extends Exchange {
         }
         else {
             request['clientOrderId'] = clientOrderId;
-            params = this.omit(params, ['clientOrderId']);
         }
+        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(paramsCost, ['clientOrderId']) : paramsCost;
         const marketType = this.safeString(market, 'type');
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
-        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'activation_price']);
+        const triggerPrice = this.safeNumberN(paramsOmitted, ['triggerPrice', 'stopPrice', 'activation_price']);
         const isStopOrder = (triggerPrice !== undefined);
-        const timeInForce = this.safeStringUpper(params, 'timeInForce');
+        const timeInForce = this.safeStringUpper(paramsOmitted, 'timeInForce');
         if ((timeInForce !== undefined) && (timeInForce !== 'GTC') && (timeInForce !== 'IOC') && (timeInForce !== 'PO')) {
             throw new NotSupported(this.id + ' createOrder() does not support timeInForce ' + timeInForce + ', only GTC, IOC and PO are allowed');
         }
-        const postOnly = this.isPostOnly(isMarketOrder, false, params);
+        const postOnly = this.isPostOnly(isMarketOrder, false, paramsOmitted);
         const ioc = (timeInForce === 'IOC');
         if (isStopOrder && (postOnly || ioc)) {
             throw new NotSupported(this.id + ' createOrder() does not support postOnly or timeInForce IOC for stop orders');
@@ -2075,7 +2076,7 @@ export default class whitebit extends Exchange {
         if (ioc && !isLimitOrder) {
             throw new NotSupported(this.id + ' createOrder() timeInForce IOC is only supported for limit orders');
         }
-        const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
+        const [marginMode, query] = this.handleMarginModeAndParams('createOrder', paramsOmitted);
         if (postOnly) {
             request['postOnly'] = true;
         }
@@ -2085,7 +2086,7 @@ export default class whitebit extends Exchange {
         if (marginMode !== undefined && marginMode !== 'cross') {
             throw new NotSupported(this.id + ' createOrder() is only available for cross margin');
         }
-        params = this.omit(query, ['postOnly', 'triggerPrice', 'stopPrice', 'timeInForce']);
+        const orderParams = this.omit(query, ['postOnly', 'triggerPrice', 'stopPrice', 'timeInForce']);
         const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
         let response;
         if (isStopOrder) {
@@ -2093,15 +2094,15 @@ export default class whitebit extends Exchange {
             if (isLimitOrder) {
                 // stop limit order
                 request['price'] = this.priceToPrecision(symbol, price);
-                response = await this.v4PrivatePostOrderStopLimit(this.extend(request, params));
+                response = await this.v4PrivatePostOrderStopLimit(this.extend(request, orderParams));
             }
             else {
                 // stop market order
                 if (useCollateralEndpoint) {
-                    response = await this.v4PrivatePostOrderCollateralTriggerMarket(this.extend(request, params));
+                    response = await this.v4PrivatePostOrderCollateralTriggerMarket(this.extend(request, orderParams));
                 }
                 else {
-                    response = await this.v4PrivatePostOrderStopMarket(this.extend(request, params));
+                    response = await this.v4PrivatePostOrderStopMarket(this.extend(request, orderParams));
                 }
             }
         }
@@ -2110,23 +2111,23 @@ export default class whitebit extends Exchange {
                 // limit order
                 request['price'] = this.priceToPrecision(symbol, price);
                 if (useCollateralEndpoint) {
-                    response = await this.v4PrivatePostOrderCollateralLimit(this.extend(request, params));
+                    response = await this.v4PrivatePostOrderCollateralLimit(this.extend(request, orderParams));
                 }
                 else {
-                    response = await this.v4PrivatePostOrderNew(this.extend(request, params));
+                    response = await this.v4PrivatePostOrderNew(this.extend(request, orderParams));
                 }
             }
             else {
                 // market order
                 if (useCollateralEndpoint) {
-                    response = await this.v4PrivatePostOrderCollateralMarket(this.extend(request, params));
+                    response = await this.v4PrivatePostOrderCollateralMarket(this.extend(request, orderParams));
                 }
                 else {
                     if (cost !== undefined) {
-                        response = await this.v4PrivatePostOrderMarket(this.extend(request, params));
+                        response = await this.v4PrivatePostOrderMarket(this.extend(request, orderParams));
                     }
                     else {
-                        response = await this.v4PrivatePostOrderStockMarket(this.extend(request, params));
+                        response = await this.v4PrivatePostOrderStockMarket(this.extend(request, orderParams));
                     }
                 }
             }
@@ -2198,8 +2199,8 @@ export default class whitebit extends Exchange {
         if (!hasModifiableParam) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires at least one of: amount, price, activationPrice, or total parameters');
         }
-        params = this.omit(params, ['clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total']);
-        const response = await this.v4PrivatePostOrderModify(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total']);
+        const response = await this.v4PrivatePostOrderModify(this.extend(request, paramsOmitted));
         return this.parseOrder(response);
     }
     /**
@@ -2267,12 +2268,12 @@ export default class whitebit extends Exchange {
             market = this.market(symbol);
             request['market'] = market['id'];
         }
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         const requestType = [];
-        if (type === 'spot') {
-            let isMargin = undefined;
-            [isMargin, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'isMargin', false);
+        let requestParams = paramsMarketType;
+        if (marketType === 'spot') {
+            const [isMargin, paramsIsMargin] = this.handleOptionBoolAndParams(paramsMarketType, 'cancelAllOrders', 'isMargin', false);
+            requestParams = paramsIsMargin;
             if (isMargin) {
                 requestType.push('margin');
             }
@@ -2280,14 +2281,14 @@ export default class whitebit extends Exchange {
                 requestType.push('spot');
             }
         }
-        else if (type === 'swap') {
+        else if (marketType === 'swap') {
             requestType.push('futures');
         }
         else {
-            throw new NotSupported(this.id + ' cancelAllOrders() does not support ' + type + ' type');
+            throw new NotSupported(this.id + ' cancelAllOrders() does not support ' + marketType + ' type');
         }
         request['type'] = requestType;
-        const response = await this.v4PrivatePostOrderCancelAll(this.extend(request, params));
+        const response = await this.v4PrivatePostOrderCancelAll(this.extend(request, requestParams));
         //
         // []
         //
@@ -2343,7 +2344,7 @@ export default class whitebit extends Exchange {
             throw new ArgumentsRequired(this.id + ' cancelAllOrdersAfter() requires a symbol argument in params');
         }
         const market = this.market(symbol);
-        params = this.omit(params, 'symbol');
+        const paramsOmitted = this.omit(params, 'symbol');
         if (timeout === undefined) {
             throw new ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
         }
@@ -2357,7 +2358,7 @@ export default class whitebit extends Exchange {
         else {
             request['timeout'] = 'null';
         }
-        const response = await this.v4PrivatePostOrderKillSwitch(this.extend(request, params));
+        const response = await this.v4PrivatePostOrderKillSwitch(this.extend(request, paramsOmitted));
         //
         //     {
         //         "market": "BTC_USDT", // currency market,
@@ -2407,22 +2408,21 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let response;
         if (marketType === 'swap') {
-            response = await this.v4PrivatePostCollateralAccountBalance(params);
+            response = await this.v4PrivatePostCollateralAccountBalance(paramsMarketType);
         }
         else {
-            const options = this.safeValue(this.options, 'fetchBalance', {});
+            const options = this.safeDict(this.options, 'fetchBalance', {});
             const defaultAccount = this.safeString(options, 'account');
-            const account = this.safeString2(params, 'account', 'type', defaultAccount);
-            params = this.omit(params, ['account', 'type']);
+            const account = this.safeString2(paramsMarketType, 'account', 'type', defaultAccount);
+            const paramsOmitted = this.omit(paramsMarketType, ['account', 'type']);
             if (account === 'main' || account === 'funding') {
-                response = await this.v4PrivatePostMainAccountBalance(params);
+                response = await this.v4PrivatePostMainAccountBalance(paramsOmitted);
             }
             else {
-                response = await this.v4PrivatePostTradeAccountBalance(params);
+                response = await this.v4PrivatePostTradeAccountBalance(paramsOmitted);
             }
         }
         //
@@ -2515,9 +2515,9 @@ export default class whitebit extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
             request['market'] = market['id'];
         }
+        const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : symbol;
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 100); // default 50 max 100
         }
@@ -2551,7 +2551,7 @@ export default class whitebit extends Exchange {
             }
         }
         results = this.sortBy(results, 'timestamp');
-        results = this.filterBySymbolSinceLimit(results, symbol, since, limit);
+        results = this.filterBySymbolSinceLimit(results, symbolResolved, since, limit);
         return results;
     }
     parseOrderType(type) {
@@ -2607,8 +2607,8 @@ export default class whitebit extends Exchange {
         //      }
         //
         const marketId = this.safeString(order, 'market');
-        market = this.safeMarket(marketId, market, '_');
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, '_');
+        const symbol = marketResolved['symbol'];
         const side = this.safeString(order, 'side');
         const filled = this.safeString(order, 'dealStock');
         let remaining = this.safeString(order, 'left');
@@ -2634,7 +2634,7 @@ export default class whitebit extends Exchange {
         if (dealFee !== undefined) {
             fee = {
                 'cost': this.parseNumber(dealFee),
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         const timestamp = this.safeTimestamp2(order, 'ctime', 'timestamp');
@@ -2670,7 +2670,7 @@ export default class whitebit extends Exchange {
             'cost': cost,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -2756,12 +2756,11 @@ export default class whitebit extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.parseToInt(since / 1000);
         }
+        let limitResolved = limit;
         if (limit === undefined || limit > 100) {
-            limit = 100;
+            limitResolved = 100;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        request['limit'] = limitResolved;
         // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
         request['transactionMethod'] = '2';
         const response = await this.v4PrivatePostMainAccountHistory(this.extend(request, params));
@@ -2783,7 +2782,7 @@ export default class whitebit extends Exchange {
         //         { ... }                                 // More withdrawal transactions
         //     ]
         //
-        return this.parseTransactions(this.safeList(response, 'records', []), currency, since, limit);
+        return this.parseTransactions(this.safeList(response, 'records', []), currency, since, limitResolved);
     }
     /**
      * @method
@@ -2810,12 +2809,11 @@ export default class whitebit extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.parseToInt(since / 1000);
         }
+        let limitResolved = limit;
         if (limit === undefined || limit > 100) {
-            limit = 100;
+            limitResolved = 100;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        request['limit'] = limitResolved;
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         const response = await this.v4PrivatePostMainAccountHistory(this.extend(request, params));
         //
@@ -2846,7 +2844,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const records = this.safeList(response, 'records', []);
-        return this.parseTransactions(records, currency, since, limit);
+        return this.parseTransactions(records, currency, since, limitResolved);
     }
     /**
      * @method
@@ -2914,7 +2912,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const url = this.safeString(response, 'url');
-        const account = this.safeValue(response, 'account', {});
+        const account = this.safeDict(response, 'account', {});
         const address = this.safeString(account, 'address', url);
         const tag = this.safeString(account, 'memo');
         this.checkAddress(address);
@@ -3074,7 +3072,7 @@ export default class whitebit extends Exchange {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const accountsByType = this.safeValue(this.options, 'accountsByType');
+        const accountsByType = this.safeDict(this.options, 'accountsByType');
         const fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString(accountsByType, toAccount, toAccount);
         const amountString = this.currencyToPrecision(code, amount);
@@ -3184,7 +3182,7 @@ export default class whitebit extends Exchange {
         //         "centralized": false,
         //     }
         //
-        currency = this.safeCurrency(undefined, currency);
+        const currencyResolved = this.safeCurrency(undefined, currency);
         const address = this.safeString(transaction, 'address');
         const timestamp = this.safeTimestamp(transaction, 'createdAt');
         const currencyId = this.safeString(transaction, 'ticker');
@@ -3201,7 +3199,7 @@ export default class whitebit extends Exchange {
             'addressTo': (method === '2') ? address : undefined,
             'amount': this.safeNumber(transaction, 'amount'),
             'type': (method === '1') ? 'deposit' : 'withdrawal',
-            'currency': this.safeCurrencyCode(currencyId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currencyResolved),
             'status': this.parseTransactionStatus(status),
             'updated': undefined,
             'tagFrom': undefined,
@@ -3211,7 +3209,7 @@ export default class whitebit extends Exchange {
             'internal': undefined,
             'fee': {
                 'cost': this.safeNumber(transaction, 'fee'),
-                'currency': this.safeCurrencyCode(currencyId, currency),
+                'currency': this.safeCurrencyCode(currencyId, currencyResolved),
             },
             'info': transaction,
         };
@@ -3300,7 +3298,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeValue(response, 'records', []);
+        const records = this.safeList(response, 'records', []);
         const first = this.safeDict(records, 0, {});
         return this.parseTransaction(first, currency);
     }
@@ -3472,9 +3470,10 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbol = this.symbol(symbol);
-        const response = await this.fetchFundingRates([symbol], params);
-        return this.safeValue(response, symbol);
+        const symbolValue = this.symbol(symbol);
+        const response = await this.fetchFundingRates([symbolValue], params);
+        const fundingRate = this.safeDict(response, symbolValue);
+        return fundingRate;
     }
     /**
      * @method
@@ -3489,7 +3488,7 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.v4PublicGetFutures(params);
         //
         //    [
@@ -3536,7 +3535,7 @@ export default class whitebit extends Exchange {
         //    ]
         //
         const data = this.safeList(response, 'result', []);
-        return this.parseFundingRates(data, symbols);
+        return this.parseFundingRates(data, symbolsNormalized);
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -3618,7 +3617,7 @@ export default class whitebit extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
         }
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'market': market['id'],
         };
         if (since !== undefined) {
@@ -3627,8 +3626,8 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [request, params] = this.handleUntilOption('endDate', request, params);
-        const response = await this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endDate', request, params);
+        const response = await this.v4PrivatePostCollateralAccountFundingHistory(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "records": [
@@ -3676,7 +3675,7 @@ export default class whitebit extends Exchange {
     parseFundingHistories(contracts, market = undefined, since = undefined, limit = undefined) {
         const result = [];
         for (let i = 0; i < contracts.length; i++) {
-            const contract = contracts[i];
+            const contract = this.safeDict(contracts, i);
             result.push(this.parseFundingHistory(contract, market));
         }
         const sorted = this.sortBy(result, 'timestamp');
@@ -3846,7 +3845,7 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let request = {};
+        const request = {};
         if (code !== undefined) {
             request['fromTicker'] = code;
         }
@@ -3857,8 +3856,8 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [request, params] = this.handleUntilOption('to', request, params, 0.001);
-        const response = await this.v4PrivatePostConvertHistory(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('to', request, params, 0.001);
+        const response = await this.v4PrivatePostConvertHistory(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "records": [
@@ -3962,7 +3961,7 @@ export default class whitebit extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'market': market['id'],
         };
         if (since !== undefined) {
@@ -3971,8 +3970,8 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = since;
         }
-        [request, params] = this.handleUntilOption('endDate', request, params);
-        const response = await this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endDate', request, params);
+        const response = await this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -4012,7 +4011,7 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.v4PrivatePostCollateralAccountPositionsOpen(params);
         //
         //     [
@@ -4035,7 +4034,7 @@ export default class whitebit extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions(response, symbols);
+        return this.parsePositions(response, symbolsNormalized);
     }
     /**
      * @method
@@ -4159,7 +4158,7 @@ export default class whitebit extends Exchange {
         });
     }
     isFiat(currency) {
-        const fiatCurrencies = this.safeValue(this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
         return this.inArray(currency, fiatCurrencies);
     }
     /**
@@ -4179,26 +4178,25 @@ export default class whitebit extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const maxLimit = 100;
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, maxLimit);
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit);
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'market': market['id'],
         };
         if (since !== undefined) {
             request['startDate'] = Math.round(since / 1000);
         }
-        [request, params] = this.handleUntilOption('until_timestamp', request, params, 0.001);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('until_timestamp', request, paramsPaginate, 0.001);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            requestUntil['limit'] = limit;
         }
-        const response = await this.v4PublicGetFundingHistoryMarket(this.extend(request, params));
+        const response = await this.v4PublicGetFundingHistoryMarket(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -4214,51 +4212,65 @@ export default class whitebit extends Exchange {
     }
     parseFundingRateHistory(info, market = undefined) {
         const marketId = this.safeString(info, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeTimestamp(info, 'fundingTime');
         return {
             'info': info,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'fundingRate': this.safeNumber(info, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
     }
     nonce() {
-        return this.milliseconds() - this.options['timeDifference'];
+        return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
         const version = this.safeValue(api, 0);
-        const accessibility = this.safeValue(api, 1);
-        if (headers === undefined) {
-            headers = {};
-        }
-        headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
+        const accessibility = this.safeString(api, 1);
+        const publicHeaders = (headers === undefined) ? {} : headers;
+        publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams(path, params);
-        let url = this.urls['api'][version][accessibility] + pathWithParams;
+        const apiUrl = this.safeString(this.urls['api'][version], accessibility);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + pathWithParams;
         if (accessibility === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
+        let privateBody = undefined;
+        let privateHeaders = {};
         if (accessibility === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
+            const nonce = this.incrementingNonce().toString();
             const secret = this.encode(this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
-            const [nonceWindow, requestParams] = this.handleOptionAndParams(params, 'sign', 'nonceWindow', false);
-            body = this.json(this.extend({ 'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow }, requestParams));
-            const payload = this.stringToBase64(body);
+            const [nonceWindow, requestParams] = this.handleOptionBoolAndParams(params, 'sign', 'nonceWindow', false);
+            privateBody = this.json(this.extend({ 'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow }, requestParams));
+            const payload = this.stringToBase64(privateBody);
             const signature = this.hmac(this.encode(payload), secret, sha512);
-            headers = {
+            privateHeaders = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const isPrivate = (accessibility === 'private');
+        let requestBody = body;
+        if (isPrivate) {
+            requestBody = privateBody;
+        }
+        let requestHeaders = publicHeaders;
+        if (isPrivate) {
+            requestHeaders = privateHeaders;
+        }
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
@@ -4271,7 +4283,7 @@ export default class whitebit extends Exchange {
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             const status = this.safeString(response, 'status');
-            const errors = this.safeValue(response, 'errors');
+            const errors = this.safeDict(response, 'errors');
             // {"code":10,"message":"Unauthorized request."}
             const message = this.safeString(response, 'message');
             // For these cases where we have a generic code variable error key

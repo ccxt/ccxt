@@ -28,11 +28,11 @@ public class TestBorrowInterest extends BaseTest {
             put( "timestamp", 1638230400000L );
             put( "datetime", "2021-11-30T00:00:00.000Z" );
         }};
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("account"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("account"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "currency"), requestedCode);
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "account"), requestedSymbol);
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("currency"), requestedCode);
+        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("account"), requestedSymbol);
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "interest", "0");
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "interestRate", "0");
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "amountBorrowed", "0");

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.derive import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -343,8 +343,8 @@ class derive(Exchange, ImplicitAPI):
                     '10010': InvalidOrder,  # PMRM only supports USDC asset collateral. Cannot trade spot markets.
                     '10011': InsufficientFunds,  # ERC20 allowance is insufficient
                     '10012': InsufficientFunds,  # ERC20 balance is less than transfer amount
-                    '10013': ExchangeError,  # There is a pending deposit for self asset
-                    '10014': ExchangeError,  # There is a pending withdrawal for self asset
+                    '10013': ExchangeError,  # There is a pending deposit for this asset
+                    '10014': ExchangeError,  # There is a pending withdrawal for this asset
                     '11000': InsufficientFunds,  # Insufficient funds
                     '11002': InvalidOrder,  # Order rejected from queue
                     '11003': InvalidOrder,  # Already cancelled
@@ -368,14 +368,14 @@ class derive(Exchange, ImplicitAPI):
                     '11021': InvalidOrder,  # Instrument is not live
                     '11022': InvalidOrder,  # Reject timestamp exceeded
                     '11023': InvalidOrder,  # {"code":"11023","message":"Max fee order param is too low","data":"signed max_fee must be >= 194.420835871999983091712000000000000000"}
-                    '11024': InvalidOrder,  # {"code":11024,"message":"Reduce only not supported with self time in force"}
+                    '11024': InvalidOrder,  # {"code":11024,"message":"Reduce only not supported with this time in force"}
                     '11025': InvalidOrder,  # Reduce only reject
                     '11026': BadRequest,  # Transfer reject
                     '11027': InvalidOrder,  # Subaccount undergoing liquidation
                     '11028': InvalidOrder,  # Replaced order filled amount does not match expected state.
                     '11050': InvalidOrder,  # Trigger order was cancelled between the time worker sent order and engine processed order
                     '11051': InvalidOrder,  # {"code":"11051","message":"Trigger price must be higher than the current price for stop orders and vice versa for take orders","data":"Trigger price 9000.0 must be < or > current price 102671.2 depending on trigger type and direction."}
-                    '11052': InvalidOrder,  # Trigger order limit exceeded(separate limit from regular orders)
+                    '11052': InvalidOrder,  # Trigger order limit exceeded (separate limit from regular orders)
                     '11053': InvalidOrder,  # Index and last-trade trigger price types not supported yet
                     '11054': InvalidOrder,  # {"code":"11054","message":"Trigger orders cannot replace or be replaced"}
                     '11055': InvalidOrder,  # Market order limit_price is unfillable at the given trigger price
@@ -401,10 +401,10 @@ class derive(Exchange, ImplicitAPI):
                     '14002': BadRequest,  # Subaccount was withdrawn
                     '14008': BadRequest,  # Cannot reduce expiry using registerSessionKey RPC route
                     '14009': BadRequest,  # Session key expiry must be > utc_now + 10 min
-                    '14010': BadRequest,  # Session key already registered for self account
+                    '14010': BadRequest,  # Session key already registered for this account
                     '14011': BadRequest,  # Session key already registered with another account
                     '14012': BadRequest,  # Address must be checksummed
-                    '14013': BadRequest,  # str is not a valid ethereum address
+                    '14013': BadRequest,  # String is not a valid ethereum address
                     '14014': InvalidOrder,  # {"code":"14014","message":"Signature invalid for message or transaction","data":"Signature does not match data"}
                     '14015': BadRequest,  # Transaction count for given wallet does not match provided nonce
                     '14016': BadRequest,  # The provided signed raw transaction contains function name that does not match the expected function name
@@ -418,7 +418,7 @@ class derive(Exchange, ImplicitAPI):
                     '14024': BadRequest,  # Chain ID must match the current roll up chain id
                     '14025': BadRequest,  # The private request is missing a wallet or subaccount_id param
                     '14026': BadRequest,  # Session key not found
-                    '14027': AuthenticationError,  # Unauthorized maker
+                    '14027': AuthenticationError,  # Unauthorized as RFQ maker
                     '14028': BadRequest,  # Cross currency RFQ not supported
                     '14029': AuthenticationError,  # Session key IP not whitelisted
                     '14030': BadRequest,  # Session key expired
@@ -429,7 +429,7 @@ class derive(Exchange, ImplicitAPI):
                     '16100': AuthenticationError,  # Sentinel authorization is invalid
                     '17000': BadRequest,  # This accoount does not have a shareable invite code
                     '17001': BadRequest,  # Invalid invite code
-                    '17002': BadRequest,  # Invite code already registered for self account
+                    '17002': BadRequest,  # Invite code already registered for this account
                     '17003': BadRequest,  # Invite code has no remaining uses
                     '17004': BadRequest,  # Requirement for successful invite registration not met
                     '17005': BadRequest,  # Account must register with a valid invite code to be elligible for points
@@ -461,7 +461,7 @@ class derive(Exchange, ImplicitAPI):
         super(derive, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -479,7 +479,7 @@ class derive(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'result')
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -566,7 +566,7 @@ class derive(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bybit
 
@@ -588,7 +588,7 @@ class derive(Exchange, ImplicitAPI):
         #                 "instrument_name": "BTC-PERP",
         #                 "scheduled_activation": 1701840228,
         #                 "scheduled_deactivation": 9223372036854776000,
-        #                 "is_active": True,
+        #                 "is_active": true,
         #                 "tick_size": "0.1",
         #                 "minimum_amount": "0.01",
         #                 "maximum_amount": "10000",
@@ -628,7 +628,7 @@ class derive(Exchange, ImplicitAPI):
         result = self.array_concat(result, optionMarkets)
         return result
 
-    async def fetch_spot_markets(self, params: object = {}) -> list[Market]:
+    async def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'erc20',
@@ -638,7 +638,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'instruments', [])
         return self.parse_markets(data)
 
-    async def fetch_swap_markets(self, params: object = {}) -> list[Market]:
+    async def fetch_swap_markets(self, params: dict = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'perp',
@@ -648,7 +648,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'instruments', [])
         return self.parse_markets(data)
 
-    async def fetch_option_markets(self, params: object = {}) -> list[Market]:
+    async def fetch_option_markets(self, params: dict = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'option',
@@ -671,6 +671,8 @@ class derive(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quote_currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         marketId = self.safe_string(market, 'instrument_name')
         symbol = base + '/' + quote
         settleId = None
@@ -762,7 +764,7 @@ class derive(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -788,7 +790,7 @@ class derive(Exchange, ImplicitAPI):
         #         "instrument_name": "BTC-PERP",
         #         "scheduled_activation": 1701840228,
         #         "scheduled_deactivation": 9223372036854776000,
-        #         "is_active": True,
+        #         "is_active": true,
         #         "tick_size": "0.1",
         #         "minimum_amount": "0.01",
         #         "maximum_amount": "10000",
@@ -849,7 +851,7 @@ class derive(Exchange, ImplicitAPI):
         #     "instrument_name": "BTC-PERP",
         #     "scheduled_activation": 1701840228,
         #     "scheduled_deactivation": 9223372036854776000,
-        #     "is_active": True,
+        #     "is_active": true,
         #     "tick_size": "0.1",
         #     "minimum_amount": "0.01",
         #     "maximum_amount": "10000",
@@ -928,7 +930,7 @@ class derive(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -948,17 +950,18 @@ class derive(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-        if limit is not None:
-            if limit > 1000:
-                limit = 1000
-            request['page_size'] = limit  # default 100, max 1000
+        limitResolved = limit
+        if limit is not None and limit > 1000:
+            limitResolved = 1000
+        if limitResolved is not None:
+            request['page_size'] = limitResolved  # default 100, max 1000
         if since is not None:
             request['from_timestamp'] = since
         until = self.safe_integer(params, 'until')
-        params = self.omit(params, ['until'])
+        paramsOmitted = self.omit(params, ['until'])
         if until is not None:
             request['to_timestamp'] = until
-        response = await self.publicPostGetTradeHistory(self.extend(request, params))
+        response = await self.publicPostGetTradeHistory(self.extend(request, paramsOmitted))
         #
         # {
         #     "result": {
@@ -993,9 +996,9 @@ class derive(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'trades', [])
-        return self.parse_trades(data, market, since, limit)
+        return self.parse_trades(data, market, since, limitResolved)
 
-    def parse_trades(self, trades: list, market: Market = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def parse_trades(self, trades: list, market: Market = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         tradesArray = self.to_array(trades)
         result = []
         for i in range(0, len(tradesArray)):
@@ -1033,14 +1036,14 @@ class derive(Exchange, ImplicitAPI):
         #     "tx_status": "settled",
         #     "trade_fee": "1.127415534092999815",
         #     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        #     "label": "test1234",                                      # only fetchMyTrades
-        #     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       # only fetchMyTrades
-        #     "is_transfer": False,                                     # only fetchMyTrades
-        #     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb",  # only fetchMyTrades
-        #     "rfq_id": null,                                           # only fetchTrades
-        #     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   # only fetchTrades
-        #     "expected_rebate": "0",                                   # only fetchTrades
-        #     "extra_fee": "0",                                         # only fetchTrades
+        #     "label": "test1234",                                      // only fetchMyTrades
+        #     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        #     "is_transfer": false,                                     // only fetchMyTrades
+        #     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        #     "rfq_id": null,                                           // only fetchTrades
+        #     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        #     "expected_rebate": "0",                                   // only fetchTrades
+        #     "extra_fee": "0",                                         // only fetchTrades
         # }
         #
         marketId = self.safe_string(trade, 'instrument_name')
@@ -1066,7 +1069,7 @@ class derive(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1087,10 +1090,10 @@ class derive(Exchange, ImplicitAPI):
         if since is not None:
             request['start_timestamp'] = since
         until = self.safe_integer(params, 'until')
-        params = self.omit(params, ['until'])
+        paramsOmitted = self.omit(params, ['until'])
         if until is not None:
             request['to_timestamp'] = until
-        response = await self.publicPostGetFundingRateHistory(self.extend(request, params))
+        response = await self.publicPostGetFundingRateHistory(self.extend(request, paramsOmitted))
         #
         # {
         #     "result": {
@@ -1118,9 +1121,9 @@ class derive(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -1177,12 +1180,14 @@ class derive(Exchange, ImplicitAPI):
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), 'keccak', 'binary')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' if (sandboxMode is True) else 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b'
+        DOMAIN_SEPARATOR = 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b'
+        if sandboxMode is True:
+            DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105'
         binaryDomainSeparator = self.base16_to_binary(DOMAIN_SEPARATOR)
         prefix = self.base16_to_binary('1901')
         return self.hash(self.binary_concat(prefix, binaryDomainSeparator, accountHash), 'keccak', 'hex')
 
-    def sign_order(self, order: object, privateKey: object):
+    def sign_order(self, order: object, privateKey: str) -> str:
         hashOrder = self.hash_order_message(order)
         return self.sign_hash(hashOrder[-64:], privateKey[-64:])
 
@@ -1194,7 +1199,7 @@ class derive(Exchange, ImplicitAPI):
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object):
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -1202,13 +1207,13 @@ class derive(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message: object, privateKey: object):
+    def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    def parse_units(self, num: str, dec='1000000000000000000'):
+    def parse_units(self, num: str, dec: str = '1000000000000000000') -> Str:
         return Precise.string_mul(num, dec)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
         """
         create a trade order
 
@@ -1234,24 +1239,26 @@ class derive(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if price is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument')
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('createOrder', params)
-        test = self.safe_bool(params, 'test', False)
-        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
-        timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
-        postOnly = self.safe_bool(params, 'postOnly')
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('createOrder', params)
+        test = self.safe_bool(paramsDeriveSubaccountId, 'test', False)
+        reduceOnly = self.safe_bool_2(paramsDeriveSubaccountId, 'reduceOnly', 'reduce_only')
+        timeInForce = self.safe_string_lower_2(paramsDeriveSubaccountId, 'timeInForce', 'time_in_force')
+        postOnly = self.safe_bool(paramsDeriveSubaccountId, 'postOnly')
         orderType = type.lower()
         orderSide = side.lower()
-        orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `==` bool inside a list literal(ethAbiEncode args)
-        nonce = self.milliseconds()
+        orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        nonce = self.incrementing_nonce()
         # Order signature expiry must be between 2592000 and 7776000 sec from now
-        signatureExpiry = self.safe_integer(params, 'signature_expiry_sec', self.seconds() + 7776000)
+        signatureExpiry = self.safe_integer(paramsDeriveSubaccountId, 'signature_expiry_sec', self.seconds() + 7776000)
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        if sandboxMode is True:
+            TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be'
         priceString = self.number_to_string(price)
         maxFee = None
-        maxFee, params = self.handle_option_and_params(params, 'createOrder', 'max_fee')
+        paramsMaxFee = {}
+        maxFee, paramsMaxFee = self.handle_option_and_params(paramsDeriveSubaccountId, 'createOrder', 'max_fee')
         if maxFee is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a max_fee argument in params')
         maxFeeString = self.number_to_string(maxFee)
@@ -1267,8 +1274,7 @@ class derive(Exchange, ImplicitAPI):
             subaccountId,
             orderSideIsBuy,
         ]), 'keccak', 'binary')
-        deriveWalletAddress = None
-        deriveWalletAddress, params = self.handle_derive_wallet_address('createOrder', params)
+        deriveWalletAddress, paramsDeriveWalletAddress = self.handle_derive_wallet_address('createOrder', paramsMaxFee)
         signature = self.sign_order([
             ACTION_TYPEHASH,
             subaccountId,
@@ -1300,9 +1306,9 @@ class derive(Exchange, ImplicitAPI):
             request['time_in_force'] = 'post_only'
         elif timeInForce is not None:
             request['time_in_force'] = timeInForce
-        stopLoss = self.safe_value(params, 'stopLoss')
-        takeProfit = self.safe_value(params, 'takeProfit')
-        triggerPriceType = self.safe_string(params, 'trigger_price_type', 'mark')
+        stopLoss = self.safe_value(paramsDeriveWalletAddress, 'stopLoss')
+        takeProfit = self.safe_value(paramsDeriveWalletAddress, 'takeProfit')
+        triggerPriceType = self.safe_string(paramsDeriveWalletAddress, 'trigger_price_type', 'mark')
         if stopLoss is not None:
             stopLossPrice = self.safe_string(stopLoss, 'triggerPrice', stopLoss)
             request['trigger_price'] = stopLossPrice
@@ -1313,16 +1319,16 @@ class derive(Exchange, ImplicitAPI):
             request['trigger_price'] = takeProfitPrice
             request['trigger_type'] = 'takeprofit'
             request['trigger_price_type'] = triggerPriceType
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        clientOrderId = self.safe_string(paramsDeriveWalletAddress, 'clientOrderId')
         if clientOrderId is not None:
             request['label'] = clientOrderId
         request['signature'] = signature
-        params = self.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type'])
+        paramsOmitted = self.omit(paramsDeriveWalletAddress, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type'])
         response: dict
         if test is True:
-            response = await self.privatePostOrderDebug(self.extend(request, params))
+            response = await self.privatePostOrderDebug(self.extend(request, paramsOmitted))
         else:
-            response = await self.privatePostOrder(self.extend(request, params))
+            response = await self.privatePostOrder(self.extend(request, paramsOmitted))
         #
         # {
         #     "result": {
@@ -1341,7 +1347,7 @@ class derive(Exchange, ImplicitAPI):
         #                 "desired_amount": "0.001",
         #                 "worst_fee": "0",
         #                 "recipient_id": 130837,
-        #                 "is_bid": True,
+        #                 "is_bid": true,
         #                 "trade_id": ""
         #             }
         #         },
@@ -1377,8 +1383,8 @@ class derive(Exchange, ImplicitAPI):
         #             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
         #             "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
         #             "cancel_reason": "",
-        #             "mmp": False,
-        #             "is_transfer": False,
+        #             "mmp": false,
+        #             "is_transfer": false,
         #             "replaced_order_id": null,
         #             "trigger_type": null,
         #             "trigger_price_type": null,
@@ -1398,7 +1404,7 @@ class derive(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}):
         """
         edit a trade order
 
@@ -1417,22 +1423,23 @@ class derive(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('editOrder', params)
-        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
-        timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
-        postOnly = self.safe_bool(params, 'postOnly')
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('editOrder', params)
+        reduceOnly = self.safe_bool_2(paramsDeriveSubaccountId, 'reduceOnly', 'reduce_only')
+        timeInForce = self.safe_string_lower_2(paramsDeriveSubaccountId, 'timeInForce', 'time_in_force')
+        postOnly = self.safe_bool(paramsDeriveSubaccountId, 'postOnly')
         orderType = type.lower()
         orderSide = side.lower()
-        orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `==` bool inside a list literal(ethAbiEncode args)
-        nonce = self.milliseconds()
-        signatureExpiry = self.safe_number(params, 'signature_expiry_sec', self.seconds() + 7776000)
+        orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        nonce = self.incrementing_nonce()
+        signatureExpiry = self.safe_number(paramsDeriveSubaccountId, 'signature_expiry_sec', self.seconds() + 7776000)
         # TODO: subaccount id / trade module address
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        if sandboxMode is True:
+            TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be'
         priceString = self.number_to_string(price)
-        maxFeeString = self.safe_string(params, 'max_fee', '0')
+        maxFeeString = self.safe_string(paramsDeriveSubaccountId, 'max_fee', '0')
         amountString = self.number_to_string(amount)
         tradeModuleDataHash = self.hash(self.eth_abi_encode([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
@@ -1445,8 +1452,7 @@ class derive(Exchange, ImplicitAPI):
             subaccountId,
             orderSideIsBuy,
         ]), 'keccak', 'binary')
-        deriveWalletAddress = None
-        deriveWalletAddress, params = self.handle_derive_wallet_address('editOrder', params)
+        deriveWalletAddress, paramsDeriveWalletAddress = self.handle_derive_wallet_address('editOrder', paramsDeriveSubaccountId)
         signature = self.sign_order([
             ACTION_TYPEHASH,
             subaccountId,
@@ -1478,12 +1484,12 @@ class derive(Exchange, ImplicitAPI):
             request['time_in_force'] = 'post_only'
         elif timeInForce is not None:
             request['time_in_force'] = timeInForce
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        clientOrderId = self.safe_string(paramsDeriveWalletAddress, 'clientOrderId')
         if clientOrderId is not None:
             request['label'] = clientOrderId
         request['signature'] = signature
-        params = self.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId'])
-        response = await self.privatePostReplace(self.extend(request, params))
+        paramsOmitted = self.omit(paramsDeriveWalletAddress, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId'])
+        response = await self.privatePostReplace(self.extend(request, paramsOmitted))
         #
         #   {
         #     "result":
@@ -1512,8 +1518,8 @@ class derive(Exchange, ImplicitAPI):
         #             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
         #             "signature": "0xdb669e18f407a3efa816b79c0dd3bac1c651d4dbf3caad4db67678ce9b81c76378d787a08143a30707eb0827ce4626640767c9f174358df1b90611bd6d1391711b",
         #             "cancel_reason": "user_request",
-        #             "mmp": False,
-        #             "is_transfer": False,
+        #             "mmp": false,
+        #             "is_transfer": false,
         #             "replaced_order_id": null,
         #             "trigger_type": null,
         #             "trigger_price_type": null,
@@ -1544,8 +1550,8 @@ class derive(Exchange, ImplicitAPI):
         #             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
         #             "signature": "0xef2c459ab4797cbbd7d97b47678ff172542af009bac912bf53e7879cf92eb1aa6b1a6cf40bf0928684f5394942fb424cc2db71eac0eaf7226a72480034332f291c",
         #             "cancel_reason": "",
-        #             "mmp": False,
-        #             "is_transfer": False,
+        #             "mmp": false,
+        #             "is_transfer": false,
         #             "replaced_order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
         #             "trigger_type": null,
         #             "trigger_price_type": null,
@@ -1563,7 +1569,7 @@ class derive(Exchange, ImplicitAPI):
         order = self.parse_order(rawOrder, market)
         return order
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://docs.derive.xyz/reference/post_private-cancel
@@ -1582,27 +1588,26 @@ class derive(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('cancelOrder', params)
-        params = self.omit(params, ['trigger', 'stop'])
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('cancelOrder', params)
+        paramsOmitted = self.omit(paramsDeriveSubaccountId, ['trigger', 'stop'])
         request = {
             'instrument_name': market['id'],
             'subaccount_id': subaccountId,
         }
-        clientOrderIdUnified = self.safe_string(params, 'clientOrderId')
-        clientOrderIdExchangeSpecific = self.safe_string(params, 'label', clientOrderIdUnified)
+        clientOrderIdUnified = self.safe_string(paramsOmitted, 'clientOrderId')
+        clientOrderIdExchangeSpecific = self.safe_string(paramsOmitted, 'label', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response: dict
         if isByClientOrder:
             request['label'] = clientOrderIdExchangeSpecific
-            params = self.omit(params, ['clientOrderId', 'label'])
-            response = await self.privatePostCancelByLabel(self.extend(request, params))
+            paramsLabel = self.omit(paramsOmitted, ['clientOrderId', 'label'])
+            response = await self.privatePostCancelByLabel(self.extend(request, paramsLabel))
         else:
             request['order_id'] = id
             if isTrigger is True:
-                response = await self.privatePostCancelTriggerOrder(self.extend(request, params))
+                response = await self.privatePostCancelTriggerOrder(self.extend(request, paramsOmitted))
             else:
-                response = await self.privatePostCancel(self.extend(request, params))
+                response = await self.privatePostCancel(self.extend(request, paramsOmitted))
         #
         # {
         #     "result": {
@@ -1628,8 +1633,8 @@ class derive(Exchange, ImplicitAPI):
         #         "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
         #         "signature": "0x9cd1a6e32a0699929e4e090c08c548366b1353701ec56e02d5cdf37fc89bd19b7b29e00e57e8383bb6336d73019027a7e2a4364f40859e7a949115024c7f199a1b",
         #         "cancel_reason": "user_request",
-        #         "mmp": False,
-        #         "is_transfer": False,
+        #         "mmp": false,
+        #         "is_transfer": false,
         #         "replaced_order_id": "4ccc89ba-3c3d-4047-8900-0aa5fb4ef706",
         #         "trigger_type": null,
         #         "trigger_price_type": null,
@@ -1652,7 +1657,7 @@ class derive(Exchange, ImplicitAPI):
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific
         return self.extend(self.parse_order(order, market), extendParams)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
 
         https://docs.derive.xyz/reference/post_private-cancel-by-instrument
@@ -1669,17 +1674,16 @@ class derive(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('cancelAllOrders', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('cancelAllOrders', params)
         request = {
             'subaccount_id': subaccountId,
         }
         response: dict
         if market is not None:
             request['instrument_name'] = market['id']
-            response = await self.privatePostCancelByInstrument(self.extend(request, params))
+            response = await self.privatePostCancelByInstrument(self.extend(request, paramsDeriveSubaccountId))
         else:
-            response = await self.privatePostCancelAll(self.extend(request, params))
+            response = await self.privatePostCancelAll(self.extend(request, paramsDeriveSubaccountId))
         #
         # {
         #     "result": {
@@ -1695,7 +1699,7 @@ class derive(Exchange, ImplicitAPI):
         #
         return [self.safe_order({'info': response})]
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1712,14 +1716,12 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
-        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-        params = self.omit(params, ['trigger', 'stop'])
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchOrders', params)
+            return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, paramsPaginate, 'page', 500)
+        isTrigger = self.safe_bool_2(paramsPaginate, 'trigger', 'stop', False)
+        paramsOmitted = self.omit(paramsPaginate, ['trigger', 'stop'])
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchOrders', paramsOmitted)
         request = {
             'subaccount_id': subaccountId,
         }
@@ -1733,7 +1735,7 @@ class derive(Exchange, ImplicitAPI):
             request['page_size'] = 500
         if isTrigger is True:
             request['status'] = 'untriggered'
-        response = await self.privatePostGetOrders(self.extend(request, params))
+        response = await self.privatePostGetOrders(self.extend(request, paramsDeriveSubaccountId))
         #
         # {
         #     "result": {
@@ -1762,8 +1764,8 @@ class derive(Exchange, ImplicitAPI):
         #                 "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
         #                 "signature": "0x35535ccb1bcad509ecc435c79e966174db6403fc9aeee1e237d08a941014c57b59279dfe4be39e081f9921a53eaad59cb2a151d9f52f2d05fc47e6280254952e1c",
         #                 "cancel_reason": "",
-        #                 "mmp": False,
-        #                 "is_transfer": False,
+        #                 "mmp": false,
+        #                 "is_transfer": false,
         #                 "replaced_order_id": null,
         #                 "trigger_type": null,
         #                 "trigger_price_type": null,
@@ -1779,8 +1781,8 @@ class derive(Exchange, ImplicitAPI):
         #     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
         # }
         #
-        data = self.safe_value(response, 'result')
-        page = self.safe_integer(params, 'page')
+        data = self.safe_dict(response, 'result')
+        page = self.safe_integer(paramsDeriveSubaccountId, 'page')
         if page is not None:
             pagination = self.safe_dict(data, 'pagination')
             currentPage = self.safe_integer(pagination, 'num_pages', 0)
@@ -1789,7 +1791,7 @@ class derive(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1807,7 +1809,7 @@ class derive(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'open'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1825,7 +1827,7 @@ class derive(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'filled'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -1881,7 +1883,7 @@ class derive(Exchange, ImplicitAPI):
         #         "desired_amount": "0.001",
         #         "worst_fee": "0",
         #         "recipient_id": 130837,
-        #         "is_bid": True,
+        #         "is_bid": true,
         #         "trade_id": ""
         #     }
         # }
@@ -1908,8 +1910,8 @@ class derive(Exchange, ImplicitAPI):
         #     "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
         #     "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
         #     "cancel_reason": "",
-        #     "mmp": False,
-        #     "is_transfer": False,
+        #     "mmp": false,
+        #     "is_transfer": false,
         #     "replaced_order_id": null,
         #     "trigger_type": null,
         #     "trigger_price_type": null,
@@ -1922,9 +1924,8 @@ class derive(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(rawOrder, 'creation_timestamp', 'nonce')
         orderId = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'instrument_name')
-        if marketId is not None:
-            market = self.safe_market(marketId, market)
-        symbol = self.safe_string(market, 'symbol')
+        marketResolved = self.safe_market(marketId, market) if (marketId is not None) else market
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string(order, 'limit_price')
         average = self.safe_string(order, 'average_price')
         amount = self.safe_string(order, 'desired_amount')
@@ -1980,9 +1981,9 @@ class derive(Exchange, ImplicitAPI):
                 'currency': 'USDC',
             },
             'info': order,
-        }, market)
+        }, marketResolved)
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -1998,8 +1999,7 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchOrderTrades', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchOrderTrades', params)
         request = {
             'order_id': id,
             'subaccount_id': subaccountId,
@@ -2012,7 +2012,7 @@ class derive(Exchange, ImplicitAPI):
             request['page_size'] = limit
         if since is not None:
             request['from_timestamp'] = since
-        response = await self.privatePostGetTradeHistory(self.extend(request, params))
+        response = await self.privatePostGetTradeHistory(self.extend(request, paramsDeriveSubaccountId))
         #
         # {
         #     "result": {
@@ -2034,7 +2034,7 @@ class derive(Exchange, ImplicitAPI):
         #                 "liquidity_role": "taker",
         #                 "realized_pnl": "0",
         #                 "realized_pnl_excl_fees": "0",
-        #                 "is_transfer": False,
+        #                 "is_transfer": false,
         #                 "tx_status": "settled",
         #                 "trade_fee": "1.127415534092999815",
         #                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
@@ -2051,9 +2051,9 @@ class derive(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'trades', [])
-        return self.parse_trades(trades, market, since, limit, params)
+        return self.parse_trades(trades, market, since, limit, paramsDeriveSubaccountId)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2069,12 +2069,10 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, 'page', 500)
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchMyTrades', params)
+            return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, paramsPaginate, 'page', 500)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchMyTrades', paramsPaginate)
         request = {
             'subaccount_id': subaccountId,
         }
@@ -2086,7 +2084,7 @@ class derive(Exchange, ImplicitAPI):
             request['page_size'] = limit
         if since is not None:
             request['from_timestamp'] = since
-        response = await self.privatePostGetTradeHistory(self.extend(request, params))
+        response = await self.privatePostGetTradeHistory(self.extend(request, paramsDeriveSubaccountId))
         #
         # {
         #     "result": {
@@ -2108,7 +2106,7 @@ class derive(Exchange, ImplicitAPI):
         #                 "liquidity_role": "taker",
         #                 "realized_pnl": "0",
         #                 "realized_pnl_excl_fees": "0",
-        #                 "is_transfer": False,
+        #                 "is_transfer": false,
         #                 "tx_status": "settled",
         #                 "trade_fee": "1.127415534092999815",
         #                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
@@ -2124,16 +2122,16 @@ class derive(Exchange, ImplicitAPI):
         # }
         #
         result = self.safe_dict(response, 'result', {})
-        page = self.safe_integer(params, 'page')
+        page = self.safe_integer(paramsDeriveSubaccountId, 'page')
         if page is not None:
             pagination = self.safe_dict(result, 'pagination')
             currentPage = self.safe_integer(pagination, 'num_pages', 0)
             if page > currentPage:
                 return []
         trades = self.safe_list(result, 'trades', [])
-        return self.parse_trades(trades, market, since, limit, params)
+        return self.parse_trades(trades, market, since, limit, paramsDeriveSubaccountId)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2146,13 +2144,12 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchPositions', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchPositions', params)
         request = {
             'subaccount_id': subaccountId,
         }
-        params = self.omit(params, ['subaccount_id'])
-        response = await self.privatePostGetPositions(self.extend(request, params))
+        paramsOmitted = self.omit(paramsDeriveSubaccountId, ['subaccount_id'])
+        response = await self.privatePostGetPositions(self.extend(request, paramsOmitted))
         #
         # {
         #     "result": {
@@ -2195,7 +2192,7 @@ class derive(Exchange, ImplicitAPI):
         positions = self.safe_list(result, 'positions', [])
         return self.parse_positions(positions, symbols)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # {
         #     "instrument_type": "perp",
@@ -2227,14 +2224,14 @@ class derive(Exchange, ImplicitAPI):
         # }
         #
         contract = self.safe_string(position, 'instrument_name')
-        market = self.safe_market(contract, market)
+        marketResolved = self.safe_market(contract, market)
         size = self.safe_string(position, 'amount')
         side = None
         if Precise.string_gt(size, '0'):
             side = 'long'
         else:
             side = 'short'
-        contractSize = self.safe_string(market, 'contractSize')
+        contractSize = self.safe_string(marketResolved, 'contractSize')
         markPrice = self.safe_string(position, 'mark_price')
         timestamp = self.safe_integer(position, 'creation_timestamp')
         unrealisedPnl = self.safe_string(position, 'unrealized_pnl')
@@ -2243,7 +2240,7 @@ class derive(Exchange, ImplicitAPI):
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': self.safe_string(marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastUpdateTimestamp': None,
@@ -2270,7 +2267,7 @@ class derive(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -2285,12 +2282,10 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500)
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchFundingHistory', params)
+            return await self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'page', 500)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchFundingHistory', paramsPaginate)
         request = {
             'subaccount_id': subaccountId,
         }
@@ -2302,7 +2297,7 @@ class derive(Exchange, ImplicitAPI):
             request['start_timestamp'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = await self.privatePostGetFundingHistory(self.extend(request, params))
+        response = await self.privatePostGetFundingHistory(self.extend(request, paramsDeriveSubaccountId))
         #
         # {
         #     "result": {
@@ -2335,7 +2330,7 @@ class derive(Exchange, ImplicitAPI):
         # }
         #
         result = self.safe_dict(response, 'result', {})
-        page = self.safe_integer(params, 'page')
+        page = self.safe_integer(paramsDeriveSubaccountId, 'page')
         if page is not None:
             pagination = self.safe_dict(result, 'pagination')
             currentPage = self.safe_integer(pagination, 'num_pages', 0)
@@ -2344,7 +2339,7 @@ class derive(Exchange, ImplicitAPI):
         events = self.safe_list(result, 'events', [])
         return self.parse_incomes(events, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None):
+    def parse_income(self, income: dict, market: Market = None) -> dict:
         #
         # {
         #     "instrument_name": "BTC-PERP",
@@ -2369,7 +2364,7 @@ class derive(Exchange, ImplicitAPI):
             'rate': rate,
         }
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -2380,12 +2375,11 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        deriveWalletAddress = None
-        deriveWalletAddress, params = self.handle_derive_wallet_address('fetchBalance', params)
+        deriveWalletAddress, paramsDeriveWalletAddress = self.handle_derive_wallet_address('fetchBalance', params)
         request = {
             'wallet': deriveWalletAddress,
         }
-        response = await self.privatePostGetAllPortfolios(self.extend(request, params))
+        response = await self.privatePostGetAllPortfolios(self.extend(request, paramsDeriveWalletAddress))
         #
         # {
         #     "result": [{
@@ -2393,7 +2387,7 @@ class derive(Exchange, ImplicitAPI):
         #             "label": "",
         #             "currency": "all",
         #             "margin_type": "SM",
-        #             "is_under_liquidation": False,
+        #             "is_under_liquidation": false,
         #             "positions_value": "0",
         #             "collaterals_value": "318.0760325000001103035174310207366943359375",
         #             "subaccount_value": "318.0760325000001103035174310207366943359375",
@@ -2442,10 +2436,10 @@ class derive(Exchange, ImplicitAPI):
             'info': response,
         }
         for i in range(0, len(response)):
-            subaccount = response[i]
+            subaccount = self.safe_dict(response, i)
             collaterals = self.safe_list(subaccount, 'collaterals', [])
             for j in range(0, len(collaterals)):
-                balance = collaterals[j]
+                balance = self.safe_dict(collaterals, j)
                 code = self.safe_currency_code(self.safe_string(balance, 'currency'))
                 account = self.safe_dict(result, code)
                 if account is None:
@@ -2458,7 +2452,7 @@ class derive(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2473,14 +2467,13 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchDeposits', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchDeposits', params)
         request = {
             'subaccount_id': subaccountId,
         }
         if since is not None:
             request['start_timestamp'] = since
-        response = await self.privatePostGetDepositHistory(self.extend(request, params))
+        response = await self.privatePostGetDepositHistory(self.extend(request, paramsDeriveSubaccountId))
         #
         # {
         #     "result": {
@@ -2502,9 +2495,9 @@ class derive(Exchange, ImplicitAPI):
         currency = self.safe_currency(code)
         result = self.safe_dict(response, 'result', {})
         events = self.safe_list(result, 'events', [])
-        return self.parse_transactions(events, currency, since, limit, params)
+        return self.parse_transactions(events, currency, since, limit, paramsDeriveSubaccountId)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2519,14 +2512,13 @@ class derive(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        subaccountId = None
-        subaccountId, params = self.handle_derive_subaccount_id('fetchWithdrawals', params)
+        subaccountId, paramsDeriveSubaccountId = self.handle_derive_subaccount_id('fetchWithdrawals', params)
         request = {
             'subaccount_id': subaccountId,
         }
         if since is not None:
             request['start_timestamp'] = since
-        response = await self.privatePostGetWithdrawalHistory(self.extend(request, params))
+        response = await self.privatePostGetWithdrawalHistory(self.extend(request, paramsDeriveSubaccountId))
         #
         # {
         #     "result": {
@@ -2548,7 +2540,7 @@ class derive(Exchange, ImplicitAPI):
         currency = self.safe_currency(code)
         result = self.safe_dict(response, 'result', {})
         events = self.safe_list(result, 'events', [])
-        return self.parse_transactions(events, currency, since, limit, params)
+        return self.parse_transactions(events, currency, since, limit, paramsDeriveSubaccountId)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -2598,25 +2590,23 @@ class derive(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def handle_derive_subaccount_id(self, methodName: str, params: dict) -> list:
-        derivesubAccountId = None
-        derivesubAccountId, params = self.handle_option_and_params(params, methodName, 'subaccount_id')
+        derivesubAccountId, paramsSubaccountId = self.handle_option_and_params(params, methodName, 'subaccount_id')
         if (derivesubAccountId is not None) and (derivesubAccountId != ''):
             self.options['subaccount_id'] = derivesubAccountId  # saving in options
-            return [derivesubAccountId, params]
+            return [derivesubAccountId, paramsSubaccountId]
         optionsWallet = self.safe_string(self.options, 'subaccount_id')
         if optionsWallet is not None:
-            return [optionsWallet, params]
+            return [optionsWallet, paramsSubaccountId]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.')
 
-    def handle_derive_wallet_address(self, methodName: str, params: dict):
-        deriveWalletAddress = None
-        deriveWalletAddress, params = self.handle_option_and_params(params, methodName, 'deriveWalletAddress')
+    def handle_derive_wallet_address(self, methodName: str, params: dict) -> list:
+        deriveWalletAddress, paramsDeriveWalletAddress = self.handle_option_string_and_params(params, methodName, 'deriveWalletAddress')
         if (deriveWalletAddress is not None) and (deriveWalletAddress != ''):
             self.options['deriveWalletAddress'] = deriveWalletAddress  # saving in options
-            return [deriveWalletAddress, params]
+            return [deriveWalletAddress, paramsDeriveWalletAddress]
         optionsWallet = self.safe_string(self.options, 'deriveWalletAddress')
         if optionsWallet is not None:
-            return [optionsWallet, params]
+            return [optionsWallet, paramsDeriveWalletAddress]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.')
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
@@ -2631,17 +2621,26 @@ class derive(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
-        url = self.urls['api'][api] + '/' + path
+    def nonce(self) -> float:
+        # the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
+        # incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
+        return self.milliseconds()
+
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + path
         if method == 'POST':
-            headers = {
+            postHeaders = {
                 'Content-Type': 'application/json',
             }
             if api == 'private':
                 now = str(self.milliseconds())
                 signature = self.sign_message(now, self.privateKey)
-                headers['X-LyraWallet'] = self.safe_string(self.options, 'deriveWalletAddress')
-                headers['X-LyraTimestamp'] = now
-                headers['X-LyraSignature'] = signature
-            body = self.json(params)
+                postHeaders['X-LyraWallet'] = self.safe_string(self.options, 'deriveWalletAddress')
+                postHeaders['X-LyraTimestamp'] = now
+                postHeaders['X-LyraSignature'] = signature
+            postBody = self.json(params)
+            return {'url': url, 'method': method, 'body': postBody, 'headers': postHeaders}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

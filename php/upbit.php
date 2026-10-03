@@ -102,7 +102,7 @@ class upbit extends Exchange {
                 // cost = 1000 / (rateLimit * RPS)
                 'public' => array(
                     'get' => array(
-                        'market/all' => array( 'cost' => 2 ), // RPS => 10
+                        'market/all' => array( 'cost' => 2 ), // RPS: 10
                         'candles/{timeframe}' => array( 'cost' => 2 ),
                         'candles/{timeframe}/{unit}' => array( 'cost' => 2 ),
                         'candles/seconds' => array( 'cost' => 2 ),
@@ -128,7 +128,7 @@ class upbit extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts' => array( 'cost' => 0.67 ), // RPS => 30
+                        'accounts' => array( 'cost' => 0.67 ), // RPS: 30
                         'orders/chance' => array( 'cost' => 0.67 ),
                         'order' => array( 'cost' => 0.67 ),
                         'orders/closed' => array( 'cost' => 0.67 ),
@@ -153,21 +153,21 @@ class upbit extends Exchange {
                         'pockets/transfers' => array( 'cost' => 0.67 ),
                     ),
                     'post' => array(
-                        'orders' => array( 'cost' => 2.5 ), // RPS => 8
-                        'orders/test' => array( 'cost' => 2.5 ), // RPS => 8
-                        'orders/cancel_and_new' => array( 'cost' => 2.5 ), // RPS => 8
+                        'orders' => array( 'cost' => 2.5 ), // RPS: 8
+                        'orders/test' => array( 'cost' => 2.5 ), // RPS: 8
+                        'orders/cancel_and_new' => array( 'cost' => 2.5 ), // RPS: 8
                         'withdraws/coin' => array( 'cost' => 0.67 ),
                         'withdraws/krw' => array( 'cost' => 0.67 ), // Upbit KR only.
                         'deposits/krw' => array( 'cost' => 0.67 ), // Upbit KR only.
                         'deposits/generate_coin_address' => array( 'cost' => 0.67 ),
-                        'travel_rule/deposit/uuid' => array( 'cost' => 0.67 ), // RPS => 30, but each deposit can only be queried once every 10 minutes
-                        'travel_rule/deposit/txid' => array( 'cost' => 0.67 ), // RPS => 30, but each deposit can only be queried once every 10 minutes
+                        'travel_rule/deposit/uuid' => array( 'cost' => 0.67 ), // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'travel_rule/deposit/txid' => array( 'cost' => 0.67 ), // RPS: 30, but each deposit can only be queried once every 10 minutes
                         'pockets/universal_transfers' => array( 'cost' => 0.67 ),
                         'pockets/transfers' => array( 'cost' => 0.67 ),
                     ),
                     'delete' => array(
                         'order' => array( 'cost' => 0.67 ),
-                        'orders/open' => array( 'cost' => 40 ), // RPS => 0.5
+                        'orders/open' => array( 'cost' => 40 ), // RPS: 0.5
                         'orders/uuids' => array( 'cost' => 0.67 ),
                         'withdraws/coin' => array( 'cost' => 0.67 ),
                     ),
@@ -283,8 +283,8 @@ class upbit extends Exchange {
         ));
     }
 
-    public function fetch_currency(string $code, $params = array()) {
-        // this method is for retrieving funding fees and limits per $currency
+    public function fetch_currency(string $code, $params = array()): array {
+        // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
         if ($this->markets === null) {
             $this->load_markets();
@@ -293,7 +293,7 @@ class upbit extends Exchange {
         return $this->fetch_currency_by_id($currency['id'], $params);
     }
 
-    public function fetch_currency_by_id(string $id, $params = array()) {
+    public function fetch_currency_by_id(string $id, $params = array()): array {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
         $request = array(
@@ -302,49 +302,49 @@ class upbit extends Exchange {
         $response = $this->privateGetWithdrawsChance($this->extend($request, $params));
         //
         //     {
-        //         "member_level" => array(
-        //             "security_level" => 3,
-        //             "fee_level" => 0,
-        //             "email_verified" => true,
-        //             "identity_auth_verified" => true,
-        //             "bank_account_verified" => true,
-        //             "kakao_pay_auth_verified" => false,
-        //             "locked" => false,
-        //             "wallet_locked" => false
-        //         ),
-        //         "currency" => array(
-        //             "code" => "BTC",
-        //             "withdraw_fee" => "0.0005",
-        //             "is_coin" => true,
-        //             "wallet_state" => "working",
-        //             "wallet_support" => array( "deposit", "withdraw" )
-        //         ),
-        //         "account" => array(
-        //             "currency" => "BTC",
-        //             "balance" => "10.0",
-        //             "locked" => "0.0",
-        //             "avg_krw_buy_price" => "8042000",
-        //             "modified" => false
-        //         ),
-        //         "withdraw_limit" => {
-        //             "currency" => "BTC",
-        //             "minimum" => null,
-        //             "onetime" => null,
-        //             "daily" => "10.0",
-        //             "remaining_daily" => "10.0",
-        //             "remaining_daily_krw" => "0.0",
-        //             "fixed" => null,
-        //             "can_withdraw" => true
+        //         "member_level": {
+        //             "security_level": 3,
+        //             "fee_level": 0,
+        //             "email_verified": true,
+        //             "identity_auth_verified": true,
+        //             "bank_account_verified": true,
+        //             "kakao_pay_auth_verified": false,
+        //             "locked": false,
+        //             "wallet_locked": false
+        //         },
+        //         "currency": {
+        //             "code": "BTC",
+        //             "withdraw_fee": "0.0005",
+        //             "is_coin": true,
+        //             "wallet_state": "working",
+        //             "wallet_support": [ "deposit", "withdraw" ]
+        //         },
+        //         "account": {
+        //             "currency": "BTC",
+        //             "balance": "10.0",
+        //             "locked": "0.0",
+        //             "avg_krw_buy_price": "8042000",
+        //             "modified": false
+        //         },
+        //         "withdraw_limit": {
+        //             "currency": "BTC",
+        //             "minimum": null,
+        //             "onetime": null,
+        //             "daily": "10.0",
+        //             "remaining_daily": "10.0",
+        //             "remaining_daily_krw": "0.0",
+        //             "fixed": null,
+        //             "can_withdraw": true
         //         }
         //     }
         //
-        $memberInfo = $this->safe_value($response, 'member_level', array());
-        $currencyInfo = $this->safe_value($response, 'currency', array());
-        $withdrawLimits = $this->safe_value($response, 'withdraw_limit', array());
-        $canWithdraw = $this->safe_value($withdrawLimits, 'can_withdraw');
+        $memberInfo = $this->safe_dict($response, 'member_level', array());
+        $currencyInfo = $this->safe_dict($response, 'currency', array());
+        $withdrawLimits = $this->safe_dict($response, 'withdraw_limit', array());
+        $canWithdraw = $this->safe_bool($withdrawLimits, 'can_withdraw');
         $walletState = $this->safe_string($currencyInfo, 'wallet_state');
-        $walletLocked = $this->safe_value($memberInfo, 'wallet_locked');
-        $locked = $this->safe_value($memberInfo, 'locked');
+        $walletLocked = $this->safe_bool($memberInfo, 'wallet_locked');
+        $locked = $this->safe_bool($memberInfo, 'locked');
         $active = true;
         if (($canWithdraw !== null) && ($canWithdraw !== true)) {
             $active = false;
@@ -383,8 +383,8 @@ class upbit extends Exchange {
         );
     }
 
-    public function fetch_market(string $symbol, $params = array()) {
-        // this method is for retrieving trading fees and limits per $market
+    public function fetch_market(string $symbol, $params = array()): array {
+        // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         if ($this->markets === null) {
             $this->load_markets();
@@ -393,7 +393,7 @@ class upbit extends Exchange {
         return $this->fetch_market_by_id($market['id'], $params);
     }
 
-    public function fetch_market_by_id(?string $id, $params = array()) {
+    public function fetch_market_by_id(?string $id, $params = array()): array {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         $request = array(
@@ -402,44 +402,47 @@ class upbit extends Exchange {
         $response = $this->privateGetOrdersChance($this->extend($request, $params));
         //
         //     {
-        //         "bid_fee" => "0.0015",
-        //         "ask_fee" => "0.0015",
-        //         "market" => array(
-        //             "id" => "KRW-BTC",
-        //             "name" => "BTC/KRW",
-        //             "order_types" => array( "limit" ),
-        //             "order_sides" => array( "ask", "bid" ),
-        //             "bid" => array( "currency" => "KRW", "price_unit" => null, "min_total" => 1000 ),
-        //             "ask" => array( "currency" => "BTC", "price_unit" => null, "min_total" => 1000 ),
-        //             "max_total" => "100000000.0",
-        //             "state" => "active",
-        //         ),
-        //         "bid_account" => array(
-        //             "currency" => "KRW",
-        //             "balance" => "0.0",
-        //             "locked" => "0.0",
-        //             "avg_buy_price" => "0",
-        //             "avg_buy_price_modified" => false,
-        //             "unit_currency" => "KRW",
-        //         ),
-        //         "ask_account" => {
-        //             "currency" => "BTC",
-        //             "balance" => "10.0",
-        //             "locked" => "0.0",
-        //             "avg_buy_price" => "8042000",
-        //             "avg_buy_price_modified" => false,
-        //             "unit_currency" => "KRW",
+        //         "bid_fee": "0.0015",
+        //         "ask_fee": "0.0015",
+        //         "market": {
+        //             "id": "KRW-BTC",
+        //             "name": "BTC/KRW",
+        //             "order_types": [ "limit" ],
+        //             "order_sides": [ "ask", "bid" ],
+        //             "bid": { "currency": "KRW", "price_unit": null, "min_total": 1000 },
+        //             "ask": { "currency": "BTC", "price_unit": null, "min_total": 1000 },
+        //             "max_total": "100000000.0",
+        //             "state": "active",
+        //         },
+        //         "bid_account": {
+        //             "currency": "KRW",
+        //             "balance": "0.0",
+        //             "locked": "0.0",
+        //             "avg_buy_price": "0",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW",
+        //         },
+        //         "ask_account": {
+        //             "currency": "BTC",
+        //             "balance": "10.0",
+        //             "locked": "0.0",
+        //             "avg_buy_price": "8042000",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW",
         //         }
         //     }
         //
-        $marketInfo = $this->safe_value($response, 'market');
-        $bid = $this->safe_value($marketInfo, 'bid');
-        $ask = $this->safe_value($marketInfo, 'ask');
+        $marketInfo = $this->safe_dict($response, 'market');
+        $bid = $this->safe_dict($marketInfo, 'bid');
+        $ask = $this->safe_dict($marketInfo, 'ask');
         $marketId = $this->safe_string($marketInfo, 'id');
         $baseId = $this->safe_string($ask, 'currency');
         $quoteId = $this->safe_string($bid, 'currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $state = $this->safe_string($marketInfo, 'state');
         $bidFee = $this->safe_string($response, 'bid_fee');
         $askFee = $this->safe_string($response, 'ask_fee');
@@ -508,14 +511,14 @@ class upbit extends Exchange {
          */
         $response = $this->publicGetMarketAll($params);
         //
-        //    array(
-        //        array(
-        //            "market" => "KRW-BTC",
-        //            "korean_name" => "비트코인",
-        //            "english_name" => "Bitcoin"
-        //        ),
+        //    [
+        //        {
+        //            "market": "KRW-BTC",
+        //            "korean_name": "비트코인",
+        //            "english_name": "Bitcoin"
+        //        },
         //        ...,
-        //    )
+        //    ]
         //
         return $this->parse_markets($response);
     }
@@ -528,6 +531,9 @@ class upbit extends Exchange {
         list($quoteId, $baseId) = explode('-', $id);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
@@ -588,7 +594,7 @@ class upbit extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -616,16 +622,16 @@ class upbit extends Exchange {
         }
         $response = $this->privateGetAccounts($params);
         //
-        //     array( array(          currency => "BTC",
-        //                   "balance" => "0.005",
-        //                    "locked" => "0.0",
-        //         "avg_krw_buy_price" => "7446000",
-        //                  "modified" =>  false     ),
-        //       {          currency => "ETH",
-        //                   "balance" => "0.1",
-        //                    "locked" => "0.0",
-        //         "avg_krw_buy_price" => "250000",
-        //                  "modified" =>  false    }   )
+        //     [ {          currency: "BTC",
+        //                   "balance": "0.005",
+        //                    "locked": "0.0",
+        //         "avg_krw_buy_price": "7446000",
+        //                  "modified":  false     },
+        //       {          currency: "ETH",
+        //                   "balance": "0.1",
+        //                    "locked": "0.0",
+        //         "avg_krw_buy_price": "250000",
+        //                  "modified":  false    }   ]
         //
         return $this->parse_balance($response);
     }
@@ -657,39 +663,39 @@ class upbit extends Exchange {
         }
         $request = array(
             'markets' => $ids,
-            // 'count' => $limit,
+            // 'count': limit,
         );
         if ($limit !== null) {
             $request['count'] = $limit;
         }
         $response = $this->publicGetOrderbook($this->extend($request, $params));
         //
-        //     array( {          market =>   "BTC-ETH",
-        //               "timestamp" =>    1542899030043,
-        //          "total_ask_size" =>    109.57065201,
-        //          "total_bid_size" =>    125.74430631,
-        //         "orderbook_units" => array( array( ask_price => 0.02926679,
-        //                              "bid_price" => 0.02919904,
-        //                               "ask_size" => 4.20293961,
-        //                               "bid_size" => 11.65043576 ),
+        //     [ {          market:   "BTC-ETH",
+        //               "timestamp":    1542899030043,
+        //          "total_ask_size":    109.57065201,
+        //          "total_bid_size":    125.74430631,
+        //         "orderbook_units": [ { ask_price: 0.02926679,
+        //                              "bid_price": 0.02919904,
+        //                               "ask_size": 4.20293961,
+        //                               "bid_size": 11.65043576 },
         //                            ...,
-        //                            array( ask_price => 0.02938209,
-        //                              "bid_price" => 0.0291231,
-        //                               "ask_size" => 0.05135782,
-        //                               "bid_size" => 13.5595     }   ) ),
-        //       {          market =>   "KRW-BTC",
-        //               "timestamp" =>    1542899034662,
-        //          "total_ask_size" =>    12.89790974,
-        //          "total_bid_size" =>    4.88395783,
-        //         "orderbook_units" => array( array( ask_price => 5164000,
-        //                              "bid_price" => 5162000,
-        //                               "ask_size" => 2.57606495,
-        //                               "bid_size" => 0.214       ),
+        //                            { ask_price: 0.02938209,
+        //                              "bid_price": 0.0291231,
+        //                               "ask_size": 0.05135782,
+        //                               "bid_size": 13.5595     }   ] },
+        //       {          market:   "KRW-BTC",
+        //               "timestamp":    1542899034662,
+        //          "total_ask_size":    12.89790974,
+        //          "total_bid_size":    4.88395783,
+        //         "orderbook_units": [ { ask_price: 5164000,
+        //                              "bid_price": 5162000,
+        //                               "ask_size": 2.57606495,
+        //                               "bid_size": 0.214       },
         //                            ...,
-        //                            { ask_price => 5176000,
-        //                              "bid_price" => 5152000,
-        //                               "ask_size" => 2.752,
-        //                               "bid_size" => 0.4650305 }    ) }   )
+        //                            { ask_price: 5176000,
+        //                              "bid_price": 5152000,
+        //                               "ask_size": 2.752,
+        //                               "bid_size": 0.4650305 }    ] }   ]
         //
         $result = array();
         $orderbooks = $this->to_array($response);
@@ -723,44 +729,45 @@ class upbit extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         $orderbooks = $this->fetch_order_books(array( $symbol ), $limit, $params);
-        return $this->safe_value($orderbooks, $symbol);
+        $orderbook = $this->safe_dict($orderbooks, $symbol);
+        return $orderbook;
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        //       {                $market => "BTC-ETH",
-        //                    "trade_date" => "20181122",
-        //                    "trade_time" => "104543",
-        //                "trade_date_kst" => "20181122",
-        //                "trade_time_kst" => "194543",
-        //               "trade_timestamp" =>  1542883543096,
-        //                 "opening_price" =>  0.02976455,
-        //                    "high_price" =>  0.02992577,
-        //                     "low_price" =>  0.02934283,
-        //                   "trade_price" =>  0.02947773,
-        //            "prev_closing_price" =>  0.02966,
-        //                        "change" => "FALL",
-        //                  "change_price" =>  0.00018227,
-        //                   "change_rate" =>  0.0061453136,
-        //           "signed_change_price" =>  -0.00018227,
-        //            "signed_change_rate" =>  -0.0061453136,
-        //                  "trade_volume" =>  1.00000005,
-        //               "acc_trade_price" =>  100.95825586,
-        //           "acc_trade_price_24h" =>  289.58650166,
-        //              "acc_trade_volume" =>  3409.85311036,
-        //          "acc_trade_volume_24h" =>  9754.40510513,
-        //         "highest_52_week_price" =>  0.12345678,
-        //          "highest_52_week_date" => "2018-02-01",
-        //          "lowest_52_week_price" =>  0.023936,
-        //           "lowest_52_week_date" => "2017-12-08",
-        //                     "timestamp" =>  1542883543813  }
+        //       {                market: "BTC-ETH",
+        //                    "trade_date": "20181122",
+        //                    "trade_time": "104543",
+        //                "trade_date_kst": "20181122",
+        //                "trade_time_kst": "194543",
+        //               "trade_timestamp":  1542883543096,
+        //                 "opening_price":  0.02976455,
+        //                    "high_price":  0.02992577,
+        //                     "low_price":  0.02934283,
+        //                   "trade_price":  0.02947773,
+        //            "prev_closing_price":  0.02966,
+        //                        "change": "FALL",
+        //                  "change_price":  0.00018227,
+        //                   "change_rate":  0.0061453136,
+        //           "signed_change_price":  -0.00018227,
+        //            "signed_change_rate":  -0.0061453136,
+        //                  "trade_volume":  1.00000005,
+        //               "acc_trade_price":  100.95825586,
+        //           "acc_trade_price_24h":  289.58650166,
+        //              "acc_trade_volume":  3409.85311036,
+        //          "acc_trade_volume_24h":  9754.40510513,
+        //         "highest_52_week_price":  0.12345678,
+        //          "highest_52_week_date": "2018-02-01",
+        //          "lowest_52_week_price":  0.023936,
+        //           "lowest_52_week_date": "2017-12-08",
+        //                     "timestamp":  1542883543813  }
         //
         $timestamp = $this->safe_integer($ticker, 'trade_timestamp');
         $marketId = $this->safe_string_2($ticker, 'market', 'code');
-        $market = $this->safe_market($marketId, $market, '-');
+        $marketResolved = $this->safe_market($marketId, $market, '-');
         $last = $this->safe_string($ticker, 'trade_price');
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'high_price'),
@@ -774,14 +781,16 @@ class upbit extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => $this->safe_string($ticker, 'prev_closing_price'),
-            'change' => $this->safe_string($ticker, 'signed_change_price'),
-            // signed_change_rate is a ratio, and a $ticker reports a percentage
-            'percentage' => Precise::string_mul($this->safe_string($ticker, 'signed_change_rate'), '100'),
+            // signed_change_* are measured against prev_closing_price, so safeTicker derives
+            // change/percentage from open instead; change, percentage and average are all
+            // undefined when opening_price is missing or zero.
+            'change' => null,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'acc_trade_volume_24h'),
             'quoteVolume' => $this->safe_string($ticker, 'acc_trade_price_24h'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): array {
@@ -801,10 +810,10 @@ class upbit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $tickers = array();
-        if ($symbols === null) {
-            // ticker/all returns every $market of the requested quote currencies with a single $request
+        if ($symbolsNormalized === null) {
+            // ticker/all returns every market of the requested quote currencies with a single request
             $quoteIds = array();
             $marketSymbols = $this->symbols;
             for ($i = 0; $i < count($marketSymbols); $i++) {
@@ -814,7 +823,7 @@ class upbit extends Exchange {
                     $quoteIds[] = $quoteId;
                 }
             }
-            $sortedQuoteIds = $this->sort($quoteIds); // $market iteration order differs per language
+            $sortedQuoteIds = $this->sort($quoteIds); // market iteration order differs per language
             $quoteCurrencies = '';
             for ($i = 0; $i < count($sortedQuoteIds); $i++) {
                 if ($quoteCurrencies !== '') {
@@ -827,7 +836,7 @@ class upbit extends Exchange {
             );
             $tickers = $this->publicGetTickerAll($this->extend($request, $params));
         } else {
-            $ids = $this->market_ids($symbols);
+            $ids = $this->market_ids($symbolsNormalized);
             $promises = array();
             $queries = $this->ids_query_strings($ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
             for ($i = 0; $i < count($queries); $i++) {
@@ -838,37 +847,37 @@ class upbit extends Exchange {
             $tickers = $this->arrays_concat($responses);
         }
         //
-        //     array( {                $market => "BTC-ETH",
-        //                    "trade_date" => "20181122",
-        //                    "trade_time" => "104543",
-        //                "trade_date_kst" => "20181122",
-        //                "trade_time_kst" => "194543",
-        //               "trade_timestamp" =>  1542883543097,
-        //                 "opening_price" =>  0.02976455,
-        //                    "high_price" =>  0.02992577,
-        //                     "low_price" =>  0.02934283,
-        //                   "trade_price" =>  0.02947773,
-        //            "prev_closing_price" =>  0.02966,
-        //                        "change" => "FALL",
-        //                  "change_price" =>  0.00018227,
-        //                   "change_rate" =>  0.0061453136,
-        //           "signed_change_price" =>  -0.00018227,
-        //            "signed_change_rate" =>  -0.0061453136,
-        //                  "trade_volume" =>  1.00000005,
-        //               "acc_trade_price" =>  100.95825586,
-        //           "acc_trade_price_24h" =>  289.58650166,
-        //              "acc_trade_volume" =>  3409.85311036,
-        //          "acc_trade_volume_24h" =>  9754.40510513,
-        //         "highest_52_week_price" =>  0.12345678,
-        //          "highest_52_week_date" => "2018-02-01",
-        //          "lowest_52_week_price" =>  0.023936,
-        //           "lowest_52_week_date" => "2017-12-08",
-        //                     "timestamp" =>  1542883543813  } )
+        //     [ {                market: "BTC-ETH",
+        //                    "trade_date": "20181122",
+        //                    "trade_time": "104543",
+        //                "trade_date_kst": "20181122",
+        //                "trade_time_kst": "194543",
+        //               "trade_timestamp":  1542883543097,
+        //                 "opening_price":  0.02976455,
+        //                    "high_price":  0.02992577,
+        //                     "low_price":  0.02934283,
+        //                   "trade_price":  0.02947773,
+        //            "prev_closing_price":  0.02966,
+        //                        "change": "FALL",
+        //                  "change_price":  0.00018227,
+        //                   "change_rate":  0.0061453136,
+        //           "signed_change_price":  -0.00018227,
+        //            "signed_change_rate":  -0.0061453136,
+        //                  "trade_volume":  1.00000005,
+        //               "acc_trade_price":  100.95825586,
+        //           "acc_trade_price_24h":  289.58650166,
+        //              "acc_trade_volume":  3409.85311036,
+        //          "acc_trade_volume_24h":  9754.40510513,
+        //         "highest_52_week_price":  0.12345678,
+        //          "highest_52_week_date": "2018-02-01",
+        //          "lowest_52_week_price":  0.023936,
+        //           "lowest_52_week_date": "2017-12-08",
+        //                     "timestamp":  1542883543813  } ]
         //
-        return $this->parse_tickers($tickers, $symbols);
+        return $this->parse_tickers($tickers, $symbolsNormalized);
     }
 
-    public function ids_query_strings(?array $ids, float $maxQueryLength) {
+    public function ids_query_strings(?array $ids, float $maxQueryLength): array {
         if ($ids === null) {
             return array();
         }
@@ -897,42 +906,43 @@ class upbit extends Exchange {
          * @see https://docs.upbit.com/kr/reference/list-$tickers
          * @see https://global-docs.upbit.com/reference/list-$tickers
          *
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         $tickers = $this->fetch_tickers(array( $symbol ), $params);
-        return $this->safe_value($tickers, $symbol);
+        $ticker = $this->safe_dict($tickers, $symbol);
+        return $ticker;
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //
-        //       {             $market => "BTC-ETH",
-        //             "trade_date_utc" => "2018-11-22",
-        //             "trade_time_utc" => "13:55:24",
-        //                  "timestamp" =>  1542894924397,
-        //                "trade_price" =>  0.02914289,
-        //               "trade_volume" =>  0.20074397,
-        //         "prev_closing_price" =>  0.02966,
-        //               "change_price" =>  -0.00051711,
-        //                    "ask_bid" => "ASK",
-        //              "sequential_id" =>  15428949259430000 }
+        //       {             market: "BTC-ETH",
+        //             "trade_date_utc": "2018-11-22",
+        //             "trade_time_utc": "13:55:24",
+        //                  "timestamp":  1542894924397,
+        //                "trade_price":  0.02914289,
+        //               "trade_volume":  0.20074397,
+        //         "prev_closing_price":  0.02966,
+        //               "change_price":  -0.00051711,
+        //                    "ask_bid": "ASK",
+        //              "sequential_id":  15428949259430000 }
         //
         // fetchOrder trades
         //
         //         {
-        //             "market" => "KRW-BTC",
-        //             "uuid" => "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-        //             "price" => "101000.0",
-        //             "volume" => "0.77368323",
-        //             "funds" => "78142.00623",
-        //             "ask_fee" => "117.213009345",
-        //             "bid_fee" => "117.213009345",
-        //             "created_at" => "2018-04-05T14:09:15+09:00",
-        //             "side" => "bid",
+        //             "market": "KRW-BTC",
+        //             "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
+        //             "price": "101000.0",
+        //             "volume": "0.77368323",
+        //             "funds": "78142.00623",
+        //             "ask_fee": "117.213009345",
+        //             "bid_fee": "117.213009345",
+        //             "created_at": "2018-04-05T14:09:15+09:00",
+        //             "side": "bid",
         //         }
         //
         $id = $this->safe_string_2($trade, 'sequential_id', 'uuid');
@@ -952,12 +962,12 @@ class upbit extends Exchange {
         $price = $this->safe_string_2($trade, 'trade_price', 'price');
         $amount = $this->safe_string_2($trade, 'trade_volume', 'volume');
         $marketId = $this->safe_string_2($trade, 'market', 'code');
-        $market = $this->safe_market($marketId, $market, '-');
+        $marketResolved = $this->safe_market($marketId, $market, '-');
         $fee = null;
         $feeCost = $this->safe_string($trade, $askOrBid . '_fee');
         if ($feeCost !== null) {
             $fee = array(
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
                 'cost' => $feeCost,
             );
         }
@@ -967,7 +977,7 @@ class upbit extends Exchange {
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
@@ -975,7 +985,7 @@ class upbit extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -995,37 +1005,35 @@ class upbit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 200;
-        }
+        $limitResolved = ($limit === null) ? 200 : $limit;
         $request = array(
             'market' => $market['id'],
-            'count' => $limit,
+            'count' => $limitResolved,
         );
         $response = $this->publicGetTradesTicks($this->extend($request, $params));
         //
-        //     array( array(             $market => "BTC-ETH",
-        //             "trade_date_utc" => "2018-11-22",
-        //             "trade_time_utc" => "13:55:24",
-        //                  "timestamp" =>  1542894924397,
-        //                "trade_price" =>  0.02914289,
-        //               "trade_volume" =>  0.20074397,
-        //         "prev_closing_price" =>  0.02966,
-        //               "change_price" =>  -0.00051711,
-        //                    "ask_bid" => "ASK",
-        //              "sequential_id" =>  15428949259430000 ),
-        //       {             $market => "BTC-ETH",
-        //             "trade_date_utc" => "2018-11-22",
-        //             "trade_time_utc" => "13:03:10",
-        //                  "timestamp" =>  1542891790123,
-        //                "trade_price" =>  0.02917,
-        //               "trade_volume" =>  7.392,
-        //         "prev_closing_price" =>  0.02966,
-        //               "change_price" =>  -0.00049,
-        //                    "ask_bid" => "ASK",
-        //              "sequential_id" =>  15428917910540000 }  )
+        //     [ {             market: "BTC-ETH",
+        //             "trade_date_utc": "2018-11-22",
+        //             "trade_time_utc": "13:55:24",
+        //                  "timestamp":  1542894924397,
+        //                "trade_price":  0.02914289,
+        //               "trade_volume":  0.20074397,
+        //         "prev_closing_price":  0.02966,
+        //               "change_price":  -0.00051711,
+        //                    "ask_bid": "ASK",
+        //              "sequential_id":  15428949259430000 },
+        //       {             market: "BTC-ETH",
+        //             "trade_date_utc": "2018-11-22",
+        //             "trade_time_utc": "13:03:10",
+        //                  "timestamp":  1542891790123,
+        //                "trade_price":  0.02917,
+        //               "trade_volume":  7.392,
+        //         "prev_closing_price":  0.02966,
+        //               "change_price":  -0.00049,
+        //                    "ask_bid": "ASK",
+        //              "sequential_id":  15428917910540000 }  ]
         //
-        return $this->parse_trades($response, $market, $since, $limit);
+        return $this->parse_trades($response, $market, $since, $limitResolved);
     }
 
     public function fetch_trading_fee(string $symbol, $params = array()): array {
@@ -1049,35 +1057,35 @@ class upbit extends Exchange {
         $response = $this->privateGetOrdersChance($this->extend($request, $params));
         //
         //     {
-        //         "bid_fee" => "0.0005",
-        //         "ask_fee" => "0.0005",
-        //         "maker_bid_fee" => "0.0005",
-        //         "maker_ask_fee" => "0.0005",
-        //         "market" => array(
-        //             "id" => "KRW-BTC",
-        //             "name" => "BTC/KRW",
-        //             "order_types" => array( "limit" ),
-        //             "order_sides" => array( "ask", "bid" ),
-        //             "bid" => array( "currency" => "KRW", "price_unit" => null, "min_total" => 5000 ),
-        //             "ask" => array( "currency" => "BTC", "price_unit" => null, "min_total" => 5000 ),
-        //             "max_total" => "1000000000.0",
-        //             "state" => "active"
-        //         ),
-        //         "bid_account" => array(
-        //             "currency" => "KRW",
-        //             "balance" => "0.34202415",
-        //             "locked" => "4999.99999922",
-        //             "avg_buy_price" => "0",
-        //             "avg_buy_price_modified" => true,
-        //             "unit_currency" => "KRW"
-        //         ),
-        //         "ask_account" => {
-        //             "currency" => "BTC",
-        //             "balance" => "0.00048",
-        //             "locked" => "0.0",
-        //             "avg_buy_price" => "20870000",
-        //             "avg_buy_price_modified" => false,
-        //             "unit_currency" => "KRW"
+        //         "bid_fee": "0.0005",
+        //         "ask_fee": "0.0005",
+        //         "maker_bid_fee": "0.0005",
+        //         "maker_ask_fee": "0.0005",
+        //         "market": {
+        //             "id": "KRW-BTC",
+        //             "name": "BTC/KRW",
+        //             "order_types": [ "limit" ],
+        //             "order_sides": [ "ask", "bid" ],
+        //             "bid": { "currency": "KRW", "price_unit": null, "min_total": 5000 },
+        //             "ask": { "currency": "BTC", "price_unit": null, "min_total": 5000 },
+        //             "max_total": "1000000000.0",
+        //             "state": "active"
+        //         },
+        //         "bid_account": {
+        //             "currency": "KRW",
+        //             "balance": "0.34202415",
+        //             "locked": "4999.99999922",
+        //             "avg_buy_price": "0",
+        //             "avg_buy_price_modified": true,
+        //             "unit_currency": "KRW"
+        //         },
+        //         "ask_account": {
+        //             "currency": "BTC",
+        //             "balance": "0.00048",
+        //             "locked": "0.0",
+        //             "avg_buy_price": "20870000",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW"
         //         }
         //     }
         //
@@ -1127,17 +1135,17 @@ class upbit extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //         "market" => "BTC-ETH",
-        //         "candle_date_time_utc" => "2018-11-22T13:47:00",
-        //         "candle_date_time_kst" => "2018-11-22T22:47:00",
-        //         "opening_price" => 0.02915963,
-        //         "high_price" => 0.02915963,
-        //         "low_price" => 0.02915448,
-        //         "trade_price" => 0.02915448,
-        //         "timestamp" => 1542894473674,
-        //         "candle_acc_trade_price" => 0.0981629437535248,
-        //         "candle_acc_trade_volume" => 3.36693173,
-        //         "unit" => 1
+        //         "market": "BTC-ETH",
+        //         "candle_date_time_utc": "2018-11-22T13:47:00",
+        //         "candle_date_time_kst": "2018-11-22T22:47:00",
+        //         "opening_price": 0.02915963,
+        //         "high_price": 0.02915963,
+        //         "low_price": 0.02915448,
+        //         "trade_price": 0.02915448,
+        //         "timestamp": 1542894473674,
+        //         "candle_acc_trade_price": 0.0981629437535248,
+        //         "candle_acc_trade_volume": 3.36693173,
+        //         "unit": 1
         //     }
         //
         return array(
@@ -1170,17 +1178,15 @@ class upbit extends Exchange {
         $market = $this->market($symbol);
         $timeframePeriod = $this->parse_timeframe($timeframe);
         $timeframeValue = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        if ($limit === null) {
-            $limit = 200;
-        }
+        $limitResolved = ($limit === null) ? 200 : $limit;
         $request = array(
             'market' => $market['id'],
             'timeframe' => $timeframeValue,
-            'count' => $limit,
+            'count' => $limitResolved,
         );
         if ($since !== null) {
-            // convert `$since` to `to` value
-            $request['to'] = $this->iso8601($this->sum($since, $timeframePeriod * $limit * 1000));
+            // convert `since` to `to` value
+            $request['to'] = $this->iso8601($this->sum($since, $timeframePeriod * $limitResolved * 1000));
         }
         if ($timeframeValue === 'minutes') {
             $numMinutes = (int) round($timeframePeriod / 60);
@@ -1190,48 +1196,48 @@ class upbit extends Exchange {
             $response = $this->publicGetCandlesTimeframe($this->extend($request, $params));
         }
         //
-        //     array(
-        //         array(
-        //             "market" => "BTC-ETH",
-        //             "candle_date_time_utc" => "2018-11-22T13:47:00",
-        //             "candle_date_time_kst" => "2018-11-22T22:47:00",
-        //             "opening_price" => 0.02915963,
-        //             "high_price" => 0.02915963,
-        //             "low_price" => 0.02915448,
-        //             "trade_price" => 0.02915448,
-        //             "timestamp" => 1542894473674,
-        //             "candle_acc_trade_price" => 0.0981629437535248,
-        //             "candle_acc_trade_volume" => 3.36693173,
-        //             "unit" => 1
-        //         ),
+        //     [
         //         {
-        //             "market" => "BTC-ETH",
-        //             "candle_date_time_utc" => "2018-11-22T10:06:00",
-        //             "candle_date_time_kst" => "2018-11-22T19:06:00",
-        //             "opening_price" => 0.0294,
-        //             "high_price" => 0.02940882,
-        //             "low_price" => 0.02934283,
-        //             "trade_price" => 0.02937354,
-        //             "timestamp" => 1542881219276,
-        //             "candle_acc_trade_price" => 0.0762597110943884,
-        //             "candle_acc_trade_volume" => 2.5949617,
-        //             "unit" => 1
+        //             "market": "BTC-ETH",
+        //             "candle_date_time_utc": "2018-11-22T13:47:00",
+        //             "candle_date_time_kst": "2018-11-22T22:47:00",
+        //             "opening_price": 0.02915963,
+        //             "high_price": 0.02915963,
+        //             "low_price": 0.02915448,
+        //             "trade_price": 0.02915448,
+        //             "timestamp": 1542894473674,
+        //             "candle_acc_trade_price": 0.0981629437535248,
+        //             "candle_acc_trade_volume": 3.36693173,
+        //             "unit": 1
+        //         },
+        //         {
+        //             "market": "BTC-ETH",
+        //             "candle_date_time_utc": "2018-11-22T10:06:00",
+        //             "candle_date_time_kst": "2018-11-22T19:06:00",
+        //             "opening_price": 0.0294,
+        //             "high_price": 0.02940882,
+        //             "low_price": 0.02934283,
+        //             "trade_price": 0.02937354,
+        //             "timestamp": 1542881219276,
+        //             "candle_acc_trade_price": 0.0762597110943884,
+        //             "candle_acc_trade_volume": 2.5949617,
+        //             "unit": 1
         //         }
-        //     )
+        //     ]
         //
         $ohlcvs = $this->to_array($response);
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limitResolved);
     }
 
     public function calc_order_price(string $symbol, ?float $amount, ?float $price = null, $params = array()): ?string {
         $quoteAmount = null;
-        $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice');
+        $createMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice');
         $cost = $this->safe_string($params, 'cost');
         if ($cost !== null) {
             $quoteAmount = $this->cost_to_precision($symbol, $cost);
         } elseif ($createMarketBuyOrderRequiresPrice === true) {
             if ($price === null || $amount === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires the $price and $amount argument for market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                throw new InvalidOrder($this->id . ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
             }
             $amountString = $this->number_to_string($amount);
             $priceString = $this->number_to_string($price);
@@ -1239,7 +1245,7 @@ class upbit extends Exchange {
             $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
         } else {
             if ($amount === null) {
-                throw new ArgumentsRequired($this->id . ' When $createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote $amount to spend.');
+                throw new ArgumentsRequired($this->id . ' When createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote amount to spend.');
             }
             $quoteAmount = $this->cost_to_precision($symbol, $amount);
         }
@@ -1249,7 +1255,7 @@ class upbit extends Exchange {
         return $quoteAmount;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1282,7 +1288,7 @@ class upbit extends Exchange {
         $selfTradePrevention = $this->safe_string_2($params, 'selfTradePrevention', 'smp_type');
         $test = $this->safe_bool($params, 'test', false);
         if ($postOnly && ($selfTradePrevention !== null)) {
-            throw new ExchangeError($this->id . ' createOrder() does not support post_only and $selfTradePrevention simultaneously.');
+            throw new ExchangeError($this->id . ' createOrder() does not support post_only and selfTradePrevention simultaneously.');
         }
         $orderSide = null;
         if ($side === 'buy') {
@@ -1290,16 +1296,16 @@ class upbit extends Exchange {
         } elseif ($side === 'sell') {
             $orderSide = 'ask';
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() supports only buy or sell in the $side argument.');
+            throw new InvalidOrder($this->id . ' createOrder() supports only buy or sell in the side argument.');
         }
         $request = array(
             'market' => $market['id'],
             'side' => $orderSide,
-            // 'smp_type' => $selfTradePrevention,
+            // 'smp_type': selfTradePrevention,
         );
         if ($type === 'limit') {
             if ($price === null || $amount === null) {
-                throw new ArgumentsRequired($this->id . ' the limit $type order in createOrder() is required $price and $amount->');
+                throw new ArgumentsRequired($this->id . ' the limit type order in createOrder() is required price and amount.');
             }
             $request['ord_type'] = 'limit';
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1311,23 +1317,23 @@ class upbit extends Exchange {
                 $request['price'] = $orderPrice;
             } else {
                 if ($amount === null) {
-                    throw new ArgumentsRequired($this->id . ' the $market sell $type order in createOrder() is required $amount->');
+                    throw new ArgumentsRequired($this->id . ' the market sell type order in createOrder() is required amount.');
                 }
                 $request['ord_type'] = 'market';
                 $request['volume'] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() supports only limit or $market types in the $type argument.');
+            throw new InvalidOrder($this->id . ' createOrder() supports only limit or market types in the type argument.');
         }
+        $paramsOrdType = ($customType === 'best') ? $this->omit($params, array( 'ordType', 'ord_type' )) : $params;
         if ($customType === 'best') {
-            $params = $this->omit($params, array( 'ordType', 'ord_type' ));
             $request['ord_type'] = 'best';
             if ($side === 'buy') {
-                $orderPrice = $this->calc_order_price($symbol, $amount, $price, $params);
+                $orderPrice = $this->calc_order_price($symbol, $amount, $price, $paramsOrdType);
                 $request['price'] = $orderPrice;
             } else {
                 if ($amount === null) {
-                    throw new ArgumentsRequired($this->id . ' the best sell $type order in createOrder() is required $amount->');
+                    throw new ArgumentsRequired($this->id . ' the best sell type order in createOrder() is required amount.');
                 }
                 $request['volume'] = $this->amount_to_precision($symbol, $amount);
             }
@@ -1336,8 +1342,8 @@ class upbit extends Exchange {
             $request['identifier'] = $clientOrderId;
         }
         if ($postOnly) {
-            if ($request['ord_type'] !== 'limit') {
-                throw new InvalidOrder($this->id . ' $postOnly orders are only supported for limit orders');
+            if ($this->safe_string($request, 'ord_type') !== 'limit') {
+                throw new InvalidOrder($this->id . ' postOnly orders are only supported for limit orders');
             }
             $request['time_in_force'] = 'post_only';
         }
@@ -1346,39 +1352,39 @@ class upbit extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        if ($request['ord_type'] === 'best' && $timeInForce === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $timeInForce parameter for best $type orders');
+        if ($this->safe_string($request, 'ord_type') === 'best' && $timeInForce === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a timeInForce parameter for best type orders');
         }
-        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
+        $paramsRequest = $this->omit($paramsOrdType, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
         if ($test === true) {
-            $response = $this->privatePostOrdersTest($this->extend($request, $params));
+            $response = $this->privatePostOrdersTest($this->extend($request, $paramsRequest));
         } else {
-            $response = $this->privatePostOrders($this->extend($request, $params));
+            $response = $this->privatePostOrders($this->extend($request, $paramsRequest));
         }
         //
         //     {
-        //         "uuid" => "cdd92199-2897-4e14-9448-f923320408ad",
-        //         "side" => "bid",
-        //         "ord_type" => "limit",
-        //         "price" => "100.0",
-        //         "avg_price" => "0.0",
-        //         "state" => "wait",
-        //         "market" => "KRW-BTC",
-        //         "created_at" => "2018-04-10T15:42:23+09:00",
-        //         "volume" => "0.01",
-        //         "remaining_volume" => "0.01",
-        //         "reserved_fee" => "0.0015",
-        //         "remaining_fee" => "0.0015",
-        //         "paid_fee" => "0.0",
-        //         "locked" => "1.0015",
-        //         "executed_volume" => "0.0",
-        //         "trades_count" => 0
+        //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
+        //         "side": "bid",
+        //         "ord_type": "limit",
+        //         "price": "100.0",
+        //         "avg_price": "0.0",
+        //         "state": "wait",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2018-04-10T15:42:23+09:00",
+        //         "volume": "0.01",
+        //         "remaining_volume": "0.01",
+        //         "reserved_fee": "0.0015",
+        //         "remaining_fee": "0.0015",
+        //         "paid_fee": "0.0",
+        //         "locked": "1.0015",
+        //         "executed_volume": "0.0",
+        //         "trades_count": 0
         //     }
         //
         return $this->parse_order($response);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://docs.upbit.com/kr/reference/cancel-order
@@ -1399,21 +1405,21 @@ class upbit extends Exchange {
         $response = $this->privateDeleteOrder($this->extend($request, $params));
         //
         //     {
-        //         "uuid" => "cdd92199-2897-4e14-9448-f923320408ad",
-        //         "side" => "bid",
-        //         "ord_type" => "limit",
-        //         "price" => "100.0",
-        //         "state" => "wait",
-        //         "market" => "KRW-BTC",
-        //         "created_at" => "2018-04-10T15:42:23+09:00",
-        //         "volume" => "0.01",
-        //         "remaining_volume" => "0.01",
-        //         "reserved_fee" => "0.0015",
-        //         "remaining_fee" => "0.0015",
-        //         "paid_fee" => "0.0",
-        //         "locked" => "1.0015",
-        //         "executed_volume" => "0.0",
-        //         "trades_count" => 0
+        //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
+        //         "side": "bid",
+        //         "ord_type": "limit",
+        //         "price": "100.0",
+        //         "state": "wait",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2018-04-10T15:42:23+09:00",
+        //         "volume": "0.01",
+        //         "remaining_volume": "0.01",
+        //         "reserved_fee": "0.0015",
+        //         "remaining_fee": "0.0015",
+        //         "paid_fee": "0.0",
+        //         "locked": "1.0015",
+        //         "executed_volume": "0.0",
+        //         "trades_count": 0
         //     }
         //
         return $this->parse_order($response);
@@ -1452,19 +1458,19 @@ class upbit extends Exchange {
         $timeInForce = $this->safe_string_lower_2($params, 'newTimeInForce', 'new_time_in_force');
         $selfTradePrevention = $this->safe_string_2($params, 'selfTradePrevention', 'new_smp_type');
         if ($postOnly && ($selfTradePrevention !== null)) {
-            throw new ExchangeError($this->id . ' editOrder() does not support post_only and $selfTradePrevention simultaneously.');
+            throw new ExchangeError($this->id . ' editOrder() does not support post_only and selfTradePrevention simultaneously.');
         }
-        $params = $this->omit($params, 'clientOrderId');
+        $paramsOmitted = $this->omit($params, 'clientOrderId');
         if ($id !== null) {
             $request['prev_order_uuid'] = $id;
         } elseif ($prevClientOrderId !== null) {
             $request['prev_order_identifier'] = $prevClientOrderId;
         } else {
-            throw new ArgumentsRequired($this->id . ' editOrder() is required $id or $clientOrderId->');
+            throw new ArgumentsRequired($this->id . ' editOrder() is required id or clientOrderId.');
         }
         if ($type === 'limit') {
             if ($price === null || $amount === null) {
-                throw new ArgumentsRequired($this->id . ' editOrder() is required $price and $amount to create limit $type order.');
+                throw new ArgumentsRequired($this->id . ' editOrder() is required price and amount to create limit type order.');
             }
             $request['new_ord_type'] = 'limit';
             $request['new_price'] = $this->price_to_precision($symbol, $price);
@@ -1472,27 +1478,27 @@ class upbit extends Exchange {
         } elseif ($type === 'market') {
             if ($side === 'buy') {
                 $request['new_ord_type'] = 'price';
-                $orderPrice = $this->calc_order_price($symbol, $amount, $price, $params);
+                $orderPrice = $this->calc_order_price($symbol, $amount, $price, $paramsOmitted);
                 $request['new_price'] = $orderPrice;
             } else {
                 if ($amount === null) {
-                    throw new ArgumentsRequired($this->id . ' editOrder() is required $amount to create market sell $type order.');
+                    throw new ArgumentsRequired($this->id . ' editOrder() is required amount to create market sell type order.');
                 }
                 $request['new_ord_type'] = 'market';
                 $request['new_volume'] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
-            throw new InvalidOrder($this->id . ' editOrder() supports only limit or market types in the $type argument.');
+            throw new InvalidOrder($this->id . ' editOrder() supports only limit or market types in the type argument.');
         }
+        $paramsOrdType = ($customType === 'best') ? $this->omit($paramsOmitted, array( 'newOrdType', 'new_ord_type' )) : $paramsOmitted;
         if ($customType === 'best') {
-            $params = $this->omit($params, array( 'newOrdType', 'new_ord_type' ));
             $request['new_ord_type'] = 'best';
             if ($side === 'buy') {
-                $orderPrice = $this->calc_order_price($symbol, $amount, $price, $params);
+                $orderPrice = $this->calc_order_price($symbol, $amount, $price, $paramsOrdType);
                 $request['new_price'] = $orderPrice;
             } else {
                 if ($amount === null) {
-                    throw new ArgumentsRequired($this->id . ' editOrder() is required $amount to create best sell order.');
+                    throw new ArgumentsRequired($this->id . ' editOrder() is required amount to create best sell order.');
                 }
                 $request['new_volume'] = $this->amount_to_precision($symbol, $amount);
             }
@@ -1504,8 +1510,8 @@ class upbit extends Exchange {
             $request['new_smp_type'] = $selfTradePrevention;
         }
         if ($postOnly) {
-            if ($request['new_ord_type'] !== 'limit') {
-                throw new InvalidOrder($this->id . ' $postOnly orders are only supported for limit orders');
+            if ($this->safe_string($request, 'new_ord_type') !== 'limit') {
+                throw new InvalidOrder($this->id . ' postOnly orders are only supported for limit orders');
             }
             $request['new_time_in_force'] = 'post_only';
         }
@@ -1514,31 +1520,31 @@ class upbit extends Exchange {
                 $request['new_time_in_force'] = $timeInForce;
             }
         }
-        if ($request['new_ord_type'] === 'best' && $timeInForce === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $timeInForce parameter for best $type orders');
+        if ($this->safe_string($request, 'new_ord_type') === 'best' && $timeInForce === null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a timeInForce parameter for best type orders');
         }
-        $params = $this->omit($params, array( 'newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type' ));
-        // var_dump ('check the each $request $params => ', $request);
-        $response = $this->privatePostOrdersCancelAndNew($this->extend($request, $params));
+        $paramsRequest = $this->omit($paramsOrdType, array( 'newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type' ));
+        // console.log ('check the each request paramsOmitted: ', request);
+        $response = $this->privatePostOrdersCancelAndNew($this->extend($request, $paramsRequest));
         //   {
-        //     uuid => '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
-        //     $side => 'bid',                                         //previous order data
-        //     ord_type => 'limit',                                   //previous order data
-        //     $price => '100000000',                                  //previous order data
-        //     state => 'wait',                                       //previous order data
-        //     market => 'KRW-BTC',                                   //previous order data
-        //     created_at => '2025-04-01T15:30:47+09:00',             //previous order data
-        //     volume => '0.00008',                                   //previous order data
-        //     remaining_volume => '0.00008',                         //previous order data
-        //     reserved_fee => '4',                                   //previous order data
-        //     remaining_fee => '4',                                  //previous order data
-        //     paid_fee => '0',                                       //previous order data
-        //     locked => '8004',                                      //previous order data
-        //     executed_volume => '0',                                //previous order data
-        //     trades_count => '0',                                   //previous order data
-        //     identifier => '21',                                    //previous order data
-        //     new_order_uuid => 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  // new order data
-        //     new_order_identifier => '22'                               // new order data
+        //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
+        //     side: 'bid',                                         //previous order data
+        //     ord_type: 'limit',                                   //previous order data
+        //     price: '100000000',                                  //previous order data
+        //     state: 'wait',                                       //previous order data
+        //     market: 'KRW-BTC',                                   //previous order data
+        //     created_at: '2025-04-01T15:30:47+09:00',             //previous order data
+        //     volume: '0.00008',                                   //previous order data
+        //     remaining_volume: '0.00008',                         //previous order data
+        //     reserved_fee: '4',                                   //previous order data
+        //     remaining_fee: '4',                                  //previous order data
+        //     paid_fee: '0',                                       //previous order data
+        //     locked: '8004',                                      //previous order data
+        //     executed_volume: '0',                                //previous order data
+        //     trades_count: '0',                                   //previous order data
+        //     identifier: '21',                                    //previous order data
+        //     new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  // new order data
+        //     new_order_identifier: '22'                               // new order data
         //   }
         $result = array();
         $result['uuid'] = $this->safe_string($response, 'new_order_uuid');
@@ -1565,8 +1571,8 @@ class upbit extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            // 'page' => 1,
-            // 'order_by' => 'asc', // 'desc'
+            // 'page': 1,
+            // 'order_by': 'asc', // 'desc'
         );
         $currency = null;
         if ($code !== null) {
@@ -1578,20 +1584,20 @@ class upbit extends Exchange {
         }
         $response = $this->privateGetDeposits($this->extend($request, $params));
         //
-        //     array(
-        //         array(
-        //             "type" => "deposit",
-        //             "uuid" => "94332e99-3a87-4a35-ad98-28b0c969f830",
-        //             "currency" => "KRW",
-        //             "txid" => "9e37c537-6849-4c8b-a134-57313f5dfc5a",
-        //             "state" => "ACCEPTED",
-        //             "created_at" => "2017-12-08T15:38:02+09:00",
-        //             "done_at" => "2017-12-08T15:38:02+09:00",
-        //             "amount" => "100000.0",
-        //             "fee" => "0.0"
-        //         ),
+        //     [
+        //         {
+        //             "type": "deposit",
+        //             "uuid": "94332e99-3a87-4a35-ad98-28b0c969f830",
+        //             "currency": "KRW",
+        //             "txid": "9e37c537-6849-4c8b-a134-57313f5dfc5a",
+        //             "state": "ACCEPTED",
+        //             "created_at": "2017-12-08T15:38:02+09:00",
+        //             "done_at": "2017-12-08T15:38:02+09:00",
+        //             "amount": "100000.0",
+        //             "fee": "0.0"
+        //         },
         //         ...,
-        //     )
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -1623,17 +1629,17 @@ class upbit extends Exchange {
         $response = $this->privateGetDeposit($this->extend($request, $params));
         //
         //     {
-        //         "type" => "deposit",
-        //         "uuid" => "7f54527e-2eee-4268-860e-fd8b9d7fe3c7",
-        //         "currency" => "ADA",
-        //         "net_type" => "ADA",
-        //         "txid" => "99795bbfeca91eaa071068bb659b33eeb65d8aaff2551fdf7c78f345d188952b",
-        //         "state" => "ACCEPTED",
-        //         "created_at" => "2023-12-12T04:58:41Z",
-        //         "done_at" => "2023-12-12T05:31:50Z",
-        //         "amount" => "35.72344",
-        //         "fee" => "0.0",
-        //         "transaction_type" => "default"
+        //         "type": "deposit",
+        //         "uuid": "7f54527e-2eee-4268-860e-fd8b9d7fe3c7",
+        //         "currency": "ADA",
+        //         "net_type": "ADA",
+        //         "txid": "99795bbfeca91eaa071068bb659b33eeb65d8aaff2551fdf7c78f345d188952b",
+        //         "state": "ACCEPTED",
+        //         "created_at": "2023-12-12T04:58:41Z",
+        //         "done_at": "2023-12-12T05:31:50Z",
+        //         "amount": "35.72344",
+        //         "fee": "0.0",
+        //         "transaction_type": "default"
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -1656,7 +1662,7 @@ class upbit extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            // 'state' => 'submitting', // 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
+            // 'state': 'submitting', // 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
         );
         $currency = null;
         if ($code !== null) {
@@ -1668,21 +1674,21 @@ class upbit extends Exchange {
         }
         $response = $this->privateGetWithdraws($this->extend($request, $params));
         //
-        //     array(
-        //         array(
-        //             "type" => "withdraw",
-        //             "uuid" => "9f432943-54e0-40b7-825f-b6fec8b42b79",
-        //             "currency" => "BTC",
-        //             "txid" => null,
-        //             "state" => "processing",
-        //             "created_at" => "2018-04-13T11:24:01+09:00",
-        //             "done_at" => null,
-        //             "amount" => "0.01",
-        //             "fee" => "0.0",
-        //             "krw_amount" => "80420.0"
-        //         ),
+        //     [
+        //         {
+        //             "type": "withdraw",
+        //             "uuid": "9f432943-54e0-40b7-825f-b6fec8b42b79",
+        //             "currency": "BTC",
+        //             "txid": null,
+        //             "state": "processing",
+        //             "created_at": "2018-04-13T11:24:01+09:00",
+        //             "done_at": null,
+        //             "amount": "0.01",
+        //             "fee": "0.0",
+        //             "krw_amount": "80420.0"
+        //         },
         //         ...,
-        //     )
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -1714,17 +1720,17 @@ class upbit extends Exchange {
         $response = $this->privateGetWithdraw($this->extend($request, $params));
         //
         //     {
-        //         "type" => "withdraw",
-        //         "uuid" => "95ef274b-23a6-4de4-95b0-5cbef4ca658f",
-        //         "currency" => "ADA",
-        //         "net_type" => "ADA",
-        //         "txid" => "b1528f149297a71671b86636f731f8fdb0ff53da0f1d8c19093d59df96f34583",
-        //         "state" => "DONE",
-        //         "created_at" => "2023-12-14T02:46:52Z",
-        //         "done_at" => "2023-12-14T03:10:11Z",
-        //         "amount" => "35.22344",
-        //         "fee" => "0.5",
-        //         "transaction_type" => "default"
+        //         "type": "withdraw",
+        //         "uuid": "95ef274b-23a6-4de4-95b0-5cbef4ca658f",
+        //         "currency": "ADA",
+        //         "net_type": "ADA",
+        //         "txid": "b1528f149297a71671b86636f731f8fdb0ff53da0f1d8c19093d59df96f34583",
+        //         "state": "DONE",
+        //         "created_at": "2023-12-14T02:46:52Z",
+        //         "done_at": "2023-12-14T03:10:11Z",
+        //         "amount": "35.22344",
+        //         "fee": "0.5",
+        //         "transaction_type": "default"
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -1749,30 +1755,30 @@ class upbit extends Exchange {
         // fetchDeposits, fetchDeposit
         //
         //     {
-        //         "type" => "deposit",
-        //         "uuid" => "94332e99-3a87-4a35-ad98-28b0c969f830",
-        //         "currency" => "KRW",
-        //         "txid" => "9e37c537-6849-4c8b-a134-57313f5dfc5a",
-        //         "state" => "ACCEPTED",
-        //         "created_at" => "2017-12-08T15:38:02+09:00",
-        //         "done_at" => "2017-12-08T15:38:02+09:00",
-        //         "amount" => "100000.0",
-        //         "fee" => "0.0"
+        //         "type": "deposit",
+        //         "uuid": "94332e99-3a87-4a35-ad98-28b0c969f830",
+        //         "currency": "KRW",
+        //         "txid": "9e37c537-6849-4c8b-a134-57313f5dfc5a",
+        //         "state": "ACCEPTED",
+        //         "created_at": "2017-12-08T15:38:02+09:00",
+        //         "done_at": "2017-12-08T15:38:02+09:00",
+        //         "amount": "100000.0",
+        //         "fee": "0.0"
         //     }
         //
         // fetchWithdrawals, fetchWithdrawal
         //
         //     {
-        //         "type" => "withdraw",
-        //         "uuid" => "9f432943-54e0-40b7-825f-b6fec8b42b79",
-        //         "currency" => "BTC",
-        //         "txid" => "cd81e9b45df8da29f936836e58c907a106057e454a45767a7b06fcb19b966bba",
-        //         "state" => "processing",
-        //         "created_at" => "2018-04-13T11:24:01+09:00",
-        //         "done_at" => null,
-        //         "amount" => "0.01",
-        //         "fee" => "0.0",
-        //         "krw_amount" => "80420.0"
+        //         "type": "withdraw",
+        //         "uuid": "9f432943-54e0-40b7-825f-b6fec8b42b79",
+        //         "currency": "BTC",
+        //         "txid": "cd81e9b45df8da29f936836e58c907a106057e454a45767a7b06fcb19b966bba",
+        //         "state": "processing",
+        //         "created_at": "2018-04-13T11:24:01+09:00",
+        //         "done_at": null,
+        //         "amount": "0.01",
+        //         "fee": "0.0",
+        //         "krw_amount": "80420.0"
         //     }
         //
         $address = null; // not present in the data structure received from the exchange
@@ -1823,77 +1829,77 @@ class upbit extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         // {
-        //   "market" => "KRW-USDT",
-        //   "uuid" => "3b67e543-8ad3-48d0-8451-0dad315cae73",
-        //   "side" => "ask",
-        //   "ord_type" => "market",
-        //   "state" => "done",
-        //   "created_at" => "2025-08-09T16:44:00+09:00",
-        //   "volume" => "5.377594",
-        //   "remaining_volume" => "0",
-        //   "executed_volume" => "5.377594",
-        //   "reserved_fee" => "0",
-        //   "remaining_fee" => "0",
-        //   "paid_fee" => "3.697095875",
-        //   "locked" => "0",
-        //   "prevented_volume" => "0",
-        //   "prevented_locked" => "0",
-        //   "trades_count" => 1,
-        //   "trades" => array(
+        //   "market": "KRW-USDT",
+        //   "uuid": "3b67e543-8ad3-48d0-8451-0dad315cae73",
+        //   "side": "ask",
+        //   "ord_type": "market",
+        //   "state": "done",
+        //   "created_at": "2025-08-09T16:44:00+09:00",
+        //   "volume": "5.377594",
+        //   "remaining_volume": "0",
+        //   "executed_volume": "5.377594",
+        //   "reserved_fee": "0",
+        //   "remaining_fee": "0",
+        //   "paid_fee": "3.697095875",
+        //   "locked": "0",
+        //   "prevented_volume": "0",
+        //   "prevented_locked": "0",
+        //   "trades_count": 1,
+        //   "trades": [
         //     {
-        //       "market" => "KRW-USDT",
-        //       "uuid" => "795dff29-bba6-49b2-baab-63473ab7931c",
-        //       "price" => "1375",
-        //       "volume" => "5.377594",
-        //       "funds" => "7394.19175",
-        //       "trend" => "down",
-        //       "created_at" => "2025-08-09T16:44:00.597751+09:00",
-        //       "side" => "ask"
+        //       "market": "KRW-USDT",
+        //       "uuid": "795dff29-bba6-49b2-baab-63473ab7931c",
+        //       "price": "1375",
+        //       "volume": "5.377594",
+        //       "funds": "7394.19175",
+        //       "trend": "down",
+        //       "created_at": "2025-08-09T16:44:00.597751+09:00",
+        //       "side": "ask"
         //     }
-        //   )
+        //   ]
         // }
         //
         // fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
-        //         "uuid" => "637fd66-d019-4d77-bee6-8e0cff28edd9",
-        //         "side" => "ask",
-        //         "ord_type" => "limit",
-        //         "price" => "1.5",
-        //         "state" => "wait",
-        //         "market" => "SGD-XRP",
-        //         "created_at" => "2024-06-05T09:37:10Z",
-        //         "volume" => "10",
-        //         "remaining_volume" => "10",
-        //         "reserved_fee" => "0",
-        //         "remaining_fee" => "0",
-        //         "paid_fee" => "0",
-        //         "locked" => "10",
-        //         "executed_volume" => "0",
-        //         "executed_funds" => "0",
-        //         "trades_count" => 0,
-        //         "time_in_force" => "ioc"
+        //         "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //         "side": "ask",
+        //         "ord_type": "limit",
+        //         "price": "1.5",
+        //         "state": "wait",
+        //         "market": "SGD-XRP",
+        //         "created_at": "2024-06-05T09:37:10Z",
+        //         "volume": "10",
+        //         "remaining_volume": "10",
+        //         "reserved_fee": "0",
+        //         "remaining_fee": "0",
+        //         "paid_fee": "0",
+        //         "locked": "10",
+        //         "executed_volume": "0",
+        //         "executed_funds": "0",
+        //         "trades_count": 0,
+        //         "time_in_force": "ioc"
         //     }
         //
         //     {
-        //        uuid => '63b38774-27db-4439-ac20-1be16a24d18e',
-        //        $side => 'bid',
-        //        ord_type => 'limit',
-        //        $price => '100000000',
-        //        state => 'wait',
-        //        $market => 'KRW-BTC',
-        //        created_at => '2025-04-01T15:30:47+09:00',
-        //        volume => '0.00008',
-        //        remaining_volume => '0.00008',
-        //        reserved_fee => '4',
-        //        remaining_fee => '4',
-        //        paid_fee => '0',
-        //        locked => '8004',
-        //        executed_volume => '0',
-        //        trades_count => '0',
-        //        $identifier => '21',
-        //        new_order_uuid => 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',
-        //        new_order_identifier => '22'
+        //        uuid: '63b38774-27db-4439-ac20-1be16a24d18e',
+        //        side: 'bid',
+        //        ord_type: 'limit',
+        //        price: '100000000',
+        //        state: 'wait',
+        //        market: 'KRW-BTC',
+        //        created_at: '2025-04-01T15:30:47+09:00',
+        //        volume: '0.00008',
+        //        remaining_volume: '0.00008',
+        //        reserved_fee: '4',
+        //        remaining_fee: '4',
+        //        paid_fee: '0',
+        //        locked: '8004',
+        //        executed_volume: '0',
+        //        trades_count: '0',
+        //        identifier: '21',
+        //        new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',
+        //        new_order_identifier: '22'
         //      }
         $id = $this->safe_string($order, 'uuid');
         $side = $this->safe_string_lower($order, 'side');
@@ -1921,15 +1927,15 @@ class upbit extends Exchange {
         $fee = null;
         $feeCost = $this->safe_string($order, 'paid_fee');
         $marketId = $this->safe_string($order, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $trades = $this->safe_list($order, 'trades', array());
-        $trades = $this->parse_trades($trades, $market, null, null, array(
+        $trades = $this->parse_trades($trades, $marketResolved, null, null, array(
             'order' => $id,
             'type' => $type,
         ));
         $numTrades = count($trades);
         if ($numTrades > 0) {
-            // the $timestamp in fetchOrder $trades is missing
+            // the timestamp in fetchOrder trades is missing
             $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
             $getFeesFromTrades = false;
             if ($feeCost === null) {
@@ -1938,10 +1944,10 @@ class upbit extends Exchange {
             }
             $cost = '0';
             for ($i = 0; $i < $numTrades; $i++) {
-                $trade = $trades[$i];
+                $trade = $this->safe_dict($trades, $i);
                 $cost = Precise::string_add($cost, $this->safe_string($trade, 'cost'));
                 if ($getFeesFromTrades) {
-                    $tradeFee = $this->safe_value($trades[$i], 'fee', array());
+                    $tradeFee = $this->safe_dict($trades[$i], 'fee', array());
                     $tradeFeeCost = $this->safe_string($tradeFee, 'cost');
                     if ($tradeFeeCost !== null) {
                         $feeCost = Precise::string_add($feeCost, $tradeFeeCost);
@@ -1952,7 +1958,7 @@ class upbit extends Exchange {
         }
         if ($feeCost !== null) {
             $fee = array(
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
                 'cost' => $feeCost,
             );
         }
@@ -1963,7 +1969,7 @@ class upbit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'timeInForce' => $this->safe_string_upper($order, 'time_in_force'),
             'postOnly' => null,
@@ -2009,26 +2015,26 @@ class upbit extends Exchange {
         }
         $response = $this->privateGetOrdersOpen($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "uuid" => "637fd66-d019-4d77-bee6-8e0cff28edd9",
-        //             "side" => "ask",
-        //             "ord_type" => "limit",
-        //             "price" => "1.5",
-        //             "state" => "wait",
-        //             "market" => "SGD-XRP",
-        //             "created_at" => "2024-06-05T09:37:10Z",
-        //             "volume" => "10",
-        //             "remaining_volume" => "10",
-        //             "reserved_fee" => "0",
-        //             "remaining_fee" => "0",
-        //             "paid_fee" => "0",
-        //             "locked" => "10",
-        //             "executed_volume" => "0",
-        //             "executed_funds" => "0",
-        //             "trades_count" => 0
+        //             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //             "side": "ask",
+        //             "ord_type": "limit",
+        //             "price": "1.5",
+        //             "state": "wait",
+        //             "market": "SGD-XRP",
+        //             "created_at": "2024-06-05T09:37:10Z",
+        //             "volume": "10",
+        //             "remaining_volume": "10",
+        //             "reserved_fee": "0",
+        //             "remaining_fee": "0",
+        //             "paid_fee": "0",
+        //             "locked": "10",
+        //             "executed_volume": "0",
+        //             "executed_funds": "0",
+        //             "trades_count": 0
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -2064,35 +2070,35 @@ class upbit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($request, $params) = $this->handle_until_option('end_time', $request, $params);
-        $response = $this->privateGetOrdersClosed($this->extend($request, $params));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_time', $request, $params);
+        $response = $this->privateGetOrdersClosed($this->extend($requestUntil, $paramsUntil));
         //
-        //     array(
+        //     [
         //         {
-        //             "uuid" => "637fd66-d019-4d77-bee6-8e0cff28edd9",
-        //             "side" => "ask",
-        //             "ord_type" => "limit",
-        //             "price" => "1.5",
-        //             "state" => "done",
-        //             "market" => "SGD-XRP",
-        //             "created_at" => "2024-06-05T09:37:10Z",
-        //             "volume" => "10",
-        //             "remaining_volume" => "10",
-        //             "reserved_fee" => "0",
-        //             "remaining_fee" => "0",
-        //             "paid_fee" => "0",
-        //             "locked" => "10",
-        //             "executed_volume" => "0",
-        //             "executed_funds" => "0",
-        //             "trades_count" => 0,
-        //             "time_in_force" => "ioc"
+        //             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //             "side": "ask",
+        //             "ord_type": "limit",
+        //             "price": "1.5",
+        //             "state": "done",
+        //             "market": "SGD-XRP",
+        //             "created_at": "2024-06-05T09:37:10Z",
+        //             "volume": "10",
+        //             "remaining_volume": "10",
+        //             "reserved_fee": "0",
+        //             "remaining_fee": "0",
+        //             "paid_fee": "0",
+        //             "locked": "10",
+        //             "executed_volume": "0",
+        //             "executed_funds": "0",
+        //             "trades_count": 0,
+        //             "time_in_force": "ioc"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled orders made by the user
          *
@@ -2123,35 +2129,35 @@ class upbit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($request, $params) = $this->handle_until_option('end_time', $request, $params);
-        $response = $this->privateGetOrdersClosed($this->extend($request, $params));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_time', $request, $params);
+        $response = $this->privateGetOrdersClosed($this->extend($requestUntil, $paramsUntil));
         //
-        //     array(
+        //     [
         //         {
-        //             "uuid" => "637fd66-d019-4d77-bee6-8e0cff28edd9",
-        //             "side" => "ask",
-        //             "ord_type" => "limit",
-        //             "price" => "1.5",
-        //             "state" => "cancel",
-        //             "market" => "SGD-XRP",
-        //             "created_at" => "2024-06-05T09:37:10Z",
-        //             "volume" => "10",
-        //             "remaining_volume" => "10",
-        //             "reserved_fee" => "0",
-        //             "remaining_fee" => "0",
-        //             "paid_fee" => "0",
-        //             "locked" => "10",
-        //             "executed_volume" => "0",
-        //             "executed_funds" => "0",
-        //             "trades_count" => 0,
-        //             "time_in_force" => "ioc"
+        //             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //             "side": "ask",
+        //             "ord_type": "limit",
+        //             "price": "1.5",
+        //             "state": "cancel",
+        //             "market": "SGD-XRP",
+        //             "created_at": "2024-06-05T09:37:10Z",
+        //             "volume": "10",
+        //             "remaining_volume": "10",
+        //             "reserved_fee": "0",
+        //             "remaining_fee": "0",
+        //             "paid_fee": "0",
+        //             "locked": "10",
+        //             "executed_volume": "0",
+        //             "executed_funds": "0",
+        //             "trades_count": 0,
+        //             "time_in_force": "ioc"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://docs.upbit.com/kr/reference/get-order
@@ -2172,45 +2178,45 @@ class upbit extends Exchange {
         $response = $this->privateGetOrder($this->extend($request, $params));
         //
         //     {
-        //         "uuid" => "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        //         "side" => "bid",
-        //         "ord_type" => "limit",
-        //         "price" => "17417000.0",
-        //         "state" => "done",
-        //         "market" => "KRW-BTC",
-        //         "created_at" => "2018-04-05T14:09:14+09:00",
-        //         "volume" => "1.0",
-        //         "remaining_volume" => "0.0",
-        //         "reserved_fee" => "26125.5",
-        //         "remaining_fee" => "25974.0",
-        //         "paid_fee" => "151.5",
-        //         "locked" => "17341974.0",
-        //         "executed_volume" => "1.0",
-        //         "trades_count" => 2,
-        //         "trades" => array(
-        //             array(
-        //                 "market" => "KRW-BTC",
-        //                 "uuid" => "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-        //                 "price" => "101000.0",
-        //                 "volume" => "0.77368323",
-        //                 "funds" => "78142.00623",
-        //                 "ask_fee" => "117.213009345",
-        //                 "bid_fee" => "117.213009345",
-        //                 "created_at" => "2018-04-05T14:09:15+09:00",
-        //                 "side" => "bid"
-        //             ),
+        //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
+        //         "side": "bid",
+        //         "ord_type": "limit",
+        //         "price": "17417000.0",
+        //         "state": "done",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2018-04-05T14:09:14+09:00",
+        //         "volume": "1.0",
+        //         "remaining_volume": "0.0",
+        //         "reserved_fee": "26125.5",
+        //         "remaining_fee": "25974.0",
+        //         "paid_fee": "151.5",
+        //         "locked": "17341974.0",
+        //         "executed_volume": "1.0",
+        //         "trades_count": 2,
+        //         "trades": [
         //             {
-        //                 "market" => "KRW-BTC",
-        //                 "uuid" => "f73da467-c42f-407d-92fa-e10d86450a20",
-        //                 "price" => "101000.0",
-        //                 "volume" => "0.22631677",
-        //                 "funds" => "22857.99377",
-        //                 "ask_fee" => "34.286990655",
-        //                 "bid_fee" => "34.286990655",
-        //                 "created_at" => "2018-04-05T14:09:15+09:00",
-        //                 "side" => "bid"
+        //                 "market": "KRW-BTC",
+        //                 "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
+        //                 "price": "101000.0",
+        //                 "volume": "0.77368323",
+        //                 "funds": "78142.00623",
+        //                 "ask_fee": "117.213009345",
+        //                 "bid_fee": "117.213009345",
+        //                 "created_at": "2018-04-05T14:09:15+09:00",
+        //                 "side": "bid"
+        //             },
+        //             {
+        //                 "market": "KRW-BTC",
+        //                 "uuid": "f73da467-c42f-407d-92fa-e10d86450a20",
+        //                 "price": "101000.0",
+        //                 "volume": "0.22631677",
+        //                 "funds": "22857.99377",
+        //                 "ask_fee": "34.286990655",
+        //                 "bid_fee": "34.286990655",
+        //                 "created_at": "2018-04-05T14:09:15+09:00",
+        //                 "side": "bid"
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $this->parse_order($response);
@@ -2232,34 +2238,34 @@ class upbit extends Exchange {
         }
         $response = $this->privateGetDepositsCoinAddresses($params);
         //
-        //     array(
-        //         array(
-        //             "currency" => "BTC",
-        //             "deposit_address" => "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        //             "secondary_address" => null
-        //         ),
-        //         array(
-        //             "currency" => "ETH",
-        //             "deposit_address" => "0x0d73e0a482b8cf568976d2e8688f4a899d29301c",
-        //             "secondary_address" => null
-        //         ),
+        //     [
         //         {
-        //             "currency" => "XRP",
-        //             "deposit_address" => "rN9qNpgnBaZwqCg8CvUZRPqCcPPY7wfWep",
-        //             "secondary_address" => "3057887915"
+        //             "currency": "BTC",
+        //             "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
+        //             "secondary_address": null
+        //         },
+        //         {
+        //             "currency": "ETH",
+        //             "deposit_address": "0x0d73e0a482b8cf568976d2e8688f4a899d29301c",
+        //             "secondary_address": null
+        //         },
+        //         {
+        //             "currency": "XRP",
+        //             "deposit_address": "rN9qNpgnBaZwqCg8CvUZRPqCcPPY7wfWep",
+        //             "secondary_address": "3057887915"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_deposit_addresses($response, $codes, false);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //    {
-        //        $currency => 'XRP',
-        //        net_type => 'XRP',
-        //        deposit_address => 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
-        //        secondary_address => '167029435'
+        //        currency: 'XRP',
+        //        net_type: 'XRP',
+        //        deposit_address: 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+        //        secondary_address: '167029435'
         //    }
         //
         $address = $this->safe_string($depositAddress, 'deposit_address');
@@ -2293,21 +2299,20 @@ class upbit extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires params["network"]');
         }
         $response = $this->privateGetDepositsCoinAddress($this->extend(array(
             'currency' => $currency['id'],
-            'net_type' => $this->network_code_to_id($networkCode, $currency['code']),
-        ), $params));
+            'net_type' => $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')),
+        ), $paramsNetworkCode));
         //
         //    {
-        //        $currency => 'XRP',
-        //        net_type => 'XRP',
-        //        deposit_address => 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
-        //        secondary_address => '167029435'
+        //        currency: 'XRP',
+        //        net_type: 'XRP',
+        //        deposit_address: 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+        //        secondary_address: '167029435'
         //    }
         //
         return $this->parse_deposit_address($response);
@@ -2343,9 +2348,9 @@ class upbit extends Exchange {
         //     }
         //
         //     {
-        //         "currency" => "BTC",
-        //         "deposit_address" => "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        //         "secondary_address" => null
+        //         "currency": "BTC",
+        //         "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
+        //         "secondary_address": null
         //     }
         //
         $message = $this->safe_string($response, 'message');
@@ -2369,7 +2374,7 @@ class upbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagResolved, $paramsTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2380,45 +2385,48 @@ class upbit extends Exchange {
         if ($code !== 'KRW') {
             $this->check_address($address);
             // 2023-05-23 Change to required parameters for digital assets
-            $network = $this->safe_string_upper_2($params, 'network', 'net_type');
+            $network = $this->safe_string_upper_2($paramsTag, 'network', 'net_type');
             if ($network === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires a $network argument');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a network argument');
             }
-            $params = $this->omit($params, array( 'network' ));
+            $paramsOmitted = $this->omit($paramsTag, array( 'network' ));
             $request['net_type'] = $network;
             $request['currency'] = $currency['id'];
             $request['address'] = $address;
-            if ($tag !== null) {
-                $request['secondary_address'] = $tag;
+            if ($tagResolved !== null) {
+                $request['secondary_address'] = $tagResolved;
             }
-            $params = $this->omit($params, 'network');
-            $response = $this->privatePostWithdrawsCoin($this->extend($request, $params));
+            $response = $this->privatePostWithdrawsCoin($this->extend($request, $paramsOmitted));
         } else {
-            $response = $this->privatePostWithdrawsKrw($this->extend($request, $params));
+            $response = $this->privatePostWithdrawsKrw($this->extend($request, $paramsTag));
         }
         //
         //     {
-        //         "type" => "withdraw",
-        //         "uuid" => "9f432943-54e0-40b7-825f-b6fec8b42b79",
-        //         "currency" => "BTC",
-        //         "txid" => "ebe6937b-130e-4066-8ac6-4b0e67f28adc",
-        //         "state" => "processing",
-        //         "created_at" => "2018-04-13T11:24:01+09:00",
-        //         "done_at" => null,
-        //         "amount" => "0.01",
-        //         "fee" => "0.0",
-        //         "krw_amount" => "80420.0"
+        //         "type": "withdraw",
+        //         "uuid": "9f432943-54e0-40b7-825f-b6fec8b42b79",
+        //         "currency": "BTC",
+        //         "txid": "ebe6937b-130e-4066-8ac6-4b0e67f28adc",
+        //         "state": "processing",
+        //         "created_at": "2018-04-13T11:24:01+09:00",
+        //         "done_at": null,
+        //         "amount": "0.01",
+        //         "fee": "0.0",
+        //         "krw_amount": "80420.0"
         //     }
         //
         return $this->parse_transaction($response);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
-        $url = $this->implode_params($this->urls['api'][$api], array(
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_params($baseApiUrl, array(
             'hostname' => $this->hostname,
         ));
         $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
@@ -2428,9 +2436,15 @@ class upbit extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
+        $hasBody = ($api === 'private') && ($method !== 'GET') && ($method !== 'DELETE');
+        $requestBody = $body;
+        if ($hasBody) {
+            $requestBody = $this->json($params);
+        }
+        $privateHeaders = null;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $headers = array();
+            $privateHeaders = array();
             $nonce = $this->uuid();
             $request = array(
                 'access_key' => $this->apiKey,
@@ -2438,11 +2452,10 @@ class upbit extends Exchange {
             );
             $hasQuery = count($query);
             $auth = null;
-            if (($method !== 'GET') && ($method !== 'DELETE')) {
-                $body = $this->json($params);
-                $headers['Content-Type'] = 'application/json';
+            if ($hasBody) {
+                $privateHeaders['Content-Type'] = 'application/json';
             }
-            if (($hasQuery !== null) && ($hasQuery !== 0)) {
+            if ($hasQuery !== 0) {
                 $auth = $this->rawencode($query);
             }
             if ($auth !== null) {
@@ -2451,27 +2464,28 @@ class upbit extends Exchange {
                 $request['query_hash_alg'] = 'SHA512';
             }
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
-            $headers['Authorization'] = 'Bearer ' . $token;
+            $privateHeaders['Authorization'] = 'Bearer ' . $token;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $requestHeaders = ($api === 'private') ? $privateHeaders : $headers;
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
         //
-        //   array( 'error' => array( 'message' => "Missing request parameter $error-> Check the required parameters!", 'name' => 400 ) ),
-        //   array( 'error' => array( 'message' => "side is missing, side does not have a valid value", 'name' => "validation_error" ) ),
-        //   array( 'error' => array( 'message' => "개인정보 제 3자 제공 동의가 필요합니다.", 'name' => "thirdparty_agreement_required" ) ),
-        //   array( 'error' => array( 'message' => "권한이 부족합니다.", 'name' => "out_of_scope" ) ),
-        //   array( 'error' => array( 'message' => "주문을 찾지 못했습니다.", 'name' => "order_not_found" ) ),
-        //   array( 'error' => array( 'message' => "주문가능한 금액(ETH)이 부족합니다.", 'name' => "insufficient_funds_ask" ) ),
-        //   array( 'error' => array( 'message' => "주문가능한 금액(BTC)이 부족합니다.", 'name' => "insufficient_funds_bid" ) ),
-        //   array( 'error' => array( 'message' => "잘못된 엑세스 키입니다.", 'name' => "invalid_access_key" ) ),
-        //   array( 'error' => array( 'message' => "Jwt 토큰 검증에 실패했습니다.", 'name' => "jwt_verification" ) )
+        //   { 'error': { 'message': "Missing request parameter error. Check the required parameters!", 'name': 400 } },
+        //   { 'error': { 'message': "side is missing, side does not have a valid value", 'name': "validation_error" } },
+        //   { 'error': { 'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required" } },
+        //   { 'error': { 'message': "권한이 부족합니다.", 'name': "out_of_scope" } },
+        //   { 'error': { 'message': "주문을 찾지 못했습니다.", 'name': "order_not_found" } },
+        //   { 'error': { 'message': "주문가능한 금액(ETH)이 부족합니다.", 'name': "insufficient_funds_ask" } },
+        //   { 'error': { 'message': "주문가능한 금액(BTC)이 부족합니다.", 'name': "insufficient_funds_bid" } },
+        //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
+        //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        $error = $this->safe_value($response, 'error');
+        $error = $this->safe_dict($response, 'error');
         if ($error !== null) {
             $message = $this->safe_string($error, 'message');
             $name = $this->safe_string($error, 'name');
@@ -2480,7 +2494,7 @@ class upbit extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $name, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $name, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

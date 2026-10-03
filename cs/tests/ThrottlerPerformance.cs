@@ -33,12 +33,16 @@ public partial class BaseTest
                 { "enableRateLimit", true },
                 { "rateLimiterAlgorithm", "leakyBucket" }
             });
-            object leakyBucketTime = await testThrottlerPerformanceHelper(exchange2, 20);
             var exchange3 = new ccxt.binance(new Dictionary<string, object>() {
                 { "enableRateLimit", true },
                 { "rollingWindowSize", 0 },
             });
-            object rollingWindow0Time = await testThrottlerPerformanceHelper(exchange3, 20);
+            // each throttler is per-instance and timed by its own stopwatch, so the two
+            // ~950ms leaky-bucket measurements run concurrently instead of back to back
+            var leakyBucketTask = testThrottlerPerformanceHelper(exchange2, 20);
+            var rollingWindow0Task = testThrottlerPerformanceHelper(exchange3, 20);
+            object leakyBucketTime = await leakyBucketTask;
+            object rollingWindow0Time = await rollingWindow0Task;
             object rollingWindowTimeString = ((object)rollingWindowTime).ToString();
             object leakyBucketTimeString = ((object)leakyBucketTime).ToString();
             object rollingWindow0TimeString = ((object)rollingWindow0Time).ToString();

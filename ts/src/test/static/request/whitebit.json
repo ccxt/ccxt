@@ -937,6 +937,34 @@
                 "input": [],
                 "output": null
             }
+        ],
+        "fetchTransactionFees": [
+            {
+                "description": "fetchTransactionFees public fee",
+                "method": "fetchTransactionFees",
+                "url": "https://whitebit.com/api/v4/public/fee",
+                "input": [
+                    [
+                        "BTC",
+                        "DOGE"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "fetchDepositWithdrawFees public fee",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://whitebit.com/api/v4/public/fee",
+                "input": [
+                    [
+                        "BTC",
+                        "DOGE"
+                    ]
+                ],
+                "output": null
+            }
         ]
     }
 }

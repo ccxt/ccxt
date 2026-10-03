@@ -11,12 +11,12 @@ class okxus(okx):
     def describe(self) -> object:
         return self.deep_extend(super(okxus, self).describe(), {
             'id': 'okxus',
-            'name': 'OKX(US)',
+            'name': 'OKX (US)',
             'hostname': 'us.okx.com',
             'urls': {
                 'api': {
                     'rest': 'https://{hostname}',
-                    'ws': 'wss://wsus.okx.com:8443/ws/v5',
+                    'ws': 'wss://wsus.okx.com:443/ws/v5',
                 },
                 'www': 'https://app.okx.com',
                 'doc': 'https://app.okx.com/docs-v5/en/#overview',
@@ -26,7 +26,7 @@ class okxus(okx):
                     'discount': 0.2,
                 },
                 'test': {
-                    'ws': 'wss://wsuspap.okx.com:8443/ws/v5',
+                    'ws': 'wss://wsuspap.okx.com:443/ws/v5',
                 },
             },
             'has': {

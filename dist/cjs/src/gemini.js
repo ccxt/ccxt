@@ -479,7 +479,7 @@ class gemini extends gemini$1["default"] {
         //    }
         //
         this.options['tradingPairs'] = this.safeList(data, 'tradingPairs');
-        const currenciesArray = this.safeValue(data, 'currencies', []);
+        const currenciesArray = this.safeList(data, 'currencies', []);
         return this.parseCurrencies(currenciesArray);
     }
     parseCurrency(rawCurrency) {
@@ -487,7 +487,10 @@ class gemini extends gemini$1["default"] {
         const code = this.safeCurrencyCode(id);
         const fiatFlag = this.safeString(rawCurrency, 7);
         const isFiat = (fiatFlag !== undefined) && (fiatFlag !== '');
-        const type = isFiat ? 'fiat' : 'crypto';
+        let type = 'crypto';
+        if (isFiat) {
+            type = 'fiat';
+        }
         const precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
         const networks = {};
         const networkId = this.safeString(rawCurrency, 9);
@@ -550,7 +553,7 @@ class gemini extends gemini$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const method = this.safeValue(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+        const method = this.safeString(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
             const promises = [];
             promises.push(this.fetchMarketsFromWeb(params)); // get usd markets
@@ -605,6 +608,9 @@ class gemini extends gemini$1["default"] {
             const baseId = this.safeStringLower(amountPrecisionParts, 1, marketId.replace(quoteId, ''));
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             result.push({
                 'id': marketId,
                 'symbol': base + '/' + quote,
@@ -685,7 +691,10 @@ class gemini extends gemini$1["default"] {
             };
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
             const rawResponse = await this.publicGetV1SymbolsDetailsSymbol(this.extend(request, params));
-            result.push(this.parseMarket(rawResponse));
+            const parsed = this.parseMarket(rawResponse);
+            if (parsed !== undefined) {
+                result.push(parsed);
+            }
         }
         return result;
     }
@@ -734,7 +743,10 @@ class gemini extends gemini$1["default"] {
             }
             const responses = await Promise.all(promises);
             for (let i = 0; i < responses.length; i++) {
-                result.push(this.parseMarket(responses[i]));
+                const parsed = this.parseMarket(responses[i]);
+                if (parsed !== undefined) {
+                    result.push(parsed);
+                }
             }
         }
         else {
@@ -746,14 +758,20 @@ class gemini extends gemini$1["default"] {
                     const marketId = marketIds[i];
                     const pairInfo = this.safeList(indexedTradingPairs, marketId.toUpperCase());
                     if (pairInfo !== undefined && !this.inArray(marketId, brokenPairs)) {
-                        result.push(this.parseMarket(pairInfo));
+                        const parsed = this.parseMarket(pairInfo);
+                        if (parsed !== undefined) {
+                            result.push(parsed);
+                        }
                     }
                 }
             }
             else {
                 for (let i = 0; i < marketIds.length; i++) {
                     if (!this.inArray(marketIds[i], brokenPairs)) {
-                        result.push(this.parseMarket(marketIds[i]));
+                        const parsed = this.parseMarket(marketIds[i]);
+                        if (parsed !== undefined) {
+                            result.push(parsed);
+                        }
                     }
                 }
             }
@@ -859,6 +877,9 @@ class gemini extends gemini$1["default"] {
         }
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode(settleId);
         let symbol = base + '/' + quote;
         if (settleId !== undefined) {
@@ -868,7 +889,10 @@ class gemini extends gemini$1["default"] {
             linear = true; // always linear
             inverse = false;
         }
-        const type = swap ? 'swap' : 'spot';
+        let type = 'spot';
+        if (swap) {
+            type = 'swap';
+        }
         const isSpot = !swap;
         return this.safeMarketStructure({
             'id': marketId,
@@ -1018,7 +1042,7 @@ class gemini extends gemini$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        const method = this.safeValue(this.options, 'fetchTickerMethod', 'fetchTickerV1');
+        const method = this.safeString(this.options, 'fetchTickerMethod', 'fetchTickerV1');
         if (method === 'fetchTickerV1') {
             return await this.fetchTickerV1(symbol, params);
         }
@@ -1064,16 +1088,16 @@ class gemini extends gemini$1["default"] {
         //         "ask":"9115.87"
         //     }
         //
-        const volume = this.safeValue(ticker, 'volume', {});
+        const volume = this.safeDict(ticker, 'volume', {});
         const timestamp = this.safeInteger(volume, 'timestamp');
         let symbol = undefined;
         const marketId = this.safeStringLower(ticker, 'pair');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         let baseId = undefined;
         let quoteId = undefined;
         let base = undefined;
         let quote = undefined;
-        if ((marketId !== undefined) && (market === undefined)) {
+        if ((marketId !== undefined) && (marketResolved === undefined)) {
             const idLength = marketId.length - 0;
             if (idLength === 7) {
                 baseId = marketId.slice(0, 4);
@@ -1085,12 +1109,14 @@ class gemini extends gemini$1["default"] {
             }
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            baseId = this.safeStringUpper(market, 'baseId');
-            quoteId = this.safeStringUpper(market, 'quoteId');
+        if ((symbol === undefined) && (marketResolved !== undefined)) {
+            symbol = marketResolved['symbol'];
+            baseId = this.safeStringUpper(marketResolved, 'baseId');
+            quoteId = this.safeStringUpper(marketResolved, 'quoteId');
         }
         const price = this.safeString(ticker, 'price');
         const last = this.safeString2(ticker, 'last', 'close', price);
@@ -1119,7 +1145,7 @@ class gemini extends gemini$1["default"] {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1260,7 +1286,7 @@ class gemini extends gemini$1["default"] {
     parseBalance(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -1453,10 +1479,10 @@ class gemini extends gemini$1["default"] {
         const remaining = this.safeString(order, 'remaining_amount');
         const filled = this.safeString(order, 'executed_amount');
         let status = 'closed';
-        if (order['is_live'] === true) {
+        if (this.safeBool(order, 'is_live', false)) {
             status = 'open';
         }
-        if (order['is_cancelled'] === true) {
+        if (this.safeBool(order, 'is_cancelled', false)) {
             status = 'canceled';
         }
         const price = this.safeString(order, 'price');
@@ -1469,7 +1495,7 @@ class gemini extends gemini$1["default"] {
             type = 'market';
         }
         else {
-            type = order['type'];
+            type = this.safeString(order, 'type');
         }
         const fee = undefined;
         const marketId = this.safeString(order, 'symbol');
@@ -1477,7 +1503,7 @@ class gemini extends gemini$1["default"] {
         const id = this.safeString(order, 'order_id');
         const side = this.safeStringLower(order, 'side');
         const clientOrderId = this.safeString(order, 'client_order_id');
-        const optionsArray = this.safeValue(order, 'options', []);
+        const optionsArray = this.safeList(order, 'options', []);
         const option = this.safeString(optionsArray, 0);
         let timeInForce = 'GTC';
         let postOnly = false;
@@ -1628,7 +1654,6 @@ class gemini extends gemini$1["default"] {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');
         }
         let clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
-        params = this.omit(params, ['clientOrderId', 'client_order_id']);
         if (clientOrderId === undefined) {
             clientOrderId = this.milliseconds().toString();
         }
@@ -1644,12 +1669,14 @@ class gemini extends gemini$1["default"] {
             'type': 'exchange limit', // gemini allows limit orders only
             // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         };
-        type = this.safeString(params, 'type', type);
-        params = this.omit(params, 'type');
+        const typeValue = this.safeString(params, 'type', type);
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price', 'stopPrice']);
-        params = this.omit(params, ['triggerPrice', 'stop_price', 'stopPrice', 'type']);
-        if (type === 'stopLimit') {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + type + ' orders');
+        // timeInForce and postOnly are consumed only by non-trigger orders
+        const omitKeys = ['clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice'];
+        const optionKeys = (triggerPrice === undefined) ? ['timeInForce', 'postOnly'] : [];
+        const paramsOmitted = this.omit(params, this.arrayConcat(omitKeys, optionKeys));
+        if (typeValue === 'stopLimit') {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders');
         }
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
@@ -1658,7 +1685,6 @@ class gemini extends gemini$1["default"] {
         else {
             // No options can be applied to stop-limit orders at this time.
             const timeInForce = this.safeString(params, 'timeInForce');
-            params = this.omit(params, 'timeInForce');
             if (timeInForce !== undefined) {
                 if ((timeInForce === 'IOC') || (timeInForce === 'immediate-or-cancel')) {
                     request['options'] = ['immediate-or-cancel'];
@@ -1671,7 +1697,6 @@ class gemini extends gemini$1["default"] {
                 }
             }
             const postOnly = this.safeBool(params, 'postOnly', false);
-            params = this.omit(params, 'postOnly');
             if (postOnly === true) {
                 request['options'] = ['maker-or-cancel'];
             }
@@ -1681,7 +1706,7 @@ class gemini extends gemini$1["default"] {
                 request['options'] = [options];
             }
         }
-        const response = await this.privatePostV1OrderNew(this.extend(request, params));
+        const response = await this.privatePostV1OrderNew(this.extend(request, paramsOmitted));
         //
         //      {
         //          "order_id":"106027397702",
@@ -1795,7 +1820,8 @@ class gemini extends gemini$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const tagAndParams = this.handleWithdrawTagAndParams(tag, params);
+        const paramsWithdrawTag = tagAndParams[1];
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1806,7 +1832,7 @@ class gemini extends gemini$1["default"] {
             'amount': amount,
             'address': address,
         };
-        const response = await this.privatePostV1WithdrawCurrency(this.extend(request, params));
+        const response = await this.privatePostV1WithdrawCurrency(this.extend(request, paramsWithdrawTag));
         //
         //   for BTC
         //     {
@@ -1965,8 +1991,7 @@ class gemini extends gemini$1["default"] {
             await this.loadMarkets();
         }
         const indexedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const networkCode = this.handleNetworkCodeAndParams(params)[0];
         return this.safeValue(indexedByNetwork, networkCode);
     }
     /**
@@ -1984,18 +2009,17 @@ class gemini extends gemini$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        code = currency['code'];
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const codeValue = currency['code'];
+        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddresses() requires a network parameter');
         }
-        const networkId = this.networkCodeToId(networkCode, currency['code']);
+        const networkId = this.networkCodeToId(networkCode, this.safeString(currency, 'code'));
         const request = {
             'network': networkId,
         };
-        const response = await this.privatePostV1AddressesNetwork(this.extend(request, params));
-        const results = this.parseDepositAddresses(response, [code], false, { 'network': networkCode, 'currency': code });
+        const response = await this.privatePostV1AddressesNetwork(this.extend(request, paramsNetworkCode));
+        const results = this.parseDepositAddresses(response, [codeValue], false, { 'network': networkCode, 'currency': codeValue });
         // one address structure per network, like every other venue (the endpoint is scoped to a
         // single network, so the last address the venue lists for it wins — same as before)
         return this.indexBy(results, 'network');
@@ -2003,13 +2027,15 @@ class gemini extends gemini$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
+        let headersSigned = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials();
             const apiKey = this.apiKey;
             if (apiKey.indexOf('account') < 0) {
                 throw new errors.AuthenticationError(this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
-            const nonce = this.nonce().toString();
+            // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+            const nonce = this.incrementingNonce().toString();
             const finalUrl = url;
             const request = this.extend({
                 'request': finalUrl,
@@ -2018,7 +2044,7 @@ class gemini extends gemini$1["default"] {
             let payload = this.json(request);
             payload = this.stringToBase64(payload);
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
-            headers = {
+            headersSigned = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,
                 'X-GEMINI-PAYLOAD': payload,
@@ -2030,11 +2056,17 @@ class gemini extends gemini$1["default"] {
                 url += '?' + this.urlencode(query);
             }
         }
-        url = this.urls['api'][api] + url;
-        if ((method === 'POST') || (method === 'DELETE')) {
-            body = this.json(query);
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const fullUrl = apiUrl + url;
+        const headersResolved = (api === 'private') ? headersSigned : headers;
+        let bodyResolved = body;
+        if ((method === 'POST') || (method === 'DELETE')) {
+            bodyResolved = this.json(query);
+        }
+        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

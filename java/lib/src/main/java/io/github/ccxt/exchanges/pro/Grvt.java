@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.OHLCV;
@@ -20,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Grvt extends io.github.ccxt.exchanges.Grvt
 {
@@ -106,7 +108,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //     prev_sequence_number: "0",
         //  }
         //
-        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             return;
         }
@@ -124,45 +126,48 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             put( "v1.order", "handleOrder");
         }};
         String methodName = this.safeString(message, "method");
-        if (Helpers.isTrue(Helpers.isEqual(methodName, "subscribe")))
+        if (java.util.Objects.equals(methodName, "subscribe"))
         {
             // return from confirmation
             return;
         }
         String channel = this.safeString(message, "stream");
         Object method = this.safeValue(methods, channel);
-        if (Helpers.isTrue(!Helpers.isEqual(method, null)))
+        if (!java.util.Objects.equals(method, null))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
         }
     }
 
-    public CompletableFuture<Object> subscribeMultiple(Object messageHashes, Object request, Object rawHashes, Object... optionalArgs)
+    public CompletableFuture<Object> subscribeMultiple(Object messageHashes, Map<String, Object> request, Object rawHashes, Object publicOrPrivate)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object publicOrPrivate = Helpers.getArg(optionalArgs, 0, true);
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
                 put( "params", request );
                 put( "id", Grvt.this.requestId() );
             }};
-            String apiPart = ((Helpers.isTrue(publicOrPrivate))) ? "publicMarket" : "privateTrading";
-            return (this.watchMultiple(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes, null)).join();
+            String apiPart = "privateTrading";
+            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(publicOrPrivate, true)))
+            {
+                apiPart = "publicMarket";
+            }
+            return (this.watchMultiple((String) (Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), apiPart)), messageHashes, payload, rawHashes, null)).join();
         });
 
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object newValue;
         synchronized (this) {
         newValue = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", newValue);
         }
-        return newValue;
+        return Helpers.toLongOrNull(newValue);
     }
 
     /**
@@ -174,22 +179,20 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbol = this.symbol(symbol);
-            final Object finalSymbol = symbol;
-            Object tickers = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(finalSymbol))), (Object)(this.extend(parameters, new HashMap<String, Object>() {{
+            String symbolValue = this.symbol(symbol);
+            Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), this.extend(parameters, new HashMap<String, Object>() {{
                 put( "callerMethodName", "watchTicker" );
-            }})))).join();
-            return Helpers.GetValue(tickers, symbol);
+            }}))).join();
+            return (tickers == null || symbolValue == null ? null : tickers.get(symbolValue));
         }).thenApply(Ticker::new);
 
     }
@@ -203,58 +206,58 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            if (java.util.Objects.equals(symbols, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " watchTickers requires a symbols argument")) ;
+                throw new ArgumentsRequired((this.id + " watchTickers requires a symbols argument")) ;
             }
-            Object channel = null;
-            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
-            channel = ((List<Object>) channelparametersVariable).get(0);
-            parameters = ((List<Object>) channelparametersVariable).get(1);
-            Object interval = 500;
-            List<Object> intervalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
-            interval = ((List<Object>) intervalparametersVariable).get(0);
-            parameters = ((List<Object>) intervalparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "v1.ticker.s");
+            String channel = channelparamsChannelVariable.first();
+            Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
+            Long interval = 500L;
+            List<Object> intervalOptionparamsIntervalVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsChannel, "watchTickers", "interval", interval);
+            Long intervalOption = (Long) ((List<Object>) intervalOptionparamsIntervalVariable).get(0);
+            Map<String, Object> paramsInterval = (Map<String, Object>) ((List<Object>) intervalOptionparamsIntervalVariable).get(1);
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols);
-            Object rawHashes = new ArrayList<Object>(Arrays.asList());
-            Object messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object marketId = Helpers.GetValue(market, "id");
-                ((List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), String.valueOf(interval)));
-                ((List<Object>)messageHashes).add(Helpers.add("ticker::", Helpers.GetValue(market, "symbol")));
+                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                Map<String, Object> market = this.market(symbol);
+                String marketId = (String) market.get("id");
+                ((List<Object>)rawHashes).add(((marketId + "@") + String.valueOf(intervalOption)));
+                messageHashes.add(("ticker::" + market.get("symbol")));
             }
-            final Object finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "stream", finalChannel );
+                put( "stream", channel );
                 put( "selectors", rawHashes );
             }};
-            Object ticker = (this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            Object ticker = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(paramsInterval, request)), rawHashes, true)).join();
+            if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    tickers.put(tickerSymbol, ticker);
+                }
                 return tickers;
             }
-            return this.filterByArray(this.tickers, "symbol", symbols);
+            return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         // v1.ticker.s
@@ -332,21 +335,20 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "1061717"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
         String selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = Helpers.GetValue(market, "symbol");
-        Object ticker = this.parseWsTicker(data, market);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = (String) market.get("symbol");
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
-        client.resolve(ticker, Helpers.add("ticker::", symbol));
+        client.resolve(ticker, ("ticker::" + symbol));
     }
 
-    public Object parseWsTicker(Object message, Object... optionalArgs)
+    public Ticker parseWsTicker(Object message, Map<String, Object> market)
     {
         // same dict as REST api
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         return this.parseTicker(message, market);
     }
 
@@ -361,16 +363,13 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -386,47 +385,45 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
      * @param {string} [params.limit] 50, 200, 500, 1000 (default 50)
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object symbols = symbols3;
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols);
-            Object rawHashes = new ArrayList<Object>(Arrays.asList());
-            Object messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object marketId = Helpers.GetValue(market, "id");
+                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                Map<String, Object> market = this.market(symbol);
+                String marketId = (String) market.get("id");
                 Long limitRaw = this.safeInteger(parameters, "limit", 50); // 50, 200, 500, 1000
-                ((List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), String.valueOf(limitRaw)));
-                ((List<Object>)messageHashes).add(Helpers.add("trade::", Helpers.GetValue(market, "symbol")));
+                ((List<Object>)rawHashes).add(((marketId + "@") + String.valueOf(limitRaw)));
+                messageHashes.add(("trade::" + market.get("symbol")));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", "v1.trade" );
                 put( "selectors", rawHashes );
             }};
-            Object trades = (this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            List<Object> trades = (List<Object>) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(parameters, request)), rawHashes, true)).join();
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
+            String tradeSymbol = this.safeString(first, "symbol");
+            Long limitResolved = limit;
+            if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
-                String tradeSymbol = this.safeString(first, "symbol");
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -450,27 +447,26 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
         String selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = Helpers.GetValue(market, "symbol");
-        if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = (String) market.get("symbol");
+        if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        Object parsed = this.parseWsTrade(data);
+        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
-        client.resolve(stored, Helpers.add("trade::", symbol));
+        stored.append(parsed);
+        client.resolve(stored, ("trade::" + symbol));
     }
 
-    public Object parseWsTrade(Object trade, Object... optionalArgs)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // same as REST api
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         return this.parseTrade(trade, market);
     }
 
@@ -486,24 +482,20 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbol = this.symbol(symbol);
-            Helpers.addElementToObject(parameters, "callerMethodName", "watchOHLCV");
-            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
-            return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+            String symbolValue = this.symbol(symbol);
+            parameters.put("callerMethodName", "watchOHLCV");
+            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
+            return Helpers.GetValue(Helpers.GetValue(result, symbolValue), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -518,50 +510,48 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object rawHashes = new ArrayList<Object>(Arrays.asList());
-            Object messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
+            List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = Helpers.GetValue(symbolsAndTimeframes, i);
+                List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 String symbolString = this.safeString(data, 0);
-                Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
-                Object marketId = Helpers.GetValue(market, "id");
+                Map<String, Object> market = this.market(symbolString);
+                String marketId = (String) market.get("id");
                 String unfiedTimeframe = this.safeString(data, 1, "1");
                 String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-                ((List<Object>)rawHashes).add(Helpers.add(Helpers.add(Helpers.add(marketId, "@"), timeframeId), "-TRADE"));
-                ((List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv::", Helpers.GetValue(market, "symbol")), "::"), unfiedTimeframe));
+                ((List<Object>)rawHashes).add((((marketId + "@") + timeframeId) + "-TRADE"));
+                messageHashes.add(((("ohlcv::" + market.get("symbol")) + "::") + unfiedTimeframe));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", "v1.candle" );
                 put( "selectors", rawHashes );
             }};
-            var symboltimeframestoredVariable = (this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes)).join();
+            var symboltimeframestoredVariable = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(parameters, request)), rawHashes, true)).join();
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
             var stored = ((List<Object>) symboltimeframestoredVariable).get(2);
-            if (Helpers.isTrue(this.newUpdates))
+            Long limitResolved = limit;
+            if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(stored, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(stored, symbol, limit);
             }
-            List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+            List<Object> filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -583,33 +573,32 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
         String selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = (String) market.get("symbol");
         String secondPart = this.safeString(parts, 1, "");
-        Object timeframeId = Helpers.replace(secondPart, (String)"-TRADE", (String)"");
-        Object timeframe = this.findTimeframe(timeframeId);
-        String messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
+        String timeframeId = secondPart.replaceFirst("-TRADE", "");
+        Object timeframe = this.findTimeframe(timeframeId, (Object) null);
+        String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe))))
         {
             Object limit = this.handleOption("watchOHLCV", "limit", 1000);
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
         Object parsed = this.parseWsOHLCV(data, market);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         // same as REST api
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         return this.parseOHLCV(ohlcv, market);
     }
 
@@ -624,19 +613,17 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbol = this.symbol(symbol);
-            return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
+            String symbolValue = this.symbol(symbol);
+            return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbolValue)), limit, parameters)).join();
         }).thenApply(OrderBook::new);
 
     }
@@ -652,61 +639,66 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object symbols = symbols3;
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object channel = null;
-            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
-            channel = ((List<Object>) channelparametersVariable).get(0);
-            parameters = ((List<Object>) channelparametersVariable).get(1);
-            Boolean isSnapshot = Helpers.isEqual(channel, "v1.book.s");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
-            if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
+            io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "channel", "v1.book.d");
+            String channel = channelparamsChannelVariable.first();
+            Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
+            Boolean isSnapshot = java.util.Objects.equals(channel, "v1.book.s");
+            Integer symbolsLength = ((List<?>)symbols).size();
+            if (java.util.Objects.equals(symbolsLength, 0))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
+            List<Object> limitOptionparamsLimitOptionVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsChannel, "watchOrderBook", "limit", 100L);
+            Long limitOption = (Long) ((List<Object>) limitOptionparamsLimitOptionVariable).get(0);
+            Map<String, Object> paramsLimitOption = (Map<String, Object>) ((List<Object>) limitOptionparamsLimitOptionVariable).get(1);
+            Object limitResolved = limitOption;
+            Map<String, Object> paramsLimit = paramsLimitOption;
+            if (!java.util.Objects.equals(limit, null))
             {
-                List<Object> limitparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "limit", 100);
-                limit = ((List<Object>) limitparametersVariable).get(0);
-                parameters = ((List<Object>) limitparametersVariable).get(1);
+                limitResolved = limit;
+                paramsLimit = paramsChannel;
             }
-            Object interval = 500;
-            List<Object> intervalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
-            interval = ((List<Object>) intervalparametersVariable).get(0);
-            parameters = ((List<Object>) intervalparametersVariable).get(1);
-            symbols = this.marketSymbols(symbols);
-            Object extraPart = ((Helpers.isTrue(isSnapshot))) ? (Helpers.add(Helpers.add(String.valueOf(interval), "-"), String.valueOf(limit))) : String.valueOf(interval);
-            Object rawHashes = new ArrayList<Object>(Arrays.asList());
-            Object messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            List<Object> intervalparamsIntervalVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsLimit, "watchOrderBook", "interval", 500L);
+            Long interval = (Long) ((List<Object>) intervalparamsIntervalVariable).get(0);
+            Map<String, Object> paramsInterval = (Map<String, Object>) ((List<Object>) intervalparamsIntervalVariable).get(1);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            String extraPart = null;
+            if (Boolean.TRUE.equals(isSnapshot))
             {
-                Object symbol = Helpers.GetValue(symbols, i);
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object marketId = Helpers.GetValue(market, "id");
-                ((List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), extraPart));
-                ((List<Object>)messageHashes).add(Helpers.add("orderbook::", Helpers.GetValue(market, "symbol")));
+                extraPart = ((String.valueOf(interval) + "-") + String.valueOf(limitResolved));
+            } else
+            {
+                extraPart = String.valueOf(interval);
             }
-            final Object finalChannel = channel;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "stream", finalChannel );
-                put( "selectors", rawHashes );
-            }};
-            Object orderbook = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            {
+                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                Map<String, Object> market = this.market(symbol);
+                String marketId = (String) market.get("id");
+                ((List<Object>)rawHashes).add(((marketId + "@") + extraPart));
+                messageHashes.add(("orderbook::" + market.get("symbol")));
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("stream", channel);
+            request.put("selectors", rawHashes);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, paramsInterval)), rawHashes, true)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -734,34 +726,34 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
         String selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = (String) market.get("symbol");
         Long timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
-        if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long sequenceNumber = this.safeInteger(message, "sequence_number", 0);
         String stream = this.safeString(message, "stream");
-        Boolean isSnapshotChannel = Helpers.isEqual(stream, "v1.book.s");
-        Boolean isSnapshotMessage = Helpers.isLessThanOrEqual(sequenceNumber, 0);
-        if (Helpers.isTrue(Helpers.isTrue(isSnapshotChannel) || Helpers.isTrue(isSnapshotMessage)))
+        Boolean isSnapshotChannel = java.util.Objects.equals(stream, "v1.book.s");
+        Boolean isSnapshotMessage = (sequenceNumber == null || sequenceNumber <= 0);
+        if (Boolean.TRUE.equals(isSnapshotChannel) || Boolean.TRUE.equals(isSnapshotMessage))
         {
-            Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size", 2);
+            orderbook.reset(snapshot);
         } else
         {
-            Object asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "asks"), asks, "price", "size");
-            this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "bids"), bids, "price", "size");
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+            List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+            this.handleDeltasWithKeys((orderbook == null ? null : orderbook.get("asks")), asks, "price", "size", 2);
+            this.handleDeltasWithKeys((orderbook == null ? null : orderbook.get("bids")), bids, "price", "size", 2);
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", this.iso8601(timestamp));
         }
         // grvt defaults to the delta channel (v1.book.d); if the very first
         // message is a delta, the freshly-created orderbook has symbol=null
@@ -770,45 +762,41 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         // typed WsOrderBook surfaces this as `"symbol":null` in the output;
         // Python/JS dict-backed orderbooks happen to mask it but the
         // unconditional assignment is correct for every language.
-        Helpers.addElementToObject(orderbook, "symbol", symbol);
-        Helpers.addElementToObject(orderbook, "nonce", sequenceNumber);
-        String messageHash = Helpers.add("orderbook::", symbol);
+        orderbook.put("symbol", symbol);
+        orderbook.put("nonce", sequenceNumber);
+        String messageHash = ("orderbook::" + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
-    public CompletableFuture<Object> authenticate(Object... optionalArgs)
+    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            this.checkRequiredCredentials();
-            (this.signIn()).join();
-            Object wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+            this.checkRequiredCredentials(true);
+            (this.signIn(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
             String authenticated = this.safeString(wsOptions, "token");
-            if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
+            if (java.util.Objects.equals(authenticated, null))
             {
                 String accountId = this.safeString(this.options, "AuthAccountId");
                 String cookieValue = this.safeString(this.options, "AuthCookieValue");
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(cookieValue, null)) || Helpers.isTrue(Helpers.isEqual(accountId, null))))
+                if (java.util.Objects.equals(cookieValue, null) || java.util.Objects.equals(accountId, null))
                 {
-                    throw new AuthenticationError(Helpers.add(this.id, " : at first, you need to authenticate with exchange using signIn() method.")) ;
+                    throw new AuthenticationError((this.id + " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
-                final Object finalCookieValue = cookieValue;
-                final Object finalAccountId = accountId;
-                Map<String, Object> defaultOptions = new HashMap<String, Object>() {{
-                    put( "ws", new HashMap<String, Object>() {{
-                        put( "options", new HashMap<String, Object>() {{
-                            put( "headers", new HashMap<String, Object>() {{
-                                put( "Cookie", finalCookieValue );
-                                put( "X-Grvt-Account-Id", finalAccountId );
-                            }} );
-                        }} );
-                    }} );
-                }};
-                this.extendExchangeOptions(defaultOptions);
-                this.client(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateTrading"));
+                Map<String, Object> defaultOptions = new HashMap<String, Object>();
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("Cookie", cookieValue);
+                mapLiteral3.put("X-Grvt-Account-Id", accountId);
+                mapLiteral2.put("headers", mapLiteral3);
+                mapLiteral1.put("options", mapLiteral2);
+                defaultOptions.put("ws", mapLiteral1);
+                this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
+                this.client(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "privateTrading"));
             }
             return null;
         });
@@ -827,48 +815,45 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            (this.authenticate()).join();
-            String subAccountId = this.getSubAccountId(parameters);
-            Object messageHashes = new ArrayList<Object>(Arrays.asList());
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((List<Object>)rawHashes).add(Helpers.add(Helpers.add(subAccountId, "-"), Helpers.GetValue(market, "id")));
-                ((List<Object>)messageHashes).add(Helpers.add("myTrades::", Helpers.GetValue(market, "symbol")));
+                Map<String, Object> market = this.market(symbol);
+                ((List<Object>)rawHashes).add(((subAccountId + "-") + market.get("id")));
+                messageHashes.add(("myTrades::" + market.get("symbol")));
             } else
             {
-                ((List<Object>)messageHashes).add("myTrades");
+                messageHashes.add("myTrades");
                 ((List<Object>)rawHashes).add(subAccountId);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", "v1.fill" );
                 put( "selectors", rawHashes );
             }};
-            Object trades = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), messageHashes, false)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            List<Object> trades = (List<Object>) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), messageHashes, false)).join();
+            Long limitResolved = limit;
+            if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
-    public void handleMyTrade(Client client, Object message)
+    public void handleMyTrade(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -905,21 +890,20 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
-        if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
+        if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trade = this.parseWsMyTrade(data);
-        Helpers.callDynamically(this.myTrades, "append", new Object[]{trade});
-        client.resolve(this.myTrades, Helpers.add("myTrades::", Helpers.GetValue(trade, "symbol")));
+        Object trade = this.parseWsMyTrade((Map<String, Object>) (data), (Map<String, Object>) null);
+        ((io.github.ccxt.ws.ArrayCache) this.myTrades).append(trade);
+        client.resolve(this.myTrades, ("myTrades::" + ((Map<String, Object>)trade).get("symbol")));
         client.resolve(this.myTrades, "myTrades");
     }
 
-    public Object parseWsMyTrade(Object trade, Object... optionalArgs)
+    public Object parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         return this.parseTrade(trade, market);
     }
 
@@ -934,53 +918,49 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            (this.authenticate()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String subAccountId = this.getSubAccountId(parameters);
-            symbols = this.marketSymbols(symbols);
-            Object rawHashes = new ArrayList<Object>(Arrays.asList());
-            Object messageHashes = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
-                    Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                    ((List<Object>)rawHashes).add(Helpers.add(Helpers.add(subAccountId, "-"), Helpers.GetValue(market, "id")));
-                    ((List<Object>)messageHashes).add(Helpers.add("positions::", Helpers.GetValue(market, "symbol")));
+                    String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                    Map<String, Object> market = this.market(symbol);
+                    ((List<Object>)rawHashes).add(((subAccountId + "-") + market.get("id")));
+                    messageHashes.add(("positions::" + market.get("symbol")));
                 }
             } else
             {
-                ((List<Object>)messageHashes).add("positions");
+                messageHashes.add("positions");
                 ((List<Object>)rawHashes).add(subAccountId);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", "v1.position" );
                 put( "selectors", rawHashes );
             }};
-            Object newPositions = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            List<Object> newPositions = (List<Object>) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), rawHashes, false)).join();
+            if (this.newUpdates)
             {
                 return newPositions;
             }
-            return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+            return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
-    public void handlePosition(Client client, Object message)
+    public void handlePosition(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1010,25 +990,24 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
+        if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object data = this.safeDict(message, "feed");
-        Object position = this.parseWsPosition(data);
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", (Object) null);
+        Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(data, (Map<String, Object>) null);
         String symbol = this.safeString(position, "symbol");
-        Helpers.callDynamically(this.positions, "append", new Object[]{position});
+        ((io.github.ccxt.ws.ArrayCache) this.positions).append(position);
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         ((List<Object>)newPositions).add(position);
-        client.resolve(newPositions, Helpers.add("positions::", symbol));
+        client.resolve(newPositions, ("positions::" + symbol));
         client.resolve(newPositions, "positions");
     }
 
-    public Object parseWsPosition(Object position, Object... optionalArgs)
+    public Object parseWsPosition(Object position, Map<String, Object> market)
     {
         // same as REST api
-        Object market = Helpers.getArg(optionalArgs, 0, null);
-        return this.parsePosition(position, market);
+        return this.parsePosition((Map<String, Object>) (position), market);
     }
 
     /**
@@ -1042,48 +1021,45 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            (this.authenticate()).join();
-            String subAccountId = this.getSubAccountId(parameters);
-            Object messageHashes = new ArrayList<Object>(Arrays.asList());
-            Object rawHashes = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
+            if (java.util.Objects.equals(symbol, null))
             {
-                ((List<Object>)messageHashes).add("orders");
+                messageHashes.add("orders");
                 ((List<Object>)rawHashes).add(subAccountId);
             } else
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((List<Object>)messageHashes).add(Helpers.add("order::", Helpers.GetValue(market, "symbol")));
-                ((List<Object>)rawHashes).add(Helpers.add(Helpers.add(subAccountId, "-"), Helpers.GetValue(market, "id")));
+                Map<String, Object> market = this.market(symbol);
+                messageHashes.add(("order::" + market.get("symbol")));
+                ((List<Object>)rawHashes).add(((subAccountId + "-") + market.get("id")));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", "v1.order" );
                 put( "selectors", rawHashes );
             }};
-            Object orders = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            List<Object> orders = (List<Object>) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), rawHashes, false)).join();
+            Long limitResolved = limit;
+            if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            return this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true);
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1149,26 +1125,25 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "16"
         //    }
         //
-        Object data = this.safeDict(message, "feed");
-        if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", (Object) null);
+        if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object order = this.parseWsOrder(data);
-        Helpers.callDynamically(this.orders, "append", new Object[]{order});
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data), (Map<String, Object>) null);
+        ((io.github.ccxt.ws.ArrayCache) this.orders).append(order);
         client.resolve(this.orders, "orders");
-        client.resolve(this.orders, Helpers.add("order::", Helpers.GetValue(order, "symbol")));
+        client.resolve(this.orders, ("order::" + order.get("symbol")));
     }
 
-    public Object parseWsOrder(Object order, Object... optionalArgs)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         // same as REST api
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         return this.parseOrder(order, market);
     }
 
-    public Object handleErrorMessage(Client client, Object response)
+    public Boolean handleErrorMessage(Client client, Object response)
     {
         //
         //    {
@@ -1181,17 +1156,17 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "method": "subscribe"
         //    }
         //
-        Object error = this.safeDict(response, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
         String errorCode = this.safeString(error, "code");
-        if (Helpers.isTrue(!Helpers.isEqual(errorCode, null)))
+        if (!java.util.Objects.equals(errorCode, null))
         {
-            Object body = this.json(response);
-            Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
+            String body = this.json(response);
+            String feedback = ((this.id + " ") + body);
             String message = this.safeString(error, "message");
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
-            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), body)) ;
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            throw new ExchangeError(((this.id + " ") + body)) ;
         }
         return false;
     }

@@ -9,7 +9,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { BadRequest } from './base/errors.js';
+import { BadRequest, ExchangeError } from './base/errors.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class independentreserve
@@ -353,6 +353,9 @@ export default class independentreserve extends Exchange {
             for (let j = 0; j < quoteCurrencyIds.length; j++) {
                 const quoteId = quoteCurrencyIds[j];
                 const quote = this.safeCurrencyCode(quoteId);
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const id = baseId + '/' + quoteId;
                 result.push({
                     'id': id,
@@ -410,7 +413,7 @@ export default class independentreserve extends Exchange {
     parseBalance(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const currencyId = this.safeString(balance, 'CurrencyCode');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -479,8 +482,8 @@ export default class independentreserve extends Exchange {
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             defaultMarketId = baseId + '/' + quoteId;
         }
-        market = this.safeMarket(defaultMarketId, market, '/');
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(defaultMarketId, market, '/');
+        const symbol = marketResolved['symbol'];
         const last = this.safeString(ticker, 'LastPrice');
         return this.safeTicker({
             'symbol': symbol,
@@ -503,7 +506,7 @@ export default class independentreserve extends Exchange {
             'baseVolume': this.safeString(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -596,12 +599,14 @@ export default class independentreserve extends Exchange {
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
         }
         else if (market !== undefined) {
             symbol = market['symbol'];
             base = market['base'];
-            quote = market['quote'];
+            quote = this.safeString(market, 'quote');
         }
         let orderType = this.safeString2(order, 'Type', 'OrderType');
         let side = undefined;
@@ -719,14 +724,15 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        if (limit === undefined) {
-            limit = 50;
+        let limitResolved = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
         }
         request['pageIndex'] = 1;
-        request['pageSize'] = limit;
+        request['pageSize'] = limitResolved;
         const response = await this.privatePostGetOpenOrders(this.extend(request, params));
         const data = this.safeList(response, 'Data', []);
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(data, market, since, limitResolved);
     }
     /**
      * @method
@@ -749,14 +755,15 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        if (limit === undefined) {
-            limit = 50;
+        let limitResolved = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
         }
         request['pageIndex'] = 1;
-        request['pageSize'] = limit;
+        request['pageSize'] = limitResolved;
         const response = await this.privatePostGetClosedOrders(this.extend(request, params));
         const data = this.safeList(response, 'Data', []);
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(data, market, since, limitResolved);
     }
     /**
      * @method
@@ -773,12 +780,13 @@ export default class independentreserve extends Exchange {
             await this.loadMarkets();
         }
         const pageIndex = this.safeInteger(params, 'pageIndex', 1);
-        if (limit === undefined) {
-            limit = 50;
+        let limitResolved = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
         }
         const request = {
             'pageIndex': pageIndex,
-            'pageSize': limit,
+            'pageSize': limitResolved,
         };
         const response = await this.privatePostGetTrades(this.extend(request, params));
         let market = undefined;
@@ -786,7 +794,7 @@ export default class independentreserve extends Exchange {
             market = this.market(symbol);
         }
         const data = this.safeList(response, 'Data', []);
-        return this.parseTrades(data, market, since, limit);
+        return this.parseTrades(data, market, since, limitResolved);
     }
     parseTrade(trade, market = undefined) {
         const timestamp = this.parse8601(trade['TradeTimestampUtc']);
@@ -893,9 +901,9 @@ export default class independentreserve extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const fee = this.safeValue(fees, market['base'], {});
+            const fee = this.safeDict(fees, market['base'], {});
             result[symbol] = {
-                'info': this.safeValue(fee, 'info'),
+                'info': this.safeDict(fee, 'info'),
                 'symbol': symbol,
                 'maker': this.safeNumber(fee, 'fee'),
                 'taker': this.safeNumber(fee, 'fee'),
@@ -1041,7 +1049,7 @@ export default class independentreserve extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1051,15 +1059,14 @@ export default class independentreserve extends Exchange {
             'withdrawalAddress': address,
             'amount': this.currencyToPrecision(code, amount),
         };
-        if (tag !== undefined) {
-            request['destinationTag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destinationTag'] = tagWithdrawTag;
         }
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         if (networkCode !== undefined) {
             throw new BadRequest(this.id + ' withdraw () does not accept params["networkCode"]');
         }
-        const response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, params));
+        const response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, paramsNetworkCode));
         //
         //    {
         //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1131,8 +1138,16 @@ export default class independentreserve extends Exchange {
             'internal': false,
         };
     }
+    nonce() {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + path;
         if (api === 'public') {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
@@ -1140,7 +1155,8 @@ export default class independentreserve extends Exchange {
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce();
+            // independentreserve requires an increasing nonce
+            const nonce = this.incrementingNonce();
             const auth = [
                 url,
                 'apiKey=' + this.apiKey,
@@ -1162,8 +1178,9 @@ export default class independentreserve extends Exchange {
                 const key = keys[i];
                 query[key] = params[key];
             }
-            body = this.json(query);
-            headers = { 'Content-Type': 'application/json' };
+            const signedBody = this.json(query);
+            const signedHeaders = { 'Content-Type': 'application/json' };
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

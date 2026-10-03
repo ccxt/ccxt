@@ -6,7 +6,9 @@ import io.github.ccxt.api.ZaifApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
 import io.github.ccxt.types.Ticker;
@@ -18,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Zaif extends ZaifApi
 {
@@ -321,12 +324,11 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             List<Object> markets = (this.publicGetCurrencyPairsAll(parameters)).join();
             //
             //     [
@@ -354,101 +356,104 @@ public class Zaif extends ZaifApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String id = this.safeString(market, "currency_pair");
         String name = this.safeString(market, "name");
-        if (Helpers.isTrue(Helpers.isEqual(name, null)))
+        if (java.util.Objects.equals(name, null))
         {
-            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing name")) ;
+            throw new ExchangeError((this.id + " parseMarket() missing name")) ;
         }
-        var baseIdquoteIdVariable = Helpers.split(name, "/");
+        var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("/"))));
         var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
         var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        final Object finalBase = base;
-        return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "symbol", symbol );
-            put( "base", finalBase );
-            put( "quote", quote );
-            put( "settle", null );
-            put( "baseId", baseId );
-            put( "quoteId", quoteId );
-            put( "settleId", null );
-            put( "type", "spot" );
-            put( "spot", true );
-            put( "margin", null );
-            put( "swap", false );
-            put( "future", false );
-            put( "option", false );
-            put( "active", null );
-            put( "contract", false );
-            put( "linear", null );
-            put( "inverse", null );
-            put( "contractSize", null );
-            put( "expiry", null );
-            put( "expiryDatetime", null );
-            put( "strike", null );
-            put( "optionType", null );
-            put( "precision", new HashMap<String, Object>() {{
-                put( "amount", Zaif.this.safeNumber(market, "item_unit_step") );
+        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
+        String symbol = ((base + "/") + quote);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", null);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", null);
+        mapLiteral1.put("type", "spot");
+        mapLiteral1.put("spot", true);
+        mapLiteral1.put("margin", null);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", null);
+        mapLiteral1.put("contract", false);
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("contractSize", null);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
+                put( "amount", Zaif.this.safeNumber(market, "item_unit_step", (Object) null) );
                 put( "price", Zaif.this.parseNumber(Zaif.this.parsePrecision(Zaif.this.safeString(market, "aux_unit_point"))) );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Zaif.this.safeNumber(market, "item_unit_min") );
+                    put( "min", Zaif.this.safeNumber(market, "item_unit_min", (Object) null) );
                     put( "max", null );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
-                    put( "min", Zaif.this.safeNumber(market, "aux_unit_min") );
+                    put( "min", Zaif.this.safeNumber(market, "aux_unit_min", (Object) null) );
                     put( "max", null );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }} );
-            put( "created", null );
-            put( "info", market );
-        }});
+            }});
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
-        Object balances = this.safeValue(response, "return", new HashMap<String, Object>() {{}});
-        Object deposit = this.safeValue(balances, "deposit");
+        Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+        Map<String, Object> deposit = (Map<String, Object>) this.safeDict(balances, "deposit", (Object) null);
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object funds = this.safeDict(balances, "funds", new HashMap<String, Object>() {{}});
-        Object currencyIds = Helpers.objectKeys(funds);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
+        Map<String, Object> funds = (Map<String, Object>) this.safeDict(balances, "funds", new HashMap<String, Object>() {{}});
+        List<String> currencyIds = new ArrayList<String>(funds.keySet());
+        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = Helpers.GetValue(currencyIds, i);
-            String code = this.safeCurrencyCode(currencyId);
+            String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             String balance = this.safeString(funds, currencyId);
-            Object account = this.account();
-            Helpers.addElementToObject(account, "free", balance);
-            Helpers.addElementToObject(account, "total", balance);
-            if (Helpers.isTrue(!Helpers.isEqual(deposit, null)))
+            Map<String, Object> account = this.account();
+            account.put("free", balance);
+            account.put("total", balance);
+            if (!java.util.Objects.equals(deposit, null))
             {
-                if (Helpers.isTrue(Helpers.inOp(deposit, currencyId)))
+                if (deposit.containsKey(currencyId))
                 {
-                    Helpers.addElementToObject(account, "total", this.safeString(deposit, currencyId));
+                    account.put("total", this.safeString(deposit, currencyId));
                 }
             }
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -462,15 +467,14 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privatePostGetInfo(parameters)).join();
             return this.parseBalance(response);
@@ -488,28 +492,26 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", Helpers.GetValue(market, "id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetDepthPair(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
+            return this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // {
@@ -522,8 +524,7 @@ public class Zaif extends ZaifApi
         //     "ask": 1e-07
         // }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = Precise.stringMul(baseVolume, vwap);
@@ -561,19 +562,18 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", Helpers.GetValue(market, "id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> ticker = (this.publicGetTickerPair(this.extend(request, parameters))).join();
             //
@@ -592,7 +592,7 @@ public class Zaif extends ZaifApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -606,31 +606,29 @@ public class Zaif extends ZaifApi
         //          "trade_type": "ask"
         //      }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         String side = this.safeString(trade, "trade_type");
-        side = ((Helpers.isTrue((Helpers.isEqual(side, "bid"))))) ? "buy" : "sell";
-        Object timestamp = this.safeTimestamp(trade, "date");
+        side = (((java.util.Objects.equals(side, "bid")))) ? "buy" : "sell";
+        Long timestamp = this.safeTimestamp(trade, "date");
         String id = this.safeString2(trade, "id", "tid");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "currency_pair");
-        String symbol = this.safeSymbol(marketId, market, "_");
-        final Object finalSide = side;
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "info", trade );
-            put( "timestamp", timestamp );
-            put( "datetime", Zaif.this.iso8601(timestamp) );
-            put( "symbol", symbol );
-            put( "type", null );
-            put( "side", finalSide );
-            put( "order", null );
-            put( "takerOrMaker", null );
-            put( "price", priceString );
-            put( "amount", amountString );
-            put( "cost", null );
-            put( "fee", null );
-        }}, market);
+        String symbol = this.safeSymbol(marketId, market, "_", (String) null);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("order", null);
+        mapLiteral2.put("takerOrMaker", null);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", null);
+        return this.safeTrade(mapLiteral2, market);
     }
 
     /**
@@ -644,21 +642,18 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", Helpers.GetValue(market, "id") );
+                put( "pair", market.get("id") );
             }};
             List<Object> response = (this.publicGetTradesPair(this.extend(request, parameters))).join();
             //
@@ -674,17 +669,17 @@ public class Zaif extends ZaifApi
             //      ]
             //
             List<Object> trades = this.toArray(response);
-            Object numTrades = Helpers.getArrayLength(trades);
-            if (Helpers.isTrue(Helpers.isEqual(numTrades, 1)))
+            Integer numTrades = ((List<?>)trades).size();
+            if (java.util.Objects.equals(numTrades, 1))
             {
-                Object firstTrade = this.safeDict(trades, 0, new HashMap<String, Object>() {{}});
-                if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(Helpers.objectKeys(firstTrade)), 0)))
+                Map<String, Object> firstTrade = (Map<String, Object>) this.safeDict(trades, 0, new HashMap<String, Object>() {{}});
+                if ((firstTrade.size() == 0))
                 {
                     trades = new ArrayList<Object>(Arrays.asList());
                 }
             }
-            return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -701,34 +696,30 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object type = type3;
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
+            if (!java.util.Objects.equals(type, "limit"))
             {
-                throw new ExchangeError(Helpers.add(this.id, " createOrder() allows limit orders only")) ;
+                throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalSide = side;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency_pair", Helpers.GetValue(market, "id") );
-                put( "action", ((Helpers.isTrue((Helpers.isEqual(finalSide, "buy"))))) ? "bid" : "ask" );
-                put( "amount", amount );
-                put( "price", price );
-            }};
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("currency_pair", market.get("id"));
+            request.put("action", (((java.util.Objects.equals(side, "buy")))) ? "bid" : "ask");
+            request.put("amount", amount);
+            request.put("price", price);
             Map<String, Object> response = (this.privatePostTrade(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
-                put( "id", String.valueOf(Helpers.GetValue(data, "order_id")) );
+                put( "id", String.valueOf(data.get("order_id")) );
             }}, market);
         }).thenApply(Order::new);
 
@@ -744,13 +735,11 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
@@ -769,13 +758,13 @@ public class Zaif extends ZaifApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            return this.parseOrder(data, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //     {
@@ -799,39 +788,37 @@ public class Zaif extends ZaifApi
         //        }
         //    }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
         String side = this.safeString(order, "action");
-        side = ((Helpers.isTrue((Helpers.isEqual(side, "bid"))))) ? "buy" : "sell";
-        Object timestamp = this.safeTimestamp(order, "timestamp");
+        side = (((java.util.Objects.equals(side, "bid")))) ? "buy" : "sell";
+        Long timestamp = this.safeTimestamp(order, "timestamp");
         String marketId = this.safeString(order, "currency_pair");
-        String symbol = this.safeSymbol(marketId, market, "_");
+        String symbol = this.safeSymbol(marketId, market, "_", (String) null);
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "amount");
         String id = this.safeString2(order, "id", "order_id");
-        final Object finalSide = side;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "clientOrderId", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Zaif.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", null );
-            put( "status", "open" );
-            put( "symbol", symbol );
-            put( "type", "limit" );
-            put( "timeInForce", null );
-            put( "postOnly", null );
-            put( "side", finalSide );
-            put( "price", price );
-            put( "triggerPrice", null );
-            put( "cost", null );
-            put( "amount", amount );
-            put( "filled", null );
-            put( "remaining", null );
-            put( "trades", null );
-            put( "fee", null );
-            put( "info", order );
-            put( "average", null );
-        }}, market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("clientOrderId", null);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", null);
+        mapLiteral3.put("status", "open");
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", "limit");
+        mapLiteral3.put("timeInForce", null);
+        mapLiteral3.put("postOnly", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("triggerPrice", null);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("filled", null);
+        mapLiteral3.put("remaining", null);
+        mapLiteral3.put("trades", null);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("average", null);
+        return this.safeOrder(mapLiteral3, market);
     }
 
     /**
@@ -845,30 +832,26 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
+                request.put("currency_pair", market.get("id"));
             }
             Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -883,30 +866,34 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
+                request.put("currency_pair", market.get("id"));
+            }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("since", this.parseToInt((((double) since) / ((double) 1000))));
+            }
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("count", Math.min(limit, 1000));
             }
             Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -922,36 +909,34 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
-        final Object code3 = code2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object code = code3;
-            Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+
+        return BaseExchange.supplyAsync(() -> {
+
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
+            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            if (Helpers.isTrue(Helpers.isEqual(code, "JPY")))
+            Map<String, Object> currency = this.currency((String) (code));
+            if (java.util.Objects.equals(code, "JPY"))
             {
-                throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw() does not allow "), code), " withdrawals")) ;
+                throw new ExchangeError((((this.id + " withdraw() does not allow ") + code) + " withdrawals")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", Helpers.GetValue(currency, "id") );
+                put( "currency", currency.get("id") );
                 put( "amount", amount );
                 put( "address", address );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
+            if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
-                Helpers.addElementToObject(request, "message", tag);
+                request.put("message", tagWithdrawTag);
             }
-            Map<String, Object> result = (this.privatePostWithdraw(this.extend(request, parameters))).join();
+            Map<String, Object> result = (this.privatePostWithdraw(this.extend(request, paramsWithdrawTag))).join();
             //
             //     {
             //         "success": 1,
@@ -968,13 +953,13 @@ public class Zaif extends ZaifApi
             //         }
             //     }
             //
-            Object returnData = this.safeDict(result, "return", new HashMap<String, Object>() {{}});
-            return this.parseTransaction(returnData, currency);
+            Map<String, Object> returnData = (Map<String, Object>) this.safeDict(result, "return", new HashMap<String, Object>() {{}});
+            return this.parseTransaction((Map<String, Object>) (returnData), currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         //     {
@@ -989,123 +974,127 @@ public class Zaif extends ZaifApi
         //         }
         //     }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
-        currency = this.safeCurrency(null, currency);
-        Object fee = null;
-        Object feeCost = this.safeValue(transaction, "fee");
-        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        Map<String, Object> currencyResolved = this.safeCurrency((String) (null), currency);
+        Map<String, Object> fee = null;
+        Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
+        if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
-            final Object finalCurrency = currency;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalFeeCost );
-                put( "currency", Helpers.GetValue(finalCurrency, "code") );
-            }};
+            fee = Helpers.newMap(
+                "cost", feeCost,
+                "currency", currencyResolved.get("code")
+            );
         }
-        final Object finalCurrency_2 = currency;
-        final Object finalFee = fee;
-        return new HashMap<String, Object>() {{
-            put( "id", Zaif.this.safeString(transaction, "id") );
-            put( "txid", Zaif.this.safeString(transaction, "txid") );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "network", null );
-            put( "addressFrom", null );
-            put( "address", null );
-            put( "addressTo", null );
-            put( "amount", null );
-            put( "type", null );
-            put( "currency", Helpers.GetValue(finalCurrency_2, "code") );
-            put( "status", null );
-            put( "updated", null );
-            put( "tagFrom", null );
-            put( "tag", null );
-            put( "tagTo", null );
-            put( "comment", null );
-            put( "internal", null );
-            put( "fee", finalFee );
-            put( "info", transaction );
-        }};
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString(transaction, "id"));
+            h2kMap0.put("txid", this.safeString(transaction, "txid"));
+            h2kMap0.put("timestamp", null);
+            h2kMap0.put("datetime", null);
+            h2kMap0.put("network", null);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("amount", null);
+            h2kMap0.put("type", null);
+            h2kMap0.put("currency", currencyResolved.get("code"));
+            h2kMap0.put("status", null);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", fee);
+            h2kMap0.put("info", transaction);
+            return h2kMap0;
+        }
     }
 
     public Object customNonce()
     {
-        Object num = this.numberToString(Helpers.divide(this.milliseconds(), 1000));
+        String num = this.numberToString((((double) this.milliseconds()) / ((double) 1000)));
         Object nonce = Helpers.parseFloat(num);
         return toFixed(nonce, 8);
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = Helpers.getArg(optionalArgs, 0, "public");
-        Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
-        Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), "/");
-        if (Helpers.isTrue(Helpers.isEqual(api, "public")))
+        String baseApiUrl = this.safeString(this.urls.get("api"), "rest");
+        if (java.util.Objects.equals(baseApiUrl, null))
         {
-            url = Helpers.add(url, Helpers.add(Helpers.add(Helpers.add("api/", this.version), "/"), this.implodeParams(path, parameters)));
-        } else if (Helpers.isTrue(Helpers.isEqual(api, "fapi")))
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String baseUrl = baseApiUrl;
+        String url = (baseUrl + "/");
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            url = Helpers.add(url, Helpers.add(Helpers.add(Helpers.add("fapi/", this.version), "/"), this.implodeParams(path, parameters)));
+            url = (url + ((("api/" + this.version) + "/") + this.implodeParams(path, parameters)));
+        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapi"))
+        {
+            url = (url + ((("fapi/" + this.version) + "/") + this.implodeParams(path, parameters)));
         } else
         {
-            this.checkRequiredCredentials();
-            if (Helpers.isTrue(Helpers.isEqual(api, "ecapi")))
+            this.checkRequiredCredentials(true);
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "ecapi"))
             {
-                url = Helpers.add(url, "ecapi");
-            } else if (Helpers.isTrue(Helpers.isEqual(api, "tlapi")))
+                url = (url + "ecapi");
+            } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "tlapi"))
             {
-                url = Helpers.add(url, "tlapi");
+                url = (url + "tlapi");
             } else
             {
-                url = Helpers.add(url, "tapi");
+                url = (url + "tapi");
             }
             Object nonce = this.customNonce();
-            body = this.urlencode(this.extend(new HashMap<String, Object>() {{
+            String bodyEncoded = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "method", path );
                 put( "nonce", nonce );
             }}, parameters));
-            final Object finalBody = body;
-            headers = new HashMap<String, Object>() {{
+            Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "Key", Zaif.this.apiKey );
-                put( "Sign", Zaif.this.hmac(Zaif.this.encode(finalBody), Zaif.this.encode(Zaif.this.secret), sha512()) );
+                put( "Sign", Zaif.this.hmac(Zaif.this.encode(bodyEncoded), Zaif.this.encode(Zaif.this.secret), sha512()) );
             }};
+            {
+                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                h2kMap1.put("url", url);
+                h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap1.put("body", bodyEncoded);
+                h2kMap1.put("headers", headersSigned);
+                return h2kMap1;
+            }
         }
-        final Object finalUrl = url;
-        final Object finalBody_2 = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", method );
-            put( "body", finalBody_2 );
-            put( "headers", finalHeaders );
-        }};
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", body);
+            h2kMap2.put("headers", headers);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isTrue(Helpers.isEqual(response, null)))
+        if (java.util.Objects.equals(response, null))
         {
             return null;
         }
         //
         //     {"error": "unsupported currency_pair"}
         //
-        Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
+        String feedback = ((this.id + " ") + body);
         String error = this.safeString(response, "error");
-        if (Helpers.isTrue(!Helpers.isEqual(error, null)))
+        if (!java.util.Objects.equals(error, null))
         {
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), error, feedback);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), error, feedback);
-            throw new ExchangeError((String)feedback) ;
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, feedback);
+            throw new ExchangeError(feedback) ;
         }
-        Object success = this.safeBool(response, "success", true);
-        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
+        if (!java.util.Objects.equals(success, true))
         {
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

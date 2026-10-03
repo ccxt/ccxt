@@ -49,38 +49,42 @@ func (this *Binanceusdm) Describe() any {
 		},
 	})
 }
-func (this *Binanceusdm) TransferInAsync(code any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binanceusdm) TransferInAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.transferInBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Binanceusdm) transferInBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+func (this *Binanceusdm) transferInBody(ch chan AsyncResult[any], code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from spot wallet to usdm futures wallet
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes5615 := (<-this.FuturesTransferAsync(code, amount, 1, params))
-	PanicOnError(retRes5615)
-	ch <- retRes5615
+	r := <-this.FuturesTransferAsync(code, amount, 1, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
-func (this *Binanceusdm) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binanceusdm) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.transferOutBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Binanceusdm) transferOutBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+func (this *Binanceusdm) transferOutBody(ch chan AsyncResult[any], code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from usdm futures wallet to spot wallet
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes6115 := (<-this.FuturesTransferAsync(code, amount, 2, params))
-	PanicOnError(retRes6115)
-	ch <- retRes6115
+	r := <-this.FuturesTransferAsync(code, amount, 2, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
 
@@ -97,33 +101,31 @@ func (this *Binanceusdm) Init(userConfig map[string]any) {
 }
 
 // typed methods
-func (this *Binanceusdm) TransferIn(code string, amount any, options ...TransferInOptions) (TransferEntry, error) {
+func (this *Binanceusdm) TransferIn(code string, amount float64, options ...TransferInOptions) (TransferEntry, error) {
 
 	opts := TransferInOptionsStruct{}
 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.TransferInAsync(code, amount, params)
-	if IsError(res) {
-		return TransferEntry{}, CreateReturnError(res)
+	r := <-this.TransferInAsync(code, amount, opts.Params)
+	if r.Err != nil {
+		return TransferEntry{}, r.Err
 	}
-	return NewTransferEntry(res), nil
+	var res TransferEntry = NewTransferEntry(r.Value)
+	return res, nil
 }
-func (this *Binanceusdm) TransferOut(code string, amount any, options ...TransferOutOptions) (TransferEntry, error) {
+func (this *Binanceusdm) TransferOut(code string, amount float64, options ...TransferOutOptions) (TransferEntry, error) {
 
 	opts := TransferOutOptionsStruct{}
 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.TransferOutAsync(code, amount, params)
-	if IsError(res) {
-		return TransferEntry{}, CreateReturnError(res)
+	r := <-this.TransferOutAsync(code, amount, opts.Params)
+	if r.Err != nil {
+		return TransferEntry{}, r.Err
 	}
-	return NewTransferEntry(res), nil
+	var res TransferEntry = NewTransferEntry(r.Value)
+	return res, nil
 }

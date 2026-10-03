@@ -15,7 +15,9 @@ public partial class BaseExchange
     }
 
 
-    public dict keysort(object parameters2)
+    // Declared types spell Dictionary<string, object> out (never the file-local `dict` alias, which
+    // stays expression-position only) so the classifier's string-keyed type tables name them verbatim.
+    public Dictionary<string, object> keysort(object parameters2)
     {
         var parameters = (IDictionary<string, object>)parameters2;
         var keys = new List<string>(parameters.Keys);
@@ -58,7 +60,7 @@ public partial class BaseExchange
 
 
     // list params (e.g. batch-order bodies) flow through fetch2 into omit and must
-    // pass through untouched, so these overloads stay object-returning
+    // pass through untouched, so the object-receiver overloads stay object-returning
     public object omit(object a, params object[] parameters)
     {
         var keys = new List<object>();
@@ -99,11 +101,34 @@ public partial class BaseExchange
         return outDict;
     }
 
-    public object omit(dict a, string key)
+    // A Dictionary<string, object> receiver can never be the pass-through above (the concrete
+    // class implements no IList, and no box reaching omit derives from it): both dict-receiver
+    // overloads hand back the fresh outDict, the object key form through the same object path.
+    public Dictionary<string, object> omit(Dictionary<string, object> a, string key)
     {
         var keys = new List<object>();
         keys.Add(key);
         return omit(a, keys);
+    }
+
+    public Dictionary<string, object> omit(Dictionary<string, object> a, object k)
+    {
+        return (dict)omit((object)a, k);
+    }
+
+    // Same for an interface-typed receiver: no type in the tree implements both
+    // IDictionary<string, object> and IList<object>, so the pass-through branch is
+    // unreachable and the object path hands back the fresh outDict (cast back below).
+    public Dictionary<string, object> omit(IDictionary<string, object> a, string key)
+    {
+        var keys = new List<object>();
+        keys.Add(key);
+        return (dict)omit((object)a, keys);
+    }
+
+    public Dictionary<string, object> omit(IDictionary<string, object> a, object k)
+    {
+        return (dict)omit((object)a, k);
     }
 
     public IList<object> toArray(object a)

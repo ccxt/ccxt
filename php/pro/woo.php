@@ -84,21 +84,24 @@ class woo extends \ccxt\async\woo {
         ));
     }
 
-    public function request_id(mixed $url) {
-        $options = $this->safe_value($this->options, 'requestId', array());
+    public function request_id(string $url): float {
+        $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
         $this->options['requestId'][$url] = $newValue;
         return $newValue;
     }
 
-    public function watch_public(mixed $messageHash, mixed $message) {
+    public function watch_public(string $messageHash, array $message) {
         return Async\async(self::do_watch_public(...))($messageHash, $message);
     }
 
-    private function do_watch_public(mixed $messageHash, mixed $message) {
-        $urlUid = ($this->uid !== '') ? '/' . $this->uid : '';
-        $url = $this->urls['api']['ws']['public'] . $urlUid;
+    private function do_watch_public(string $messageHash, array $message) {
+        $urlUid = '';
+        if ($this->uid !== '') {
+            $urlUid = '/' . $this->uid;
+        }
+        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -112,8 +115,11 @@ class woo extends \ccxt\async\woo {
     }
 
     private function do_unwatch_public(string $subHash, ?string $symbol, string $topic, $params = array()) {
-        $urlUid = ($this->uid !== '') ? '/' . $this->uid : '';
-        $url = $this->urls['api']['ws']['public'] . $urlUid;
+        $urlUid = '';
+        if ($this->uid !== '') {
+            $urlUid = '/' . $this->uid;
+        }
+        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
         $requestId = $this->request_id($url);
         $unsubHash = 'unsubscribe::' . $subHash;
         $message = array(
@@ -130,11 +136,11 @@ class woo extends \ccxt\async\woo {
             'unsubMessageHashes' => array( $unsubHash ),
         );
         $symbolsAndTimeframes = $this->safe_list($params, 'symbolsAndTimeframes');
+        $paramsOmitted = ($symbolsAndTimeframes !== null) ? $this->omit($params, 'symbolsAndTimeframes') : $params;
         if ($symbolsAndTimeframes !== null) {
             $subscription['symbolsAndTimeframes'] = $symbolsAndTimeframes;
-            $params = $this->omit($params, 'symbolsAndTimeframes');
         }
-        return Async\await($this->watch($url, $unsubHash, $this->extend($message, $params), $unsubHash, $subscription));
+        return Async\await($this->watch($url, $unsubHash, $this->extend($message, $paramsOmitted), $unsubHash, $subscription));
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -157,12 +163,14 @@ class woo extends \ccxt\async\woo {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'method', 'orderbook');
+        list($method, $paramsMethod) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'method', 'orderbook');
         $market = $this->market($symbol);
         $topic = $market['id'] . '@' . $method;
-        $urlUid = ($this->uid !== '') ? '/' . $this->uid : '';
-        $url = $this->urls['api']['ws']['public'] . $urlUid;
+        $urlUid = '';
+        if ($this->uid !== '') {
+            $urlUid = '/' . $this->uid;
+        }
+        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
         $requestId = $this->request_id($url);
         $request = array(
             'event' => 'subscribe',
@@ -174,12 +182,12 @@ class woo extends \ccxt\async\woo {
             'name' => $method,
             'symbol' => $market['symbol'],
             'limit' => $limit,
-            'params' => $params,
+            'params' => $paramsMethod,
         );
         if ($method === 'orderbookupdate') {
             $subscription['method'] = array($this, 'handle_order_book_subscription');
         }
-        $orderbook = Async\await($this->watch($url, $topic, $this->extend($request, $params), $topic, $subscription));
+        $orderbook = Async\await($this->watch($url, $topic, $this->extend($request, $paramsMethod), $topic, $subscription));
         return $orderbook->limit();
     }
 
@@ -201,34 +209,33 @@ class woo extends \ccxt\async\woo {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'method', 'orderbook');
+        list($method, $paramsMethod) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'method', 'orderbook');
         $market = $this->market($symbol);
         $subHash = $market['id'] . '@' . $method;
         $topic = 'orderbook';
-        return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $params));
+        return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $paramsMethod));
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDT@orderbookupdate",
-        //         "ts" => 1722500373999,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDT",
-        //             "prevTs" => 1722500373799,
-        //             "bids" => array(
-        //                 array(
+        //         "topic": "PERP_BTC_USDT@orderbookupdate",
+        //         "ts": 1722500373999,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "prevTs": 1722500373799,
+        //             "bids": [
+        //                 [
         //                     0.30891,
         //                     2469.98
-        //                 )
-        //             ),
-        //             "asks" => array(
-        //                 array(
+        //                 ]
+        //             ],
+        //             "asks": [
+        //                 [
         //                     0.31075,
         //                     2379.63
-        //                 )
-        //             )
+        //                 ]
+        //             ]
         //         }
         //     }
         //
@@ -270,7 +277,7 @@ class woo extends \ccxt\async\woo {
         } else {
             if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
-                $subscription = $this->safe_value($client->subscriptions, $topic);
+                $subscription = $this->safe_dict($client->subscriptions, $topic);
                 $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
@@ -282,7 +289,7 @@ class woo extends \ccxt\async\woo {
         }
     }
 
-    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book_subscription(Client $client, array $message, array $subscription) {
         $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
         $symbol = $this->safe_string($subscription, 'symbol'); // watchOrderBook
@@ -296,20 +303,20 @@ class woo extends \ccxt\async\woo {
         $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
 
-    public function fetch_order_book_snapshot(Client $client, mixed $message, mixed $subscription) {
+    public function fetch_order_book_snapshot(Client $client, array $message, array $subscription) {
         return Async\async(self::do_fetch_order_book_snapshot(...))($client, $message, $subscription);
     }
 
-    private function do_fetch_order_book_snapshot(Client $client, mixed $message, mixed $subscription) {
+    private function do_fetch_order_book_snapshot(Client $client, array $message, array $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($message, 'topic');
         try {
             $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
             $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
-            $params = $this->safe_value($subscription, 'params');
+            $params = $this->safe_dict($subscription, 'params');
             $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
-            if ($this->safe_value($this->orderbooks, $symbol) === null) {
-                // if the $orderbook is dropped before the $snapshot is received
+            if ($this->safe_dict($this->orderbooks, $symbol) === null) {
+                // if the orderbook is dropped before the snapshot is received
                 return;
             }
             $orderbook = $this->safe_value($this->orderbooks, $symbol);
@@ -339,10 +346,10 @@ class woo extends \ccxt\async\woo {
         }
     }
 
-    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
+    public function handle_order_book_message(Client $client, array $message, mixed $orderbook) {
         $data = $this->safe_dict($message, 'data');
-        $this->handle_deltas($orderbook['asks'], $this->safe_value($data, 'asks', array()));
-        $this->handle_deltas($orderbook['bids'], $this->safe_value($data, 'bids', array()));
+        $this->handle_deltas($orderbook['asks'], $this->safe_list($data, 'asks', array()));
+        $this->handle_deltas($orderbook['bids'], $this->safe_list($data, 'bids', array()));
         $timestamp = $this->safe_integer($message, 'ts');
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
@@ -377,7 +384,6 @@ class woo extends \ccxt\async\woo {
         }
         $name = 'ticker';
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
         $topic = $market['id'] . '@' . $name;
         $request = array(
             'event' => 'subscribe',
@@ -401,25 +407,24 @@ class woo extends \ccxt\async\woo {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'watchTicker', 'method', 'ticker');
+        list($method, $paramsMethod) = $this->handle_option_string_and_params($params, 'watchTicker', 'method', 'ticker');
         $market = $this->market($symbol);
         $subHash = $market['id'] . '@' . $method;
         $topic = 'ticker';
-        return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $params));
+        return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $paramsMethod));
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "PERP_BTC_USDT",
-        //         "open" => 19441.5,
-        //         "close" => 20147.07,
-        //         "high" => 20761.87,
-        //         "low" => 19320.54,
-        //         "volume" => 2481.103,
-        //         "amount" => 50037935.0286,
-        //         "count" => 3689
+        //         "symbol": "PERP_BTC_USDT",
+        //         "open": 19441.5,
+        //         "close": 20147.07,
+        //         "high": 20761.87,
+        //         "low": 19320.54,
+        //         "volume": 2481.103,
+        //         "amount": 50037935.0286,
+        //         "count": 3689
         //     }
         //
         return $this->safe_ticker(array(
@@ -446,25 +451,25 @@ class woo extends \ccxt\async\woo {
         ), $market);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDT@$ticker",
-        //         "ts" => 1657120017000,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDT",
-        //             "open" => 19441.5,
-        //             "close" => 20147.07,
-        //             "high" => 20761.87,
-        //             "low" => 19320.54,
-        //             "volume" => 2481.103,
-        //             "amount" => 50037935.0286,
-        //             "count" => 3689
+        //         "topic": "PERP_BTC_USDT@ticker",
+        //         "ts": 1657120017000,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "open": 19441.5,
+        //             "close": 20147.07,
+        //             "high": 20761.87,
+        //             "low": 19320.54,
+        //             "volume": 2481.103,
+        //             "amount": 50037935.0286,
+        //             "count": 3689
         //         }
         //     }
         //
         $data = $this->safe_value($message, 'data');
-        $topic = $this->safe_value($message, 'topic');
+        $topic = $this->safe_string($message, 'topic');
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $timestamp = $this->safe_integer($message, 'ts');
@@ -493,7 +498,7 @@ class woo extends \ccxt\async\woo {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $name = 'tickers';
         $topic = $name;
         $request = array(
@@ -502,10 +507,10 @@ class woo extends \ccxt\async\woo {
         );
         $message = $this->extend($request, $params);
         $tickers = Async\await($this->watch_public($topic, $message));
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $this->filter_by_array($tickers, 'symbol', $symbolsNormalized);
     }
 
-    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+    public function un_watch_tickers(?array $symbols = null, $params = array()) {
         return Async\async(self::do_un_watch_tickers(...))($symbols, $params);
     }
 
@@ -523,20 +528,20 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         if ($symbols !== null) {
-            throw new NotSupported($this->id . ' unWatchTickers() does not support a $symbols argument. Only unwatch all tickers at once');
+            throw new NotSupported($this->id . ' unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once');
         }
         $topic = 'ticker';
         $subHash = 'tickers';
         return Async\await($this->unwatch_public($subHash, null, $topic, $params));
     }
 
-    public function handle_tickers(Client $client, mixed $message) {
+    public function handle_tickers(Client $client, array $message) {
         //
         //     {
         //         "topic":"tickers",
         //         "ts":1618820615000,
-        //         "data":array(
-        //             array(
+        //         "data":[
+        //             {
         //                 "symbol":"SPOT_OKB_USDT",
         //                 "open":16.297,
         //                 "close":17.183,
@@ -545,8 +550,8 @@ class woo extends \ccxt\async\woo {
         //                 "volume":0,
         //                 "amount":0,
         //                 "count":0
-        //             ),
-        //             array(
+        //             },
+        //             {
         //                 "symbol":"SPOT_XRP_USDT",
         //                 "open":1.3515,
         //                 "close":1.43794,
@@ -555,12 +560,12 @@ class woo extends \ccxt\async\woo {
         //                 "volume":750127.1,
         //                 "amount":985440.5122,
         //                 "count":396
-        //             ),
+        //             },
         //         ...
-        //         )
+        //         ]
         //     }
         //
-        $topic = $this->safe_value($message, 'topic');
+        $topic = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data');
         $timestamp = $this->safe_integer($message, 'ts');
         $result = array();
@@ -591,7 +596,7 @@ class woo extends \ccxt\async\woo {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $name = 'bbos';
         $topic = $name;
         $request = array(
@@ -603,7 +608,7 @@ class woo extends \ccxt\async\woo {
         if ($this->newUpdates) {
             return $bidsasks;
         }
-        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
     }
 
     public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -624,27 +629,27 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         if ($symbols !== null) {
-            throw new NotSupported($this->id . ' unWatchBidsAsks() does not support a $symbols argument. Only unwatch all bidsAsks at once');
+            throw new NotSupported($this->id . ' unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once');
         }
         $subHash = 'bbos';
         $topic = 'bidsasks';
         return Async\await($this->unwatch_public($subHash, null, $topic, $params));
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "bbos",
-        //         "ts" => 1618822376000,
-        //         "data" => array(
+        //         "topic": "bbos",
+        //         "ts": 1618822376000,
+        //         "data": [
         //             {
-        //                 "symbol" => "SPOT_FIL_USDT",
-        //                 "ask" => 159.0318,
-        //                 "askSize" => 370.43,
-        //                 "bid" => 158.9158,
-        //                 "bidSize" => 16
+        //                 "symbol": "SPOT_FIL_USDT",
+        //                 "ask": 159.0318,
+        //                 "askSize": 370.43,
+        //                 "bid": 158.9158,
+        //                 "bidSize": 16
         //             }
-        //         )
+        //         ]
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
@@ -669,10 +674,10 @@ class woo extends \ccxt\async\woo {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_string($market, 'symbol');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 'ts');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -683,7 +688,7 @@ class woo extends \ccxt\async\woo {
             'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => $this->safe_string($ticker, 'bidSize'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -707,7 +712,7 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         if (($timeframe !== '1m') && ($timeframe !== '5m') && ($timeframe !== '15m') && ($timeframe !== '30m') && ($timeframe !== '1h') && ($timeframe !== '1d') && ($timeframe !== '1w') && ($timeframe !== '1M')) {
-            throw new ExchangeError($this->id . ' watchOHLCV $timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
+            throw new ExchangeError($this->id . ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -719,10 +724,11 @@ class woo extends \ccxt\async\woo {
         );
         $message = $this->extend($request, $params);
         $ohlcv = Async\await($this->watch_public($topic, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($market['symbol'], $limit);
+            $limitResolved = $ohlcv->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
@@ -753,7 +759,7 @@ class woo extends \ccxt\async\woo {
         return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $params));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "topic":"SPOT_BTC_USDT@kline_1m",
@@ -772,8 +778,8 @@ class woo extends \ccxt\async\woo {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data');
-        $topic = $this->safe_value($message, 'topic');
+        $data = $this->safe_dict($message, 'data');
+        $topic = $this->safe_string($message, 'topic');
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
@@ -787,8 +793,8 @@ class woo extends \ccxt\async\woo {
             $this->safe_float($data, 'close'),
             $this->safe_float($data, 'volume'),
         );
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -820,7 +826,7 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $topic = $market['id'] . '@trade';
         $request = array(
             'event' => 'subscribe',
@@ -828,10 +834,11 @@ class woo extends \ccxt\async\woo {
         );
         $message = $this->extend($request, $params);
         $trades = Async\await($this->watch_public($topic, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($market['symbol'], $limit);
+            $limitResolved = $trades->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolValue, $since, $limitResolved, true);
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
@@ -857,10 +864,10 @@ class woo extends \ccxt\async\woo {
         return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $params));
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         // {
-        //     "topic":"SPOT_ADA_USDT@$trade",
+        //     "topic":"SPOT_ADA_USDT@trade",
         //     "ts":1618820361552,
         //     "data":{
         //         "symbol":"SPOT_ADA_USDT",
@@ -873,7 +880,7 @@ class woo extends \ccxt\async\woo {
         //
         $topic = $this->safe_string($message, 'topic');
         $timestamp = $this->safe_integer($message, 'ts');
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
@@ -888,7 +895,7 @@ class woo extends \ccxt\async\woo {
         $client->resolve($tradesArray, $topic);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "symbol":"SPOT_ADA_USDT",
@@ -898,39 +905,39 @@ class woo extends \ccxt\async\woo {
         //         "side":"BUY",
         //         "source":0
         //     }
-        // private $trade
+        // private trade
         //    {
-        //     "msgType" => 0,  // execution report
-        //     "symbol" => "SPOT_BTC_USDT",
-        //     "clientOrderId" => 0,
-        //     "orderId" => 54774393,
-        //     "type" => "MARKET",
-        //     "side" => "BUY",
-        //     "quantity" => 0.0,
-        //     "price" => 0.0,
-        //     "tradeId" => 56201985,
-        //     "executedPrice" => 23534.06,
-        //     "executedQuantity" => 0.00040791,
-        //     "fee" => 2.1E-7,
-        //     "feeAsset" => "BTC",
-        //     "totalExecutedQuantity" => 0.00040791,
-        //     "avgPrice" => 23534.06,
-        //     "status" => "FILLED",
-        //     "reason" => "",
-        //     "orderTag" => "default",
-        //     "totalFee" => 2.1E-7,
-        //     "feeCurrency" => "BTC",
-        //     "totalRebate" => 0,
-        //     "rebateCurrency" => "USDT",
-        //     "visible" => 0.0,
-        //     "timestamp" => 1675406261689,
-        //     "reduceOnly" => false,
-        //     "maker" => false
+        //     "msgType": 0,  // execution report
+        //     "symbol": "SPOT_BTC_USDT",
+        //     "clientOrderId": 0,
+        //     "orderId": 54774393,
+        //     "type": "MARKET",
+        //     "side": "BUY",
+        //     "quantity": 0.0,
+        //     "price": 0.0,
+        //     "tradeId": 56201985,
+        //     "executedPrice": 23534.06,
+        //     "executedQuantity": 0.00040791,
+        //     "fee": 2.1E-7,
+        //     "feeAsset": "BTC",
+        //     "totalExecutedQuantity": 0.00040791,
+        //     "avgPrice": 23534.06,
+        //     "status": "FILLED",
+        //     "reason": "",
+        //     "orderTag": "default",
+        //     "totalFee": 2.1E-7,
+        //     "feeCurrency": "BTC",
+        //     "totalRebate": 0,
+        //     "rebateCurrency": "USDT",
+        //     "visible": 0.0,
+        //     "timestamp": 1675406261689,
+        //     "reduceOnly": false,
+        //     "maker": false
         //   }
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $price = $this->safe_string_2($trade, 'executedPrice', 'price');
         $amount = $this->safe_string_2($trade, 'executedQuantity', 'size');
         $cost = Precise::string_mul($price, $amount);
@@ -964,7 +971,7 @@ class woo extends \ccxt\async\woo {
             'type' => $type,
             'fee' => $fee,
             'info' => $trade,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function check_required_uid($error = true): bool {
@@ -984,7 +991,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $event = 'auth';
@@ -1008,13 +1015,13 @@ class woo extends \ccxt\async\woo {
         return Async\await($future);
     }
 
-    public function watch_private(mixed $messageHash, mixed $message, $params = array()) {
+    public function watch_private(string $messageHash, array $message, $params = array()) {
         return Async\async(self::do_watch_private(...))($messageHash, $message, $params);
     }
 
-    private function do_watch_private(mixed $messageHash, mixed $message, $params = array()) {
+    private function do_watch_private(string $messageHash, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -1023,13 +1030,13 @@ class woo extends \ccxt\async\woo {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
     }
 
-    public function watch_private_multiple(mixed $messageHashes, mixed $message, $params = array()) {
+    public function watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         return Async\async(self::do_watch_private_multiple(...))($messageHashes, $message, $params);
     }
 
-    private function do_watch_private_multiple(mixed $messageHashes, mixed $message, $params = array()) {
+    private function do_watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -1049,7 +1056,7 @@ class woo extends \ccxt\async\woo {
          * @see https://docs.woox.io/#algoexecutionreportv2
          *
          * watches information on multiple $orders made by the user
-         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {string} $symbol unified market $symbol of the market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1060,24 +1067,27 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger === true) ? 'algoexecutionreportv2' : 'executionreport';
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $topic = 'executionreport';
+        if ($trigger === true) {
+            $topic = 'algoexecutionreportv2';
+        }
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = $topic;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        if ($symbolResolved !== null) {
+            $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsOmitted);
         $orders = Async\await($this->watch_private($messageHash, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1091,7 +1101,7 @@ class woo extends \ccxt\async\woo {
          * @see https://docs.woox.io/#algoexecutionreportv2
          *
          * watches information on multiple $trades made by the user
-         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1102,98 +1112,101 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger === true) ? 'algoexecutionreportv2' : 'executionreport';
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $topic = 'executionreport';
+        if ($trigger === true) {
+            $topic = 'algoexecutionreportv2';
+        }
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = 'myTrades';
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        if ($symbolResolved !== null) {
+            $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsOmitted);
         $trades = Async\await($this->watch_private($messageHash, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "PERP_BTC_USDT",
-        //         "clientOrderId" => 0,
-        //         "orderId" => 52952826,
-        //         "type" => "LIMIT",
-        //         "side" => "SELL",
-        //         "quantity" => 0.01,
-        //         "price" => 22000,
-        //         "tradeId" => 0,
-        //         "executedPrice" => 0,
-        //         "executedQuantity" => 0,
-        //         "fee" => 0,
-        //         "feeAsset" => "USDT",
-        //         "totalExecutedQuantity" => 0,
-        //         "status" => "NEW",
-        //         "reason" => '',
-        //         "orderTag" => "default",
-        //         "totalFee" => 0,
-        //         "visible" => 0.01,
-        //         "timestamp" => 1657515556798,
-        //         "reduceOnly" => false,
-        //         "maker" => false
+        //         "symbol": "PERP_BTC_USDT",
+        //         "clientOrderId": 0,
+        //         "orderId": 52952826,
+        //         "type": "LIMIT",
+        //         "side": "SELL",
+        //         "quantity": 0.01,
+        //         "price": 22000,
+        //         "tradeId": 0,
+        //         "executedPrice": 0,
+        //         "executedQuantity": 0,
+        //         "fee": 0,
+        //         "feeAsset": "USDT",
+        //         "totalExecutedQuantity": 0,
+        //         "status": "NEW",
+        //         "reason": '',
+        //         "orderTag": "default",
+        //         "totalFee": 0,
+        //         "visible": 0.01,
+        //         "timestamp": 1657515556798,
+        //         "reduceOnly": false,
+        //         "maker": false
         //     }
         //     {
-        //      "symbol" => "SPOT_BTC_USDT",
-        //      "rootAlgoOrderId" => 2573778,
-        //      "parentAlgoOrderId" => 0,
-        //      "algoOrderId" => 2573778,
-        //      "clientOrderId" => 0,
-        //      "orderTag" => "default",
-        //      "algoType" => "STOP_LOSS",
-        //      "side" => "SELL",
-        //      "quantity" => 0.00011,
-        //      "triggerPrice" => 98566.67,
-        //      "triggerStatus" => "USELESS",
-        //      "price" => 0,
-        //      "type" => "MARKET",
-        //      "triggerTradePrice" => 0,
-        //      "triggerTime" => 0,
-        //      "tradeId" => 0,
-        //      "executedPrice" => 0,
-        //      "executedQuantity" => 0,
-        //      "fee" => 0,
-        //      "reason" => "",
-        //      "feeAsset" => "",
-        //      "totalExecutedQuantity" => 0,
-        //      "averageExecutedPrice" => 0,
-        //      "totalFee" => 0,
-        //      "timestamp" => 1761030467426,
-        //      "visibleQuantity" => 0,
-        //      "reduceOnly" => false,
-        //      "triggerPriceType" => "MARKET_PRICE",
-        //      "positionSide" => "BOTH",
-        //      "feeCurrency" => "",
-        //      "totalRebate" => 0.0,
-        //      "rebateCurrency" => "",
-        //      "triggered" => false,
-        //      "maker" => false,
-        //      "activated" => false,
-        //      "isTriggered" => false,
-        //      "isMaker" => false,
-        //      "isActivated" => false,
-        //      "rootAlgoStatus" => "NEW",
-        //      "algoStatus" => "NEW"
+        //      "symbol": "SPOT_BTC_USDT",
+        //      "rootAlgoOrderId": 2573778,
+        //      "parentAlgoOrderId": 0,
+        //      "algoOrderId": 2573778,
+        //      "clientOrderId": 0,
+        //      "orderTag": "default",
+        //      "algoType": "STOP_LOSS",
+        //      "side": "SELL",
+        //      "quantity": 0.00011,
+        //      "triggerPrice": 98566.67,
+        //      "triggerStatus": "USELESS",
+        //      "price": 0,
+        //      "type": "MARKET",
+        //      "triggerTradePrice": 0,
+        //      "triggerTime": 0,
+        //      "tradeId": 0,
+        //      "executedPrice": 0,
+        //      "executedQuantity": 0,
+        //      "fee": 0,
+        //      "reason": "",
+        //      "feeAsset": "",
+        //      "totalExecutedQuantity": 0,
+        //      "averageExecutedPrice": 0,
+        //      "totalFee": 0,
+        //      "timestamp": 1761030467426,
+        //      "visibleQuantity": 0,
+        //      "reduceOnly": false,
+        //      "triggerPriceType": "MARKET_PRICE",
+        //      "positionSide": "BOTH",
+        //      "feeCurrency": "",
+        //      "totalRebate": 0.0,
+        //      "rebateCurrency": "",
+        //      "triggered": false,
+        //      "maker": false,
+        //      "activated": false,
+        //      "isTriggered": false,
+        //      "isMaker": false,
+        //      "isActivated": false,
+        //      "rootAlgoStatus": "NEW",
+        //      "algoStatus": "NEW"
         // }
         //
         $orderId = $this->safe_string_2($order, 'orderId', 'algoOrderId');
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->market($marketId);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->market($marketId);
+        $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer($order, 'timestamp');
         $fee = array(
             'cost' => $this->safe_string($order, 'totalFee'),
@@ -1241,33 +1254,33 @@ class woo extends \ccxt\async\woo {
         ));
     }
 
-    public function handle_order_update(Client $client, mixed $message) {
+    public function handle_order_update(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "executionreport",
-        //         "ts" => 1657515556799,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDT",
-        //             "clientOrderId" => 0,
-        //             "orderId" => 52952826,
-        //             "type" => "LIMIT",
-        //             "side" => "SELL",
-        //             "quantity" => 0.01,
-        //             "price" => 22000,
-        //             "tradeId" => 0,
-        //             "executedPrice" => 0,
-        //             "executedQuantity" => 0,
-        //             "fee" => 0,
-        //             "feeAsset" => "USDT",
-        //             "totalExecutedQuantity" => 0,
-        //             "status" => "NEW",
-        //             "reason" => '',
-        //             "orderTag" => "default",
-        //             "totalFee" => 0,
-        //             "visible" => 0.01,
-        //             "timestamp" => 1657515556799,
-        //             "reduceOnly" => false,
-        //             "maker" => false
+        //         "topic": "executionreport",
+        //         "ts": 1657515556799,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "clientOrderId": 0,
+        //             "orderId": 52952826,
+        //             "type": "LIMIT",
+        //             "side": "SELL",
+        //             "quantity": 0.01,
+        //             "price": 22000,
+        //             "tradeId": 0,
+        //             "executedPrice": 0,
+        //             "executedQuantity": 0,
+        //             "fee": 0,
+        //             "feeAsset": "USDT",
+        //             "totalExecutedQuantity": 0,
+        //             "status": "NEW",
+        //             "reason": '',
+        //             "orderTag": "default",
+        //             "totalFee": 0,
+        //             "visible": 0.01,
+        //             "timestamp": 1657515556799,
+        //             "reduceOnly": false,
+        //             "maker": false
         //         }
         //     }
         //
@@ -1293,7 +1306,7 @@ class woo extends \ccxt\async\woo {
         }
     }
 
-    public function handle_order(Client $client, mixed $message, mixed $topic) {
+    public function handle_order(Client $client, array $message, ?string $topic) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -1303,14 +1316,14 @@ class woo extends \ccxt\async\woo {
                 $this->orders = new ArrayCacheBySymbolById($limit);
             }
             $cachedOrders = $this->orders;
-            $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
-            $order = $this->safe_value($orders, $orderId);
+            $orders = $this->safe_dict($cachedOrders->hashmap, $symbol, array());
+            $order = $this->safe_dict($orders, $orderId);
             if ($order !== null) {
                 $fee = $this->safe_value($order, 'fee');
                 if ($fee !== null) {
                     $parsed['fee'] = $fee;
                 }
-                $fees = $this->safe_value($order, 'fees');
+                $fees = $this->safe_list($order, 'fees');
                 if ($fees !== null) {
                     $parsed['fees'] = $fees;
                 }
@@ -1325,35 +1338,35 @@ class woo extends \ccxt\async\woo {
         }
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         //    {
-        //     "msgType" => 0,  // execution report
-        //     "symbol" => "SPOT_BTC_USDT",
-        //     "clientOrderId" => 0,
-        //     "orderId" => 54774393,
-        //     "type" => "MARKET",
-        //     "side" => "BUY",
-        //     "quantity" => 0.0,
-        //     "price" => 0.0,
-        //     "tradeId" => 56201985,
-        //     "executedPrice" => 23534.06,
-        //     "executedQuantity" => 0.00040791,
-        //     "fee" => 2.1E-7,
-        //     "feeAsset" => "BTC",
-        //     "totalExecutedQuantity" => 0.00040791,
-        //     "avgPrice" => 23534.06,
-        //     "status" => "FILLED",
-        //     "reason" => "",
-        //     "orderTag" => "default",
-        //     "totalFee" => 2.1E-7,
-        //     "feeCurrency" => "BTC",
-        //     "totalRebate" => 0,
-        //     "rebateCurrency" => "USDT",
-        //     "visible" => 0.0,
-        //     "timestamp" => 1675406261689,
-        //     "reduceOnly" => false,
-        //     "maker" => false
+        //     "msgType": 0,  // execution report
+        //     "symbol": "SPOT_BTC_USDT",
+        //     "clientOrderId": 0,
+        //     "orderId": 54774393,
+        //     "type": "MARKET",
+        //     "side": "BUY",
+        //     "quantity": 0.0,
+        //     "price": 0.0,
+        //     "tradeId": 56201985,
+        //     "executedPrice": 23534.06,
+        //     "executedQuantity": 0.00040791,
+        //     "fee": 2.1E-7,
+        //     "feeAsset": "BTC",
+        //     "totalExecutedQuantity": 0.00040791,
+        //     "avgPrice": 23534.06,
+        //     "status": "FILLED",
+        //     "reason": "",
+        //     "orderTag": "default",
+        //     "totalFee": 2.1E-7,
+        //     "feeCurrency": "BTC",
+        //     "totalRebate": 0,
+        //     "rebateCurrency": "USDT",
+        //     "visible": 0.0,
+        //     "timestamp": 1675406261689,
+        //     "reduceOnly": false,
+        //     "maker": false
         //   }
         //
         $myTrades = $this->myTrades;
@@ -1389,29 +1402,29 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $messageHashes = array();
-        $symbols = $this->market_symbols($symbols);
-        if (!$this->is_empty($symbols)) {
-            if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+        $symbolsNormalized = $this->market_symbols($symbols);
+        if (!$this->is_empty($symbolsNormalized)) {
+            if ($symbolsNormalized === null) {
+                throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
             }
-            for ($i = 0; $i < count($symbols); $i++) {
-                if ($symbols === null) {
-                    throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                if ($symbolsNormalized === null) {
+                    throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
                 }
-                $symbol = $symbols[$i];
+                $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'positions::' . $symbol;
             }
         } else {
             $messageHashes[] = 'positions';
         }
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $client = $this->client($url);
-        $this->set_positions_cache($client, $symbols);
+        $this->set_positions_cache($client, $symbolsNormalized);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($this->positions === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
-            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+            return $this->filter_by_symbols_since_limit($snapshot, $symbolsNormalized, $since, $limit, true);
         }
         $request = array(
             'event' => 'subscribe',
@@ -1421,7 +1434,7 @@ class woo extends \ccxt\async\woo {
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
     public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
@@ -1437,11 +1450,11 @@ class woo extends \ccxt\async\woo {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash) {
+    public function load_positions_snapshot(Client $client, string $messageHash) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash) {
         $positions = Async\await($this->fetch_positions());
         $this->positions = new ArrayCacheBySymbolBySide();
         $cache = $this->positions;
@@ -1452,7 +1465,7 @@ class woo extends \ccxt\async\woo {
                 $cache->append($position);
             }
         }
-        // don't remove the $future from the .futures $cache
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve($cache);
@@ -1460,7 +1473,7 @@ class woo extends \ccxt\async\woo {
         }
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //    {
         //        "topic":"position",
@@ -1486,7 +1499,7 @@ class woo extends \ccxt\async\woo {
         //        }
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $rawPositions = $this->safe_dict($data, 'positions', array());
         $postitionsIds = is_array($rawPositions) ? array_keys($rawPositions) : array();
         if ($this->positions === null) {
@@ -1533,36 +1546,36 @@ class woo extends \ccxt\async\woo {
         return Async\await($this->watch_private($messageHash, $message));
     }
 
-    public function handle_balance(mixed $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //   {
-        //       "topic" => "balance",
-        //       "ts" => 1695716888789,
-        //       "data" => {
-        //          "balances" => {
-        //             "USDT" => {
-        //                "holding" => 266.56059176,
-        //                "frozen" => 0,
-        //                "interest" => 0,
-        //                "pendingShortQty" => 0,
-        //                "pendingExposure" => 0,
-        //                "pendingLongQty" => 0,
-        //                "pendingLongExposure" => 0,
-        //                "version" => 37,
-        //                "staked" => 0,
-        //                "unbonding" => 0,
-        //                "vault" => 0,
-        //                "averageOpenPrice" => 0,
-        //                "pnl24H" => 0,
-        //                "fee24H" => 0,
-        //                "markPrice" => 1,
-        //                "pnl24HPercentage" => 0
+        //       "topic": "balance",
+        //       "ts": 1695716888789,
+        //       "data": {
+        //          "balances": {
+        //             "USDT": {
+        //                "holding": 266.56059176,
+        //                "frozen": 0,
+        //                "interest": 0,
+        //                "pendingShortQty": 0,
+        //                "pendingExposure": 0,
+        //                "pendingLongQty": 0,
+        //                "pendingLongExposure": 0,
+        //                "version": 37,
+        //                "staked": 0,
+        //                "unbonding": 0,
+        //                "vault": 0,
+        //                "averageOpenPrice": 0,
+        //                "pnl24H": 0,
+        //                "fee24H": 0,
+        //                "markPrice": 1,
+        //                "pnl24HPercentage": 0
         //             }
         //          }
         //
         //    }
         //
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $balances = $this->safe_value($data, 'balances');
         $keys = is_array($balances) ? array_keys($balances) : array();
         $ts = $this->safe_integer($message, 'ts');
@@ -1571,7 +1584,7 @@ class woo extends \ccxt\async\woo {
         $this->balance['datetime'] = $this->iso8601($ts);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $balances[$key];
+            $value = $this->safe_dict($balances, $key);
             $code = $this->safe_currency_code($key);
             $account = $this->account();
             if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
@@ -1608,7 +1621,6 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
         $topic = $market['id'] . '@estfundingrate';
         $request = array(
             'event' => 'subscribe',
@@ -1618,15 +1630,15 @@ class woo extends \ccxt\async\woo {
         return Async\await($this->watch_public($topic, $message));
     }
 
-    public function handle_funding_rate(Client $client, mixed $message) {
+    public function handle_funding_rate(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDT@estfundingrate",
-        //         "ts" => 1771484159016,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDT",
-        //             "fundingRate" => 0.0001,
-        //             "fundingTs" => 1771488000000
+        //         "topic": "PERP_BTC_USDT@estfundingrate",
+        //         "ts": 1771484159016,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "fundingRate": 0.0001,
+        //             "fundingTs": 1771488000000
         //         }
         //     }
         //
@@ -1640,9 +1652,9 @@ class woo extends \ccxt\async\woo {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
-        // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
+        // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!(is_array($message) && array_key_exists('success' ?? '', $message))) {
             return false;
@@ -1672,14 +1684,14 @@ class woo extends \ccxt\async\woo {
         }
     }
 
-    public function handle_un_subscription(Client $client, mixed $message) {
+    public function handle_un_subscription(Client $client, array $message) {
         //
         //     {
-        //         "id" => "2",
-        //         "event" => "unsubscribe",
-        //         "success" => true,
-        //         "ts" => 1759568478343,
-        //         "data" => "SPOT_BTC_USDT@orderbook"
+        //         "id": "2",
+        //         "event": "unsubscribe",
+        //         "success": true,
+        //         "ts": 1759568478343,
+        //         "data": "SPOT_BTC_USDT@orderbook"
         //     }
         //
         $subscribeHash = $this->safe_string($message, 'data');
@@ -1695,7 +1707,7 @@ class woo extends \ccxt\async\woo {
         $this->clean_cache($subscription);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }
@@ -1755,42 +1767,42 @@ class woo extends \ccxt\async\woo {
         }
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         return array( 'event' => 'ping' );
     }
 
-    public function pong(Client $client, mixed $message) {
+    public function pong(Client $client, array $message) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message) {
+    private function do_pong(Client $client, array $message) {
         Async\await($client->send(array( 'event' => 'pong' )));
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
-        // array( event => "pong", ts => 1657117026090 )
+        // { event: "pong", ts: 1657117026090 }
         //
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_subscribe(Client $client, mixed $message) {
+    public function handle_subscribe(Client $client, array $message): array {
         //
         //     {
-        //         "id" => "666888",
-        //         "event" => "subscribe",
-        //         "success" => true,
-        //         "ts" => 1657117712212
+        //         "id": "666888",
+        //         "event": "subscribe",
+        //         "success": true,
+        //         "ts": 1657117712212
         //     }
         //
         $id = $this->safe_string($message, 'id');
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-        $subscription = $this->safe_value($subscriptionsById, $id, array());
+        $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $method = $this->safe_value($subscription, 'method');
         if ($method !== null) {
             $method($client, $message, $subscription);
@@ -1798,18 +1810,18 @@ class woo extends \ccxt\async\woo {
         return $message;
     }
 
-    public function handle_auth(Client $client, mixed $message) {
+    public function handle_auth(Client $client, array $message) {
         //
         //     {
-        //         "event" => "auth",
-        //         "success" => true,
-        //         "ts" => 1657463158812
+        //         "event": "auth",
+        //         "success": true,
+        //         "ts": 1657463158812
         //     }
         //
         $messageHash = 'authenticated';
-        $success = $this->safe_value($message, 'success');
+        $success = $this->safe_bool($message, 'success');
         if ($success === true) {
-            // $client->resolve($message, $messageHash);
+            // client.resolve (message, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             $future->resolve(true);
         } else {

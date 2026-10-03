@@ -97,25 +97,23 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $market = null;
         $messageHash = $name;
         $productIds = null;
-        if ($symbols === null) {
-            $symbols = $this->get_active_symbols();
-        }
-        $symbolsLength = count($symbols);
+        $symbolsResolved = ($symbols === null) ? $this->get_active_symbols() : $symbols;
+        $symbolsLength = count($symbolsResolved);
         $messageHashes = array();
         if ($symbolsLength > 1) {
-            $parsedSymbols = $this->market_symbols($symbols);
+            $parsedSymbols = $this->market_symbols($symbolsResolved);
             $marketIds = $this->market_ids($parsedSymbols);
             $productIds = $marketIds;
             for ($i = 0; $i < count($parsedSymbols); $i++) {
                 $messageHashes[] = $name . '::' . $parsedSymbols[$i];
             }
-            // $messageHash = $messageHash . '::' . implode(',', $parsedSymbols);
+            // messageHash = messageHash + '::' + parsedSymbols.join (',');
         } elseif ($symbolsLength === 1) {
-            $market = $this->market($symbols[0]);
+            $market = $this->market($symbolsResolved[0]);
             $messageHash = $name . '::' . $market['symbol'];
             $productIds = array( ($market['id']) );
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         if ($url === null) {
             throw new NotSupported($this->id . ' is not supported in sandbox environment');
         }
@@ -124,7 +122,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $signature = $this->hmac($this->encode($auth), base64_decode($this->secret), 'sha256', 'base64');
         $subscribe = array(
             'type' => 'SUBSCRIBE',
-            // 'product_ids' => $productIds,
+            // 'product_ids': productIds,
             'channels' => array( $name ),
             'time' => $timestamp,
             'key' => $this->apiKey,
@@ -160,20 +158,21 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $this->check_required_credentials();
+        $symbolsResolved = null;
         if ($this->is_empty($symbols)) {
-            $symbols = $this->symbols;
+            $symbolsResolved = $this->symbols;
         } else {
-            $symbols = $this->market_symbols($symbols);
+            $symbolsResolved = $this->market_symbols($symbols);
         }
         $messageHashes = array();
         $productIds = array();
-        for ($i = 0; $i < count(($symbols)); $i++) {
-            $marketId = $this->market_id(($symbols)[$i]);
+        for ($i = 0; $i < count(($symbolsResolved)); $i++) {
+            $marketId = $this->market_id(($symbolsResolved)[$i]);
             $symbol = $this->symbol($marketId);
             $productIds[] = $marketId;
             $messageHashes[] = $name . '::' . $symbol;
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         if ($url === null) {
             throw new NotSupported($this->id . ' is not supported in sandbox environment');
         }
@@ -253,12 +252,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchTicker', 'channel', 'LEVEL1');
-        return Async\await($this->subscribe($channel, array( $symbol ), $params));
+        list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchTicker', 'channel', 'LEVEL1');
+        return Async\await($this->subscribe($channel, array( $symbol ), $paramsChannel));
     }
 
-    public function get_active_symbols() {
+    public function get_active_symbols(): array {
         $symbols = $this->symbols;
         $output = array();
         for ($i = 0; $i < count($symbols); $i++) {
@@ -289,101 +287,105 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'LEVEL1');
-        $ticker = Async\await($this->subscribe($channel, $symbols, $params));
+        list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchTickers', 'channel', 'LEVEL1');
+        $ticker = Async\await($this->subscribe($channel, $symbols, $paramsChannel));
         if ($this->newUpdates) {
             $result = array();
-            $result[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $result[$tickerSymbol] = $ticker;
+            }
             return $result;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function handle_instrument(Client $client, mixed $message) {
+    public function handle_instrument(Client $client, array $message) {
         //
         //    {
-        //        "sequence" => 1,
-        //        "product_id" => "ETH-PERP",
-        //        "instrument_type" => "PERP",
-        //        "base_asset_name" => "ETH",
-        //        "quote_asset_name" => "USDC",
-        //        "base_increment" => "0.0001",
-        //        "quote_increment" => "0.01",
-        //        "avg_daily_quantity" => "43.0",
-        //        "avg_daily_volume" => "80245.2",
+        //        "sequence": 1,
+        //        "product_id": "ETH-PERP",
+        //        "instrument_type": "PERP",
+        //        "base_asset_name": "ETH",
+        //        "quote_asset_name": "USDC",
+        //        "base_increment": "0.0001",
+        //        "quote_increment": "0.01",
+        //        "avg_daily_quantity": "43.0",
+        //        "avg_daily_volume": "80245.2",
         //        "total_30_day_quantity":"1443.0",
         //        "total_30_day_volume":"3040449.0",
         //        "total_24_hour_quantity":"48.1",
         //        "total_24_hour_volume":"101348.3",
-        //        "base_imf" => "0.2",
-        //        "min_quantity" => "0.0001",
-        //        "position_size_limit" => "500",
-        //        "funding_interval" => "60000000000",
-        //        "trading_state" => "trading",
-        //        "last_update_time" => "2023-05-04T11:16:33.016Z",
-        //        "time" => "2023-05-10T14:58:47.000Z",
+        //        "base_imf": "0.2",
+        //        "min_quantity": "0.0001",
+        //        "position_size_limit": "500",
+        //        "funding_interval": "60000000000",
+        //        "trading_state": "trading",
+        //        "last_update_time": "2023-05-04T11:16:33.016Z",
+        //        "time": "2023-05-10T14:58:47.000Z",
         //        "channel":"INSTRUMENTS",
         //        "type":"SNAPSHOT"
         //    }
         $ticker = $this->parse_ws_instrument($message);
         $channel = $this->safe_string($message, 'channel');
         $client->resolve($ticker, $channel);
-        $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
+        if ($channel !== null) {
+            $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
+        }
     }
 
-    public function parse_ws_instrument(array $ticker, ?array $market = null) {
+    public function parse_ws_instrument(array $ticker, ?array $market = null): array {
         //
         //    {
-        //        "sequence" => 1,
-        //        "product_id" => "ETH-PERP",
-        //        "instrument_type" => "PERP",
-        //        "base_asset_name" => "ETH",
-        //        "quote_asset_name" => "USDC",
-        //        "base_increment" => "0.0001",
-        //        "quote_increment" => "0.01",
-        //        "avg_daily_quantity" => "43.0",
-        //        "avg_daily_volume" => "80245.2",
+        //        "sequence": 1,
+        //        "product_id": "ETH-PERP",
+        //        "instrument_type": "PERP",
+        //        "base_asset_name": "ETH",
+        //        "quote_asset_name": "USDC",
+        //        "base_increment": "0.0001",
+        //        "quote_increment": "0.01",
+        //        "avg_daily_quantity": "43.0",
+        //        "avg_daily_volume": "80245.2",
         //        "total_30_day_quantity":"1443.0",
         //        "total_30_day_volume":"3040449.0",
         //        "total_24_hour_quantity":"48.1",
         //        "total_24_hour_volume":"101348.3",
-        //        "base_imf" => "0.2",
-        //        "min_quantity" => "0.0001",
-        //        "position_size_limit" => "500",
-        //        "funding_interval" => "60000000000",
-        //        "trading_state" => "trading",
-        //        "last_update_time" => "2023-05-04T11:16:33.016Z",
-        //        "time" => "2023-05-10T14:58:47.000Z",
+        //        "base_imf": "0.2",
+        //        "min_quantity": "0.0001",
+        //        "position_size_limit": "500",
+        //        "funding_interval": "60000000000",
+        //        "trading_state": "trading",
+        //        "last_update_time": "2023-05-04T11:16:33.016Z",
+        //        "time": "2023-05-10T14:58:47.000Z",
         //        "channel":"INSTRUMENTS",
         //        "type":"SNAPSHOT"
         //    }
         // instruments
         //   {
-        //       sequence => 0,
-        //       instrument_type => 'PERP',
-        //       instrument_mode => 'standard',
-        //       base_asset_name => 'BTC',
-        //       quote_asset_name => 'USDC',
-        //       base_increment => '0.0001',
-        //       quote_increment => '0.1',
-        //       avg_daily_quantity => '502.8845',
-        //       avg_daily_volume => '3.1495242961566668E7',
-        //       total30_day_quantity => '15086.535',
-        //       total30_day_volume => '9.44857288847E8',
-        //       total24_hour_quantity => '5.0',
-        //       total24_hour_volume => '337016.5',
-        //       base_imf => '0.1',
-        //       min_quantity => '0.0001',
-        //       position_size_limit => '800',
-        //       funding_interval => '3600000000000',
-        //       trading_state => 'trading',
-        //       last_updated_time => '2024-07-30T15:00:00Z',
-        //       default_initial_margin => '0.2',
-        //       base_asset_multiplier => '1.0',
-        //       channel => 'INSTRUMENTS',
-        //       type => 'SNAPSHOT',
-        //       time => '2024-07-30T15:26:56.766Z',
+        //       sequence: 0,
+        //       instrument_type: 'PERP',
+        //       instrument_mode: 'standard',
+        //       base_asset_name: 'BTC',
+        //       quote_asset_name: 'USDC',
+        //       base_increment: '0.0001',
+        //       quote_increment: '0.1',
+        //       avg_daily_quantity: '502.8845',
+        //       avg_daily_volume: '3.1495242961566668E7',
+        //       total30_day_quantity: '15086.535',
+        //       total30_day_volume: '9.44857288847E8',
+        //       total24_hour_quantity: '5.0',
+        //       total24_hour_volume: '337016.5',
+        //       base_imf: '0.1',
+        //       min_quantity: '0.0001',
+        //       position_size_limit: '800',
+        //       funding_interval: '3600000000000',
+        //       trading_state: 'trading',
+        //       last_updated_time: '2024-07-30T15:00:00Z',
+        //       default_initial_margin: '0.2',
+        //       base_asset_multiplier: '1.0',
+        //       channel: 'INSTRUMENTS',
+        //       type: 'SNAPSHOT',
+        //       time: '2024-07-30T15:26:56.766Z',
         //   }
         //
         $marketId = $this->safe_string($ticker, 'product_id');
@@ -412,49 +414,51 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         ));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // snapshot
         //    {
-        //        "sequence" => 0,
-        //        "product_id" => "BTC-PERP",
-        //        "time" => "2023-05-10T14:58:47.000Z",
-        //        "bid_price" => "28787.8",
-        //        "bid_qty" => "0.466", // One side book
-        //        "channel" => "LEVEL1",
-        //        "type" => "SNAPSHOT"
+        //        "sequence": 0,
+        //        "product_id": "BTC-PERP",
+        //        "time": "2023-05-10T14:58:47.000Z",
+        //        "bid_price": "28787.8",
+        //        "bid_qty": "0.466", // One side book
+        //        "channel": "LEVEL1",
+        //        "type": "SNAPSHOT"
         //    }
         // update
         //    {
-        //       "sequence" => 1,
-        //       "product_id" => "BTC-PERP",
-        //       "time" => "2023-05-10T14:58:47.547Z",
-        //       "bid_price" => "28787.8",
-        //       "bid_qty" => "0.466",
-        //       "ask_price" => "28788.8",
-        //       "ask_qty" => "1.566",
-        //       "channel" => "LEVEL1",
-        //       "type" => "UPDATE"
+        //       "sequence": 1,
+        //       "product_id": "BTC-PERP",
+        //       "time": "2023-05-10T14:58:47.547Z",
+        //       "bid_price": "28787.8",
+        //       "bid_qty": "0.466",
+        //       "ask_price": "28788.8",
+        //       "ask_qty": "1.566",
+        //       "channel": "LEVEL1",
+        //       "type": "UPDATE"
         //    }
         //
         $ticker = $this->parse_ws_ticker($message);
         $channel = $this->safe_string($message, 'channel');
         $client->resolve($ticker, $channel);
-        $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
+        if ($channel !== null) {
+            $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
+        }
     }
 
     public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
-        //       "sequence" => 1,
-        //       "product_id" => "BTC-PERP",
-        //       "time" => "2023-05-10T14:58:47.547Z",
-        //       "bid_price" => "28787.8",
-        //       "bid_qty" => "0.466",
-        //       "ask_price" => "28788.8",
-        //       "ask_qty" => "1.566",
-        //       "channel" => "LEVEL1",
-        //       "type" => "UPDATE"
+        //       "sequence": 1,
+        //       "product_id": "BTC-PERP",
+        //       "time": "2023-05-10T14:58:47.547Z",
+        //       "bid_price": "28787.8",
+        //       "bid_qty": "0.466",
+        //       "ask_price": "28788.8",
+        //       "ask_qty": "1.566",
+        //       "channel": "LEVEL1",
+        //       "type": "UPDATE"
         //    }
         //
         $datetime = $this->safe_string($ticker, 'time');
@@ -504,33 +508,34 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $options = $this->safe_dict($this->options, 'timeframes', array());
         $interval = $this->safe_string($options, $timeframe, $timeframe);
-        $ohlcv = Async\await($this->subscribe($interval, array( $symbol ), $params));
+        $ohlcv = Async\await($this->subscribe($interval, array( $symbolValue ), $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // {
-        //     "sequence" => 0,
-        //     "product_id" => "BTC-PERP",
-        //     "channel" => "CANDLES_ONE_MINUTE",
-        //     "type" => "SNAPSHOT",
-        //     "candles" => array(
-        //       array(
-        //           "time" => "2023-05-10T14:58:47.000Z",
-        //           "low" => "28787.8",
-        //           "high" => "28788.8",
-        //           "open" => "28788.8",
-        //           "close" => "28787.8",
-        //           "volume" => "0.466"
-        //        ),
-        //     )
+        //     "sequence": 0,
+        //     "product_id": "BTC-PERP",
+        //     "channel": "CANDLES_ONE_MINUTE",
+        //     "type": "SNAPSHOT",
+        //     "candles": [
+        //       {
+        //           "time": "2023-05-10T14:58:47.000Z",
+        //           "low": "28787.8",
+        //           "high": "28788.8",
+        //           "open": "28788.8",
+        //           "close": "28787.8",
+        //           "volume": "0.466"
+        //        },
+        //     ]
         //  }
         //
         $messageHash = $this->safe_string($message, 'channel');
@@ -538,19 +543,21 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $timeframe = $this->find_timeframe($messageHash);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        if ($this->safe_value($this->ohlcvs[$symbol], $timeframe) === null) {
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        if ($this->safe_dict($this->ohlcvs[$symbol], $timeframe) === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
         $stored = $this->ohlcvs[$symbol][$timeframe];
         $data = $this->safe_list($message, 'candles', array());
         for ($i = 0; $i < count($data); $i++) {
-            $tick = $data[$i];
+            $tick = $this->safe_dict($data, $i);
             $parsed = $this->parse_ohlcv($tick, $market);
             $stored->append($parsed);
         }
-        $client->resolve($stored, $messageHash . '::' . $symbol);
+        if ($messageHash !== null) {
+            $client->resolve($stored, $messageHash . '::' . $symbol);
+        }
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -584,28 +591,29 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false, true, true);
-        $trades = Async\await($this->subscribe_multiple('MATCH', $symbols, $params));
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
+        $trades = Async\await($this->subscribe_multiple('MATCH', $symbolsNormalized, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
             $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_trade(mixed $client, mixed $message) {
+    public function handle_trade(Client $client, array $message): array {
         //
         //    {
-        //       "sequence" => 0,
-        //       "product_id" => "BTC-PERP",
-        //       "time" => "2023-05-10T14:58:47.002Z",
-        //       "match_id" => "177101110052388865",
-        //       "trade_qty" => "0.006",
-        //       "aggressor_side" => "BUY",
-        //       "trade_price" => "28833.1",
-        //       "channel" => "MATCH",
-        //       "type" => "UPDATE"
+        //       "sequence": 0,
+        //       "product_id": "BTC-PERP",
+        //       "time": "2023-05-10T14:58:47.002Z",
+        //       "match_id": "177101110052388865",
+        //       "trade_qty": "0.006",
+        //       "aggressor_side": "BUY",
+        //       "trade_price": "28833.1",
+        //       "channel": "MATCH",
+        //       "type": "UPDATE"
         //    }
         //
         $trade = $this->parse_ws_trade($message);
@@ -620,22 +628,24 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $tradesArray->append($trade);
         $this->trades[$symbol] = $tradesArray;
         $client->resolve($tradesArray, $channel);
-        $client->resolve($tradesArray, $channel . '::' . $trade['symbol']);
+        if ($channel !== null) {
+            $client->resolve($tradesArray, $channel . '::' . $trade['symbol']);
+        }
         return $message;
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //    {
-        //       "sequence" => 0,
-        //       "product_id" => "BTC-PERP",
-        //       "time" => "2023-05-10T14:58:47.002Z",
-        //       "match_id" => "177101110052388865",
-        //       "trade_qty" => "0.006",
-        //       "aggressor_side" => "BUY",
-        //       "trade_price" => "28833.1",
-        //       "channel" => "MATCH",
-        //       "type" => "UPDATE"
+        //       "sequence": 0,
+        //       "product_id": "BTC-PERP",
+        //       "time": "2023-05-10T14:58:47.002Z",
+        //       "match_id": "177101110052388865",
+        //       "trade_qty": "0.006",
+        //       "aggressor_side": "BUY",
+        //       "trade_price": "28833.1",
+        //       "channel": "MATCH",
+        //       "type": "UPDATE"
         //    }
         $marketId = $this->safe_string_2($trade, 'symbol', 'product_id');
         $datetime = $this->safe_string($trade, 'time');
@@ -684,40 +694,40 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $this->subscribe_multiple('LEVEL2', $symbols, $params);
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // snapshot
         //    {
-        //       "sequence" => 0,
-        //       "product_id" => "BTC-PERP",
-        //       "time" => "2023-05-10T14:58:47.000Z",
-        //       "bids" => array(
+        //       "sequence": 0,
+        //       "product_id": "BTC-PERP",
+        //       "time": "2023-05-10T14:58:47.000Z",
+        //       "bids": [
         //           ["29100", "0.02"],
         //           ["28950", "0.01"],
         //           ["28900", "0.01"]
-        //       ),
-        //       "asks" => array(
+        //       ],
+        //       "asks": [
         //           ["29267.8", "18"],
         //           ["29747.6", "18"],
         //           ["30227.4", "9"]
-        //       ),
-        //       "channel" => "LEVEL2",
-        //       "type" => "SNAPSHOT",
+        //       ],
+        //       "channel": "LEVEL2",
+        //       "type": "SNAPSHOT",
         //    }
         // update
         //    {
-        //       "sequence" => 1,
-        //       "product_id" => "BTC-PERP",
-        //       "time" => "2023-05-10T14:58:47.375Z",
-        //       "changes" => array(
-        //           array(
+        //       "sequence": 1,
+        //       "product_id": "BTC-PERP",
+        //       "time": "2023-05-10T14:58:47.375Z",
+        //       "changes": [
+        //           [
         //               "BUY",
         //               "28787.7",
         //               "6"
-        //           )
-        //       ),
-        //       "channel" => "LEVEL2",
-        //       "type" => "UPDATE"
+        //           ]
+        //       ],
+        //       "channel": "LEVEL2",
+        //       "type": "UPDATE"
         //    }
         //
         $type = $this->safe_string($message, 'type');
@@ -736,94 +746,101 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $orderbook['symbol'] = $symbol;
         } else {
             $changes = $this->safe_list($message, 'changes', array());
-            $this->handle_deltas($orderbook, $changes);
+            $this->handle_book_deltas($orderbook, $changes);
         }
         $orderbook['nonce'] = $this->safe_integer($message, 'sequence');
         $orderbook['datetime'] = $datetime;
         $orderbook['timestamp'] = $this->parse8601($datetime);
         $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve($orderbook, $channel . '::' . $symbol);
+        if ($channel !== null) {
+            $client->resolve($orderbook, $channel . '::' . $symbol);
+        }
     }
 
-    public function handle_delta(mixed $orderbook, mixed $delta) {
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
         $rawSide = $this->safe_string_lower($delta, 0);
-        $side = ($rawSide === 'buy') ? 'bids' : 'asks';
+        $side = 'asks';
+        if ($rawSide === 'buy') {
+            $side = 'bids';
+        }
         $price = $this->safe_float($delta, 1);
         $amount = $this->safe_float($delta, 2);
         $bookside = $orderbook[$side];
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas(mixed $orderbook, mixed $deltas) {
+    public function handle_book_deltas(mixed $orderbook, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($orderbook, $deltas[$i]);
+            $this->handle_book_delta($orderbook, $deltas[$i]);
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //    {
-        //       "channels" => array(
-        //           array(
-        //               "name" => "MATCH",
-        //               "product_ids" => array(
-        //                   "BTC-PERP",
-        //                   "ETH-PERP"
-        //               )
-        //           ),
+        //       "channels": [
         //           {
-        //               "name" => "INSTRUMENTS",
-        //               "product_ids" => array(
+        //               "name": "MATCH",
+        //               "product_ids": [
         //                   "BTC-PERP",
         //                   "ETH-PERP"
-        //               )
+        //               ]
+        //           },
+        //           {
+        //               "name": "INSTRUMENTS",
+        //               "product_ids": [
+        //                   "BTC-PERP",
+        //                   "ETH-PERP"
+        //               ]
         //           }
-        //       ),
-        //       "authenticated" => true,
-        //       "channel" => "SUBSCRIPTIONS",
-        //       "type" => "SNAPSHOT",
-        //       "time" => "2023-05-30T16:53:46.847Z"
+        //       ],
+        //       "authenticated": true,
+        //       "channel": "SUBSCRIPTIONS",
+        //       "type": "SNAPSHOT",
+        //       "time": "2023-05-30T16:53:46.847Z"
         //    }
         //
         return $message;
     }
 
-    public function handle_funding_rate(Client $client, mixed $message) {
+    public function handle_funding_rate(Client $client, array $message) {
         //
         // snapshot
         //    {
-        //       "sequence" => 0,
-        //       "product_id" => "BTC-PERP",
-        //       "time" => "2023-05-10T14:58:47.000Z",
-        //       "funding_rate" => "0.001387",
-        //       "is_final" => true,
-        //       "channel" => "FUNDING",
-        //       "type" => "SNAPSHOT"
+        //       "sequence": 0,
+        //       "product_id": "BTC-PERP",
+        //       "time": "2023-05-10T14:58:47.000Z",
+        //       "funding_rate": "0.001387",
+        //       "is_final": true,
+        //       "channel": "FUNDING",
+        //       "type": "SNAPSHOT"
         //    }
         // update
         //    {
-        //       "sequence" => 1,
-        //       "product_id" => "BTC-PERP",
-        //       "time" => "2023-05-10T15:00:00.000Z",
-        //       "funding_rate" => "0.001487",
-        //       "is_final" => false,
-        //       "channel" => "FUNDING",
-        //       "type" => "UPDATE"
+        //       "sequence": 1,
+        //       "product_id": "BTC-PERP",
+        //       "time": "2023-05-10T15:00:00.000Z",
+        //       "funding_rate": "0.001487",
+        //       "is_final": false,
+        //       "channel": "FUNDING",
+        //       "type": "UPDATE"
         //    }
         //
         $channel = $this->safe_string($message, 'channel');
         $fundingRate = $this->parse_funding_rate($message);
         $this->fundingRates[$fundingRate['symbol']] = $fundingRate;
-        $client->resolve($fundingRate, $channel . '::' . $fundingRate['symbol']);
+        if ($channel !== null) {
+            $client->resolve($fundingRate, $channel . '::' . $fundingRate['symbol']);
+        }
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //    {
-        //        $message => 'Failed to subscribe',
-        //        $reason => 'Unable to authenticate',
-        //        channel => 'SUBSCRIPTIONS',
-        //        $type => 'REJECT'
+        //        message: 'Failed to subscribe',
+        //        reason: 'Unable to authenticate',
+        //        channel: 'SUBSCRIPTIONS',
+        //        type: 'REJECT'
         //    }
         //
         $type = $this->safe_string($message, 'type');
@@ -843,7 +860,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return true;
     }
 
-    public function handle_message(mixed $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }

@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.OHLCV;
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 {
@@ -59,11 +61,11 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         }};
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object reqid = this.sum(this.safeInteger(this.options, "correlationId", 0), 1);
         Helpers.addElementToObject(this.options, "correlationId", reqid);
-        return reqid;
+        return Helpers.toLongOrNull(reqid);
     }
 
     /**
@@ -74,36 +76,35 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
     public void setBrokerHeaders()
     {
         String brokerId = this.safeString(this.options, "broker");
-        if (Helpers.isTrue(Helpers.isEqual(brokerId, null)))
+        if (java.util.Objects.equals(brokerId, null))
         {
             return;
         }
-        Object wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
-        Object innerOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
-        Object headers = this.safeDict(innerOptions, "headers", new HashMap<String, Object>() {{}});
-        Helpers.addElementToObject(headers, "Partner-Id", brokerId);
-        Helpers.addElementToObject(innerOptions, "headers", headers);
-        Helpers.addElementToObject(wsOptions, "options", innerOptions);
+        Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> innerOptions = (Map<String, Object>) this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
+        Map<String, Object> headers = (Map<String, Object>) this.safeDict(innerOptions, "headers", new HashMap<String, Object>() {{}});
+        headers.put("Partner-Id", brokerId);
+        innerOptions.put("headers", headers);
+        wsOptions.put("options", innerOptions);
         Helpers.addElementToObject(this.options, "ws", wsOptions);
     }
 
-    public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = Helpers.add("ticker:", symbol);
-            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            String messageHash = ("ticker:" + symbolValue);
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             this.setBrokerHeaders();
-            Object baseIdString = ((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "baseId"), null))))) ? Helpers.GetValue(market, "baseId") : "";
-            Object quoteIdString = ((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "quoteId"), null))))) ? Helpers.GetValue(market, "quoteId") : "";
+            Object baseIdString = (((!java.util.Objects.equals(market.get("baseId"), null)))) ? market.get("baseId") : "";
+            Object quoteIdString = (((!java.util.Objects.equals(market.get("quoteId"), null)))) ? market.get("quoteId") : "";
             Object assetId = Helpers.add(((String)baseIdString).toLowerCase(), ((String)quoteIdString).toLowerCase());
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", Mudrex.this.requestId() );
@@ -117,32 +118,30 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 
     }
 
-    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols);
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> assets = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
-                    ((List<Object>)messageHashes).add(Helpers.add("ticker:", Helpers.GetValue(market, "symbol")));
-                    Object baseIdString = ((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "baseId"), null))))) ? Helpers.GetValue(market, "baseId") : "";
-                    Object quoteIdString = ((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "quoteId"), null))))) ? Helpers.GetValue(market, "quoteId") : "";
+                    Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
+                    messageHashes.add(("ticker:" + market.get("symbol")));
+                    Object baseIdString = (((!java.util.Objects.equals(market.get("baseId"), null)))) ? market.get("baseId") : "";
+                    Object quoteIdString = (((!java.util.Objects.equals(market.get("quoteId"), null)))) ? market.get("quoteId") : "";
                     ((List<Object>)assets).add(Helpers.add(((String)baseIdString).toLowerCase(), ((String)quoteIdString).toLowerCase()));
                 }
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             this.setBrokerHeaders();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", Mudrex.this.requestId() );
@@ -152,164 +151,165 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
             Object ticker = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    result.put(tickerSymbol, ticker);
+                }
                 return result;
             }
-            return this.filterByArrayTickers(this.tickers, "symbol", symbols);
+            return this.filterByArrayTickers(this.tickers, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
 
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = Helpers.GetValue(market, "symbol");
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
             String priceType = this.safeString(parameters, "price");
-            parameters = this.omit(parameters, "price");
-            String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(interval, "1s")) && Helpers.isTrue(!Helpers.isEqual(interval, "1m"))))
+            Map<String, Object> paramsOmitted = this.omit(parameters, "price");
+            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            if (!java.util.Objects.equals(interval, "1s") && !java.util.Objects.equals(interval, "1m"))
             {
-                throw new NotSupported(Helpers.add(this.id, " watchOHLCV() supports 1s and 1m timeframes only")) ;
+                throw new NotSupported((this.id + " watchOHLCV() supports 1s and 1m timeframes only")) ;
             }
             String prefix = "kline";
-            if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
+            if (java.util.Objects.equals(priceType, "mark"))
             {
                 prefix = "markKline";
             }
-            Object streamBaseId = ((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "baseId"), null))))) ? Helpers.GetValue(market, "baseId") : "";
-            Object streamQuoteId = ((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "quoteId"), null))))) ? Helpers.GetValue(market, "quoteId") : "";
-            Object stream = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(prefix, "@"), interval), "@"), ((String)streamBaseId).toLowerCase()), ((String)streamQuoteId).toLowerCase());
-            Object messageHash = stream;
-            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
+            Object streamBaseId = (((!java.util.Objects.equals(market.get("baseId"), null)))) ? market.get("baseId") : "";
+            Object streamQuoteId = (((!java.util.Objects.equals(market.get("quoteId"), null)))) ? market.get("quoteId") : "";
+            String stream = (((((prefix + "@") + interval) + "@") + ((String)streamBaseId).toLowerCase()) + ((String)streamQuoteId).toLowerCase());
+            String messageHash = stream;
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             this.setBrokerHeaders();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", Mudrex.this.requestId() );
                 put( "method", "SUBSCRIBE" );
                 put( "params", new ArrayList<Object>(Arrays.asList(stream)) );
             }};
-            Map<String, Object> request = this.extend(subscribe, parameters);
-            Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            Map<String, Object> request = this.extend(subscribe, paramsOmitted);
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
+            Long limitResolved = limit;
+            if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(Helpers.isEqual(this.safeString(message, "method"), "PONG")))
+        if (java.util.Objects.equals(this.safeString(message, "method"), "PONG"))
         {
             return;
         }
-        Object error = this.safeDict(message, "error");
-        if (Helpers.isTrue(!Helpers.isEqual(error, null)))
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", (Object) null);
+        if (!java.util.Objects.equals(error, null))
         {
             this.handleErrorMessage(client, message);
             return;
         }
         String stream = this.safeString(message, "stream");
-        if (Helpers.isTrue(!Helpers.isEqual(stream, null)))
+        if (!java.util.Objects.equals(stream, null))
         {
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stream, "kline"), 0)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stream, "markKline"), 0))))
+            if (((String)stream).indexOf("kline") >= 0 || ((String)stream).indexOf("markKline") >= 0)
             {
-                this.handleOHLCV(client, message);
-            } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stream, "ticker"), 0)))
+                this.handleOHLCV(client, (Map<String, Object>) (message));
+            } else if (((String)stream).indexOf("ticker") >= 0)
             {
-                this.handleTicker(client, message);
+                this.handleTicker(client, (Map<String, Object>) (message));
             }
         }
     }
 
     public void handleErrorMessage(Client client, Object message)
     {
-        Object error = this.safeDict(message, "error", new HashMap<String, Object>() {{}});
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", new HashMap<String, Object>() {{}});
         String code = this.safeString(error, "code");
         String msg = this.safeString(error, "msg");
-        Object feedback = Helpers.add(Helpers.add(this.id, " "), msg);
-        if (Helpers.isTrue(Helpers.isEqual(code, "429")))
+        String feedback = ((this.id + " ") + msg);
+        if (java.util.Objects.equals(code, "429"))
         {
-            throw new RateLimitExceeded((String)feedback) ;
+            throw new RateLimitExceeded(feedback) ;
         }
-        throw new ExchangeError((String)feedback) ;
+        throw new ExchangeError(feedback) ;
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         String stream = this.safeString(message, "stream");
-        if (Helpers.isTrue(Helpers.isEqual(stream, null)))
+        if (java.util.Objects.equals(stream, null))
         {
             return;
         }
-        Object parts = Helpers.split(stream, "@");
-        String interval = (String) Helpers.GetValue(parts, 1);
-        Object tf = this.findTimeframe(interval);
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)stream).split(java.util.regex.Pattern.quote("@"))));
+        String interval = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
+        String tf = this.findTimeframe(interval, (Object) null);
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String s = this.safeString(data, "s");
-        if (Helpers.isTrue(Helpers.isEqual(s, null)))
+        if (java.util.Objects.equals(s, null))
         {
             return;
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(s.toUpperCase());
-        Object symbol = Helpers.GetValue(market, "symbol");
-        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")));
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), tf);
-        if (Helpers.isTrue(Helpers.isEqual(stored, null)))
+        Map<String, Object> market = this.safeMarket(s.toUpperCase(), (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = (String) market.get("symbol");
+        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o", (Object) null), this.safeNumber(data, "h", (Object) null), this.safeNumber(data, "l", (Object) null), this.safeNumber(data, "c", (Object) null), this.safeNumber(data, "v", (Object) null)));
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), tf);
+        if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbol, null)) && Helpers.isTrue(!Helpers.isEqual(tf, null))))
+            if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(tf, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), tf, stored);
+                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), tf, stored);
             }
         }
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         String messageHash = stream;
         client.resolve(stored, messageHash);
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object t = Helpers.GetValue(data, i);
+            Object t = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String s = this.safeString(t, "s");
-            if (Helpers.isTrue(Helpers.isEqual(s, null)))
+            if (java.util.Objects.equals(s, null))
             {
                 continue;
             }
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(s.toUpperCase());
-            Object symbol = Helpers.GetValue(market, "symbol");
+            Map<String, Object> market = this.safeMarket(s.toUpperCase(), (Map<String, Object>) null, (String) null, (String) null);
+            String symbol = (String) market.get("symbol");
             Long timestamp = this.milliseconds();
-            Double last = this.safeNumber(t, "p");
-            Object result = this.safeTicker(new HashMap<String, Object>() {{
+            Double last = this.safeNumber(t, "p", (Object) null);
+            Ticker result = this.safeTicker(new HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "timestamp", timestamp );
                 put( "datetime", Mudrex.this.iso8601(timestamp) );
                 put( "last", last );
                 put( "close", last );
                 put( "info", t );
-            }});
+            }}, (Map<String, Object>) null);
             Helpers.addElementToObject(this.tickers, symbol, result);
-            String messageHash = Helpers.add("ticker:", symbol);
+            String messageHash = ("ticker:" + symbol);
             client.resolve(result, messageHash);
             client.resolve(result, "tickers");
         }

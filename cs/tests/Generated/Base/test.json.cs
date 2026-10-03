@@ -17,10 +17,10 @@ public partial class BaseTest
                 { "k", "v" },
             };
             string? objJson = exchange.json(obj);
-            Assert(isEqual(objJson, "{\"k\":\"v\"}"));
+            Assert(objJson == "{\"k\":\"v\"}");
             // Test: list
             List<object> list = new List<object>() {1, 2};
             string? listJson = exchange.json(list);
-            Assert(isEqual(listJson, "[1,2]"));
+            Assert(listJson == "[1,2]");
         }
 }

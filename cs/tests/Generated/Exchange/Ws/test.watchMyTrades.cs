@@ -12,8 +12,8 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchMyTrades";
         Int64 now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        Int64 ends = (now + 15000);
+        while (now < ends)
         {
             bool success = true;
             object response = new List<object>() {};
@@ -30,13 +30,13 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            if ((success == true))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
-                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
+                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now, false);
                 }
                 testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
             }

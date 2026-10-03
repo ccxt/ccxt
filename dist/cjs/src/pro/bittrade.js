@@ -61,7 +61,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.detail';
         const api = this.safeString(this.options, 'api', 'api');
@@ -75,7 +75,7 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'params': params,
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
@@ -98,7 +98,7 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const tick = this.safeValue(message, 'tick', {});
+        const tick = this.safeDict(message, 'tick', {});
         const ch = this.safeString(message, 'ch');
         if (ch === undefined) {
             return message;
@@ -107,7 +107,7 @@ class bittrade extends bittrade$1["default"] {
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const ticker = this.parseTicker(tick, market);
-        const timestamp = this.safeValue(message, 'ts');
+        const timestamp = this.safeInteger(message, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601(timestamp);
         const symbol = ticker['symbol'];
@@ -130,7 +130,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const api = this.safeString(this.options, 'api', 'api');
@@ -144,14 +144,15 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'params': params,
         };
         const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -174,8 +175,8 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const tick = this.safeValue(message, 'tick', {});
-        const data = this.safeValue(tick, 'data', {});
+        const tick = this.safeDict(message, 'tick', {});
+        const data = this.safeList(tick, 'data', []);
         const ch = this.safeString(message, 'ch');
         if (ch === undefined) {
             return message;
@@ -213,7 +214,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const api = this.safeString(this.options, 'api', 'api');
@@ -227,15 +228,16 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'timeframe': timeframe,
             'params': params,
         };
         const ohlcv = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -264,14 +266,14 @@ class bittrade extends bittrade$1["default"] {
         const symbol = market['symbol'];
         const interval = this.safeString(parts, 3);
         const timeframe = this.findTimeframe(interval);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
-        const tick = this.safeValue(message, 'tick');
+        const tick = this.safeDict(message, 'tick');
         const parsed = this.parseOHLCV(tick, market);
         stored.append(parsed);
         client.resolve(stored, ch);
@@ -293,10 +295,10 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
-        limit = (limit === undefined) ? 150 : limit;
-        const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString();
+        const limitValue = (limit === undefined) ? 150 : limit;
+        const messageHash = 'market.' + market['id'] + '.mbp.' + limitValue.toString();
         const api = this.safeString(this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
@@ -308,8 +310,8 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
-            'limit': limit,
+            'symbol': symbolValue,
+            'limit': limitValue,
             'params': params,
             'method': this.handleOrderBookSubscription,
         };
@@ -342,7 +344,7 @@ class bittrade extends bittrade$1["default"] {
         const messageHash = this.safeString(subscription, 'messageHash');
         const timestamp = this.safeInteger(message, 'ts');
         const orderbook = this.orderbooks[symbol];
-        const data = this.safeValue(message, 'data');
+        const data = this.safeDict(message, 'data');
         const snapshot = this.parseOrderBook(data, symbol);
         snapshot['nonce'] = this.safeInteger(data, 'seqNum');
         snapshot['timestamp'] = timestamp;
@@ -361,7 +363,7 @@ class bittrade extends bittrade$1["default"] {
         try {
             const symbol = this.safeString(subscription, 'symbol');
             const limit = this.safeInteger(subscription, 'limit');
-            const params = this.safeValue(subscription, 'params');
+            const params = this.safeDict(subscription, 'params');
             const api = this.safeString(this.options, 'api', 'api');
             const hostname = { 'hostname': this.hostname };
             const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
@@ -420,15 +422,15 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const tick = this.safeValue(message, 'tick', {});
+        const tick = this.safeDict(message, 'tick', {});
         const seqNum = this.safeInteger(tick, 'seqNum');
         const prevSeqNum = this.safeInteger(tick, 'prevSeqNum');
         if ((prevSeqNum === undefined) || (seqNum === undefined)) {
             return orderbook;
         }
         if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
-            const asks = this.safeValue(tick, 'asks', []);
-            const bids = this.safeValue(tick, 'bids', []);
+            const asks = this.safeList(tick, 'asks', []);
+            const bids = this.safeList(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
             orderbook['nonce'] = seqNum;
@@ -502,7 +504,7 @@ class bittrade extends bittrade$1["default"] {
             return message;
         }
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        const subscription = this.safeValue(subscriptionsById, id);
+        const subscription = this.safeDict(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
@@ -593,7 +595,7 @@ class bittrade extends bittrade$1["default"] {
                 return false;
             }
             const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-            const subscription = this.safeValue(subscriptionsById, id);
+            const subscription = this.safeDict(subscriptionsById, id);
             if (subscription !== undefined) {
                 const errorCode = this.safeString(message, 'err-code');
                 try {

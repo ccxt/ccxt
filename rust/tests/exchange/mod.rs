@@ -183,8 +183,8 @@ pub fn available_tests() -> Value {
 /// Dispatch a unified-method test by name (Go `CallMethod`).
 pub async fn call_test(name: &str, exchange: Value, skipped: Value, args: Value) {
     match name {
-        "afterConstruct" => { testAfterConstruct(exchange, skipped); }
-        "features" => { testFeatures(exchange, skipped); }
+        "afterConstruct" => { testAfterConstruct(exchange, skipped).await; }
+        "features" => { testFeatures(exchange, skipped).await; }
         "fetchAccounts" => { testFetchAccounts(exchange, skipped).await; }
         "fetchBalance" => { testFetchBalance(exchange, skipped).await; }
         "fetchBorrowInterest" => { testFetchBorrowInterest(exchange, skipped, get_value(&args, &Value::Int(0)), get_value(&args, &Value::Int(1))).await; }
@@ -218,7 +218,7 @@ pub async fn call_test(name: &str, exchange: Value, skipped: Value, args: Value)
         "fetchTrades" => { testFetchTrades(exchange, skipped, get_value(&args, &Value::Int(0))).await; }
         "fetchTradingFee" => { testFetchTradingFee(exchange, skipped, get_value(&args, &Value::Int(0))).await; }
         "fetchTradingFees" => { testFetchTradingFees(exchange, skipped).await; }
-        "fetchTransactionFees" => { testFetchTransactionFees(exchange, skipped); }
+        "fetchTransactionFees" => { testFetchTransactionFees(exchange, skipped).await; }
         "fetchTransfers" => { testFetchTransfers(exchange, skipped, get_value(&args, &Value::Int(0))).await; }
         "fetchWithdrawals" => { testFetchWithdrawals(exchange, skipped, get_value(&args, &Value::Int(0))).await; }
         "loadMarkets" => { testLoadMarkets(exchange, skipped).await; }

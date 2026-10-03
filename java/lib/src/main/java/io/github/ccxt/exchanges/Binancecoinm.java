@@ -6,9 +6,11 @@ import io.github.ccxt.api.BinancecoinmApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class Binancecoinm extends BinancecoinmApi
@@ -49,25 +51,23 @@ public class Binancecoinm extends BinancecoinmApi
         }});
     }
 
-    public CompletableFuture<Object> transferIn(String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> transferIn(String code, Object amount, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // transfer from spot wallet to coinm futures wallet
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.futuresTransfer(code, amount, 3, parameters)).join();
         });
 
     }
 
-    public CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> transferOut(String code, Object amount, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // transfer from coinm futures wallet to spot wallet
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.futuresTransfer(code, amount, 4, parameters)).join();
         });
 

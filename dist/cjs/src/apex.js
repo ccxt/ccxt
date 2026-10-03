@@ -344,11 +344,10 @@ class apex extends apex$1["default"] {
         // }
         // }
         //
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const code = 'USDT';
         const account = this.account();
@@ -514,10 +513,10 @@ class apex extends apex$1["default"] {
         const networks = {};
         const chains = this.options['_temp_currencies_chains'];
         for (let j = 0; j < chains.length; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict(chains, j);
             const tokens = this.safeList(chain, 'tokens', []);
             for (let f = 0; f < tokens.length; f++) {
-                const token = tokens[f];
+                const token = this.safeDict(tokens, f);
                 const tokenName = this.safeString(token, 'token');
                 if (tokenName === currencyId) {
                     const networkId = this.safeString(chain, 'chainId');
@@ -528,7 +527,7 @@ class apex extends apex$1["default"] {
                             'id': networkId,
                             'network': networkCode,
                             'active': undefined,
-                            'deposit': (this.safeBool(chain, 'depositDisable') !== true),
+                            'deposit': (!this.safeBool(chain, 'depositDisable', false)),
                             'withdraw': this.safeBool(token, 'withdrawEnable'),
                             'fee': this.safeNumber(token, 'minFee'),
                             'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
@@ -657,6 +656,9 @@ class apex extends apex$1["default"] {
         const base = this.safeCurrencyCode(baseId);
         const settleId = this.safeString(market, 'settleAssetId');
         const settle = this.safeCurrencyCode(settleId);
+        if ((baseId === undefined) || (quote === undefined) || (settle === undefined)) {
+            return undefined;
+        }
         const symbol = baseId + '/' + quote + ':' + settle;
         const takerFee = this.parseNumber('0.0002');
         const makerFee = this.parseNumber('0.0005');
@@ -732,10 +734,9 @@ class apex extends apex$1["default"] {
         //     "tradeCount": 100
         // }
         //
-        const timestamp = this.milliseconds();
         const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = this.safeSymbol(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeSymbol(marketId, marketResolved);
         const last = this.safeString(ticker, 'lastPrice');
         const percentage = this.safeString(ticker, 'price24hPcnt');
         const quoteVolume = this.safeString(ticker, 'turnover24h');
@@ -744,8 +745,8 @@ class apex extends apex$1["default"] {
         const low = this.safeString(ticker, 'lowPrice24h');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': high,
             'low': low,
             'bid': undefined,
@@ -765,7 +766,7 @@ class apex extends apex$1["default"] {
             'markPrice': this.safeString(ticker, 'markPrice'),
             'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -824,22 +825,21 @@ class apex extends apex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
             'symbol': this.safeString(market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 200; // default is 200 when requested with `since`
-        }
-        request['limit'] = limit; // max 200, default 200
-        [request, params] = this.handleUntilOption('end', request, params, 0.001);
+        // default is 200 when requested with `since`, max 200
+        const limitResolved = (limit === undefined) ? 200 : Math.min(limit, 200);
+        request['limit'] = limitResolved;
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params, 0.001);
         if (since !== undefined) {
-            request['start'] = Math.floor(since / 1000);
+            requestUntil['start'] = Math.floor(since / 1000);
         }
-        const response = await this.publicGetV3Klines(this.extend(request, params));
+        const response = await this.publicGetV3Klines(this.extend(requestUntil, paramsUntil));
         const data = this.safeDict(response, 'data', {});
         const OHLCVs = this.safeList(data, this.safeString(market, 'id2'), []);
-        return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
+        return this.parseOHLCVs(OHLCVs, market, timeframe, since, limitResolved);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -882,10 +882,7 @@ class apex extends apex$1["default"] {
         const request = {
             'symbol': this.safeString(market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 100; // default is 200 when requested with `since`
-        }
-        request['limit'] = limit; // max 100, default 100
+        request['limit'] = (limit === undefined) ? 100 : limit; // max 100, default 100
         const response = await this.publicGetV3Depth(this.extend(request, params));
         //
         // {
@@ -940,10 +937,8 @@ class apex extends apex$1["default"] {
         const request = {
             'symbol': this.safeString(market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 500; // default is 50
-        }
-        request['limit'] = limit;
+        const limitResolved = (limit === undefined) ? 500 : limit; // default is 50
+        request['limit'] = limitResolved;
         const response = await this.publicGetV3Trades(this.extend(request, params));
         //
         // [
@@ -966,7 +961,7 @@ class apex extends apex$1["default"] {
         //  ]
         //
         const trades = this.safeList(response, 'data', []);
-        return this.parseTrades(trades, market, since, limit);
+        return this.parseTrades(trades, market, since, limitResolved);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -982,7 +977,7 @@ class apex extends apex$1["default"] {
         //  ]
         //
         const marketId = this.safeString2(trade, 's', 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const id = this.safeString2(trade, 'i', 'id');
         const timestamp = this.safeIntegerN(trade, ['t', 'T', 'createdAt']);
         const priceString = this.safeString2(trade, 'p', 'price');
@@ -996,7 +991,7 @@ class apex extends apex$1["default"] {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'takerOrMaker': undefined,
             'side': side,
@@ -1004,7 +999,7 @@ class apex extends apex$1["default"] {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1047,18 +1042,17 @@ class apex extends apex$1["default"] {
         //     "tradeCount": 100
         // }
         //
-        const timestamp = this.milliseconds();
         const marketId = this.safeString(interest, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = this.safeSymbol(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeSymbol(marketId, marketResolved);
         return this.safeOpenInterest({
             'symbol': symbol,
             'openInterestAmount': this.safeString(interest, 'openInterest'),
             'openInterestValue': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': interest,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1189,8 +1183,8 @@ class apex extends apex$1["default"] {
         const orderId = this.safeString(order, 'id');
         const clientOrderId = this.safeString(order, 'clientId');
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'size');
         const orderType = this.safeString(order, 'type');
@@ -1225,10 +1219,10 @@ class apex extends apex$1["default"] {
             'trades': undefined,
             'fee': {
                 'cost': this.safeString(order, 'fee'),
-                'currency': market['settleId'],
+                'currency': marketResolved['settleId'],
             },
             'info': order,
-        }, market);
+        }, marketResolved);
     }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
@@ -1265,14 +1259,15 @@ class apex extends apex$1["default"] {
         return this.safeString(types, type, type);
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        let marketResolved = undefined;
         if (market === undefined && marketId !== undefined) {
             const marketsMap = this.markets;
             const marketsById = this.markets_by_id;
             if ((marketsMap !== undefined) && (marketId in marketsMap)) {
-                market = marketsMap[marketId];
+                marketResolved = marketsMap[marketId];
             }
             else if ((marketsById !== undefined) && (marketId in marketsById)) {
-                market = marketsById[marketId];
+                marketResolved = marketsById[marketId];
             }
             else {
                 const newMarketId = this.addHyphenBeforeUsdt(marketId);
@@ -1281,17 +1276,24 @@ class apex extends apex$1["default"] {
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
                         if (marketsById[newMarketId][0]['id2'] === marketId) {
-                            market = marketsById[newMarketId][0];
+                            marketResolved = marketsById[newMarketId][0];
                         }
                     }
                 }
             }
         }
-        return super.safeMarket(marketId, market, delimiter, marketType);
+        const marketValue = (marketResolved === undefined) ? market : marketResolved;
+        return super.safeMarket(marketId, marketValue, delimiter, marketType);
     }
     generateRandomClientIdOmni(_accountId) {
         const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
-        const accountId = hasAccountId ? _accountId : this.randNumber(12).toString();
+        let accountId = undefined;
+        if (hasAccountId) {
+            accountId = _accountId;
+        }
+        else {
+            accountId = this.randNumber(12).toString();
+        }
         return 'apexomni-' + accountId + '-' + this.milliseconds().toString() + '-' + this.randNumber(6).toString();
     }
     addHyphenBeforeUsdt(symbol) {
@@ -1344,9 +1346,7 @@ class apex extends apex$1["default"] {
         }
         const market = this.market(symbol);
         let orderType = type.toUpperCase();
-        if (side === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument('createOrder', side, 'side');
         const orderSide = side.toUpperCase();
         const orderSize = this.amountToPrecision(symbol, amount);
         let orderPrice = '0';
@@ -1386,15 +1386,15 @@ class apex extends apex$1["default"] {
                 timeInForce = 'IMMEDIATE_OR_CANCEL';
             }
         }
-        params = this.omit(params, 'timeInForce');
-        params = this.omit(params, 'postOnly');
-        let clientOrderId = this.safeStringN(params, ['clientId', 'clientOrderId', 'client_order_id']);
+        const paramsOmitted = this.omit(params, 'timeInForce');
+        const paramsOmitted2 = this.omit(paramsOmitted, 'postOnly');
+        let clientOrderId = this.safeStringN(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id']);
         const accountId = await this.getAccountId();
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni(accountId);
         }
         const finalClientOrderId = clientOrderId; // java req
-        params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
+        const paramsOmitted3 = this.omit(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
         const finalOrderPrice = orderPrice; // java req
         const orderToSign = {
             'accountId': accountId,
@@ -1427,7 +1427,7 @@ class apex extends apex$1["default"] {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         request['signature'] = signature;
-        const response = await this.privatePostV3Order(this.extend(request, params));
+        const response = await this.privatePostV3Order(this.extend(request, paramsOmitted3));
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
@@ -1473,7 +1473,7 @@ class apex extends apex$1["default"] {
         const accountId = this.safeString(accountData, 'id', '');
         let currency = {};
         let assets = [];
-        if (fromAccount !== undefined && fromAccount.toLowerCase() === 'contract') {
+        if (fromAccount.toLowerCase() === 'contract') {
             assets = contractAssets;
         }
         else {
@@ -1495,8 +1495,8 @@ class apex extends apex$1["default"] {
             clientOrderId = this.generateRandomClientIdOmni(this.safeString(this.options, 'accountId'));
         }
         const finalClientOrderId = clientOrderId; // java req
-        params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
-        if (fromAccount !== undefined && fromAccount.toLowerCase() === 'contract') {
+        const paramsOmitted = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
+        if (fromAccount.toLowerCase() === 'contract') {
             const formattedUint32 = '4294967295';
             const zkSignAccountId = Precise["default"].stringMod(accountId, formattedUint32);
             const expireTime = timestampSeconds + 3600 * 24 * 28;
@@ -1521,7 +1521,7 @@ class apex extends apex$1["default"] {
                 'token': code,
                 'ethAddress': ethAddress,
             };
-            const response = await this.privatePostV3ContractTransferOut(this.extend(request, params));
+            const response = await this.privatePostV3ContractTransferOut(this.extend(request, paramsOmitted));
             const data = this.safeDict(response, 'data', {});
             const currentTime = this.milliseconds();
             const parsedAmount = this.parseNumber(amount);
@@ -1564,7 +1564,7 @@ class apex extends apex$1["default"] {
                 'receiverAddress': receiverAddress,
                 'nonce': finalNonce,
             };
-            const response = await this.privatePostV3TransferOut(this.extend(request, params));
+            const response = await this.privatePostV3TransferOut(this.extend(request, paramsOmitted));
             const data = this.safeDict(response, 'data', {});
             const currentTime = this.milliseconds();
             return this.extend(this.parseTransfer(data, this.currency(code)), {
@@ -1632,8 +1632,7 @@ class apex extends apex$1["default"] {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
-            params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
-            response = await this.privatePostV3DeleteClientOrderId(this.extend(request, params));
+            response = await this.privatePostV3DeleteClientOrderId(this.extend(request, this.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])));
         }
         else {
             request['id'] = id;
@@ -1663,8 +1662,7 @@ class apex extends apex$1["default"] {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
-            params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
-            response = await this.privateGetV3OrderByClientOrderId(this.extend(request, params));
+            response = await this.privateGetV3OrderByClientOrderId(this.extend(request, this.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])));
         }
         else {
             request['id'] = id;
@@ -1728,9 +1726,9 @@ class apex extends apex$1["default"] {
         const endTimeExclusive = this.safeIntegerN(params, ['endTime', 'endTimeExclusive', 'until']);
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
-            params = this.omit(params, ['endTime', 'endTimeExclusive', 'until']);
         }
-        const response = await this.privateGetV3HistoryOrders(this.extend(request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit(params, ['endTime', 'endTimeExclusive', 'until']) : params;
+        const response = await this.privateGetV3HistoryOrders(this.extend(request, paramsOmitted));
         const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
@@ -1759,8 +1757,8 @@ class apex extends apex$1["default"] {
         else {
             request['orderId'] = id;
         }
-        params = this.omit(params, ['clientOrderId', 'clientId']);
-        const response = await this.privateGetV3OrderFills(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['clientOrderId', 'clientId']);
+        const response = await this.privateGetV3OrderFills(this.extend(request, paramsOmitted));
         const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'orders', []);
         return this.parseTrades(orders, undefined, since, limit);
@@ -1799,9 +1797,9 @@ class apex extends apex$1["default"] {
         const endTimeExclusive = this.safeIntegerN(params, ['endTime', 'endTimeExclusive', 'until']);
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
-            params = this.omit(params, ['endTime', 'endTimeExclusive', 'until']);
         }
-        const response = await this.privateGetV3Fills(this.extend(request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit(params, ['endTime', 'endTimeExclusive', 'until']) : params;
+        const response = await this.privateGetV3Fills(this.extend(request, paramsOmitted));
         const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'orders', []);
         return this.parseTrades(orders, market, since, limit);
@@ -1838,10 +1836,10 @@ class apex extends apex$1["default"] {
         }
         const endTimeExclusive = this.safeIntegerN(params, ['endTime', 'endTimeExclusive', 'until']);
         if (endTimeExclusive !== undefined) {
-            params = this.omit(params, ['endTime', 'endTimeExclusive', 'until']);
             request['endTimeExclusive'] = endTimeExclusive;
         }
-        const response = await this.privateGetV3Funding(this.extend(request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit(params, ['endTime', 'endTimeExclusive', 'until']) : params;
+        const response = await this.privateGetV3Funding(this.extend(request, paramsOmitted));
         const data = this.safeDict(response, 'data', {});
         const fundingValues = this.safeList(data, 'fundingValues', []);
         return this.parseIncomes(fundingValues, market, since, limit);
@@ -1862,12 +1860,12 @@ class apex extends apex$1["default"] {
         // }
         //
         const marketId = this.safeString(income, 'symbol');
-        market = this.safeMarket(marketId, market, undefined, 'contract');
+        const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
         const code = 'USDT';
         const timestamp = this.safeInteger(income, 'fundingTime');
         return {
             'info': income,
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': this.safeSymbol(marketId, marketResolved),
             'code': code,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -1939,8 +1937,8 @@ class apex extends apex$1["default"] {
         //     "customInitialMarginRate": "0"
         // }
         const marketId = this.safeString(position, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower(position, 'side');
         const quantity = this.safeString(position, 'size');
         const timestamp = this.safeInteger(position, 'updatedTime');
@@ -1976,8 +1974,12 @@ class apex extends apex$1["default"] {
         });
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;
-        headers = {
+        const baseApiUrl = this.safeString(this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname(baseApiUrl) + '/' + path;
+        const headersValue = {
             'User-Agent': 'apex-CCXT',
             'Accept': 'application/json',
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -2002,12 +2004,12 @@ class apex extends apex$1["default"] {
                 messageString = messageString + signBody;
             }
             const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha2_js.sha256, 'base64');
-            headers['APEX-SIGNATURE'] = signature;
-            headers['APEX-API-KEY'] = this.apiKey;
-            headers['APEX-TIMESTAMP'] = timestamp;
-            headers['APEX-PASSPHRASE'] = this.password;
+            headersValue['APEX-SIGNATURE'] = signature;
+            headersValue['APEX-API-KEY'] = this.apiKey;
+            headersValue['APEX-TIMESTAMP'] = timestamp;
+            headersValue['APEX-PASSPHRASE'] = this.password;
         }
-        return { 'url': url, 'method': method, 'body': signBody, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': signBody, 'headers': headersValue };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //

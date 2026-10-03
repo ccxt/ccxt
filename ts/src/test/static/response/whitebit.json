@@ -4232,6 +4232,242 @@
                     }
                 }
             }
+        ],
+        "fetchTransactionFees": [
+            {
+                "description": "fetchTransactionFees: withdraw/deposit fees (trimmed live response)",
+                "method": "fetchTransactionFees",
+                "input": [
+                    [
+                        "BTC",
+                        "DOGE"
+                    ]
+                ],
+                "httpResponse": {
+                    "BTC": {
+                        "is_depositable": true,
+                        "is_withdrawal": true,
+                        "is_api_withdrawal": true,
+                        "is_api_depositable": true,
+                        "ticker": "BTC",
+                        "name": "Bitcoin",
+                        "providers": [],
+                        "withdraw": {
+                            "max_amount": "0",
+                            "min_amount": "0.0003",
+                            "fixed": "0.00009",
+                            "flex": null
+                        },
+                        "deposit": {
+                            "max_amount": "0",
+                            "min_amount": "0.0001",
+                            "fixed": null,
+                            "flex": null
+                        }
+                    },
+                    "DOGE": {
+                        "is_depositable": true,
+                        "is_withdrawal": true,
+                        "is_api_withdrawal": true,
+                        "is_api_depositable": true,
+                        "ticker": "DOGE",
+                        "name": "Dogecoin",
+                        "providers": [],
+                        "withdraw": {
+                            "max_amount": "0",
+                            "min_amount": "26",
+                            "fixed": "4",
+                            "flex": null
+                        },
+                        "deposit": {
+                            "max_amount": "0",
+                            "min_amount": "13",
+                            "fixed": null,
+                            "flex": null
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "withdraw": {
+                        "BTC": "0.00009",
+                        "DOGE": "4"
+                    },
+                    "deposit": {
+                        "BTC": null,
+                        "DOGE": null
+                    },
+                    "info": {
+                        "BTC": {
+                            "is_depositable": true,
+                            "is_withdrawal": true,
+                            "is_api_withdrawal": true,
+                            "is_api_depositable": true,
+                            "ticker": "BTC",
+                            "name": "Bitcoin",
+                            "providers": [],
+                            "withdraw": {
+                                "max_amount": "0",
+                                "min_amount": "0.0003",
+                                "fixed": "0.00009",
+                                "flex": null
+                            },
+                            "deposit": {
+                                "max_amount": "0",
+                                "min_amount": "0.0001",
+                                "fixed": null,
+                                "flex": null
+                            }
+                        },
+                        "DOGE": {
+                            "is_depositable": true,
+                            "is_withdrawal": true,
+                            "is_api_withdrawal": true,
+                            "is_api_depositable": true,
+                            "ticker": "DOGE",
+                            "name": "Dogecoin",
+                            "providers": [],
+                            "withdraw": {
+                                "max_amount": "0",
+                                "min_amount": "26",
+                                "fixed": "4",
+                                "flex": null
+                            },
+                            "deposit": {
+                                "max_amount": "0",
+                                "min_amount": "13",
+                                "fixed": null,
+                                "flex": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "fetchDepositWithdrawFees: unified fee structures (trimmed live response)",
+                "method": "fetchDepositWithdrawFees",
+                "input": [
+                    [
+                        "BTC",
+                        "DOGE"
+                    ]
+                ],
+                "httpResponse": {
+                    "BTC": {
+                        "is_depositable": true,
+                        "is_withdrawal": true,
+                        "is_api_withdrawal": true,
+                        "is_api_depositable": true,
+                        "ticker": "BTC",
+                        "name": "Bitcoin",
+                        "providers": [],
+                        "withdraw": {
+                            "max_amount": "0",
+                            "min_amount": "0.0003",
+                            "fixed": "0.00009",
+                            "flex": null
+                        },
+                        "deposit": {
+                            "max_amount": "0",
+                            "min_amount": "0.0001",
+                            "fixed": null,
+                            "flex": null
+                        }
+                    },
+                    "DOGE": {
+                        "is_depositable": true,
+                        "is_withdrawal": true,
+                        "is_api_withdrawal": true,
+                        "is_api_depositable": true,
+                        "ticker": "DOGE",
+                        "name": "Dogecoin",
+                        "providers": [],
+                        "withdraw": {
+                            "max_amount": "0",
+                            "min_amount": "26",
+                            "fixed": "4",
+                            "flex": null
+                        },
+                        "deposit": {
+                            "max_amount": "0",
+                            "min_amount": "13",
+                            "fixed": null,
+                            "flex": null
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "BTC": {
+                        "info": {
+                            "BTC": {
+                                "is_depositable": true,
+                                "is_withdrawal": true,
+                                "is_api_withdrawal": true,
+                                "is_api_depositable": true,
+                                "ticker": "BTC",
+                                "name": "Bitcoin",
+                                "providers": [],
+                                "withdraw": {
+                                    "max_amount": "0",
+                                    "min_amount": "0.0003",
+                                    "fixed": "0.00009",
+                                    "flex": null
+                                },
+                                "deposit": {
+                                    "max_amount": "0",
+                                    "min_amount": "0.0001",
+                                    "fixed": null,
+                                    "flex": null
+                                }
+                            }
+                        },
+                        "withdraw": {
+                            "fee": 9e-05,
+                            "percentage": false
+                        },
+                        "deposit": {
+                            "fee": null,
+                            "percentage": null
+                        },
+                        "networks": {}
+                    },
+                    "DOGE": {
+                        "info": {
+                            "DOGE": {
+                                "is_depositable": true,
+                                "is_withdrawal": true,
+                                "is_api_withdrawal": true,
+                                "is_api_depositable": true,
+                                "ticker": "DOGE",
+                                "name": "Dogecoin",
+                                "providers": [],
+                                "withdraw": {
+                                    "max_amount": "0",
+                                    "min_amount": "26",
+                                    "fixed": "4",
+                                    "flex": null
+                                },
+                                "deposit": {
+                                    "max_amount": "0",
+                                    "min_amount": "13",
+                                    "fixed": null,
+                                    "flex": null
+                                }
+                            }
+                        },
+                        "withdraw": {
+                            "fee": 4,
+                            "percentage": false
+                        },
+                        "deposit": {
+                            "fee": null,
+                            "percentage": null
+                        },
+                        "networks": {}
+                    }
+                }
+            }
         ]
     }
 }

@@ -1,6 +1,7 @@
 package tests.base;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Exchange;
 import java.util.HashMap;
 
@@ -100,7 +101,7 @@ public class TestHandleHttpStatusCode extends BaseTest
             Object skip = exchange.handleErrors(406, "Not Acceptable", "url", "GET", new HashMap<String, Object>() {{}}, "{\"success\":false}", new HashMap<String, Object>() {{
                 put( "success", false );
             }}, new HashMap<String, Object>() {{}}, "");
-            Assert(Helpers.isEqual(skip, null), "the base handleErrors stub should return undefined");
+            Assert(java.util.Objects.equals(skip, null), "the base handleErrors stub should return undefined");
             exchange.handleHttpStatusCode(406, "Not Acceptable", "url", "GET", "{\"success\":false}");
         }
 }

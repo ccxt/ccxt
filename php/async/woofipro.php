@@ -139,7 +139,7 @@ class woofipro extends Exchange {
                 'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => false,
-                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -439,10 +439,10 @@ class woofipro extends Exchange {
                 'forDerivatives' => array(
                     'extends' => 'default',
                     'createOrder' => array(
-                        // todo => implementation needs unification
+                        // todo: implementation needs unification
                         'triggerPriceType' => null,
                         'attachedStopLossTakeProfit' => array(
-                            // todo => implementation needs unification
+                            // todo: implementation needs unification
                             'triggerPriceType' => null,
                             'price' => false,
                         ),
@@ -481,11 +481,11 @@ class woofipro extends Exchange {
                     '-1105' => '\\ccxt\\InvalidOrder', // PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
                     '-1201' => '\\ccxt\\BadRequest', // LIQUIDATION_REQUEST_RATIO_TOO_SMALL total notional < 10000, least req ratio should = 1
                     '-1202' => '\\ccxt\\BadRequest', // LIQUIDATION_STATUS_ERROR No need to liquidation because user margin is enough.
-                    '29' => '\\ccxt\\BadRequest', // array("success":false,"code":29,"message":"Verify contract is invalid")
-                    '9' => '\\ccxt\\AuthenticationError', // array("success":false,"code":9,"message":"Address and signature do not match")
-                    '3' => '\\ccxt\\AuthenticationError', // array("success":false,"code":3,"message":"Signature error")
-                    '2' => '\\ccxt\\BadRequest', // array("success":false,"code":2,"message":"Timestamp expired")
-                    '15' => '\\ccxt\\BadRequest', // array("success":false,"code":15,"message":"BrokerId is not exist")
+                    '29' => '\\ccxt\\BadRequest', // {"success":false,"code":29,"message":"Verify contract is invalid"}
+                    '9' => '\\ccxt\\AuthenticationError', // {"success":false,"code":9,"message":"Address and signature do not match"}
+                    '3' => '\\ccxt\\AuthenticationError', // {"success":false,"code":3,"message":"Signature error"}
+                    '2' => '\\ccxt\\BadRequest', // {"success":false,"code":2,"message":"Timestamp expired"}
+                    '15' => '\\ccxt\\BadRequest', // {"success":false,"code":15,"message":"BrokerId is not exist"}
                 ),
                 'broad' => array(
                 ),
@@ -515,12 +515,12 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PublicGetPublicSystemInfo($params));
         //
         //     {
-        //         "success" => true,
-        //         "data" => array(
-        //             "status" => 0,
-        //             "msg" => "System is functioning properly."
-        //         ),
-        //         "timestamp" => "1709274106602"
+        //         "success": true,
+        //         "data": {
+        //             "status": 0,
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -557,12 +557,12 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PublicGetPublicSystemInfo($params));
         //
         //     {
-        //         "success" => true,
-        //         "data" => array(
-        //             "status" => 0,
-        //             "msg" => "System is functioning properly."
-        //         ),
-        //         "timestamp" => "1709274106602"
+        //         "success": true,
+        //         "data": {
+        //             "status": 0,
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
         //     }
         //
         return $this->safe_integer($response, 'timestamp');
@@ -571,29 +571,29 @@ class woofipro extends Exchange {
     public function parse_market(array $market): array {
         //
         //   {
-        //     "symbol" => "PERP_BTC_USDC",
-        //     "quote_min" => 123,
-        //     "quote_max" => 100000,
-        //     "quote_tick" => 0.1,
-        //     "base_min" => 0.00001,
-        //     "base_max" => 20,
-        //     "base_tick" => 0.00001,
-        //     "min_notional" => 1,
-        //     "price_range" => 0.02,
-        //     "price_scope" => 0.4,
-        //     "std_liquidation_fee" => 0.03,
-        //     "liquidator_fee" => 0.015,
-        //     "claim_insurance_fund_discount" => 0.0075,
-        //     "funding_period" => 8,
-        //     "cap_funding" => 0.000375,
-        //     "floor_funding" => -0.000375,
-        //     "interest_rate" => 0.0001,
-        //     "created_time" => 1684140107326,
-        //     "updated_time" => 1685345968053,
-        //     "base_mmr" => 0.05,
-        //     "base_imr" => 0.1,
-        //     "imr_factor" => 0.0002512,
-        //     "liquidation_tier" => "1"
+        //     "symbol": "PERP_BTC_USDC",
+        //     "quote_min": 123,
+        //     "quote_max": 100000,
+        //     "quote_tick": 0.1,
+        //     "base_min": 0.00001,
+        //     "base_max": 20,
+        //     "base_tick": 0.00001,
+        //     "min_notional": 1,
+        //     "price_range": 0.02,
+        //     "price_scope": 0.4,
+        //     "std_liquidation_fee": 0.03,
+        //     "liquidator_fee": 0.015,
+        //     "claim_insurance_fund_discount": 0.0075,
+        //     "funding_period": 8,
+        //     "cap_funding": 0.000375,
+        //     "floor_funding": -0.000375,
+        //     "interest_rate": 0.0001,
+        //     "created_time": 1684140107326,
+        //     "updated_time": 1685345968053,
+        //     "base_mmr": 0.05,
+        //     "base_imr": 0.1,
+        //     "imr_factor": 0.0002512,
+        //     "liquidation_tier": "1"
         //   }
         //
         $marketId = $this->safe_string($market, 'symbol');
@@ -606,6 +606,9 @@ class woofipro extends Exchange {
         $quoteId = $this->safe_string($parts, 2);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settleId = $this->safe_string($parts, 2);
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
@@ -676,36 +679,36 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PublicGetPublicInfo($params));
         //
         //   {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => array(
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [
         //         {
-        //           "symbol" => "PERP_BTC_USDC",
-        //           "quote_min" => 123,
-        //           "quote_max" => 100000,
-        //           "quote_tick" => 0.1,
-        //           "base_min" => 0.00001,
-        //           "base_max" => 20,
-        //           "base_tick" => 0.00001,
-        //           "min_notional" => 1,
-        //           "price_range" => 0.02,
-        //           "price_scope" => 0.4,
-        //           "std_liquidation_fee" => 0.03,
-        //           "liquidator_fee" => 0.015,
-        //           "claim_insurance_fund_discount" => 0.0075,
-        //           "funding_period" => 8,
-        //           "cap_funding" => 0.000375,
-        //           "floor_funding" => -0.000375,
-        //           "interest_rate" => 0.0001,
-        //           "created_time" => 1684140107326,
-        //           "updated_time" => 1685345968053,
-        //           "base_mmr" => 0.05,
-        //           "base_imr" => 0.1,
-        //           "imr_factor" => 0.0002512,
-        //           "liquidation_tier" => "1"
+        //           "symbol": "PERP_BTC_USDC",
+        //           "quote_min": 123,
+        //           "quote_max": 100000,
+        //           "quote_tick": 0.1,
+        //           "base_min": 0.00001,
+        //           "base_max": 20,
+        //           "base_tick": 0.00001,
+        //           "min_notional": 1,
+        //           "price_range": 0.02,
+        //           "price_scope": 0.4,
+        //           "std_liquidation_fee": 0.03,
+        //           "liquidator_fee": 0.015,
+        //           "claim_insurance_fund_discount": 0.0075,
+        //           "funding_period": 8,
+        //           "cap_funding": 0.000375,
+        //           "floor_funding": -0.000375,
+        //           "interest_rate": 0.0001,
+        //           "created_time": 1684140107326,
+        //           "updated_time": 1685345968053,
+        //           "base_mmr": 0.05,
+        //           "base_imr": 0.1,
+        //           "imr_factor": 0.0002512,
+        //           "liquidation_tier": "1"
         //         }
-        //       )
+        //       ]
         //     }
         //   }
         //
@@ -732,21 +735,21 @@ class woofipro extends Exchange {
         $tokenPromise = $this->v1PublicGetPublicToken($params);
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [{
-        //         "token" => "USDC",
-        //         "decimals" => 6,
-        //         "minimum_withdraw_amount" => 0.000001,
-        //         "token_hash" => "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
-        //         "chain_details" => [array(
-        //             "chain_id" => 43113,
-        //             "contract_address" => "0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3",
-        //             "cross_chain_withdrawal_fee" => 123,
-        //             "decimals" => 6,
-        //             "withdraw_fee" => 2
-        //             )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "token": "USDC",
+        //         "decimals": 6,
+        //         "minimum_withdraw_amount": 0.000001,
+        //         "token_hash": "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
+        //         "chain_details": [{
+        //             "chain_id": 43113,
+        //             "contract_address": "0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3",
+        //             "cross_chain_withdrawal_fee": 123,
+        //             "decimals": 6,
+        //             "withdraw_fee": 2
+        //             }]
         //         }
         //       ]
         //     }
@@ -830,7 +833,7 @@ class woofipro extends Exchange {
         ));
     }
 
-    public function parse_token_and_fee_temp(mixed $item, mixed $feeTokenKey, mixed $feeAmountKey) {
+    public function parse_token_and_fee_temp(array $item, string $feeTokenKey, string $feeAmountKey) {
         $feeCost = $this->safe_string($item, $feeAmountKey);
         $fee = null;
         if ($feeCost !== null) {
@@ -849,34 +852,34 @@ class woofipro extends Exchange {
         // public/market_trades
         //
         //     {
-        //         "symbol" => "SPOT_BTC_USDT",
-        //         "side" => "SELL",
-        //         "executed_price" => 46222.35,
-        //         "executed_quantity" => 0.0012,
-        //         "executed_timestamp" => "1683878609166"
+        //         "symbol": "SPOT_BTC_USDT",
+        //         "side": "SELL",
+        //         "executed_price": 46222.35,
+        //         "executed_quantity": 0.0012,
+        //         "executed_timestamp": "1683878609166"
         //     }
         //
         // fetchOrderTrades, fetchOrder
         //
         //     {
-        //         "id" => "99119876",
-        //         "symbol" => "SPOT_WOO_USDT",
-        //         "fee" => "0.0024",
-        //         "side" => "BUY",
-        //         "executed_timestamp" => "1641481113084",
-        //         "order_id" => "87001234",
-        //         "order_tag" => "default", <-- this param only in "fetchOrderTrades"
-        //         "executed_price" => "1",
-        //         "executed_quantity" => "12",
-        //         "fee_asset" => "WOO",
-        //         "is_maker" => "1"
+        //         "id": "99119876",
+        //         "symbol": "SPOT_WOO_USDT",
+        //         "fee": "0.0024",
+        //         "side": "BUY",
+        //         "executed_timestamp": "1641481113084",
+        //         "order_id": "87001234",
+        //         "order_tag": "default", <-- this param only in "fetchOrderTrades"
+        //         "executed_price": "1",
+        //         "executed_quantity": "12",
+        //         "fee_asset": "WOO",
+        //         "is_maker": "1"
         //     }
         //
         $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
         $timestamp = $this->safe_integer($trade, 'executed_timestamp');
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $price = $this->safe_string($trade, 'executed_price');
         $amount = $this->safe_string($trade, 'executed_quantity');
         $order_id = $this->safe_string($trade, 'order_id');
@@ -907,7 +910,7 @@ class woofipro extends Exchange {
             'type' => null,
             'fee' => $fee,
             'info' => $trade,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -939,16 +942,16 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PublicGetPublicMarketTrades($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "side" => "BUY",
-        //         "executed_price" => 2050,
-        //         "executed_quantity" => 1,
-        //         "executed_timestamp" => 1683878609166
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "symbol": "PERP_ETH_USDC",
+        //         "side": "BUY",
+        //         "executed_price": 2050,
+        //         "executed_quantity": 1,
+        //         "executed_timestamp": 1683878609166
+        //       }]
         //     }
         // }
         //
@@ -966,11 +969,11 @@ class woofipro extends Exchange {
         //             "last_funding_rate":-0.00002094,
         //             "last_funding_rate_timestamp":1653631200000,
         //             "next_funding_time":1653634800000,
-        //            "sum_unitary_funding" => 521.367
+        //            "sum_unitary_funding": 521.367
         //         }
         //
         $symbol = $this->safe_string($fundingRate, 'symbol');
-        $market = $this->market($symbol);
+        $marketResolved = $this->market($symbol);
         $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
         $estFundingRateTimestamp = $this->safe_integer($fundingRate, 'est_funding_rate_timestamp');
         $lastFundingRateTimestamp = $this->safe_integer($fundingRate, 'last_funding_rate_timestamp');
@@ -979,7 +982,7 @@ class woofipro extends Exchange {
         $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
         return array(
             'info' => $fundingRate,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'markPrice' => null,
             'indexPrice' => null,
             'interestRate' => $this->parse_number('0'),
@@ -999,7 +1002,7 @@ class woofipro extends Exchange {
         );
     }
 
-    public function parse_funding_interval(mixed $interval) {
+    public function parse_funding_interval(?string $interval): ?string {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -1051,16 +1054,16 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PublicGetPublicFundingRateSymbol($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "est_funding_rate" => 123,
-        //         "est_funding_rate_timestamp" => 1683880020000,
-        //         "last_funding_rate" => 0.0001,
-        //         "last_funding_rate_timestamp" => 1683878400000,
-        //         "next_funding_time" => 1683907200000,
-        //         "sum_unitary_funding" => 521.367
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "symbol": "PERP_ETH_USDC",
+        //         "est_funding_rate": 123,
+        //         "est_funding_rate_timestamp": 1683880020000,
+        //         "last_funding_rate": 0.0001,
+        //         "last_funding_rate_timestamp": 1683878400000,
+        //         "next_funding_time": 1683907200000,
+        //         "sum_unitary_funding": 521.367
         //     }
         // }
         //
@@ -1085,54 +1088,54 @@ class woofipro extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->v1PublicGetPublicFundingRates($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "est_funding_rate" => 123,
-        //         "est_funding_rate_timestamp" => 1683880020000,
-        //         "last_funding_rate" => 0.0001,
-        //         "last_funding_rate_timestamp" => 1683878400000,
-        //         "next_funding_time" => 1683907200000,
-        //         "sum_unitary_funding" => 521.367
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "symbol": "PERP_ETH_USDC",
+        //         "est_funding_rate": 123,
+        //         "est_funding_rate_timestamp": 1683880020000,
+        //         "last_funding_rate": 0.0001,
+        //         "last_funding_rate_timestamp": 1683878400000,
+        //         "next_funding_time": 1683907200000,
+        //         "sum_unitary_funding": 521.367
+        //       }]
         //     }
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
         $rows = $this->safe_list($data, 'rows', array());
-        return $this->parse_funding_rates($rows, $symbols);
+        return $this->parse_funding_rates($rows, $symbolsNormalized);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "index_price" => 64185.4,
-        //         "mark_price" => 64171.0,
-        //         "sum_unitary_funding" => 26522.3,
-        //         "est_funding_rate" => 0.0001,
-        //         "last_funding_rate" => 0.00010041,
-        //         "next_funding_time" => 1786032000000,
-        //         "open_interest" => 110.64612,
-        //         "24h_open" => 64105.6,
-        //         "24h_close" => 64180.0,
-        //         "24h_high" => 64941.0,
-        //         "24h_low" => 63837.6,
-        //         "24h_volume" => 102.2817,
-        //         "24h_amount" => 6595662.199482
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, '24h_high'),
@@ -1154,7 +1157,7 @@ class woofipro extends Exchange {
             'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'markPrice' => $this->safe_string($ticker, 'mark_price'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -1181,23 +1184,23 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PublicGetPublicFuturesSymbol($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1786022130191,
-        //     "data" => {
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "index_price" => 64185.4,
-        //         "mark_price" => 64171.0,
-        //         "sum_unitary_funding" => 26522.3,
-        //         "est_funding_rate" => 0.0001,
-        //         "last_funding_rate" => 0.00010041,
-        //         "next_funding_time" => 1786032000000,
-        //         "open_interest" => 110.64612,
-        //         "24h_open" => 64105.6,
-        //         "24h_close" => 64180.0,
-        //         "24h_high" => 64941.0,
-        //         "24h_low" => 63837.6,
-        //         "24h_volume" => 102.2817,
-        //         "24h_amount" => 6595662.199482
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
         //     }
         // }
         //
@@ -1223,29 +1226,29 @@ class woofipro extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->v1PublicGetPublicFutures($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1786022130191,
-        //     "data" => {
-        //         "rows" => [array(
-        //             "symbol" => "PERP_BTC_USDC",
-        //             "index_price" => 64185.4,
-        //             "mark_price" => 64171.0,
-        //             "sum_unitary_funding" => 26522.3,
-        //             "est_funding_rate" => 0.0001,
-        //             "last_funding_rate" => 0.00010041,
-        //             "next_funding_time" => 1786032000000,
-        //             "open_interest" => 110.64612,
-        //             "24h_open" => 64105.6,
-        //             "24h_close" => 64180.0,
-        //             "24h_high" => 64941.0,
-        //             "24h_low" => 63837.6,
-        //             "24h_volume" => 102.2817,
-        //             "24h_amount" => 6595662.199482
-        //         )]
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "sum_unitary_funding": 26522.3,
+        //             "est_funding_rate": 0.0001,
+        //             "last_funding_rate": 0.00010041,
+        //             "next_funding_time": 1786032000000,
+        //             "open_interest": 110.64612,
+        //             "24h_open": 64105.6,
+        //             "24h_close": 64180.0,
+        //             "24h_high": 64941.0,
+        //             "24h_low": 63837.6,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
         //     }
         // }
         //
@@ -1257,41 +1260,41 @@ class woofipro extends Exchange {
             $row = $rows[$i];
             $marketId = $this->safe_string($row, 'symbol', '');
             if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
-                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE $symbols
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             }
             $ticker = $this->extend(array( 'timestamp' => $timestamp ), $row);
             $result[] = $this->parse_ticker($ticker);
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "index_price" => 64185.4,
-        //         "mark_price" => 64171.0,
-        //         "open_interest" => 110.64612,
-        //         "24h_open" => 64105.6,
-        //         "24h_close" => 64180.0,
-        //         "24h_high" => 64941.0,
-        //         "24h_low" => 63837.6,
-        //         "24h_volume" => 102.2817,
-        //         "24h_amount" => 6595662.199482
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
         //     }
         //
         $marketId = $this->safe_string($interest, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $amount = $this->safe_number_2($interest, 'open_interest', 'openInterest');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'openInterestAmount' => $amount,
             'openInterestValue' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
@@ -1318,15 +1321,15 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PublicGetPublicFuturesSymbol($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1786022130191,
-        //     "data" => {
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "index_price" => 64185.4,
-        //         "mark_price" => 64171.0,
-        //         "open_interest" => 110.64612,
-        //         "24h_volume" => 102.2817,
-        //         "24h_amount" => 6595662.199482
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
         //     }
         // }
         //
@@ -1352,21 +1355,21 @@ class woofipro extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->v1PublicGetPublicFutures($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1786022130191,
-        //     "data" => {
-        //         "rows" => [array(
-        //             "symbol" => "PERP_BTC_USDC",
-        //             "index_price" => 64185.4,
-        //             "mark_price" => 64171.0,
-        //             "open_interest" => 110.64612,
-        //             "24h_volume" => 102.2817,
-        //             "24h_amount" => 6595662.199482
-        //         )]
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "open_interest": 110.64612,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
         //     }
         // }
         //
@@ -1378,15 +1381,15 @@ class woofipro extends Exchange {
             $row = $rows[$i];
             $marketId = $this->safe_string($row, 'symbol', '');
             if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
-                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE $symbols
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             }
             $interest = $this->extend(array( 'timestamp' => $timestamp ), $row);
             $result[] = $this->parse_open_interest($interest);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array($result, 'symbol', $symbolsNormalized);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -1407,37 +1410,37 @@ class woofipro extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page', 25));
+            return Async\await($this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'page', 25));
         }
         $request = array();
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
             $request['start_t'] = $since;
         }
-        list($request, $params) = $this->handle_until_option('end_t', $request, $params, 0.001);
-        $response = Async\await($this->v1PublicGetPublicFundingRateHistory($this->extend($request, $params)));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_t', $request, $paramsPaginate, 0.001);
+        $response = Async\await($this->v1PublicGetPublicFundingRateHistory($this->extend($requestUntil, $paramsUntil)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "funding_rate" => 0.0001,
-        //         "funding_rate_timestamp" => 1684224000000,
-        //         "next_funding_time" => 1684252800000
-        //       )],
-        //       "meta" => {
-        //         "total" => 9,
-        //         "records_per_page" => 25,
-        //         "current_page" => 1
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "symbol": "PERP_ETH_USDC",
+        //         "funding_rate": 0.0001,
+        //         "funding_rate_timestamp": 1684224000000,
+        //         "next_funding_time": 1684252800000
+        //       }],
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
         //       }
         //     }
         // }
@@ -1458,20 +1461,20 @@ class woofipro extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $symbolResolved, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         // {
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "funding_rate" => 0.00046875,
-        //         "mark_price" => 2100,
-        //         "funding_fee" => 0.000016,
-        //         "payment_type" => "Pay",
-        //         "status" => "Accrued",
-        //         "created_time" => 1682235722003,
-        //         "updated_time" => 1682235722003
+        //         "symbol": "PERP_ETH_USDC",
+        //         "funding_rate": 0.00046875,
+        //         "mark_price": 2100,
+        //         "funding_fee": 0.000016,
+        //         "payment_type": "Pay",
+        //         "status": "Accrued",
+        //         "created_time": 1682235722003,
+        //         "updated_time": 1682235722003
         // }
         //
         $marketId = $this->safe_string($income, 'symbol');
@@ -1494,7 +1497,7 @@ class woofipro extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -1514,10 +1517,9 @@ class woofipro extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 500));
+            return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
         }
         $request = array();
         $market = null;
@@ -1528,35 +1530,35 @@ class woofipro extends Exchange {
         if ($since !== null) {
             $request['start_t'] = $since;
         }
-        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
-        $params = $this->omit($params, array( 'until' ));
+        $until = $this->safe_integer($paramsPaginate, 'until'); // unified in milliseconds
+        $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
         if ($until !== null) {
             $request['end_t'] = $until;
         }
         if ($limit !== null) {
             $request['size'] = min($limit, 500);
         }
-        $response = Async\await($this->v1PrivateGetFundingFeeHistory($this->extend($request, $params)));
+        $response = Async\await($this->v1PrivateGetFundingFeeHistory($this->extend($request, $paramsOmitted)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "meta" => array(
-        //             "total" => 9,
-        //             "records_per_page" => 25,
-        //             "current_page" => 1
-        //         ),
-        //         "rows" => [array(
-        //                 "symbol" => "PERP_ETH_USDC",
-        //                 "funding_rate" => 0.00046875,
-        //                 "mark_price" => 2100,
-        //                 "funding_fee" => 0.000016,
-        //                 "payment_type" => "Pay",
-        //                 "status" => "Accrued",
-        //                 "created_time" => 1682235722003,
-        //                 "updated_time" => 1682235722003
-        //         )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "meta": {
+        //             "total": 9,
+        //             "records_per_page": 25,
+        //             "current_page": 1
+        //         },
+        //         "rows": [{
+        //                 "symbol": "PERP_ETH_USDC",
+        //                 "funding_rate": 0.00046875,
+        //                 "mark_price": 2100,
+        //                 "funding_fee": 0.000016,
+        //                 "payment_type": "Pay",
+        //                 "status": "Accrued",
+        //                 "created_time": 1682235722003,
+        //                 "updated_time": 1682235722003
+        //         }]
         //     }
         // }
         //
@@ -1584,27 +1586,27 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PrivateGetClientInfo($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "account_id" => "<string>",
-        //         "email" => "test@test.com",
-        //         "account_mode" => "FUTURES",
-        //         "max_leverage" => 20,
-        //         "taker_fee_rate" => 123,
-        //         "maker_fee_rate" => 123,
-        //         "futures_taker_fee_rate" => 123,
-        //         "futures_maker_fee_rate" => 123,
-        //         "maintenance_cancel_orders" => true,
-        //         "imr_factor" => array(
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
-        //         ),
-        //         "max_notional" => {
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "account_id": "<string>",
+        //         "email": "test@test.com",
+        //         "account_mode": "FUTURES",
+        //         "max_leverage": 20,
+        //         "taker_fee_rate": 123,
+        //         "maker_fee_rate": 123,
+        //         "futures_taker_fee_rate": 123,
+        //         "futures_maker_fee_rate": 123,
+        //         "maintenance_cancel_orders": true,
+        //         "imr_factor": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
+        //         },
+        //         "max_notional": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
         //         }
         //     }
         // }
@@ -1651,24 +1653,23 @@ class woofipro extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $limit = min($limit, 1000);
-            $request['max_level'] = $limit;
+            $request['max_level'] = min($limit, 1000);
         }
         $response = Async\await($this->v1PrivateGetOrderbookSymbol($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "asks" => [array(
-        //         "price" => 10669.4,
-        //         "quantity" => 1.56263218
-        //       )],
-        //       "bids" => [array(
-        //         "price" => 10669.4,
-        //         "quantity" => 1.56263218
-        //       )],
-        //       "timestamp" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "asks": [{
+        //         "price": 10669.4,
+        //         "quantity": 1.56263218
+        //       }],
+        //       "bids": [{
+        //         "price": 10669.4,
+        //         "quantity": 1.56263218
+        //       }],
+        //       "timestamp": 123
         //     }
         // }
         //
@@ -1720,21 +1721,21 @@ class woofipro extends Exchange {
         $data = $this->safe_dict($response, 'data', array());
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "open" => 66166.23,
-        //         "close" => 66124.56,
-        //         "low" => 66038.06,
-        //         "high" => 66176.97,
-        //         "volume" => 23.45528526,
-        //         "amount" => 1550436.21725288,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "type" => "1m",
-        //         "start_timestamp" => 1636388220000,
-        //         "end_timestamp" => 1636388280000
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "open": 66166.23,
+        //         "close": 66124.56,
+        //         "low": 66038.06,
+        //         "high": 66176.97,
+        //         "volume": 23.45528526,
+        //         "amount": 1550436.21725288,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "type": "1m",
+        //         "start_timestamp": 1636388220000,
+        //         "end_timestamp": 1636388280000
+        //       }]
         //     }
         // }
         //
@@ -1750,55 +1751,55 @@ class woofipro extends Exchange {
         // * cancelOrder
         // * fetchOrder
         // * fetchOrders
-        // $isFromFetchOrder = (is_array($order) && array_key_exists('order_tag' ?? '', $order)); TO_DO
+        // const isFromFetchOrder = ('order_tag' in order); TO_DO
         //
-        // stop $order after creating it:
+        // stop order after creating it:
         //   {
-        //     "orderId" => "1578938",
-        //     "clientOrderId" => "0",
-        //     "algoType" => "STOP_LOSS",
-        //     "quantity" => "0.1"
+        //     "orderId": "1578938",
+        //     "clientOrderId": "0",
+        //     "algoType": "STOP_LOSS",
+        //     "quantity": "0.1"
         //   }
-        // stop $order after fetching it:
+        // stop order after fetching it:
         //   {
-        //       "algoOrderId" => "1578958",
-        //       "clientOrderId" => "0",
-        //       "rootAlgoOrderId" => "1578958",
-        //       "parentAlgoOrderId" => "0",
-        //       "symbol" => "SPOT_LTC_USDT",
-        //       "orderTag" => "default",
-        //       "algoType" => "STOP_LOSS",
-        //       "side" => "BUY",
-        //       "quantity" => "0.1",
-        //       "isTriggered" => false,
-        //       "triggerPrice" => "100",
-        //       "triggerStatus" => "USELESS",
-        //       "type" => "LIMIT",
-        //       "rootAlgoStatus" => "CANCELLED",
-        //       "algoStatus" => "CANCELLED",
-        //       "triggerPriceType" => "MARKET_PRICE",
-        //       "price" => "75",
-        //       "triggerTime" => "0",
-        //       "totalExecutedQuantity" => "0",
-        //       "averageExecutedPrice" => "0",
-        //       "totalFee" => "0",
-        //       "feeAsset" => '',
-        //       "reduceOnly" => false,
-        //       "createdTime" => "1686149609.744",
-        //       "updatedTime" => "1686149903.362"
+        //       "algoOrderId": "1578958",
+        //       "clientOrderId": "0",
+        //       "rootAlgoOrderId": "1578958",
+        //       "parentAlgoOrderId": "0",
+        //       "symbol": "SPOT_LTC_USDT",
+        //       "orderTag": "default",
+        //       "algoType": "STOP_LOSS",
+        //       "side": "BUY",
+        //       "quantity": "0.1",
+        //       "isTriggered": false,
+        //       "triggerPrice": "100",
+        //       "triggerStatus": "USELESS",
+        //       "type": "LIMIT",
+        //       "rootAlgoStatus": "CANCELLED",
+        //       "algoStatus": "CANCELLED",
+        //       "triggerPriceType": "MARKET_PRICE",
+        //       "price": "75",
+        //       "triggerTime": "0",
+        //       "totalExecutedQuantity": "0",
+        //       "averageExecutedPrice": "0",
+        //       "totalFee": "0",
+        //       "feeAsset": '',
+        //       "reduceOnly": false,
+        //       "createdTime": "1686149609.744",
+        //       "updatedTime": "1686149903.362"
         //   }
         //
         $timestamp = $this->safe_integer_n($order, array( 'timestamp', 'created_time', 'createdTime' ));
         $orderId = $this->safe_string_n($order, array( 'order_id', 'orderId', 'algoOrderId' ));
-        $clientOrderId = $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit $order
+        $clientOrderId = $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $price = $this->safe_string_2($order, 'order_price', 'price');
-        $amount = $this->safe_string_2($order, 'order_quantity', 'quantity'); // This is base $amount
-        $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote $amount
+        $amount = $this->safe_string_2($order, 'order_quantity', 'quantity'); // This is base amount
+        $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote amount
         $orderType = $this->safe_string_lower_2($order, 'order_type', 'type');
-        $status = $this->safe_value_2($order, 'status', 'algoStatus');
+        $status = $this->safe_string_2($order, 'status', 'algoStatus');
         $success = $this->safe_bool($order, 'success');
         if ($success !== null) {
             $status = ($success) ? 'NEW' : 'REJECTED';
@@ -1809,18 +1810,18 @@ class woofipro extends Exchange {
         $remaining = Precise::string_sub($amount, $filled);
         $fee = $this->safe_value_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
-        $transactions = $this->safe_value($order, 'Transactions');
+        $transactions = $this->safe_list($order, 'Transactions');
         $triggerPrice = $this->safe_number($order, 'triggerPrice');
         $takeProfitPrice = null;
         $stopLossPrice = null;
-        $childOrders = $this->safe_value($order, 'childOrders');
+        $childOrders = $this->safe_list($order, 'childOrders');
         if ($childOrders !== null) {
-            $first = $this->safe_value($childOrders, 0);
+            $first = $this->safe_dict($childOrders, 0);
             $innerChildOrders = $this->safe_list($first, 'childOrders', array());
             $innerChildOrdersLength = count($innerChildOrders);
             if ($innerChildOrdersLength > 0) {
-                $takeProfitOrder = $this->safe_value($innerChildOrders, 0);
-                $stopLossOrder = $this->safe_value($innerChildOrders, 1);
+                $takeProfitOrder = $this->safe_dict($innerChildOrders, 0);
+                $stopLossOrder = $this->safe_dict($innerChildOrders, 1);
                 $takeProfitPrice = $this->safe_number($takeProfitOrder, 'triggerPrice');
                 $stopLossPrice = $this->safe_number($stopLossOrder, 'triggerPrice');
             }
@@ -1855,7 +1856,7 @@ class woofipro extends Exchange {
                 'currency' => $feeCurrency,
             ),
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_time_in_force(?string $timeInForce) {
@@ -1894,12 +1895,12 @@ class woofipro extends Exchange {
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         /**
          * @ignore
@@ -1915,7 +1916,7 @@ class woofipro extends Exchange {
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $orderType = strtoupper($type);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a side argument');
         }
         $market = $this->market($symbol);
         $orderSide = strtoupper($side);
@@ -1924,8 +1925,8 @@ class woofipro extends Exchange {
             'side' => $orderSide,
         );
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        $stopLoss = $this->safe_value($params, 'stopLoss');
-        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
         $hasStopLoss = ($stopLoss !== null);
         $hasTakeProfit = ($takeProfit !== null);
         $algoType = $this->safe_string($params, 'algoType');
@@ -1998,11 +1999,11 @@ class woofipro extends Exchange {
             );
             $request['child_orders'] = array( $outterOrder );
         }
-        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ));
-        return $this->extend($request, $params);
+        $paramsOmitted = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ));
+        return $this->extend($request, $paramsOmitted);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2035,21 +2036,21 @@ class woofipro extends Exchange {
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        $stopLoss = $this->safe_value($params, 'stopLoss');
-        $takeProfit = $this->safe_value($params, 'takeProfit');
-        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_list($params, 'childOrders') !== null);
         $response = null;
         if ($isConditional) {
             $response = Async\await($this->v1PrivatePostAlgoOrder($request));
             //
             // {
-            //     "success" => true,
-            //     "timestamp" => 1702989203989,
-            //     "data" => {
-            //       "order_id" => 13,
-            //       "client_order_id" => "testclientid",
-            //       "algo_type" => "STOP",
-            //       "quantity" => 100.12
+            //     "success": true,
+            //     "timestamp": 1702989203989,
+            //     "data": {
+            //       "order_id": 13,
+            //       "client_order_id": "testclientid",
+            //       "algo_type": "STOP",
+            //       "quantity": 100.12
             //     }
             // }
             //
@@ -2057,16 +2058,16 @@ class woofipro extends Exchange {
             $response = Async\await($this->v1PrivatePostOrder($request));
             //
             // {
-            //     "success" => true,
-            //     "timestamp" => 1702989203989,
-            //     "data" => {
-            //       "order_id" => 13,
-            //       "client_order_id" => "testclientid",
-            //       "order_type" => "LIMIT",
-            //       "order_price" => 100.12,
-            //       "order_quantity" => 0.987654,
-            //       "order_amount" => 0.8,
-            //       "error_message" => "none"
+            //     "success": true,
+            //     "timestamp": 1702989203989,
+            //     "data": {
+            //       "order_id": 13,
+            //       "client_order_id": "testclientid",
+            //       "order_type": "LIMIT",
+            //       "order_price": 100.12,
+            //       "order_quantity": 0.987654,
+            //       "order_amount": 0.8,
+            //       "error_message": "none"
             //     }
             // }
             //
@@ -2078,7 +2079,7 @@ class woofipro extends Exchange {
         return $order;
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -2097,7 +2098,7 @@ class woofipro extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -2105,9 +2106,9 @@ class woofipro extends Exchange {
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
-            $stopLoss = $this->safe_value($orderParams, 'stopLoss');
-            $takeProfit = $this->safe_value($orderParams, 'takeProfit');
-            $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
+            $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
+            $takeProfit = $this->safe_dict($orderParams, 'takeProfit');
+            $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_list($orderParams, 'childOrders') !== null);
             if ($isConditional) {
                 throw new NotSupported($this->id . ' createOrders() only support non-stop order');
             }
@@ -2120,18 +2121,18 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PrivatePostBatchOrder($this->extend($request, $params)));
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203989,
-        //         "data" => {
-        //             "rows" => [array(
-        //                 "order_id" => 13,
-        //                 "client_order_id" => "testclientid",
-        //                 "order_type" => "LIMIT",
-        //                 "order_price" => 100.12,
-        //                 "order_quantity" => 0.987654,
-        //                 "order_amount" => 0.8,
-        //                 "error_message" => "none"
-        //             )]
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "rows": [{
+        //                 "order_id": 13,
+        //                 "client_order_id": "testclientid",
+        //                 "order_type": "LIMIT",
+        //                 "order_price": 100.12,
+        //                 "order_quantity": 0.987654,
+        //                 "order_amount": 0.8,
+        //                 "error_message": "none"
+        //             }]
         //         }
         //     }
         //
@@ -2140,7 +2141,7 @@ class woofipro extends Exchange {
         return $this->parse_orders($rows);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2183,20 +2184,18 @@ class woofipro extends Exchange {
         if ($amount !== null) {
             $request[$orderQtyKey] = $this->amount_to_precision($symbol, $amount);
         }
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
+        $paramsOmitted = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
         $response = null;
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $side argument');
-        }
+        $this->check_required_argument('editOrder', $side, 'side');
         if ($isConditional) {
-            $response = Async\await($this->v1PrivatePutAlgoOrder($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivatePutAlgoOrder($this->extend($request, $paramsOmitted)));
         } else {
             $request['symbol'] = $market['id'];
             $request['side'] = strtoupper($side);
             $orderType = strtoupper($type);
-            $timeInForce = $this->safe_string_lower($params, 'timeInForce');
+            $timeInForce = $this->safe_string_lower($paramsOmitted, 'timeInForce');
             $isMarket = $orderType === 'MARKET';
-            $postOnly = $this->is_post_only($isMarket, null, $params);
+            $postOnly = $this->is_post_only($isMarket, null, $paramsOmitted);
             if ($postOnly) {
                 $request['order_type'] = 'POST_ONLY';
             } elseif ($timeInForce === 'fok') {
@@ -2206,21 +2205,21 @@ class woofipro extends Exchange {
             } else {
                 $request['order_type'] = $orderType;
             }
-            $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ));
+            $clientOrderId = $this->safe_string_n($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
+            $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ));
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
             }
-            // $request['side'] = strtoupper($side);
-            // $request['symbol'] = $market['id'];
-            $response = Async\await($this->v1PrivatePutOrder($this->extend($request, $params)));
+            // request['side'] = side.toUpperCase ();
+            // request['symbol'] = market['id'];
+            $response = Async\await($this->v1PrivatePutOrder($this->extend($request, $paramsOmitted2)));
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "status" => "EDIT_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "status": "EDIT_SENT"
         //     }
         // }
         //
@@ -2229,7 +2228,7 @@ class woofipro extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2250,9 +2249,9 @@ class woofipro extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if (($trigger !== true) && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2264,42 +2263,42 @@ class woofipro extends Exchange {
         $request = array(
             'symbol' => $this->safe_string($market, 'id'),
         );
-        $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
-        $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
+        $clientOrderIdUnified = $this->safe_string_2($paramsOmitted, 'clOrdID', 'clientOrderId');
+        $clientOrderIdExchangeSpecific = $this->safe_string($paramsOmitted, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         $response = null;
         if ($trigger === true) {
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
-                $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-                $response = Async\await($this->v1PrivateDeleteAlgoClientOrder($this->extend($request, $params)));
+                $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
+                $response = Async\await($this->v1PrivateDeleteAlgoClientOrder($this->extend($request, $paramsOmitted2)));
             } else {
                 $request['order_id'] = $id;
-                $response = Async\await($this->v1PrivateDeleteAlgoOrder($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteAlgoOrder($this->extend($request, $paramsOmitted)));
             }
         } else {
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
-                $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-                $response = Async\await($this->v1PrivateDeleteClientOrder($this->extend($request, $params)));
+                $paramsOmitted3 = $this->omit($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
+                $response = Async\await($this->v1PrivateDeleteClientOrder($this->extend($request, $paramsOmitted3)));
             } else {
                 $request['order_id'] = $id;
-                $response = Async\await($this->v1PrivateDeleteOrder($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteOrder($this->extend($request, $paramsOmitted)));
             }
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "status" => "CANCEL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "status": "CANCEL_SENT"
         //     }
         // }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "status" => "CANCEL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "status": "CANCEL_SENT"
         // }
         //
         $extendParams = array( 'symbol' => $symbol );
@@ -2316,7 +2315,7 @@ class woofipro extends Exchange {
         return $this->extend($this->parse_order($data), $extendParams);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -2337,22 +2336,22 @@ class woofipro extends Exchange {
             Async\await($this->load_markets());
         }
         $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
-        $params = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
+        $paramsOmitted = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $request = array();
         $response = null;
         if ($clientOrderIds !== null) {
             $request['client_order_ids'] = implode(',', $clientOrderIds);
-            $response = Async\await($this->v1PrivateDeleteClientBatchOrder($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateDeleteClientBatchOrder($this->extend($request, $paramsOmitted)));
         } else {
             $request['order_ids'] = implode(',', $ids);
-            $response = Async\await($this->v1PrivateDeleteBatchOrder($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateDeleteBatchOrder($this->extend($request, $paramsOmitted)));
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "status" => "CANCEL_ALL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "status": "CANCEL_ALL_SENT"
         //     }
         // }
         //
@@ -2361,7 +2360,7 @@ class woofipro extends Exchange {
         )) );
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -2381,7 +2380,7 @@ class woofipro extends Exchange {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2389,22 +2388,22 @@ class woofipro extends Exchange {
         }
         $response = null;
         if ($trigger === true) {
-            $response = Async\await($this->v1PrivateDeleteAlgoOrders($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateDeleteAlgoOrders($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->v1PrivateDeleteOrders($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateDeleteOrders($this->extend($request, $paramsOmitted)));
         }
-        // $trigger
+        // trigger
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //      "status" => "CANCEL_ALL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //      "status": "CANCEL_ALL_SENT"
         // }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "status" => "CANCEL_ALL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "status": "CANCEL_ALL_SENT"
         //     }
         // }
         //
@@ -2415,7 +2414,7 @@ class woofipro extends Exchange {
         );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -2445,49 +2444,49 @@ class woofipro extends Exchange {
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        $params = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $response = null;
         if ($trigger === true) {
             if ($clientOrderId !== null && $clientOrderId !== '') {
                 $request['client_order_id'] = $clientOrderId;
-                $response = Async\await($this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $paramsOmitted)));
             } else {
                 $request['oid'] = $id;
-                $response = Async\await($this->v1PrivateGetAlgoOrderOid($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetAlgoOrderOid($this->extend($request, $paramsOmitted)));
             }
         } else {
             if (($clientOrderId !== null) && ($clientOrderId !== '')) {
                 $request['client_order_id'] = $clientOrderId;
-                $response = Async\await($this->v1PrivateGetClientOrderClientOrderId($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetClientOrderClientOrderId($this->extend($request, $paramsOmitted)));
             } else {
                 $request['oid'] = $id;
-                $response = Async\await($this->v1PrivateGetOrderOid($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetOrderOid($this->extend($request, $paramsOmitted)));
             }
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "order_id" => 78151,
-        //         "user_id" => 12345,
-        //         "price" => 0.67772,
-        //         "type" => "LIMIT",
-        //         "quantity" => 20,
-        //         "amount" => 10,
-        //         "executed_quantity" => 20,
-        //         "total_executed_quantity" => 20,
-        //         "visible_quantity" => 1,
-        //         "symbol" => "PERP_WOO_USDC",
-        //         "side" => "BUY",
-        //         "status" => "FILLED",
-        //         "total_fee" => 0.5,
-        //         "fee_asset" => "WOO",
-        //         "client_order_id" => 1,
-        //         "average_executed_price" => 0.67772,
-        //         "created_time" => 1653563963000,
-        //         "updated_time" => 1653564213000,
-        //         "realized_pnl" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "order_id": 78151,
+        //         "user_id": 12345,
+        //         "price": 0.67772,
+        //         "type": "LIMIT",
+        //         "quantity": 20,
+        //         "amount": 10,
+        //         "executed_quantity": 20,
+        //         "total_executed_quantity": 20,
+        //         "visible_quantity": 1,
+        //         "symbol": "PERP_WOO_USDC",
+        //         "side": "BUY",
+        //         "status": "FILLED",
+        //         "total_fee": 0.5,
+        //         "fee_asset": "WOO",
+        //         "client_order_id": 1,
+        //         "average_executed_price": 0.67772,
+        //         "created_time": 1653563963000,
+        //         "updated_time": 1653564213000,
+        //         "realized_pnl": 123
         //     }
         // }
         //
@@ -2521,16 +2520,15 @@ class woofipro extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $maxLimit = ($isTrigger === true) ? 100 : 500;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $params, 'page', $maxLimit));
+            return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'page', $maxLimit));
         }
         $request = array();
         $market = null;
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($paramsPaginate, array( 'stop', 'trigger' ));
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
@@ -2546,48 +2544,48 @@ class woofipro extends Exchange {
         if ($isTrigger === true) {
             $request['algo_type'] = 'STOP';
         }
-        list($request, $params) = $this->handle_until_option('end_t', $request, $params);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_t', $request, $paramsOmitted);
         $response = null;
         if ($isTrigger === true) {
-            $response = Async\await($this->v1PrivateGetAlgoOrders($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetAlgoOrders($this->extend($requestUntil, $paramsUntil)));
         } else {
-            $response = Async\await($this->v1PrivateGetOrders($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetOrders($this->extend($requestUntil, $paramsUntil)));
         }
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203988,
-        //         "data" => {
-        //             "meta" => array(
-        //                 "total" => 9,
-        //                 "records_per_page" => 25,
-        //                 "current_page" => 1
-        //             ),
-        //             "rows" => [array(
-        //                 "order_id" => 78151,
-        //                 "user_id" => 12345,
-        //                 "price" => 0.67772,
-        //                 "type" => "LIMIT",
-        //                 "quantity" => 20,
-        //                 "amount" => 10,
-        //                 "executed_quantity" => 20,
-        //                 "total_executed_quantity" => 20,
-        //                 "visible_quantity" => 1,
-        //                 "symbol" => "PERP_WOO_USDC",
-        //                 "side" => "BUY",
-        //                 "status" => "FILLED",
-        //                 "total_fee" => 0.5,
-        //                 "fee_asset" => "WOO",
-        //                 "client_order_id" => 1,
-        //                 "average_executed_price" => 0.67772,
-        //                 "created_time" => 1653563963000,
-        //                 "updated_time" => 1653564213000,
-        //                 "realized_pnl" => 123
-        //             )]
+        //         "success": true,
+        //         "timestamp": 1702989203988,
+        //         "data": {
+        //             "meta": {
+        //                 "total": 9,
+        //                 "records_per_page": 25,
+        //                 "current_page": 1
+        //             },
+        //             "rows": [{
+        //                 "order_id": 78151,
+        //                 "user_id": 12345,
+        //                 "price": 0.67772,
+        //                 "type": "LIMIT",
+        //                 "quantity": 20,
+        //                 "amount": 10,
+        //                 "executed_quantity": 20,
+        //                 "total_executed_quantity": 20,
+        //                 "visible_quantity": 1,
+        //                 "symbol": "PERP_WOO_USDC",
+        //                 "side": "BUY",
+        //                 "status": "FILLED",
+        //                 "total_fee": 0.5,
+        //                 "fee_asset": "WOO",
+        //                 "client_order_id": 1,
+        //                 "average_executed_price": 0.67772,
+        //                 "created_time": 1653563963000,
+        //                 "updated_time": 1653564213000,
+        //                 "realized_pnl": 123
+        //             }]
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', $response);
+        $data = $this->safe_dict($response, 'data', $response);
         $orders = $this->safe_list($data, 'rows');
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -2650,7 +2648,7 @@ class woofipro extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -2680,22 +2678,22 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PrivateGetOrderOidTrades($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "id" => 2,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "fee" => 0.0001,
-        //         "fee_asset" => "USDC",
-        //         "side" => "BUY",
-        //         "order_id" => 1,
-        //         "executed_price" => 123,
-        //         "executed_quantity" => 0.05,
-        //         "executed_timestamp" => 1567382401000,
-        //         "is_maker" => 1,
-        //         "realized_pnl" => 123
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "id": 2,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "fee": 0.0001,
+        //         "fee_asset": "USDC",
+        //         "side": "BUY",
+        //         "order_id": 1,
+        //         "executed_price": 123,
+        //         "executed_quantity": 0.05,
+        //         "executed_timestamp": 1567382401000,
+        //         "is_maker": 1,
+        //         "realized_pnl": 123
+        //       }]
         //     }
         // }
         //
@@ -2704,7 +2702,7 @@ class woofipro extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit, $params);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2725,10 +2723,9 @@ class woofipro extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $params, 'page', 500));
+            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
         }
         $request = array();
         $market = null;
@@ -2744,37 +2741,37 @@ class woofipro extends Exchange {
         } else {
             $request['size'] = 500;
         }
-        list($request, $params) = $this->handle_until_option('end_t', $request, $params);
-        $response = Async\await($this->v1PrivateGetTrades($this->extend($request, $params)));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_t', $request, $paramsPaginate);
+        $response = Async\await($this->v1PrivateGetTrades($this->extend($requestUntil, $paramsUntil)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "meta" => array(
-        //         "total" => 9,
-        //         "records_per_page" => 25,
-        //         "current_page" => 1
-        //       ),
-        //       "rows" => [array(
-        //         "id" => 2,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "fee" => 0.0001,
-        //         "fee_asset" => "USDC",
-        //         "side" => "BUY",
-        //         "order_id" => 1,
-        //         "executed_price" => 123,
-        //         "executed_quantity" => 0.05,
-        //         "executed_timestamp" => 1567382401000,
-        //         "is_maker" => 1,
-        //         "realized_pnl" => 123
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
+        //       },
+        //       "rows": [{
+        //         "id": 2,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "fee": 0.0001,
+        //         "fee_asset": "USDC",
+        //         "side": "BUY",
+        //         "order_id": 1,
+        //         "executed_price": 123,
+        //         "executed_quantity": 0.05,
+        //         "executed_timestamp": 1567382401000,
+        //         "is_maker": 1,
+        //         "realized_pnl": 123
+        //       }]
         //     }
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
         $trades = $this->safe_list($data, 'rows', array());
-        return $this->parse_trades($trades, $market, $since, $limit, $params);
+        return $this->parse_trades($trades, $market, $since, $limit, $paramsUntil);
     }
 
     public function parse_balance(mixed $response): array {
@@ -2783,7 +2780,7 @@ class woofipro extends Exchange {
         );
         $balances = $this->safe_list($response, 'holding', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $code = $this->safe_currency_code($this->safe_string($balance, 'token'));
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
@@ -2814,16 +2811,16 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PrivateGetClientHolding($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "holding" => [array(
-        //         "updated_time" => 1580794149000,
-        //         "token" => "BTC",
-        //         "holding" => -28.000752,
-        //         "frozen" => 123,
-        //         "pending_short" => -2000
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "holding": [{
+        //         "updated_time": 1580794149000,
+        //         "token": "BTC",
+        //         "holding": -28.000752,
+        //         "frozen": 123,
+        //         "pending_short": -2000
+        //       }]
         //     }
         // }
         //
@@ -2852,33 +2849,33 @@ class woofipro extends Exchange {
             $request['pageSize'] = $limit;
         }
         $transactionType = $this->safe_string($params, 'type');
-        $params = $this->omit($params, 'type');
+        $paramsOmitted = $this->omit($params, 'type');
         if ($transactionType !== null) {
             $request['type'] = $transactionType;
         }
-        $response = Async\await($this->v1PrivateGetAssetHistory($this->extend($request, $params)));
+        $response = Async\await($this->v1PrivateGetAssetHistory($this->extend($request, $paramsOmitted)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "meta" => array(
-        //         "total" => 9,
-        //         "records_per_page" => 25,
-        //         "current_page" => 1
-        //       ),
-        //       "rows" => [array(
-        //         "id" => "230707030600002",
-        //         "tx_id" => "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
-        //         "side" => "WITHDRAW",
-        //         "token" => "USDC",
-        //         "amount" => 555,
-        //         "fee" => 123,
-        //         "trans_status" => "FAILED",
-        //         "created_time" => 1688699193034,
-        //         "updated_time" => 1688699193096,
-        //         "chain_id" => "986532"
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
+        //       },
+        //       "rows": [{
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //       }]
         //     }
         // }
         //
@@ -2889,7 +2886,7 @@ class woofipro extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         $currencyId = $this->safe_string($item, 'token');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         $amount = $this->safe_number($item, 'amount');
         $side = $this->safe_string($item, 'token_side');
         $direction = ($side === 'DEPOSIT') ? 'in' : 'out';
@@ -2911,10 +2908,10 @@ class woofipro extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
             'info' => $item,
-        ), $currency);
+        ), $currencyResolved);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'BALANCE' => 'transaction', // Funds moved in/out wallet
             'COLLATERAL' => 'transfer', // Funds moved between portfolios
@@ -3056,12 +3053,12 @@ class woofipro extends Exchange {
         $rows = $this->safe_list($currencyRows, 1);
         //
         //     {
-        //         "rows":array(),
-        //         "meta":array(
+        //         "rows":[],
+        //         "meta":{
         //             "total":0,
         //             "records_per_page":25,
         //             "current_page":1
-        //         ),
+        //         },
         //         "success":true
         //     }
         //
@@ -3072,7 +3069,7 @@ class woofipro extends Exchange {
         return $this->parse_transactions($rowsList, $currency, $since, $limit, $params);
     }
 
-    public function get_withdraw_nonce($params = array()) {
+    public function get_withdraw_nonce($params = array()): PromiseInterface {
         return Async\async(self::do_get_withdraw_nonce(...))($params);
     }
 
@@ -3080,10 +3077,10 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PrivateGetWithdrawNonce($params));
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203989,
-        //         "data" => {
-        //             "withdraw_nonce" => 1
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "withdraw_nonce": 1
         //         }
         //     }
         //
@@ -3092,10 +3089,11 @@ class woofipro extends Exchange {
     }
 
     public function hash_message(mixed $message) {
-        return '0x' . $this->hash($message, 'keccak', 'hex');
+        $hashed = $this->hash($message, 'keccak', 'hex');
+        return '0x' . $hashed;
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey) {
+    public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -3103,7 +3101,7 @@ class woofipro extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -3128,20 +3126,18 @@ class woofipro extends Exchange {
             Async\await($this->load_markets());
         }
         $this->check_address($address);
-        if ($code !== null) {
-            $code = strtoupper($code);
-            if ($code !== 'USDC') {
-                throw new NotSupported($this->id . ' withdraw() only support USDC');
-            }
+        $codeUpper = strtoupper($code);
+        if ($codeUpper !== 'USDC') {
+            throw new NotSupported($this->id . ' withdraw() only support USDC');
         }
-        $currency = $this->currency($code);
+        $currency = $this->currency($codeUpper);
         $verifyingContractAddress = $this->safe_string($this->options, 'verifyingContractAddress');
         $chainId = $this->safe_string($params, 'chainId');
         $currencyNetworks = $this->safe_dict($currency, 'networks', array());
         $coinNetwork = $this->safe_dict($currencyNetworks, $chainId, array());
         $coinNetworkId = $this->safe_number($coinNetwork, 'id');
         if ($coinNetworkId === null) {
-            throw new BadRequest($this->id . ' withdraw() require $chainId parameter');
+            throw new BadRequest($this->id . ' withdraw() require chainId parameter');
         }
         $withdrawNonce = Async\await($this->get_withdraw_nonce($params));
         $nonce = $this->nonce();
@@ -3166,7 +3162,7 @@ class woofipro extends Exchange {
             'brokerId' => $this->safe_string($this->options, 'keyBrokerId', 'woofi_pro'),
             'chainId' => $this->parse_to_int($chainId),
             'receiver' => $address,
-            'token' => $code,
+            'token' => $codeUpper,
             'amount' => (string) $amount,
             'withdrawNonce' => $withdrawNonce,
             'timestamp' => $nonce,
@@ -3179,14 +3175,14 @@ class woofipro extends Exchange {
             'verifyingContract' => $verifyingContractAddress,
             'message' => $withdrawRequest,
         );
-        $params = $this->omit($params, 'chainId');
-        $response = Async\await($this->v1PrivatePostWithdrawRequest($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, 'chainId');
+        $response = Async\await($this->v1PrivatePostWithdrawRequest($this->extend($request, $paramsOmitted)));
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203989,
-        //         "data" => {
-        //             "withdraw_id" => 123
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "withdraw_id": 123
         //         }
         //     }
         //
@@ -3197,15 +3193,15 @@ class woofipro extends Exchange {
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "default_margin_mode" => "CROSS"
+        //         "symbol": "PERP_BTC_USDC",
+        //         "default_margin_mode": "CROSS"
         //     }
         //
         $marketId = $this->safe_string($marginMode, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         return array(
             'info' => $marginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'marginMode' => $this->safe_string_lower($marginMode, 'default_margin_mode'),
         );
     }
@@ -3227,23 +3223,23 @@ class woofipro extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->v1PrivateGetClientMarginModes($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "rows" => [array(
-        //             "symbol" => "PERP_BTC_USDC",
-        //             "default_margin_mode" => "CROSS"
-        //         )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "default_margin_mode": "CROSS"
+        //         }]
         //     }
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
         $rows = $this->safe_list($data, 'rows', array());
-        return $this->parse_margin_modes($rows, $symbols, 'symbol');
+        return $this->parse_margin_modes($rows, $symbolsNormalized, 'symbol');
     }
 
     public function fetch_margin_mode(string $symbol, $params = array()): PromiseInterface {
@@ -3288,24 +3284,24 @@ class woofipro extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $marginMode = strtolower($marginMode);
-        if ($marginMode !== 'cross' && $marginMode !== 'isolated') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode must be either cross or isolated');
+        $marginModeValue = strtolower($marginMode);
+        if ($marginModeValue !== 'cross' && $marginModeValue !== 'isolated') {
+            throw new BadRequest($this->id . ' setMarginMode() marginMode must be either cross or isolated');
         }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'default_margin_mode' => strtoupper($marginMode),
+            'default_margin_mode' => strtoupper($marginModeValue),
         );
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989
+        //     "success": true,
+        //     "timestamp": 1702989203989
         // }
         //
         return Async\await($this->v1PrivatePostClientMarginMode($this->extend($request, $params)));
@@ -3314,8 +3310,8 @@ class woofipro extends Exchange {
     public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203989
+        //         "success": true,
+        //         "timestamp": 1702989203989
         //     }
         //
         $timestamp = $this->safe_integer($data, 'timestamp');
@@ -3334,11 +3330,11 @@ class woofipro extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, float $amount, string $type, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $type, $params);
     }
 
-    private function do_modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()) {
+    private function do_modify_margin_helper(string $symbol, float $amount, string $type, $params = array()) {
         /**
          * @ignore
          * add or reduce isolated position margin
@@ -3363,8 +3359,8 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PrivatePostPositionMargin($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989
+        //     "success": true,
+        //     "timestamp": 1702989203989
         // }
         //
         $modification = $this->parse_margin_modification($response, $market);
@@ -3441,27 +3437,27 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PrivateGetClientInfo($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "account_id" => "<string>",
-        //         "email" => "test@test.com",
-        //         "account_mode" => "FUTURES",
-        //         "max_leverage" => 20,
-        //         "taker_fee_rate" => 123,
-        //         "maker_fee_rate" => 123,
-        //         "futures_taker_fee_rate" => 123,
-        //         "futures_maker_fee_rate" => 123,
-        //         "maintenance_cancel_orders" => true,
-        //         "imr_factor" => array(
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
-        //         ),
-        //         "max_notional" => {
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "account_id": "<string>",
+        //         "email": "test@test.com",
+        //         "account_mode": "FUTURES",
+        //         "max_leverage": 20,
+        //         "taker_fee_rate": 123,
+        //         "maker_fee_rate": 123,
+        //         "futures_taker_fee_rate": 123,
+        //         "futures_maker_fee_rate": 123,
+        //         "maintenance_cancel_orders": true,
+        //         "imr_factor": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
+        //         },
+        //         "max_notional": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
         //         }
         //     }
         // }
@@ -3489,7 +3485,7 @@ class woofipro extends Exchange {
             Async\await($this->load_markets());
         }
         if (($leverage < 1) || ($leverage > 50)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 50');
+            throw new BadRequest($this->id . ' leverage should be between 1 and 50');
         }
         $request = array(
             'leverage' => $leverage,
@@ -3497,31 +3493,31 @@ class woofipro extends Exchange {
         return Async\await($this->v1PrivatePostClientLeverage($this->extend($request, $params)));
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
-        //     "IMR_withdraw_orders" => 0.1,
-        //     "MMR_with_orders" => 0.05,
-        //     "average_open_price" => 27908.14386047,
-        //     "cost_position" => -139329.358492,
-        //     "est_liq_price" => 117335.92899428,
-        //     "fee_24_h" => 123,
-        //     "imr" => 0.1,
-        //     "last_sum_unitary_funding" => 70.38,
-        //     "mark_price" => 27794.9,
-        //     "mmr" => 0.05,
-        //     "pending_long_qty" => 123,
-        //     "pending_short_qty" => 123,
-        //     "pnl_24_h" => 123,
-        //     "position_qty" => -5,
-        //     "settle_price" => 27865.8716984,
-        //     "symbol" => "PERP_BTC_USDC",
-        //     "timestamp" => 1685429350571,
-        //     "unsettled_pnl" => 354.858492
+        //     "IMR_withdraw_orders": 0.1,
+        //     "MMR_with_orders": 0.05,
+        //     "average_open_price": 27908.14386047,
+        //     "cost_position": -139329.358492,
+        //     "est_liq_price": 117335.92899428,
+        //     "fee_24_h": 123,
+        //     "imr": 0.1,
+        //     "last_sum_unitary_funding": 70.38,
+        //     "mark_price": 27794.9,
+        //     "mmr": 0.05,
+        //     "pending_long_qty": 123,
+        //     "pending_short_qty": 123,
+        //     "pnl_24_h": 123,
+        //     "position_qty": -5,
+        //     "settle_price": 27865.8716984,
+        //     "symbol": "PERP_BTC_USDC",
+        //     "timestamp": 1685429350571,
+        //     "unsettled_pnl": 354.858492
         // }
         //
         $contract = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($contract, $market);
+        $marketResolved = $this->safe_market($contract, $market);
         $size = $this->safe_string($position, 'position_qty');
         $side = null;
         if (Precise::string_gt($size, '0')) {
@@ -3529,7 +3525,7 @@ class woofipro extends Exchange {
         } else {
             $side = 'short';
         }
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
         $markPrice = $this->safe_string($position, 'mark_price');
         $timestamp = $this->safe_integer($position, 'timestamp');
         $entryPrice = $this->safe_string($position, 'average_open_price');
@@ -3539,7 +3535,7 @@ class woofipro extends Exchange {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,
@@ -3559,7 +3555,6 @@ class woofipro extends Exchange {
             'lastPrice' => null,
             'collateral' => null,
             'marginMode' => 'cross',
-            'marginType' => null,
             'side' => $side,
             'percentage' => null,
             'hedged' => null,
@@ -3568,7 +3563,7 @@ class woofipro extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
 
@@ -3592,27 +3587,27 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PrivateGetPositionSymbol($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "IMR_withdraw_orders" => 0.1,
-        //         "MMR_with_orders" => 0.05,
-        //         "average_open_price" => 27908.14386047,
-        //         "cost_position" => -139329.358492,
-        //         "est_liq_price" => 117335.92899428,
-        //         "fee_24_h" => 123,
-        //         "imr" => 0.1,
-        //         "last_sum_unitary_funding" => 70.38,
-        //         "mark_price" => 27794.9,
-        //         "mmr" => 0.05,
-        //         "pending_long_qty" => 123,
-        //         "pending_short_qty" => 123,
-        //         "pnl_24_h" => 123,
-        //         "position_qty" => -5,
-        //         "settle_price" => 27865.8716984,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "timestamp" => 1685429350571,
-        //         "unsettled_pnl" => 354.858492
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "IMR_withdraw_orders": 0.1,
+        //         "MMR_with_orders": 0.05,
+        //         "average_open_price": 27908.14386047,
+        //         "cost_position": -139329.358492,
+        //         "est_liq_price": 117335.92899428,
+        //         "fee_24_h": 123,
+        //         "imr": 0.1,
+        //         "last_sum_unitary_funding": 70.38,
+        //         "mark_price": 27794.9,
+        //         "mmr": 0.05,
+        //         "pending_long_qty": 123,
+        //         "pending_short_qty": 123,
+        //         "pnl_24_h": 123,
+        //         "position_qty": -5,
+        //         "settle_price": 27865.8716984,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "timestamp": 1685429350571,
+        //         "unsettled_pnl": 354.858492
         //     }
         // }
         //
@@ -3640,39 +3635,39 @@ class woofipro extends Exchange {
         $response = Async\await($this->v1PrivateGetPositions($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "current_margin_ratio_with_orders" => 1.2385,
-        //         "free_collateral" => 450315.09115,
-        //         "initial_margin_ratio" => 0.1,
-        //         "initial_margin_ratio_with_orders" => 0.1,
-        //         "maintenance_margin_ratio" => 0.05,
-        //         "maintenance_margin_ratio_with_orders" => 0.05,
-        //         "margin_ratio" => 1.2385,
-        //         "open_margin_ratio" => 1.2102,
-        //         "total_collateral_value" => 489865.71329,
-        //         "total_pnl_24_h" => 123,
-        //         "rows" => [array(
-        //             "IMR_withdraw_orders" => 0.1,
-        //             "MMR_with_orders" => 0.05,
-        //             "average_open_price" => 27908.14386047,
-        //             "cost_position" => -139329.358492,
-        //             "est_liq_price" => 117335.92899428,
-        //             "fee_24_h" => 123,
-        //             "imr" => 0.1,
-        //             "last_sum_unitary_funding" => 70.38,
-        //             "mark_price" => 27794.9,
-        //             "mmr" => 0.05,
-        //             "pending_long_qty" => 123,
-        //             "pending_short_qty" => 123,
-        //             "pnl_24_h" => 123,
-        //             "position_qty" => -5,
-        //             "settle_price" => 27865.8716984,
-        //             "symbol" => "PERP_BTC_USDC",
-        //             "timestamp" => 1685429350571,
-        //             "unsettled_pnl" => 354.858492
-        //         )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "current_margin_ratio_with_orders": 1.2385,
+        //         "free_collateral": 450315.09115,
+        //         "initial_margin_ratio": 0.1,
+        //         "initial_margin_ratio_with_orders": 0.1,
+        //         "maintenance_margin_ratio": 0.05,
+        //         "maintenance_margin_ratio_with_orders": 0.05,
+        //         "margin_ratio": 1.2385,
+        //         "open_margin_ratio": 1.2102,
+        //         "total_collateral_value": 489865.71329,
+        //         "total_pnl_24_h": 123,
+        //         "rows": [{
+        //             "IMR_withdraw_orders": 0.1,
+        //             "MMR_with_orders": 0.05,
+        //             "average_open_price": 27908.14386047,
+        //             "cost_position": -139329.358492,
+        //             "est_liq_price": 117335.92899428,
+        //             "fee_24_h": 123,
+        //             "imr": 0.1,
+        //             "last_sum_unitary_funding": 70.38,
+        //             "mark_price": 27794.9,
+        //             "mmr": 0.05,
+        //             "pending_long_qty": 123,
+        //             "pending_short_qty": 123,
+        //             "pnl_24_h": 123,
+        //             "position_qty": -5,
+        //             "settle_price": 27865.8716984,
+        //             "symbol": "PERP_BTC_USDC",
+        //             "timestamp": 1685429350571,
+        //             "unsettled_pnl": 354.858492
+        //         }]
         //     }
         // }
         //
@@ -3681,21 +3676,26 @@ class woofipro extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->urls['api'][$access] . '/' . $version . '/';
-        $params = $this->omit($params, $this->extract_params($path));
-        $params = $this->keysort($params);
+        $apiUrl = $this->safe_string($this->urls['api'], $access);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $version . '/';
+        $requestParams = $this->keysort($this->omit($params, $this->extract_params($path)));
+        $requestBody = null;
+        $requestHeaders = null;
         if ($access === 'public') {
             $url .= $pathWithParams;
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            if (count($requestParams) > 0) {
+                $url .= '?' . $this->urlencode($requestParams);
             }
         } else {
             $this->check_required_credentials();
@@ -3704,15 +3704,15 @@ class woofipro extends Exchange {
                 if ($isSandboxMode !== true) {
                     $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
                     if ($path === 'batch-order') {
-                        $ordersList = $this->safe_list($params, 'orders', array());
+                        $ordersList = $this->safe_list($requestParams, 'orders', array());
                         for ($i = 0; $i < count($ordersList); $i++) {
-                            $params['orders'][$i]['order_tag'] = $brokerId;
+                            $requestParams['orders'][$i]['order_tag'] = $brokerId;
                         }
                     } else {
-                        $params['order_tag'] = $brokerId;
+                        $requestParams['order_tag'] = $brokerId;
                     }
                 }
-                $params = $this->keysort($params);
+                $requestParams = $this->keysort($requestParams);
             }
             $auth = '';
             $ts = (string) $this->nonce();
@@ -3721,24 +3721,24 @@ class woofipro extends Exchange {
             if (mb_strpos($apiKey, 'ed25519:') === false) {
                 $apiKey = 'ed25519:' . $apiKey;
             }
-            $headers = array(
+            $requestHeaders = array(
                 'orderly-account-id' => $this->accountId,
                 'orderly-key' => $apiKey,
                 'orderly-timestamp' => $ts,
             );
             $auth = $ts . $method . '/' . $version . '/' . $pathWithParams;
             if ($method === 'POST' || $method === 'PUT') {
-                $body = $this->json($params);
-                $auth .= $body;
-                $headers['content-type'] = 'application/json';
+                $requestBody = $this->json($requestParams);
+                $auth .= $requestBody;
+                $requestHeaders['content-type'] = 'application/json';
             } else {
-                if (count($params) > 0) {
-                    $url .= '?' . $this->urlencode($params);
-                    $auth .= '?' . $this->rawencode($params);
+                if (count($requestParams) > 0) {
+                    $url .= '?' . $this->urlencode($requestParams);
+                    $auth .= '?' . $this->rawencode($requestParams);
                 }
-                $headers['content-type'] = 'application/x-www-form-urlencoded';
+                $requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
                 if ($method === 'DELETE') {
-                    $body = '';
+                    $requestBody = '';
                 }
             }
             $secret = $this->secret;
@@ -3747,9 +3747,11 @@ class woofipro extends Exchange {
                 $secret = $parts[1];
             }
             $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');
-            $headers['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
+            $requestHeaders['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $bodyResult = ($requestBody === null) ? $body : $requestBody;
+        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -3757,8 +3759,8 @@ class woofipro extends Exchange {
             return null; // fallback to default error handler
         }
         //
-        //     400 Bad Request array("success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled.")
-        //                     array("code":"-1011","message":"The system is under maintenance.","success":false)
+        //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         $success = $this->safe_bool($response, 'success');
         $errorCode = $this->safe_string($response, 'code');

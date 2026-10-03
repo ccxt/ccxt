@@ -63,7 +63,6 @@ async function testSetMarketsFromExchange () {
     // exchange1.markets['ETH/USD'] = { 'id': 'EthUsd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'Eth', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
     // assert ('ETH/USD' in exchange2.markets, 'Modifying exchange1 markets should reflect in exchange2');
 
-
     // Test 2: loadMarkets on shared markets should not make API call and be very fast
     const startTime = emptyExchange.milliseconds ();
     await exchange2.loadMarkets ();

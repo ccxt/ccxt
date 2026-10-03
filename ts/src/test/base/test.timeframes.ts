@@ -3,8 +3,6 @@ import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import {  ROUND_DOWN, ROUND_UP } from '../../base/functions/number.js';
 
-
-
 function testRoundTimeframe () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
@@ -85,11 +83,9 @@ function testParseTimeframe () {
     assert (exchange.parseTimeframe ('1y') === 31536000); // todo: just approx
 }
 
-
 function testTimeframes () {
     testRoundTimeframe ();
     testParseTimeframe ();
 }
-
 
 export default testTimeframes;

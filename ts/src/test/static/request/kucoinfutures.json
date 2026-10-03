@@ -491,6 +491,26 @@
                 ]
             }
         ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch all funding rates inherited from kucoin",
+                "method": "fetchFundingRates",
+                "url": "https://api.kucoin.com/api/ua/v2/market/funding-rate",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch inverse funding rates uses public UTA v2",
+                "method": "fetchFundingRates",
+                "url": "https://api.kucoin.com/api/ua/v2/market/funding-rate",
+                "input": [
+                    [
+                        "BTC/USD:BTC"
+                    ]
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "linear funding rate",

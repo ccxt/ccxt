@@ -335,9 +335,9 @@ class bithumb extends Exchange {
                 '400' => '\\ccxt\\BadRequest',
                 'Bad Request(SSL)' => '\\ccxt\\BadRequest',
                 'Bad Request(Bad Method)' => '\\ccxt\\BadRequest',
-                'Bad Request.(Auth Data)' => '\\ccxt\\AuthenticationError', // array( "status" => "5100", "message" => "Bad Request.(Auth Data)" )
+                'Bad Request.(Auth Data)' => '\\ccxt\\AuthenticationError', // { "status": "5100", "message": "Bad Request.(Auth Data)" }
                 'Not Member' => '\\ccxt\\AuthenticationError',
-                'Invalid Apikey' => '\\ccxt\\AuthenticationError', // array("status":"5300","message":"Invalid Apikey")
+                'Invalid Apikey' => '\\ccxt\\AuthenticationError', // {"status":"5300","message":"Invalid Apikey"}
                 'Method Not Allowed.(Access IP)' => '\\ccxt\\PermissionDenied',
                 'Method Not Allowed.(BTC Adress)' => '\\ccxt\\InvalidAddress',
                 'Method Not Allowed.(Access)' => '\\ccxt\\PermissionDenied',
@@ -345,7 +345,7 @@ class bithumb extends Exchange {
                 'Invalid Parameter' => '\\ccxt\\BadRequest',
                 '5600' => '\\ccxt\\ExchangeError',
                 'Unknown Error' => '\\ccxt\\ExchangeError',
-                'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+                'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
                 'Missing request parameter error. Check the required parameters!' => '\\ccxt\\BadRequest',
             ),
             'timeframes' => array(
@@ -398,7 +398,7 @@ class bithumb extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, 'spot');
     }
 
-    public function amount_to_precision(?string $symbol, mixed $amount) {
+    public function amount_to_precision(?string $symbol, mixed $amount): ?string {
         $market = $this->market($symbol);
         return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], DECIMAL_PLACES);
     }
@@ -426,20 +426,19 @@ class bithumb extends Exchange {
          */
         $result = array();
         $request = array();
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchMarkets', 'generation', 2);
         if ($generation === 2) {
             $request['isDetails'] = true;
-            $response = $this->publicGetV1MarketAll($this->extend($request, $params));
+            $response = $this->publicGetV1MarketAll($this->extend($request, $paramsGeneration));
             //
-            //     array(
-            //         array(
-            //             "market" => "KRW-BTC",
-            //             "korean_name" => "비트코인",
-            //             "english_name" => "Bitcoin",
-            //             "market_warning" => "NONE"
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "market": "KRW-BTC",
+            //             "korean_name": "비트코인",
+            //             "english_name": "Bitcoin",
+            //             "market_warning": "NONE"
+            //         },
+            //     ]
             //
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $response[$i];
@@ -450,7 +449,7 @@ class bithumb extends Exchange {
                 $quote = null;
                 if ($marketId !== null) {
                     $parts = explode('-', $marketId);
-                    // to match gen 1, the $quoteId is the first currency derived from the $market id
+                    // to match gen 1, the quoteId is the first currency derived from the market id
                     $baseId = $parts[1];
                     $quoteId = $parts[0];
                     $base = $this->safe_currency_code($baseId);
@@ -515,39 +514,39 @@ class bithumb extends Exchange {
             $promises = array();
             for ($i = 0; $i < count($quotes); $i++) {
                 $request['quoteId'] = $quotes[$i];
-                $promises[] = $this->publicGetPublicTickerALLQuoteId($this->extend($request, $params));
+                $promises[] = $this->publicGetPublicTickerALLQuoteId($this->extend($request, $paramsGeneration));
                 //
                 //    {
-                //        "status" => "0000",
-                //        "data" => {
-                //            "ETH" => array(
-                //                "opening_price" => "0.05153399",
-                //                "closing_price" => "0.05145144",
-                //                "min_price" => "0.05145144",
-                //                "max_price" => "0.05160781",
-                //                "units_traded" => "6.541124172077830855",
-                //                "acc_trade_value" => "0.33705472498492329997697755",
-                //                "prev_closing_price" => "0.0515943",
-                //                "units_traded_24H" => "43.368879902677400513",
-                //                "acc_trade_value_24H" => "2.24165339555398079994373342",
-                //                "fluctate_24H" => "-0.00018203",
-                //                "fluctate_rate_24H" => "-0.35"
-                //            ),
-                //            "XRP" => array(
-                //                "opening_price" => "0.00000918",
-                //                "closing_price" => "0.0000092",
-                //                "min_price" => "0.00000918",
-                //                "max_price" => "0.0000092",
-                //                "units_traded" => "6516.949363",
-                //                "acc_trade_value" => "0.0598792533602796",
-                //                "prev_closing_price" => "0.00000916",
-                //                "units_traded_24H" => "229161.50354738",
-                //                "acc_trade_value_24H" => "2.0446589371637117",
-                //                "fluctate_24H" => "0.00000049",
-                //                "fluctate_rate_24H" => "5.63"
-                //            ),
+                //        "status": "0000",
+                //        "data": {
+                //            "ETH": {
+                //                "opening_price": "0.05153399",
+                //                "closing_price": "0.05145144",
+                //                "min_price": "0.05145144",
+                //                "max_price": "0.05160781",
+                //                "units_traded": "6.541124172077830855",
+                //                "acc_trade_value": "0.33705472498492329997697755",
+                //                "prev_closing_price": "0.0515943",
+                //                "units_traded_24H": "43.368879902677400513",
+                //                "acc_trade_value_24H": "2.24165339555398079994373342",
+                //                "fluctate_24H": "-0.00018203",
+                //                "fluctate_rate_24H": "-0.35"
+                //            },
+                //            "XRP": {
+                //                "opening_price": "0.00000918",
+                //                "closing_price": "0.0000092",
+                //                "min_price": "0.00000918",
+                //                "max_price": "0.0000092",
+                //                "units_traded": "6516.949363",
+                //                "acc_trade_value": "0.0598792533602796",
+                //                "prev_closing_price": "0.00000916",
+                //                "units_traded_24H": "229161.50354738",
+                //                "acc_trade_value_24H": "2.0446589371637117",
+                //                "fluctate_24H": "0.00000049",
+                //                "fluctate_rate_24H": "5.63"
+                //            },
                 //            ...
-                //            "date" => "1721675913145"
+                //            "date": "1721675913145"
                 //        }
                 //    }
                 //
@@ -556,7 +555,7 @@ class bithumb extends Exchange {
             for ($i = 0; $i < count($quotes); $i++) {
                 $quote = $quotes[$i];
                 $quoteId = $quote;
-                $response = $results[$i];
+                $response = $this->safe_dict($results, $i);
                 $data = $this->safe_dict($response, 'data', array());
                 $extension = $this->safe_dict($quoteCurrencies, $quote, array());
                 $currencyIds = is_array($data) ? array_keys($data) : array();
@@ -567,6 +566,9 @@ class bithumb extends Exchange {
                     }
                     $market = $data[$currencyId];
                     $base = $this->safe_currency_code($currencyId);
+                    if ($base === null) {
+                        continue;
+                    }
                     $active = true;
                     if ((gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market)))) {
                         $numElements = count($market);
@@ -632,26 +634,26 @@ class bithumb extends Exchange {
         // generation 1
         //
         //     {
-        //         "status" => "0000",
-        //         "data" => {
-        //             "total_krw" => "51026.000000",
-        //             "in_use_krw" => "0.00000000",
-        //             "available_krw" => "51026.00000000",
+        //         "status": "0000",
+        //         "data": {
+        //             "total_krw": "51026.000000",
+        //             "in_use_krw": "0.00000000",
+        //             "available_krw": "51026.00000000",
         //         }
         //     }
         //
         // generation 2
         //
-        //     array(
-        //         array(
-        //             "currency" => "KRW",
-        //             "balance" => "51026",
-        //             "locked" => "0",
-        //             "avg_buy_price" => "0",
-        //             "avg_buy_price_modified" => false,
-        //             "unit_currency" => "KRW"
-        //         ),
-        //     )
+        //     [
+        //         {
+        //             "currency": "KRW",
+        //             "balance": "51026",
+        //             "locked": "0",
+        //             "avg_buy_price": "0",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW"
+        //         },
+        //     ]
         //
         $result = array( 'info' => $response );
         $balances = $this->safe_dict($response, 'data');
@@ -669,7 +671,7 @@ class bithumb extends Exchange {
             }
         } else {
             for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
+                $entry = $this->safe_dict($response, $i);
                 $account = $this->account();
                 $currencyId = $this->safe_string($entry, 'currency');
                 $code = $this->safe_currency_code($currencyId);
@@ -698,35 +700,34 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchBalance', 'generation', 2);
         $response = null;
         if ($generation === 2) {
-            $response = $this->privateGetV1Accounts($params);
+            $response = $this->privateGetV1Accounts($paramsGeneration);
             //
-            //     array(
-            //         array(
-            //             "currency" => "KRW",
-            //             "balance" => "51026",
-            //             "locked" => "0",
-            //             "avg_buy_price" => "0",
-            //             "avg_buy_price_modified" => false,
-            //             "unit_currency" => "KRW"
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "currency": "KRW",
+            //             "balance": "51026",
+            //             "locked": "0",
+            //             "avg_buy_price": "0",
+            //             "avg_buy_price_modified": false,
+            //             "unit_currency": "KRW"
+            //         },
+            //     ]
             //
         } else {
             $request = array(
                 'currency' => 'ALL',
             );
-            $response = $this->privatePostInfoBalance($this->extend($request, $params));
+            $response = $this->privatePostInfoBalance($this->extend($request, $paramsGeneration));
             //
             //     {
-            //         "status" => "0000",
-            //         "data" => {
-            //             "total_krw" => "51026.000000",
-            //             "in_use_krw" => "0.00000000",
-            //             "available_krw" => "51026.00000000",
+            //         "status": "0000",
+            //         "data": {
+            //             "total_krw": "51026.000000",
+            //             "in_use_krw": "0.00000000",
+            //             "available_krw": "51026.00000000",
             //         }
             //     }
             //
@@ -750,8 +751,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
         $response = null;
@@ -759,24 +759,24 @@ class bithumb extends Exchange {
         $timestamp = null;
         if ($generation === 2) {
             $request['markets'] = $this->get_gen2_market_id($market);
-            $response = $this->publicGetV1Orderbook($this->extend($request, $params));
+            $response = $this->publicGetV1Orderbook($this->extend($request, $paramsGeneration));
             //
-            //     array(
+            //     [
             //         {
-            //             "market" => "BTC-USDC",
-            //             "timestamp" => 1782807920105,
-            //             "total_ask_size" => 40322.8585,
-            //             "total_bid_size" => 174206.4577,
-            //             "orderbook_units" => array(
-            //                 array(
-            //                     "ask_price" => 0.00001687,
-            //                     "bid_price" => 0.0000168,
-            //                     "ask_size" => 155,
-            //                     "bid_size" => 41.6666
-            //                 ),
-            //             )
+            //             "market": "BTC-USDC",
+            //             "timestamp": 1782807920105,
+            //             "total_ask_size": 40322.8585,
+            //             "total_bid_size": 174206.4577,
+            //             "orderbook_units": [
+            //                 {
+            //                     "ask_price": 0.00001687,
+            //                     "bid_price": 0.0000168,
+            //                     "ask_size": 155,
+            //                     "bid_size": 41.6666
+            //                 },
+            //             ]
             //         }
-            //     )
+            //     ]
             //
             $result = $this->safe_dict($response, 0, array());
             $timestamp = $this->safe_integer($result, 'timestamp');
@@ -784,7 +784,7 @@ class bithumb extends Exchange {
             $bids = array();
             $asks = array();
             for ($i = 0; $i < count($orderBookUnits); $i++) {
-                $entry = $orderBookUnits[$i];
+                $entry = $this->safe_dict($orderBookUnits, $i);
                 $bids[] = array(
                     'price' => $this->safe_string($entry, 'bid_price'),
                     'quantity' => $this->safe_string($entry, 'bid_size'),
@@ -804,7 +804,7 @@ class bithumb extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 30, max 30
             }
-            $response = $this->publicGetPublicOrderbookBaseIdQuoteId($this->extend($request, $params));
+            $response = $this->publicGetPublicOrderbookBaseIdQuoteId($this->extend($request, $paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -812,16 +812,16 @@ class bithumb extends Exchange {
             //             "timestamp":"1587621553942",
             //             "payment_currency":"KRW",
             //             "order_currency":"BTC",
-            //             "bids":array(
-            //                 array("price":"8652000","quantity":"0.0043"),
-            //                 array("price":"8651000","quantity":"0.0049"),
-            //                 array("price":"8650000","quantity":"8.4791"),
-            //             ),
-            //             "asks":array(
-            //                 array("price":"8654000","quantity":"0.119"),
-            //                 array("price":"8655000","quantity":"0.254"),
-            //                 array("price":"8658000","quantity":"0.119"),
-            //             )
+            //             "bids":[
+            //                 {"price":"8652000","quantity":"0.0043"},
+            //                 {"price":"8651000","quantity":"0.0049"},
+            //                 {"price":"8650000","quantity":"8.4791"},
+            //             ],
+            //             "asks":[
+            //                 {"price":"8654000","quantity":"0.119"},
+            //                 {"price":"8655000","quantity":"0.254"},
+            //                 {"price":"8658000","quantity":"0.119"},
+            //             ]
             //         }
             //     }
             //
@@ -833,7 +833,7 @@ class bithumb extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        // generation 1 => fetchTicker, fetchTickers
+        // generation 1: fetchTicker, fetchTickers
         //
         //     {
         //         "opening_price":"227100",
@@ -850,73 +850,73 @@ class bithumb extends Exchange {
         //         "date":"1587710327264", // fetchTickers inject this
         //     }
         //
-        // generation 2 => fetchTicker, fetchTickers
+        // generation 2: fetchTicker, fetchTickers
         //
         //     {
-        //         "market" => "BTC-USDC",
-        //         "trade_date" => "20260701",
-        //         "trade_time" => "233533",
-        //         "trade_date_kst" => "20260702",
-        //         "trade_time_kst" => "083533",
-        //         "trade_timestamp" => 1782981333650,
-        //         "opening_price" => 0.00001667,
-        //         "high_price" => 0.00001667,
-        //         "low_price" => 0.00001645,
-        //         "trade_price" => 0.00001659,
-        //         "prev_closing_price" => 0.00001673,
-        //         "change" => "FALL",
-        //         "change_price" => 1.4E-7,
-        //         "change_rate" => 0.0084,
-        //         "signed_change_price" => -1.4E-7,
-        //         "signed_change_rate" => -0.0084,
-        //         "trade_volume" => 1.43724182,
-        //         "acc_trade_price" => 0.77934383561689,
-        //         "acc_trade_price_24h" => 1.76373410121466379999997512,
-        //         "acc_trade_volume" => 47175.3220805,
-        //         "acc_trade_volume_24h" => 104565.90238645676844763,
-        //         "highest_52_week_price" => 0.00006592,
-        //         "highest_52_week_date" => "2025-11-05",
-        //         "lowest_52_week_price" => 0.00000782,
-        //         "lowest_52_week_date" => "2026-02-22",
-        //         "timestamp" => 1782981333650
+        //         "market": "BTC-USDC",
+        //         "trade_date": "20260701",
+        //         "trade_time": "233533",
+        //         "trade_date_kst": "20260702",
+        //         "trade_time_kst": "083533",
+        //         "trade_timestamp": 1782981333650,
+        //         "opening_price": 0.00001667,
+        //         "high_price": 0.00001667,
+        //         "low_price": 0.00001645,
+        //         "trade_price": 0.00001659,
+        //         "prev_closing_price": 0.00001673,
+        //         "change": "FALL",
+        //         "change_price": 1.4E-7,
+        //         "change_rate": 0.0084,
+        //         "signed_change_price": -1.4E-7,
+        //         "signed_change_rate": -0.0084,
+        //         "trade_volume": 1.43724182,
+        //         "acc_trade_price": 0.77934383561689,
+        //         "acc_trade_price_24h": 1.76373410121466379999997512,
+        //         "acc_trade_volume": 47175.3220805,
+        //         "acc_trade_volume_24h": 104565.90238645676844763,
+        //         "highest_52_week_price": 0.00006592,
+        //         "highest_52_week_date": "2025-11-05",
+        //         "lowest_52_week_price": 0.00000782,
+        //         "lowest_52_week_date": "2026-02-22",
+        //         "timestamp": 1782981333650
         //     }
         //
-        // generation 2 => watchTicker
+        // generation 2: watchTicker
         //
         //     {
-        //         "type" => "ticker",
-        //         "code" => "KRW-BTC",
-        //         "opening_price" => 94223000,
-        //         "high_price" => 95465000,
-        //         "low_price" => 93601000,
-        //         "trade_price" => 95299000,
-        //         "prev_closing_price" => 94201000,
-        //         "change" => "RISE",
-        //         "change_price" => 1098000,
-        //         "signed_change_price" => 1098000,
-        //         "change_rate" => 0.01165593,
-        //         "signed_change_rate" => 0.01165593,
-        //         "trade_volume" => 0.0094,
-        //         "acc_trade_volume" => 151.44914647,
-        //         "acc_trade_volume_24h" => 310.44065227,
-        //         "acc_trade_price" => 14330306973.41015,
-        //         "acc_trade_price_24h" => 29226371799.56915,
-        //         "trade_date" => "20260710",
-        //         "trade_time" => "124548",
-        //         "trade_timestamp" => 1783655148303,
-        //         "ask_bid" => "BID",
-        //         "acc_ask_volume" => 52.30413928,
-        //         "acc_bid_volume" => 99.14500719,
-        //         "highest_52_week_price" => 179734000,
-        //         "highest_52_week_date" => "2025-10-09",
-        //         "lowest_52_week_price" => 81110000,
-        //         "lowest_52_week_date" => "2026-02-06",
-        //         "market_state" => "ACTIVE",
-        //         "is_trading_suspended" => false,
-        //         "delisting_date" => "",
-        //         "market_warning" => "NONE",
-        //         "timestamp" => 1783655148485,
-        //         "stream_type" => "REALTIME"
+        //         "type": "ticker",
+        //         "code": "KRW-BTC",
+        //         "opening_price": 94223000,
+        //         "high_price": 95465000,
+        //         "low_price": 93601000,
+        //         "trade_price": 95299000,
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1098000,
+        //         "signed_change_price": 1098000,
+        //         "change_rate": 0.01165593,
+        //         "signed_change_rate": 0.01165593,
+        //         "trade_volume": 0.0094,
+        //         "acc_trade_volume": 151.44914647,
+        //         "acc_trade_volume_24h": 310.44065227,
+        //         "acc_trade_price": 14330306973.41015,
+        //         "acc_trade_price_24h": 29226371799.56915,
+        //         "trade_date": "20260710",
+        //         "trade_time": "124548",
+        //         "trade_timestamp": 1783655148303,
+        //         "ask_bid": "BID",
+        //         "acc_ask_volume": 52.30413928,
+        //         "acc_bid_volume": 99.14500719,
+        //         "highest_52_week_price": 179734000,
+        //         "highest_52_week_date": "2025-10-09",
+        //         "lowest_52_week_price": 81110000,
+        //         "lowest_52_week_date": "2026-02-06",
+        //         "market_state": "ACTIVE",
+        //         "is_trading_suspended": false,
+        //         "delisting_date": "",
+        //         "market_warning": "NONE",
+        //         "timestamp": 1783655148485,
+        //         "stream_type": "REALTIME"
         //     }
         //
         $timestamp = $this->safe_integer_2($ticker, 'date', 'trade_timestamp');
@@ -937,7 +937,7 @@ class bithumb extends Exchange {
         }
         $high = $this->safe_string_2($ticker, 'max_price', 'high_price');
         $low = $this->safe_string_2($ticker, 'min_price', 'low_price');
-        // Some generation 2 $ticker payloads can contain inconsistent high/low versus last.
+        // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
         if (($close !== null) && ($high !== null) && Precise::string_gt($close, $high)) {
             $high = $close;
         }
@@ -983,13 +983,12 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchTickers', 'generation', 2);
         $request = array();
         $result = array();
         if ($generation === 2) {
-            // Bithumb v2 $ticker payloads are inconsistent for all-$market calls,
-            // so we aggregate 300 markets per $request only when $symbols are not provided.
+            // Bithumb v2 ticker payloads are inconsistent for all-market calls,
+            // so we aggregate 300 markets per request only when symbols are not provided.
             $marketIds = array();
             $symbolsForMarketIds = ($symbols === null) ? $this->symbols : $symbols;
             $symbolsForMarketIdsLength = count($symbolsForMarketIds);
@@ -1006,7 +1005,7 @@ class bithumb extends Exchange {
             if ($symbols !== null) {
                 $request['markets'] = implode(',', $marketIds);
                 $marketIdsChunks[] = $marketIds;
-                $promises[] = $this->publicGetV1Ticker($this->extend($request, $params));
+                $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
             } else {
                 $maxMarketIdsPerRequest = $this->safe_integer($this->options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300);
                 if (($maxMarketIdsPerRequest === null) || ($maxMarketIdsPerRequest < 1)) {
@@ -1020,42 +1019,42 @@ class bithumb extends Exchange {
                     if (($marketIdsChunkLength >= $maxMarketIdsPerRequest) || $isLastMarketId) {
                         $marketIdsChunks[] = $marketIdsChunk;
                         $request['markets'] = implode(',', $marketIdsChunk);
-                        $promises[] = $this->publicGetV1Ticker($this->extend($request, $params));
+                        $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
                         $marketIdsChunk = array();
                     }
                 }
             }
             //
-            //     array(
-            //         array(
-            //             "market" => "BTC-USDC",
-            //             "trade_date" => "20260701",
-            //             "trade_time" => "233533",
-            //             "trade_date_kst" => "20260702",
-            //             "trade_time_kst" => "083533",
-            //             "trade_timestamp" => 1782981333650,
-            //             "opening_price" => 0.00001667,
-            //             "high_price" => 0.00001667,
-            //             "low_price" => 0.00001645,
-            //             "trade_price" => 0.00001659,
-            //             "prev_closing_price" => 0.00001673,
-            //             "change" => "FALL",
-            //             "change_price" => 1.4E-7,
-            //             "change_rate" => 0.0084,
-            //             "signed_change_price" => -1.4E-7,
-            //             "signed_change_rate" => -0.0084,
-            //             "trade_volume" => 1.43724182,
-            //             "acc_trade_price" => 0.77934383561689,
-            //             "acc_trade_price_24h" => 1.76373410121466379999997512,
-            //             "acc_trade_volume" => 47175.3220805,
-            //             "acc_trade_volume_24h" => 104565.90238645676844763,
-            //             "highest_52_week_price" => 0.00006592,
-            //             "highest_52_week_date" => "2025-11-05",
-            //             "lowest_52_week_price" => 0.00000782,
-            //             "lowest_52_week_date" => "2026-02-22",
-            //             "timestamp" => 1782981333650
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date": "20260701",
+            //             "trade_time": "233533",
+            //             "trade_date_kst": "20260702",
+            //             "trade_time_kst": "083533",
+            //             "trade_timestamp": 1782981333650,
+            //             "opening_price": 0.00001667,
+            //             "high_price": 0.00001667,
+            //             "low_price": 0.00001645,
+            //             "trade_price": 0.00001659,
+            //             "prev_closing_price": 0.00001673,
+            //             "change": "FALL",
+            //             "change_price": 1.4E-7,
+            //             "change_rate": 0.0084,
+            //             "signed_change_price": -1.4E-7,
+            //             "signed_change_rate": -0.0084,
+            //             "trade_volume": 1.43724182,
+            //             "acc_trade_price": 0.77934383561689,
+            //             "acc_trade_price_24h": 1.76373410121466379999997512,
+            //             "acc_trade_volume": 47175.3220805,
+            //             "acc_trade_volume_24h": 104565.90238645676844763,
+            //             "highest_52_week_price": 0.00006592,
+            //             "highest_52_week_date": "2025-11-05",
+            //             "lowest_52_week_price": 0.00000782,
+            //             "lowest_52_week_date": "2026-02-22",
+            //             "timestamp": 1782981333650
+            //         },
+            //     ]
             //
             $responses = $promises;
             $responsesLength = count($responses);
@@ -1124,12 +1123,12 @@ class bithumb extends Exchange {
             $promises = array();
             for ($i = 0; $i < count($quotes); $i++) {
                 $request['quoteId'] = $quotes[$i];
-                $promises[] = $this->publicGetPublicTickerALLQuoteId($this->extend($request, $params));
+                $promises[] = $this->publicGetPublicTickerALLQuoteId($this->extend($request, $paramsGeneration));
                 //
                 //     {
                 //         "status":"0000",
                 //         "data":{
-                //             "BTC":array(
+                //             "BTC":{
                 //                 "opening_price":"9045000",
                 //                 "closing_price":"9132000",
                 //                 "min_price":"8938000",
@@ -1141,7 +1140,7 @@ class bithumb extends Exchange {
                 //                 "acc_trade_value_24H":"78933458515.4962",
                 //                 "fluctate_24H":"530000",
                 //                 "fluctate_rate_24H":"6.16"
-                //             ),
+                //             },
                 //             "date":"1587710878669"
                 //         }
                 //     }
@@ -1150,7 +1149,7 @@ class bithumb extends Exchange {
             $responses = $promises;
             for ($i = 0; $i < count($quotes); $i++) {
                 $quote = $quotes[$i];
-                $response = $responses[$i];
+                $response = $this->safe_dict($responses, $i);
                 $data = $this->safe_dict($response, 'data', array());
                 $timestamp = $this->safe_integer($data, 'date');
                 $tickers = $this->omit($data, 'date');
@@ -1159,6 +1158,9 @@ class bithumb extends Exchange {
                     $currencyId = $currencyIds[$j];
                     $ticker = $data[$currencyId];
                     $base = $this->safe_currency_code($currencyId);
+                    if (($base === null) || ($quote === null)) {
+                        continue;
+                    }
                     $symbol = $base . '/' . $quote;
                     $market = $this->safe_market($symbol);
                     $ticker['date'] = $timestamp;
@@ -1184,52 +1186,51 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchTicker', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchTicker', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
         $response = null;
         $data = array();
         if ($generation === 2) {
             $request['markets'] = $this->get_gen2_market_id($market);
-            $response = $this->publicGetV1Ticker($this->extend($request, $params));
+            $response = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
             //
-            //     array(
-            //         array(
-            //             "market" => "BTC-USDC",
-            //             "trade_date" => "20260701",
-            //             "trade_time" => "233533",
-            //             "trade_date_kst" => "20260702",
-            //             "trade_time_kst" => "083533",
-            //             "trade_timestamp" => 1782981333650,
-            //             "opening_price" => 0.00001667,
-            //             "high_price" => 0.00001667,
-            //             "low_price" => 0.00001645,
-            //             "trade_price" => 0.00001659,
-            //             "prev_closing_price" => 0.00001673,
-            //             "change" => "FALL",
-            //             "change_price" => 1.4E-7,
-            //             "change_rate" => 0.0084,
-            //             "signed_change_price" => -1.4E-7,
-            //             "signed_change_rate" => -0.0084,
-            //             "trade_volume" => 1.43724182,
-            //             "acc_trade_price" => 0.77934383561689,
-            //             "acc_trade_price_24h" => 1.76373410121466379999997512,
-            //             "acc_trade_volume" => 47175.3220805,
-            //             "acc_trade_volume_24h" => 104565.90238645676844763,
-            //             "highest_52_week_price" => 0.00006592,
-            //             "highest_52_week_date" => "2025-11-05",
-            //             "lowest_52_week_price" => 0.00000782,
-            //             "lowest_52_week_date" => "2026-02-22",
-            //             "timestamp" => 1782981333650
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date": "20260701",
+            //             "trade_time": "233533",
+            //             "trade_date_kst": "20260702",
+            //             "trade_time_kst": "083533",
+            //             "trade_timestamp": 1782981333650,
+            //             "opening_price": 0.00001667,
+            //             "high_price": 0.00001667,
+            //             "low_price": 0.00001645,
+            //             "trade_price": 0.00001659,
+            //             "prev_closing_price": 0.00001673,
+            //             "change": "FALL",
+            //             "change_price": 1.4E-7,
+            //             "change_rate": 0.0084,
+            //             "signed_change_price": -1.4E-7,
+            //             "signed_change_rate": -0.0084,
+            //             "trade_volume": 1.43724182,
+            //             "acc_trade_price": 0.77934383561689,
+            //             "acc_trade_price_24h": 1.76373410121466379999997512,
+            //             "acc_trade_volume": 47175.3220805,
+            //             "acc_trade_volume_24h": 104565.90238645676844763,
+            //             "highest_52_week_price": 0.00006592,
+            //             "highest_52_week_date": "2025-11-05",
+            //             "lowest_52_week_price": 0.00000782,
+            //             "lowest_52_week_date": "2026-02-22",
+            //             "timestamp": 1782981333650
+            //         },
+            //     ]
             //
             $data = $this->safe_dict($response, 0, array());
         } else {
             $request['baseId'] = $market['baseId'];
             $request['quoteId'] = $market['quoteId'];
-            $response = $this->publicGetPublicTickerBaseIdQuoteId($this->extend($request, $params));
+            $response = $this->publicGetPublicTickerBaseIdQuoteId($this->extend($request, $paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1258,29 +1259,29 @@ class bithumb extends Exchange {
         //
         // generation 1
         //
-        //     array(
+        //     [
         //         1576823400000, // 기준 시간
         //         "8284000", // 시가
         //         "8286000", // 종가
         //         "8289000", // 고가
         //         "8276000", // 저가
         //         "15.41503692" // 거래량
-        //     )
+        //     ]
         //
         // generation 2
         //
         //     {
-        //         "market" => "BTC-USDC",
-        //         "candle_date_time_utc" => "2026-07-02T08:59:00",
-        //         "candle_date_time_kst" => "2026-07-02T17:59:00",
-        //         "opening_price" => 0.0000165,
-        //         "high_price" => 0.0000165,
-        //         "low_price" => 0.0000165,
-        //         "trade_price" => 0.0000165,
-        //         "timestamp" => 1782982784329,
-        //         "candle_acc_trade_price" => 0.001155,
-        //         "candle_acc_trade_volume" => 70,
-        //         "unit" => 1
+        //         "market": "BTC-USDC",
+        //         "candle_date_time_utc": "2026-07-02T08:59:00",
+        //         "candle_date_time_kst": "2026-07-02T17:59:00",
+        //         "opening_price": 0.0000165,
+        //         "high_price": 0.0000165,
+        //         "low_price": 0.0000165,
+        //         "trade_price": 0.0000165,
+        //         "timestamp": 1782982784329,
+        //         "candle_acc_trade_price": 0.001155,
+        //         "candle_acc_trade_volume": 70,
+        //         "unit": 1
         //     }
         //
         $timestamp = null;
@@ -1320,8 +1321,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
         $response = null;
@@ -1332,35 +1332,35 @@ class bithumb extends Exchange {
                 $request['count'] = $limit;
             }
             if ($timeframe === '1d') {
-                $response = $this->publicGetV1CandlesDays($this->extend($request, $params));
+                $response = $this->publicGetV1CandlesDays($this->extend($request, $paramsGeneration));
             } elseif ($timeframe === '1w') {
-                $response = $this->publicGetV1CandlesWeeks($this->extend($request, $params));
+                $response = $this->publicGetV1CandlesWeeks($this->extend($request, $paramsGeneration));
             } elseif ($timeframe === '1M') {
-                $response = $this->publicGetV1CandlesMonths($this->extend($request, $params));
+                $response = $this->publicGetV1CandlesMonths($this->extend($request, $paramsGeneration));
             } else {
                 $timeframeInteger = $this->safe_integer($this->timeframes, $timeframe);
                 if ($timeframeInteger === null) {
-                    throw new BadRequest($this->id . ' fetchOHLCV() unsupported $timeframe ' . $timeframe);
+                    throw new BadRequest($this->id . ' fetchOHLCV() unsupported timeframe ' . $timeframe);
                 }
                 $request['unit'] = $timeframeInteger;
-                $response = $this->publicGetV1CandlesMinutesUnit($this->extend($request, $params));
+                $response = $this->publicGetV1CandlesMinutesUnit($this->extend($request, $paramsGeneration));
             }
             //
-            //     array(
-            //         array(
-            //             "market" => "BTC-USDC",
-            //             "candle_date_time_utc" => "2026-07-02T08:59:00",
-            //             "candle_date_time_kst" => "2026-07-02T17:59:00",
-            //             "opening_price" => 0.0000165,
-            //             "high_price" => 0.0000165,
-            //             "low_price" => 0.0000165,
-            //             "trade_price" => 0.0000165,
-            //             "timestamp" => 1782982784329,
-            //             "candle_acc_trade_price" => 0.001155,
-            //             "candle_acc_trade_volume" => 70,
-            //             "unit" => 1
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "candle_date_time_utc": "2026-07-02T08:59:00",
+            //             "candle_date_time_kst": "2026-07-02T17:59:00",
+            //             "opening_price": 0.0000165,
+            //             "high_price": 0.0000165,
+            //             "low_price": 0.0000165,
+            //             "trade_price": 0.0000165,
+            //             "timestamp": 1782982784329,
+            //             "candle_acc_trade_price": 0.001155,
+            //             "candle_acc_trade_volume": 70,
+            //             "unit": 1
+            //         },
+            //     ]
             //
             $data = $response;
         } else {
@@ -1380,27 +1380,27 @@ class bithumb extends Exchange {
             $request['interval'] = $this->safe_string($legacyTimeframes, $timeframe, $timeframe);
             $request['baseId'] = $market['baseId'];
             $request['quoteId'] = $market['quoteId'];
-            $response = $this->publicGetPublicCandlestickBaseIdQuoteIdInterval($this->extend($request, $params));
+            $response = $this->publicGetPublicCandlestickBaseIdQuoteIdInterval($this->extend($request, $paramsGeneration));
             //
             //     {
-            //         "status" => "0000",
-            //         "data" => {
-            //             array(
+            //         "status": "0000",
+            //         "data": {
+            //             [
             //                 1576823400000, // 기준 시간
             //                 "8284000", // 시가
             //                 "8286000", // 종가
             //                 "8289000", // 고가
             //                 "8276000", // 저가
             //                 "15.41503692" // 거래량
-            //             ),
-            //             array(
+            //             ],
+            //             [
             //                 1576824000000, // 기준 시간
             //                 "8284000", // 시가
             //                 "8281000", // 종가
             //                 "8289000", // 고가
             //                 "8275000", // 저가
             //                 "6.19584467" // 거래량
-            //             ),
+            //             ],
             //         }
             //     }
             //
@@ -1411,7 +1411,7 @@ class bithumb extends Exchange {
 
     public function parse_trade(array $trade, ?array $market = null): array {
         //
-        // generation 1 => fetchTrades (public)
+        // generation 1: fetchTrades (public)
         //
         //     {
         //         "transaction_date":"2020-04-23 22:21:46",
@@ -1421,49 +1421,49 @@ class bithumb extends Exchange {
         //         "total":"108337"
         //     }
         //
-        // generation 1 => fetchOrder (private)
+        // generation 1: fetchOrder (private)
         //
         //     {
-        //         "transaction_date" => "1572497603902030",
-        //         "price" => "8601000",
-        //         "units" => "0.005",
-        //         "fee_currency" => "KRW",
-        //         "fee" => "107.51",
-        //         "total" => "43005"
+        //         "transaction_date": "1572497603902030",
+        //         "price": "8601000",
+        //         "units": "0.005",
+        //         "fee_currency": "KRW",
+        //         "fee": "107.51",
+        //         "total": "43005"
         //     }
         //
-        // generation 2 => fetchTrades
+        // generation 2: fetchTrades
         //
         //     {
-        //         "market" => "BTC-USDC",
-        //         "trade_date_utc" => "2026-07-02",
-        //         "trade_time_utc" => "08:41:10",
-        //         "timestamp" => "1782981670705",
-        //         "trade_price" => "0.00001646",
-        //         "trade_volume" => "42.0335581",
-        //         "prev_closing_price" => "0.00001673",
-        //         "change_price" => "-2.7E-7",
-        //         "ask_bid" => "ASK",
-        //         "sequential_id" => "17829816707050000"
+        //         "market": "BTC-USDC",
+        //         "trade_date_utc": "2026-07-02",
+        //         "trade_time_utc": "08:41:10",
+        //         "timestamp": "1782981670705",
+        //         "trade_price": "0.00001646",
+        //         "trade_volume": "42.0335581",
+        //         "prev_closing_price": "0.00001673",
+        //         "change_price": "-2.7E-7",
+        //         "ask_bid": "ASK",
+        //         "sequential_id": "17829816707050000"
         //     }
         //
-        // generation 2 => watchTrades
+        // generation 2: watchTrades
         //
         //     {
-        //         "type" => "trade",
-        //         "code" => "KRW-BTC",
-        //         "trade_price" => 95539000,
-        //         "trade_volume" => 0.00022664,
-        //         "ask_bid" => "ASK",
-        //         "prev_closing_price" => 94201000,
-        //         "change" => "RISE",
-        //         "change_price" => 1338000,
-        //         "trade_date" => "2026-07-10",
-        //         "trade_time" => "13:39:41",
-        //         "trade_timestamp" => 1783658381138,
-        //         "sequential_id" => "862683813820523888",
-        //         "timestamp" => 1783658381398,
-        //         "stream_type" => "REALTIME"
+        //         "type": "trade",
+        //         "code": "KRW-BTC",
+        //         "trade_price": 95539000,
+        //         "trade_volume": 0.00022664,
+        //         "ask_bid": "ASK",
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1338000,
+        //         "trade_date": "2026-07-10",
+        //         "trade_time": "13:39:41",
+        //         "trade_timestamp": 1783658381138,
+        //         "sequential_id": "862683813820523888",
+        //         "timestamp": 1783658381398,
+        //         "stream_type": "REALTIME"
         //     }
         //
         // a workaround for their bug in date format, hours are not 0-padded
@@ -1498,7 +1498,7 @@ class bithumb extends Exchange {
         }
         $id = $this->safe_string_2($trade, 'cont_no', 'sequential_id');
         $marketId = $this->safe_string($trade, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $priceString = $this->safe_string_2($trade, 'price', 'trade_price');
         $amountString = $this->safe_string($trade, 'trade_volume');
         if ($amountString === null) {
@@ -1520,7 +1520,7 @@ class bithumb extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'order' => null,
             'type' => $type,
             'side' => $side,
@@ -1529,7 +1529,7 @@ class bithumb extends Exchange {
             'amount' => $amountString,
             'cost' => $costString,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1549,8 +1549,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchTrades', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
         if ($limit !== null) {
@@ -1560,40 +1559,40 @@ class bithumb extends Exchange {
         $data = array();
         if ($generation === 2) {
             $request['market'] = $this->get_gen2_market_id($market);
-            $response = $this->publicGetV1TradesTicks($this->extend($request, $params));
+            $response = $this->publicGetV1TradesTicks($this->extend($request, $paramsGeneration));
             //
-            //     array(
+            //     [
             //         {
-            //             "market" => "BTC-USDC",
-            //             "trade_date_utc" => "2026-07-02",
-            //             "trade_time_utc" => "08:41:10",
-            //             "timestamp" => "1782981670705",
-            //             "trade_price" => "0.00001646",
-            //             "trade_volume" => "42.0335581",
-            //             "prev_closing_price" => "0.00001673",
-            //             "change_price" => "-2.7E-7",
-            //             "ask_bid" => "ASK",
-            //             "sequential_id" => "17829816707050000"
+            //             "market": "BTC-USDC",
+            //             "trade_date_utc": "2026-07-02",
+            //             "trade_time_utc": "08:41:10",
+            //             "timestamp": "1782981670705",
+            //             "trade_price": "0.00001646",
+            //             "trade_volume": "42.0335581",
+            //             "prev_closing_price": "0.00001673",
+            //             "change_price": "-2.7E-7",
+            //             "ask_bid": "ASK",
+            //             "sequential_id": "17829816707050000"
             //         }
-            //     )
+            //     ]
             //
             $data = $response;
         } else {
             $request['baseId'] = $market['baseId'];
             $request['quoteId'] = $market['quoteId'];
-            $response = $this->publicGetPublicTransactionHistoryBaseIdQuoteId($this->extend($request, $params));
+            $response = $this->publicGetPublicTransactionHistoryBaseIdQuoteId($this->extend($request, $paramsGeneration));
             //
             //     {
             //         "status":"0000",
-            //         "data":array(
-            //             array(
+            //         "data":[
+            //             {
             //                 "transaction_date":"2020-04-23 22:21:46",
             //                 "type":"ask",
             //                 "units_traded":"0.0125",
             //                 "price":"8667000",
             //                 "total":"108337"
-            //             ),
-            //         )
+            //             },
+            //         ]
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
@@ -1618,19 +1617,18 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'createOrders', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createOrders', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' createOrders is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' createOrders is only supported for the generation 2 API');
         }
         $ordersCount = count($orders);
         if ($ordersCount === 0) {
-            throw new ArgumentsRequired($this->id . ' createOrders() requires a non-empty $orders array');
+            throw new ArgumentsRequired($this->id . ' createOrders() requires a non-empty orders array');
         }
         $ordersRequests = array();
         $orderSymbols = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires each order to have a symbol');
@@ -1655,26 +1653,26 @@ class bithumb extends Exchange {
         $request = array(
             'batch_orders' => $ordersRequests,
         );
-        $response = $this->privatePostV2OrdersBatch($this->extend($request, $params));
+        $response = $this->privatePostV2OrdersBatch($this->extend($request, $paramsGeneration));
         //
         //     {
-        //         "batch_orders_response" => array(
-        //             array(
-        //                 "order_id" => "C0101000003152500274",
-        //                 "market" => "KRW-BTC",
-        //                 "side" => "bid",
-        //                 "order_type" => "limit",
-        //                 "created_at" => "2026-07-04T15:49:24+09:00",
-        //                 "stp_type" => "cancel_taker"
-        //             ),
-        //         )
+        //         "batch_orders_response": [
+        //             {
+        //                 "order_id": "C0101000003152500274",
+        //                 "market": "KRW-BTC",
+        //                 "side": "bid",
+        //                 "order_type": "limit",
+        //                 "created_at": "2026-07-04T15:49:24+09:00",
+        //                 "stp_type": "cancel_taker"
+        //             },
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'batch_orders_response', array());
         return $this->parse_orders($data, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * @ignore
          * helper function to build the $request *for generation 2 createOrder and createOrders only*
@@ -1696,20 +1694,20 @@ class bithumb extends Exchange {
         } elseif ($side === 'sell') {
             $sideRequest = 'ask';
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() invalid $side ' . $side);
+            throw new InvalidOrder($this->id . ' createOrder() invalid side ' . $side);
         }
         $request['side'] = $sideRequest;
-        $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
-        if ($timeInForce === null) {
-            $timeInForce = 'GTC';
-        } else {
-            $params = $this->omit($params, 'timeInForce');
+        $timeInForceRaw = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
+        $timeInForce = ($timeInForceRaw === null) ? 'GTC' : $timeInForceRaw;
+        $paramsTimeInForce = ($timeInForceRaw === null) ? $params : $this->omit($params, 'timeInForce');
+        list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsTimeInForce);
+        $isPostOnly = $postOnly || ($timeInForce === 'PO');
+        $paramsOrder = $paramsPostOnly;
+        if ($isPostOnly) {
+            $paramsOrder = $this->omit($paramsPostOnly, 'postOnly');
         }
-        $postOnly = false;
-        list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
-        if ($postOnly || ($timeInForce === 'PO')) {
+        if ($isPostOnly) {
             $request['time_in_force'] = 'post_only';
-            $params = $this->omit($params, 'postOnly');
         } elseif ($timeInForce === 'FOK') {
             $request['time_in_force'] = 'fok';
         } elseif ($timeInForce === 'IOC') {
@@ -1723,14 +1721,13 @@ class bithumb extends Exchange {
             $typeRequest = null;
             if ($side === 'buy') {
                 $typeRequest = 'price';
-                // for $market buy it requires the $amount of quote currency to spend
-                $cost = $this->safe_string($params, 'cost');
-                $params = $this->omit($params, 'cost');
-                $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                // for market buy it requires the amount of quote currency to spend
+                $cost = $this->safe_string($paramsOrder, 'cost');
+                list($createMarketBuyOrderRequiresPrice, $paramsRequiresPrice) = $this->handle_option_bool_and_params($this->omit($paramsOrder, 'cost'), 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $paramsOrder = $paramsRequiresPrice;
                 if ($createMarketBuyOrderRequiresPrice) {
                     if (($price === null) && ($cost === null)) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -1746,15 +1743,15 @@ class bithumb extends Exchange {
             }
             $request['order_type'] = $typeRequest;
         }
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
+        $clientOrderId = $this->safe_string_2($paramsOrder, 'clientOrderId', 'client_order_id');
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
         }
-        return $this->extend($request, $params);
+        $paramsRequest = ($clientOrderId !== null) ? $this->omit($paramsOrder, 'clientOrderId') : $paramsOrder;
+        return $this->extend($request, $paramsRequest);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1780,22 +1777,21 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'createOrder', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createOrder', 'generation', 2);
         $request = array();
         $market = $this->market($symbol);
         $response = null;
         if ($generation === 2) {
-            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsGeneration);
             $response = $this->privatePostV2Orders($request);
             //
             //     {
-            //         "order_id" => "C0101000003152350309",
-            //         "market" => "KRW-BTC",
-            //         "side" => "bid",
-            //         "order_type" => "limit",
-            //         "created_at" => "2026-07-04T14:39:04+09:00",
-            //         "stp_type" => "cancel_taker"
+            //         "order_id": "C0101000003152350309",
+            //         "market": "KRW-BTC",
+            //         "side": "bid",
+            //         "order_type": "limit",
+            //         "created_at": "2026-07-04T14:39:04+09:00",
+            //         "stp_type": "cancel_taker"
             //     }
             //
         } else {
@@ -1811,16 +1807,16 @@ class bithumb extends Exchange {
                     $typeRequest = 'ask';
                 }
                 $request['type'] = $typeRequest;
-                $response = $this->privatePostTradePlace($this->extend($request, $params));
+                $response = $this->privatePostTradePlace($this->extend($request, $paramsGeneration));
             } elseif ($side === 'buy') {
-                $response = $this->privatePostTradeMarketBuy($this->extend($request, $params));
+                $response = $this->privatePostTradeMarketBuy($this->extend($request, $paramsGeneration));
             } else {
-                $response = $this->privatePostTradeMarketSell($this->extend($request, $params));
+                $response = $this->privatePostTradeMarketSell($this->extend($request, $paramsGeneration));
             }
             //
             //     {
-            //         "status" => "0000",
-            //         "order_id" => "C0101000003152294086"
+            //         "status": "0000",
+            //         "order_id": "C0101000003152294086"
             //     }
             //
         }
@@ -1837,7 +1833,7 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
          * create a market buy order by providing the $symbol and $cost
          *
@@ -1852,13 +1848,12 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'createMarketBuyOrderWithCost', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createMarketBuyOrderWithCost', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' createMarketBuyOrderWithCost() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' createMarketBuyOrderWithCost() is only supported for the generation 2 API');
         }
-        $params['createMarketBuyOrderRequiresPrice'] = false;
-        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+        $paramsGeneration['createMarketBuyOrderRequiresPrice'] = false;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $paramsGeneration);
     }
 
     public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array()): array {
@@ -1880,10 +1875,9 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'createTwapOrder', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createTwapOrder', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' createTwapOrder() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' createTwapOrder() is only supported for the generation 2 API');
         }
         $market = $this->market($symbol);
         $durationString = $this->number_to_string($duration);
@@ -1902,16 +1896,16 @@ class bithumb extends Exchange {
             $sideRequest = 'ask';
         }
         $request['side'] = $sideRequest;
-        $response = $this->privatePostV1Twap($this->extend($request, $params));
+        $response = $this->privatePostV1Twap($this->extend($request, $paramsGeneration));
         //
         //     {
-        //         "algo_order_id" => "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
         //     }
         //
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -1931,14 +1925,13 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOrder', 'generation', 2);
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $twap = $this->safe_bool($params, 'twap', false);
-        $params = $this->omit($params, 'twap');
+        $twap = $this->safe_bool($paramsGeneration, 'twap', false);
+        $paramsOmitted = $this->omit($paramsGeneration, 'twap');
         $request = array();
         $response = null;
         $data = null;
@@ -1948,104 +1941,104 @@ class bithumb extends Exchange {
                     $request['market'] = $this->get_gen2_market_id($market);
                 }
                 $request['uuids'] = array( $id );
-                $response = $this->privateGetV1Twap($this->extend($request, $params));
+                $response = $this->privateGetV1Twap($this->extend($request, $paramsOmitted));
                 //
                 //     {
-                //         "has_next" => false,
-                //         "next_key" => null,
-                //         "orders" => array(
-                //             array(
-                //                 "uuid" => "019f3ed7-4f92-7179-beee-84b4c71e53fa",
-                //                 "side" => "bid",
-                //                 "price" => "92500000",
-                //                 "state" => "progress",
-                //                 "market" => "KRW-BTC",
-                //                 "created_at" => "2025-12-04T10:00:00+09:00",
-                //                 "volume" => "1.0",
-                //                 "total_order_count" => 60,
-                //                 "total_trades_count" => 10,
-                //                 "progress_count" => 25,
-                //                 "total_executed_amount" => "2312500000",
-                //                 "total_executed_volume" => "0.25",
-                //                 "avg_trade_price" => "92500000.000",
-                //                 "wallet_id" => "0000000000-00-0000"
-                //             ),
-                //         )
+                //         "has_next": false,
+                //         "next_key": null,
+                //         "orders": [
+                //             {
+                //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+                //                 "side": "bid",
+                //                 "price": "92500000",
+                //                 "state": "progress",
+                //                 "market": "KRW-BTC",
+                //                 "created_at": "2025-12-04T10:00:00+09:00",
+                //                 "volume": "1.0",
+                //                 "total_order_count": 60,
+                //                 "total_trades_count": 10,
+                //                 "progress_count": 25,
+                //                 "total_executed_amount": "2312500000",
+                //                 "total_executed_volume": "0.25",
+                //                 "avg_trade_price": "92500000.000",
+                //                 "wallet_id": "0000000000-00-0000"
+                //             },
+                //         ]
                 //     }
                 //
                 $orders = $this->safe_list($response, 'orders', array());
                 $data = $this->safe_dict($orders, 0, array());
             } else {
-                $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
+                $clientOrderId = $this->safe_string_2($paramsOmitted, 'clientOrderId', 'client_order_id');
+                $paramsClientOrderId = ($clientOrderId !== null) ? $this->omit($paramsOmitted, array( 'clientOrderId' )) : $paramsOmitted;
                 if ($clientOrderId !== null) {
                     $request['client_order_id'] = $clientOrderId;
-                    $params = $this->omit($params, array( 'clientOrderId' ));
                 } else {
                     $request['uuid'] = $id;
                 }
-                $response = $this->privateGetV1Order($this->extend($request, $params));
+                $response = $this->privateGetV1Order($this->extend($request, $paramsClientOrderId));
                 //
                 //     {
-                //         "uuid" => "C0101000003152406454",
-                //         "side" => "bid",
-                //         "ord_type" => "limit",
-                //         "price" => "9500000",
-                //         "state" => "wait",
-                //         "market" => "KRW-BTC",
-                //         "created_at" => "2026-07-04T15:05:46+09:00",
-                //         "volume" => "0.001",
-                //         "remaining_volume" => "0.001",
-                //         "reserved_fee" => "23.75",
-                //         "remaining_fee" => "23.75",
-                //         "paid_fee" => "0",
-                //         "locked" => "9524.75",
-                //         "executed_volume" => "0",
-                //         "executed_funds" => "0",
-                //         "trades_count" => 0,
-                //         "stp_type" => "cancel_taker",
-                //         "trades" => array()
+                //         "uuid": "C0101000003152406454",
+                //         "side": "bid",
+                //         "ord_type": "limit",
+                //         "price": "9500000",
+                //         "state": "wait",
+                //         "market": "KRW-BTC",
+                //         "created_at": "2026-07-04T15:05:46+09:00",
+                //         "volume": "0.001",
+                //         "remaining_volume": "0.001",
+                //         "reserved_fee": "23.75",
+                //         "remaining_fee": "23.75",
+                //         "paid_fee": "0",
+                //         "locked": "9524.75",
+                //         "executed_volume": "0",
+                //         "executed_funds": "0",
+                //         "trades_count": 0,
+                //         "stp_type": "cancel_taker",
+                //         "trades": []
                 //     }
                 //
                 $data = $response;
             }
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
             }
             $marketDefined = $market;
             $base = $this->safe_string($marketDefined, 'base');
             $quote = $this->safe_string($marketDefined, 'quote');
             if (($base === null) || ($quote === null)) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $market with defined $base and quote');
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a market with defined base and quote');
             }
             $request['order_id'] = $id;
             $request['order_currency'] = $base;
             $request['payment_currency'] = $quote;
-            $response = $this->privatePostInfoOrderDetail($this->extend($request, $params));
+            $response = $this->privatePostInfoOrderDetail($this->extend($request, $paramsOmitted));
             //
             //     {
-            //         "status" => "0000",
-            //         "data" => {
-            //             "order_date" => "1603161798539254",
-            //             "type" => "ask",
-            //             "order_status" => "Cancel",
-            //             "order_currency" => "BTC",
-            //             "payment_currency" => "KRW",
-            //             "watch_price" => "0",
-            //             "order_price" => "13344000",
-            //             "order_qty" => "0.0125",
-            //             "cancel_date" => "1603161803809993",
-            //             "cancel_type" => "사용자취소",
-            //             "contract" => array(
+            //         "status": "0000",
+            //         "data": {
+            //             "order_date": "1603161798539254",
+            //             "type": "ask",
+            //             "order_status": "Cancel",
+            //             "order_currency": "BTC",
+            //             "payment_currency": "KRW",
+            //             "watch_price": "0",
+            //             "order_price": "13344000",
+            //             "order_qty": "0.0125",
+            //             "cancel_date": "1603161803809993",
+            //             "cancel_type": "사용자취소",
+            //             "contract": [
             //                 {
-            //                     "transaction_date" => "1603161799976383",
-            //                     "price" => "13344000",
-            //                     "units" => "0.0015",
-            //                     "fee_currency" => "KRW",
-            //                     "fee" => "0",
-            //                     "total" => "20016"
+            //                     "transaction_date": "1603161799976383",
+            //                     "price": "13344000",
+            //                     "units": "0.0015",
+            //                     "fee_currency": "KRW",
+            //                     "fee": "0",
+            //                     "total": "20016"
             //                 }
-            //             ),
+            //             ],
             //         }
             //     }
             //
@@ -2075,118 +2068,118 @@ class bithumb extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //
-        // generation 1 => fetchOrder
+        // generation 1: fetchOrder
         //
         //     {
-        //         "transaction_date" => "1572497603668315",
-        //         "type" => "bid",
-        //         "order_status" => "Completed", // Completed, Cancel ...
-        //         "order_currency" => "BTC",
-        //         "payment_currency" => "KRW",
-        //         "watch_price" => "0", // present in Cancel $order
-        //         "order_price" => "8601000",
-        //         "order_qty" => "0.007",
-        //         "cancel_date" => "", // filled in Cancel $order
-        //         "cancel_type" => "", // filled in Cancel $order, i.e. 사용자취소
-        //         "contract" => array(
-        //             array(
-        //                 "transaction_date" => "1572497603902030",
-        //                 "price" => "8601000",
-        //                 "units" => "0.005",
-        //                 "fee_currency" => "KRW",
-        //                 "fee" => "107.51",
-        //                 "total" => "43005"
-        //             ),
-        //         )
+        //         "transaction_date": "1572497603668315",
+        //         "type": "bid",
+        //         "order_status": "Completed", // Completed, Cancel ...
+        //         "order_currency": "BTC",
+        //         "payment_currency": "KRW",
+        //         "watch_price": "0", // present in Cancel order
+        //         "order_price": "8601000",
+        //         "order_qty": "0.007",
+        //         "cancel_date": "", // filled in Cancel order
+        //         "cancel_type": "", // filled in Cancel order, i.e. 사용자취소
+        //         "contract": [
+        //             {
+        //                 "transaction_date": "1572497603902030",
+        //                 "price": "8601000",
+        //                 "units": "0.005",
+        //                 "fee_currency": "KRW",
+        //                 "fee": "107.51",
+        //                 "total": "43005"
+        //             },
+        //         ]
         //     }
         //
-        // generation 1 => fetchOpenOrders
+        // generation 1: fetchOpenOrders
         //
         //     {
-        //         "order_currency" => "BTC",
-        //         "payment_currency" => "KRW",
-        //         "order_id" => "C0101000003152294086",
-        //         "order_date" => "1783141846061516",
-        //         "type" => "bid",
-        //         "watch_price" => "0",
-        //         "units" => "0.001",
-        //         "units_remaining" => "0.001",
-        //         "price" => "9500000",
-        //         "stp_type" => "cancel_taker"
+        //         "order_currency": "BTC",
+        //         "payment_currency": "KRW",
+        //         "order_id": "C0101000003152294086",
+        //         "order_date": "1783141846061516",
+        //         "type": "bid",
+        //         "watch_price": "0",
+        //         "units": "0.001",
+        //         "units_remaining": "0.001",
+        //         "price": "9500000",
+        //         "stp_type": "cancel_taker"
         //     }
         //
-        // generation 1 => cancelOrder
+        // generation 1: cancelOrder
         //
         //     {
-        //         "status" => "0000"
+        //         "status": "0000"
         //     }
         //
-        // generation 2 => createOrder, createOrders
+        // generation 2: createOrder, createOrders
         //
         //     {
-        //         "order_id" => "C0101000003152350309",
-        //         "market" => "KRW-BTC",
-        //         "side" => "bid",
-        //         "order_type" => "limit",
-        //         "created_at" => "2026-07-04T14:39:04+09:00",
-        //         "stp_type" => "cancel_taker"
+        //         "order_id": "C0101000003152350309",
+        //         "market": "KRW-BTC",
+        //         "side": "bid",
+        //         "order_type": "limit",
+        //         "created_at": "2026-07-04T14:39:04+09:00",
+        //         "stp_type": "cancel_taker"
         //     }
         //
-        // generation 2 => fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        // generation 2: fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
-        //         "uuid" => "C0101000003152406454",
-        //         "side" => "bid",
-        //         "ord_type" => "limit",
-        //         "price" => "9500000",
-        //         "state" => "wait",
-        //         "market" => "KRW-BTC",
-        //         "created_at" => "2026-07-04T15:05:46+09:00",
-        //         "volume" => "0.001",
-        //         "remaining_volume" => "0.001",
-        //         "reserved_fee" => "23.75",
-        //         "remaining_fee" => "23.75",
-        //         "paid_fee" => "0",
-        //         "locked" => "9524.75",
-        //         "executed_volume" => "0",
-        //         "executed_funds" => "0",
-        //         "trades_count" => 0,
-        //         "stp_type" => "cancel_taker",
-        //         "trades" => array()
+        //         "uuid": "C0101000003152406454",
+        //         "side": "bid",
+        //         "ord_type": "limit",
+        //         "price": "9500000",
+        //         "state": "wait",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2026-07-04T15:05:46+09:00",
+        //         "volume": "0.001",
+        //         "remaining_volume": "0.001",
+        //         "reserved_fee": "23.75",
+        //         "remaining_fee": "23.75",
+        //         "paid_fee": "0",
+        //         "locked": "9524.75",
+        //         "executed_volume": "0",
+        //         "executed_funds": "0",
+        //         "trades_count": 0,
+        //         "stp_type": "cancel_taker",
+        //         "trades": []
         //     }
         //
-        // generation 2 => cancelOrder, cancelOrders
+        // generation 2: cancelOrder, cancelOrders
         //
         //     {
-        //         "order_id" => "C0101000003152350309",
-        //         "created_at" => "2026-07-04T14:39:04+09:00"
+        //         "order_id": "C0101000003152350309",
+        //         "created_at": "2026-07-04T14:39:04+09:00"
         //     }
         //
-        // generation 2 => createTwapOrder, twap cancelOrder
+        // generation 2: createTwapOrder, twap cancelOrder
         //
         //     {
-        //         "algo_order_id" => "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
         //     }
         //
-        // generation 2 => twap fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        // generation 2: twap fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
-        //         "uuid" => "019f3ed7-4f92-7179-beee-84b4c71e53fa",
-        //         "side" => "bid",
-        //         "price" => "92500000",
-        //         "state" => "progress",
-        //         "market" => "KRW-BTC",
-        //         "created_at" => "2025-12-03T09:00:00+09:00",
-        //         "volume" => "1.0",
-        //         "total_order_count" => 60,
-        //         "total_trades_count" => 10,
-        //         "progress_count" => 25,
-        //         "total_executed_amount" => "2312500000",
-        //         "total_executed_volume" => "0.25",
-        //         "avg_trade_price" => "92500000.000",
-        //         "wallet_id" => "0000000000-00-0000",
-        //         "canceled_at" => "2025-12-03T09:15:00+09:00",
-        //         "cancel_type" => "user"
+        //         "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+        //         "side": "bid",
+        //         "price": "92500000",
+        //         "state": "progress",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2025-12-03T09:00:00+09:00",
+        //         "volume": "1.0",
+        //         "total_order_count": 60,
+        //         "total_trades_count": 10,
+        //         "progress_count": 25,
+        //         "total_executed_amount": "2312500000",
+        //         "total_executed_volume": "0.25",
+        //         "avg_trade_price": "92500000.000",
+        //         "wallet_id": "0000000000-00-0000",
+        //         "canceled_at": "2025-12-03T09:15:00+09:00",
+        //         "cancel_type": "user"
         //     }
         //
         $datetime = $this->safe_string($order, 'created_at');
@@ -2242,10 +2235,10 @@ class bithumb extends Exchange {
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
         }
+        $marketId = $this->safe_string($order, 'market');
+        $marketResolved = ($symbol === null) ? $this->safe_market($marketId, $market) : $market;
         if ($symbol === null) {
-            $marketId = $this->safe_string($order, 'market');
-            $market = $this->safe_market($marketId, $market);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($marketResolved, 'symbol');
         }
         $id = $this->safe_string_n($order, array( 'order_id', 'uuid', 'algo_order_id' ));
         $rawTrades = $this->safe_list_2($order, 'contract', 'trades', array());
@@ -2253,8 +2246,8 @@ class bithumb extends Exchange {
         $fee = null;
         if ($feeCost !== null) {
             $currency = null;
-            if ($market !== null) {
-                $currency = $market['quote'];
+            if ($marketResolved !== null) {
+                $currency = $this->safe_string($marketResolved, 'quote');
             }
             $fee = array(
                 'currency' => $currency,
@@ -2290,7 +2283,7 @@ class bithumb extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => $rawTrades,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2313,57 +2306,54 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOpenOrders', 'generation', 2);
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $request = array();
         $market = null;
         $response = null;
         if ($generation === 2) {
-            $twap = $this->safe_bool($params, 'twap', false);
+            $twap = $this->safe_bool($paramsGeneration, 'twap', false);
             if ($twap) {
-                $params['state'] = 'progress';
+                $paramsGeneration['state'] = 'progress';
             } else {
-                $params['state'] = 'wait';
+                $paramsGeneration['state'] = 'wait';
             }
-            $orders = $this->fetch_orders($symbol, $since, $limit, $params);
+            $orders = $this->fetch_orders($symbol, $since, $limit, $paramsGeneration);
             return $this->filter_by_since_limit($orders, $since, $limit);
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
             }
             $market = $this->market($symbol);
             if ($since !== null) {
                 $request['after'] = $since;
             }
-            if ($limit === null) {
-                $limit = 100;
-            }
-            $request['count'] = $limit;
+            $request['count'] = $limitResolved;
             $request['order_currency'] = $market['base'];
             $request['payment_currency'] = $market['quote'];
-            $response = $this->privatePostInfoOrders($this->extend($request, $params));
+            $response = $this->privatePostInfoOrders($this->extend($request, $paramsGeneration));
             //
             //     {
-            //         "status" => "0000",
-            //         "data" => array(
+            //         "status": "0000",
+            //         "data": [
             //             {
-            //                 "order_currency" => "BTC",
-            //                 "payment_currency" => "KRW",
-            //                 "order_id" => "C0101000003152294086",
-            //                 "order_date" => "1783141846061516",
-            //                 "type" => "bid",
-            //                 "watch_price" => "0",
-            //                 "units" => "0.001",
-            //                 "units_remaining" => "0.001",
-            //                 "price" => "9500000",
-            //                 "stp_type" => "cancel_taker"
+            //                 "order_currency": "BTC",
+            //                 "payment_currency": "KRW",
+            //                 "order_id": "C0101000003152294086",
+            //                 "order_date": "1783141846061516",
+            //                 "type": "bid",
+            //                 "watch_price": "0",
+            //                 "units": "0.001",
+            //                 "units_remaining": "0.001",
+            //                 "price": "9500000",
+            //                 "stp_type": "cancel_taker"
             //             }
-            //         )
+            //         ]
             //     }
             //
         }
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($data, $market, $since, $limitResolved);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2386,20 +2376,22 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOrders', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchOrders is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchOrders is only supported for the generation 2 API');
         }
         $request = array();
-        $twap = $this->safe_bool($params, 'twap', false);
-        $params = $this->omit($params, 'twap');
-        if (!$twap) {
-            $clientOrderIds = $this->safe_list_2($params, 'client_order_ids', 'clientOrderIds');
-            if ($clientOrderIds !== null) {
-                $request['client_order_ids'] = $clientOrderIds;
-                $params = $this->omit($params, array( 'clientOrderIds' ));
-            }
+        $twap = $this->safe_bool($paramsGeneration, 'twap', false);
+        $paramsOmitted = $this->omit($paramsGeneration, 'twap');
+        $clientOrderIds = null;
+        if ($twap) {
+            $clientOrderIds = null;
+        } else {
+            $clientOrderIds = $this->safe_list_2($paramsOmitted, 'client_order_ids', 'clientOrderIds');
+        }
+        $paramsRequest = ($clientOrderIds !== null) ? $this->omit($paramsOmitted, array( 'clientOrderIds' )) : $paramsOmitted;
+        if ($clientOrderIds !== null) {
+            $request['client_order_ids'] = $clientOrderIds;
         }
         $market = null;
         if ($symbol !== null) {
@@ -2412,56 +2404,56 @@ class bithumb extends Exchange {
         $response = null;
         $data = null;
         if ($twap) {
-            $response = $this->privateGetV1Twap($this->extend($request, $params));
+            $response = $this->privateGetV1Twap($this->extend($request, $paramsRequest));
             //
             //     {
-            //         "has_next" => false,
-            //         "next_key" => null,
-            //         "orders" => array(
-            //             array(
-            //                 "uuid" => "019f3ed7-4f92-7179-beee-84b4c71e53fa",
-            //                 "side" => "bid",
-            //                 "price" => "92500000",
-            //                 "state" => "progress",
-            //                 "market" => "KRW-BTC",
-            //                 "created_at" => "2025-12-04T10:00:00+09:00",
-            //                 "volume" => "1.0",
-            //                 "total_order_count" => 60,
-            //                 "total_trades_count" => 10,
-            //                 "progress_count" => 25,
-            //                 "total_executed_amount" => "2312500000",
-            //                 "total_executed_volume" => "0.25",
-            //                 "avg_trade_price" => "92500000.000",
-            //                 "wallet_id" => "0000000000-00-0000"
-            //             ),
-            //         )
+            //         "has_next": false,
+            //         "next_key": null,
+            //         "orders": [
+            //             {
+            //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+            //                 "side": "bid",
+            //                 "price": "92500000",
+            //                 "state": "progress",
+            //                 "market": "KRW-BTC",
+            //                 "created_at": "2025-12-04T10:00:00+09:00",
+            //                 "volume": "1.0",
+            //                 "total_order_count": 60,
+            //                 "total_trades_count": 10,
+            //                 "progress_count": 25,
+            //                 "total_executed_amount": "2312500000",
+            //                 "total_executed_volume": "0.25",
+            //                 "avg_trade_price": "92500000.000",
+            //                 "wallet_id": "0000000000-00-0000"
+            //             },
+            //         ]
             //     }
             //
             $data = $this->safe_list($response, 'orders', array());
         } else {
-            $response = $this->privateGetV1Orders($this->extend($request, $params));
+            $response = $this->privateGetV1Orders($this->extend($request, $paramsRequest));
             //
-            //     array(
+            //     [
             //         {
-            //             "uuid" => "C0101000003152406454",
-            //             "side" => "bid",
-            //             "ord_type" => "limit",
-            //             "price" => "9500000",
-            //             "state" => "wait",
-            //             "market" => "KRW-BTC",
-            //             "created_at" => "2026-07-04T15:05:46+09:00",
-            //             "volume" => "0.001",
-            //             "remaining_volume" => "0.001",
-            //             "reserved_fee" => "23.75",
-            //             "remaining_fee" => "23.75",
-            //             "paid_fee" => "0",
-            //             "locked" => "9524.75",
-            //             "executed_volume" => "0",
-            //             "executed_funds" => "0",
-            //             "trades_count" => 0,
-            //             "stp_type" => "cancel_taker"
+            //             "uuid": "C0101000003152406454",
+            //             "side": "bid",
+            //             "ord_type": "limit",
+            //             "price": "9500000",
+            //             "state": "wait",
+            //             "market": "KRW-BTC",
+            //             "created_at": "2026-07-04T15:05:46+09:00",
+            //             "volume": "0.001",
+            //             "remaining_volume": "0.001",
+            //             "reserved_fee": "23.75",
+            //             "remaining_fee": "23.75",
+            //             "paid_fee": "0",
+            //             "locked": "9524.75",
+            //             "executed_volume": "0",
+            //             "executed_funds": "0",
+            //             "trades_count": 0,
+            //             "stp_type": "cancel_taker"
             //         }
-            //     )
+            //     ]
             //
             $data = $response;
         }
@@ -2510,7 +2502,7 @@ class bithumb extends Exchange {
         return $this->filter_by_since_limit($orders, $since, $limit);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2529,73 +2521,76 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'cancelOrder', 'generation', 2);
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
         $request = array();
         $response = null;
-        $twap = $this->safe_bool($params, 'twap', false);
-        $params = $this->omit($params, 'twap');
+        $twap = $this->safe_bool($paramsGeneration, 'twap', false);
+        $paramsOmitted = $this->omit($paramsGeneration, 'twap');
+        $clientOrderId = $this->safe_string_2($paramsOmitted, 'clientOrderId', 'client_order_id');
+        $useClientOrderId = !$twap && ($generation === 2) && ($clientOrderId !== null);
+        $paramsRequest = $paramsOmitted;
+        if ($useClientOrderId) {
+            $paramsRequest = $this->omit($paramsOmitted, array( 'clientOrderId' ));
+        }
         if ($twap) {
             $request['algo_order_id'] = $id;
         } else {
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
-            if (($generation === 2) && ($clientOrderId !== null)) {
+            if ($useClientOrderId) {
                 $request['client_order_id'] = $clientOrderId;
-                $params = $this->omit($params, array( 'clientOrderId' ));
             } else {
                 $request['order_id'] = $id;
             }
         }
         if ($generation === 2) {
             if ($twap) {
-                $response = $this->privateDeleteV1Twap($this->extend($request, $params));
+                $response = $this->privateDeleteV1Twap($this->extend($request, $paramsRequest));
                 //
                 //     {
-                //         "algo_order_id" => "TWAP-A01B02C03D04E05F06"
+                //         "algo_order_id": "TWAP-A01B02C03D04E05F06"
                 //     }
                 //
             } else {
-                $response = $this->privateDeleteV2Order($this->extend($request, $params));
+                $response = $this->privateDeleteV2Order($this->extend($request, $paramsRequest));
                 //
                 //     {
-                //         "order_id" => "C0101000003152350309",
-                //         "created_at" => "2026-07-04T14:39:04+09:00"
+                //         "order_id": "C0101000003152350309",
+                //         "created_at": "2026-07-04T14:39:04+09:00"
                 //     }
                 //
             }
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
             }
             $marketDefined = $market;
             $base = $this->safe_string($marketDefined, 'base');
             $quote = $this->safe_string($marketDefined, 'quote');
             if (($base === null) || ($quote === null)) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $market with defined $base and quote');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a market with defined base and quote');
             }
-            $side_in_params = (is_array($params) && array_key_exists('side' ?? '', $params));
+            $side_in_params = (is_array($paramsRequest) && array_key_exists('side' ?? '', $paramsRequest));
             if (!$side_in_params) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$side` parameter (sell or buy)');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `side` parameter (sell or buy)');
             }
             $side = null;
-            if ($params['side'] === 'buy') {
+            if ($this->safe_string($paramsRequest, 'side') === 'buy') {
                 $side = 'bid';
             } else {
                 $side = 'ask';
             }
-            $params = $this->omit($params, 'side');
+            $paramsSide = $this->omit($paramsRequest, 'side');
             // https://github.com/ccxt/ccxt/issues/6771
             $request['type'] = $side;
             $request['order_currency'] = $base;
             $request['payment_currency'] = $quote;
-            $response = $this->privatePostTradeCancel($this->extend($request, $params));
+            $response = $this->privatePostTradeCancel($this->extend($request, $paramsSide));
             //
             //     {
-            //         "status" => "0000"
+            //         "status": "0000"
             //     }
             //
         }
@@ -2620,33 +2615,32 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'cancelOrders', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' cancelOrders is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' cancelOrders is only supported for the generation 2 API');
         }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
         $request = array();
-        $clientOrderIds = $this->safe_list_2($params, 'client_order_ids', 'clientOrderIds');
+        $clientOrderIds = $this->safe_list_2($paramsGeneration, 'client_order_ids', 'clientOrderIds');
+        $paramsRequest = ($clientOrderIds !== null) ? $this->omit($paramsGeneration, array( 'clientOrderIds' )) : $paramsGeneration;
         if ($clientOrderIds !== null) {
             $request['client_order_ids'] = $clientOrderIds;
-            $params = $this->omit($params, array( 'clientOrderIds' ));
         } else {
             $request['order_ids'] = $ids;
         }
-        $response = $this->privatePostV2OrdersCancel($this->extend($request, $params));
+        $response = $this->privatePostV2OrdersCancel($this->extend($request, $paramsRequest));
         //
         //     {
-        //         "success" => array(
-        //             array(
-        //                 "order_id" => "C0101000003152500274",
+        //         "success": [
+        //             {
+        //                 "order_id": "C0101000003152500274",
         //                 "created_at":"2026-07-04T15:49:24+09:00"
-        //             ),
-        //         ),
-        //         "fail" => array()
+        //             },
+        //         ],
+        //         "fail": []
         //     }
         //
         $data = $this->safe_list($response, 'success', array());
@@ -2690,40 +2684,43 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'withdraw', 'generation', 2);
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'withdraw', 'generation', 2);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $paramsGeneration);
         $this->check_address($address);
-        $network = $this->safe_string_2($params, 'network', 'net_type');
-        $params = $this->omit($params, 'network');
+        $network = $this->safe_string_2($paramsWithdrawTag, 'network', 'net_type');
+        $paramsNetwork = $this->omit($paramsWithdrawTag, 'network');
         $currency = $this->currency($code);
         $request = array();
         $response = null;
         $destinationRequest = null;
-        if ($code === 'XRP' || $code === 'XMR' || $code === 'EOS' || $code === 'STEEM' || $code === 'TON') {
-            $destination = $this->safe_string_2($params, 'destination', 'secondary_address');
-            $params = $this->omit($params, array( 'destination', 'secondary_address' ));
-            if (($tag === null) && ($destination === null)) {
-                throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
-            } elseif ($tag !== null) {
-                $destinationRequest = $tag;
+        $requiresDestination = ($code === 'XRP' || $code === 'XMR' || $code === 'EOS' || $code === 'STEEM' || $code === 'TON');
+        $paramsDestination = $paramsNetwork;
+        if ($requiresDestination) {
+            $paramsDestination = $this->omit($paramsNetwork, array( 'destination', 'secondary_address' ));
+        }
+        if ($requiresDestination) {
+            $destination = $this->safe_string_2($paramsNetwork, 'destination', 'secondary_address');
+            if (($tagWithdrawTag === null) && ($destination === null)) {
+                throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a tag argument or an extra destination param');
+            } elseif ($tagWithdrawTag !== null) {
+                $destinationRequest = $tagWithdrawTag;
             } else {
                 $destinationRequest = $destination;
             }
         }
-        $receiverType = $this->safe_string_2($params, 'receiver_type', 'cust_type_cd');
-        $params = $this->omit($params, array( 'receiver_type', 'cust_type_cd' ));
+        $receiverType = $this->safe_string_2($paramsDestination, 'receiver_type', 'cust_type_cd');
+        $paramsReceiverType = $this->omit($paramsDestination, array( 'receiver_type', 'cust_type_cd' ));
         if ($generation === 2) {
             if ($code === 'KRW') {
-                $twoFactorType = $this->safe_string($params, 'two_factor_type');
+                $twoFactorType = $this->safe_string($paramsReceiverType, 'two_factor_type');
                 if ($twoFactorType === null) {
                     throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a two_factor_type parameter for withdrawing KRW');
                 }
-                $krwRequest = array( 'amount' => $this->number_to_string($amount) ); // KRW withdraw only accepts $amount and two_factor_type parameters
-                $response = $this->privatePostV1WithdrawsKrw($this->extend($krwRequest, $params));
+                $krwRequest = array( 'amount' => $this->number_to_string($amount) ); // KRW withdraw only accepts amount and two_factor_type parameters
+                $response = $this->privatePostV1WithdrawsKrw($this->extend($krwRequest, $paramsReceiverType));
             } else {
                 if ($network === null) {
-                    throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $network parameter');
+                    throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a network parameter');
                 }
                 $request['address'] = $address;
                 $request['currency'] = $currency['id'];
@@ -2735,22 +2732,22 @@ class bithumb extends Exchange {
                 if ($receiverType !== null) {
                     $request['receiver_type'] = $receiverType;
                 }
-                $response = $this->privatePostV1WithdrawsCoin($this->extend($request, $params));
+                $response = $this->privatePostV1WithdrawsCoin($this->extend($request, $paramsReceiverType));
             }
             //
             //     {
-            //         "type" => "withdraw",
-            //         "uuid" => "200377211",
-            //         "currency" => "BTC",
-            //         "net_type" => "BTC",
-            //         "state" => "processing",
-            //         "created_at" => "2024-07-14T14:54:24+09:00",
-            //         "done_at" => null,
-            //         "amount" => "0.00010000",
-            //         "fee" => "0",
-            //         "krw_amount" => "8400",
-            //         "transaction_type" => null,
-            //         "txid" => null
+            //         "type": "withdraw",
+            //         "uuid": "200377211",
+            //         "currency": "BTC",
+            //         "net_type": "BTC",
+            //         "state": "processing",
+            //         "created_at": "2024-07-14T14:54:24+09:00",
+            //         "done_at": null,
+            //         "amount": "0.00010000",
+            //         "fee": "0",
+            //         "krw_amount": "8400",
+            //         "transaction_type": null,
+            //         "txid": null
             //     }
             //
         } else {
@@ -2772,10 +2769,10 @@ class bithumb extends Exchange {
                     $request['cust_type_cd'] = $receiverType;
                 }
             }
-            $response = $this->privatePostTradeBtcWithdrawal($this->extend($request, $params));
+            $response = $this->privatePostTradeBtcWithdrawal($this->extend($request, $paramsReceiverType));
             //
             //     {
-            //         "status" => "0000"
+            //         "status": "0000"
             //     }
             //
         }
@@ -2784,30 +2781,30 @@ class bithumb extends Exchange {
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
-        // generation 1 => withdraw
+        // generation 1: withdraw
         //
-        //     array("status" => "0000")
+        //     {"status": "0000"}
         //
-        // generation 2 => withdraw, fetchWithdrawal, fetchWithdrawals, fetchDeposit, fetchDeposits
+        // generation 2: withdraw, fetchWithdrawal, fetchWithdrawals, fetchDeposit, fetchDeposits
         //
         //     {
-        //         "type" => "withdraw",
-        //         "uuid" => "200377211",
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "state" => "processing",
-        //         "created_at" => "2024-07-14T14:54:24+09:00",
-        //         "done_at" => null,
-        //         "amount" => "0.00010000",
-        //         "fee" => "0",
-        //         "krw_amount" => "8400",
-        //         "transaction_type" => null,
-        //         "txid" => null
+        //         "type": "withdraw",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "processing",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "krw_amount": "8400",
+        //         "transaction_type": null,
+        //         "txid": null
         //     }
         //
         $type = $this->safe_string($transaction, 'type');
         $currencyId = $this->safe_string($transaction, 'currency');
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         $datetime = $this->safe_string($transaction, 'created_at');
         $timestamp = $this->parse8601($datetime);
         if (($datetime !== null) && (mb_strpos($datetime, '+09:00') > -1)) {
@@ -2828,7 +2825,7 @@ class bithumb extends Exchange {
             'addressTo' => null,
             'amount' => $this->safe_number($transaction, 'amount'),
             'type' => $type,
-            'currency' => $currency['code'],
+            'currency' => $currencyResolved['code'],
             'status' => $this->parse_transaction_status_by_type($this->safe_string($transaction, 'state'), $type),
             'updated' => null,
             'tagFrom' => null,
@@ -2884,25 +2881,24 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchWithdrawalWhitelist', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchWithdrawalWhitelist', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchWithdrawalWhitelist() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchWithdrawalWhitelist() is only supported for the generation 2 API');
         }
-        $response = $this->privateGetV1WithdrawsCoinAddresses($params);
+        $response = $this->privateGetV1WithdrawsCoinAddresses($paramsGeneration);
         //
-        //     array(
-        //         array(
-        //             "currency" => "BTC",
-        //             "wallet_state" => "working",
-        //             "block_state" => "normal",
-        //             "block_height" => 852086,
-        //             "block_updated_at" => "2024-07-14T13:43:57+09:00",
-        //             "block_elapsed_minutes" => 2,
-        //             "net_type" => "BTC",
-        //             "network_name" => "Bitcoin"
-        //         ),
-        //     )
+        //     [
+        //         {
+        //             "currency": "BTC",
+        //             "wallet_state": "working",
+        //             "block_state": "normal",
+        //             "block_height": 852086,
+        //             "block_updated_at": "2024-07-14T13:43:57+09:00",
+        //             "block_elapsed_minutes": 2,
+        //             "net_type": "BTC",
+        //             "network_name": "Bitcoin"
+        //         },
+        //     ]
         //
         return $response;
     }
@@ -2923,13 +2919,12 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchWithdrawal', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchWithdrawal', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchWithdrawal() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchWithdrawal() is only supported for the generation 2 API');
         }
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires a code argument');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -2938,20 +2933,20 @@ class bithumb extends Exchange {
         if ($id !== null) {
             $request['uuid'] = $id;
         }
-        $response = $this->privateGetV1Withdraw($this->extend($request, $params));
+        $response = $this->privateGetV1Withdraw($this->extend($request, $paramsGeneration));
         //
         //     {
-        //         "type" => "withdraw",
-        //         "uuid" => "200377211",
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "state" => "processing",
-        //         "created_at" => "2024-07-14T14:54:24+09:00",
-        //         "done_at" => null,
-        //         "amount" => "0.00010000",
-        //         "fee" => "0",
-        //         "transaction_type" => null,
-        //         "txid" => null
+        //         "type": "withdraw",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "processing",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "transaction_type": null,
+        //         "txid": null
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -2979,10 +2974,9 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchWithdrawals', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchWithdrawals() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchWithdrawals() is only supported for the generation 2 API');
         }
         $request = array();
         if ($limit !== null) {
@@ -2992,30 +2986,30 @@ class bithumb extends Exchange {
         $currency = null;
         if ($code === 'KRW') {
             $currency = $this->currency($code);
-            $response = $this->privateGetV1WithdrawsKrw($this->extend($request, $params));
+            $response = $this->privateGetV1WithdrawsKrw($this->extend($request, $paramsGeneration));
         } else {
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
             }
-            $response = $this->privateGetV1Withdraws($this->extend($request, $params));
+            $response = $this->privateGetV1Withdraws($this->extend($request, $paramsGeneration));
         }
         //
-        //     array(
+        //     [
         //         {
-        //             "type" => "withdraw",
-        //             "uuid" => "200377211",
-        //             "currency" => "BTC",
-        //             "net_type" => "BTC",
-        //             "state" => "processing",
-        //             "created_at" => "2024-07-14T14:54:24+09:00",
-        //             "done_at" => null,
-        //             "amount" => "0.00010000",
-        //             "fee" => "0",
-        //             "transaction_type" => null,
-        //             "txid" => null
+        //             "type": "withdraw",
+        //             "uuid": "200377211",
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "state": "processing",
+        //             "created_at": "2024-07-14T14:54:24+09:00",
+        //             "done_at": null,
+        //             "amount": "0.00010000",
+        //             "fee": "0",
+        //             "transaction_type": null,
+        //             "txid": null
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -3036,13 +3030,12 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchDeposit', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDeposit', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchDeposit() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchDeposit() is only supported for the generation 2 API');
         }
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposit() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposit() requires a code argument');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -3051,20 +3044,20 @@ class bithumb extends Exchange {
         if ($id !== null) {
             $request['uuid'] = $id;
         }
-        $response = $this->privateGetV1Deposit($this->extend($request, $params));
+        $response = $this->privateGetV1Deposit($this->extend($request, $paramsGeneration));
         //
         //     {
-        //         "type" => "deposit",
-        //         "uuid" => "200377211",
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "state" => "DEPOSIT_ACCEPTED",
-        //         "created_at" => "2024-07-14T14:54:24+09:00",
-        //         "done_at" => null,
-        //         "amount" => "0.00010000",
-        //         "fee" => "0",
-        //         "transaction_type" => null,
-        //         "txid" => null
+        //         "type": "deposit",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "DEPOSIT_ACCEPTED",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "transaction_type": null,
+        //         "txid": null
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -3092,10 +3085,9 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDeposits', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchDeposits() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchDeposits() is only supported for the generation 2 API');
         }
         $request = array();
         if ($limit !== null) {
@@ -3105,30 +3097,30 @@ class bithumb extends Exchange {
         $currency = null;
         if ($code === 'KRW') {
             $currency = $this->currency($code);
-            $response = $this->privateGetV1DepositsKrw($this->extend($request, $params));
+            $response = $this->privateGetV1DepositsKrw($this->extend($request, $paramsGeneration));
         } else {
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
             }
-            $response = $this->privateGetV1Deposits($this->extend($request, $params));
+            $response = $this->privateGetV1Deposits($this->extend($request, $paramsGeneration));
         }
         //
-        //     array(
+        //     [
         //         {
-        //             "type" => "deposit",
-        //             "uuid" => "200377211",
-        //             "currency" => "BTC",
-        //             "net_type" => "BTC",
-        //             "state" => "DEPOSIT_ACCEPTED",
-        //             "created_at" => "2024-07-14T14:54:24+09:00",
-        //             "done_at" => null,
-        //             "amount" => "0.00010000",
-        //             "fee" => "0",
-        //             "transaction_type" => null,
-        //             "txid" => null
+        //             "type": "deposit",
+        //             "uuid": "200377211",
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "state": "DEPOSIT_ACCEPTED",
+        //             "created_at": "2024-07-14T14:54:24+09:00",
+        //             "done_at": null,
+        //             "amount": "0.00010000",
+        //             "fee": "0",
+        //             "transaction_type": null,
+        //             "txid": null
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -3148,28 +3140,27 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'createDepositAddress', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createDepositAddress', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' createDepositAddress() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' createDepositAddress() is only supported for the generation 2 API');
         }
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
-        $network = $this->safe_string_2($params, 'network', 'net_type');
-        $params = $this->omit($params, 'network');
+        $network = $this->safe_string_2($paramsGeneration, 'network', 'net_type');
+        $paramsOmitted = $this->omit($paramsGeneration, 'network');
         if ($network === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $code . ' createDepositAddress() requires a $network parameter');
+            throw new ArgumentsRequired($this->id . ' ' . $code . ' createDepositAddress() requires a network parameter');
         }
         $request['net_type'] = $network;
-        $response = $this->privatePostV1DepositsGenerateCoinAddress($this->extend($request, $params));
+        $response = $this->privatePostV1DepositsGenerateCoinAddress($this->extend($request, $paramsOmitted));
         //
         //     {
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "deposit_address" => "195Y...rbJ3",
-        //         "secondary_address" => null
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
         //     }
         //
         return $this->parse_deposit_address($response, $currency);
@@ -3190,28 +3181,27 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchDepositAddress', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDepositAddress', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchDepositAddress() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchDepositAddress() is only supported for the generation 2 API');
         }
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
-        $network = $this->safe_string_2($params, 'network', 'net_type');
-        $params = $this->omit($params, 'network');
+        $network = $this->safe_string_2($paramsGeneration, 'network', 'net_type');
+        $paramsOmitted = $this->omit($paramsGeneration, 'network');
         if ($network === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $code . ' fetchDepositAddress() requires a $network parameter');
+            throw new ArgumentsRequired($this->id . ' ' . $code . ' fetchDepositAddress() requires a network parameter');
         }
         $request['net_type'] = $network;
-        $response = $this->privateGetV1DepositsCoinAddress($this->extend($request, $params));
+        $response = $this->privateGetV1DepositsCoinAddress($this->extend($request, $paramsOmitted));
         //
         //     {
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "deposit_address" => "195Y...rbJ3",
-        //         "secondary_address" => null
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
         //     }
         //
         return $this->parse_deposit_address($response, $currency);
@@ -3231,34 +3221,33 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_and_params($params, 'fetchDepositAddresses', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDepositAddresses', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchDepositAddresses() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchDepositAddresses() is only supported for the generation 2 API');
         }
-        $response = $this->privateGetV1DepositsCoinAddresses($params);
+        $response = $this->privateGetV1DepositsCoinAddresses($paramsGeneration);
         //
-        //     array(
+        //     [
         //         {
-        //             "currency" => "BTC",
-        //             "net_type" => "BTC",
-        //             "deposit_address" => "195Y...rbJ3",
-        //             "secondary_address" => null
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "deposit_address": "195Y...rbJ3",
+        //             "secondary_address": null
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_deposit_addresses($response, $codes, false, array());
     }
 
-    public function parse_deposit_address(mixed $response, ?array $currency = null): array {
+    public function parse_deposit_address(array $response, ?array $currency = null): array {
         //
-        // generation 2 => createDepositAddress, fetchDepositAddress, fetchDepositAddresses
+        // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
         //
         //     {
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "deposit_address" => "195Y...rbJ3",
-        //         "secondary_address" => null
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
         //     }
         //
         $currencyId = $this->safe_string($response, 'currency');
@@ -3277,7 +3266,7 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fix_comma_number(mixed $numberStr) {
+    public function fix_comma_number(?string $numberStr) {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if ($numberStr === null) {
             return null;
@@ -3289,7 +3278,7 @@ class bithumb extends Exchange {
         return $finalNumberStr;
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
@@ -3325,14 +3314,23 @@ class bithumb extends Exchange {
         return $result;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $endpoint = '/' . $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$api]) . $endpoint;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($apiUrl) . $endpoint;
         $query = $this->omit($params, $this->extract_params($path));
         $queryKeys = is_array($query) ? array_keys($query) : array();
         $queryKeysLength = count($queryKeys);
         $hasQuery = ($queryKeysLength > 0);
         if ($api === 'public') {
+            $requestHeaders = array(
+                'OPEN-API-PARTNER' => 'CCXT',
+            );
             if ($hasQuery) {
                 $url .= '?' . $this->urlencode($query);
             }
@@ -3340,8 +3338,9 @@ class bithumb extends Exchange {
             $this->check_required_credentials();
             $isVersionedApi = (str_starts_with($endpoint, '/v1/') || str_starts_with($endpoint, '/v2/'));
             if ($isVersionedApi) {
-                $headers = array(
+                $requestHeaders = array(
                     'Accept' => 'application/json',
+                    'OPEN-API-PARTNER' => 'CCXT',
                 );
                 $request = array(
                     'access_key' => $this->apiKey,
@@ -3350,9 +3349,9 @@ class bithumb extends Exchange {
                 );
                 $auth = null;
                 if (($method !== 'GET') && ($method !== 'DELETE')) {
-                    $headers['Content-Type'] = 'application/json';
+                    $requestHeaders['Content-Type'] = 'application/json';
                     if ($hasQuery) {
-                        $body = $this->json($query);
+                        $requestBody = $this->json($query);
                         $auth = $this->urlencode_with_array_brackets($query);
                     }
                 } elseif ($hasQuery) {
@@ -3365,37 +3364,40 @@ class bithumb extends Exchange {
                     $request['query_hash_alg'] = 'SHA512';
                 }
                 $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
-                $headers['Authorization'] = 'Bearer ' . $token;
+                $requestHeaders['Authorization'] = 'Bearer ' . $token;
             } else {
-                $body = $this->urlencode($this->extend(array(
+                $requestBody = $this->urlencode($this->extend(array(
                     'endpoint' => $endpoint,
                 ), $query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                $bodyParts = explode('%20', $body);
-                $body = implode('+', $bodyParts);
+                $bodyParts = explode('%20', $requestBody);
+                $requestBody = implode('+', $bodyParts);
                 $nonce = (string) $this->nonce();
-                $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
+                $auth = $endpoint . "\0" . $requestBody . "\0" . $nonce; // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
                 $signature64 = base64_encode($signature);
-                $headers = array(
+                $requestHeaders = array(
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/x-www-form-urlencoded',
                     'Api-Key' => $this->apiKey,
                     'Api-Sign' => $signature64,
                     'Api-Nonce' => $nonce,
+                    'OPEN-API-PARTNER' => 'CCXT',
                 );
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
+        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
         // generation 2:
         //
-        //     array("error":array("name":400,"message":"Missing request parameter $error-> Check the required parameters!"))
+        //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
         //
         $error = $this->safe_dict($response, 'error');
         if ($error !== null) {
@@ -3413,16 +3415,16 @@ class bithumb extends Exchange {
         if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             // generation 1:
             //
-            //     array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+            //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             //
             $status = $this->safe_string($response, 'status');
             $message = $this->safe_string($response, 'message');
             if ($status !== null) {
                 if ($status === '0000') {
-                    return null; // no $error
+                    return null; // no error
                 } elseif ($message === '거래 진행중인 내역이 존재하지 않습니다.') {
                     // https://github.com/ccxt/ccxt/issues/9017
-                    return null; // no $error
+                    return null; // no error
                 }
                 $feedback = $this->id . ' ' . $message;
                 $this->throw_exactly_matched_exception($this->exceptions, $status, $feedback);

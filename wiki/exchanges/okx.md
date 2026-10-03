@@ -1709,23 +1709,24 @@ okx.fetchOpenInterests (symbols, params?)
 <a name="fetchOpenInterestHistory" id="fetchopeninteresthistory"></a>
 
 ### fetchOpenInterestHistory{docsify-ignore}
-Retrieves the open interest history of a currency
+Retrieves the open interest history of a swap or future market, or of a currency when a currency code is given
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: An array of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**
 
-- https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
-- https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
+- https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-open-interest-history
+- https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contracts-open-interest-and-volume
+- https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-options-open-interest-and-volume
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | Unified CCXT currency code or unified symbol |
+| symbol | <code>string</code> | Yes | unified symbol of a swap or future market for the history of that instrument, otherwise a unified currency code, or the symbol of a spot or option market, for the aggregate over all contracts of the currency |
 | timeframe | <code>string</code> | Yes | "5m", "1h", or "1d" for option only "1d" or "8h" |
 | since | <code>int</code> | No | The time in ms of the earliest record to retrieve as a unix timestamp |
-| limit | <code>int</code> | No | Not used by okx, but parsed internally by CCXT |
+| limit | <code>int</code> | No | the maximum number of records to retrieve, at most 100 for a swap or future market; not used by the currency aggregate |
 | params | <code>object</code> | No | Exchange specific parameters |
 | params.until | <code>int</code> | No | The time in ms of the latest record to retrieve as a unix timestamp |
 
@@ -2388,12 +2389,17 @@ watches best bid & ask for symbols
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel  
+**See**
+
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms) |
 
 
 ```javascript

@@ -102,7 +102,7 @@ fn now_ms() -> i64 {
 fn parse_text(t: &str) -> Value {
     match serde_json::from_str::<serde_json::Value>(t) {
         Ok(j) => Value::from_json(&j),
-        Err(_) => Value::Str(t.to_string()),
+        Err(_) => Value::Str(t.to_string().into()),
     }
 }
 
@@ -356,14 +356,35 @@ impl ClientState {
         *self.last_pong_ms.lock().unwrap() = now_ms();
     }
 
-    /// Drop resolved/rejected/subscription/future state (TS `client.reset`),
+    /// Drop resolved/rejected/subscription/future state,
     /// e.g. after a reconnect so stale hashes don't resolve new waiters.
+    /// Internal wipe only — the transpiled `client.reset(error)` goes through
+    /// `reset_with_error` below, which delivers the error first.
     pub fn reset(&self) {
         self.resolved.lock().unwrap().clear();
         self.rejections.lock().unwrap().clear();
         self.subscriptions.lock().unwrap().clear();
         self.futures.lock().unwrap().clear();
         self.flights.lock().unwrap().clear();
+    }
+
+    /// TS `client.reset(error)` — reject every pending future/flight with the
+    /// error so waiters fail fast instead of hanging, then drop the pending
+    /// future state. Mirrors the js/php/c#/go/java/python clients: rejections
+    /// are kept (they carry the error to the waiters), delivered-but-not-taken
+    /// `resolved` values are kept (in TS an already-resolved future is settled
+    /// — `reject` on it is a no-op — so its waiter still gets the value), and
+    /// subscriptions are left to the caller — the TS `Client.reset` does not
+    /// clear them either.
+    pub fn reset_with_error(&self, error: Value) {
+        let hashes: Vec<String> = self.futures.lock().unwrap().iter().cloned().collect();
+        for h in &hashes {
+            if self.resolved.lock().unwrap().contains_key(h) {
+                continue;
+            }
+            self.reject(h, error.clone());
+        }
+        self.futures.lock().unwrap().clear();
     }
 
     /// Snapshot of `subscriptions` as a `Value::Map { hash: subscription }` —
@@ -374,7 +395,7 @@ impl ClientState {
     pub fn subscriptions_value(&self) -> Value {
         let subs = self.subscriptions.lock().unwrap();
         let mut m = indexmap::IndexMap::new();
-        m.insert("__ws_subs_url".to_string(), Value::Str(self.url.clone()));
+        m.insert("__ws_subs_url".to_string(), Value::Str(self.url.clone().into()));
         for (h, sub) in subs.iter() {
             // Tag each subscription DICT with a back-reference so a field write
             // on it (`subscription['receivedSnapshot'] = true`) persists to this
@@ -384,7 +405,7 @@ impl ClientState {
                 Value::Dict(d) => {
                     let mut inner = (**d).clone();
                     inner.insert("__ws_sub_ref".to_string(),
-                        Value::Str(format!("{}\u{1}{}", self.url, h)));
+                        Value::Str(format!("{}\u{1}{}", self.url, h).into()));
                     Value::Dict(std::sync::Arc::new(inner))
                 }
                 other => other.clone(),
@@ -417,8 +438,8 @@ impl ClientState {
             // transpiled `client.futures[hash].resolve(x)` (bitget/cryptocom auth)
             // routes back to this ClientState — see value_resolve/value_reject.
             let mut fh = indexmap::IndexMap::new();
-            fh.insert("url".to_string(), Value::Str(self.url.clone()));
-            fh.insert("__ws_future_hash".to_string(), Value::Str(h.clone()));
+            fh.insert("url".to_string(), Value::Str(self.url.clone().into()));
+            fh.insert("__ws_future_hash".to_string(), Value::Str(h.clone().into()));
             m.insert(h.clone(), Value::Map(fh));
         }
         Value::Map(m)
@@ -671,7 +692,7 @@ pub fn mock_is_completed(url: &str) -> bool {
 pub fn mock_reject_futures(url: &str) {
     if let Some(c) = get_client(url) {
         c.reject_pending_futures(Value::Str(
-            "[ExchangeError] static ws test: the injected messages did not resolve the watch future".to_string()));
+            "[ExchangeError] static ws test: the injected messages did not resolve the watch future".to_string().into()));
     }
 }
 
@@ -683,7 +704,7 @@ pub fn client_value(url: &str) -> Value {
     // socket connects) persist and read back — upbit-style subscribe building.
     let c = ensure_slot(url);
     let mut m = indexmap::IndexMap::new();
-    m.insert("url".to_string(), Value::Str(url.to_string()));
+    m.insert("url".to_string(), Value::Str(url.to_string().into()));
     m.insert("subscriptions".to_string(), c.subscriptions_value());
     m.insert("futures".to_string(), c.futures_value());
     Value::Map(m)
@@ -704,8 +725,8 @@ pub fn begin_flight(url: &str, hash: &str) -> bool {
 /// a handle and `ws_await_flight` does the awaiting.
 pub fn flight_handle(url: &str, hash: &str, led: bool) -> Value {
     let mut m = indexmap::IndexMap::new();
-    m.insert("url".to_string(), Value::Str(url.to_string()));
-    m.insert("__ws_flight_hash".to_string(), Value::Str(hash.to_string()));
+    m.insert("url".to_string(), Value::Str(url.to_string().into()));
+    m.insert("__ws_flight_hash".to_string(), Value::Str(hash.to_string().into()));
     // Whether the call that produced this handle opened the flight. A leader
     // settles its own flight (and TS's `await future` resolves the instant it
     // does), so it must never block on itself — including when the venue
@@ -719,8 +740,8 @@ pub fn flight_handle(url: &str, hash: &str, led: bool) -> Value {
 /// shape too, so `client.futures[hash]` entries can be awaited as well.
 fn flight_hash_of(handle: &Value) -> Option<String> {
     for key in ["__ws_flight_hash", "__ws_future_hash"] {
-        if let Value::Str(h) = crate::get_value(handle, &Value::Str(key.to_string())) {
-            return Some(h);
+        if let Value::Str(h) = crate::get_value(handle, &Value::Str(key.to_string().into())) {
+            return Some(h.to_string());
         }
     }
     None
@@ -747,7 +768,7 @@ pub async fn ws_await_flight(handle: &Value) -> Value {
     // deadlock the (common) case where the venue took the lead and then found
     // it had nothing to do.
     let led = matches!(
-        crate::get_value(handle, &Value::Str("__ws_flight_led".to_string())),
+        crate::get_value(handle, &Value::Str("__ws_flight_led".into())),
         Value::Bool(true)
     );
     if led || !client.flight_is_open(&hash) {
@@ -757,7 +778,7 @@ pub async fn ws_await_flight(handle: &Value) -> Value {
                 "{}",
                 match &e {
                     Value::Str(s) => s.clone(),
-                    v => crate::runtime::stringify_param(v),
+                    v => crate::runtime::stringify_param(v).into(),
                 }
             ),
             // A flight that never opened is not an error — the value it would
@@ -783,7 +804,7 @@ pub async fn ws_await_flight(handle: &Value) -> Value {
                     "{}",
                     match &e {
                         Value::Str(s) => s.clone(),
-                        v => crate::runtime::stringify_param(v),
+                        v => crate::runtime::stringify_param(v).into(),
                     }
                 ),
             };
@@ -803,15 +824,15 @@ pub async fn ws_await_flight(handle: &Value) -> Value {
 
 /// Extract the `url` from a client-handle `Value` (`Map{"url": ...}`).
 pub fn url_of(client: &Value) -> Option<String> {
-    match crate::get_value(client, &Value::Str("url".to_string())) {
-        Value::Str(s) => Some(s),
+    match crate::get_value(client, &Value::Str("url".into())) {
+        Value::Str(s) => Some(s.to_string()),
         _ => None,
     }
 }
 
 fn hash_str(v: &Value) -> Option<String> {
     match v {
-        Value::Str(s) => Some(s.clone()),
+        Value::Str(s) => Some(s.to_string()),
         _ => None,
     }
 }
@@ -837,8 +858,8 @@ pub fn value_resolve(client: &Value, args: &[Value]) -> Value {
 
 /// Extract the hash a future handle (`client.futures[hash]`) resolves/rejects.
 fn future_hash_of(client: &Value) -> Option<String> {
-    match crate::get_value(client, &Value::Str("__ws_future_hash".to_string())) {
-        Value::Str(s) => Some(s),
+    match crate::get_value(client, &Value::Str("__ws_future_hash".into())) {
+        Value::Str(s) => Some(s.to_string()),
         _ => None,
     }
 }
@@ -875,9 +896,9 @@ pub fn value_send(client: &Value, args: &[Value]) -> Value {
     if let Some(url) = url_of(client) {
         if let Some(c) = get_client(&url) {
             let payload = match args.get(0) {
-                Some(Value::Str(s)) => s.clone(),
+                Some(Value::Str(s)) => s.to_string(),
                 Some(v) => v.to_json().to_string(),
-                None => String::new(),
+                None => String::new().into(),
             };
             c.send_text(payload);
         }
@@ -885,11 +906,17 @@ pub fn value_send(client: &Value, args: &[Value]) -> Value {
     Value::Null
 }
 
-/// `client.reset(...)` routed by URL.
-pub fn value_reset(client: &Value) -> Value {
+/// `client.reset(...)` routed by URL. An arg-less `client.reset()` reaches
+/// here with `Value::Null` — there is no error to deliver, so fall back to
+/// the internal wipe rather than rejecting every waiter with a null error.
+pub fn value_reset(client: &Value, error: Value) -> Value {
     if let Some(url) = url_of(client) {
         if let Some(c) = get_client(&url) {
-            c.reset();
+            if matches!(error, Value::Null) {
+                c.reset();
+            } else {
+                c.reset_with_error(error);
+            }
         }
     }
     Value::Null
@@ -937,6 +964,44 @@ mod tests {
         format!("ws://{addr}")
     }
 
+    // The transpiled `client.reset(error)` path (`value_reset` →
+    // `reset_with_error`): a pending watch hash must observe the error (not
+    // hang), a delivered-but-not-taken value must survive the reset, and an
+    // arg-less `client.reset()` (error = `Value::Null`) must fall back to the
+    // silent wipe instead of rejecting waiters with a null error.
+    #[test]
+    fn value_reset_rejects_pending_futures() {
+        let url = "ws://reset-with-error.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        client.note_futures(&["pending".to_string(), "delivered".to_string()]);
+        client.resolve("delivered", Value::Str("payload".into()));
+
+        let handle = client_value(url);
+        let error = Value::Str("[InvalidNonce] gap detected".into());
+        value_reset(&handle, error.clone());
+
+        // The pending waiter fails fast with the reset error…
+        assert_eq!(
+            client.take_settled(&["pending".to_string()]),
+            Some(Err(error))
+        );
+        // …while the already-delivered value still reaches its waiter.
+        assert_eq!(
+            client.take_settled(&["delivered".to_string()]),
+            Some(Ok(Value::Str("payload".into())))
+        );
+        assert!(!client.has_pending_futures());
+
+        // Arg-less reset: silent wipe, nothing settled with a null error.
+        client.note_futures(&["pending2".to_string()]);
+        value_reset(&handle, Value::Null);
+        assert_eq!(client.take_settled(&["pending2".to_string()]), None);
+        assert!(!client.has_pending_futures());
+
+        drop_client(url);
+    }
+
     #[tokio::test]
     async fn transport_roundtrip() {
         let url = spawn_mock_server().await;
@@ -952,7 +1017,7 @@ mod tests {
         let mut lasts = Vec::new();
         while lasts.len() < 3 {
             let msg = client.next_message().await.expect("message before close");
-            let last = crate::get_value(&msg, &Value::Str("last".to_string()));
+            let last = crate::get_value(&msg, &Value::Str("last".into()));
             if let Value::Str(s) = &last {
                 client.resolve("ticker", Value::Str(s.clone()));
             }
@@ -966,7 +1031,7 @@ mod tests {
         let subs = client.subscriptions_value();
         assert!(crate::runtime::is_true(&crate::get_value(
             &subs,
-            &Value::Str("ticker:BTC/USDT".to_string())
+            &Value::Str("ticker:BTC/USDT".into())
         )));
 
         drop_client(&url);
@@ -1003,9 +1068,9 @@ mod tests {
                     "handle_message" => {
                         let client = args.get(0).cloned().unwrap_or(Value::Null);
                         let message = args.get(1).cloned().unwrap_or(Value::Null);
-                        let last = crate::get_value(&message, &Value::Str("last".to_string()));
+                        let last = crate::get_value(&message, &Value::Str("last".into()));
                         // `client.resolve(value, messageHash)` — routes to the registry.
-                        client.resolve(&[last, Value::Str("ticker".to_string())]);
+                        client.resolve(&[last, Value::Str("ticker".into())]);
                         Value::Null
                     }
                     _ => self.call_dynamic_base(method, args).await,
@@ -1025,17 +1090,17 @@ mod tests {
         // dispatch each to handle_message, return once "ticker" resolves.
         let result = ExchangeRuntime::watch(
             &mut core,
-            Value::Str(url.clone()),
-            Value::Str("ticker".to_string()),
+            Value::Str(url.clone().into()),
+            Value::Str("ticker".into()),
             &[
-                Value::Str("{\"op\":\"subscribe\",\"channel\":\"ticker\"}".to_string()),
-                Value::Str("ticker".to_string()),
+                Value::Str("{\"op\":\"subscribe\",\"channel\":\"ticker\"}".into()),
+                Value::Str("ticker".into()),
                 Value::Null,
             ],
         )
         .await;
         // First streamed ticker.
-        assert_eq!(result, Value::Str("100.5".to_string()));
+        assert_eq!(result, Value::Str("100.5".into()));
         drop_client(&url);
     }
 
@@ -1063,14 +1128,14 @@ mod tests {
         let c = ensure_slot(url);
         assert!(c.flight_begin("auth"));
         // Every waiter observes the value — settling must not consume it.
-        c.resolve("auth", Value::Str("listen-key".to_string()));
+        c.resolve("auth", Value::Str("listen-key".into()));
         assert_eq!(
             ws_await_flight(&flight_handle(url, "auth", false)).await,
-            Value::Str("listen-key".to_string())
+            Value::Str("listen-key".into())
         );
         assert_eq!(
             ws_await_flight(&flight_handle(url, "auth", false)).await,
-            Value::Str("listen-key".to_string())
+            Value::Str("listen-key".into())
         );
         // Settled ⇒ cleared from `futures`, so the next cycle re-leads rather
         // than parking every caller on the follower branch forever.
@@ -1088,12 +1153,12 @@ mod tests {
             let c = c.clone();
             tokio::spawn(async move {
                 tokio::time::sleep(std::time::Duration::from_millis(60)).await;
-                c.resolve("auth", Value::Str("late".to_string()));
+                c.resolve("auth", Value::Str("late".into()));
             })
         };
         let started = std::time::Instant::now();
         let got = ws_await_flight(&flight_handle(url, "auth", false)).await;
-        assert_eq!(got, Value::Str("late".to_string()));
+        assert_eq!(got, Value::Str("late".into()));
         assert!(started.elapsed() >= std::time::Duration::from_millis(50), "waited for the leader");
         settler.await.unwrap();
         drop_client(url);
@@ -1138,7 +1203,7 @@ mod tests {
     /// The transpiled follower test, `messageHash in client.futures`.
     fn in_op_futures(c: &Arc<ClientState>, hash: &str) -> bool {
         !matches!(
-            crate::get_value(&c.futures_value(), &Value::Str(hash.to_string())),
+            crate::get_value(&c.futures_value(), &Value::Str(hash.to_string().into())),
             Value::Null
         )
     }
@@ -1147,7 +1212,7 @@ mod tests {
     async fn parse_helpers() {
         // JSON text → dict; non-JSON → Value::Str.
         assert!(matches!(parse_text("{\"a\":1}"), Value::Dict(_)));
-        assert_eq!(parse_text("pong"), Value::Str("pong".to_string()));
+        assert_eq!(parse_text("pong"), Value::Str("pong".into()));
         // gzip binary → parsed JSON.
         use std::io::Write;
         let mut e = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
