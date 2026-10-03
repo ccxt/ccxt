@@ -2768,13 +2768,26 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.derive.xyz/api-reference/subaccounts/privateget_all_portfolios
+     * @see https://docs.derive.xyz/api-reference/subaccounts/privateget_all_portfolios     // whole wallet
+     * @see https://docs.derive.xyz/api-reference/subaccounts/privateget_subaccount        // params.subaccount_id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.subaccount_id] scope the balance to a single subaccount instead of the whole wallet
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        const subaccountId = this.safeInteger (params, 'subaccount_id');
+        if (subaccountId !== undefined) {
+            const subaccountRequest: Dict = {
+                'subaccount_id': subaccountId,
+            };
+            const subaccountParams = this.omit (params, 'subaccount_id');
+            const subaccountResponse = await this.privatePostGetSubaccount (this.extend (subaccountRequest, subaccountParams));
+            // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
+            const subaccountResult = this.safeDict (subaccountResponse, 'result', {});
+            return this.parseBalance ([ subaccountResult ]);
         }
         const [ deriveWalletAddress, paramsDeriveWalletAddress ] = this.handleDeriveWalletAddress ('fetchBalance', params);
         const request: Dict = {

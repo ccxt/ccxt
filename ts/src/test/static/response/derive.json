@@ -3668,6 +3668,178 @@
                         "USDC": 8427.54548229094
                     }
                 }
+            },
+            {
+                "description": "fetchBalance scoped to a single subaccount",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "subaccount_id": 74412
+                    }
+                ],
+                "httpResponse": {
+                    "id": "3512fb1c-0102-47e5-9765-1cd12a34df67",
+                    "result": {
+                        "subaccount_id": 74412,
+                        "failed_to_fetch": false,
+                        "manager_id": 1,
+                        "risk_universe_id": 1,
+                        "label": "",
+                        "currency": [
+                            "AUSD",
+                            "BTC",
+                            "CBBTC",
+                            "CBBTC_B",
+                            "DRV",
+                            "ETH",
+                            "FXUSDC",
+                            "HEMIBTC",
+                            "LBTC",
+                            "SC_USDC_2",
+                            "SC_USDT_2",
+                            "SFP",
+                            "SUSDE",
+                            "USDC",
+                            "USDE",
+                            "USDT",
+                            "WBTC",
+                            "WEETH",
+                            "WSTETH"
+                        ],
+                        "margin_type": "SM",
+                        "is_under_liquidation": false,
+                        "positions_value": "0",
+                        "collaterals_value": "10.00001573865",
+                        "subaccount_value": "10.00001573865",
+                        "mm_credits": "0",
+                        "positions_maintenance_margin": "0",
+                        "positions_initial_margin": "0",
+                        "collaterals_maintenance_margin": "10.00001573865",
+                        "collaterals_initial_margin": "10.00001573865",
+                        "maintenance_margin": "10.00001573865",
+                        "initial_margin": "10.00001573865",
+                        "open_orders_margin": "0",
+                        "projected_margin_change": "0",
+                        "open_orders": [],
+                        "positions": [],
+                        "collaterals": [
+                            {
+                                "asset_type": "erc20",
+                                "asset_name": "USDC",
+                                "amount": "10.00001573865",
+                                "average_price": "1",
+                                "average_price_excl_fees": "1",
+                                "mark_price": "1",
+                                "mark_value": "10.00001573865",
+                                "amount_step": "0",
+                                "currency": "USDC",
+                                "creation_timestamp": 1790953902207,
+                                "cumulative_interest": "0",
+                                "pending_interest": "0",
+                                "initial_margin": "10.00001573865",
+                                "maintenance_margin": "10.00001573865",
+                                "open_orders_margin": "0",
+                                "realized_pnl": "0",
+                                "realized_pnl_excl_fees": "0",
+                                "total_fees": "0",
+                                "unrealized_pnl": "0",
+                                "unrealized_pnl_excl_fees": "0",
+                                "delta_currency": "USDC",
+                                "delta": "1"
+                            }
+                        ],
+                        "vault_deposit_holds": []
+                    }
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "subaccount_id": 74412,
+                            "failed_to_fetch": false,
+                            "manager_id": 1,
+                            "risk_universe_id": 1,
+                            "label": "",
+                            "currency": [
+                                "AUSD",
+                                "BTC",
+                                "CBBTC",
+                                "CBBTC_B",
+                                "DRV",
+                                "ETH",
+                                "FXUSDC",
+                                "HEMIBTC",
+                                "LBTC",
+                                "SC_USDC_2",
+                                "SC_USDT_2",
+                                "SFP",
+                                "SUSDE",
+                                "USDC",
+                                "USDE",
+                                "USDT",
+                                "WBTC",
+                                "WEETH",
+                                "WSTETH"
+                            ],
+                            "margin_type": "SM",
+                            "is_under_liquidation": false,
+                            "positions_value": "0",
+                            "collaterals_value": "10.00001573865",
+                            "subaccount_value": "10.00001573865",
+                            "mm_credits": "0",
+                            "positions_maintenance_margin": "0",
+                            "positions_initial_margin": "0",
+                            "collaterals_maintenance_margin": "10.00001573865",
+                            "collaterals_initial_margin": "10.00001573865",
+                            "maintenance_margin": "10.00001573865",
+                            "initial_margin": "10.00001573865",
+                            "open_orders_margin": "0",
+                            "projected_margin_change": "0",
+                            "open_orders": [],
+                            "positions": [],
+                            "collaterals": [
+                                {
+                                    "asset_type": "erc20",
+                                    "asset_name": "USDC",
+                                    "amount": "10.00001573865",
+                                    "average_price": "1",
+                                    "average_price_excl_fees": "1",
+                                    "mark_price": "1",
+                                    "mark_value": "10.00001573865",
+                                    "amount_step": "0",
+                                    "currency": "USDC",
+                                    "creation_timestamp": 1790953902207,
+                                    "cumulative_interest": "0",
+                                    "pending_interest": "0",
+                                    "initial_margin": "10.00001573865",
+                                    "maintenance_margin": "10.00001573865",
+                                    "open_orders_margin": "0",
+                                    "realized_pnl": "0",
+                                    "realized_pnl_excl_fees": "0",
+                                    "total_fees": "0",
+                                    "unrealized_pnl": "0",
+                                    "unrealized_pnl_excl_fees": "0",
+                                    "delta_currency": "USDC",
+                                    "delta": "1"
+                                }
+                            ],
+                            "vault_deposit_holds": []
+                        }
+                    ],
+                    "USDC": {
+                        "free": 10.00001573865,
+                        "used": 0,
+                        "total": 10.00001573865
+                    },
+                    "free": {
+                        "USDC": 10.00001573865
+                    },
+                    "used": {
+                        "USDC": 0
+                    },
+                    "total": {
+                        "USDC": 10.00001573865
+                    }
+                }
             }
         ],
         "fetchDeposits": [
