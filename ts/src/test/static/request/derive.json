@@ -624,6 +624,40 @@
                 "output": { "subaccount_id": 74412 }
             }
         ],
+        "fetchBorrowRateHistory": [
+            {
+                "description": "fetchBorrowRateHistory with since limit and until",
+                "method": "fetchBorrowRateHistory",
+                "url": "https://testnet.api.derive.xyz/v3/public/get_interest_rate_history",
+                "input": [
+                    "USDC",
+                    1789538400000,
+                    2,
+                    {
+                        "until": 1789545600000
+                    }
+                ],
+                "output": "{\"currency\":\"USDC\",\"risk_universe_id\":1,\"start_timestamp\":1789538400000,\"end_timestamp\":1789545600000}"
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetchBorrowInterest with until",
+                "method": "fetchBorrowInterest",
+                "url": "https://testnet.api.derive.xyz/v3/private/get_interest_history",
+                "input": [
+                    "USDC",
+                    null,
+                    null,
+                    null,
+                    {
+                        "subaccount_id": 86815,
+                        "until": 1790900000000
+                    }
+                ],
+                "output": "{\"subaccount_id\":86815,\"end_timestamp\":1790900000000}"
+            }
+        ],
         "fetchAccounts": [
             {
                 "description": "fetchAccounts",

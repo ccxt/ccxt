@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/derive.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint, OHLCV, OpenInterest, Account, TransferEntry, Greeks, Option } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint, OHLCV, OpenInterest, Account, TransferEntry, Greeks, Option, BorrowInterest } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -63,9 +63,9 @@ export default class derive extends Exchange {
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchBorrowInterest': false,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
-                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistory': true,
                 'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -3691,6 +3691,157 @@ export default class derive extends Exchange {
             'toAccount': undefined,
             'status': this.parseTransactionStatus (this.safeString (transfer, 'status')),
         };
+    }
+
+    /**
+     * @method
+     * @name derive#fetchBorrowRateHistory
+     * @description retrieves a history of a currencies borrow interest rate at specific time slots
+     * @see https://docs.derive.xyz/api-reference/market-data/publicget_interest_rate_history
+     * @param {string} code unified currency code
+     * @param {int} [since] timestamp in ms of the earliest rate to fetch
+     * @param {int} [limit] the maximum number of rates to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest rate to fetch
+     * @param {int} [params.risk_universe_id] the risk universe to read the rates from, default 1: without the filter the venue interleaves every universe with duplicate timestamps
+     * @param {int} [params.period] the bucket size in seconds, default hourly
+     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const currency = this.currency (code);
+        const [ riskUniverseId, paramsUniverse ] = this.handleOptionAndParams (params, 'fetchBorrowRateHistory', 'risk_universe_id', 1);
+        const request: Dict = {
+            'currency': currency['id'],
+            'risk_universe_id': riskUniverseId,
+        };
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        const until = this.safeInteger (paramsUniverse, 'until');
+        const paramsOmitted: Dict = this.omit (paramsUniverse, [ 'until' ]);
+        if (until !== undefined) {
+            request['end_timestamp'] = until;
+        }
+        const response = await this.publicPostGetInterestRateHistory (this.extend (request, paramsOmitted)); // todo: check on main-net
+        //
+        //     {
+        //         "id": "d9f3db6f-9ebd-4d29-ae83-006f22ce07af",
+        //         "result": {
+        //             "interest_rate_history": [
+        //                 {
+        //                     "timestamp": 1789538400000,
+        //                     "risk_universe_id": 2,
+        //                     "borrow_apy": {
+        //                         "open": "0.03921995664",
+        //                         "high": "0.03921995664",
+        //                         "low": "0.03919465776",
+        //                         "close": "0.03919467528"
+        //                     },
+        //                     "supply_apy": {
+        //                         "open": "0.024354974666",
+        //                         "high": "0.024354974666",
+        //                         "low": "0.024323514208",
+        //                         "close": "0.024323528028"
+        //                     },
+        //                     "total_supply": "15439518.077675880999",
+        //                     "total_borrow": "10085783.283513750809"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const rows = this.safeList (result, 'interest_rate_history', []);
+        const rates = [];
+        for (let i = 0; i < rows.length; i++) {
+            // the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
+            rates.push (this.parseBorrowRate (this.safeDict (rows, i, {}), currency));
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
+    }
+
+    override parseBorrowRate (info: any, currency: Currency = undefined): Dict {
+        const timestamp = this.safeInteger (info, 'timestamp');
+        const borrowApy = this.safeDict (info, 'borrow_apy', {});
+        return {
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'rate': this.safeNumber (borrowApy, 'close'),
+            'period': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    /**
+     * @method
+     * @name derive#fetchBorrowInterest
+     * @description fetches the interest accrued on the cash balance of a subaccount, the venue charges or pays it on the settlement currency only
+     * @see https://docs.derive.xyz/api-reference/history/privateget_interest_history
+     * @param {string} [code] unified currency code
+     * @param {string} [symbol] not used by derive.fetchBorrowInterest
+     * @param {int} [since] timestamp in ms of the earliest interest event to fetch
+     * @param {int} [limit] the maximum number of interest events to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest interest event to fetch
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+     */
+    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<BorrowInterest[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('fetchBorrowInterest', params);
+        const request: Dict = {
+            'subaccount_id': subaccountId,
+        };
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        const until = this.safeInteger (paramsDeriveSubaccountId, 'until');
+        const paramsOmitted: Dict = this.omit (paramsDeriveSubaccountId, [ 'until' ]);
+        if (until !== undefined) {
+            request['end_timestamp'] = until;
+        }
+        const response = await this.privatePostGetInterestHistory (this.extend (request, paramsOmitted)); // todo: check on main-net
+        //
+        //     {
+        //         "id": "7e0a9cb5-44c4-4c27-91cb-c0b7bd23a4f0",
+        //         "result": {
+        //             "events": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "timestamp": 1791033968000,
+        //                     "interest": "0.003382117138"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const events = this.safeList (result, 'events', []);
+        const interests = this.parseBorrowInterests (events, undefined);
+        const sorted = this.sortBy (interests, 'timestamp');
+        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
+    }
+
+    override parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
+        const timestamp = this.safeInteger (info, 'timestamp');
+        return {
+            'info': info,
+            'symbol': undefined,
+            'currency': 'USDC', // interest accrues on the settlement currency cash balance only
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': undefined,
+            'amountBorrowed': undefined,
+            'marginMode': 'cross',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        } as BorrowInterest;
     }
 
     /**
