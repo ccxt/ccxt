@@ -7,7 +7,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
-import type { Liquidation, OpenInterest } from './base/types.js';
+import type { Bool, Liquidation, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -5738,8 +5738,8 @@ export default class bingx extends Exchange {
         let timestamp = this.safeInteger2 (transaction, 'insertTime', 'timestamp');
         let datetime = this.iso8601 (timestamp);
         if (timestamp === undefined) {
-            datetime = this.safeString (transaction, 'applyTime');
-            timestamp = this.parse8601 (datetime);
+            timestamp = this.parse8601 (this.safeString (transaction, 'applyTime'));
+            datetime = this.iso8601 (timestamp);
         }
         const network = this.safeString (transaction, 'network');
         const currencyId = this.safeString (transaction, 'coin');
@@ -5749,10 +5749,15 @@ export default class bingx extends Exchange {
                 code = code.replace (network, '');
             }
         }
+        // deposit records carry no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         const rawType = this.safeString (transaction, 'transferType');
         let type: Str = 'withdrawal';
-        if (rawType === '0') {
+        if ((rawType === undefined) || (rawType === '0')) {
             type = 'deposit';
+        }
+        let internal: Bool = undefined;
+        if (rawType !== undefined) {
+            internal = (rawType === '2');
         }
         return {
             'info': transaction,
@@ -5762,7 +5767,7 @@ export default class bingx extends Exchange {
             'currency': code,
             'network': this.networkIdToCode (network, code),
             'amount': this.safeNumber (transaction, 'amount'),
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'status': this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type),
             'timestamp': timestamp,
             'datetime': datetime,
             'address': address,
@@ -5778,8 +5783,26 @@ export default class bingx extends Exchange {
                 'cost': this.safeNumber (transaction, 'transactionFee'),
                 'rate': undefined,
             },
-            'internal': undefined,
+            'internal': internal,
         } as Transaction;
+    }
+
+    parseTransactionStatusByType (status: Str, type: Str = undefined) {
+        const statusesByType: Dict = {
+            'deposit': {
+                '0': 'pending',
+                '6': 'pending', // chain uploaded, not yet credited
+                '1': 'ok',
+            },
+            'withdrawal': {
+                '4': 'pending', // under review
+                '5': 'failed',
+                '6': 'ok',
+            },
+        };
+        const statuses = this.safeDict (statusesByType, type, {});
+        const fallback = this.parseTransactionStatus (status);
+        return this.safeString (statuses, status, fallback);
     }
 
     parseTransactionStatus (status: Str) {
