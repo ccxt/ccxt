@@ -44,10 +44,16 @@ jobs:
       # lld links the whole-archive test binary in a fraction of GNU ld's time and
       # memory -- the 104-exchange static lib is the memory hot spot on the runner
       run: |
-        if command -v sudo >/dev/null 2>&1 && [ "$(id -u)" -ne 0 ]; then
+        if [ "$(id -u)" -eq 0 ]; then
+          SUDO=""
+        elif command -v sudo >/dev/null 2>&1; then
           SUDO=sudo
         else
-          SUDO=""
+          # non-root runner without sudo: assume the admin preinstalled the toolchain
+          echo "::warning::no sudo and not root -- skipping apt, assuming toolchain is preinstalled"
+          command -v cmake >/dev/null && command -v ninja >/dev/null && command -v g++ >/dev/null \
+            || { echo "::error::toolchain missing and apt unavailable; run the runner as root or install sudo + packages"; exit 1; }
+          exit 0
         fi
         $SUDO apt-get update
         $SUDO apt-get install -y cmake ninja-build clang-format libcurl4-openssl-dev libssl-dev nlohmann-json3-dev lld libboost-dev libboost-system-dev libsimdjson-dev
@@ -61,6 +67,8 @@ jobs:
       run: npm run emitAPI -- --cpp
     - name: Transpile everything (base, tests, all exchanges)
       run: npm run transpileCpp -- --all --force
+    - name: Transpile pro (ws) tier
+      run: npm run transpileCpp -- --pro --force
     - name: Configure
       # ccache as compiler launcher turns a warm CI into a seconds-long build;
       # lld as linker keeps the final whole-archive link inside runner memory
