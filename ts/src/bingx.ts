@@ -5115,7 +5115,7 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
-        let request: Dict = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
