@@ -4954,7 +4954,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             payload.put("returnRateLimits", returnRateLimits);
             Boolean isConditional = (Boolean) this.safeBoolN(paramsReturnRateLimits, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
             String clientOrderId = this.safeStringN(paramsReturnRateLimits, new ArrayList<Object>(Arrays.asList("clientAlgoId", "origClientOrderId", "clientOrderId")));
-            Boolean shouldUseAlgoOrder = (java.util.Objects.equals(market.get("linear"), true)) && (java.util.Objects.equals(market.get("swap"), true)) && (java.util.Objects.equals(isConditional, true));
+            Boolean shouldUseAlgoOrder = (java.util.Objects.equals(market.get("linear"), true)) && ((java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true))) && (java.util.Objects.equals(isConditional, true));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 if (java.util.Objects.equals(shouldUseAlgoOrder, true))
