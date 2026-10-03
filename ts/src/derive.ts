@@ -281,6 +281,7 @@ export default class derive extends Exchange {
                         'get_all_referral_codes': { 'cost': 1 } as Endpoint<Dict>,
                         'get_referral_performance': { 'cost': 1 } as Endpoint<Dict>,
                         'get_time': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_live_incidents': { 'cost': 1 } as Endpoint<Dict>,
                         'get_maker_programs': { 'cost': 1 } as Endpoint<Dict>,
                         'get_maker_program_scores': { 'cost': 1 } as Endpoint<Dict>,
                     },
