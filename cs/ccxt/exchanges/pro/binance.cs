@@ -4742,7 +4742,7 @@ public partial class binance : ccxt.binance
         };
         bool? isConditional = this.safeBoolN(paramsReturnRateLimits, new List<object>() {"stop", "trigger", "conditional"});
         string? clientOrderId = this.safeStringN(paramsReturnRateLimits, new List<object>() {"clientAlgoId", "origClientOrderId", "clientOrderId"});
-        bool shouldUseAlgoOrder = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && ((isConditional == true));
+        bool shouldUseAlgoOrder = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))) && ((isConditional == true));
         if ((clientOrderId != null))
         {
             if ((shouldUseAlgoOrder == true))
