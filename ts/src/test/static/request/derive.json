@@ -55,6 +55,28 @@
                 "output": "{\"instrument_name\":\"BTC-PERP\"}"
             }
         ],
+        "fetchGreeks": [
+            {
+                "description": "fetchGreeks",
+                "method": "fetchGreeks",
+                "url": "https://testnet.api.derive.xyz/v3/public/get_ticker",
+                "input": [
+                    "BTC/USDC:USDC-270924-90000-P"
+                ],
+                "output": "{\"instrument_name\":\"BTC-20270924-90000-P\"}"
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "fetchOption",
+                "method": "fetchOption",
+                "url": "https://testnet.api.derive.xyz/v3/public/get_ticker",
+                "input": [
+                    "BTC/USDC:USDC-270924-90000-P"
+                ],
+                "output": "{\"instrument_name\":\"BTC-20270924-90000-P\"}"
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetchTrades",

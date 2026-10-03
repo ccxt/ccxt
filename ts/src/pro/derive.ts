@@ -1047,7 +1047,7 @@ export default class derive extends deriveRest {
                 account = this.account ();
             }
             // the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
-            // todo: check on main net
+            // todo: check on main-net
             account['total'] = this.safeString (entry, 'new_balance');
             // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
             account['free'] = undefined;
