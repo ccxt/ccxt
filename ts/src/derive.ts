@@ -61,7 +61,7 @@ export default class derive extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
                 'editOrder': true,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -531,6 +531,48 @@ export default class derive extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'result');
+    }
+
+    /**
+     * @method
+     * @name derive#fetchAccounts
+     * @description fetch all the subaccounts associated with the wallet
+     * @see https://docs.derive.xyz/api-reference/subaccounts/privateget_subaccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+     */
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
+        const [ deriveWalletAddress, paramsDeriveWalletAddress ] = this.handleDeriveWalletAddress ('fetchAccounts', params);
+        const request: Dict = {
+            'wallet': deriveWalletAddress,
+        };
+        const response = await this.privatePostGetSubaccounts (this.extend (request, paramsDeriveWalletAddress)); // todo: check on main-net
+        //
+        //     {
+        //         "id": "1c314a3a-f7f5-47bd-998a-cea5dda11c30",
+        //         "result": {
+        //             "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //             "subaccount_ids": [
+        //                 86814,
+        //                 86815,
+        //                 86820
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const subaccountIds = this.safeList (result, 'subaccount_ids', []);
+        const accounts: Account[] = [];
+        for (let i = 0; i < subaccountIds.length; i++) {
+            const subaccountId = this.safeString (subaccountIds, i);
+            accounts.push ({
+                'id': subaccountId,
+                'type': undefined,
+                'code': undefined,
+                'info': result,
+            });
+        }
+        return accounts;
     }
 
     /**
