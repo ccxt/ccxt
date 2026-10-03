@@ -5749,10 +5749,10 @@ export default class bingx extends Exchange {
                 code = code.replace (network, '');
             }
         }
-        // deposit records carry no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
+        // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         const rawType = this.safeString (transaction, 'transferType');
         let type: Str = 'withdrawal';
-        if ((rawType === undefined) || (rawType === '0')) {
+        if ((rawType === '0') || ('insertTime' in transaction)) {
             type = 'deposit';
         }
         let internal: Bool = undefined;
@@ -5767,7 +5767,7 @@ export default class bingx extends Exchange {
             'currency': code,
             'network': this.networkIdToCode (network, code),
             'amount': this.safeNumber (transaction, 'amount'),
-            'status': this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status'), type),
             'timestamp': timestamp,
             'datetime': datetime,
             'address': address,
@@ -5787,7 +5787,7 @@ export default class bingx extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatusByType (status: Str, type: Str = undefined) {
+    parseTransactionStatus (status: Str, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
@@ -5800,12 +5800,7 @@ export default class bingx extends Exchange {
                 '6': 'ok',
             },
         };
-        const statuses = this.safeDict (statusesByType, type, {});
-        const fallback = this.parseTransactionStatus (status);
-        return this.safeString (statuses, status, fallback);
-    }
-
-    parseTransactionStatus (status: Str) {
+        const directional = this.safeDict (statusesByType, type, {});
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
@@ -5822,7 +5817,8 @@ export default class bingx extends Exchange {
             '5': 'rejected',
             '6': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        const fallback = this.safeString (statuses, status, status);
+        return this.safeString (directional, status, fallback);
     }
 
     /**
