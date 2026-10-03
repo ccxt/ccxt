@@ -10,6 +10,54 @@
         }
     },
     "methods": {
+        "withdraw": [
+            {
+                "description": "typical fee inclusion check",
+                "method": "withdraw",
+                "input": [
+                    "USDC",
+                    1.05,
+                    "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31",
+                    null,
+                    {
+                        "network": "ARB"
+                    }
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "default"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "ok",
+                        "response": {
+                            "type": "default"
+                        }
+                    },
+                    "id": null,
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": null,
+                    "amount": null,
+                    "currency": null,
+                    "status": "ok",
+                    "updated": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "ensure orders are dedup when hl returns 2 orders with same id",

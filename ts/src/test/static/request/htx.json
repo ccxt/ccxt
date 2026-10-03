@@ -9,8 +9,35 @@
         "from",
         "to"
     ],
+    "options": {
+        "networkChainIdsByNames": {
+            "APT": {
+                "APT": "apt"
+            }
+        },
+        "networkNamesByChainIds": {
+            "apt": "APTOS"
+        }
+    },
     "outputType": "json",
     "methods": {
+        "withdraw": [
+            {
+                "description": "typical fee inclusion check",
+                "method": "withdraw",
+                "url": "https://api.huobi.pro/v1/dw/withdraw/api/create?AccessKeyId=bg2hyw2dfg-c375436a-150faf2b-f9eeb&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-10-02T13%3A44%3A08&Signature=IoIJ9OYCj%2FdsY3cf40%2BYYh78C88f9duLnvsXOiDtJp8%3D",
+                "input": [
+                    "USDT",
+                    1.85,
+                    "0x63d35481cb74fa959aec61d33a5d4507a6164873",
+                    null,
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": "{\"address\":\"0x63d35481cb74fa959aec61d33a5d4507a6164873\",\"currency\":\"usdt\",\"chain\":\"usdterc20\",\"amount\":1.85}"
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "fetch inverse swap open orders with no symbol",

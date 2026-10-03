@@ -1811,6 +1811,38 @@
         ],
         "withdraw": [
             {
+                "description": "without includeFee",
+                "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                    "USDT",
+                    1.05,
+                    "0x5338d8f171fa27b310538236966071e5a38550d61c03853d77a42dade7804a5f",
+                    null,
+                    {
+                        "network": "APT",
+                        "includeFee": false
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"1.05\",\"address\":\"0x5338d8f171fa27b310538236966071e5a38550d61c03853d77a42dade7804a5f\",\"timestamp\":1790790755689,\"accountType\":\"UTA\",\"chain\":\"APTOS\"}"
+            },
+            {
+                "description": "with includeFee",
+                "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                    "USDT",
+                    1.05,
+                    "0x5338d8f171fa27b310538236966071e5a38550d61c03853d77a42dade7804a5f",
+                    null,
+                    {
+                        "network": "APT",
+                        "includeFee": true
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"1.05\",\"address\":\"0x5338d8f171fa27b310538236966071e5a38550d61c03853d77a42dade7804a5f\",\"timestamp\":1790790687460,\"accountType\":\"UTA\",\"feeType\":1,\"chain\":\"APTOS\"}"
+            },
+            {
                 "description": "withdraw  using UTA account",
                 "method": "withdraw",
                 "url": "https://api.bybit.com/v5/asset/withdraw/create",

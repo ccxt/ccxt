@@ -1476,6 +1476,88 @@
         ],
         "withdraw": [
             {
+                "description": "typical fee inclusion check(false)",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    8,
+                    "0x63d35481cb74fa959aec61d33a5d4507a6164873",
+                    null,
+                    {
+                        "network": "ERC20",
+                        "includeFee": false
+                    }
+                ],
+                "httpResponse": {
+                    "id": "407989f14ceb4c58b5a6bd6bebe24121"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "407989f14ceb4c58b5a6bd6bebe24121"
+                    },
+                    "id": "407989f14ceb4c58b5a6bd6bebe24121",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "withdrawal",
+                    "amount": null,
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "typical fee inclusion check(true)",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    8,
+                    "0x63d35481cb74fa959aec61d33a5d4507a6164873",
+                    null,
+                    {
+                        "network": "ERC20",
+                        "includeFee": true
+                    }
+                ],
+                "httpResponse": {
+                    "id": "cf8a4e6d4e5d435ab79d279f24cee4f9"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "cf8a4e6d4e5d435ab79d279f24cee4f9"
+                    },
+                    "id": "cf8a4e6d4e5d435ab79d279f24cee4f9",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "withdrawal",
+                    "amount": null,
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
+            },
+            {
                 "description": "internal transfer withdraw",
                 "method": "withdraw",
                 "input": [

@@ -153,6 +153,21 @@
         ],
         "withdraw": [
             {
+                "description": "typical fee inclusion check",
+                "method": "withdraw",
+                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/withdraw/apply?address=0x5338d8f171fa27b310538236966071e5a38550d61c03853d77a42dade7804a5f&amount=5.05&coin=USDT&network=APT&timestamp=1790945622515&walletType=15&signature=70b44da2dcd656792523c4ddbaca06e0860cb244b85f59c5e7e0bc45a617e355",
+                "input": [
+                    "USDT",
+                    5.05,
+                    "0x5338d8f171fa27b310538236966071e5a38550d61c03853d77a42dade7804a5f",
+                    null,
+                    {
+                        "network": "APT"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "sol",
                 "method": "withdraw",
                 "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/withdraw/apply?address=eWA8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVzX4QJ&amount=2.31157&coin=TRUMPSOL&network=SOL&timestamp=1738519816182&walletType=15&signature=b98a71c9cf4a30724f65223ed5c11f8990ba929c57731524e17cadabab8c5cea",

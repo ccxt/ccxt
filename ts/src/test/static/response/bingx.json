@@ -3,6 +3,56 @@
     "skipKeys": [ "tranId", "timestamp" ],
     "options": {},
     "methods": {
+        "withdraw": [
+            {
+                "description": "typical fee inclusion check",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    5.05,
+                    "0x5338d8f171fa27b310538236966071e5a38550d61c03853d77a42dade7804a5f",
+                    null,
+                    {
+                        "network": "APT"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "timestamp": 1790945623250,
+                    "data": {
+                        "id": "1623577866550272004"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "1623577866550272004"
+                    },
+                    "id": "1623577866550272004",
+                    "txid": null,
+                    "type": "withdrawal",
+                    "currency": null,
+                    "network": null,
+                    "amount": null,
+                    "status": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "address": null,
+                    "addressFrom": null,
+                    "addressTo": null,
+                    "tag": null,
+                    "tagFrom": null,
+                    "tagTo": null,
+                    "updated": null,
+                    "comment": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": null,
+                        "rate": null
+                    },
+                    "internal": null
+                }
+            }
+        ],
         "fetchInverseSwapMarkets": [
             {
                 "description": "active Coin-M contract metadata",

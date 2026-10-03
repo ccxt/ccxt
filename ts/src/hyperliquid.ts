@@ -333,6 +333,10 @@ export default class hyperliquid extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'withdraw': {
+                        'selectableFeeInclusion': false,
+                        'feeIncluded': false,
+                    },
                 },
                 'forPerps': {
                     'extends': 'default',
