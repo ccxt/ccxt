@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint, OHLCV, OpenInterest, Account, TransferEntry, Greeks, Option, BorrowInterest } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3994,7 +3994,8 @@ export default class derive extends Exchange {
         const defaultMaxFee = (forceBatch) ? '10' : '1';
         const maxFeeUsd = this.safeString2 (paramsDeriveSubaccountId, 'max_fee_usd', 'maxFeeUsd', defaultMaxFee);
         const paramsOmitted: Dict = this.omit (paramsDeriveSubaccountId, [ 'max_fee_usd', 'maxFeeUsd', 'force_batch', 'forceBatch' ]);
-        const amountString = this.numberToString (amount);
+        // excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
+        const amountString = this.decimalToPrecision (this.numberToString (amount), TRUNCATE, decimals, DECIMAL_PLACES);
         // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
         const one = '1';
         const scale = one.padEnd (decimals + 1, '0');
@@ -4038,7 +4039,13 @@ export default class derive extends Exchange {
         // never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema
         const response = await this.privatePostWithdraw (this.extend (request, paramsDeriveWalletAddress));
         const result = this.safeDict (response, 'result', {});
-        return this.parseTransaction (result, currency);
+        const transaction = this.parseTransaction (result, currency);
+        // the response carries only the operation ids, the known request values fill the rest
+        transaction['type'] = 'withdrawal';
+        transaction['currency'] = currency['code'];
+        transaction['amount'] = this.parseNumber (amountString);
+        transaction['addressTo'] = address;
+        return transaction;
     }
 
     /**
