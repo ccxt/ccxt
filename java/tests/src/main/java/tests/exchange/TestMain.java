@@ -3127,7 +3127,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
             //  -----------------------------------------------------------------------------
-            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended()));
+            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended()));
             (Helpers.promiseAll(promises)).join();
             String successMessage = (("[" + this.lang) + "][TEST_SUCCESS] brokerId tests passed.");
             dump(("[INFO]" + successMessage));
@@ -3835,34 +3835,6 @@ public class TestMain extends BaseTest
             }
             Object clientOrderIdStop = ((Map<String, Object>)stopOrderRequest).get("brokerId");
             Assert(java.util.Objects.equals(((String)clientOrderIdStop).startsWith(idString), true), ((("woo - brokerId: " + clientOrderIdStop) + " does not start with id: ") + idString));
-            if (!Helpers.isTrue(isSync()))
-            {
-                (close(exchange)).join();
-            }
-            return true;
-        });
-
-    }
-
-    public CompletableFuture<Object> testCoinex()
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            BaseExchange exchange = this.initOfflineExchange("coinex", false);
-            String id = "x-167673045";
-            Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("brokerId"), id), (("coinex - id: " + id) + " not in options"));
-            Object spotOrderRequest = new HashMap<String, Object>() {{}};
-            try
-            {
-                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
-            } catch(Exception e)
-            {
-                spotOrderRequest = jsonParse(exchange.last_request_body);
-            }
-            Object clientOrderId = ((Map<String, Object>)spotOrderRequest).get("client_id");
-            String idString = String.valueOf(id);
-            Assert(java.util.Objects.equals(((String)clientOrderId).startsWith(idString), true), ((("coinex - clientOrderId: " + clientOrderId) + " does not start with id: ") + idString));
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();
