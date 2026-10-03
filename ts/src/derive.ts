@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/derive.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint, OHLCV } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint, OHLCV, OpenInterest } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -95,7 +95,7 @@ export default class derive extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
@@ -922,6 +922,79 @@ export default class derive extends Exchange {
         //
         const data = this.safeDict (response, 'result', {});
         return this.parseTicker (data, market);
+    }
+
+    /**
+     * @method
+     * @name derive#fetchOpenInterest
+     * @description retrieves the open interest of a contract market
+     * @see https://docs.derive.xyz/api-reference/market-data/publicget_ticker
+     * @param {string} symbol unified symbol of the market to fetch the open interest for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (market['contract'] !== true) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const request: Dict = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicPostGetTicker (this.extend (request, params)); // todo: check on main net
+        //
+        //     {
+        //         "id": "a24f964a-4c80-4389-950e-1f68b9bfb40f",
+        //         "result": {
+        //             "t": 1791026876172,
+        //             "A": "5",
+        //             "a": "84638.2",
+        //             "B": "5",
+        //             "b": "84634.2",
+        //             "f": "0.000012500",
+        //             "option_pricing": null,
+        //             "I": "84622",
+        //             "M": "84636.2",
+        //             "stats": {
+        //                 "c": "1.797",
+        //                 "v": "154163.312",
+        //                 "pr": "154178.972",
+        //                 "n": 93,
+        //                 "oi": "291.023",
+        //                 "h": "87151.3",
+        //                 "l": "84034.2",
+        //                 "p": "-0.021"
+        //             },
+        //             "minp": "82976.7",
+        //             "maxp": "86328.9"
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOpenInterest (result, market);
+    }
+
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+        const timestamp = this.safeInteger (interest, 't');
+        const stats = this.safeDict (interest, 'stats', {});
+        const amount = this.safeString (stats, 'oi');
+        const markPrice = this.safeString (interest, 'M');
+        let value: Str = undefined;
+        // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
+        if ((market !== undefined) && (market['option'] !== true)) {
+            value = Precise.stringMul (amount, markPrice);
+        }
+        return this.safeOpenInterest ({
+            'symbol': this.safeSymbol (undefined, market),
+            'openInterestAmount': this.parseNumber (amount),
+            'openInterestValue': this.parseNumber (value),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {

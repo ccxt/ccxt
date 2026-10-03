@@ -44,6 +44,17 @@
                 "output": { "instrument_name": "BTC-PERP" }
             }
         ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://testnet.api.derive.xyz/v3/public/get_ticker",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": "{\"instrument_name\":\"BTC-PERP\"}"
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetchTrades",

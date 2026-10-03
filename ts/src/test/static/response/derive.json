@@ -740,6 +740,73 @@
                 }
             }
         ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "id": "abc21611-b276-4489-b6aa-e21ce5d366ed",
+                    "result": {
+                        "t": 1791026936802,
+                        "A": "5",
+                        "a": "84642.6",
+                        "B": "5",
+                        "b": "84638.6",
+                        "f": "0.000012500",
+                        "option_pricing": null,
+                        "I": "84626.1",
+                        "M": "84640",
+                        "stats": {
+                            "c": "1.797",
+                            "v": "154163.312",
+                            "pr": "154178.972",
+                            "n": 93,
+                            "oi": "291.023",
+                            "h": "87151.3",
+                            "l": "84034.2",
+                            "p": "-0.021"
+                        },
+                        "minp": "82980.5",
+                        "maxp": "86332.8"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "openInterestAmount": 291.023,
+                    "openInterestValue": 24632186.72,
+                    "timestamp": 1791026936802,
+                    "datetime": "2026-10-03T11:28:56.802Z",
+                    "info": {
+                        "t": 1791026936802,
+                        "A": "5",
+                        "a": "84642.6",
+                        "B": "5",
+                        "b": "84638.6",
+                        "f": "0.000012500",
+                        "option_pricing": null,
+                        "I": "84626.1",
+                        "M": "84640",
+                        "stats": {
+                            "c": "1.797",
+                            "v": "154163.312",
+                            "pr": "154178.972",
+                            "n": 93,
+                            "oi": "291.023",
+                            "h": "87151.3",
+                            "l": "84034.2",
+                            "p": "-0.021"
+                        },
+                        "minp": "82980.5",
+                        "maxp": "86332.8"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetchTrades BTC perp mainnet",
