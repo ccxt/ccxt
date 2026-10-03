@@ -481,6 +481,17 @@
                 "input": [
                 ],
                 "output": { "wallet": "0x0000000000000000000000000000000000000000" }
+            },
+            {
+                "description": "fetchBalance scoped to a single subaccount",
+                "method": "fetchBalance",
+                "url": "https://api.derive.xyz/v3/private/get_subaccount",
+                "input": [
+                    {
+                        "subaccount_id":74412
+                    }
+                ],
+                "output": { "subaccount_id": 74412 }
             }
         ],
         "fetchDeposits": [

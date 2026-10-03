@@ -841,11 +841,11 @@ export default class derive extends deriveRest {
     /**
      * @method
      * @name derive#watchBalance
-     * @description watches balance updates, the total balances of the account
+     * @description watches balance updates for a single subaccount, the returned structure is scoped to the watched subaccount
      * @see https://docs.derive.xyz/api-reference/channels/subaccountbalances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @param {boolean} [params.fetchBalanceSnapshot] default true, the channel only streams deltas, so an initial snapshot is loaded over rest before subscribing
+     * @param {boolean} [params.fetchBalanceSnapshot] default true, the channel only streams changed totals, so an initial snapshot is loaded over rest before subscribing
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async watchBalance (params: Dict = {}): Promise<Balances> {
@@ -854,9 +854,13 @@ export default class derive extends deriveRest {
         }
         const [ fetchSnapshot, paramsSnapshot ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchBalance', paramsSnapshot);
-        // the base initializes balance to an empty dict, so the snapshot presence is detected by the info key only a real fetchBalance sets
-        const balanceInfo = this.safeDict (this.balance, 'info');
-        if (fetchSnapshot && (balanceInfo === undefined)) {
+        if (this.balance === undefined) {
+            const emptyBalances: Dict = {};
+            this.balance = emptyBalances;
+        }
+        // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
+        const subaccountIdKey = this.numberToString (subaccountId) as string;
+        if (fetchSnapshot && !(subaccountIdKey in this.balance)) {
             const snapshotRequest: Dict = {
                 'subaccount_id': subaccountId,
             };
@@ -864,7 +868,7 @@ export default class derive extends deriveRest {
             const snapshot = await this.fetchBalance (snapshotParams);
             const emptyBalance: Dict = {}; // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
             const seeded = this.extend (snapshot, emptyBalance); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
-            this.balance = seeded;
+            this.balance[subaccountIdKey] = seeded;
         }
         const topic = this.numberToString (subaccountId) + '.balances';
         const request: Dict = {
@@ -1016,6 +1020,11 @@ export default class derive extends deriveRest {
         if (this.balance === undefined) {
             this.balance = {};
         }
+        let subBalance = this.safeDict (this.balance, subaccountIdKey);
+        if (subBalance === undefined) {
+            const emptySubBalance: Dict = {};
+            subBalance = emptySubBalance;
+        }
         let updated = false;
         const positionUpdates = [];
         for (let i = 0; i < data.length; i++) {
@@ -1033,29 +1042,22 @@ export default class derive extends deriveRest {
             if (code === undefined) {
                 continue;
             }
-            let account = this.safeDict (this.balance, code);
+            let account = this.safeDict (subBalance, code);
             if (account === undefined) {
                 account = this.account ();
             }
-            // the channel streams one subaccount while the rest snapshot sums the whole wallet, so the delta (new minus previous) is applied to the seeded total instead of overwriting it with the subaccount-scoped absolute value
-            const newBalance = this.safeString (entry, 'new_balance');
-            const previousBalance = this.safeString (entry, 'previous_balance');
-            const oldTotal = this.safeString (account, 'total');
-            if ((oldTotal !== undefined) && (previousBalance !== undefined)) {
-                const difference = Precise.stringSub (newBalance, previousBalance);
-                account['total'] = Precise.stringAdd (oldTotal, difference);
-            } else {
-                account['total'] = newBalance;
-            }
+            // the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
+            // todo: check on main net
+            account['total'] = this.safeString (entry, 'new_balance');
             // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
             account['free'] = undefined;
             account['used'] = undefined;
-            this.balance[code] = account;
+            subBalance[code] = account;
             updated = true;
         }
         if (updated) {
-            this.balance = this.safeBalance (this.balance);
-            client.resolve (this.balance, topic);
+            this.balance[subaccountIdKey] = this.safeBalance (subBalance as any);
+            client.resolve (this.balance[subaccountIdKey], topic);
         }
         const positionUpdatesLength = positionUpdates.length;
         if (positionUpdatesLength > 0) {
