@@ -1059,6 +1059,55 @@
                 ]
             }
         ],
+        "fetchMySettlementHistory": [
+            {
+                "description": "fetchMySettlementHistory with a settled option",
+                "method": "fetchMySettlementHistory",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subaccount_id": 86815
+                    }
+                ],
+                "httpResponse": {
+                    "id": "f92af59c-33d6-4bed-b237-378250f5727b",
+                    "result": {
+                        "settlements": [
+                            {
+                                "amount": "0.1",
+                                "expiry": 1791100800,
+                                "instrument_name": "BTC-20261004-88000-C",
+                                "option_settlement_pnl": "-2.8625",
+                                "option_settlement_pnl_excl_fees": "-2.1",
+                                "settlement_price": "84975.94721521944",
+                                "settlement_value": "0",
+                                "subaccount_id": 86815
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "amount": "0.1",
+                            "expiry": 1791100800,
+                            "instrument_name": "BTC-20261004-88000-C",
+                            "option_settlement_pnl": "-2.8625",
+                            "option_settlement_pnl_excl_fees": "-2.1",
+                            "settlement_price": "84975.94721521944",
+                            "settlement_value": "0",
+                            "subaccount_id": 86815
+                        },
+                        "symbol": "BTC/USDC:USDC-261004-88000-C",
+                        "price": 84975.94721521944,
+                        "timestamp": 1791100800000,
+                        "datetime": "2026-10-04T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetchTrades BTC perp mainnet",

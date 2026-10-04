@@ -320,5 +320,78 @@
             "fifo_min_allocation": "0",
             "pro_rata_amount_step": "1"
         }
+    },
+
+    "BTC/USDC:USDC-261004-88000-C": {
+        "id": "BTC-20261004-88000-C",
+        "symbol": "BTC/USDC:USDC-261004-88000-C",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "option",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": true,
+        "active": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.0003,
+        "maker": 0.0001,
+        "contractSize": 1,
+        "expiry": 1791100800000,
+        "expiryDatetime": "2026-10-04T08:00:00.000Z",
+        "strike": 88000,
+        "optionType": "call",
+        "precision": {
+            "amount": 1e-05,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.01,
+                "max": 1000
+            },
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "instrument_type": "option",
+            "instrument_name": "BTC-20261004-88000-C",
+            "scheduled_activation": 1790755200,
+            "scheduled_deactivation": 1791100740,
+            "is_active": false,
+            "tick_size": "1",
+            "minimum_amount": "0.01",
+            "maximum_amount": "1000",
+            "amount_step": "0.00001",
+            "mark_price_fee_rate_cap": "0.125",
+            "maker_fee_rate": "0.0001",
+            "taker_fee_rate": "0.0003",
+            "base_fee": "0.5",
+            "base_currency": "BTC",
+            "quote_currency": "USDC",
+            "option_details": {
+                "index": "BTC-USD",
+                "expiry": 1791100800,
+                "strike": "88000",
+                "option_type": "C",
+                "settlement_price": "84975.94721521944"
+            },
+            "perp_details": null,
+            "erc20_details": null,
+            "base_asset_address": "0xd0711b9eBE84b778483709CDe62BacFDBAE13623",
+            "base_asset_sub_id": "39614119052844373598563075968",
+            "pro_rata_fraction": "0.8",
+            "fifo_min_allocation": "1",
+            "pro_rata_amount_step": "0.001"
+        }
     }
 }
