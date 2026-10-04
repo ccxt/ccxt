@@ -3459,7 +3459,7 @@ export default class pacifica extends Exchange {
     /**
      * @method
      * @name pacifica#createSubAccount
-     * @description creates a sub-account under the main account, requires the main account private key, the exchange rejects agent wallet signatures for it
+     * @description creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
      * @param {string} name unused argument
      * @param {object} [params] extra parameters specific to the exchange API endpoint
