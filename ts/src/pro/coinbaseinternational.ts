@@ -150,7 +150,22 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         };
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#subscribe
+     * @description subscribes to websocket channels
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-subscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-subscribe
+     * @param {string[]} channels exchange channel names
+     * @param {string[]} messageHashes message hashes to resolve
+     * @param {boolean} [isPrivate] whether to authenticate and subscribe privately
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the subscription result
+     */
     async subscribe (channels: string[], messageHashes: string[], isPrivate = false, params = {}) {
+        const paramsResolved = this.handleRouteAndParams ('subscribe', params);
         let url = this.getWsUrl (false);
         let method = 'public/subscribe';
         if (isPrivate) {
@@ -169,7 +184,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             },
             'id': this.requestId (),
         };
-        const extendedRequest = this.deepExtend (request, params);
+        const extendedRequest = this.deepExtend (request, paramsResolved);
         const channelsLength = channels.length;
         if (channelsLength === 1) {
             return await this.watch (url, messageHashes[0], extendedRequest, channels[0], extendedRequest);
@@ -177,7 +192,21 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.watchMultiple (url, messageHashes, extendedRequest, channels, extendedRequest);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#unSubscribe
+     * @description unsubscribes from websocket channels
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+     * @param {string[]} channels exchange channel names
+     * @param {boolean} [isPrivate] whether to authenticate and unsubscribe privately
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {boolean} true when unsubscription has been requested
+     */
     async unSubscribe (channels: string[], isPrivate = false, params = {}) {
+        const paramsResolved = this.handleRouteAndParams ('unSubscribe', params);
         let url = this.getWsUrl (false);
         let method = 'public/unsubscribe';
         if (isPrivate) {
@@ -199,7 +228,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'id': this.requestId (),
         };
         const client = this.client (url);
-        this.watchMultiple (url, unWatchMessageHashes, this.deepExtend (request, params), unWatchMessageHashes);
+        this.watchMultiple (url, unWatchMessageHashes, this.deepExtend (request, paramsResolved), unWatchMessageHashes);
         for (let i = 0; i < channelsLength; i++) {
             this.cleanUnsubscription (client, channels[i], unWatchMessageHashes[i]);
         }
@@ -211,14 +240,17 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userportfoliocurrency
+     * @see https://docs.deribit.com/subscriptions/user/userportfoliocurrency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {string} [params.currency] currency code to watch, default is any
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     override async watchBalance (params = {}): Promise<Balances> {
-        const [ currency, paramsResolved ] = this.handleOptionAndParams (params, 'watchBalance', 'currency', 'any');
+        const paramsResolved = this.handleRouteAndParams ('watchBalance', params);
+        const [ currency, paramsCurrency ] = this.handleOptionAndParams (paramsResolved, 'watchBalance', 'currency', 'any');
         const channel = 'user.portfolio.' + currency;
-        return await this.subscribe ([ channel ], [ 'balance' ], true, paramsResolved);
+        return await this.subscribe ([ channel ], [ 'balance' ], true, paramsCurrency);
     }
 
     handleBalance (client: Client, message: any) {
@@ -234,18 +266,21 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchMyTrades
      * @description watches trades associated with the user
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/usertradesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        const paramsResolved = this.handleRouteAndParams ('watchMyTrades', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchMyTrades', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchMyTrades', 'interval', 'raw');
         let channel = 'user.trades.any.any.' + interval;
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
@@ -253,7 +288,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             symbolResolved = market['symbol'];
             channel = 'user.trades.' + market['id'] + '.' + interval;
         }
-        const trades = await this.subscribe ([ channel ], [ channel ], true, paramsResolved);
+        const trades = await this.subscribe ([ channel ], [ channel ], true, paramsInterval);
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limit, true);
     }
 
@@ -262,12 +297,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchMyTrades
      * @description stops watching user trades
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchMyTrades', 'interval', 'raw');
+        const paramsResolved = this.handleRouteAndParams ('unWatchMyTrades', params);
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchMyTrades', 'interval', 'raw');
         let channel = 'user.trades.any.any.' + interval;
         if (symbol !== undefined) {
             if (this.markets === undefined) {
@@ -275,7 +313,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             }
             channel = 'user.trades.' + this.marketId (symbol) + '.' + interval;
         }
-        return await this.unSubscribe ([ channel ], true, paramsResolved);
+        return await this.unSubscribe ([ channel ], true, paramsInterval);
     }
 
     handleMyTrades (client: Client, message: any) {
@@ -299,18 +337,21 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchOrders
      * @description watches information on orders made by the user
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userordersinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameinterval
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const paramsResolved = this.handleRouteAndParams ('watchOrders', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchOrders', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchOrders', 'interval', 'raw');
         let channel = 'user.orders.any.any.' + interval;
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
@@ -318,7 +359,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             symbolResolved = market['symbol'];
             channel = 'user.orders.' + market['id'] + '.' + interval;
         }
-        const orders = await this.subscribe ([ channel ], [ channel ], true, paramsResolved);
+        const orders = await this.subscribe ([ channel ], [ channel ], true, paramsInterval);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -331,24 +372,27 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchOrdersForSymbols
      * @description watches information on orders made by the user for multiple symbols
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userordersinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameinterval
      * @param {string[]} symbols unified market symbols
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const paramsResolved = this.handleRouteAndParams ('watchOrdersForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols, undefined, false);
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchOrders', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchOrders', 'interval', 'raw');
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
             channels.push ('user.orders.' + this.marketId (symbolsResolved[i]) + '.' + interval);
         }
-        const orders = await this.subscribe (channels, channels, true, paramsResolved);
+        const orders = await this.subscribe (channels, channels, true, paramsInterval);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (undefined, limit);
@@ -362,12 +406,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchOrders
      * @description stops watching user orders
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchOrders', 'interval', 'raw');
+        const paramsResolved = this.handleRouteAndParams ('unWatchOrders', params);
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchOrders', 'interval', 'raw');
         let channel = 'user.orders.any.any.' + interval;
         if (symbol !== undefined) {
             if (this.markets === undefined) {
@@ -375,7 +422,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             }
             channel = 'user.orders.' + this.marketId (symbol) + '.' + interval;
         }
-        return await this.unSubscribe ([ channel ], true, paramsResolved);
+        return await this.unSubscribe ([ channel ], true, paramsInterval);
     }
 
     handleOrders (client: Client, message: any) {
@@ -404,19 +451,22 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchPositions
      * @description watches all open positions
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userchangesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/user/userchangesinstrument_nameinterval
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
      * @param {int} [limit] the maximum number of positions to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        const paramsResolved = this.handleRouteAndParams ('watchPositions', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols);
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchPositions', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchPositions', 'interval', 'raw');
         const channels: string[] = [];
         let symbolsLength = 0;
         if (symbolsResolved !== undefined) {
@@ -429,7 +479,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         } else {
             channels.push ('user.changes.any.any.' + interval);
         }
-        const positions = await this.subscribe (channels, channels, true, paramsResolved);
+        const positions = await this.subscribe (channels, channels, true, paramsInterval);
         if (this.newUpdates) {
             return positions;
         }
@@ -441,16 +491,19 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchPositions
      * @description stops watching open positions
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
      * @param {string[]} [symbols] unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
+        const paramsResolved = this.handleRouteAndParams ('unWatchPositions', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols);
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchPositions', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchPositions', 'interval', 'raw');
         const channels: string[] = [];
         let symbolsLength = 0;
         if (symbolsResolved !== undefined) {
@@ -463,7 +516,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         } else {
             channels.push ('user.changes.any.any.' + interval);
         }
-        return await this.unSubscribe (channels, true, paramsResolved);
+        return await this.unSubscribe (channels, true, paramsInterval);
     }
 
     handlePositions (client: Client, message: any) {
@@ -487,12 +540,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchFundingRate
      * @description watch the current funding rate
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        const ticker = await this.watchTicker (symbol, params);
+        const paramsResolved = this.handleRouteAndParams ('watchFundingRate', params);
+        const ticker = await this.watchTicker (symbol, paramsResolved);
         return this.parseFundingRate (ticker['info'], this.market (symbol));
     }
 
@@ -501,18 +557,21 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchFundingRates
      * @description watch the funding rate for multiple markets
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string[]} symbols a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
     override async watchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
+        const paramsResolved = this.handleRouteAndParams ('watchFundingRates', params);
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchFundingRates() requires an array of symbols');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const tickers = await this.watchTickers (symbols, params);
+        const tickers = await this.watchTickers (symbols, paramsResolved);
         const result: Dict = {};
         const tickerSymbols = Object.keys (tickers);
         const tickerSymbolsLength = tickerSymbols.length;
@@ -529,12 +588,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchFundingRate
      * @description stops watching the funding rate for a symbol
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
-        return await this.unWatchTicker (symbol, params);
+        const paramsResolved = this.handleRouteAndParams ('unWatchFundingRate', params);
+        return await this.unWatchTicker (symbol, paramsResolved);
     }
 
     /**
@@ -542,12 +604,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchFundingRates
      * @description stops watching funding rates for multiple symbols
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string[]} [symbols] unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchFundingRates (symbols: Strings = undefined, params = {}): Promise<any> {
-        return await this.unWatchTickers (symbols, params);
+        const paramsResolved = this.handleRouteAndParams ('unWatchFundingRates', params);
+        return await this.unWatchTickers (symbols, paramsResolved);
     }
 
     /**
@@ -555,20 +620,23 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string} [symbol] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {string} [params.interval] notification interval, default 100ms
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        const paramsResolved = this.handleRouteAndParams ('watchTicker', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchTicker', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchTicker', 'interval', '100ms');
         const isPrivate = interval === 'raw';
         const channel = 'ticker.' + market['id'] + '.' + interval;
-        return await this.subscribe ([ channel ], [ channel ], isPrivate, paramsResolved);
+        return await this.subscribe ([ channel ], [ channel ], isPrivate, paramsInterval);
     }
 
     /**
@@ -576,12 +644,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchTicker
      * @description stops watching a ticker
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchTicker (symbol: string, params = {}): Promise<any> {
-        return await this.unWatchTickers ([ symbol ], params);
+        const paramsResolved = this.handleRouteAndParams ('unWatchTicker', params);
+        return await this.unWatchTickers ([ symbol ], paramsResolved);
     }
 
     /**
@@ -589,17 +660,20 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {string} [params.interval] notification interval, default 100ms
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        const paramsResolved = this.handleRouteAndParams ('watchTickers', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols, undefined, false);
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchTickers', 'interval', '100ms');
         const isPrivate = interval === 'raw';
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
@@ -607,7 +681,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const market = this.market (symbolsResolved[i]);
             channels.push ('ticker.' + market['id'] + '.' + interval);
         }
-        const ticker = await this.subscribe (channels, channels, isPrivate, paramsResolved);
+        const ticker = await this.subscribe (channels, channels, isPrivate, paramsInterval);
         if (this.newUpdates) {
             const result: Dict = {};
             const tickerSymbol = this.safeString (ticker, 'symbol');
@@ -624,22 +698,25 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchTickers
      * @description stops watching tickers
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string[]} [symbols] unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        const paramsResolved = this.handleRouteAndParams ('unWatchTickers', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols, undefined, false);
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchTickers', 'interval', '100ms');
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
             channels.push ('ticker.' + this.marketId (symbolsResolved[i]) + '.' + interval);
         }
-        return await this.unSubscribe (channels, interval === 'raw', paramsResolved);
+        return await this.unSubscribe (channels, interval === 'raw', paramsInterval);
     }
 
     /**
@@ -647,13 +724,16 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchMarkPrice
      * @description watches a mark price for a specific market
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {string} [params.interval] notification interval, default 100ms
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
-        return await this.watchTicker (symbol, params);
+        const paramsResolved = this.handleRouteAndParams ('watchMarkPrice', params);
+        return await this.watchTicker (symbol, paramsResolved);
     }
 
     /**
@@ -661,13 +741,16 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchMarkPrices
      * @description watches the mark price for multiple markets
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string[]} symbols unified symbols of the markets to watch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {string} [params.interval] notification interval, default 100ms
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     override async watchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        return await this.watchTickers (symbols, params);
+        const paramsResolved = this.handleRouteAndParams ('watchMarkPrices', params);
+        return await this.watchTickers (symbols, paramsResolved);
     }
 
     /**
@@ -675,12 +758,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchMarkPrice
      * @description stops watching the mark price for a symbol
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchMarkPrice (symbol: string, params: Dict = {}): Promise<any> {
-        return await this.unWatchTicker (symbol, params);
+        const paramsResolved = this.handleRouteAndParams ('unWatchMarkPrice', params);
+        return await this.unWatchTicker (symbol, paramsResolved);
     }
 
     /**
@@ -688,12 +774,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchMarkPrices
      * @description stops watching mark prices for multiple symbols
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string[]} [symbols] unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
-        return await this.unWatchTickers (symbols, params);
+        const paramsResolved = this.handleRouteAndParams ('unWatchMarkPrices', params);
+        return await this.unWatchTickers (symbols, paramsResolved);
     }
 
     /**
@@ -701,11 +790,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchBidsAsks
      * @description watches best bid & ask for symbols
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/quoteinstrument_name
+     * @see https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name
      * @param {string[]} [symbols] unified symbols of the markets to watch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        const paramsResolved = this.handleRouteAndParams ('watchBidsAsks', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -716,7 +808,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const market = this.market (symbolsResolved[i]);
             channels.push ('quote.' + market['id']);
         }
-        const ticker = await this.subscribe (channels, channels, false, params);
+        const ticker = await this.subscribe (channels, channels, false, paramsResolved);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -730,11 +822,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchBidsAsks
      * @description stops watching best bid & ask for symbols
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string[]} [symbols] unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+        const paramsResolved = this.handleRouteAndParams ('unWatchBidsAsks', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -744,7 +839,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         for (let i = 0; i < symbolsLength; i++) {
             channels.push ('quote.' + this.marketId (symbolsResolved[i]));
         }
-        return await this.unSubscribe (channels, false, params);
+        return await this.unSubscribe (channels, false, paramsResolved);
     }
 
     handleTicker (client: Client, message: any) {
@@ -788,19 +883,22 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/charttradesinstrument_nameresolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        const paramsResolved = this.handleRouteAndParams ('watchOHLCV', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolResolved = this.symbol (symbol);
-        const ohlcvs = await this.watchOHLCVForSymbols ([ [ symbolResolved, timeframe ] ], since, limit, params);
+        const ohlcvs = await this.watchOHLCVForSymbols ([ [ symbolResolved, timeframe ] ], since, limit, paramsResolved);
         return ohlcvs[symbolResolved][timeframe];
     }
 
@@ -809,13 +907,16 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchOHLCVForSymbols
      * @description watches historical candlestick data for multiple markets and timeframes
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/charttradesinstrument_nameresolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of OHLCV arrays indexed by symbol and timeframe
      */
     override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        const paramsResolved = this.handleRouteAndParams ('watchOHLCVForSymbols', params);
         const symbolsAndTimeframesLength = symbolsAndTimeframes.length;
         if (symbolsAndTimeframesLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]");
@@ -831,7 +932,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const resolution = this.safeString (this.timeframes, currentTimeframe, currentTimeframe);
             channels.push ('chart.trades.' + market['id'] + '.' + resolution);
         }
-        const resolved = await this.subscribe (channels, channels, false, params);
+        const resolved = await this.subscribe (channels, channels, false, paramsResolved);
         const symbol = this.safeString (resolved, 0);
         const timeframe = this.safeString (resolved, 1);
         const ohlcv = this.safeValue (resolved, 2);
@@ -848,13 +949,16 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchOHLCV
      * @description stops watching OHLCV data for a symbol
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string} symbol unified market symbol
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
-        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+        const paramsResolved = this.handleRouteAndParams ('unWatchOHLCV', params);
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], paramsResolved);
     }
 
     /**
@@ -862,11 +966,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchOHLCVForSymbols
      * @description stops watching OHLCV data for multiple symbols and timeframes
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+        const paramsResolved = this.handleRouteAndParams ('unWatchOHLCVForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -879,7 +986,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const resolution = this.safeString (this.timeframes, timeframe, timeframe);
             channels.push ('chart.trades.' + market['id'] + '.' + resolution);
         }
-        return await this.unSubscribe (channels, false, params);
+        return await this.unSubscribe (channels, false, paramsResolved);
     }
 
     handleOHLCV (client: Client, message: any) {
@@ -922,14 +1029,17 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/trades/tradesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        const paramsResolved = this.handleRouteAndParams ('watchTrades', params);
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, paramsResolved);
     }
 
     /**
@@ -937,18 +1047,21 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/trades/tradesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        const paramsResolved = this.handleRouteAndParams ('watchTradesForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols, undefined, false);
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
         const isPrivate = interval === 'raw';
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
@@ -956,7 +1069,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const market = this.market (symbolsResolved[i]);
             channels.push ('trades.' + market['id'] + '.' + interval);
         }
-        const trades = await this.subscribe (channels, channels, isPrivate, paramsResolved);
+        const trades = await this.subscribe (channels, channels, isPrivate, paramsInterval);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
@@ -971,12 +1084,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchTrades
      * @description stops watching trades for a symbol
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchTrades (symbol: string, params = {}): Promise<any> {
-        return await this.unWatchTradesForSymbols ([ symbol ], params);
+        const paramsResolved = this.handleRouteAndParams ('unWatchTrades', params);
+        return await this.unWatchTradesForSymbols ([ symbol ], paramsResolved);
     }
 
     /**
@@ -984,22 +1100,25 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchTradesForSymbols
      * @description stops watching trades for multiple symbols
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        const paramsResolved = this.handleRouteAndParams ('unWatchTradesForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols, undefined, false);
-        const [ interval, paramsResolved ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
             channels.push ('trades.' + this.marketId (symbolsResolved[i]) + '.' + interval);
         }
-        return await this.unSubscribe (channels, interval === 'raw', paramsResolved);
+        return await this.unSubscribe (channels, interval === 'raw', paramsInterval);
     }
 
     handleTrades (client: Client, message: any) {
@@ -1031,13 +1150,17 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+        const paramsResolved = this.handleRouteAndParams ('watchOrderBook', params);
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, paramsResolved);
     }
 
     /**
@@ -1045,24 +1168,28 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @param {string[]} symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        const paramsResolved = this.handleRouteAndParams ('watchOrderBookForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
         const isPrivate = interval === 'raw';
         const [ useDepthEndpoint, paramsDepthEndpoint ] = this.handleOptionAndParams (paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
-        let paramsResolved: Dict = paramsDepthEndpoint;
+        let paramsChannel: Dict = paramsDepthEndpoint;
         let descriptor = interval as string;
         if (useDepthEndpoint) {
             const [ depth, paramsDepth ] = this.handleOptionAndParams (paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
             const [ group, paramsGroup ] = this.handleOptionAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
-            paramsResolved = paramsGroup;
+            paramsChannel = paramsGroup;
             descriptor = group + '.' + depth + '.' + interval;
         }
         const channels: string[] = [];
@@ -1071,7 +1198,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const market = this.market (symbols[i]);
             channels.push ('book.' + market['id'] + '.' + descriptor);
         }
-        const orderbook = await this.subscribe (channels, channels, isPrivate, paramsResolved);
+        const orderbook = await this.subscribe (channels, channels, isPrivate, paramsChannel);
         return orderbook.limit ();
     }
 
@@ -1080,12 +1207,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchOrderBook
      * @description stops watching an order book
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+        const paramsResolved = this.handleRouteAndParams ('unWatchOrderBook', params);
+        return await this.unWatchOrderBookForSymbols ([ symbol ], paramsResolved);
     }
 
     /**
@@ -1093,22 +1223,25 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#unWatchOrderBookForSymbols
      * @description stops watching order books for multiple symbols
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        const paramsResolved = this.handleRouteAndParams ('unWatchOrderBookForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
         const [ useDepthEndpoint, paramsDepthEndpoint ] = this.handleOptionAndParams (paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
-        let paramsResolved: Dict = paramsDepthEndpoint;
+        let paramsChannel: Dict = paramsDepthEndpoint;
         let descriptor = interval as string;
         if (useDepthEndpoint) {
             const [ depth, paramsDepth ] = this.handleOptionAndParams (paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
             const [ group, paramsGroup ] = this.handleOptionAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
-            paramsResolved = paramsGroup;
+            paramsChannel = paramsGroup;
             descriptor = group + '.' + depth + '.' + interval;
         }
         const channels: string[] = [];
@@ -1116,7 +1249,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         for (let i = 0; i < symbolsLength; i++) {
             channels.push ('book.' + this.marketId (symbols[i]) + '.' + descriptor);
         }
-        return await this.unSubscribe (channels, interval === 'raw', paramsResolved);
+        return await this.unSubscribe (channels, interval === 'raw', paramsChannel);
     }
 
     handleOrderBook (client: any, message: any) {
@@ -1322,7 +1455,19 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (result, 'authenticated');
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#authenticate
+     * @description authenticates the private websocket session
+     * @see https://docs.cdp.coinbase.com/api-reference/authentication/public-auth
+     * @see https://docs.deribit.com/api-reference/authentication/public-auth
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the authentication response
+     */
     async authenticate (params = {}) {
+        const paramsResolved = this.handleRouteAndParams ('authenticate', params);
         const url = this.getWsUrl (true);
         const client = this.client (url);
         const messageHash = 'authenticated';
@@ -1356,13 +1501,25 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 'method': 'public/auth',
                 'params': paramsAuth,
             };
-            future = this.watch (url, messageHash, this.extend (request, params), messageHash);
+            future = this.watch (url, messageHash, this.extend (request, paramsResolved), messageHash);
             client.subscriptions[messageHash] = future;
         }
         return await future;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#requestWs
+     * @description sends a websocket JSON-RPC request
+     * @param {string} method exchange JSON-RPC method name
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {boolean} [isPrivate] whether to authenticate before sending the request
+     * @returns {object} the exchange response
+     */
     async requestWs (method: string, params = {}, isPrivate = false) {
+        const paramsResolved = this.handleRouteAndParams ('requestWs', params);
         const url = this.getWsUrl (true);
         if (isPrivate) {
             await this.authenticate ();
@@ -1373,7 +1530,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'jsonrpc': '2.0',
             'id': requestId,
             'method': method,
-            'params': params,
+            'params': paramsResolved,
         };
         return await this.watch (url, messageHash, request, messageHash);
     }
@@ -1384,25 +1541,29 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @description create a trade order over websocket
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-buy
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-sell
+     * @see https://docs.deribit.com/api-reference/trading/private-buy
+     * @see https://docs.deribit.com/api-reference/trading/private-sell
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much to trade in units of the base currency
+     * @param {float} amount number of contracts for native Deribit derivatives, otherwise the exchange order amount (base currency for spot)
      * @param {float} [price] the price at which the order is to be fulfilled
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        const paramsResolved = this.handleRouteAndParams ('createOrderWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const request: Dict = {
             'instrument_name': market['id'],
-            'amount': this.parseNumber (this.amountToPrecision (symbol, amount)),
+            'amount': this.parseNumber (this.getOrderAmount (market, amount)),
             'type': type,
         };
-        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const triggerPrice = this.safeNumberN (paramsResolved, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         if (triggerPrice !== undefined) {
             request['type'] = (type === 'limit') ? 'stop_limit' : 'stop_market';
             request['trigger_price'] = triggerPrice;
@@ -1413,12 +1574,18 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             }
             request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
         }
-        const postOnly = this.safeBool2 (params, 'postOnly', 'post_only');
+        const postOnly = this.safeBool2 (paramsResolved, 'postOnly', 'post_only');
+        if (this.isNativeDeribitCredentials ()) {
+            const reduceOnly = this.safeBool2 (paramsResolved, 'reduceOnly', 'reduce_only');
+            if (reduceOnly !== undefined) {
+                request['reduce_only'] = reduceOnly;
+            }
+        }
         if (postOnly !== undefined) {
             request['post_only'] = postOnly;
             request['reject_post_only'] = postOnly;
         }
-        const timeInForce = this.safeString2 (params, 'timeInForce', 'tif');
+        const timeInForce = this.safeString2 (paramsResolved, 'timeInForce', 'tif');
         if (timeInForce !== undefined) {
             const timeInForces: Dict = {
                 'GTC': 'good_til_cancelled',
@@ -1428,7 +1595,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             };
             request['time_in_force'] = this.safeString (timeInForces, timeInForce, timeInForce);
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        const clientOrderId = this.safeString2 (paramsResolved, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
             request['label'] = clientOrderId;
         } else {
@@ -1437,8 +1604,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 request['label'] = brokerId + '-' + this.uuid22 ();
             }
         }
-        const paramsResolved = this.omit (params, [ 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'timeInForce', 'tif', 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const result = await this.requestWs ('private/' + side, this.extend (request, paramsResolved), true);
+        let paramsRequest = this.omit (paramsResolved, [ 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'timeInForce', 'tif', 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        if (this.isNativeDeribitCredentials ()) {
+            paramsRequest = this.omit (paramsRequest, [ 'reduceOnly', 'reduce_only' ]);
+        }
+        const result = await this.requestWs ('private/' + side, this.extend (request, paramsRequest), true);
         const order = this.safeDict (result, 'order', {});
         order['trades'] = this.safeList (result, 'trades', []);
         return this.parseOrder (order, market);
@@ -1449,33 +1619,36 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#editOrderWs
      * @description edit a trade order over websocket
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-edit
+     * @see https://docs.deribit.com/api-reference/trading/private-edit
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {string} type not used by coinbaseinternational editOrderWs
      * @param {string} side not used by coinbaseinternational editOrderWs
-     * @param {float} [amount] new order amount
+    * @param {float} [amount] new order amount, in contracts for native Deribit derivatives
      * @param {float} [price] new order price
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        const paramsResolved = this.handleRouteAndParams ('editOrderWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const request: Dict = { 'order_id': id };
         if (amount !== undefined) {
-            request['amount'] = this.parseNumber (this.amountToPrecision (symbol, amount));
+            request['amount'] = this.parseNumber (this.getOrderAmount (market, amount));
         }
         if (price !== undefined) {
             request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
         }
-        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const triggerPrice = this.safeNumberN (paramsResolved, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         if (triggerPrice !== undefined) {
             request['trigger_price'] = triggerPrice;
         }
-        const paramsResolved = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const result = await this.requestWs ('private/edit', this.extend (request, paramsResolved), true);
+        const paramsRequest = this.omit (paramsResolved, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const result = await this.requestWs ('private/edit', this.extend (request, paramsRequest), true);
         const order = this.safeDict (result, 'order', {});
         order['trades'] = this.safeList (result, 'trades', []);
         return this.parseOrder (order, market);
@@ -1486,12 +1659,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#cancelOrderWs
      * @description cancels an open order over websocket
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        const paramsResolved = this.handleRouteAndParams ('cancelOrderWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1499,7 +1675,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const result = await this.requestWs ('private/cancel', this.extend ({ 'order_id': id }, params), true);
+        const result = await this.requestWs ('private/cancel', this.extend ({ 'order_id': id }, paramsResolved), true);
         return this.parseOrder (result, market);
     }
 
@@ -1509,22 +1685,26 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @description cancels all open orders over websocket
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        const paramsResolved = this.handleRouteAndParams ('cancelAllOrdersWs', params);
         let method = 'private/cancel_all';
-        let paramsResolved: Dict = params;
+        let paramsRequest: Dict = paramsResolved;
         if (symbol !== undefined) {
             if (this.markets === undefined) {
                 await this.loadMarkets ();
             }
             const market = this.market (symbol);
-            paramsResolved = this.extend ({ 'instrument_name': market['id'] }, params);
+            paramsRequest = this.extend ({ 'instrument_name': market['id'] }, paramsResolved);
             method = 'private/cancel_all_by_instrument';
         }
-        const result = await this.requestWs (method, paramsResolved, true);
+        const result = await this.requestWs (method, paramsRequest, true);
         return [ this.safeOrder ({ 'info': result }) ];
     }
 
@@ -1533,12 +1713,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#fetchOrderWs
      * @description fetches an order over websocket
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_state
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        const paramsResolved = this.handleRouteAndParams ('fetchOrderWs', params);
         let market: Market = undefined;
         if (symbol !== undefined) {
             if (this.markets === undefined) {
@@ -1546,7 +1729,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             }
             market = this.market (symbol);
         }
-        const result = await this.requestWs ('private/get_order_state', this.extend ({ 'order_id': id }, params), true);
+        const result = await this.requestWs ('private/get_order_state', this.extend ({ 'order_id': id }, paramsResolved), true);
         return this.parseOrder (result, market);
     }
 
@@ -1555,13 +1738,16 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#fetchOpenOrdersWs
      * @description fetches open orders over websocket
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_open_orders_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
      * @param {string} symbol unified market symbol
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchOpenOrdersWs', params);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrdersWs() requires a symbol argument');
         }
@@ -1573,7 +1759,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const result = await this.requestWs ('private/get_open_orders_by_instrument', this.extend (request, params), true);
+        const result = await this.requestWs ('private/get_open_orders_by_instrument', this.extend (request, paramsResolved), true);
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -1582,13 +1768,16 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#fetchOrdersWs
      * @description fetches order history over websocket
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
      * @param {string} symbol unified market symbol
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchOrdersWs', params);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersWs() requires a symbol argument');
         }
@@ -1600,7 +1789,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const result = await this.requestWs ('private/get_order_history_by_instrument', this.extend (request, params), true);
+        const result = await this.requestWs ('private/get_order_history_by_instrument', this.extend (request, paramsResolved), true);
         const orders = this.safeList (result, 'orders', result);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -1610,11 +1799,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#fetchBalanceWs
      * @description fetches the balance over websocket
      * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     override async fetchBalanceWs (params = {}): Promise<Balances> {
-        const result = await this.requestWs ('private/get_account_summaries', params, true);
+        const paramsResolved = this.handleRouteAndParams ('fetchBalanceWs', params);
+        const result = await this.requestWs ('private/get_account_summaries', paramsResolved, true);
         const summaries = this.safeList (result, 'summaries', []);
         let balance: Balances = { 'info': result } as Balances;
         const summariesLength = summaries.length;
@@ -1629,13 +1822,17 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#fetchMyTradesWs
      * @description fetches user trades over websocket
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
      * @param {string} symbol unified market symbol
      * @param {int} [since] timestamp in ms of the earliest trade
      * @param {int} [limit] the maximum number of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     override async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchMyTradesWs', params);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTradesWs() requires a symbol argument');
         }
@@ -1647,7 +1844,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const result = await this.requestWs ('private/get_user_trades_by_instrument', this.extend (request, params), true);
+        const result = await this.requestWs ('private/get_user_trades_by_instrument', this.extend (request, paramsResolved), true);
         const trades = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -1657,16 +1854,19 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#fetchPositionsWs
      * @description fetches open positions over websocket
      * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     override async fetchPositionsWs (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchPositionsWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols);
-        const result = await this.requestWs ('private/get_positions', params, true);
+        const result = await this.requestWs ('private/get_positions', paramsResolved, true);
         const positions = this.parsePositions (result);
         return this.filterByArrayPositions (positions, 'symbol', symbolsResolved);
     }
@@ -1674,83 +1874,109 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     /**
      * @ignore
      * @method
+     * @name coinbaseinternational#setHeartbeat
      * @description enables heartbeat messages for the private websocket connection
      * @see https://docs.cdp.coinbase.com/api-reference/session-management/public-set_heartbeat
+     * @see https://docs.deribit.com/api-reference/session-management/public-set_heartbeat
      * @param {int} [interval] heartbeat interval in seconds, minimum 10
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     async setHeartbeat (interval: Int = 30, params = {}) {
-        const request = this.extend ({ 'interval': interval }, params);
+        const paramsResolved = this.handleRouteAndParams ('setHeartbeat', params);
+        const request = this.extend ({ 'interval': interval }, paramsResolved);
         return await this.requestWs ('public/set_heartbeat', request);
     }
 
     /**
      * @ignore
      * @method
+     * @name coinbaseinternational#disableHeartbeat
      * @description disables heartbeat messages for the private websocket connection
      * @see https://docs.cdp.coinbase.com/api-reference/session-management/public-disable_heartbeat
+     * @see https://docs.deribit.com/api-reference/session-management/public-disable_heartbeat
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     async disableHeartbeat (params = {}) {
-        return await this.requestWs ('public/disable_heartbeat', params);
+        const paramsResolved = this.handleRouteAndParams ('disableHeartbeat', params);
+        return await this.requestWs ('public/disable_heartbeat', paramsResolved);
     }
 
     /**
      * @ignore
      * @method
+     * @name coinbaseinternational#setCancelOnDisconnect
      * @description enables or disables cancel on disconnect
      * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-enable_cancel_on_disconnect
      * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-disable_cancel_on_disconnect
+     * @see https://docs.deribit.com/api-reference/session-management/private-enable_cancel_on_disconnect
+     * @see https://docs.deribit.com/api-reference/session-management/private-disable_cancel_on_disconnect
      * @param {bool} enabled whether cancel on disconnect should be enabled
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {string} [params.scope] connection or account, default connection
      * @returns {object} the exchange response
      */
     async setCancelOnDisconnect (enabled: Bool, params = {}) {
+        const paramsResolved = this.handleRouteAndParams ('setCancelOnDisconnect', params);
         const method = (enabled === true) ? 'private/enable_cancel_on_disconnect' : 'private/disable_cancel_on_disconnect';
-        return await this.requestWs (method, params, true);
+        return await this.requestWs (method, paramsResolved, true);
     }
 
     /**
      * @ignore
      * @method
+     * @name coinbaseinternational#getCancelOnDisconnect
      * @description gets the cancel on disconnect configuration
      * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-get_cancel_on_disconnect
+     * @see https://docs.deribit.com/api-reference/session-management/private-get_cancel_on_disconnect
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {string} [params.scope] connection or account, default connection
      * @returns {object} the exchange response
      */
     async getCancelOnDisconnect (params = {}) {
-        return await this.requestWs ('private/get_cancel_on_disconnect', params, true);
+        const paramsResolved = this.handleRouteAndParams ('getCancelOnDisconnect', params);
+        return await this.requestWs ('private/get_cancel_on_disconnect', paramsResolved, true);
     }
 
     /**
      * @ignore
      * @method
+     * @name coinbaseinternational#unsubscribeAllWs
      * @description unsubscribes from all websocket channels
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe_all
      * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe_all
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe_all
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe_all
      * @param {bool} [isPrivate] whether to unsubscribe from private channels
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
     async unsubscribeAllWs (isPrivate = false, params = {}) {
+        const paramsResolved = this.handleRouteAndParams ('unsubscribeAllWs', params);
         const method = isPrivate ? 'private/unsubscribe_all' : 'public/unsubscribe_all';
-        return await this.requestWs (method, params, isPrivate);
+        return await this.requestWs (method, paramsResolved, isPrivate);
     }
 
     /**
      * @ignore
      * @method
+     * @name coinbaseinternational#logoutWs
      * @description gracefully logs out of the private websocket session
      * @see https://docs.cdp.coinbase.com/api-reference/authentication/private-logout
+     * @see https://docs.deribit.com/api-reference/authentication/private-logout
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
      * @returns {object} the exchange response
      */
     async logoutWs (params = {}) {
+        const paramsResolved = this.handleRouteAndParams ('logoutWs', params);
         await this.authenticate ();
         const url = this.getWsUrl (true);
         const client = this.client (url);
@@ -1758,7 +1984,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'jsonrpc': '2.0',
             'id': this.requestId (),
             'method': 'private/logout',
-            'params': params,
+            'params': paramsResolved,
         };
         await client.send (request);
         return undefined;

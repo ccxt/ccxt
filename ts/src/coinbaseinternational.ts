@@ -1,13 +1,12 @@
-
 // ----------------------------------------------------------------------------
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import { jwt } from './base/functions/rsa.js';
 import Exchange from './abstract/coinbaseinternational.js';
-import { ExchangeError, ArgumentsRequired, InvalidOrder, AuthenticationError } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Endpoint, Leverage } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Endpoint, Leverage } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -321,6 +320,7 @@ export default class coinbaseinternational extends Exchange {
                 '1d': '1D',
             },
             'options': {
+                'route': 'auto', // deribit for native Deribit, coinbase for Coinbase, auto detects known native key formats
                 'brokerId': 'nfqkvdjp',
                 'portfolio': '', // default portfolio id
                 'accessTokenRefreshRatio': 0.8, // refresh the bearer token after 80% of expires_in
@@ -443,11 +443,14 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://docs.cdp.coinbase.com/api-reference/supporting/public-get_time
+     * @see https://docs.deribit.com/api-reference/supporting/public-get_time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     override async fetchTime (params = {}): Promise<Int> {
-        const response = await this.publicGetGetTime (params);
+        const paramsResolved = this.handleRouteAndParams ('fetchTime', params);
+        const response = await this.publicGetGetTime (paramsResolved);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -467,11 +470,19 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchMarkets
      * @description retrieves data on all markets for coinbaseinternational
      * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_instruments
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.currency] settlement currency filter, defaults to any on Deribit
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.publicGetGetInstruments (params);
+        const paramsResolved = this.handleRouteAndParams ('fetchMarkets', params);
+        const request: Dict = {};
+        if (this.isNativeDeribitCredentials ()) {
+            request['currency'] = 'any';
+        }
+        const response = await this.publicGetGetInstruments (this.extend (request, paramsResolved));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -678,11 +689,14 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchCurrencies
      * @description fetches all available currencies on an exchange
      * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an associative dictionary of currencies
      */
     override async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.publicGetGetCurrencies (params);
+        const paramsResolved = this.handleRouteAndParams ('fetchCurrencies', params);
+        const response = await this.publicGetGetCurrencies (paramsResolved);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -813,20 +827,23 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_tradingview_chart_data
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch, default 100 max 10000
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = 100, params: Dict = {}): Promise<OHLCV[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchOHLCV', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (paramsResolved, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000) as OHLCV[];
         }
@@ -835,6 +852,10 @@ export default class coinbaseinternational extends Exchange {
             'instrument_name': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
+        const marketInfo = this.safeDict (market, 'info', {});
+        if (this.isNativeDeribitCredentials () && this.safeBool2 (marketInfo, 'is_cbe_routed', 'is_csr', false)) {
+            throw new NotSupported (this.id + ' fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments');
+        }
         let limitResolved: Int = limit;
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();
@@ -903,14 +924,26 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_funding_rate_history
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @param {boolean} [params.paginate] native Deribit automatic pagination is not supported
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchFundingRateHistory', params);
+        let paramsPaginate: Dict = paramsResolved;
+        if (this.isNativeDeribitCredentials ()) {
+            const [ paginate, paramsFinal ] = this.handleOptionBoolAndParams (paramsResolved, 'fetchFundingRateHistory', 'paginate', false);
+            if (paginate) {
+                throw new NotSupported (this.id + ' fetchFundingRateHistory() automatic pagination is not implemented; use since and params.until');
+            }
+            paramsPaginate = paramsFinal;
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -933,11 +966,14 @@ export default class coinbaseinternational extends Exchange {
             const endTimestamp = this.sum (sinceResolved, limit * duration);
             request['end_timestamp'] = endTimestamp;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsPaginate, 'until');
         if (until !== undefined) {
             request['end_timestamp'] = until;
         }
-        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+        let paramsOmitted: Dict = paramsPaginate;
+        if ((until !== undefined) || this.isNativeDeribitCredentials ()) {
+            paramsOmitted = this.omit (paramsPaginate, 'until');
+        }
         const response = await this.publicGetGetFundingRateHistory (this.extend (request, paramsOmitted));
         //
         //     {
@@ -1011,11 +1047,14 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        const paramsResolved = this.handleRouteAndParams ('fetchTickers', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1029,7 +1068,7 @@ export default class coinbaseinternational extends Exchange {
             if (symbol === undefined) {
                 continue;
             }
-            const ticker = await this.fetchTicker (symbol, params);
+            const ticker = await this.fetchTicker (symbol, paramsResolved);
             tickers[symbol] = ticker;
         }
         return this.filterByArray (tickers, 'symbol', symbolsResolved, true);
@@ -1040,11 +1079,14 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        const paramsResolved = this.handleRouteAndParams ('fetchTicker', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1052,7 +1094,7 @@ export default class coinbaseinternational extends Exchange {
         const request: Dict = {
             'instrument_name': market['id'],
         };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, paramsResolved));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1118,6 +1160,10 @@ export default class coinbaseinternational extends Exchange {
         const stats = this.safeDict (ticker, 'stats', {});
         const last = this.safeNumber (ticker, 'last_price');
         const marketId = this.safeString (ticker, 'instrument_name');
+        let quoteVolume: Num = this.safeNumber (stats, 'volume_notional');
+        if (this.isNativeDeribitCredentials ()) {
+            quoteVolume = this.safeNumber2 (stats, 'volume_notional', 'volume_usd');
+        }
         return this.safeTicker ({
             'info': ticker,
             'symbol': this.safeSymbol (marketId, market),
@@ -1137,7 +1183,7 @@ export default class coinbaseinternational extends Exchange {
             'average': undefined,
             'vwap': undefined,
             'baseVolume': this.safeNumber (stats, 'volume'),
-            'quoteVolume': this.safeNumber (stats, 'volume_notional'),
+            'quoteVolume': quoteVolume,
             'previousClose': undefined,
             'markPrice': this.safeNumber (ticker, 'mark_price'),
             'indexPrice': this.safeNumber (ticker, 'index_price'),
@@ -1149,12 +1195,15 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchOrderBook
      * @description fetches a market order book
      * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_order_book
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
      * @param {string} symbol unified market symbol
      * @param {int} [limit] the maximum number of bids and asks to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+        const paramsResolved = this.handleRouteAndParams ('fetchOrderBook', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1164,8 +1213,20 @@ export default class coinbaseinternational extends Exchange {
         };
         if (limit !== undefined) {
             request['depth'] = limit;
+            if (this.isNativeDeribitCredentials ()) {
+                const depths = [ 1, 5, 10, 20, 50, 100, 1000, 10000 ];
+                if ((limit < 1) || (limit > 10000)) {
+                    throw new BadRequest (this.id + ' fetchOrderBook() limit must be between 1 and 10000');
+                }
+                for (let i = 0; i < depths.length; i++) {
+                    if (limit <= depths[i]) {
+                        request['depth'] = depths[i];
+                        break;
+                    }
+                }
+            }
         }
-        const response = await this.publicGetGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetGetOrderBook (this.extend (request, paramsResolved));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1222,15 +1283,31 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.code] unified currency code for a native Deribit single account summary
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params = {}): Promise<Balances> {
+        const paramsResolved = this.handleRouteAndParams ('fetchBalance', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         await this.authenticateV2 ();
-        const response = await this.privateGetGetAccountSummaries (params);
+        const code = this.safeString (paramsResolved, 'code');
+        let paramsOmitted: Dict = paramsResolved;
+        if (this.isNativeDeribitCredentials ()) {
+            paramsOmitted = this.omit (paramsResolved, 'code');
+        }
+        let response = undefined;
+        if (this.isNativeDeribitCredentials () && (code !== undefined)) {
+            const request: Dict = { 'currency': this.currencyId (code) };
+            response = await this.privateGetGetAccountSummary (this.extend (request, paramsOmitted));
+        } else {
+            response = await this.privateGetGetAccountSummaries (paramsOmitted);
+        }
         //
         // {
         //     "id": 2515,
@@ -1472,22 +1549,40 @@ export default class coinbaseinternational extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result', {});
-        const balances = this.safeDict (result, 'summaries', []);
-        const balance = this.parseBalance (balances);
-        return balance;
+        if (!this.isNativeDeribitCredentials ()) {
+            // Account summaries are arrays; retain the gateway info shape without dropping balances.
+            const summaries = this.safeList (result, 'summaries');
+            if (summaries !== undefined) {
+                return this.parseBalance (summaries);
+            }
+            return this.parseBalance (this.safeDict (result, 'summaries', []));
+        }
+        return this.parseBalance (result);
     }
 
     override parseBalance (response: any): Balances {
-        const currencyId = this.safeString (response, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
         const result: Dict = {
             'info': response,
         };
-        const account = this.account ();
-        account['free'] = this.safeString (response, 'available_funds');
-        account['total'] = this.safeString (response, 'equity');
-        if (code !== undefined) {
-            result[code] = account;
+        let summaries = [ response ];
+        if (Array.isArray (response)) {
+            summaries = response;
+        } else if (this.isNativeDeribitCredentials ()) {
+            summaries = this.safeList (response, 'summaries', [ response ]);
+        }
+        for (let i = 0; i < summaries.length; i++) {
+            const data = this.safeDict (summaries, i);
+            const currencyId = this.safeString (data, 'currency');
+            const currencyCode = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (data, 'available_funds');
+            // available_funds is max(0, margin_balance - initial_margin), so using
+            // margin_balance as total lets safeBalance derive the used collateral
+            // consistently (and avoids reporting maintenance_margin as used funds).
+            account['total'] = this.safeString2 (data, 'margin_balance', 'equity');
+            if (currencyCode !== undefined) {
+                result[currencyCode] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1497,15 +1592,18 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchTransfers
      * @description fetch a history of internal transfers made on an account
      * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {int} [params.until] timestamp in ms of the latest transfer to fetch
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchTransfers', params);
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a currency code argument');
         }
@@ -1527,11 +1625,11 @@ export default class coinbaseinternational extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsResolved, 'until');
         if (until !== undefined) {
             request['end_timestamp'] = until;
         }
-        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (paramsResolved, 'until') : paramsResolved;
         await this.authenticateV2 ();
         const response = await this.privateGetGetTransactionLog (this.extend (request, paramsOmitted));
         //
@@ -1608,15 +1706,26 @@ export default class coinbaseinternational extends Exchange {
         const transactionTimestamp = this.safeInteger (transfer, 'timestamp');
         const currencyId = this.safeString (transfer, 'currency');
         const info = this.safeDict (transfer, 'info', {});
+        let amount: Num = this.safeNumber (transfer, 'change');
+        let fromAccount: Str = this.safeString (transfer, 'username');
+        let toAccount: Str = this.safeString (info, 'other_user');
+        if (this.isNativeDeribitCredentials ()) {
+            const cashflow = this.safeString2 (transfer, 'cashflow', 'change');
+            amount = this.parseNumber (Precise.stringAbs (cashflow));
+            if (!Precise.stringLt (cashflow, '0')) {
+                fromAccount = this.safeString (info, 'other_user');
+                toAccount = this.safeString (transfer, 'username');
+            }
+        }
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'id'),
             'timestamp': transactionTimestamp,
             'datetime': this.iso8601 (transactionTimestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': this.safeNumber (transfer, 'change'),
-            'fromAccount': this.safeString (transfer, 'username'),
-            'toAccount': this.safeString (info, 'other_user'),
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
             'status': 'ok',
         };
     }
@@ -1626,11 +1735,14 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchPosition
      * @description fetch data on an open position
      * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_position
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
+        const paramsResolved = this.handleRouteAndParams ('fetchPosition', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1639,7 +1751,7 @@ export default class coinbaseinternational extends Exchange {
             'instrument_name': market['id'],
         };
         await this.authenticateV2 ();
-        const response = await this.privateGetGetPosition (this.extend (request, params));
+        const response = await this.privateGetGetPosition (this.extend (request, paramsResolved));
         //
         //     {
         //         "id": 404,
@@ -1703,9 +1815,23 @@ export default class coinbaseinternational extends Exchange {
         } else if (side === 'sell') {
             side = 'short';
         }
-        const notional = this.safeString (position, 'size_currency');
+        let notional = this.safeString (position, 'size_currency');
         const initialMargin = this.safeString (position, 'initial_margin');
         const maintenanceMargin = this.safeString (position, 'maintenance_margin');
+        let contracts: Num = this.safeNumber (position, 'size');
+        if (this.isNativeDeribitCredentials ()) {
+            let size = this.safeString (position, 'size');
+            if (!marketResolved['option']) {
+                notional = size;
+                if (marketResolved['linear']) {
+                    size = this.safeString (position, 'size_currency');
+                }
+            } else {
+                notional = Precise.stringMul (size, this.safeString (position, 'mark_price'));
+            }
+            const contractsString = this.safeString (position, 'contracts', Precise.stringDiv (size, this.safeString (marketResolved, 'contractSize')));
+            contracts = this.parseNumber (Precise.stringAbs (contractsString));
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -1716,7 +1842,7 @@ export default class coinbaseinternational extends Exchange {
             'collateral': undefined,
             'unrealizedPnl': this.safeNumber (position, 'floating_profit_loss'),
             'side': side,
-            'contracts': this.safeNumber (position, 'size'),
+            'contracts': contracts,
             'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'timestamp': undefined,
             'datetime': undefined,
@@ -1738,16 +1864,21 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchPositions
      * @description fetch all open positions
      * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.currency] settlement currency filter
+     * @param {string} [params.kind] instrument kind filter
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchPositions', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         await this.authenticateV2 ();
-        const response = await this.privateGetGetPositions (params);
+        const response = await this.privateGetGetPositions (paramsResolved);
         //
         //     {
         //         "id": 2236,
@@ -1792,16 +1923,19 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
      * @param {string} code unified currency code
      * @param {int} [since] timestamp in ms of the earliest transaction to fetch
      * @param {int} [limit] the maximum number of transactions to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
      * @param {string} [params.query] transaction-log query filter
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchDepositsWithdrawals', params);
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositsWithdrawals() requires a currency code argument');
         }
@@ -1819,14 +1953,14 @@ export default class coinbaseinternational extends Exchange {
             'start_timestamp': sinceResolved,
             'end_timestamp': now,
         };
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsResolved, 'until');
         if (until !== undefined) {
             request['end_timestamp'] = until;
         }
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (paramsResolved, 'until') : paramsResolved;
         await this.authenticateV2 ();
         const response = await this.privateGetGetTransactionLog (this.extend (request, paramsOmitted));
         //
@@ -1867,7 +2001,18 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const transactions = this.safeList (result, 'logs', []);
+        const logs = this.safeList (result, 'logs', []);
+        if (!this.isNativeDeribitCredentials ()) {
+            return this.parseTransactions (logs, currency, since, limit);
+        }
+        const transactions = [];
+        for (let i = 0; i < logs.length; i++) {
+            const transaction = logs[i];
+            const transactionType = this.safeString (transaction, 'type');
+            if ((transactionType === 'deposit') || (transactionType === 'withdrawal')) {
+                transactions.push (transaction);
+            }
+        }
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
@@ -1876,20 +2021,22 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchWithdrawals', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        params['query'] = 'withdrawal';
-        return await this.fetchDepositsWithdrawals (code, since, limit, params);
+        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (paramsResolved, { 'query': 'withdrawal' }));
     }
 
     /**
@@ -1897,20 +2044,22 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchDeposits', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        params['query'] = 'deposit';
-        return await this.fetchDepositsWithdrawals (code, since, limit, params);
+        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (paramsResolved, { 'query': 'deposit' }));
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1948,6 +2097,14 @@ export default class coinbaseinternational extends Exchange {
         const transactionId = this.safeString (transaction, 'id');
         const currencyId = this.safeString (transaction, 'currency');
         const address = this.safeString (info, 'addr');
+        let amount: Num = this.safeNumber (transaction, 'change');
+        let feeCost: Num = undefined;
+        let feeCurrency: Str = undefined;
+        if (this.isNativeDeribitCredentials ()) {
+            amount = this.parseNumber (Precise.stringAbs (this.safeString2 (transaction, 'cashflow', 'change')));
+            feeCost = this.safeNumber (transaction, 'commission');
+            feeCurrency = this.safeCurrencyCode (currencyId, currency);
+        }
         return {
             'info': transaction,
             'id': transactionId,
@@ -1962,15 +2119,32 @@ export default class coinbaseinternational extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': transactionType,
-            'amount': this.safeNumber (transaction, 'change'),
+            'amount': amount,
             'currency': this.safeCurrencyCode (currencyId, currency),
             'status': 'ok',
             'updated': transactionTimestamp,
             'fee': {
-                'cost': undefined,
-                'currency': undefined,
+                'cost': feeCost,
+                'currency': feeCurrency,
             },
         } as Transaction;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#getOrderAmount
+     * @description converts unified native Deribit contract quantities to exchange amount units
+     * @param {object} market unified market
+     * @param {float} amount unified order quantity
+     * @returns {string} precision-formatted exchange order amount
+     */
+    getOrderAmount (market: MarketInterface, amount: Num): Str {
+        let exchangeAmount = this.numberToString (amount);
+        if (this.isNativeDeribitCredentials () && market['contract']) {
+            exchangeAmount = Precise.stringMul (exchangeAmount, this.safeString (market, 'contractSize'));
+        }
+        return this.amountToPrecision (market['symbol'], exchangeAmount);
     }
 
     /**
@@ -1979,12 +2153,15 @@ export default class coinbaseinternational extends Exchange {
      * @description create a trade order
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-buy
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-sell
+     * @see https://docs.deribit.com/api-reference/trading/private-buy
+     * @see https://docs.deribit.com/api-reference/trading/private-sell
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
+     * @param {float} amount number of contracts for native Deribit derivatives, otherwise the exchange order amount (base currency for spot)
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] price to trigger stop orders
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
@@ -1995,17 +2172,27 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        const paramsResolved = this.handleRouteAndParams ('createOrder', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        let triggerPrice: Num = this.safeNumberN (paramsResolved, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
         }
+        if (this.isNativeDeribitCredentials ()) {
+            triggerPrice = this.safeNumberN (paramsResolved, [ 'triggerPrice', 'stopPrice', 'stop_price', 'trigger_price' ]);
+            if ((side !== 'buy') && (side !== 'sell')) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a buy or sell side argument');
+            }
+            if ((this.safeNumber (paramsResolved, 'stopLossPrice') !== undefined) || (this.safeNumber (paramsResolved, 'takeProfitPrice') !== undefined)) {
+                throw new NotSupported (this.id + ' createOrder() supports triggerPrice, not stopLossPrice or takeProfitPrice');
+            }
+        }
         const request: Dict = {
             'instrument_name': market['id'],
-            'amount': this.amountToPrecision (market['symbol'], amount),
+            'amount': this.getOrderAmount (market, amount),
             'type': type,
         };
         if (triggerPrice !== undefined) {
@@ -2015,15 +2202,27 @@ export default class coinbaseinternational extends Exchange {
                 request['type'] = 'stop_market';
             }
             request['trigger_price'] = triggerPrice;
+            if (this.isNativeDeribitCredentials ()) {
+                request['trigger'] = this.safeString (paramsResolved, 'trigger', 'last_price');
+            }
         }
         if (type === 'limit') {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a price parameter for a limit order types');
             }
             request['price'] = price;
+            if (this.isNativeDeribitCredentials ()) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
         }
-        const postOnly = this.safeBool2 (params, 'postOnly', 'post_only');
-        const timeInForce = this.safeString2 (params, 'tif', 'timeInForce');
+        const postOnly = this.safeBool2 (paramsResolved, 'postOnly', 'post_only');
+        const timeInForce = this.safeString2 (paramsResolved, 'tif', 'timeInForce');
+        if (this.isNativeDeribitCredentials ()) {
+            const reduceOnly = this.safeBool2 (paramsResolved, 'reduceOnly', 'reduce_only');
+            if (reduceOnly !== undefined) {
+                request['reduce_only'] = reduceOnly;
+            }
+        }
         if (postOnly !== undefined) {
             request['post_only'] = postOnly;
             request['reject_post_only'] = postOnly;
@@ -2037,7 +2236,7 @@ export default class coinbaseinternational extends Exchange {
             };
             request['time_in_force'] = this.safeString (timeInForces, timeInForce, timeInForce);
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        const clientOrderId = this.safeString2 (paramsResolved, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
             request['label'] = clientOrderId;
         } else {
@@ -2046,13 +2245,24 @@ export default class coinbaseinternational extends Exchange {
                 request['label'] = brokerId + '-' + this.uuid22 ();
             }
         }
-        const paramsResolved = this.omit (params, [ 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'tif', 'timeInForce', 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        if (this.isNativeDeribitCredentials () && ((timeInForce === 'PO') || (postOnly === true))) {
+            if (type === 'market') {
+                throw new InvalidOrder (this.id + ' createOrder() cannot create post-only market orders');
+            }
+            request['post_only'] = true;
+            request['reject_post_only'] = true;
+            request['time_in_force'] = 'good_til_cancelled';
+        }
+        let paramsOrder: Dict = this.omit (paramsResolved, [ 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'tif', 'timeInForce', 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        if (this.isNativeDeribitCredentials ()) {
+            paramsOrder = this.omit (paramsOrder, [ 'reduceOnly', 'reduce_only' ]);
+        }
         await this.authenticateV2 ();
         let response = undefined;
         if (side === 'buy') {
-            response = await this.privateGetBuy (this.extend (request, paramsResolved));
+            response = await this.privateGetBuy (this.extend (request, paramsOrder));
         } else {
-            response = await this.privateGetSell (this.extend (request, paramsResolved));
+            response = await this.privateGetSell (this.extend (request, paramsOrder));
         }
         //
         //     {
@@ -2196,8 +2406,13 @@ export default class coinbaseinternational extends Exchange {
         const marketResolved = this.safeMarket (instrumentName, market);
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const lastUpdateTimestamp = this.safeInteger (order, 'last_update_timestamp');
-        const filled = this.safeNumber (order, 'filled_amount');
-        const amount = this.safeNumber (order, 'amount');
+        let filled = this.safeNumber (order, 'filled_amount');
+        let amount = this.safeNumber (order, 'amount');
+        if (this.isNativeDeribitCredentials () && marketResolved['contract']) {
+            const contractSize = this.safeString (marketResolved, 'contractSize');
+            amount = this.parseNumber (this.safeString (order, 'contracts', Precise.stringDiv (this.safeString (order, 'amount'), contractSize)));
+            filled = this.parseNumber (Precise.stringDiv (this.safeString (order, 'filled_amount'), contractSize));
+        }
         let remaining: Num = undefined;
         if ((filled !== undefined) && (amount !== undefined)) {
             remaining = amount - filled;
@@ -2209,6 +2424,27 @@ export default class coinbaseinternational extends Exchange {
         let cost: Num = undefined;
         if ((filledString !== undefined) && (averageString !== undefined)) {
             cost = this.parseNumber (Precise.stringMul (filledString, averageString));
+            if (this.isNativeDeribitCredentials () && marketResolved['inverse'] && !marketResolved['option']) {
+                cost = this.parseNumber (Precise.stringDiv (filledString, averageString));
+            }
+        }
+        let lastTradeTimestamp: Int = lastUpdateTimestamp;
+        let nativeLastUpdateTimestamp: Int = undefined;
+        let orderType: Str = this.safeStringLower (order, 'order_type');
+        let reduceOnly: boolean = false;
+        let fee: Dict = {};
+        if (this.isNativeDeribitCredentials ()) {
+            lastTradeTimestamp = undefined;
+            if ((filled !== undefined) && (filled > 0)) {
+                lastTradeTimestamp = lastUpdateTimestamp;
+            }
+            nativeLastUpdateTimestamp = lastUpdateTimestamp;
+            orderType = this.safeStringLower2 (order, 'original_order_type', 'order_type');
+            reduceOnly = this.safeBool (order, 'reduce_only', false);
+            fee = {
+                'cost': this.safeNumber (order, 'commission'),
+                'currency': this.safeString (marketResolved, 'settle', this.safeString (marketResolved, 'quote')),
+            };
         }
         return this.safeOrder ({
             'info': order,
@@ -2216,11 +2452,13 @@ export default class coinbaseinternational extends Exchange {
             'clientOrderId': this.safeString (order, 'label'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastUpdateTimestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': nativeLastUpdateTimestamp,
             'symbol': marketResolved['symbol'],
-            'type': this.parseOrderType (this.safeStringLower (order, 'order_type')),
+            'type': this.parseOrderType (orderType),
             'timeInForce': this.parseTimeInForce (this.safeString (order, 'time_in_force')),
             'postOnly': this.safeBool (order, 'post_only'),
+            'reduceOnly': reduceOnly,
             'side': this.safeString (order, 'direction'),
             'price': price,
             'triggerPrice': this.safeNumber2 (order, 'trigger_price', 'stop_price'),
@@ -2230,7 +2468,7 @@ export default class coinbaseinternational extends Exchange {
             'cost': cost,
             'average': average,
             'status': this.parseOrderStatus (this.safeStringLower (order, 'order_state')),
-            'fee': undefined,
+            'fee': fee,
             'trades': this.safeList (order, 'trades'),
         }, marketResolved);
     }
@@ -2271,12 +2509,15 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#cancelOrder
      * @description cancels an open order
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel
      * @param {string} id order id
      * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        const paramsResolved = this.handleRouteAndParams ('cancelOrder', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2288,7 +2529,7 @@ export default class coinbaseinternational extends Exchange {
             market = this.market (symbol);
         }
         await this.authenticateV2 ();
-        const response = await this.privateGetCancel (this.extend (request, params));
+        const response = await this.privateGetCancel (this.extend (request, paramsResolved));
         //
         //     {
         //         "id": 4214,
@@ -2327,11 +2568,15 @@ export default class coinbaseinternational extends Exchange {
      * @description cancel all open orders
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
+        const paramsResolved = this.handleRouteAndParams ('cancelAllOrders', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2342,9 +2587,9 @@ export default class coinbaseinternational extends Exchange {
             const request: Dict = {
                 'instrument_name': market['id'],
             };
-            response = await this.privateGetCancelAllByInstrument (this.extend (request, params));
+            response = await this.privateGetCancelAllByInstrument (this.extend (request, paramsResolved));
         } else {
-            response = await this.privateGetCancelAll (params);
+            response = await this.privateGetCancelAll (paramsResolved);
         }
         //
         //     {
@@ -2362,17 +2607,23 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#editOrder
      * @description edit a trade order
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-edit
+     * @see https://docs.deribit.com/api-reference/trading/private-edit
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} amount number of contracts for native Deribit derivatives, otherwise the exchange order amount (base currency for spot)
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {float} [params.triggerPrice] price to trigger stop orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        const paramsResolved = this.handleRouteAndParams ('editOrder', params);
+        if (this.isNativeDeribitCredentials () && (amount === undefined) && (this.safeNumber (paramsResolved, 'contracts') === undefined)) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires amount or params.contracts on Deribit');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2381,47 +2632,69 @@ export default class coinbaseinternational extends Exchange {
             'order_id': id,
         };
         if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['amount'] = this.getOrderAmount (market, amount);
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
+        const triggerPrice = this.safeNumberN (paramsResolved, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
         if (triggerPrice !== undefined) {
             request['trigger_price'] = triggerPrice;
         }
-        const paramsResolved = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const paramsOrder = this.omit (paramsResolved, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         await this.authenticateV2 ();
-        const response = await this.privateGetEdit (this.extend (request, paramsResolved));
+        const response = await this.privateGetEdit (this.extend (request, paramsOrder));
         //
         //     {
-        //         "id": 9,
+        //         "id": 6130,
         //         "jsonrpc": "2.0",
         //         "result": {
         //             "order": {
-        //                 "amount": 150,
+        //                 "amount": 21,
         //                 "api": true,
-        //                 "average_price": 0,
-        //                 "creation_timestamp": 1616155547764,
-        //                 "direction": "buy",
-        //                 "filled_amount": 0,
-        //                 "instrument_name": "BTC-PERPETUAL",
+        //                 "average_price": 202.8,
+        //                 "creation_timestamp": 1590486335742,
+        //                 "direction": "sell",
+        //                 "filled_amount": 21,
+        //                 "instrument_name": "ETH-PERPETUAL",
         //                 "is_liquidation": false,
         //                 "is_rebalance": false,
-        //                 "label": "i_love_deribit",
-        //                 "last_update_timestamp": 1616155550773,
-        //                 "max_show": 150,
-        //                 "order_id": "94166",
-        //                 "order_state": "open",
+        //                 "label": "",
+        //                 "last_update_timestamp": 1590486335742,
+        //                 "max_show": 21,
+        //                 "order_id": "ETH-584864807",
+        //                 "order_state": "filled",
         //                 "order_type": "limit",
         //                 "post_only": false,
-        //                 "price": 50111,
-        //                 "reduce_only": false,
-        //                 "replaced": true,
+        //                 "price": 198.75,
+        //                 "reduce_only": true,
+        //                 "replaced": false,
         //                 "time_in_force": "good_til_cancelled",
         //                 "web": false
         //             },
-        //             "trades": []
+        //             "trades": [
+        //                 {
+        //                     "amount": 21,
+        //                     "direction": "sell",
+        //                     "fee": 0.00007766,
+        //                     "fee_currency": "ETH",
+        //                     "index_price": 202.86,
+        //                     "instrument_name": "ETH-PERPETUAL",
+        //                     "liquidity": "T",
+        //                     "mark_price": 202.79,
+        //                     "matching_id": null,
+        //                     "order_id": "ETH-584864807",
+        //                     "order_type": "limit",
+        //                     "post_only": false,
+        //                     "price": 202.8,
+        //                     "reduce_only": true,
+        //                     "state": "filled",
+        //                     "tick_direction": 0,
+        //                     "timestamp": 1590486335742,
+        //                     "trade_id": "ETH-2696097",
+        //                     "trade_seq": 1966068
+        //                 }
+        //             ]
         //         }
         //     }
         //
@@ -2437,12 +2710,15 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_state
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
      * @param {string} id the order id
      * @param {string} symbol unified market symbol that the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        const paramsResolved = this.handleRouteAndParams ('fetchOrder', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2454,7 +2730,7 @@ export default class coinbaseinternational extends Exchange {
             'order_id': id,
         };
         await this.authenticateV2 ();
-        const response = await this.privateGetGetOrderState (this.extend (request, params));
+        const response = await this.privateGetGetOrderState (this.extend (request, paramsResolved));
         //
         //     {
         //         "id": 4316,
@@ -2491,16 +2767,27 @@ export default class coinbaseinternational extends Exchange {
      * @name coinbaseinternational#fetchOpenOrders
      * @description fetches information on all currently open orders
      * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_open_orders_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
      * @param {string} symbol unified market symbol of the orders
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {boolean} [params.paginate] native Deribit pagination is not supported
      * @param {int} [params.offset] offset
      * @param {string} [params.event_type] The most recent type of event that happened to the order. Allowed values: NEW, TRADE, REPLACED
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchOpenOrders', params);
+        let paramsPaginate: Dict = paramsResolved;
+        if (this.isNativeDeribitCredentials ()) {
+            const [ paginate, paramsFinal ] = this.handleOptionBoolAndParams (paramsResolved, 'fetchOpenOrders', 'paginate', false);
+            if (paginate) {
+                throw new NotSupported (this.id + ' fetchOpenOrders() does not support pagination');
+            }
+            paramsPaginate = paramsFinal;
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2511,11 +2798,11 @@ export default class coinbaseinternational extends Exchange {
         const request: Dict = {
             'instrument_name': market['id'],
         };
-        if (limit !== undefined) {
+        if (!this.isNativeDeribitCredentials () && (limit !== undefined)) {
             request['count'] = limit;
         }
         await this.authenticateV2 ();
-        const response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, params));
+        const response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, paramsPaginate));
         //
         //     {
         //         "id": 1953,
@@ -2553,16 +2840,29 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_user_trades_by-instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
      * @param {string} symbol unified market symbol of the trades
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] the maximum number of trade structures to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {boolean} [params.historical] native Deribit indexed history, excludes recent trades
+     * @param {int} [params.until] native Deribit latest time in ms to fetch trades for
+     * @param {boolean} [params.paginate] native Deribit automatic pagination is not supported
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        const paramsResolved = this.handleRouteAndParams ('fetchMyTrades', params);
+        let paramsPaginate: Dict = paramsResolved;
+        if (this.isNativeDeribitCredentials ()) {
+            const [ paginate, paramsFinal ] = this.handleOptionBoolAndParams (paramsResolved, 'fetchMyTrades', 'paginate', false);
+            if (paginate) {
+                throw new NotSupported (this.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters');
+            }
+            paramsPaginate = paramsFinal;
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2577,8 +2877,25 @@ export default class coinbaseinternational extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
+        const until = this.safeInteger (paramsPaginate, 'until');
+        let paramsOmitted: Dict = paramsPaginate;
+        if (this.isNativeDeribitCredentials ()) {
+            paramsOmitted = this.omit (paramsPaginate, 'until');
+        }
         await this.authenticateV2 ();
-        const response = await this.privateGetGetUserTradesByInstrument (this.extend (request, params));
+        let response = undefined;
+        if (this.isNativeDeribitCredentials () && ((since !== undefined) || (until !== undefined))) {
+            request['start_timestamp'] = (since !== undefined) ? since : 0;
+            request['end_timestamp'] = (until !== undefined) ? until : this.milliseconds ();
+            if (this.isNativeDeribitCredentials ()) {
+                delete request['include_old'];
+            }
+            response = await this.privateGetGetUserTradesByInstrumentAndTime (this.extend (request, paramsOmitted));
+            // Documentation example, shared result envelope with get_user_trades_by_instrument.
+            // { "jsonrpc": "2.0", "result": { "has_more": false, "trades": [] } }
+        } else {
+            response = await this.privateGetGetUserTradesByInstrument (this.extend (request, paramsOmitted));
+        }
         //
         //     {
         //         "id": 9292,
@@ -2692,12 +3009,18 @@ export default class coinbaseinternational extends Exchange {
         const marketResolved = this.safeMarket (instrumentName, market);
         const timestamp = this.safeInteger (trade, 'timestamp');
         const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        let amount = this.safeNumber (trade, 'amount');
         const amountString = this.safeString (trade, 'amount');
+        if (this.isNativeDeribitCredentials () && marketResolved['contract']) {
+            amount = this.parseNumber (this.safeString (trade, 'contracts', Precise.stringDiv (amountString, this.safeString (marketResolved, 'contractSize'))));
+        }
         const priceString = this.safeString (trade, 'price');
         let cost: Num = undefined;
         if ((amountString !== undefined) && (priceString !== undefined)) {
             cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+            if (this.isNativeDeribitCredentials () && marketResolved['inverse'] && !marketResolved['option']) {
+                cost = this.parseNumber (Precise.stringDiv (amountString, priceString));
+            }
         }
         const feeCurrencyId = this.safeString (trade, 'fee_currency');
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
@@ -2705,6 +3028,11 @@ export default class coinbaseinternational extends Exchange {
             'cost': this.safeNumber (trade, 'fee'),
             'currency': feeCurrency,
         };
+        let takerOrMaker: Str = undefined;
+        if (this.isNativeDeribitCredentials ()) {
+            const liquidities: Dict = { 'M': 'maker', 'T': 'taker' };
+            takerOrMaker = this.safeString (liquidities, this.safeString (trade, 'liquidity'));
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'trade_id'),
@@ -2714,7 +3042,7 @@ export default class coinbaseinternational extends Exchange {
             'symbol': marketResolved['symbol'],
             'type': this.safeString (trade, 'order_type'),
             'side': this.safeString (trade, 'direction'),
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -2729,11 +3057,16 @@ export default class coinbaseinternational extends Exchange {
      * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route; native route throws NotSupported; get_leverage is gateway-only
      * @param {boolean} [params.isolated] set to true for isolated margin
      * @param {int} [params.subaccount_id] The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
+        const paramsResolved = this.handleRouteAndParams ('fetchLeverage', params);
+        if (this.isNativeDeribitCredentials ()) {
+            throw new NotSupported (this.id + ' fetchLeverage() is a Coinbase gateway method; native Deribit has no documented get_leverage endpoint');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2742,7 +3075,7 @@ export default class coinbaseinternational extends Exchange {
             'instrument_name': market['id'],
         };
         await this.authenticateV2 ();
-        const response = await this.privateGetGetLeverage (this.extend (request, params));
+        const response = await this.privateGetGetLeverage (this.extend (request, paramsResolved));
         //
         //     {
         //         "id": 1,
@@ -2760,7 +3093,10 @@ export default class coinbaseinternational extends Exchange {
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'instrument_name');
-        const bothLeverage = this.safeInteger (leverage, 'leverage');
+        let bothLeverage: Num = this.safeInteger (leverage, 'leverage');
+        if (this.isNativeDeribitCredentials ()) {
+            bothLeverage = this.safeNumber2 (leverage, 'leverage', 'max_leverage');
+        }
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market),
@@ -2778,11 +3114,16 @@ export default class coinbaseinternational extends Exchange {
      * @param {int} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route; native route throws NotSupported; set_leverage is gateway-only
      * @param {boolean} [params.isolated] set to true for isolated margin
      * @param {int} [params.subaccount_id] The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
+        const paramsResolved = this.handleRouteAndParams ('setLeverage', params);
+        if (this.isNativeDeribitCredentials ()) {
+            throw new NotSupported (this.id + ' setLeverage() is a Coinbase gateway method; native Deribit has no documented set_leverage endpoint');
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2795,7 +3136,7 @@ export default class coinbaseinternational extends Exchange {
             'leverage': this.numberToString (leverage),
         };
         await this.authenticateV2 ();
-        const response = await this.privateGetSetLeverage (this.extend (request, params));
+        const response = await this.privateGetSetLeverage (this.extend (request, paramsResolved));
         //
         //     {
         //         "id": 1,
@@ -2879,11 +3220,12 @@ export default class coinbaseinternational extends Exchange {
      * @returns {string} a Deribit gateway access token
      */
     async authenticateV2 (params = {}): Promise<Str> {
+        const paramsResolved = this.handleRouteAndParams ('authenticateV2', params);
         if (this.isNativeDeribitCredentials ()) {
             return undefined;
         }
-        const forceRefresh = this.safeBool (params, 'forceRefresh', false);
-        const paramsOmitted = this.omit (params, 'forceRefresh');
+        const forceRefresh = this.safeBool (paramsResolved, 'forceRefresh', false);
+        const paramsOmitted = this.omit (paramsResolved, 'forceRefresh');
         const now = this.milliseconds ();
         const token = this.getV2AccessToken ();
         const tokenExpires = this.safeInteger (this.options, 'v2TokenExpires');
@@ -2940,14 +3282,17 @@ export default class coinbaseinternational extends Exchange {
     override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const access = api;
         const rpcMethod = access + '/' + path;
+        let requestParams: Dict = this.handleRouteAndParams ('sign', params);
         const isNativeDeribit = this.isNativeDeribitCredentials ();
         let baseApiUrl = this.urls['api']['rest'];
         if (isNativeDeribit) {
             baseApiUrl = 'https://www.deribit.com/api/v2';
         }
         const url = baseApiUrl + '/' + rpcMethod;
-        let requestParams: Dict = params;
         let requestHeaders: NullableDict = headers;
+        if (isNativeDeribit && ((path === 'get_leverage') || (path === 'set_leverage'))) {
+            throw new NotSupported (this.id + ' ' + rpcMethod + ' is only documented on the Coinbase gateway');
+        }
         if ((access === 'public') && (path === 'auth')) {
             this.checkRequiredCredentials ();
             if (isNativeDeribit) {
@@ -2955,12 +3300,12 @@ export default class coinbaseinternational extends Exchange {
                     'grant_type': 'client_credentials',
                     'client_id': this.apiKey,
                     'client_secret': this.secret,
-                }, params);
+                }, requestParams);
             } else {
                 requestParams = this.extend ({
                     'grant_type': 'coinbase_cdp',
                     'token': this.createAuthToken (this.seconds (), method, url, this.isEddsaSecret ()),
-                }, params);
+                }, requestParams);
             }
         } else if ((access === 'private') && isNativeDeribit) {
             this.checkRequiredCredentials ();
@@ -3020,14 +3365,77 @@ export default class coinbaseinternational extends Exchange {
         return (this.secret.length === 88) || useV2CloudApiKey || this.secret.endsWith ('=');
     }
 
-    isCdpCredentials (): boolean {
-        const isOrgKey = this.apiKey.indexOf ('organizations/') >= 0;
-        const isPem = this.secret.indexOf ('BEGIN') >= 0;
-        return isOrgKey || isPem || this.isEddsaSecret ();
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#handleRouteAndParams
+     * @description selects a backend before market loading or authentication and removes routing parameters
+     * @param {string} methodName unified REST or Pro method name
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
+     */
+    handleRouteAndParams (methodName: string, params: Dict = {}): Dict {
+        const [ route, paramsResolved ] = this.handleOptionAndParams (params, methodName, 'route', 'auto');
+        const deribit = this.resolveRoute (route);
+        const previousBackend = this.safeBool (this.options, 'routeBackend');
+        const configuredBackend = this.isNativeDeribitCredentials ();
+        const hasToken = this.getV2AccessToken () !== undefined;
+        const hasWsState = this.safeInteger (this.options, 'wsAuthRefreshAt') !== undefined;
+        if ((previousBackend !== undefined) && (previousBackend !== deribit)) {
+            throw new BadRequest (this.id + ' cannot switch route backend on an initialized instance; use a separate exchange instance');
+        }
+        if ((previousBackend === undefined) && (this.markets !== undefined || hasToken || hasWsState) && (configuredBackend !== deribit)) {
+            throw new BadRequest (this.id + ' cannot switch route backend after markets or authentication state; use a separate exchange instance');
+        }
+        // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
+        if (deribit) {
+            this.options['route'] = 'deribit';
+        } else {
+            this.options['route'] = 'coinbase';
+        }
+        this.options['routeBackend'] = deribit;
+        this.has['fetchLeverage'] = !deribit;
+        this.has['setLeverage'] = !deribit;
+        return this.omit (paramsResolved, [ 'route', 'defaultRoute', 'callerMethodName' ]);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#isNativeDeribitCredentials
+     * @description reads the selected backend or resolves the configured automatic or explicit route
+     * @returns {boolean} true for the native Deribit route
+     */
     isNativeDeribitCredentials (): boolean {
-        return (this.apiKey !== undefined) && (this.apiKey !== '') && (this.secret !== undefined) && (this.secret !== '') && !this.isCdpCredentials ();
+        return this.resolveRoute (this.options['route']);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#resolveRoute
+     * @description resolves a backend override or conservatively detects the known native Deribit credential format
+     * @param {string} [route] auto (default), deribit, or coinbase
+     * @returns {boolean} true for native Deribit, false for Coinbase
+     */
+    resolveRoute (route: any = undefined): boolean {
+        if (route === 'deribit') {
+            return true;
+        }
+        if (route === 'coinbase') {
+            return false;
+        }
+        if ((route !== undefined) && (route !== 'auto')) {
+            throw new BadRequest (this.id + ' route must be auto, deribit, or coinbase');
+        }
+        if ((this.apiKey === undefined) || (this.apiKey === '') || (this.secret === undefined) || (this.secret === '')) {
+            return false;
+        }
+        if ((this.apiKey.indexOf ('organizations/') >= 0) || (this.secret.indexOf ('BEGIN') >= 0) || this.isEddsaSecret ()) {
+            return false;
+        }
+        return (this.apiKey.length === 8) && (this.secret.length === 43);
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
