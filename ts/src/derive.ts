@@ -1267,9 +1267,20 @@ export default class derive extends Exchange {
         const response = await this.privatePostGetOptionSettlementHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
         //
         //     {
-        //         "id": "d714df6e-d708-4d16-9769-47cbea2d8ea8",
+        //         "id": "f92af59c-33d6-4bed-b237-378250f5727b",
         //         "result": {
-        //             "settlements": []
+        //             "settlements": [
+        //                 {
+        //                     "amount": "0.1",
+        //                     "expiry": 1791100800,
+        //                     "instrument_name": "BTC-20261004-88000-C",
+        //                     "option_settlement_pnl": "-2.8625",
+        //                     "option_settlement_pnl_excl_fees": "-2.1",
+        //                     "settlement_price": "84975.94721521944",
+        //                     "settlement_value": "0",
+        //                     "subaccount_id": 86815
+        //                 }
+        //             ]
         //         }
         //     }
         //
@@ -1291,10 +1302,18 @@ export default class derive extends Exchange {
         //         "utc_expiry_sec": 1783411200
         //     }
         //
-        // fetchMySettlementHistory rows carry the fields amount, expiry (sec), instrument_name,
-        // option_settlement_pnl, option_settlement_pnl_excl_fees, settlement_price, settlement_value
-        // and subaccount_id per the venue schema; a live sample is pending the first settled option
-        // todo: replace with a live sample after an option settles on the test account
+        // fetchMySettlementHistory
+        //
+        //     {
+        //         "amount": "0.1",
+        //         "expiry": 1791100800,
+        //         "instrument_name": "BTC-20261004-88000-C",
+        //         "option_settlement_pnl": "-2.8625",
+        //         "option_settlement_pnl_excl_fees": "-2.1",
+        //         "settlement_price": "84975.94721521944",
+        //         "settlement_value": "0",
+        //         "subaccount_id": 86815
+        //     }
         //
         const marketId = this.safeString (settlement, 'instrument_name');
         const timestamp = this.safeTimestamp2 (settlement, 'utc_expiry_sec', 'expiry');
