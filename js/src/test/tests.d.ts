@@ -69,6 +69,7 @@ declare class testMainClass {
     isEmptyOutputValue(exchange: Exchange, value: any): boolean;
     isVacantValue(exchange: Exchange, value: any): boolean;
     countSignificantKeys(exchange: Exchange, target: any, otherKeys: string[]): number;
+    effectiveSkipKeys(exchange: Exchange, exchangeData: object, entry: object): any[];
     assertNewAndStoredOutputInner(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     varToString(obj?: any): string;
@@ -97,13 +98,13 @@ declare class testMainClass {
     testCryptocom(): Promise<boolean>;
     testBybit(): Promise<boolean>;
     testBithumb(): Promise<boolean>;
+    testExtended(): Promise<boolean>;
     testKucoin(): Promise<boolean>;
     testKucoinfutures(): Promise<boolean>;
     testBitget(): Promise<boolean>;
     testMexc(): Promise<boolean>;
     testHtx(): Promise<boolean>;
     testWoo(): Promise<boolean>;
-    testCoinex(): Promise<boolean>;
     testBingx(): Promise<boolean>;
     testPhemex(): Promise<boolean>;
     testBlofin(): Promise<boolean>;

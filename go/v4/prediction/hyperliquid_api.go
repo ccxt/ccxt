@@ -10,11 +10,19 @@ package ccxtprediction
 import ccxt "github.com/ccxt/ccxt/go/v4"
 
 // PublicPostInfo returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *Hyperliquid) PublicPostInfo(args ...any) <-chan any {
-	return this.Fetch2Async("info", "public", "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+func (this *Hyperliquid) PublicPostInfo(args ...any) <-chan ccxt.AsyncResult[any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return this.Fetch2Async("info", "public", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PrivatePostExchange returns a channel that yields a JSON object.
-func (this *Hyperliquid) PrivatePostExchange(args ...any) <-chan any {
-	return this.Fetch2Async("exchange", "private", "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Hyperliquid) PrivatePostExchange(args ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	var params any
+	if len(args) > 0 {
+		params = args[0]
+	}
+	return ccxt.Fetch2Result[map[string]any](this, "exchange", "private", "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
