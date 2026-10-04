@@ -1666,20 +1666,17 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             if let Some(v) = self.dispatch_to_derived("fetch_currencies", Vec::new()).await {
                 currencies = v;
             }
-            // Mirror the TS base: `fetch_markets` runs before `set_markets`, so
-            // implementations that need the freshly fetched currencies read them
-            // from `options.cachedCurrencies` (bitso, hyperliquid, kraken,
-            // latoken). Without it latoken builds no market at all, because it
-            // resolves every pair's base and quote tag through that cache.
+            // TS parity: fetch_markets of bitso/kraken/latoken reads options.cachedCurrencies.
             crate::set_value(&mut self.options, &Value::Str("cachedCurrencies".into()), currencies.clone());
         }
-        let fetched = match self.dispatch_to_derived("fetch_markets", Vec::new()).await {
-            Some(v) => v,
-            None => return Value::Null,
-        };
+        let dispatched = self.dispatch_to_derived("fetch_markets", Vec::new()).await;
         if let Value::Dict(m) = &mut self.options {
             Arc::make_mut(m).shift_remove("cachedCurrencies");
         }
+        let fetched = match dispatched {
+            Some(v) => v,
+            None => return Value::Null,
+        };
         if matches!(fetched, Value::Null) {
             return self.markets.clone();
         }
