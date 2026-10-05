@@ -1404,6 +1404,10 @@ export default class bybit extends Exchange {
                         },
                         'marketBuyRequiresPrice': true,
                     },
+                    'withdraw': {
+                        'selectableFeeInclusion': true,
+                        'feeIncluded': false,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -6661,7 +6665,11 @@ export default class bybit extends Exchange {
         if (tagWithdrawTag !== undefined) {
             request['tag'] = tagWithdrawTag;
         }
-        const [ networkCode, query ] = this.handleNetworkCodeAndParams (paramsAccountType);
+        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsAccountType, 'withdraw', 'includeFee', false);
+        if (includeFee === true) {
+            request['feeType'] = 1; // only change param if inclusion needed
+        }
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (paramsIncludeFee);
         const networkId = this.networkCodeToId (networkCode, code);
         if (networkId !== undefined) {
             request['chain'] = networkId.toUpperCase ();

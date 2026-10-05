@@ -1767,7 +1767,7 @@ export default class bitget extends Exchange {
                     'TRC20': 'TRC20',
                     // 'ETH': 'ETH', // different code for mainnet
                     'ERC20': 'ERC20',
-                    'BEP20': 'BSC',
+                    // 'BEP20': 'BSC',
                     // 'BEP20': 'BEP20', // different for BEP20
                     'ATOM': 'ATOM',
                     'ACA': 'AcalaToken',
@@ -1944,6 +1944,10 @@ export default class bitget extends Exchange {
                     },
                     'fetchOHLCV': {
                         'limit': 200, // variable timespans for recent endpoint, 200 for historical
+                    },
+                    'withdraw': {
+                        'selectableFeeInclusion': false,
+                        'feeIncluded': true,
                     },
                 },
                 'forPerps': {

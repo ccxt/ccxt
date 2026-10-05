@@ -449,6 +449,10 @@ export default class woo extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'withdraw': {
+                        'feeIncluded': false,
+                        'selectableFeeInclusion': false,
+                    },
                 },
                 'forSwap': {
                     'extends': 'default',

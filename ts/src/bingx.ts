@@ -811,6 +811,10 @@ export default class bingx extends Exchange {
                         'limit': 100,
                         'untilDays': undefined,
                     },
+                    'withdraw': {
+                        'selectableFeeInclusion': false,
+                        'feeIncluded': true,
+                    },
                 },
                 'swap': {
                     'linear': {

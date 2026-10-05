@@ -5179,6 +5179,53 @@
         ],
         "withdraw": [
             {
+                "description": "typical fee inclusion check",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    1.85,
+                    "0x63d35481cb74fa959aec61d33a5d4507a6164873",
+                    null,
+                    {
+                        "network": "ERC20",
+                        "includeFee": true
+                    }
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "data": 161976227
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "ok",
+                        "data": 161976227
+                    },
+                    "id": "161976227",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": null,
+                    "amount": null,
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "comment": null,
+                    "internal": false,
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": null,
+                        "rate": null
+                    }
+                }
+            },
+            {
                 "description": "withdraw USDT, create response carries only the withdrawal id",
                 "method": "withdraw",
                 "input": [

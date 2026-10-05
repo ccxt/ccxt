@@ -921,6 +921,38 @@
         ],
         "withdraw": [
             {
+                "description": "typical fee inclusion check(false)",
+                "method": "withdraw",
+                "url": "https://api.mexc.com/api/v3/capital/withdraw?coin=USDT&address=0x63d35481cb74fa959aec61d33a5d4507a6164873&amount=8&netWork=ETH&includeFee=false&timestamp=1790952931406&recvWindow=5000&signature=c94afe21f9ca6d6445da5d4f6d1f6ffa0746f1b406979b999610ed8385987805",
+                "input": [
+                    "USDT",
+                    8,
+                    "0x63d35481cb74fa959aec61d33a5d4507a6164873",
+                    null,
+                    {
+                        "network": "ERC20",
+                        "includeFee": false
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "typical fee inclusion check(true)",
+                "method": "withdraw",
+                "url": "https://api.mexc.com/api/v3/capital/withdraw?coin=USDT&address=0x63d35481cb74fa959aec61d33a5d4507a6164873&amount=8&netWork=ETH&includeFee=true&timestamp=1790952887393&recvWindow=5000&signature=eb87c08614c5db97e435479c916efb3aa79e34bcd88330067ee279336f748801",
+                "input": [
+                    "USDT",
+                    8,
+                    "0x63d35481cb74fa959aec61d33a5d4507a6164873",
+                    null,
+                    {
+                        "network": "ERC20",
+                        "includeFee": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "internal transfer withdraw",
                 "method": "withdraw",
                 "url": "https://api.mexc.com/api/v3/capital/transfer/internal?asset=USDT&amount=0.1&toAccount=to_someone%40gmail.com&toAccountType=EMAIL&timestamp=1756409115448&recvWindow=5000&signature=4a16eb036f895b590d5a69ffa3e1d81015d9bf87a057f7361796f3e3853ec073",

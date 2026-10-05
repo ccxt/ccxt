@@ -442,6 +442,10 @@ export default class hashkey extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'withdraw': {
+                        'feeIncluded': false,
+                        'selectableFeeInclusion': false,
+                    },
                 },
                 'forDerivatives': {
                     'extends': 'default',

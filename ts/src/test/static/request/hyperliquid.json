@@ -1428,6 +1428,21 @@
         ],
         "withdraw": [
             {
+                "description": "typical fee inclusion check",
+                "method": "withdraw",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    "USDC",
+                    1.05,
+                    "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31",
+                    null,
+                    {
+                        "network": "ARB"
+                    }
+                ],
+                "output": "{\"action\":{\"hyperliquidChain\":\"Mainnet\",\"signatureChainId\":\"0x66eee\",\"destination\":\"0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31\",\"amount\":\"1.05\",\"time\":1790941549962,\"type\":\"withdraw3\"},\"nonce\":1790941549962,\"signature\":{\"r\":\"0xabc0c812ad7924476650f32e9c41493b77eddff7cf76e01bf5775b2bbda58e15\",\"s\":\"0xc11204e338cc9620879373b61f9fa54d574f97b008ddd51c85fc6d94bd745e9\",\"v\":27}}"
+            },
+            {
                 "description": "withdraw on chain",
                 "method": "withdraw",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",

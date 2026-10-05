@@ -816,6 +816,10 @@ export default class mexc extends Exchange {
                     'fetchCurrencies': {
                         'private': true,
                     },
+                    'withdraw': {
+                        'includesFee': true,
+                        'selectableFeeInclusion': false,
+                    },
                 },
                 'forDerivs': {
                     'extends': 'default',

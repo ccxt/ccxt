@@ -1672,6 +1672,10 @@ export default class binance extends Exchange {
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                    'withdraw': {
+                        'selectableFeeInclusion': false,
+                        'feeIncluded': true,
+                    },
                 },
                 'forDerivatives': {
                     'sandbox': true,
