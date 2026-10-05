@@ -1624,7 +1624,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} symbol unified market symbol
      * @param {string} type not used by coinbaseinternational editOrderWs
      * @param {string} side not used by coinbaseinternational editOrderWs
-    * @param {float} [amount] new order amount, in contracts for native Deribit derivatives
+     * @param {float} [amount] new order amount, in contracts for native Deribit derivatives
      * @param {float} [price] new order price
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
