@@ -4544,7 +4544,8 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
         https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
         https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
-        https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
+        https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick
+        https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick-history
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -4553,7 +4554,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :param boolean [params.useHistoryEndpoint]: whether to force to use historical endpoint(it has max limit of 200)
+        :param boolean [params.useHistoryEndpoint]: whether to force to use historical endpoint(it has max limit of 200, 100 for uta)
         :param boolean [params.useHistoryEndpointForPagination]: whether to force to use historical endpoint for pagination(default True)
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.price]: *swap only* "mark"(to fetch mark price candles) or "index"(to fetch index price candles)
@@ -4567,9 +4568,13 @@ class bitget(Exchange, ImplicitAPI):
         useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
         useHistoryEndpointForPagination = self.safe_bool(params, 'useHistoryEndpointForPagination', True)
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        uta, paramsUTA = self.handle_uta_and_params(paramsPaginate, 'fetchOHLCV', False)
+        if uta is True:
+            maxLimitForHistoryEndpoint = 100  # the uta history endpoint rejects a limit above 100
         if paginate:
             limitForPagination = maxLimitForHistoryEndpoint if (useHistoryEndpointForPagination is True) else maxLimitForRecentEndpoint
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, limitForPagination)
+            paramsWithUta = self.extend(paramsUTA, {'uta': uta})
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsWithUta, limitForPagination)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -4577,7 +4582,6 @@ class bitget(Exchange, ImplicitAPI):
         marketType = None
         timeframes = None
         timeframesOption = self.handle_option('fetchOHLCV', 'timeframes')
-        uta, paramsUTA = self.handle_uta_and_params(paramsPaginate, 'fetchOHLCV', False)
         if uta is True:
             timeframes = timeframesOption['uta']
             request['interval'] = self.safe_string(timeframes, timeframe, timeframe)
@@ -4659,7 +4663,10 @@ class bitget(Exchange, ImplicitAPI):
                 elif priceType == 'index':
                     request['type'] = 'INDEX'
             request['category'] = productType
-            response = self.publicUtaGetV3MarketCandles(self.extend(request, paramsProductType))
+            if historicalEndpointNeeded:
+                response = self.publicUtaGetV3MarketHistoryCandles(self.extend(request, paramsProductType))
+            else:
+                response = self.publicUtaGetV3MarketCandles(self.extend(request, paramsProductType))
         elif market['spot'] is True:
             # checks if we need history endpoint
             if historicalEndpointNeeded:
