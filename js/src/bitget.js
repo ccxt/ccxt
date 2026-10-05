@@ -4694,7 +4694,8 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
-     * @see https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
+     * @see https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick
+     * @see https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick-history
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -4702,7 +4703,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
+     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200, 100 for uta)
      * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
@@ -4714,13 +4715,18 @@ export default class bitget extends Exchange {
         }
         const defaultLimit = 100; // default 100, max 1000
         const maxLimitForRecentEndpoint = 1000;
-        const maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
+        let maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         const useHistoryEndpoint = this.safeBool(params, 'useHistoryEndpoint', false);
         const useHistoryEndpointForPagination = this.safeBool(params, 'useHistoryEndpointForPagination', true);
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
+        const [uta, paramsUTA] = await this.handleUTAAndParams(paramsPaginate, 'fetchOHLCV', false);
+        if (uta === true) {
+            maxLimitForHistoryEndpoint = 100; // the uta history endpoint rejects a limit above 100
+        }
         if (paginate) {
             const limitForPagination = (useHistoryEndpointForPagination === true) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, limitForPagination);
+            const paramsWithUta = this.extend(paramsUTA, { 'uta': uta });
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsWithUta, limitForPagination);
         }
         const market = this.market(symbol);
         const request = {
@@ -4729,7 +4735,6 @@ export default class bitget extends Exchange {
         let marketType = undefined;
         let timeframes = undefined;
         const timeframesOption = this.handleOption('fetchOHLCV', 'timeframes');
-        const [uta, paramsUTA] = await this.handleUTAAndParams(paramsPaginate, 'fetchOHLCV', false);
         if (uta === true) {
             timeframes = timeframesOption['uta'];
             request['interval'] = this.safeString(timeframes, timeframe, timeframe);
@@ -4827,7 +4832,12 @@ export default class bitget extends Exchange {
                 }
             }
             request['category'] = productType;
-            response = await this.publicUtaGetV3MarketCandles(this.extend(request, paramsProductType));
+            if (historicalEndpointNeeded) {
+                response = await this.publicUtaGetV3MarketHistoryCandles(this.extend(request, paramsProductType));
+            }
+            else {
+                response = await this.publicUtaGetV3MarketCandles(this.extend(request, paramsProductType));
+            }
         }
         else if (market['spot'] === true) {
             // checks if we need history endpoint

@@ -600,7 +600,8 @@ fetches historical candlestick data containing the open, high, low, and close pr
 - https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
 - https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
 - https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
-- https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
+- https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick
+- https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick-history
 
 
 | Param | Type | Required | Description |
@@ -612,7 +613,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
-| params.useHistoryEndpoint | <code>boolean</code> | No | whether to force to use historical endpoint (it has max limit of 200) |
+| params.useHistoryEndpoint | <code>boolean</code> | No | whether to force to use historical endpoint (it has max limit of 200, 100 for uta) |
 | params.useHistoryEndpointForPagination | <code>boolean</code> | No | whether to force to use historical endpoint for pagination (default true) |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.price | <code>string</code> | No | *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles) |
