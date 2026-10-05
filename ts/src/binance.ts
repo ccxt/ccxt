@@ -7004,6 +7004,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#new-um-algo-order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
      * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#place-equity-order
@@ -7043,7 +7044,14 @@ export default class binance extends Exchange {
         const porfolioOptionsValue = this.safeBool2 (this.options, 'papi', 'portfolioMargin', false);
         const isPortfolioMargin = this.safeBool2 (params, 'papi', 'portfolioMargin', porfolioOptionsValue);
         const isConditional = this.isConditionalOrder (params);
-        const isAlgoOrder = ((market['swap'] === true) || (market['future'] === true)) && isConditional && !isPortfolioMargin;
+        // algo and conditional endpoints use different arguments
+        // conditional swap and future orders go through the algo api
+        // except for portfolio margin inverse (cm) orders, which still use the conditional endpoints
+        const isSwapOrFuture = (market['swap'] === true) || (market['future'] === true);
+        const isLinear = market['linear'] === true;
+        const isInverse = market['inverse'] === true;
+        const isPortfolioMarginInverse = isPortfolioMargin && isInverse;
+        const isAlgoOrder = isSwapOrFuture && isConditional && (!isPortfolioMarginInverse);
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
         const test = this.safeBool (params, 'test', false);
         const stock = this.safeBool (market, 'stock', false);
@@ -7061,10 +7069,11 @@ export default class binance extends Exchange {
             } else {
                 response = await this.privatePostSorOrder (request);
             }
-        } else if (market['linear'] === true) {
+        } else if (isLinear) {
             if (isPortfolioMargin === true) {
                 if (isConditional) {
-                    response = await this.papiPostUmConditionalOrder (request);
+                    request['algoType'] = 'CONDITIONAL';
+                    response = await this.papiPostUmAlgoOrder (request);
                 } else {
                     response = await this.papiPostUmOrder (request);
                 }
@@ -7076,7 +7085,7 @@ export default class binance extends Exchange {
                     response = await this.fapiPrivatePostOrder (request);
                 }
             }
-        } else if (market['inverse'] === true) {
+        } else if (isInverse) {
             if (isPortfolioMargin === true) {
                 if (isConditional) {
                     response = await this.papiPostCmConditionalOrder (request);
@@ -7357,7 +7366,7 @@ export default class binance extends Exchange {
             request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
         }
         let typeRequest: Str = 'type';
-        if (isPortfolioMarginConditional) {
+        if (isPortfolioMarginConditional && !isAlgoOrder) {
             typeRequest = 'strategyType';
         }
         if (stock === true) {
