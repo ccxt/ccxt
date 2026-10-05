@@ -4641,6 +4641,54 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "uta spot fetchOHLCV history endpoint",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1780000000000,
+                    2,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1790956508356,
+                    "data": [
+                        [
+                            "1779998400000",
+                            "73419.99",
+                            "73725.43",
+                            "73240.23",
+                            "73576.82",
+                            "164.290986",
+                            "12077831.26603639"
+                        ],
+                        [
+                            "1780002000000",
+                            "73576.82",
+                            "73928.57",
+                            "73558",
+                            "73822.07",
+                            "163.783964",
+                            "12083321.20538534"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1780002000000,
+                        73576.82,
+                        73928.57,
+                        73558,
+                        73822.07,
+                        163.783964
+                    ]
+                ]
+            },
+            {
                 "description": "Inverse market ohlcv",
                 "method": "fetchOHLCV",
                 "input": [
