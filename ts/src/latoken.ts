@@ -281,6 +281,31 @@ export default class latoken extends Exchange {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot',
                 },
+                'networksById': {
+                    // the venue names a token chain "<CHAIN>_TOKEN" and the native
+                    // chain by its own ticker, so only the former needs a mapping
+                    'BSC': 'BEP20',
+                    'BSC_TOKEN': 'BEP20',
+                    'TRON': 'TRC20',
+                    'ADA_TOKEN': 'ADA',
+                    'ALGO_TOKEN': 'ALGO',
+                    'ARB_TOKEN': 'ARBITRUM',
+                    'AVAXC_TOKEN': 'AVAXC',
+                    'BASE_TOKEN': 'BASE',
+                    'CELO_TOKEN': 'CELO',
+                    'EOS_TOKEN': 'EOS',
+                    'FTM_TOKEN': 'FTM',
+                    'MATIC_TOKEN': 'MATIC',
+                    'OP_TOKEN': 'OP',
+                    'QTUM_TOKEN': 'QTUM',
+                    'SOL_TOKEN': 'SOL',
+                    'TON_TOKEN': 'TON',
+                    'VECHAIN_TOKEN': 'VET',
+                    'WAVES_TOKEN': 'WAVES',
+                    'XDC_TOKEN': 'XDC',
+                    'XLM_TOKEN': 'XLM',
+                    'XRP_TOKEN': 'XRP',
+                },
                 'fetchTradingFee': {
                     'method': 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
                 },
@@ -498,10 +523,14 @@ export default class latoken extends Exchange {
      * @method
      * @name latoken#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+     * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         const response = await this.publicGetCurrency (params);
         //
         //     [
@@ -535,15 +564,91 @@ export default class latoken extends Exchange {
         //         },
         //     ]
         //
-        return this.parseCurrencies (response);
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        const bindingsResponse = await this.publicGetTransactionBindings (params);
+        const bindingsById = this.indexBy (bindingsResponse, 'id');
+        const rawCurrencies = this.toArray (response);
+        const result: Dict = {};
+        for (let i = 0; i < rawCurrencies.length; i++) {
+            const rawCurrency = rawCurrencies[i];
+            const bindingEntry = this.safeDict (bindingsById, this.safeString (rawCurrency, 'id'));
+            const parsed = this.parseCurrencyWithBindings (rawCurrency, bindingEntry);
+            const code = parsed['code'];
+            result[code] = parsed;
+        }
+        return result;
     }
 
     override parseCurrency (currency: Dict): CurrencyInterface {
+        return this.parseCurrencyWithBindings (currency);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name latoken#parseCurrencyWithBindings
+     * @description parses a currency, attaching the networks of its transaction bindings when the caller resolved them
+     * @param {object} currency a currency entry of the venue
+     * @param {object} [bindingEntry] the matching entry of the public transaction bindings
+     * @returns {object} a [currency structure]{@link https://docs.ccxt.com/?id=currency-structure}
+     */
+    parseCurrencyWithBindings (currency: Dict, bindingEntry: NullableDict = undefined): CurrencyInterface {
         const id = this.safeString (currency, 'id');
         const tag = this.safeString (currency, 'tag');
         const code = this.safeCurrencyCode (tag);
         const currencyType = this.safeString (currency, 'type');
         const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
+        const bindings = this.safeList (bindingEntry, 'bindings', []);
+        const networks: Dict = {};
+        for (let i = 0; i < bindings.length; i++) {
+            const binding = bindings[i];
+            const networkId = this.safeString (binding, 'providerName');
+            const networkCode = this.networkIdToCode (networkId, code);
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': binding,
+                    'id': this.safeString (binding, 'id'),
+                    'network': networkCode,
+                    'active': undefined,
+                    // the public endpoint serves one entry per chain without saying
+                    // whether it is bound for deposits, withdrawals or both
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber (binding, 'fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (binding, 'minAmount'),
+                            // maxAmount is "0" on 1990 of the 1996 bindings and contradicts its
+                            // own minimum on the rest, so the venue does not keep it as a real cap
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+        }
         return this.safeCurrencyStructure ({
             'id': id,
             'code': code,
@@ -553,7 +658,7 @@ export default class latoken extends Exchange {
             'active': this.safeString (currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
             'deposit': undefined,
             'withdraw': undefined,
-            'fee': this.safeNumber (currency, 'fee'),
+            'fee': undefined,
             'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
             'limits': {
                 'amount': {
@@ -565,7 +670,7 @@ export default class latoken extends Exchange {
                     'max': undefined,
                 },
             },
-            'networks': {},
+            'networks': networks,
         });
     }
 
