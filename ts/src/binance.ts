@@ -7232,6 +7232,23 @@ export default class binance extends Exchange {
             if (equityClientOrderId === undefined) {
                 params['clientOrderId'] = this.generateClientOrderId (undefined, api, path);
             }
+        } else if ((path === 'order/oco') || (path === 'margin/order/oco') || (path === 'orderList/oco') || (path === 'orderList/oto') || (path === 'orderList/otoco') || (path === 'orderList/opo') || (path === 'orderList/opoco')) {
+            // the order list endpoints take a listClientOrderId and one client order id per leg
+            let clientOrderIdKeys = [ 'listClientOrderId', 'limitClientOrderId', 'stopClientOrderId' ];
+            if (path === 'orderList/oco') {
+                clientOrderIdKeys = [ 'listClientOrderId', 'aboveClientOrderId', 'belowClientOrderId' ];
+            } else if ((path === 'orderList/oto') || (path === 'orderList/opo')) {
+                clientOrderIdKeys = [ 'listClientOrderId', 'workingClientOrderId', 'pendingClientOrderId' ];
+            } else if ((path === 'orderList/otoco') || (path === 'orderList/opoco')) {
+                clientOrderIdKeys = [ 'listClientOrderId', 'workingClientOrderId', 'pendingAboveClientOrderId', 'pendingBelowClientOrderId' ];
+            }
+            for (let i = 0; i < clientOrderIdKeys.length; i++) {
+                const currentClientOrderIdKey = clientOrderIdKeys[i];
+                const currentClientOrderId = this.safeString (params, currentClientOrderIdKey);
+                if (currentClientOrderId === undefined) {
+                    params[currentClientOrderIdKey] = this.generateClientOrderId (undefined, api, path);
+                }
+            }
         } else if (path === 'batchOrders') {
             // the batch legs take the same client order id fields as the single order endpoints
             if ((api === 'fapiPrivate') || (api === 'dapiPrivate') || (api === 'eapiPrivate')) {
