@@ -9469,7 +9469,11 @@ export default class bitget extends Exchange {
         let response = undefined;
         if (uta === true) {
             request['category'] = productType;
-            response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, paramsMethod));
+            if (methodOption === 'publicMixGetV2MixMarketTickers') {
+                response = await this.publicUtaGetV3MarketTickers (this.extend (request, paramsMethod));
+            } else if (methodOption === 'publicMixGetV2MixMarketCurrentFundRate') {
+                response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, paramsMethod));
+            }
         } else if (methodOption === 'publicMixGetV2MixMarketTickers') {
             request['productType'] = productType;
             // {
