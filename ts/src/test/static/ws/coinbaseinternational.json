@@ -6,6 +6,10 @@
         "watchBalance": [
             {
                 "description": "deribit coinbaseinternational watch balance",
+                "options": {
+                    "route": "deribit",
+                    "routeBackend": true
+                },
                 "input": [],
                 "url": "wss://www.deribit.com/ws/api/v2",
                 "messages": [
@@ -16,9 +20,9 @@
                             "enabled_features": [
                                 "block_trade_approval"
                             ],
-                            "access_token": "1822732031963.1d0R5tCE.kp37KveAs9XVA6OzLZ1wDthmN_ovLJklIFeEtlCNQhrdpuOMTVDoAtKfMayz3_ZfowyfjcprVeQj2XDveerVboGmYs40pq2m-e90TW9Chrab5M0K02I8Pt18VztVKTm44y0rzUWYIhPnrO6oO__hLznLtJlK7V7vpS6Y2OikvmouSfOACYgU5c_pmeDcb24ULdyFJjt_YuBcDYhvbP9DgpfzOZm7LjP6bbwptRA2yeGntjdDvFe3yIJoK8re5MbuOHQls-G_jE5VRTFbrgce4H7gmW1snTSq8V5ENAvwMurb_DD5b9QBxzYDgzercEaEm_TAAYz5EbBOtrsuWn9WAuQc7R5rfZK2cTZ5RfyJT_7Kpjse",
+                            "access_token": "dummy-access-token",
                             "expires_in": 31536000,
-                            "refresh_token": "1822732031963.1V3Gu-UX.497x0Lh7nPTMhi4t2afmdnkeI0rR57xRJHe70_h2t1j_UFivdaFvtIRdrYNzJehCmlQJvx7Qjg0V_Lff8ZgGTkMMg-RxDIt9qVShWVGN_S3JU9g2wRnhB1_ZXru8kUujNmvzbXW8Pk0gf8fUP_ovidxr8M68iPXP37OMR9PTEsWdi754uGy7EgplGVSsmDXfrW0hzrwFLhByg8_rmd0N6zsCXDYYUqaxB0-GghUcU_RpEtXpxsCVXAOzhLYCByG_Pb-YWkuJmOo2Bk1YoVmjvXlXh_EcMuxEnf2rNeo1Q-TIH2GBLJNk6HNpXxsp-AKkiyR7OjTpw9DXaC5nppS83xz8njUZyBfjPynn0QSKjtCc0cc",
+                            "refresh_token": "dummy-refresh-token",
                             "scope": "block_rfq:read_write block_trade:read_write connection trade:read_write custody:read_write account:read_write wallet:read_write mainaccount",
                             "token_type": "bearer"
                         },
@@ -2867,8 +2871,8 @@
                         "method": "public/auth",
                         "params": {
                             "grant_type": "client_credentials",
-                            "client_id": "8t9801rq",
-                            "client_secret": "KSi9EugF6VgfyhWN5-ngRbRwzaaEKl2tXAkevAXWXFM"
+                            "client_id": "key",
+                            "client_secret": "secretsecret"
                         }
                     },
                     {
@@ -18706,6 +18710,10 @@
         "watchFundingRate": [
             {
                 "description": "deribit coinbaseinternational watch funding rate",
+                "options": {
+                    "route": "deribit",
+                    "routeBackend": true
+                },
                 "input": [
                     "BTC/USDC:USDC"
                 ],
@@ -19633,6 +19641,10 @@
         "watchPositions": [
             {
                 "description": "deribit coinbaseinternational watch positions",
+                "options": {
+                    "route": "deribit",
+                    "routeBackend": true
+                },
                 "input": [
                     [
                         "BTC/USDC:USDC"
@@ -19647,9 +19659,9 @@
                             "enabled_features": [
                                 "block_trade_approval"
                             ],
-                            "access_token": "1822731081966.1cFnzPWD.GrN3kk02YoDFcAPYXXcIX-msAWpUnHfa8keCbpjF-TGmEyX8J8XXErzD1LcB9i2YPLJZDKXrQrcEqZydP1fxxbAV8ZhoQrJQwS7fpbD1bt--_OTcJ6iA_Vn8hnv00bbXsb0aFrzLZKjIsM2tzm1Bjmt0KSWDQFW3CfOTGk4W3x8FJX6uuh1iOKLx4ORKCP7G0wF7aJqMSKeFgfdQyaflYgNQ-gq_YP-ecPR5QdHs7j6bFZNvk6gnFoporUOvQmdQxA-5gTHFCP3fR2qByg-YPOUoVBhBszEOVq0Td9tA8Wypr3iEPtFOqQ_w8DB_N9eYMtQJmoU-dshJD2to4g9FhzRaLxqbwYRRwB8UL1TSY9U2ShUg",
+                            "access_token": "dummy-access-token",
                             "expires_in": 31535999,
-                            "refresh_token": "1822731081966.1S1jojRW.SucINvdISSAveaHfEnICV9rBq6UKmGwPQTSV7Flxw9k9XMdgZaNYqHQ8Eyu_TwrQwyDOyF27uGY0a1s0X2TDlYIPlZvHvnj33d_L86MjtyNmi8JanyLrne445GVfuFosv2qXWhE91jtmxgitE605w-kEK1HbD81_9usFu2gn7Y62Z9DMlFH6oxvTRRrSBrZ-SwFWF2xPmlxwZpNzDyPMtEDx4j-nOiwuHYyiZWD8P3xRISJ9qd4-Z8fUzqS-P_2eAiW4lt4APs8_48kGzd4L26ae1j2J8Bqrfbf_dbEOW4_I5fhDDiui0ogltzglLW8KAejfVrKHmxuJngIZXxbW4HQbRzaMozvyPt7U3VJ1ZHSXWhI",
+                            "refresh_token": "dummy-refresh-token",
                             "scope": "block_rfq:read_write block_trade:read_write connection trade:read_write custody:read_write account:read_write wallet:read_write mainaccount",
                             "token_type": "bearer"
                         },
@@ -19904,8 +19916,8 @@
                         "method": "public/auth",
                         "params": {
                             "grant_type": "client_credentials",
-                            "client_id": "8t9801rq",
-                            "client_secret": "KSi9EugF6VgfyhWN5-ngRbRwzaaEKl2tXAkevAXWXFM"
+                            "client_id": "key",
+                            "client_secret": "secretsecret"
                         }
                     },
                     {
@@ -19917,24 +19929,6 @@
                             ]
                         },
                         "id": 2
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 3,
-                        "method": "public/test",
-                        "params": {}
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 5,
-                        "method": "public/test",
-                        "params": {}
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 6,
-                        "method": "public/test",
-                        "params": {}
                     }
                 ],
                 "parsedResponses": [
@@ -20083,6 +20077,10 @@
         "watchOrders": [
             {
                 "description": "deribit coinbaseinternational watch orders",
+                "options": {
+                    "route": "deribit",
+                    "routeBackend": true
+                },
                 "input": [
                     "BTC/USDC:USDC"
                 ],
@@ -20095,9 +20093,9 @@
                             "enabled_features": [
                                 "block_trade_approval"
                             ],
-                            "access_token": "1822730980696.1S2z68Io.g9lK8Qj7q6mBLTat6q_Xr5MasuV6vFeeeIpfINXW8atpuVRKEwFA7y4dA162DQOugaoYCsNBum1R_tDpiIr3JnyFL7mJXEzPQfzqwzGCpwr1lwzvzqQwn3-yhFb_MjkfnmT7XmKKWRUPXsq6d9JSlSxQff3j9gcWJmUd2ArnX3Cv_epB-RtlAle3E7ORv3NnykHaQpCEoi4zYcLu6kwfXMvLsLFLwGIX8L_3OEy5shogLzUA74TBuMbIHwACuqaxWOqwehMYtXZHiqVvar8N5vDsEGJ5cShQ6N6iw3PlUzI3wMOQPXvhWKcSA1HlxE3dJvhISi6FsNfaR0-3MjRJfOG80iu_F4_BrjwydQ-yhM1oOAwr",
+                            "access_token": "dummy-access-token",
                             "expires_in": 31536000,
-                            "refresh_token": "1822730980696.1WqhJC7E.qUWH0KdNl1sHHIgA4BGM0-ccnQGy7lsk40IUhKCn0VLvq3BatVFAd4D1rC2c37wzxrAQ642jfBiSLk8Da_HvdtWDiRHlhG8Z4pvJ1t4iFDyWwnATuYD9XRwixubYBDpdgSQKiss89_rMSFta5f3bLfFXyn3_LrfYYrrlB8RNON_e5eTaYAtd28uO1-wwcslN-3x5rNPvF0cidU0GC5vfXSEcL0ZkLAk0r3nVKoHcRsMk8GpJ6AV0Z3dk4RVr--6bvr5NAMFuhK-dXyBtOOlNBn00ApwYYqx04yLhEQZPqXXYwT79Bux_Nkajx9zfSYY7JfCb7-yiocEk2Uvp9Ed29v0LWH-OCRxmB-zH3ZeufeVaFFc",
+                            "refresh_token": "dummy-refresh-token",
                             "scope": "block_rfq:read_write block_trade:read_write connection trade:read_write custody:read_write account:read_write wallet:read_write mainaccount",
                             "token_type": "bearer"
                         },
@@ -20182,8 +20180,8 @@
                         "method": "public/auth",
                         "params": {
                             "grant_type": "client_credentials",
-                            "client_id": "8t9801rq",
-                            "client_secret": "KSi9EugF6VgfyhWN5-ngRbRwzaaEKl2tXAkevAXWXFM"
+                            "client_id": "key",
+                            "client_secret": "secretsecret"
                         }
                     },
                     {
@@ -20195,18 +20193,6 @@
                             ]
                         },
                         "id": 2
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 3,
-                        "method": "public/test",
-                        "params": {}
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 5,
-                        "method": "public/test",
-                        "params": {}
                     }
                 ],
                 "parsedResponses": [
@@ -20282,6 +20268,10 @@
         "watchMyTrades": [
             {
                 "description": "deribit coinbaseinternational watch my trades",
+                "options": {
+                    "route": "deribit",
+                    "routeBackend": true
+                },
                 "input": [
                     "BTC/USDC:USDC"
                 ],
@@ -20294,9 +20284,9 @@
                             "enabled_features": [
                                 "block_trade_approval"
                             ],
-                            "access_token": "1822730647361.1fNs4ZSP.rMG9ghUUSR4e4p0zoasOmWaf__-32IhWjPQQ1xp0q7D9g1RyIhBAOzlORW2MAeufR8FSTo9BawSW_fNEYAEaatqv20RLQZDKlJ4dKkxtVnCLTj1PY_8N8TWTAQpkrSZ80tsI3PLUHiAJ6ifSamVkDvgUH0MuMDqbP6SrnaLylYDBoqDFJ8PqzUuIf1sftqXOFM-2HLsa7y715a1yYgW4qLx1Js0_aASeZV-yLWmpUIblUXgrwyEkyf0_lAx6in5P5Y4zzxbet7vZNJuXSsO7-1HfOmSmTH7sLCuigmfXtcxdBD5dhu1zz40zBJTVDMBWp2fNoRUtQD-_V9dKG4s3TAd_bDhn0v0oeg1IPBuaO9lvUv8I",
+                            "access_token": "dummy-access-token",
                             "expires_in": 31536000,
-                            "refresh_token": "1822730647361.1QYVEwi8.GOMAaL7RxJfWk1cYZI2nSTJ9v9R_uFYwXMU3z3Kjy3wtenfyPYk0JQVpiN4g75UivD5dedy7exQUQ_gsOalQvV3ZJJOunrSq_8moo6oWXnPeo4nDv1EYhX5WwSSMJQzDK9FyTAVkawQd9AmjuqaLrrmWa_cvBhZ4aFjrSIcxbAexFeuGiA4A7aGgxH-o5C0UCWLmEWrRU3Ks7F3nufK9MdS3zGGRxUTAc-WyfBaHa7duWSOYWw1W0rdY3r5s4kHOlCNeC4ZQVL47tCHQZphKqkqrH2PqOBuT5_ZvgPZOJWdh-pYMufbCmVYtvWsiAEdfyUBW3Tal8wAt1JdinqZMGA8UhLFEnII6CFWtonxtDSNyiSc",
+                            "refresh_token": "dummy-refresh-token",
                             "scope": "block_rfq:read_write block_trade:read_write connection trade:read_write custody:read_write account:read_write wallet:read_write mainaccount",
                             "token_type": "bearer"
                         },
@@ -20376,8 +20366,8 @@
                         "method": "public/auth",
                         "params": {
                             "grant_type": "client_credentials",
-                            "client_id": "8t9801rq",
-                            "client_secret": "KSi9EugF6VgfyhWN5-ngRbRwzaaEKl2tXAkevAXWXFM"
+                            "client_id": "key",
+                            "client_secret": "secretsecret"
                         }
                     },
                     {
@@ -20389,12 +20379,6 @@
                             ]
                         },
                         "id": 2
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 3,
-                        "method": "public/test",
-                        "params": {}
                     }
                 ],
                 "parsedResponses": [
