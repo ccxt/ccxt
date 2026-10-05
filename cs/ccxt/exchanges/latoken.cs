@@ -846,7 +846,7 @@ public partial class latoken : Exchange
     {
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -861,14 +861,30 @@ public partial class latoken : Exchange
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
-        string? marketId = this.safeString(ticker, "symbol");
+        // the "symbol" field carries the currency tags, which differ from the
+        // unified symbol whenever commonCurrencies renames a code, so resolve
+        // the market from the currency ids like parseTrade and parseOrder do
+        string? baseId = this.safeString(ticker, "baseCurrency");
+        string? quoteId = this.safeString(ticker, "quoteCurrency");
+        string? bs = this.safeCurrencyCode(baseId);
+        string? quote = this.safeCurrencyCode(quoteId);
+        string? symbol = null;
+        object marketResolved = market;
+        if (((bs != null)) && ((quote != null)))
+        {
+            symbol = ((bs + "/") + quote);
+            if (((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol))))
+            {
+                marketResolved = this.market(symbol);
+            }
+        }
         string? last = this.safeString(ticker, "lastPrice");
         Int64? timestamp = this.safeIntegerOmitZero(ticker, "updateTimestamp"); // sometimes latoken provided '0' ts from /ticker endpoint
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", this.safeSymbol(marketId, market) },
+            { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "low", null },
@@ -888,7 +904,7 @@ public partial class latoken : Exchange
             { "baseVolume", this.safeString(ticker, "amount24h") },
             { "quoteVolume", this.safeString(ticker, "volume24h") },
             { "info", ticker },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -915,7 +931,7 @@ public partial class latoken : Exchange
         Dictionary<string, object> response = await this.publicGetTickerBaseQuote(this.extend(request, parameters));
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -930,7 +946,7 @@ public partial class latoken : Exchange
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
         return this.parseTicker(response, market);
@@ -956,7 +972,7 @@ public partial class latoken : Exchange
         //
         //    [
         //        {
-        //            "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //            "symbol": "BTC/USDT",
         //            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //            "volume24h": "165723597.189022176000000000",
@@ -971,7 +987,7 @@ public partial class latoken : Exchange
         //            "bestBidQuantity": "0.6520232",
         //            "bestAsk": "25779.17",
         //            "bestAskQuantity": "0.4956043",
-        //            "updateTimestamp": "1693965231406"
+        //            "updateTimestamp": 1693965231406
         //        }
         //    ]
         //
