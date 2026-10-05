@@ -1878,6 +1878,9 @@
             "fetchTicker": {
                 "lastBetweenBidAsk": "the venue serves stale wide bestBid/bestAsk snapshots during incidents - 2026-08-17: 30+ minutes of a dust bid and a ghost negative-quantity ask from the ticker endpoint itself while trades printed 1.15% above the stale median"
             },
+            "fetchTickers": {
+                "maxIncrease": "the all-markets sweep hits XAUT/BTC, whose percentage is the venue's own change24h verbatim - 407121.29% on 2026-10-03, 1 of 1231 tickers, off a 0.0000001 dust fill at the 240 BTC ask while the bid sits at 0.058458. this venue has no fetchOHLCV, so test.fetchTickers cannot take its first-day-of-listing escape. scoped to fetchTickers on purpose - fetchTicker keeps the percentage and change bounds; recheck 2026-12-01"
+            },
             "loadMarkets": {
                 "precision": "messed just for one pair https://app.travis-ci.com/github/ccxt/ccxt/builds/269924468#L4006",
                 "currency": "messed",
