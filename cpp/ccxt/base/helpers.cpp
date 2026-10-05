@@ -1000,7 +1000,9 @@ void resetAssertionOrdinal () { assertionOrdinal = 0; }
 void assertTrue (const ccxt::any& condition, const ccxt::any& message) {
     assertionOrdinal++;
     if (!isTrue (condition)) {
-        const std::string detail = message.has_value () ? anyToString (message) : std::string ("");
+        // json (not anyToString) for the detail: messages are often dicts/objects
+        // and the JS-coercion stringifier would just say "[object]"
+        const std::string detail = message.has_value () ? str (jsonStringify (message)) : std::string ("");
         throw std::runtime_error ("assertion #" + std::to_string (assertionOrdinal)
                                   + " failed" + (detail.empty () ? "" : ": " + detail));
     }

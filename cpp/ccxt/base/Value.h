@@ -97,9 +97,19 @@ public:
     any (std::nullptr_t) = delete;
 
     template <class T,
-              class = std::enable_if_t<!std::is_same_v<std::decay_t<T>, any>>>
+              std::enable_if_t<!std::is_same_v<std::decay_t<T>, any> &&
+                               !std::is_base_of_v<std::exception, std::decay_t<T>>, int> = 0>
     any (T&& v) {
         this->construct (std::forward<T> (v));
+    }
+
+    // box std::exception-derived values as exception_ptr so exceptionMessage
+    // (and the test framework's catch/validate paths) can recover what();
+    // type-erasing the concrete type directly made every message "[object]"
+    template <class T,
+              std::enable_if_t<std::is_base_of_v<std::exception, std::decay_t<T>>, int> = 0>
+    any (T&& v) {
+        this->construct (std::exception_ptr (std::make_exception_ptr (std::forward<T> (v))));
     }
 
     any (const any& other) { this->copyConstruct (other); }
@@ -121,10 +131,18 @@ public:
         return *this;
     }
     template <class T,
-              class = std::enable_if_t<!std::is_same_v<std::decay_t<T>, any>>>
+              std::enable_if_t<!std::is_same_v<std::decay_t<T>, any> &&
+                               !std::is_base_of_v<std::exception, std::decay_t<T>>, int> = 0>
     any& operator= (T&& v) {
         this->destroy ();
         this->construct (std::forward<T> (v));
+        return *this;
+    }
+    template <class T,
+              std::enable_if_t<std::is_base_of_v<std::exception, std::decay_t<T>>, int> = 0>
+    any& operator= (T&& v) {
+        this->destroy ();
+        this->construct (std::exception_ptr (std::make_exception_ptr (std::forward<T> (v))));
         return *this;
     }
 

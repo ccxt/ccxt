@@ -610,8 +610,19 @@ function extendOverrideSignatures (content: string): string {
     return out;
 }
 
+// `catch (const std::exception& e)` in transpiled code still sees ccxt errors.
+// Passing the caught reference on as a value (test helpers box it into ccxt::any)
+// SLICES the exception down to its static type (a bare std::exception with no
+// message) because the static type of the catch variable IS std::exception.
+// Catch-all + current_exception preserves the dynamic type and what().
+function rewriteCatchExceptionPtr (content: string): string {
+    return content.replace (/catch\s*\(\s*const std::exception\s*&\s*([A-Za-z_]\w*)\s*\)\s*\{/g,
+        'catch (...) { std::exception_ptr $1 = std::current_exception();');
+}
+
 function applyCommonFixes (content: string): string {
     return rewriteRethrow (
+        rewriteCatchExceptionPtr (
         rewriteErrorClassValues (
         rewriteInstanceOf (
             rewritePreciseCalls (
@@ -623,7 +634,7 @@ function applyCommonFixes (content: string): string {
                 rewriteWsFutureAccess (
                 rewriteWsClientAccess (
                     rewriteAsyncLambdasMutable (
-                        rewriteDynamicDispatch (extendOverrideSignatures (content))))))))))))));
+                        rewriteDynamicDispatch (extendOverrideSignatures (content)))))))))))))));
 }
 
 // ---------------------------------------------------------------------------
@@ -2182,6 +2193,7 @@ class CppTranspilerDriver {
                 content = content.replace (/\bassert\s*\(/g, 'assertTrue(');
                 // the sharedMethods file emits free functions; inside the bridge
                 // class they become members, so `exchange` params keep their name
+                content = rewriteRethrow (rewriteCatchExceptionPtr (content));
                 const outFile = folder.out + name + '.inc';
                 overwriteFileAndFolder (outFile,
                     createGeneratedHeader ().join ('\n') + content);

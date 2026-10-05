@@ -538,6 +538,7 @@ public:
     virtual ccxt::any convertToSafeDictionary (ccxt::any value);
     virtual ccxt::any getCcxtVersion ();
     virtual ccxt::any addFetchCache (ccxt::any entry, ccxt::any value = ccxt::any {});
+    virtual ccxt::any getFetchCache ();
     virtual ccxt::any setLastRequest (ccxt::any value);
     virtual ccxt::any setLastRestRequestTimestamp (ccxt::any value = ccxt::any {});
     virtual ccxt::any storeArray (ccxt::any target, ccxt::any value);

@@ -1524,7 +1524,26 @@ ccxt::any ExchangeBase::log (ccxt::any value) {
 ccxt::any ExchangeBase::createSafeDictionary (ccxt::any) { return ccxt::any (dict {}); }
 ccxt::any ExchangeBase::mapToSafeMap (ccxt::any value) { return value; }
 ccxt::any ExchangeBase::initThrottler () { return ccxt::any {}; }
-ccxt::any ExchangeBase::addFetchCache (ccxt::any, ccxt::any) { return ccxt::any {}; }
+ccxt::any ExchangeBase::addFetchCache (ccxt::any entry, ccxt::any) {
+    // fetchHistoryCacheSize <= 0 disables the history cache (default)
+    const int64_t size = isNum (this->fetchHistoryCacheSize) ? (int64_t)toDouble (this->fetchHistoryCacheSize) : 0;
+    if (size <= 0) { return ccxt::any {}; }
+    if (!isList (this->fetchHistoryCache)) { this->fetchHistoryCache = ccxt::any (list {}); }
+    list cache = any_cast<list> (this->fetchHistoryCache);
+    if ((int64_t)cache.size () >= size) {
+        // the wrapper has no erase: shift by rebuilding without the head
+        list shifted;
+        for (std::size_t i = 1; i < cache.size (); ++i) { shifted.push (cache.get (static_cast<long> (i))); }
+        cache = shifted;
+    }
+    cache.push (entry);
+    this->fetchHistoryCache = ccxt::any (cache);
+    return ccxt::any {};
+}
+ccxt::any ExchangeBase::getFetchCache () {
+    if (!isList (this->fetchHistoryCache)) { return ccxt::any (list {}); }
+    return this->fetchHistoryCache;
+}
 ccxt::any ExchangeBase::setLastRequest (ccxt::any) { return ccxt::any {}; }
 ccxt::any ExchangeBase::setLastRestRequestTimestamp (ccxt::any) { return ccxt::any {}; }
 ccxt::any ExchangeBase::storeArray (ccxt::any target, ccxt::any value) {
@@ -2134,6 +2153,7 @@ ccxt::any ExchangeBase::setProperty (const std::string& name, ccxt::any value) {
     if (name == "wsProxy") { this->wsProxy = value; return value; }
     if (name == "wssProxy") { this->wssProxy = value; return value; }
     if (name == "verbose") { this->verbose = value; return value; }
+    if (name == "fetchHistoryCacheSize") { this->fetchHistoryCacheSize = value; return value; }
     throw NotSupported ("setProperty: unknown member \"" + name + "\"");
 }
 
@@ -2240,6 +2260,11 @@ ccxt::any ExchangeBase::callDynamically (const std::string& name, ccxt::any args
         }
         return ccxt::any {};
     }
+    if (name == "getFetchCache") return this->getFetchCache ();
+    if (name == "addFetchCache") return this->addFetchCache (a0);
+    if (name == "parse8601") return this->parse8601 (a0);
+    if (name == "parseDate") return this->parseDate (a0);
+    if (name == "omitZero") return this->omitZero (a0);
     if (name == "jsonStringifyWithNull") return this->json (a0);
     if (name == "capitalize") return this->capitalize (a0);
     if (name == "exceptionMessage") return this->exceptionMessage (a0, a1);
