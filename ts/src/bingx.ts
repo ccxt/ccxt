@@ -1868,7 +1868,9 @@ export default class bingx extends Exchange {
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate backwards from params.until (or the latest record) using funding timestamps, independently of the settlement interval
+     * @param {int} [params.paginationCalls] maximum number of requests when paginating (default 10); without since, pagination can use the full budget even when limit is small
+     * @param {string} [params.paginationDirection] ignored, funding rate history always paginates backwards
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
@@ -1884,7 +1886,14 @@ export default class bingx extends Exchange {
         }
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
+            // The endpoint returns the latest records in a range; settlement intervals can change over time.
+            const until = this.safeIntegerN (paramsPaginate, [ 'endTime', 'until', 'untill', 'till' ]);
+            const paramsOmitted = this.omit (paramsPaginate, [ 'endTime', 'until', 'untill', 'till' ]);
+            let paramsDynamic = this.extend (paramsOmitted, { 'paginationDirection': 'backward' });
+            if (until !== undefined) {
+                paramsDynamic = this.extend (paramsDynamic, { 'until': until });
+            }
+            return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsDynamic, 1000) as FundingRateHistory[];
         }
         const request: Dict = {
             'symbol': market['id'],

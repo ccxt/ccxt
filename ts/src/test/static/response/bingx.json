@@ -3,6 +3,118 @@
     "skipKeys": [ "tranId", "timestamp" ],
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "two-page funding cursor from endTime",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1721356200000,
+                    null,
+                    {
+                        "paginate": true,
+                        "paginationCalls": 2,
+                        "maxRetries": 0,
+                        "maxEntriesPerRequest": 2,
+                        "endTime": 1721961000000
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": [
+                        {
+                            "symbol": "BTC-USDT",
+                            "fundingRate": "0.0001",
+                            "fundingTime": 1721957400000
+                        },
+                        {
+                            "symbol": "BTC-USDT",
+                            "fundingRate": "0.0001",
+                            "fundingTime": 1721953800000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "fundingRate": "0.0001",
+                            "fundingTime": 1721953800000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1721953800000,
+                        "datetime": "2024-07-26T00:30:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "fundingRate": "0.0001",
+                            "fundingTime": 1721957400000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1721957400000,
+                        "datetime": "2024-07-26T01:30:00.000Z"
+                    }
+                ],
+                "lastRequestUrl": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?endTime=1721953799999&limit=2&symbol=BTC-USDT&timestamp=1709992987329"
+            },
+            {
+                "description": "two-page funding cursor from untill",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1721356200000,
+                    null,
+                    {
+                        "paginate": true,
+                        "paginationCalls": 2,
+                        "maxRetries": 0,
+                        "maxEntriesPerRequest": 2,
+                        "untill": 1721961000000
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": [
+                        {
+                            "symbol": "BTC-USDT",
+                            "fundingRate": "0.0001",
+                            "fundingTime": 1721957400000
+                        },
+                        {
+                            "symbol": "BTC-USDT",
+                            "fundingRate": "0.0001",
+                            "fundingTime": 1721953800000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "fundingRate": "0.0001",
+                            "fundingTime": 1721953800000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1721953800000,
+                        "datetime": "2024-07-26T00:30:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "fundingRate": "0.0001",
+                            "fundingTime": 1721957400000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1721957400000,
+                        "datetime": "2024-07-26T01:30:00.000Z"
+                    }
+                ],
+                "lastRequestUrl": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?endTime=1721953799999&limit=2&symbol=BTC-USDT&timestamp=1709992987329"
+            }
+        ],
         "fetchInverseSwapMarkets": [
             {
                 "description": "active Coin-M contract metadata",
