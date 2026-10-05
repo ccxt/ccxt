@@ -2533,8 +2533,8 @@ class binance extends binance$1["default"] {
                         '-2010': errors.InvalidOrder, // NEW_ORDER_REJECTED
                         '-2011': errors.OperationRejected, // CANCEL_REJECTED
                         '-2013': errors.OrderNotFound, // Order does not exist.
-                        '-2014': errors.OperationRejected, // API-key format invalid.
-                        '-2015': errors.OperationRejected, // Invalid API-key, IP, or permissions for action.
+                        '-2014': errors.AuthenticationError, // API-key format invalid.
+                        '-2015': errors.AuthenticationError, // Invalid API-key, IP, or permissions for action.
                         '-2016': errors.OperationFailed, // No trading window could be found for the symbol. Try ticker/24hrs instead.
                         '-2018': errors.OperationFailed, // Balance is insufficient.
                         '-2019': errors.OperationFailed, // Margin is insufficient.
