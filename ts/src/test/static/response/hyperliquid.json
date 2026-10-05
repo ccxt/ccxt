@@ -1,6 +1,9 @@
 {
     "exchange": "hyperliquid",
-    "skipKeys": [],
+    "skipKeys": [
+        "fundingTimestamp",
+        "fundingDatetime"
+    ],
     "options": {
         "hip3TokensByName": {
             "flx:CRCL": {
@@ -3199,6 +3202,213 @@
                         "baseName": "TESTDEX"
                     }
                 ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "hip3 funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "XYZ-XYZ100/USDC:USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "universe": [
+                            {
+                                "szDecimals": 4,
+                                "name": "xyz:XYZ100",
+                                "maxLeverage": 30,
+                                "marginTableId": 30,
+                                "growthMode": "enabled",
+                                "lastFeeScaleChangeTime": "2025-11-23T17:37:10.033211662",
+                                "deployerFeeScale": "1.0"
+                            },
+                            {
+                                "szDecimals": 3,
+                                "name": "xyz:TSLA",
+                                "maxLeverage": 20,
+                                "marginTableId": 20,
+                                "growthMode": "enabled",
+                                "lastFeeScaleChangeTime": "2025-11-23T17:37:10.033211662",
+                                "deployerFeeScale": "1.0"
+                            }
+                        ],
+                        "marginTables": [],
+                        "collateralToken": 0
+                    },
+                    [
+                        {
+                            "funding": "-0.000011361",
+                            "openInterest": "8867.2076",
+                            "prevDayPx": "30859.0",
+                            "dayNtlVlm": "242494696.4289999008",
+                            "premium": "-0.0003331827",
+                            "oraclePx": "30989.0",
+                            "markPx": "30976.0",
+                            "midPx": "30977.5",
+                            "impactPxs": [
+                                "30977.0",
+                                "30980.35"
+                            ],
+                            "dayBaseVlm": "7855.2955"
+                        },
+                        {
+                            "funding": "0.00000625",
+                            "openInterest": "136435.1960000001",
+                            "prevDayPx": "372.86",
+                            "dayNtlVlm": "33248400.9108299986",
+                            "premium": "0.000397025",
+                            "oraclePx": "377.81",
+                            "markPx": "377.9",
+                            "midPx": "377.96",
+                            "impactPxs": [
+                                "377.94",
+                                "377.98"
+                            ],
+                            "dayBaseVlm": "89292.71"
+                        }
+                    ]
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "szDecimals": 4,
+                        "name": "xyz:XYZ100",
+                        "maxLeverage": 30,
+                        "marginTableId": 30,
+                        "growthMode": "enabled",
+                        "lastFeeScaleChangeTime": "2025-11-23T17:37:10.033211662",
+                        "deployerFeeScale": "1.0",
+                        "funding": "-0.000011361",
+                        "openInterest": "8867.2076",
+                        "prevDayPx": "30859.0",
+                        "dayNtlVlm": "242494696.4289999008",
+                        "premium": "-0.0003331827",
+                        "oraclePx": "30989.0",
+                        "markPx": "30976.0",
+                        "midPx": "30977.5",
+                        "impactPxs": [
+                            "30977.0",
+                            "30980.35"
+                        ],
+                        "dayBaseVlm": "7855.2955"
+                    },
+                    "symbol": "XYZ-XYZ100/USDC:USDC",
+                    "markPrice": 30976.0,
+                    "indexPrice": 30989.0,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": -1.1361e-05,
+                    "fundingTimestamp": 1759798800000,
+                    "fundingDatetime": "2025-10-07T01:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "1h"
+                }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "hip3 open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "XYZ-XYZ100/USDC:USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "universe": [
+                            {
+                                "szDecimals": 4,
+                                "name": "xyz:XYZ100",
+                                "maxLeverage": 30,
+                                "marginTableId": 30,
+                                "growthMode": "enabled",
+                                "lastFeeScaleChangeTime": "2025-11-23T17:37:10.033211662",
+                                "deployerFeeScale": "1.0"
+                            },
+                            {
+                                "szDecimals": 3,
+                                "name": "xyz:TSLA",
+                                "maxLeverage": 20,
+                                "marginTableId": 20,
+                                "growthMode": "enabled",
+                                "lastFeeScaleChangeTime": "2025-11-23T17:37:10.033211662",
+                                "deployerFeeScale": "1.0"
+                            }
+                        ],
+                        "marginTables": [],
+                        "collateralToken": 0
+                    },
+                    [
+                        {
+                            "funding": "-0.000011361",
+                            "openInterest": "8867.2076",
+                            "prevDayPx": "30859.0",
+                            "dayNtlVlm": "242494696.4289999008",
+                            "premium": "-0.0003331827",
+                            "oraclePx": "30989.0",
+                            "markPx": "30976.0",
+                            "midPx": "30977.5",
+                            "impactPxs": [
+                                "30977.0",
+                                "30980.35"
+                            ],
+                            "dayBaseVlm": "7855.2955"
+                        },
+                        {
+                            "funding": "0.00000625",
+                            "openInterest": "136435.1960000001",
+                            "prevDayPx": "372.86",
+                            "dayNtlVlm": "33248400.9108299986",
+                            "premium": "0.000397025",
+                            "oraclePx": "377.81",
+                            "markPx": "377.9",
+                            "midPx": "377.96",
+                            "impactPxs": [
+                                "377.94",
+                                "377.98"
+                            ],
+                            "dayBaseVlm": "89292.71"
+                        }
+                    ]
+                ],
+                "parsedResponse": {
+                    "symbol": "XYZ-XYZ100/USDC:USDC",
+                    "openInterestAmount": 8867.2076,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "szDecimals": 4,
+                        "name": "xyz:XYZ100",
+                        "maxLeverage": 30,
+                        "marginTableId": 30,
+                        "growthMode": "enabled",
+                        "lastFeeScaleChangeTime": "2025-11-23T17:37:10.033211662",
+                        "deployerFeeScale": "1.0",
+                        "funding": "-0.000011361",
+                        "openInterest": "8867.2076",
+                        "prevDayPx": "30859.0",
+                        "dayNtlVlm": "242494696.4289999008",
+                        "premium": "-0.0003331827",
+                        "oraclePx": "30989.0",
+                        "markPx": "30976.0",
+                        "midPx": "30977.5",
+                        "impactPxs": [
+                            "30977.0",
+                            "30980.35"
+                        ],
+                        "dayBaseVlm": "7855.2955",
+                        "baseId": 0
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
             }
         ]
     }

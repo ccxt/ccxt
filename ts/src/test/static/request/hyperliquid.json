@@ -1028,6 +1028,74 @@
                 "output": { "type": "fundingHistory", "coin": "xyz:XYZ100", "startTime": 1704323735060, "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A" }
             }
         ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": { "type": "metaAndAssetCtxs" }
+            },
+            {
+                "description": "hip3 funding rate is requested from the market's dex",
+                "method": "fetchFundingRate",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "XYZ-XYZ100/USDC:USDC"
+                ],
+                "output": { "type": "metaAndAssetCtxs", "dex": "xyz" }
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "hip3 funding rates are requested from the symbols' dex",
+                "method": "fetchFundingRates",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    [
+                        "XYZ-XYZ100/USDC:USDC",
+                        "XYZ-AAPL/USDC:USDC"
+                    ]
+                ],
+                "output": { "type": "metaAndAssetCtxs", "dex": "xyz" }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": { "type": "metaAndAssetCtxs" }
+            },
+            {
+                "description": "hip3 open interest is requested from the market's dex",
+                "method": "fetchOpenInterest",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "XYZ-XYZ100/USDC:USDC"
+                ],
+                "output": { "type": "metaAndAssetCtxs", "dex": "xyz" }
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "hip3 open interests are requested from the symbols' dex",
+                "method": "fetchOpenInterests",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    [
+                        "XYZ-XYZ100/USDC:USDC",
+                        "XYZ-AAPL/USDC:USDC"
+                    ]
+                ],
+                "output": { "type": "metaAndAssetCtxs", "dex": "xyz" }
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "open order using a non usdc hip3 market",

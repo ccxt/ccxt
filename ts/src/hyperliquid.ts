@@ -1357,12 +1357,21 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {
             'type': 'metaAndAssetCtxs',
         };
+        const dexName = this.getDexFromSymbols ('fetchFundingRates', symbolsNormalized);
+        if (dexName !== undefined) {
+            request['dex'] = dexName;
+        }
         const response = await this.publicPostInfo (this.extend (request, params));
         //
         //     [
@@ -1406,7 +1415,7 @@ export default class hyperliquid extends Exchange {
             );
             result.push (data);
         }
-        return this.parseFundingRates (result, symbols);
+        return this.parseFundingRates (result, symbolsNormalized);
     }
 
     override parseFundingRate (info: any, market: Market = undefined): FundingRate {
@@ -3776,7 +3785,7 @@ export default class hyperliquid extends Exchange {
                 const market = this.market (symbols[i]);
                 const currentDexName = this.getDexFromHip3Symbol (market);
                 if (currentDexName !== dexName) {
-                    throw new NotSupported (this.id + ' ' + methodName + ' only supports fetching positions for one DEX at a time for HIP3 markets');
+                    throw new NotSupported (this.id + ' ' + methodName + ' only supports symbols from one DEX at a time for HIP3 markets');
                 }
             }
         }
@@ -4776,6 +4785,7 @@ export default class hyperliquid extends Exchange {
      * @description Retrieves the open interest for a list of symbols
      * @param {string[]} [symbols] Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
+     * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
@@ -4783,7 +4793,12 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const swapMarkets = await this.fetchSwapMarkets ();
+        const request: Dict = {};
+        const dexName = this.getDexFromSymbols ('fetchOpenInterests', symbolsNormalized);
+        if (dexName !== undefined) {
+            request['dex'] = dexName;
+        }
+        const swapMarkets = await this.fetchSwapMarkets (this.extend (request, params));
         return this.parseOpenInterests (swapMarkets, symbolsNormalized) as OpenInterests;
     }
 
