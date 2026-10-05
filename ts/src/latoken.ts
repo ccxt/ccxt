@@ -587,37 +587,27 @@ export default class latoken extends Exchange {
         const bindingsResponse = await this.publicGetTransactionBindings ();
         const bindingsById = this.indexBy (bindingsResponse, 'id');
         const rawCurrencies = this.toArray (response);
-        const result: Dict = {};
+        const merged: List = [];
         for (let i = 0; i < rawCurrencies.length; i++) {
             const rawCurrency = rawCurrencies[i];
             const bindingEntry = this.safeDict (bindingsById, this.safeString (rawCurrency, 'id'));
-            const parsed = this.safeCurrencyStructure (this.parseCurrencyWithBindings (rawCurrency, bindingEntry));
-            const code = parsed['code'];
-            result[code] = parsed;
+            const bindings = this.safeList (bindingEntry, 'bindings');
+            let mergedCurrency = rawCurrency;
+            if (bindings !== undefined) {
+                mergedCurrency = this.extend (rawCurrency, { 'bindings': bindings });
+            }
+            merged.push (mergedCurrency);
         }
-        return result;
+        return this.parseCurrencies (merged);
     }
 
     override parseCurrency (currency: Dict): CurrencyInterface {
-        return this.safeCurrencyStructure (this.parseCurrencyWithBindings (currency));
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name latoken#parseCurrencyWithBindings
-     * @description builds the currency structure of a currency, attaching the networks of its transaction bindings when the caller resolved them
-     * @param {object} currency a currency entry of the venue
-     * @param {object} [bindingEntry] the matching entry of the public transaction bindings
-     * @returns {object} a currency structure to pass through safeCurrencyStructure
-     */
-    parseCurrencyWithBindings (currency: Dict, bindingEntry: NullableDict = undefined): Dict {
         const id = this.safeString (currency, 'id');
         const tag = this.safeString (currency, 'tag');
         const code = this.safeCurrencyCode (tag);
         const currencyType = this.safeString (currency, 'type');
         const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
-        const bindings = this.safeList (bindingEntry, 'bindings', []);
+        const bindings = this.safeList (currency, 'bindings', []);
         const networks: Dict = {};
         for (let i = 0; i < bindings.length; i++) {
             const binding = bindings[i];
@@ -653,7 +643,7 @@ export default class latoken extends Exchange {
                 };
             }
         }
-        return {
+        return this.safeCurrencyStructure ({
             'id': id,
             'code': code,
             'info': currency,
@@ -675,7 +665,7 @@ export default class latoken extends Exchange {
                 },
             },
             'networks': networks,
-        };
+        });
     }
 
     /**
