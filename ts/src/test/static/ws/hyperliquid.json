@@ -3,6 +3,184 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchMyLiquidationsForSymbols": [
+            {
+                "description": "watchMyLiquidationsForSymbols from userFills snapshot",
+                "input": [
+                    [],
+                    null,
+                    null,
+                    {
+                        "user": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480"
+                    }
+                ],
+                "url": "wss://api.hyperliquid.xyz/ws",
+                "messages": [
+                    {
+                        "channel": "subscriptionResponse",
+                        "data": {
+                            "method": "subscribe",
+                            "subscription": {
+                                "type": "userFills",
+                                "user": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                                "aggregateByTime": false
+                            }
+                        }
+                    },
+                    {
+                        "channel": "userFills",
+                        "data": {
+                            "isSnapshot": true,
+                            "user": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                            "fills": [
+                                {
+                                    "coin": "NEAR",
+                                    "px": "5.1244",
+                                    "sz": "114.9",
+                                    "side": "A",
+                                    "time": 1790849111520,
+                                    "startPosition": "114.9",
+                                    "dir": "Close Long",
+                                    "closedPnl": "-33.494499",
+                                    "hash": "0xc897806857a59a4f3c93b60073444c0515b17b0d0a9201dfde8873d22cb9c6b3",
+                                    "oid": 773886049813,
+                                    "crossed": true,
+                                    "fee": "0.254358",
+                                    "tid": 73053857161668,
+                                    "liquidation": {
+                                        "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                                        "markPx": "5.1351",
+                                        "method": "market"
+                                    },
+                                    "feeToken": "USDC",
+                                    "twapId": null
+                                },
+                                {
+                                    "coin": "TAO",
+                                    "px": "308.18",
+                                    "sz": "0.851",
+                                    "side": "B",
+                                    "time": 1790956154424,
+                                    "startPosition": "0.0",
+                                    "dir": "Open Long",
+                                    "closedPnl": "0.0",
+                                    "hash": "0xf0e184fdd6de086e142b43d7ded23f7f4e83d74cd6482d682b72b9650221e5e6",
+                                    "oid": 240028805528,
+                                    "crossed": true,
+                                    "fee": "0.205087",
+                                    "builderFee": "0.091791",
+                                    "tid": "8215086795074363",
+                                    "cloid": "0x04846b141bf1d3541b3642f408d89d11",
+                                    "feeToken": "USDC",
+                                    "twapId": null
+                                },
+                                {
+                                    "coin": "NEAR",
+                                    "px": "4.6879",
+                                    "sz": "64.8",
+                                    "side": "A",
+                                    "time": 1790964546856,
+                                    "startPosition": "64.8",
+                                    "dir": "Close Long",
+                                    "closedPnl": "-16.98408",
+                                    "hash": "0x2cdf7628db20daf2ea775b69cd99d5b63347faa4776a803907fc052901d0506f",
+                                    "oid": 719874965978,
+                                    "crossed": true,
+                                    "fee": "0.131231",
+                                    "tid": "5787071443114480",
+                                    "liquidation": {
+                                        "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                                        "markPx": "4.69112",
+                                        "method": "market"
+                                    },
+                                    "feeToken": "USDC",
+                                    "twapId": null
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "subscription": {
+                            "type": "userFills",
+                            "user": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "coin": "NEAR",
+                                "px": "5.1244",
+                                "sz": "114.9",
+                                "side": "A",
+                                "time": 1790849111520,
+                                "startPosition": "114.9",
+                                "dir": "Close Long",
+                                "closedPnl": "-33.494499",
+                                "hash": "0xc897806857a59a4f3c93b60073444c0515b17b0d0a9201dfde8873d22cb9c6b3",
+                                "oid": 773886049813,
+                                "crossed": true,
+                                "fee": "0.254358",
+                                "tid": 73053857161668,
+                                "liquidation": {
+                                    "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                                    "markPx": "5.1351",
+                                    "method": "market"
+                                },
+                                "feeToken": "USDC",
+                                "twapId": null
+                            },
+                            "symbol": "NEAR/USDC:USDC",
+                            "contracts": 114.9,
+                            "price": 5.1244,
+                            "side": "sell",
+                            "timestamp": 1790849111520,
+                            "datetime": "2026-10-01T10:05:11.520Z",
+                            "contractSize": null,
+                            "baseValue": null,
+                            "quoteValue": null
+                        },
+                        {
+                            "info": {
+                                "coin": "NEAR",
+                                "px": "4.6879",
+                                "sz": "64.8",
+                                "side": "A",
+                                "time": 1790964546856,
+                                "startPosition": "64.8",
+                                "dir": "Close Long",
+                                "closedPnl": "-16.98408",
+                                "hash": "0x2cdf7628db20daf2ea775b69cd99d5b63347faa4776a803907fc052901d0506f",
+                                "oid": 719874965978,
+                                "crossed": true,
+                                "fee": "0.131231",
+                                "tid": "5787071443114480",
+                                "liquidation": {
+                                    "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                                    "markPx": "4.69112",
+                                    "method": "market"
+                                },
+                                "feeToken": "USDC",
+                                "twapId": null
+                            },
+                            "symbol": "NEAR/USDC:USDC",
+                            "contracts": 64.8,
+                            "price": 4.6879,
+                            "side": "sell",
+                            "timestamp": 1790964546856,
+                            "datetime": "2026-10-02T18:09:06.856Z",
+                            "contractSize": null,
+                            "baseValue": null,
+                            "quoteValue": null
+                        }
+                    ]
+                ]
+            }
+        ],
         "watchTicker": [
             {
                 "description": "swap ticker",

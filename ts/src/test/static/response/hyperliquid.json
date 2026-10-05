@@ -10,6 +10,99 @@
         }
     },
     "methods": {
+        "fetchMyLiquidations": [
+            {
+                "description": "fetchMyLiquidations skips non-liquidation fills",
+                "method": "fetchMyLiquidations",
+                "input": [
+                    null,
+                    1790956000000,
+                    null,
+                    {
+                        "user": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                        "until": 1790965000000
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "coin": "TAO",
+                        "px": "308.18",
+                        "sz": "0.851",
+                        "side": "B",
+                        "time": 1790956154424,
+                        "startPosition": "0.0",
+                        "dir": "Open Long",
+                        "closedPnl": "0.0",
+                        "hash": "0xf0e184fdd6de086e142b43d7ded23f7f4e83d74cd6482d682b72b9650221e5e6",
+                        "oid": 240028805528,
+                        "crossed": true,
+                        "fee": "0.205087",
+                        "builderFee": "0.091791",
+                        "tid": 8215086795074363,
+                        "cloid": "0xed3ac6af41c92d3c1eb5a4483d218f48",
+                        "feeToken": "USDC",
+                        "twapId": null
+                    },
+                    {
+                        "coin": "NEAR",
+                        "px": "4.6879",
+                        "sz": "64.8",
+                        "side": "A",
+                        "time": 1790964546856,
+                        "startPosition": "64.8",
+                        "dir": "Close Long",
+                        "closedPnl": "-16.98408",
+                        "hash": "0x2cdf7628db20daf2ea775b69cd99d5b63347faa4776a803907fc052901d0506f",
+                        "oid": 719874965978,
+                        "crossed": true,
+                        "fee": "0.131231",
+                        "tid": 5787071443114480,
+                        "liquidation": {
+                            "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                            "markPx": "4.69112",
+                            "method": "market"
+                        },
+                        "feeToken": "USDC",
+                        "twapId": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "coin": "NEAR",
+                            "px": "4.6879",
+                            "sz": "64.8",
+                            "side": "A",
+                            "time": 1790964546856,
+                            "startPosition": "64.8",
+                            "dir": "Close Long",
+                            "closedPnl": "-16.98408",
+                            "hash": "0x2cdf7628db20daf2ea775b69cd99d5b63347faa4776a803907fc052901d0506f",
+                            "oid": 719874965978,
+                            "crossed": true,
+                            "fee": "0.131231",
+                            "tid": 5787071443114480,
+                            "liquidation": {
+                                "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                                "markPx": "4.69112",
+                                "method": "market"
+                            },
+                            "feeToken": "USDC",
+                            "twapId": null
+                        },
+                        "symbol": "NEAR/USDC:USDC",
+                        "contracts": 64.8,
+                        "price": 4.6879,
+                        "side": "sell",
+                        "timestamp": 1790964546856,
+                        "datetime": "2026-10-02T18:09:06.856Z",
+                        "contractSize": null,
+                        "baseValue": null,
+                        "quoteValue": null
+                    }
+                ]
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "ensure orders are dedup when hl returns 2 orders with same id",
