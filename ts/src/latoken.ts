@@ -583,14 +583,15 @@ export default class latoken extends Exchange {
         //         },
         //     ]
         //
-        const bindingsResponse = await this.publicGetTransactionBindings (params);
+        // no params on this one - they belong to the currency request, not to the bindings
+        const bindingsResponse = await this.publicGetTransactionBindings ();
         const bindingsById = this.indexBy (bindingsResponse, 'id');
         const rawCurrencies = this.toArray (response);
         const result: Dict = {};
         for (let i = 0; i < rawCurrencies.length; i++) {
             const rawCurrency = rawCurrencies[i];
             const bindingEntry = this.safeDict (bindingsById, this.safeString (rawCurrency, 'id'));
-            const parsed = this.parseCurrencyWithBindings (rawCurrency, bindingEntry);
+            const parsed = this.safeCurrencyStructure (this.parseCurrencyWithBindings (rawCurrency, bindingEntry));
             const code = parsed['code'];
             result[code] = parsed;
         }
@@ -598,19 +599,19 @@ export default class latoken extends Exchange {
     }
 
     override parseCurrency (currency: Dict): CurrencyInterface {
-        return this.parseCurrencyWithBindings (currency);
+        return this.safeCurrencyStructure (this.parseCurrencyWithBindings (currency));
     }
 
     /**
      * @ignore
      * @method
      * @name latoken#parseCurrencyWithBindings
-     * @description parses a currency, attaching the networks of its transaction bindings when the caller resolved them
+     * @description builds the currency structure of a currency, attaching the networks of its transaction bindings when the caller resolved them
      * @param {object} currency a currency entry of the venue
      * @param {object} [bindingEntry] the matching entry of the public transaction bindings
-     * @returns {object} a [currency structure]{@link https://docs.ccxt.com/?id=currency-structure}
+     * @returns {object} a currency structure to pass through safeCurrencyStructure
      */
-    parseCurrencyWithBindings (currency: Dict, bindingEntry: NullableDict = undefined): CurrencyInterface {
+    parseCurrencyWithBindings (currency: Dict, bindingEntry: NullableDict = undefined): Dict {
         const id = this.safeString (currency, 'id');
         const tag = this.safeString (currency, 'tag');
         const code = this.safeCurrencyCode (tag);
@@ -622,7 +623,10 @@ export default class latoken extends Exchange {
             const binding = bindings[i];
             const networkId = this.safeString (binding, 'providerName');
             const networkCode = this.networkIdToCode (networkId, code);
-            if (networkCode !== undefined) {
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if ((networkCode !== undefined) && !(networkCode in networks)) {
                 networks[networkCode] = {
                     'info': binding,
                     'id': this.safeString (binding, 'id'),
@@ -649,7 +653,7 @@ export default class latoken extends Exchange {
                 };
             }
         }
-        return this.safeCurrencyStructure ({
+        return {
             'id': id,
             'code': code,
             'info': currency,
@@ -671,7 +675,7 @@ export default class latoken extends Exchange {
                 },
             },
             'networks': networks,
-        });
+        };
     }
 
     /**
