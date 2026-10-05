@@ -1703,7 +1703,6 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "coinbaseinternational" => Some(Box::new(Coinbaseinternational::new(config))),
         #[cfg(feature = "coincheck")]
         "coincheck" => Some(Box::new(Coincheck::new(config))),
-        #[cfg(feature = "coinex")]
         #[cfg(feature = "coinone")]
         "coinone" => Some(Box::new(Coinone::new(config))),
         #[cfg(feature = "cryptocom")]

@@ -6281,8 +6281,8 @@ impl BinanceCore {
         m.insert("-2010".to_string(), Value::Str("InvalidOrder".into()).clone());
         m.insert("-2011".to_string(), Value::Str("OperationRejected".into()).clone());
         m.insert("-2013".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("-2014".to_string(), Value::Str("OperationRejected".into()).clone());
-        m.insert("-2015".to_string(), Value::Str("OperationRejected".into()).clone());
+        m.insert("-2014".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("-2015".to_string(), Value::Str("AuthenticationError".into()).clone());
         m.insert("-2016".to_string(), Value::Str("OperationFailed".into()).clone());
         m.insert("-2018".to_string(), Value::Str("OperationFailed".into()).clone());
         m.insert("-2019".to_string(), Value::Str("OperationFailed".into()).clone());
