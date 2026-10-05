@@ -7030,7 +7030,7 @@ export default class bingx extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber (fee, 'makerCommissionRate'),
             'taker': this.safeNumber (fee, 'takerCommissionRate'),
-            'percentage': false,
+            'percentage': true,
             'tierBased': false,
         };
     }
