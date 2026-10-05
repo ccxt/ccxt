@@ -5589,7 +5589,7 @@ export default class binance extends Exchange {
      * @param {int} [limit] default 500, max 1000
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
-     * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+     * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      *
      * EXCHANGE SPECIFIC PARAMETERS
@@ -5665,8 +5665,6 @@ export default class binance extends Exchange {
             response = await this.dapiPublicGetHistoricalTrades (this.extend (request, paramsOmitted));
         } else if (method === 'eapiPublicGetTrades') {
             response = await this.eapiPublicGetTrades (this.extend (request, paramsOmitted));
-        } else if (method === 'eapiPublicGetHistoricalTrades') {
-            response = await this.eapiPublicGetHistoricalTrades (this.extend (request, paramsOmitted)); // todo check if method exists in the API documentation
         } else {
             throw new NotSupported (this.id + ' fetchTrades() does not support this method');
         }
@@ -7852,7 +7850,7 @@ export default class binance extends Exchange {
         } else if (isLinearType) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiGetUmConditionalAllOrders (this.extend (request, paramsPaginate)); // todo: check if exists (could be papiGetUmAlgoAllAlgoOrders)
+                    response = await this.papiGetUmAlgoAllAlgoOrders (this.extend (request, paramsPaginate));
                 } else {
                     response = await this.papiGetUmAllOrders (this.extend (request, paramsPaginate));
                 }
@@ -8174,7 +8172,7 @@ export default class binance extends Exchange {
         } else if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiGetUmConditionalOpenOrders (this.extend (request, paramsMarginMode));
+                    response = await this.papiGetUmAlgoOpenAlgoOrders (this.extend (request, paramsMarginMode));
                 } else {
                     response = await this.papiGetUmOpenOrders (this.extend (request, paramsMarginMode));
                 }
@@ -8257,14 +8255,14 @@ export default class binance extends Exchange {
         }
         let orderIdRequest: Str = 'orderId';
         if (isPortfolioMarginConditional === true) {
-            orderIdRequest = 'strategyId';
+            orderIdRequest = (market['linear'] === true) ? 'algoId' : 'strategyId';
         }
         request[orderIdRequest] = id;
         let response: NullableDict = undefined;
         if (market['linear'] === true) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiGetUmConditionalOpenOrder (this.extend (request, paramsOmitted)); // todo: check if exists (could be papiGetUmAlgoAlgoOrder)
+                    response = await this.papiGetUmAlgoAlgoOrder (this.extend (request, paramsOmitted));
                 } else {
                     response = await this.papiGetUmOpenOrder (this.extend (request, paramsOmitted));
                 }
@@ -8631,12 +8629,17 @@ export default class binance extends Exchange {
         const isOptionType = type === 'option';
         const isLinearType = this.isLinear (type, subType);
         const isInverseType = this.isInverse (type, subType);
-        const isContractConditional = (market !== undefined) && ((market['swap'] === true) || (market['future'] === true)) && (isConditional === true) && (isPortfolioMargin !== true);
+        // algo and conditional endpoints use different arguments
+        // conditional swap and future orders go through the algo api
+        // except for portfolio margin inverse (cm) orders, which still use the conditional endpoints
+        const isSwapOrFuture = (market !== undefined) && ((market['swap'] === true) || (market['future'] === true));
+        const isPortfolioMarginInverse = (isPortfolioMargin === true) && (isInverseType === true);
+        const isAlgoOrder = isSwapOrFuture && (isConditional === true) && (!isPortfolioMarginInverse);
         const clientOrderId = this.safeStringN (paramsStock, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'clientAlgoId' ]);
         if (clientOrderId !== undefined) {
             if (isOptionType) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (isContractConditional === true) {
+            } else if (isAlgoOrder === true) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 if (isPortfolioMargin && (isConditional === true)) {
@@ -8646,10 +8649,10 @@ export default class binance extends Exchange {
                 }
             }
         } else {
-            if (isPortfolioMargin && (isConditional === true)) {
-                request['strategyId'] = id;
-            } else if (isContractConditional === true) {
+            if (isAlgoOrder === true) {
                 request['algoId'] = id;
+            } else if (isPortfolioMargin && (isConditional === true)) {
+                request['strategyId'] = id;
             } else {
                 request['orderId'] = id;
             }
@@ -8661,7 +8664,7 @@ export default class binance extends Exchange {
         } else if (isLinearType) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiDeleteUmConditionalOrder (this.extend (request, paramsStock)); // todo: check if exists (could be papiDeleteUmAlgoOrder)
+                    response = await this.papiDeleteUmAlgoOrder (this.extend (request, paramsStock));
                 } else {
                     response = await this.papiDeleteUmOrder (this.extend (request, paramsStock));
                 }
@@ -8773,7 +8776,7 @@ export default class binance extends Exchange {
         } else if (isLinearType) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiDeleteUmConditionalAllOpenOrders (this.extend (request, paramsStock)); // todo: check if exists (could be papiDeleteUmAlgoAllOpenOrders)
+                    response = await this.papiDeleteUmAlgoAllOpenOrders (this.extend (request, paramsStock));
                     //
                     //    {
                     //        "code": "200",
