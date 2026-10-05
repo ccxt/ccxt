@@ -378,6 +378,9 @@ public:
                            ccxt::any k5 = ccxt::any {}, ccxt::any k6 = ccxt::any {},
                            ccxt::any k7 = ccxt::any {});
     virtual ccxt::any omitZero (ccxt::any value);
+    virtual ccxt::any isTickPrecision ();
+    virtual ccxt::any parsePrecision (ccxt::any precision);
+    virtual ccxt::any safeCurrency (ccxt::any currencyId, ccxt::any currency = ccxt::any {});
     virtual ccxt::any toArray (ccxt::any value);
     virtual ccxt::any unique (ccxt::any array);
     virtual ccxt::any sum (ccxt::any a = ccxt::any {}, ccxt::any b = ccxt::any {},
