@@ -895,7 +895,7 @@ public class Latoken extends LatokenApi
     {
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -910,34 +910,50 @@ public class Latoken extends LatokenApi
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
-        String marketId = this.safeString(ticker, "symbol");
+        // the "symbol" field carries the currency tags, which differ from the
+        // unified symbol whenever commonCurrencies renames a code, so resolve
+        // the market from the currency ids like parseTrade and parseOrder do
+        String baseId = this.safeString(ticker, "baseCurrency");
+        String quoteId = this.safeString(ticker, "quoteCurrency");
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String symbol = null;
+        Map<String, Object> marketResolved = market;
+        if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
+        {
+            symbol = ((base + "/") + quote);
+            if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
+            {
+                marketResolved = this.market(symbol);
+            }
+        }
         String last = this.safeString(ticker, "lastPrice");
         Object timestamp = this.safeIntegerOmitZero(ticker, "updateTimestamp", (Long) null); // sometimes latoken provided '0' ts from /ticker endpoint
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Latoken.this.safeSymbol(marketId, market, (String) null, (String) null) );
-            put( "timestamp", timestamp );
-            put( "datetime", Latoken.this.iso8601(timestamp) );
-            put( "low", null );
-            put( "high", null );
-            put( "bid", Latoken.this.safeString(ticker, "bestBid") );
-            put( "bidVolume", Latoken.this.safeString(ticker, "bestBidQuantity") );
-            put( "ask", Latoken.this.safeString(ticker, "bestAsk") );
-            put( "askVolume", Latoken.this.safeString(ticker, "bestAskQuantity") );
-            put( "vwap", null );
-            put( "open", null );
-            put( "close", last );
-            put( "last", last );
-            put( "previousClose", null );
-            put( "change", null );
-            put( "percentage", Latoken.this.safeString(ticker, "change24h") );
-            put( "average", null );
-            put( "baseVolume", Latoken.this.safeString(ticker, "amount24h") );
-            put( "quoteVolume", Latoken.this.safeString(ticker, "volume24h") );
-            put( "info", ticker );
-        }}, market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("low", null);
+        mapLiteral1.put("high", null);
+        mapLiteral1.put("bid", this.safeString(ticker, "bestBid"));
+        mapLiteral1.put("bidVolume", this.safeString(ticker, "bestBidQuantity"));
+        mapLiteral1.put("ask", this.safeString(ticker, "bestAsk"));
+        mapLiteral1.put("askVolume", this.safeString(ticker, "bestAskQuantity"));
+        mapLiteral1.put("vwap", null);
+        mapLiteral1.put("open", null);
+        mapLiteral1.put("close", last);
+        mapLiteral1.put("last", last);
+        mapLiteral1.put("previousClose", null);
+        mapLiteral1.put("change", null);
+        mapLiteral1.put("percentage", this.safeString(ticker, "change24h"));
+        mapLiteral1.put("average", null);
+        mapLiteral1.put("baseVolume", this.safeString(ticker, "amount24h"));
+        mapLiteral1.put("quoteVolume", this.safeString(ticker, "volume24h"));
+        mapLiteral1.put("info", ticker);
+        return this.safeTicker(mapLiteral1, marketResolved);
     }
 
     /**
@@ -966,7 +982,7 @@ public class Latoken extends LatokenApi
             Map<String, Object> response = (this.publicGetTickerBaseQuote(this.extend(request, parameters))).join();
             //
             //    {
-            //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            //        "symbol": "BTC/USDT",
             //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
             //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
             //        "volume24h": "165723597.189022176000000000",
@@ -981,7 +997,7 @@ public class Latoken extends LatokenApi
             //        "bestBidQuantity": "0.6520232",
             //        "bestAsk": "25779.17",
             //        "bestAskQuantity": "0.4956043",
-            //        "updateTimestamp": "1693965231406"
+            //        "updateTimestamp": 1693965231406
             //    }
             //
             return this.parseTicker(response, market);
@@ -1011,7 +1027,7 @@ public class Latoken extends LatokenApi
             //
             //    [
             //        {
-            //            "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            //            "symbol": "BTC/USDT",
             //            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
             //            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
             //            "volume24h": "165723597.189022176000000000",
@@ -1026,7 +1042,7 @@ public class Latoken extends LatokenApi
             //            "bestBidQuantity": "0.6520232",
             //            "bestAsk": "25779.17",
             //            "bestAskQuantity": "0.4956043",
-            //            "updateTimestamp": "1693965231406"
+            //            "updateTimestamp": 1693965231406
             //        }
             //    ]
             //
@@ -1117,21 +1133,21 @@ public class Latoken extends LatokenApi
                 "currency", quote
             );
         }
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("info", trade);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("id", id);
-        mapLiteral1.put("order", orderId);
-        mapLiteral1.put("type", type);
-        mapLiteral1.put("takerOrMaker", takerOrMaker);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("price", priceString);
-        mapLiteral1.put("amount", amountString);
-        mapLiteral1.put("cost", costString);
-        mapLiteral1.put("fee", fee);
-        return this.safeTrade(mapLiteral1, marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", costString);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1458,29 +1474,29 @@ public class Latoken extends LatokenApi
         }
         String clientOrderId = this.safeString(order, "clientOrderId");
         String timeInForce = this.parseTimeInForce(this.safeString(order, "condition"));
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("clientOrderId", clientOrderId);
-        mapLiteral2.put("info", order);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("lastTradeTimestamp", null);
-        mapLiteral2.put("status", status);
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("type", type);
-        mapLiteral2.put("timeInForce", timeInForce);
-        mapLiteral2.put("postOnly", null);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("price", price);
-        mapLiteral2.put("triggerPrice", this.safeString(order, "stopPrice"));
-        mapLiteral2.put("cost", cost);
-        mapLiteral2.put("amount", amount);
-        mapLiteral2.put("filled", filled);
-        mapLiteral2.put("average", null);
-        mapLiteral2.put("remaining", null);
-        mapLiteral2.put("fee", null);
-        mapLiteral2.put("trades", null);
-        return this.safeOrder(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("clientOrderId", clientOrderId);
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", null);
+        mapLiteral3.put("status", status);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("timeInForce", timeInForce);
+        mapLiteral3.put("postOnly", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("triggerPrice", this.safeString(order, "stopPrice"));
+        mapLiteral3.put("cost", cost);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("filled", filled);
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("remaining", null);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("trades", null);
+        return this.safeOrder(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1866,9 +1882,9 @@ public class Latoken extends LatokenApi
             //         "status":"SUCCESS"
             //     }
             //
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("info", response);
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral3, (Map<String, Object>) null)));
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("info", response);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral4, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
