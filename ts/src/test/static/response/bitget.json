@@ -4,6 +4,88 @@
         "uta": false
     },
     "methods": {
+        "fetchFundingRates": [
+            {
+                "description": "uta fetchFundingRates for one symbol",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ],
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1791191653731,
+                    "data": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "fundingRate": "0.000069",
+                            "fundingRateInterval": "8",
+                            "nextUpdate": "1791216000000",
+                            "minFundingRate": "-0.003",
+                            "maxFundingRate": "0.003",
+                            "cashDividend": "",
+                            "cashDividendNextUpdate": "null"
+                        },
+                        {
+                            "symbol": "ETHUSDT",
+                            "fundingRate": "0.00008",
+                            "fundingRateInterval": "8",
+                            "nextUpdate": "1791216000000",
+                            "minFundingRate": "-0.003",
+                            "maxFundingRate": "0.003",
+                            "cashDividend": "",
+                            "cashDividendNextUpdate": "null"
+                        },
+                        {
+                            "symbol": "XRPUSDT",
+                            "fundingRate": "0.0001",
+                            "fundingRateInterval": "8",
+                            "nextUpdate": "1791216000000",
+                            "minFundingRate": "-0.003",
+                            "maxFundingRate": "0.003",
+                            "cashDividend": "",
+                            "cashDividendNextUpdate": "null"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "fundingRate": "0.00008",
+                            "fundingRateInterval": "8",
+                            "nextUpdate": "1791216000000",
+                            "minFundingRate": "-0.003",
+                            "maxFundingRate": "0.003",
+                            "cashDividend": "",
+                            "cashDividendNextUpdate": "null"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.00008,
+                        "fundingTimestamp": 1791216000000,
+                        "fundingDatetime": "2026-10-05T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
+            }
+        ],
         "fetchLedger": [
             {
                 "description": "uta spot ledger empty window returns an empty list",

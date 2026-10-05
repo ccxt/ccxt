@@ -3332,6 +3332,20 @@
         ],
         "fetchFundingRates": [
             {
+                "description": "uta fetchFundingRates for one symbol",
+                "method": "fetchFundingRates",
+                "url": "https://api.bitget.com/api/v3/market/current-fund-rate?category=USDT-FUTURES",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ],
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchFundingRates with publicMixGetV2MixMarketCurrentFundRate",
                 "method": "fetchFundingRates",
                 "url": "https://api.bitget.com/api/v2/mix/market/current-fund-rate?productType=USDT-FUTURES",
