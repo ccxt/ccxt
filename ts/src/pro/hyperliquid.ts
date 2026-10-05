@@ -726,6 +726,8 @@ export default class hyperliquid extends hyperliquidRest {
         //         }
         //     }
         //
+        // an empty snapshot still seeds the liquidations cache
+        this.handleMyLiquidations (client, message);
         const entry = this.safeDict (message, 'data', {});
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -753,7 +755,6 @@ export default class hyperliquid extends hyperliquidRest {
         // non-symbol specific
         const messageHash = 'myTrades';
         client.resolve (trades, messageHash);
-        this.handleMyLiquidations (client, message);
     }
 
     handleMyLiquidations (client: Client, message: Dict) {
@@ -767,10 +768,11 @@ export default class hyperliquid extends hyperliquidRest {
         //     }
         //
         const entry = this.safeDict (message, 'data', {});
-        // a resubscribe replays the snapshot
+        // every subscription starts with a snapshot, a resubscribe replays it
         const isSnapshot = this.safeBool (entry, 'isSnapshot', false);
-        if (isSnapshot && (this.myLiquidations !== undefined)) {
-            return;
+        if (isSnapshot || (this.myLiquidations === undefined)) {
+            const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
+            this.myLiquidations = new ArrayCache (limit);
         }
         const user = this.safeStringLower (entry, 'user');
         const fills: Dict[] = this.safeList (entry, 'fills', []);
@@ -786,10 +788,6 @@ export default class hyperliquid extends hyperliquidRest {
         const newLiquidationsLength = newLiquidations.length;
         if (newLiquidationsLength === 0) {
             return;
-        }
-        if (this.myLiquidations === undefined) {
-            const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
-            this.myLiquidations = new ArrayCache (limit);
         }
         const cache = this.myLiquidations;
         const symbols: Dict = {};

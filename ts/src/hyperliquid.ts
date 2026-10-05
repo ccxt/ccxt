@@ -3829,7 +3829,12 @@ export default class hyperliquid extends Exchange {
         //
         const timestamp = this.safeInteger (liquidation, 'time');
         const marketId = this.coinToMarketId (this.safeString (liquidation, 'coin'));
-        const marketResolved: Market = this.safeMarket (marketId);
+        let marketResolved: Market = this.safeMarket (marketId);
+        const symbol = marketResolved['symbol'];
+        // swap ids are asset indexes, so the market is looked up by symbol
+        if ((symbol !== undefined) && (this.markets !== undefined) && (symbol in this.markets)) {
+            marketResolved = this.market (symbol);
+        }
         let side = this.safeString (liquidation, 'side');
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
@@ -3838,7 +3843,7 @@ export default class hyperliquid extends Exchange {
         const price = this.safeString (liquidation, 'px');
         return this.safeLiquidation ({
             'info': liquidation,
-            'symbol': marketResolved['symbol'],
+            'symbol': symbol,
             'contracts': amount,
             'price': price,
             'baseValue': amount,
@@ -3846,7 +3851,7 @@ export default class hyperliquid extends Exchange {
             'side': side,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        });
+        }, marketResolved);
     }
 
     /**
