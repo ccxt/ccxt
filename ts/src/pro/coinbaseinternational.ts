@@ -1420,7 +1420,6 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (requestId !== undefined) {
             const result = this.safeDict (message, 'result');
             if (this.safeString (result, 'version') !== undefined) {
-                // public/test reply to ping ()
                 client.lastPong = this.milliseconds ();
             }
             const authRequestId = this.safeString (this.options, 'wsAuthRequestId');
@@ -1473,9 +1472,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const messageHash = 'authenticated';
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future !== undefined) {
-            // sessions expire: re-authenticate on the same socket once due (ping () also does this)
             const refreshAt = this.safeInteger (this.options, 'wsAuthRefreshAt');
-            if ((refreshAt !== undefined) && (this.milliseconds () >= refreshAt)) {
+            if ((refreshAt !== undefined) && (this.milliseconds () >= refreshAt) && !(messageHash in client.futures)) {
                 delete client.subscriptions[messageHash];
                 future = undefined;
             }
@@ -1501,7 +1499,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 'method': 'public/auth',
                 'params': paramsAuth,
             };
-            future = this.watch (url, messageHash, this.extend (request, paramsResolved), messageHash);
+            future = client.reusableFuture (messageHash);
+            this.watch (url, messageHash, this.extend (request, paramsResolved), messageHash);
             client.subscriptions[messageHash] = future;
         }
         return await future;
