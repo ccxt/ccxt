@@ -2924,6 +2924,15 @@ class testMainClass {
             const implicitPapiCmStrategyId = exchange.safeString (implicitPapiCmConditionalOrderRequest, 'newClientStrategyId');
             assert (implicitPapiCmStrategyId !== undefined, 'binance - implicit papi cm conditional order must inject newClientStrategyId');
             assert (implicitPapiCmStrategyId.startsWith (inverseSwapId) === true, 'binance - implicit papi cm newClientStrategyId: ' + implicitPapiCmStrategyId + ' does not start with inverseSwapId' + inverseSwapId);
+            let implicitPapiUmConditionalOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'papiPostUmConditionalOrder', [ { 'symbol': 'ETHUSDT', 'side': 'SELL', 'strategyType': 'STOP', 'quantity': '1', 'price': '4100', 'stopPrice': '4200', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitPapiUmConditionalOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitPapiUmStrategyId = exchange.safeString (implicitPapiUmConditionalOrderRequest, 'newClientStrategyId');
+            assert (implicitPapiUmStrategyId !== undefined, 'binance - implicit papi um conditional order must inject newClientStrategyId');
+            assert (implicitPapiUmStrategyId.startsWith (swapId) === true, 'binance - implicit papi um newClientStrategyId: ' + implicitPapiUmStrategyId + ' does not start with swapId' + swapId);
             // the eapi order endpoints take clientOrderId
             let implicitEapiOrderRequest: Dict = {};
             try {

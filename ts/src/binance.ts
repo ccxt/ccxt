@@ -7132,7 +7132,7 @@ export default class binance extends Exchange {
      * @description builds a fresh client order id
      * @param {object} [market] the market of the order, takes precedence over the other arguments
      * @param {string} [api] the implicit api section the order is sent to (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
-     * @param {string} [path] the implicit api path the order is sent to, resolves the market type for the paths whose api section is ambiguous (um/*, cm/*, margin/*, equity/*), takes precedence over the api argument
+     * @param {string} [path] the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
      * @returns {string} the broker prefix followed by 22 random characters
      */
     generateClientOrderId (market: Market = undefined, api: Str = undefined, path: Str = undefined): string {
@@ -7220,8 +7220,8 @@ export default class binance extends Exchange {
             if (clientAlgoId === undefined) {
                 params['clientAlgoId'] = this.generateClientOrderId (undefined, api, path);
             }
-        } else if (path === 'cm/conditional/order') {
-            // the papi cm conditional order endpoint takes newClientStrategyId instead of newClientOrderId
+        } else if ((path === 'cm/conditional/order') || (path === 'um/conditional/order')) {
+            // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
             const newClientStrategyId = this.safeString (params, 'newClientStrategyId');
             if (newClientStrategyId === undefined) {
                 params['newClientStrategyId'] = this.generateClientOrderId (undefined, api, path);
