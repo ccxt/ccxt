@@ -56,6 +56,11 @@ jobs:
       # ccache as compiler launcher turns a warm CI into a seconds-long build;
       # lld as linker keeps the final whole-archive link inside runner memory
       run: |
+        # clean:false reuses the workspace; a previous root-owned build dir
+        # breaks ar's archive update with a misreported 'reason: Success'
+        if [ "$(id -u)" -ne 0 ]; then
+          sudo chown -R "$(id -u):$(id -g)" . 2>/dev/null || true
+        fi
         cmake -S cpp -B cpp/build -G Ninja -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld

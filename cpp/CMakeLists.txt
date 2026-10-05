@@ -49,6 +49,13 @@ find_package (OpenSSL REQUIRED)
 # optional: SIMD fast path for large JSON payloads (market data ~22MB)
 find_package (simdjson QUIET)
 
+# thin static archive: the 138 TU monolith is ~7.7GB, and GNU ar's append
+# update copies the whole archive to a temp file before renaming -- the
+# 'unable to copy file ... reason: Success' failure is that 7.7GB copy.
+# crT stores member REFERENCES instead, so archive updates are O(members)
+# and the giant copy (and its rename race) disappears entirely.
+set (CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> crT <TARGET> <LINK_FLAGS> <OBJECTS>")
+
 add_library (ccxt STATIC
     ccxt/base/helpers.cpp
     ccxt/base/JsonView.cpp
