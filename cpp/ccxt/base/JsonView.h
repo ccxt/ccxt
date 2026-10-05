@@ -37,6 +37,10 @@ struct JsonViewRoot {
     simdjson::ondemand::document doc;
     std::mutex mutex;
 
+    // the document root is a JSON array (e.g. binance /api/v3/ticker/24hr)
+    // instead of an object — the cursor walk must skip the field lookup
+    bool rootIsArray = false;
+
     // the shared sequential cursor. cursorHot means doc's iterator sits at
     // element (curArrayId, curIdx) with `obj` open at that element's start.
     bool cursorHot = false;

@@ -203,22 +203,27 @@ static bool ensureCursor (const std::shared_ptr<JsonViewRoot>& root,
             ++(*root->iter);
         }
     } else {
-        // full walk: rewind + find the array by its root key + iterate
+        // full walk: rewind + find the array (root array or by its root key)
         root->doc.rewind ();
         auto rootVal = root->doc.get_value ();
         if (rootVal.error ()) {
             return false;
         }
-        auto rootObj = rootVal.value ().get_object ();
-        if (rootObj.error ()) {
-            return false;
+        simdjson::simdjson_result<simdjson::ondemand::array> arr;
+        if (root->rootIsArray && arrayId == 0) {
+            arr = rootVal.value ().get_array ();
+        } else {
+            auto rootObj = rootVal.value ().get_object ();
+            if (rootObj.error ()) {
+                return false;
+            }
+            const std::string& path = root->arrayPaths[arrayId];
+            auto arrVal = rootObj.value ().find_field_unordered (path);
+            if (arrVal.error ()) {
+                return false;
+            }
+            arr = arrVal.value ().get_array ();
         }
-        const std::string& path = root->arrayPaths[arrayId];
-        auto arrVal = rootObj.value ().find_field_unordered (path);
-        if (arrVal.error ()) {
-            return false;
-        }
-        auto arr = arrVal.value ().get_array ();
         if (arr.error ()) {
             return false;
         }

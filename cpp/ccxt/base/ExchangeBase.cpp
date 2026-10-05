@@ -665,6 +665,36 @@ ccxt::any ExchangeBase::omit (ccxt::any obj, ccxt::any keys, ccxt::any k2, ccxt:
     return ccxt::any (out);
 }
 
+ccxt::any ExchangeBase::isTickPrecision () {
+    return isEqual (this->precisionMode, ccxt::any (std::string ("tickSize")));
+}
+
+ccxt::any ExchangeBase::parsePrecision (ccxt::any precision) {
+    // TS: parseInt(precision); 0 -> '1', else '1e' + (-p)
+    if (!precision.has_value ()) {
+        return ccxt::any {};
+    }
+    const int p = static_cast<int> (toDouble (precision));
+    if (p == 0) {
+        return ccxt::any (std::string ("1"));
+    }
+    return ccxt::any (std::string ("1e") + std::to_string (-p));
+}
+
+ccxt::any ExchangeBase::safeCurrency (ccxt::any currencyId, ccxt::any currency) {
+    // TS: this.currencies[currencyId] ?? currency ?? defaults
+    if (currencyId.has_value ()) {
+        const ccxt::any cur = getValue (this->currencies, currencyId);
+        if (isDict (cur)) {
+            return cur;
+        }
+    }
+    if (isDict (currency)) {
+        return currency;
+    }
+    return ccxt::any (dict {});
+}
+
 ccxt::any ExchangeBase::omitZero (ccxt::any value) {
     if (!value.has_value ()) {
         return ccxt::any {};
@@ -1035,6 +1065,17 @@ ccxt::any ExchangeBase::parseJson (const ccxt::any& value) {
                     auto docRes = root->parser.iterate (root->buffer);
                     if (!docRes.error ()) {
                         root->doc = std::move (docRes).value_unsafe ();
+                        // a top-level ARRAY document (binance /ticker/24hr and
+                        // friends) must ride as a kJvArray view whose id (byte
+                        // offset) is 0 — the object-root walk cannot iterate it
+                        auto rootType = root->doc.get_value ().type ();
+                        if (!rootType.error ()
+                            && rootType.value () == simdjson::ondemand::json_type::array) {
+                            root->rootIsArray = true;
+                            root->arraySizes[0] = static_cast<std::size_t> (text.size ());
+                            root->arrayPaths[0] = "";
+                            return ccxt::any (ccxt::jsonView { root, ccxt::kJvArray, 0, 0 });
+                        }
                         return ccxt::any (
                             ccxt::jsonView { root, ccxt::kJvObject, 0, 0 });
                     }
@@ -2265,6 +2306,16 @@ ccxt::any ExchangeBase::callDynamically (const std::string& name, ccxt::any args
     if (name == "parse8601") return this->parse8601 (a0);
     if (name == "parseDate") return this->parseDate (a0);
     if (name == "omitZero") return this->omitZero (a0);
+    if (name == "isTickPrecision") return this->isTickPrecision ();
+    if (name == "parsePrecision") return this->parsePrecision (a0);
+    if (name == "precisionFromString") return this->precisionFromString (a0);
+    if (name == "safeCurrency") return this->safeCurrency (a0, a1);
+    if (name == "safeStringN") return this->safeStringN (a0, a1, a2);
+    if (name == "decimalToPrecision") return this->decimalToPrecision (a0, a1, a2, a3);
+    if (name == "parseTimeframe") return this->parseTimeframe (a0);
+    if (name == "groupBy") return this->groupBy (a0, a1);
+    if (name == "arrayConcat") return this->arrayConcat (a0, a1);
+    if (name == "omit") return this->omit (a0, a1, a2);
     if (name == "jsonStringifyWithNull") return this->json (a0);
     if (name == "capitalize") return this->capitalize (a0);
     if (name == "exceptionMessage") return this->exceptionMessage (a0, a1);
