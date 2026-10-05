@@ -4060,8 +4060,8 @@ public class Binance extends BinanceApi
                         put( "-2010", InvalidOrder.class );
                         put( "-2011", OperationRejected.class );
                         put( "-2013", OrderNotFound.class );
-                        put( "-2014", OperationRejected.class );
-                        put( "-2015", OperationRejected.class );
+                        put( "-2014", AuthenticationError.class );
+                        put( "-2015", AuthenticationError.class );
                         put( "-2016", OperationFailed.class );
                         put( "-2018", OperationFailed.class );
                         put( "-2019", OperationFailed.class );
