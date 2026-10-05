@@ -3834,11 +3834,15 @@ export default class hyperliquid extends Exchange {
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
         }
+        const amount = this.safeString (liquidation, 'sz');
+        const price = this.safeString (liquidation, 'px');
         return this.safeLiquidation ({
             'info': liquidation,
             'symbol': marketResolved['symbol'],
-            'contracts': this.safeString (liquidation, 'sz'),
-            'price': this.safeString (liquidation, 'px'),
+            'contracts': amount,
+            'price': price,
+            'baseValue': amount,
+            'quoteValue': Precise.stringMul (amount, price),
             'side': side,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

@@ -767,6 +767,11 @@ export default class hyperliquid extends hyperliquidRest {
         //     }
         //
         const entry = this.safeDict (message, 'data', {});
+        // a resubscribe replays the snapshot
+        const isSnapshot = this.safeBool (entry, 'isSnapshot', false);
+        if (isSnapshot && (this.myLiquidations !== undefined)) {
+            return;
+        }
         const user = this.safeStringLower (entry, 'user');
         const fills: Dict[] = this.safeList (entry, 'fills', []);
         const newLiquidations: Liquidation[] = [];
@@ -1816,6 +1821,9 @@ export default class hyperliquid extends hyperliquidRest {
         const subHash = 'myTrades';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
+        // userFills also feeds watchMyLiquidations
+        this.cleanUnsubscription (client, 'myLiquidations', unSubHash, true);
+        this.myLiquidations = undefined;
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         const user = this.safeStringLower (subscription, 'user');

@@ -97,8 +97,8 @@
                         "timestamp": 1790964546856,
                         "datetime": "2026-10-02T18:09:06.856Z",
                         "contractSize": null,
-                        "baseValue": null,
-                        "quoteValue": null
+                        "baseValue": 64.8,
+                        "quoteValue": 303.77592
                     }
                 ]
             }
