@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 export function needsRustNativeTests(paths) {
     return paths.some(path =>
         (path.startsWith('rust/ccxt-base/') && !path.endsWith('.md')) ||
+        (path.startsWith('rust/ccxt-core/') && !path.endsWith('.md')) ||
         path.startsWith('ts/src/base/') ||
         path.startsWith('build/rust') ||
         // Rust helpers outside the build/rust* family must be listed here.
