@@ -6854,8 +6854,8 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 	var timestamp *int64 = this.SafeInteger2(transaction, "insertTime", "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
 	if timestamp == nil {
-		datetime = this.SafeString(transaction, "applyTime")
-		timestamp = this.Parse8601(datetime)
+		timestamp = this.Parse8601(this.SafeString(transaction, "applyTime"))
+		datetime = this.Iso8601(timestamp)
 	}
 	var network *string = this.SafeString(transaction, "network")
 	var currencyId *string = this.SafeString(transaction, "coin")
@@ -6865,10 +6865,15 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 			code = SafeStringPtr(strings.Replace(*code, *network, "", 1))
 		}
 	}
+	// deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
 	var rawType *string = this.SafeString(transaction, "transferType")
 	var typeVar string = "withdrawal"
-	if rawType != nil && *rawType == "0" {
+	if (rawType != nil && *rawType == "0") || (InOp(transaction, "insertTime")) {
 		typeVar = "deposit"
+	}
+	var internal any = nil
+	if rawType != nil {
+		internal = (rawType != nil && *rawType == "2")
 	}
 	return map[string]any{
 		"info":        transaction,
@@ -6878,7 +6883,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 		"currency":    code,
 		"network":     this.NetworkIdToCode(network, code),
 		"amount":      this.SafeNumber(transaction, "amount"),
-		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status")),
+		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status"), typeVar),
 		"timestamp":   timestamp,
 		"datetime":    datetime,
 		"address":     address,
@@ -6894,10 +6899,25 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 			"cost":     this.SafeNumber(transaction, "transactionFee"),
 			"rate":     nil,
 		},
-		"internal": nil,
+		"internal": internal,
 	}
 }
-func (this *Bingx) ParseTransactionStatus(status *string) *string {
+func (this *Bingx) ParseTransactionStatus(status *string, optionalArgs ...any) *string {
+	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = typeVar
+	var statusesByType map[string]any = map[string]any{
+		"deposit": map[string]any{
+			"0": "pending",
+			"6": "pending",
+			"1": "ok",
+		},
+		"withdrawal": map[string]any{
+			"4": "pending",
+			"5": "failed",
+			"6": "ok",
+		},
+	}
+	var directional map[string]any = SafeMapTyped(statusesByType, typeVar)
 	var statuses map[string]any = map[string]any{
 		"0":  "pending",
 		"1":  "ok",
@@ -6914,7 +6934,8 @@ func (this *Bingx) ParseTransactionStatus(status *string) *string {
 		"5":  "rejected",
 		"6":  "ok",
 	}
-	return this.SafeString(statuses, status, status)
+	var fallback *string = this.SafeString(statuses, status, status)
+	return this.SafeString(directional, status, fallback)
 }
 
 /**
@@ -7005,11 +7026,11 @@ func (this *Bingx) addMarginBody(ch chan AsyncResult[map[string]any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes584715 map[string]any = MapTyped(r.Value)
-	if retRes584715 == nil {
+	var retRes586615 map[string]any = MapTyped(r.Value)
+	if retRes586615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes584715}
+		ch <- AsyncResult[map[string]any]{Value: retRes586615}
 	}
 	return nil
 }
@@ -7031,11 +7052,11 @@ func (this *Bingx) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes585415 map[string]any = MapTyped(r.Value)
-	if retRes585415 == nil {
+	var retRes587315 map[string]any = MapTyped(r.Value)
+	if retRes587315 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes585415, Raw: retRes585415}
+		ch <- EndpointResult[map[string]any]{Value: retRes587315, Raw: retRes587315}
 	}
 	return nil
 }
