@@ -3544,8 +3544,7 @@
                         "timestamp": 1790874586000,
                         "datetime": "2026-10-01T17:09:46.000Z",
                         "id": null,
-                        "amount": null,
-                        "rate": "0"
+                        "amount": 0
                     },
                     {
                         "info": {
@@ -3563,8 +3562,7 @@
                         "timestamp": 1790874586000,
                         "datetime": "2026-10-01T17:09:46.000Z",
                         "id": null,
-                        "amount": null,
-                        "rate": "-0.000131801001"
+                        "amount": -0.000131801001
                     }
                 ]
             }
