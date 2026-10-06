@@ -8,7 +8,7 @@
 
 #include "../ccxt/exchanges/binance.h"
 #include "../ccxt/pro/bitvavo.h"
-#include "../ccxt/base/ws/Client.h"
+#include "ccxt/base/ws/Client.h"
 #include "TestUtils.h"
 
 #include <atomic>

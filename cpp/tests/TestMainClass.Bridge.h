@@ -18,7 +18,7 @@
 #include "BaseTest.Bridge.h"
 #include "TestUtils.h"
 
-#include "../ccxt/base/ExchangeBase.h"
+#include "ccxt/base/ExchangeBase.h"
 #include "../ccxt/exchanges/ExchangeFactory.h"
 #include "../ccxt/pro/ProExchangeFactory.h"
 

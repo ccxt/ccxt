@@ -758,7 +758,7 @@ function emitCpp (ir: TypesIR): string {
     out.push ('// user consumes. Generated from ts/src/base/types.ts; regenerate with');
     out.push ('// `npm run transpile-types` (or `npx tsx build/transpileTypes.ts --lang cpp`).');
     out.push ('');
-    out.push ('#include "Value.h"');
+    out.push ('#include "ccxt/base/Value.h"');
     out.push ('');
     out.push ('#include <cstdint>');
     out.push ('#include <cstdlib>');
