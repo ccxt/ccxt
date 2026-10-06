@@ -1136,10 +1136,12 @@ export default class derive extends deriveRest {
             const id = this.safeString (message, 'id');
             // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
             const subscriptionKeys = Object.keys (client.subscriptions);
+            let matched = false;
             for (let i = 0; i < subscriptionKeys.length; i++) {
                 const subscription = this.safeDict (client.subscriptions, subscriptionKeys[i], {});
                 const subscriptionId = this.safeString (subscription, 'id');
                 if ((subscriptionId !== undefined) && (subscriptionId === id)) {
+                    matched = true;
                     const subscriptionMethod = this.safeString (subscription, 'method');
                     if (subscriptionMethod === 'public/login') {
                         this.handleAuth (client, message);
@@ -1147,6 +1149,15 @@ export default class derive extends deriveRest {
                         this.handleUnSubscribe (client, message);
                     }
                     // could handleSubscribe
+                }
+            }
+            if (!matched) {
+                const loginResult = this.safeList (message, 'result');
+                if (loginResult !== undefined) {
+                    // the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)
+                    // in java the acknowledgement can arrive before the subscription record is stored
+                    // so the shape serves as the routing fallback when the id scan finds nothing
+                    this.handleAuth (client, message);
                 }
             }
         }
