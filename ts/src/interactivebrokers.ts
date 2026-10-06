@@ -104,7 +104,7 @@ export default class interactivebrokers extends Exchange {
                 'logo': '',
                 'api': {
                     // the client portal gateway runs locally and proxies the requests to IBKR
-                    'private': 'https://localhost:5000/',
+                    'private': 'https://api.ibkr.com/v1/api',
                 },
                 'www': 'https://www.interactivebrokers.com/',
                 'referral': '',
@@ -228,6 +228,12 @@ export default class interactivebrokers extends Exchange {
                 'fetchPortfolioAccounts': {
                     'method': 'privateGetPortfolioAccounts', // or 'privateGetPortfolioSubaccounts'
                 },
+                // auth ways
+                'realm': 'limited_poa',
+                'sigKeyPath': 'private_signature.pem',
+                'encKeyPath': 'private_encryption.pem',
+                'dhPrimePath': 'dbParam_path.pem',
+                'dhGen': this.convertToBigInt ('2'),
             },
             'features': {
                 'default': {
@@ -300,6 +306,27 @@ export default class interactivebrokers extends Exchange {
         const connected = this.safeBool (authStatus, 'connected', false);
         return authenticated && connected;
     }
+
+    async ibRequest(lst: string, method: string, path: string, body?: unknown) {
+        const url = `${BASE}${path}`;
+        const params: Record<string, string> = { ...oauthBase(), oauth_signature_method: 'HMAC-SHA256' };
+        // note: query-string params must be included in the base string too
+        const sig = crypto.createHmac('sha256', Buffer.from(lst, 'base64')).update(baseString(method, url.split('?')[0], params)).digest('base64');
+        params.oauth_signature = enc(sig);
+        const res = await fetch(url, {
+            method,
+            headers: { Authorization: authHeader(params), 'Content-Type': 'application/json', 'User-Agent': 'ccxt' },
+            body: body ? JSON.stringify(body) : undefined,
+        });
+        return res.json();
+    }
+
+    // usage
+    const { lst } = await getLiveSessionToken();
+    await ibRequest(lst, 'POST', '/iserver/auth/ssodh/init', { publish: true, compete: true }); // open brokerage session
+    const res = await ibRequest(lst, 'GET', '/portfolio/accounts');
+    console.log(res);
+
 
     /**
      * @method
