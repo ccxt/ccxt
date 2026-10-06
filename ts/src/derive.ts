@@ -2107,7 +2107,7 @@ export default class derive extends Exchange {
         if (test === true) {
             response = await this.privatePostOrderDebug (this.extend (request, paramsOmitted)); // todo: check on main-net
         } else {
-            response = await this.privatePostOrder (this.extend (request, paramsOmitted)); // todo: check on main-net
+            response = await this.privatePostOrder (this.extend (request, paramsOmitted));
         }
         //
         //     {
@@ -2380,7 +2380,7 @@ export default class derive extends Exchange {
             if (isTrigger === true) {
                 response = await this.privatePostCancelTriggerOrder (this.extend (request, paramsOmitted)); // todo: check on main-net
             } else {
-                response = await this.privatePostCancel (this.extend (request, paramsOmitted)); // todo: check on main-net
+                response = await this.privatePostCancel (this.extend (request, paramsOmitted));
             }
         }
         //
@@ -2517,7 +2517,7 @@ export default class derive extends Exchange {
         if (until !== undefined) {
             request['to_timestamp'] = until;
         }
-        const response = await this.privatePostGetOrderHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+        const response = await this.privatePostGetOrderHistory (this.extend (request, paramsDeriveSubaccountId));
         //
         //     {
         //         "id": "c55b1f4e-7263-4045-ac9f-158da9a97c5c",
@@ -2607,7 +2607,7 @@ export default class derive extends Exchange {
             'order_id': id,
             'subaccount_id': subaccountId,
         };
-        const response = await this.privatePostGetOrder (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+        const response = await this.privatePostGetOrder (this.extend (request, paramsDeriveSubaccountId));
         const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
@@ -2644,7 +2644,7 @@ export default class derive extends Exchange {
         if (isTrigger === true) {
             response = await this.privatePostGetTriggerOrders (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
         } else {
-            response = await this.privatePostGetOpenOrders (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+            response = await this.privatePostGetOpenOrders (this.extend (request, paramsDeriveSubaccountId));
         }
         //
         //     {
@@ -2907,7 +2907,7 @@ export default class derive extends Exchange {
         if (since !== undefined) {
             request['from_timestamp'] = since;
         }
-        const response = await this.privatePostGetTradeHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+        const response = await this.privatePostGetTradeHistory (this.extend (request, paramsDeriveSubaccountId));
         //
         //     {
         //         "id": "41517b29-67b3-4ed8-845d-ef4bde9b79aa",
@@ -2988,7 +2988,7 @@ export default class derive extends Exchange {
         if (since !== undefined) {
             request['from_timestamp'] = since;
         }
-        const response = await this.privatePostGetTradeHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+        const response = await this.privatePostGetTradeHistory (this.extend (request, paramsDeriveSubaccountId));
         //
         //     {
         //         "id": "c375c303-2356-4ba0-acea-32411e33b3f6",
@@ -3085,7 +3085,7 @@ export default class derive extends Exchange {
             'subaccount_id': subaccountId,
         };
         const paramsOmitted: Dict = this.omit (paramsDeriveSubaccountId, [ 'subaccount_id' ]);
-        const response = await this.privatePostGetPositions (this.extend (request, paramsOmitted)); // todo: check on main-net
+        const response = await this.privatePostGetPositions (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": "64af0eeb-5b8f-4aa9-bc6b-c5029f47ac27",
@@ -3248,7 +3248,7 @@ export default class derive extends Exchange {
         if (until !== undefined) {
             request['end_timestamp'] = until;
         }
-        const response = await this.privatePostGetFundingHistory (this.extend (request, paramsOmitted)); // todo: check on main-net
+        const response = await this.privatePostGetFundingHistory (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": "05a90234-63dd-4769-b66b-3256fe4c3336",
@@ -3306,7 +3306,6 @@ export default class derive extends Exchange {
         //
         const marketId = this.safeString (income, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        const rate = this.safeString (income, 'funding');
         const code = this.safeCurrencyCode ('USDC');
         const timestamp = this.safeInteger (income, 'timestamp');
         return {
@@ -3316,8 +3315,7 @@ export default class derive extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'id': undefined,
-            'amount': undefined,
-            'rate': rate,
+            'amount': this.safeNumber (income, 'funding'),
         };
     }
 
@@ -3939,7 +3937,7 @@ export default class derive extends Exchange {
         if (until !== undefined) {
             request['end_timestamp'] = until;
         }
-        const response = await this.privatePostGetInterestHistory (this.extend (request, paramsOmitted)); // todo: check on main-net
+        const response = await this.privatePostGetInterestHistory (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": "7e0a9cb5-44c4-4c27-91cb-c0b7bd23a4f0",
@@ -4269,13 +4267,15 @@ export default class derive extends Exchange {
     handleDeriveSubaccountId (methodName: string, params: Dict): [any, Dict] {
         const [ derivesubAccountId, paramsSubaccountId ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
+            // the venue rejects a string subaccount_id ("expected i64"), so coerce early
+            const subaccountIdInt = this.parseToInt (derivesubAccountId);
             if (!('subaccount_id' in this.options)) {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
-                this.options['subaccount_id'] = derivesubAccountId;
+                this.options['subaccount_id'] = subaccountIdInt;
             }
-            return [ derivesubAccountId, paramsSubaccountId ];
+            return [ subaccountIdInt, paramsSubaccountId ];
         }
-        const optionsWallet = this.safeString (this.options, 'subaccount_id');
+        const optionsWallet = this.safeInteger (this.options, 'subaccount_id');
         if (optionsWallet !== undefined) {
             return [ optionsWallet, paramsSubaccountId ];
         }
