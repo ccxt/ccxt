@@ -7389,7 +7389,7 @@ export default class gate extends Exchange {
         }
         const market = this.market (symbol);
         if (market['swap'] !== true) {
-            throw new BadRequest (this.id + ' fetchOpenInterest() supports swap markets only');
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory() supports swap markets only');
         }
         const request: Dict = {
             'contract': market['id'],
