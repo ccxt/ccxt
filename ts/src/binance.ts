@@ -1754,6 +1754,9 @@ export default class binance extends Exchange {
                         'fetchOrders': {
                             'symbolRequired': false, // the linear allOrders endpoint accepts requests without a symbol since 2026-08-25
                         },
+                        'fetchOHLCV': {
+                            'volume': 'base',
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivatives',

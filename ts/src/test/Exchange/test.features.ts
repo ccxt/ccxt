@@ -113,6 +113,7 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
         },
         'fetchOHLCV': {
             'limit': 0,
+            'volume': 'base',
         },
     };
     const featureKeys = Object.keys (featureObj);
@@ -120,6 +121,16 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
     for (let i = 0; i < featureKeys.length; i++) {
         testSharedMethods.assertInArray (exchange, skippedProperties, 'features', featureKeys, i, allMethods);
         testSharedMethods.assertStructure (exchange, skippedProperties, 'features', featureObj, format, undefined, true); // deep structure check
+    }
+    if ('fetchOHLCV' in featureObj) {
+        const fetchOHLCV = featureObj['fetchOHLCV'];
+        if (exchange.isDictionary (fetchOHLCV)) {
+            const volume = fetchOHLCV['volume'];
+            if (typeof volume === 'string') {
+                const allowedVolumeUnits = [ 'base', 'quote', 'contracts' ];
+                testSharedMethods.assertInArray (exchange, skippedProperties, 'features', fetchOHLCV, 'volume', allowedVolumeUnits);
+            }
+        }
     }
     // return true;
 }

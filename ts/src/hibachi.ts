@@ -255,6 +255,9 @@ export default class hibachi extends Exchange {
                 'swap': {
                     'linear': {
                         'extends': 'default',
+                        'fetchOHLCV': {
+                            'volume': 'quote',
+                        },
                     },
                     'inverse': undefined,
                 },
