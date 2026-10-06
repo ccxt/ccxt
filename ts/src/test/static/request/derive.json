@@ -98,7 +98,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "output": "{\"subaccount_id\":86815}"
@@ -227,8 +227,8 @@
                     0.01,
                     10000,
                     {
-                        "subaccount_id":130837,
-                        "max_fee":219
+                        "subaccount_id": "130837",
+                        "max_fee": 219
                     }
                 ],
                 "output": { "instrument_name": "LBTC-USDC", "direction": "buy", "order_type": "limit", "nonce": 1738914910057, "amount": "0.01", "limit_price": "10000", "max_fee": "219", "subaccount_id": 130837, "signature_expiry_sec": 1746690910, "signer": "0x0000000000000000000000000000000000000000", "signature": "0x6a38b1fac6dff00b66feff564f8b6a1f59c80687e2a2bfbd0be93af99541d78b2ce7efc212af77bcce8b9b8366bdb8d35a8b795661e9761b9fb5b6dc9d1588ee1b", "referral_code": "" }
@@ -244,12 +244,12 @@
                     0.01,
                     10000,
                     {
-                        "subaccount_id":130837,
-                        "max_fee":219,
-                        "postOnly":true,
-                        "reduceOnly":false,
-                        "clientOrderId":"test1234",
-                        "stopLossPrice":102800
+                        "subaccount_id": "130837",
+                        "max_fee": 219,
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "clientOrderId": "test1234",
+                        "stopLossPrice": 102800
                     }
                 ],
                 "output": { "instrument_name": "BTC-PERP", "direction": "buy", "order_type": "limit", "nonce": 1738914735356, "amount": "0.01", "limit_price": "10000", "max_fee": "219", "subaccount_id": 130837, "signature_expiry_sec": 1746690735, "signer": "0x0000000000000000000000000000000000000000", "reduce_only": false, "time_in_force": "post_only", "trigger_price": "102800", "trigger_type": "stoploss", "trigger_price_type": "mark", "label": "test1234", "signature": "0x4d621920bb2d11e1a910b88c5cbe0d9ea73b114ee6197409eab18170381e257962245bf86149962cae510863cf587662548d383bb1b3408d9c26a6627ffad3df1b", "referral_code": "" }
@@ -265,7 +265,7 @@
                     0.01,
                     86500,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "max_fee": 100,
                         "triggerPrice": 86000
                     }
@@ -283,7 +283,7 @@
                     0.01,
                     85500,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "max_fee": 100,
                         "takeProfitPrice": 86000
                     }
@@ -301,7 +301,7 @@
                     0.01,
                     86000,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "max_fee": 100
                     }
                 ],
@@ -318,7 +318,7 @@
                     0.01,
                     83000,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "max_fee": 100,
                         "reduceOnly": true,
                         "timeInForce": "IOC"
@@ -340,9 +340,9 @@
                     0.01,
                     10500,
                     {
-                        "subaccount_id":130837,
-                        "max_fee":211,
-                        "clientOrderId":"test1234"
+                        "subaccount_id": "130837",
+                        "max_fee": 211,
+                        "clientOrderId": "test1234"
                     }
                 ],
                 "output": { "instrument_name": "LBTC-USDC", "order_id_to_cancel": "cfc66623-f38c-4bdd-9898-8c9a72a42f6f", "direction": "buy", "order_type": "limit", "nonce": 1738919573524, "amount": "0.01", "limit_price": "10500", "max_fee": 211, "subaccount_id": 130837, "signature_expiry_sec": 1746695573, "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A", "label": "test1234", "signature": "0x24e265a17041bc3fd1adab0c5997e0ee9a2447cd692d544b1855d4441954d74771c2ebb1aa6aff2c82edb4cf11de7446027eea3dc3911f7150f8011f21cea5921b" }
@@ -357,7 +357,7 @@
                     "df3879a6-5421-41ba-bd91-68d7a36edd3d",
                     "LBTC/USDC",
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "instrument_name": "LBTC-USDC", "subaccount_id": 130837, "order_id": "df3879a6-5421-41ba-bd91-68d7a36edd3d" }
@@ -370,7 +370,7 @@
                     "66942199-0444-404a-adfb-6563fb1faf48",
                     "BTC/USDC:USDC",
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "trigger": true
                     }
                 ],
@@ -385,7 +385,7 @@
                 "input": [
                     "LBTC/USDC",
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "instrument_name": "LBTC-USDC", "subaccount_id": 130837 }
@@ -397,7 +397,7 @@
                 "input": [
                     null,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "subaccount_id": 130837 }
@@ -412,7 +412,7 @@
                     "50351ad6-934a-4c2e-9651-6cb6dbfdd09e",
                     null,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "output": "{\"order_id\":\"50351ad6-934a-4c2e-9651-6cb6dbfdd09e\",\"subaccount_id\":86815}"
@@ -428,7 +428,7 @@
                     null,
                     10,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "page_size": 10, "subaccount_id": 130837 }
@@ -442,7 +442,7 @@
                     null,
                     10,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "page_size": 10, "subaccount_id": 130837 }
@@ -456,7 +456,7 @@
                     1790870000000,
                     5,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "until": 1790880000000
                     }
                 ],
@@ -473,7 +473,7 @@
                     null,
                     10,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "subaccount_id": 130837 }
@@ -487,7 +487,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "trigger": true
                     }
                 ],
@@ -504,7 +504,7 @@
                     null,
                     10,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "page_size": 10, "subaccount_id": 130837 }
@@ -520,7 +520,7 @@
                     null,
                     10,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "page_size": 10, "subaccount_id": 130837 }
@@ -537,7 +537,7 @@
                     null,
                     10,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9", "page_size": 10, "instrument_name": "LBTC-USDC", "subaccount_id": 130837 }
@@ -552,7 +552,7 @@
                     null,
                     10,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9", "page_size": 10, "subaccount_id": 130837 }
@@ -568,7 +568,7 @@
                     null,
                     10,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "page_size": 10, "instrument_name": "LBTC-USDC", "subaccount_id": 130837 }
@@ -582,7 +582,7 @@
                     null,
                     10,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "page_size": 10, "subaccount_id": 130837 }
@@ -596,7 +596,7 @@
                 "input": [
                     null,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "subaccount_id": 130837 }
@@ -612,7 +612,7 @@
                     null,
                     10,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "page_size": 10, "instrument_name": "BTC-PERP", "subaccount_id": 130837 }
@@ -633,7 +633,7 @@
                 "url": "https://api.derive.xyz/v3/private/get_subaccount",
                 "input": [
                     {
-                        "subaccount_id":74412
+                        "subaccount_id": "74412"
                     }
                 ],
                 "output": { "subaccount_id": 74412 }
@@ -666,7 +666,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "until": 1790900000000
                     }
                 ],
@@ -706,7 +706,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "until": 1791030000000
                     }
                 ],
@@ -724,7 +724,7 @@
                     "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
                     null,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "output": "{\"subaccount_id\":86815,\"asset_name\":\"USDC\",\"amount_in_underlying\":\"5\",\"max_fee_usd\":\"1\",\"force_batch\":false,\"recipient\":\"0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee\",\"nonce\":\"1791038734896843677\",\"signer\":\"0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee\",\"signature\":\"0x2fbd90d20f415b7b15c644412e764a28b349db4674bc519d8151a948c2005a1c5d0d7abd5fcf8a4b0e0cbead7e60c81c67dddc7a595c592d0a5654dad29e26091b\",\"signature_expiry_sec\":1798814734}"
@@ -740,7 +740,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "subaccount_id": 130837 }
@@ -756,7 +756,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id":130837
+                        "subaccount_id": "130837"
                     }
                 ],
                 "output": { "subaccount_id": 130837 }
