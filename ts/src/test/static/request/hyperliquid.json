@@ -16,6 +16,23 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchMyLiquidations": [
+            {
+                "description": "fetchMyLiquidations skips non-liquidation fills",
+                "method": "fetchMyLiquidations",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    null,
+                    1787172600000,
+                    null,
+                    {
+                        "user": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                        "until": 1787173400000
+                    }
+                ],
+                "output": "{\"user\":\"0x5c902b2eb0e1d9eb9a232014824ae6247df0a480\",\"type\":\"userFillsByTime\",\"startTime\":1787172600000,\"endTime\":1787173400000}"
+            }
+        ],
         "isUnifiedEnabled": [
             {
                 "disabled": true,

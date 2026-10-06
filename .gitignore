@@ -130,3 +130,7 @@ cpp/tests/Generated/
 !cpp/ccxt/api/binance.h
 !cpp/ccxt/base/Exchange.BaseMethods.inc
 !cpp/tests/Generated/testMainClass.inc
+
+# Local documentation (WIP / uncommitted)
+rust/BUILD_OPTIMIZATION.md
+PR_RESPONSE.md

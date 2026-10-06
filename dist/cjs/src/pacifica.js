@@ -107,7 +107,7 @@ class pacifica extends pacifica$1["default"] {
                 'fetchTime': undefined,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -2920,6 +2920,33 @@ class pacifica extends pacifica$1["default"] {
         // }
         const data = this.safeDict(response, 'data', {});
         return this.parseTradingFee(data, market);
+    }
+    /**
+     * @method
+     * @name pacifica#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, the account fee level applies to every market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    async fetchTradingFees(params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchTradingFees', params);
+        const request = {
+            'account': userAddress,
+        };
+        const response = await this.publicGetAccount(this.extend(request, paramsOriginAndSingleAddress));
+        const data = this.safeDict(response, 'data', {});
+        const result = {};
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            result[symbol] = this.parseTradingFee(data, this.market(symbol));
+        }
+        return result;
     }
     parseTradingFee(fee, market = undefined) {
         //

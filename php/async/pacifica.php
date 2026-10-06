@@ -109,7 +109,7 @@ class pacifica extends Exchange {
                 'fetchTime' => null,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
-                'fetchTradingFees' => false,
+                'fetchTradingFees' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
@@ -3090,6 +3090,38 @@ class pacifica extends Exchange {
         // }
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_trading_fee($data, $market);
+    }
+
+    public function fetch_trading_fees($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_trading_fees(...))($params);
+    }
+
+    private function do_fetch_trading_fees($params = array()) {
+        /**
+         * fetch the trading fees for multiple markets, the account fee level applies to every market
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->account] will default to walletAddress if not provided
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchTradingFees', $params);
+        $request = array(
+            'account' => $userAddress,
+        );
+        $response = Async\await($this->publicGetAccount($this->extend($request, $paramsOriginAndSingleAddress)));
+        $data = $this->safe_dict($response, 'data', array());
+        $result = array();
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $result[$symbol] = $this->parse_trading_fee($data, $this->market($symbol));
+        }
+        return $result;
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {

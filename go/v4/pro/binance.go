@@ -5570,7 +5570,7 @@ func (this *Binance) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any],
 	}
 	var isConditional *bool = this.SafeBoolN(paramsReturnRateLimits, []any{"stop", "trigger", "conditional"})
 	var clientOrderId *string = this.SafeStringN(paramsReturnRateLimits, []any{"clientAlgoId", "origClientOrderId", "clientOrderId"})
-	var shouldUseAlgoOrder bool = (market["linear"] == true) && (market["swap"] == true) && (isConditional != nil && *isConditional == true)
+	var shouldUseAlgoOrder bool = (market["linear"] == true) && ((market["swap"] == true) || (market["future"] == true)) && (isConditional != nil && *isConditional == true)
 	if clientOrderId != nil {
 		if shouldUseAlgoOrder == true {
 			payload["clientAlgoId"] = clientOrderId

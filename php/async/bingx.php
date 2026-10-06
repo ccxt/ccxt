@@ -5884,8 +5884,8 @@ class bingx extends Exchange {
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'timestamp');
         $datetime = $this->iso8601($timestamp);
         if ($timestamp === null) {
-            $datetime = $this->safe_string($transaction, 'applyTime');
-            $timestamp = $this->parse8601($datetime);
+            $timestamp = $this->parse8601($this->safe_string($transaction, 'applyTime'));
+            $datetime = $this->iso8601($timestamp);
         }
         $network = $this->safe_string($transaction, 'network');
         $currencyId = $this->safe_string($transaction, 'coin');
@@ -5895,10 +5895,15 @@ class bingx extends Exchange {
                 $code = str_replace($network, '', $code);
             }
         }
+        // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         $rawType = $this->safe_string($transaction, 'transferType');
         $type = 'withdrawal';
-        if ($rawType === '0') {
+        if (($rawType === '0') || (is_array($transaction) && array_key_exists('insertTime' ?? '', $transaction))) {
             $type = 'deposit';
+        }
+        $internal = null;
+        if ($rawType !== null) {
+            $internal = ($rawType === '2');
         }
         return array(
             'info' => $transaction,
@@ -5908,7 +5913,7 @@ class bingx extends Exchange {
             'currency' => $code,
             'network' => $this->network_id_to_code($network, $code),
             'amount' => $this->safe_number($transaction, 'amount'),
-            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status'), $type),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'address' => $address,
@@ -5924,11 +5929,24 @@ class bingx extends Exchange {
                 'cost' => $this->safe_number($transaction, 'transactionFee'),
                 'rate' => null,
             ),
-            'internal' => null,
+            'internal' => $internal,
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status, ?string $type = null) {
+        $statusesByType = array(
+            'deposit' => array(
+                '0' => 'pending',
+                '6' => 'pending', // chain uploaded, not yet credited
+                '1' => 'ok',
+            ),
+            'withdrawal' => array(
+                '4' => 'pending', // under review
+                '5' => 'failed',
+                '6' => 'ok',
+            ),
+        );
+        $directional = $this->safe_dict($statusesByType, $type, array());
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -5945,7 +5963,8 @@ class bingx extends Exchange {
             '5' => 'rejected',
             '6' => 'ok',
         );
-        return $this->safe_string($statuses, $status, $status);
+        $fallback = $this->safe_string($statuses, $status, $status);
+        return $this->safe_string($directional, $status, $fallback);
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {

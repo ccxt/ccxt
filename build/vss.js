@@ -79,10 +79,12 @@ async function vssEverything () {
     // carry a version too — cargo publish rejects a path dependency without
     // one, so these must move together or a release goes out pinned to the
     // previous version.
+    vss ('./rust/ccxt-core/Cargo.toml',       'version = "{version}"',                                        version)
     vss ('./rust/ccxt-base/Cargo.toml',       'version = "{version}"',                                        version)
     vss ('./rust/ccxt/Cargo.toml',            'version = "{version}"',                                        version)
     vss ('./rust/ccxt-pro/Cargo.toml',        'version = "{version}"',                                        version)
     vss ('./rust/ccxt-prediction/Cargo.toml', 'version = "{version}"',                                        version)
+    vss ('./rust/ccxt-base/Cargo.toml',       'path = "../ccxt-core", version = "{version}"',                 version)
     vss ('./rust/ccxt/Cargo.toml',            'path = "../ccxt-base", version = "{version}"',                 version)
     vss ('./rust/ccxt-pro/Cargo.toml',        'path = "../ccxt-base", version = "{version}"',                 version)
     vss ('./rust/ccxt-prediction/Cargo.toml', 'path = "../ccxt-base", version = "{version}"',                 version)

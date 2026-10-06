@@ -2672,7 +2672,6 @@ class testMainClass {
             this.testMexc (),
             this.testHtx (),
             this.testWoo (),
-            this.testCoinex (),
             this.testBingx (),
             this.testPhemex (),
             this.testBlofin (),
@@ -3199,25 +3198,6 @@ class testMainClass {
         }
         const clientOrderIdStop = stopOrderRequest['brokerId'];
         assert (clientOrderIdStop.startsWith (idString) === true, 'woo - brokerId: ' + clientOrderIdStop + ' does not start with id: ' + idString);
-        if (!isSync ()) {
-            await close (exchange);
-        }
-        return true;
-    }
-
-    async testCoinex () {
-        const exchange = this.initOfflineExchange ('coinex');
-        const id = 'x-167673045';
-        assert (exchange.options['brokerId'] === id, 'coinex - id: ' + id + ' not in options');
-        let spotOrderRequest: Dict = {};
-        try {
-            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
-        } catch (e) {
-            spotOrderRequest = jsonParse (exchange.last_request_body);
-        }
-        const clientOrderId = spotOrderRequest['client_id'];
-        const idString = id.toString ();
-        assert (clientOrderId.startsWith (idString) === true, 'coinex - clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
         if (!isSync ()) {
             await close (exchange);
         }

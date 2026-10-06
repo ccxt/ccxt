@@ -237,6 +237,7 @@ export default class latoken extends Exchange {
                     'INTERNAL_ERROR': ExchangeError, // internal server error. You can contact our support to solve this problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
                     'SERVICE_UNAVAILABLE': ExchangeNotAvailable, // requested information currently not available. You can contact our support to solve this problem or retry later.
                     'NOT_AUTHORIZED': AuthenticationError, // user's query not authorized. Check if you are logged in.
+                    'UNAUTHORIZED': AuthenticationError, // {"result":false,"message":"user must be authenticated","error":"UNAUTHORIZED","status":"FAILURE"}
                     'FORBIDDEN': PermissionDenied, // you don't have enough access rights.
                     'BAD_REQUEST': BadRequest, // some bad request, for example bad fields values or something else. Read response message for more information.
                     'NOT_FOUND': ExchangeError, // entity not found. Read message for more information.
@@ -259,6 +260,7 @@ export default class latoken extends Exchange {
                 },
                 'broad': {
                     'invalid API key, signature or digest': AuthenticationError, // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+                    'Invalid API key specified': AuthenticationError, // {"result":false,"message":"Invalid API key specified","error":"NOT_FOUND","status":"FAILURE"}
                     'The API key was revoked': AuthenticationError, // {"result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': InvalidNonce, // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest, // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
@@ -710,7 +712,7 @@ export default class latoken extends Exchange {
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -725,14 +727,28 @@ export default class latoken extends Exchange {
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
-        const marketId = this.safeString (ticker, 'symbol');
+        // the "symbol" field carries the currency tags, which differ from the
+        // unified symbol whenever commonCurrencies renames a code, so resolve
+        // the market from the currency ids like parseTrade and parseOrder do
+        const baseId = this.safeString (ticker, 'baseCurrency');
+        const quoteId = this.safeString (ticker, 'quoteCurrency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        let symbol: Str = undefined;
+        let marketResolved: Market = market;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
+                marketResolved = this.market (symbol);
+            }
+        }
         const last = this.safeString (ticker, 'lastPrice');
         const timestamp = this.safeIntegerOmitZero (ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
         return this.safeTicker ({
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'low': undefined,
@@ -752,7 +768,7 @@ export default class latoken extends Exchange {
             'baseVolume': this.safeString (ticker, 'amount24h'),
             'quoteVolume': this.safeString (ticker, 'volume24h'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -776,7 +792,7 @@ export default class latoken extends Exchange {
         const response = await this.publicGetTickerBaseQuote (this.extend (request, params));
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -791,7 +807,7 @@ export default class latoken extends Exchange {
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
         return this.parseTicker (response, market);
@@ -814,7 +830,7 @@ export default class latoken extends Exchange {
         //
         //    [
         //        {
-        //            "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //            "symbol": "BTC/USDT",
         //            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //            "volume24h": "165723597.189022176000000000",
@@ -829,7 +845,7 @@ export default class latoken extends Exchange {
         //            "bestBidQuantity": "0.6520232",
         //            "bestAsk": "25779.17",
         //            "bestAskQuantity": "0.4956043",
-        //            "updateTimestamp": "1693965231406"
+        //            "updateTimestamp": 1693965231406
         //        }
         //    ]
         //
@@ -1918,9 +1934,8 @@ export default class latoken extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
-        const error = this.safeValue (response, 'error');
-        const errorMessage = this.safeString (error, 'message');
-        if ((error !== undefined) || (errorMessage !== undefined)) {
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback); // unknown message

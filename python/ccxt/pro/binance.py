@@ -3767,7 +3767,7 @@ class binance(ccxt.async_support.binance):
         }
         isConditional = self.safe_bool_n(paramsReturnRateLimits, ['stop', 'trigger', 'conditional'])
         clientOrderId = self.safe_string_n(paramsReturnRateLimits, ['clientAlgoId', 'origClientOrderId', 'clientOrderId'])
-        shouldUseAlgoOrder = (market['linear'] is True) and (market['swap'] is True) and (isConditional is True)
+        shouldUseAlgoOrder = (market['linear'] is True) and ((market['swap'] is True) or (market['future'] is True)) and (isConditional is True)
         if clientOrderId is not None:
             if shouldUseAlgoOrder is True:
                 payload['clientAlgoId'] = clientOrderId

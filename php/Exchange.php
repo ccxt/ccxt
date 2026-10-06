@@ -399,7 +399,6 @@ class BaseExchange {
         'coinbaseexchange',
         'coinbaseinternational',
         'coincheck',
-        'coinex',
         'coinmate',
         'coinone',
         'coinsph',

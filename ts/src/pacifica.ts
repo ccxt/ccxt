@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadReque
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, Endpoint, List, OpenInterest } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, TradingFees, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, Endpoint, List, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ export default class pacifica extends Exchange {
                 'fetchTime': undefined,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -2953,6 +2953,34 @@ export default class pacifica extends Exchange {
         // }
         const data = this.safeDict (response, 'data', {});
         return this.parseTradingFee (data, market);
+    }
+
+    /**
+     * @method
+     * @name pacifica#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, the account fee level applies to every market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('fetchTradingFees', params);
+        const request: Dict = {
+            'account': userAddress,
+        };
+        const response = await this.publicGetAccount (this.extend (request, paramsOriginAndSingleAddress));
+        const data = this.safeDict (response, 'data', {});
+        const result: Dict = {};
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            result[symbol] = this.parseTradingFee (data, this.market (symbol));
+        }
+        return result;
     }
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {

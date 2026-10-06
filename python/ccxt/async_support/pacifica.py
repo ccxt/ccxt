@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -117,7 +117,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'fetchTime': None,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
-                'fetchTradingFees': False,
+                'fetchTradingFees': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
@@ -2788,6 +2788,31 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         data = self.safe_dict(response, 'data', {})
         return self.parse_trading_fee(data, market)
+
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
+        """
+        fetch the trading fees for multiple markets, the account fee level applies to every market
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.account]: will default to walletAddress if not provided
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
+        """
+        if self.markets is None:
+            await self.load_markets()
+        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchTradingFees', params)
+        request = {
+            'account': userAddress,
+        }
+        response = await self.publicGetAccount(self.extend(request, paramsOriginAndSingleAddress))
+        data = self.safe_dict(response, 'data', {})
+        result = {}
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            result[symbol] = self.parse_trading_fee(data, self.market(symbol))
+        return result
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #

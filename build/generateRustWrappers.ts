@@ -1015,8 +1015,8 @@ function discoverReachableMethods(
     return result;
 }
 
-const BASE_RS = './rust/ccxt-base/src/exchange_generated.rs';
-const STUBS_RS = './rust/ccxt-base/src/exchange_stubs.rs';
+const BASE_RS = './rust/ccxt-core/src/exchange_generated.rs';
+const STUBS_RS = './rust/ccxt-core/src/exchange_stubs.rs';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Main

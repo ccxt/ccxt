@@ -97,7 +97,7 @@ public partial class pacifica : Exchange
                 { "fetchTime", null },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
-                { "fetchTradingFees", false },
+                { "fetchTradingFees", true },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "fetchWithdrawal", false },
@@ -3365,6 +3365,40 @@ public partial class pacifica : Exchange
         // }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(data, market));
+    }
+
+    /**
+     * @method
+     * @name pacifica#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, the account fee level applies to every market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchTradingFees", parameters);
+        string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "account", userAddress },
+        };
+        Dictionary<string, object> response = await this.publicGetAccount(this.extend(request, paramsOriginAndSingleAddress));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
+        List<object> symbols = this.symbols;
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
+        {
+            string? symbol = ((string)symbols[i]);
+            result[(string)symbol] = this.parseTradingFee(data, this.market(symbol));
+        }
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)

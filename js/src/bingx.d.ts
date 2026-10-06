@@ -572,7 +572,7 @@ export default class bingx extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): Str;
+    parseTransactionStatus(status: Str, type?: Str): Str;
     /**
      * @method
      * @name bingx#setMarginMode

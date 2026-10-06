@@ -1765,7 +1765,6 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'coinbaseexchange': { 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ] },
     'coinbaseinternational': { 'FetchFundingHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
     'coincheck': { 'parseTransactionStatus': [ 0 ] },
-    'coinex': { 'FetchFundingHistory': [ 0 ], 'FetchOrdersByStatus': [ 0, 1 ], 'borrowIsolatedMargin': [ 0 ], 'createOrderRequest': [ 1, 2 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
     'coinmate': { 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'coinsph': { 'encodeOrderSide': [ 0 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'cryptocom': { 'FetchSettlementHistory': [ 0 ], 'createAdvancedOrderRequest': [ 0, 1, 2 ], 'createOrderRequest': [ 0, 1, 2 ], 'editOrderRequest': [ 0 ], 'parseDepositStatus': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseWithdrawalStatus': [ 0 ] },
@@ -1834,7 +1833,6 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'pro:coinbase': { 'parseWsTicker': [ 1 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:coinbaseexchange': { 'parseWsOrderStatus': [ 0 ] },
     'pro:coinbaseinternational': { 'parseWsTicker': [ 1 ] },
-    'pro:coinex': { 'authenticate': [ 0 ], 'parseWsOrderStatus': [ 0 ] },
     'pro:cryptocom': { 'unWatchTrades': [ 0 ] },
     'pro:deepcoin': { 'parsePositionSide': [ 0 ], 'parseWsOrderStatus': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:derive': { 'unWatchTrades': [ 0 ] },
@@ -2251,7 +2249,6 @@ const WS_HANDLER_DICT_MESSAGE: Record<string, string[]> = {
     coinbase: [ 'handleHeartbeats', 'handleOrder', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTickers', 'handleTrade' ],
     coinbaseexchange: [ 'handleErrorMessage', 'handleMyTrade', 'handleOrder', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTicker', 'handleTrade' ],
     coinbaseinternational: [ 'handleFundingRate', 'handleInstrument', 'handleOHLCV', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTicker', 'handleTrade' ],
-    coinex: [ 'handleAuthenticationMessage', 'handleBalance', 'handleBidAsk', 'handleMyTrades', 'handleOrderBook', 'handleOrders', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades' ],
     coinone: [ 'handleOrderBook', 'handlePong', 'handleTicker', 'handleTrades' ],
     cryptocom: [ 'handleAuthenticate', 'handleCancelAllOrders', 'handleOrder', 'handlePing', 'handleSubscribe', 'handleUnsubscribe' ],
     deepcoin: [ 'handleErrorMessage', 'handleMyTrade', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleOrderBookSnapshot', 'handlePosition', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades' ],
@@ -2496,6 +2493,13 @@ class NewTranspiler {
     // transpilePredictionBaseMethods twice (recursive prediction pass, then the main pass)
     // with identical inputs, so the second call would only rewrite the same bytes.
     private _predictionBaseWritten = false;
+
+    async destroy () {
+        if (this.piscina) {
+            await this.piscina.destroy ();
+            this.piscina = undefined;
+        }
+    }
 
     constructor() {
 
@@ -8782,34 +8786,38 @@ async function runMain () {
     log.bright.green ({ force })
     const transpiler = new NewTranspiler ();
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-    if (baseClassOnly) {
-        transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
-        transpiler.transpilePredictionBaseMethods ()
-    } else if (restAndWs) {
-        // same work as `transpileCS --force` followed by `transpileCSWs --force`, but on
-        // one transpiler instance, so the single piscina pool (and its warm per-thread
-        // Transpilers) survives into the ws stage instead of paying a second process
-        // boot + cold pool. `npm run transpileCS` is the default full path; --ws stays ws-only.
-        await transpiler.transpileEverything (force, false, examples, prediction)
-        await transpiler.transpileWS (force)
-        if (!inputExchanges.length) {
-            // full ws builds also transpile the prediction ws exchanges
-            await transpiler.transpileWS (force, true)
-        }
-    } else if (ws) {
-        if (prediction) {
-            await transpiler.transpileWS (force, true)
-        } else {
+    try {
+        if (baseClassOnly) {
+            transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
+            transpiler.transpilePredictionBaseMethods ()
+        } else if (restAndWs) {
+            // same work as `transpileCS --force` followed by `transpileCSWs --force`, but on
+            // one transpiler instance, so the single piscina pool (and its warm per-thread
+            // Transpilers) survives into the ws stage instead of paying a second process
+            // boot + cold pool. `npm run transpileCS` is the default full path; --ws stays ws-only.
+            await transpiler.transpileEverything (force, false, examples, prediction)
             await transpiler.transpileWS (force)
             if (!inputExchanges.length) {
                 // full ws builds also transpile the prediction ws exchanges
                 await transpiler.transpileWS (force, true)
             }
+        } else if (ws) {
+            if (prediction) {
+                await transpiler.transpileWS (force, true)
+            } else {
+                await transpiler.transpileWS (force)
+                if (!inputExchanges.length) {
+                    // full ws builds also transpile the prediction ws exchanges
+                    await transpiler.transpileWS (force, true)
+                }
+            }
+        } else if (test || baseTestsOnly) {
+            await transpiler.transpileTests () 
+        } else {
+            await transpiler.transpileEverything (force, false, examples, prediction)
         }
-    } else if (test || baseTestsOnly) {
-        await transpiler.transpileTests () 
-    } else {
-        await transpiler.transpileEverything (force, false, examples, prediction)
+    } finally {
+        await transpiler.destroy ();
     }
 }
 

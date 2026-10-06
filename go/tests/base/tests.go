@@ -3552,7 +3552,7 @@ func (this *testMainClass) runBrokerIdTestsBody(ch chan ccxt.AsyncResult[any]) a
 	//  -----------------------------------------------------------------------------
 	//  --- Init of brokerId tests functions-----------------------------------------
 	//  -----------------------------------------------------------------------------
-	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestCoinexAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync(), this.TestBithumbAsync(), this.TestExtendedAsync()}
+	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync(), this.TestBithumbAsync(), this.TestExtendedAsync()}
 
 	r := <-promiseAll(promises)
 	if r.Err != nil {
@@ -5021,54 +5021,6 @@ func (this *testMainClass) testWooBody(ch chan ccxt.AsyncResult[any]) any {
 	}
 	var clientOrderIdStop any = GetValue(stopOrderRequest, "brokerId")
 	Assert(IsEqual(StartsWith(clientOrderIdStop, idString), true), Add(Add(Add("woo - brokerId: ", clientOrderIdStop), " does not start with id: "), idString))
-	if !EvalTruthy(IsSync()) {
-
-		<-Close(exchange)
-	}
-
-	ch <- ccxt.AsyncResult[any]{Value: true}
-	return nil
-}
-func (this *testMainClass) TestCoinexAsync() <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
-	go this.testCoinexBody(ch)
-	return ch
-}
-func (this *testMainClass) testCoinexBody(ch chan ccxt.AsyncResult[any]) any {
-	defer close(ch)
-	defer ReturnPanicError(ch)
-	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinex")
-	var id string = "x-167673045"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "coinex - id: "+id+" not in options")
-	var spotOrderRequest any = map[string]any{}
-
-	{
-		func(this *testMainClass) (ret_ any) {
-			defer func() {
-				if e := recover(); e != nil {
-					if e == "break" {
-						return
-					}
-					ret_ = func(this *testMainClass) any {
-						// catch block:
-						spotOrderRequest = JsonParse(exchange.GetLast_request_body())
-						return nil
-					}(this)
-				}
-			}()
-			// try block:
-
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
-			if r.Err != nil {
-				panic(r.Err)
-			}
-			return nil
-		}(this)
-
-	}
-	var clientOrderId any = GetValue(spotOrderRequest, "client_id")
-	var idString string = id
-	Assert(IsEqual(StartsWith(clientOrderId, idString), true), Add(Add(Add("coinex - clientOrderId: ", clientOrderId), " does not start with id: "), idString))
 	if !EvalTruthy(IsSync()) {
 
 		<-Close(exchange)

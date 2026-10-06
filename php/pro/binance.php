@@ -4301,7 +4301,7 @@ class binance extends \ccxt\async\binance {
         );
         $isConditional = $this->safe_bool_n($paramsReturnRateLimits, array( 'stop', 'trigger', 'conditional' ));
         $clientOrderId = $this->safe_string_n($paramsReturnRateLimits, array( 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ));
-        $shouldUseAlgoOrder = ($market['linear'] === true) && ($market['swap'] === true) && ($isConditional === true);
+        $shouldUseAlgoOrder = ($market['linear'] === true) && (($market['swap'] === true) || ($market['future'] === true)) && ($isConditional === true);
         if ($clientOrderId !== null) {
             if ($shouldUseAlgoOrder === true) {
                 $payload['clientAlgoId'] = $clientOrderId;

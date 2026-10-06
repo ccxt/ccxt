@@ -36,6 +36,7 @@
 * [setLeverage](#setleverage)
 * [withdraw](#withdraw)
 * [fetchTradingFee](#fetchtradingfee)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchOpenInterests](#fetchopeninterests)
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchLedger](#fetchledger)
@@ -797,6 +798,27 @@ fetch the trading fees for a market
 
 ```javascript
 pacifica.fetchTradingFee (symbol, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets, the account fee level applies to every market
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | will default to walletAddress if not provided |
+
+
+```javascript
+pacifica.fetchTradingFees (params?)
 ```
 
 

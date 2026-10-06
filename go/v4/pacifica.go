@@ -109,7 +109,7 @@ func (this *Pacifica) Describe() any {
 			"fetchTime":                            nil,
 			"fetchTrades":                          true,
 			"fetchTradingFee":                      true,
-			"fetchTradingFees":                     false,
+			"fetchTradingFees":                     true,
 			"fetchTransfer":                        false,
 			"fetchTransfers":                       false,
 			"fetchWithdrawal":                      false,
@@ -4089,6 +4089,56 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan AsyncResult[any], symbol strin
 	ch <- AsyncResult[any]{Value: this.ParseTradingFee(data, market)}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#fetchTradingFees
+ * @description fetch the trading fees for multiple markets, the account fee level applies to every market
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.account] will default to walletAddress if not provided
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+ */
+func (this *Pacifica) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchTradingFeesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Pacifica) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchTradingFees", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
+	var request map[string]any = map[string]any{
+		"account": userAddress,
+	}
+
+	r1 := <-this.PublicGetAccount(this.Extend(request, paramsOriginAndSingleAddress))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var result map[string]any = map[string]any{}
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = symbols[i]
+		result[symbol] = this.ParseTradingFee(data, this.Market(symbol))
+	}
+
+	ch <- AsyncResult[any]{Value: result}
+	return nil
+}
 func (this *Pacifica) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//   {
@@ -4298,11 +4348,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes309019 []any = ListTyped(r1.Value)
-		if retRes309019 == nil {
+		var retRes311819 []any = ListTyped(r1.Value)
+		if retRes311819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes309019}
+			ch <- AsyncResult[any]{Value: retRes311819}
 		}
 		return nil
 	}
@@ -4603,11 +4653,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[any], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes329919 []any = ListTyped(r1.Value)
-		if retRes329919 == nil {
+		var retRes332719 []any = ListTyped(r1.Value)
+		if retRes332719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes329919}
+			ch <- AsyncResult[any]{Value: retRes332719}
 		}
 		return nil
 	}
@@ -6032,6 +6082,24 @@ func (this *Pacifica) FetchTradingFee(symbol string, options ...FetchTradingFeeO
 
 /**
  * @method
+ * @name pacifica#fetchTradingFees
+ * @description fetch the trading fees for multiple markets, the account fee level applies to every market
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.account] will default to walletAddress if not provided
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+ */
+func (this *Pacifica) FetchTradingFees(params ...any) (TradingFees, error) {
+	r := <-this.FetchTradingFeesAsync(params...)
+	if r.Err != nil {
+		return TradingFees{}, r.Err
+	}
+	var res TradingFees = NewTradingFees(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
  * @name pacifica#fetchOpenInterests
  * @description Retrieves the open interest for a list of symbols
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
@@ -6537,9 +6605,6 @@ func (this *Pacifica) FetchTicker(symbol string, options ...FetchTickerOptions) 
 }
 func (this *Pacifica) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
-}
-func (this *Pacifica) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
 }
 func (this *Pacifica) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)

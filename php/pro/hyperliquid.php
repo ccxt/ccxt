@@ -28,6 +28,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'createOrdersWs' => true,
                 'editOrderWs' => true,
                 'watchBalance' => true,
+                'watchMyLiquidations' => true,
+                'watchMyLiquidationsForSymbols' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
@@ -573,6 +575,74 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
+    public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        /**
+         * watch the private liquidations of a trading pair
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+         *
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
+         */
+        return $this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
+    }
+
+    public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_liquidations_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watch the private liquidations of a list of trading pairs
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+         *
+         * @param {string[]} $symbols list of unified market $symbols
+         * @param {int} [$since] the earliest time in ms to fetch liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
+         */
+        list($userAddress, $paramsValue) = $this->handlePublicAddress('watchMyLiquidationsForSymbols', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, true, true);
+        $messageHashes = array();
+        if ($this->is_empty($symbolsNormalized)) {
+            $messageHashes[] = 'myLiquidations';
+        } else {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $messageHashes[] = 'myLiquidations::' . $symbolsNormalized[$i];
+            }
+        }
+        $url = $this->urls['api']['ws']['public'];
+        $request = array(
+            'method' => 'subscribe',
+            'subscription' => array(
+                'type' => 'userFills',
+                'user' => $userAddress,
+            ),
+        );
+        $message = $this->extend($request, $paramsValue);
+        if ($userAddress === null) {
+            throw new ArgumentsRequired($this->id . ' watchMyLiquidationsForSymbols() requires a user address');
+        }
+        // shares the userFills subscription with watchMyTrades
+        $subscribeHash = 'subscribe:userFills::' . strtolower($userAddress);
+        Async\await($this->wait_for_pending_unsubscribe($url, 'myTrades'));
+        $newLiquidations = Async\await($this->watch_multiple($url, $messageHashes, $message, array( $subscribeHash )));
+        if ($this->newUpdates) {
+            return $newLiquidations;
+        }
+        return $this->filter_by_symbols_since_limit($this->myLiquidations, $symbolsNormalized, $since, $limit, true);
+    }
+
     public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_un_watch_my_trades(...))($symbol, $params);
     }
@@ -720,6 +790,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         //         }
         //     }
         //
+        // an empty snapshot still seeds the liquidations cache
+        $this->handle_my_liquidations($client, $message);
         $entry = $this->safe_dict($message, 'data', array());
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -747,6 +819,54 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         // non-symbol specific
         $messageHash = 'myTrades';
         $client->resolve($trades, $messageHash);
+    }
+
+    public function handle_my_liquidations(Client $client, array $message) {
+        //
+        // userFills message, see handleMyTrades, liquidation fills carry
+        //
+        //     "liquidation": {
+        //         "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+        //         "markPx": "4.69112",
+        //         "method": "market"
+        //     }
+        //
+        $entry = $this->safe_dict($message, 'data', array());
+        // every subscription starts with a snapshot, a resubscribe replays it
+        $isSnapshot = $this->safe_bool($entry, 'isSnapshot', false);
+        if ($isSnapshot || ($this->myLiquidations === null)) {
+            $limit = $this->safe_integer($this->options, 'myLiquidationsLimit', 1000);
+            $this->myLiquidations = new ArrayCache($limit);
+        }
+        $user = $this->safe_string_lower($entry, 'user');
+        $fills = $this->safe_list($entry, 'fills', array());
+        $newLiquidations = array();
+        for ($i = 0; $i < count($fills); $i++) {
+            $fill = $fills[$i];
+            $liquidation = $this->safe_dict($fill, 'liquidation', array());
+            // liquidator fills carry the liquidated counterparty here
+            if ($this->safe_string_lower($liquidation, 'liquidatedUser') === $user) {
+                $newLiquidations[] = $this->parse_liquidation($fill);
+            }
+        }
+        $newLiquidationsLength = count($newLiquidations);
+        if ($newLiquidationsLength === 0) {
+            return;
+        }
+        $cache = $this->myLiquidations;
+        $symbols = array();
+        for ($i = 0; $i < $newLiquidationsLength; $i++) {
+            $liquidation = $newLiquidations[$i];
+            $cache->append($liquidation);
+            $symbols[($liquidation['symbol'])] = true;
+        }
+        $keys = is_array($symbols) ? array_keys($symbols) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $symbol = $keys[$i];
+            $symbolLiquidations = $this->filter_by_symbol($newLiquidations, $symbol);
+            $client->resolve($symbolLiquidations, 'myLiquidations::' . $symbol);
+        }
+        $client->resolve($newLiquidations, 'myLiquidations');
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1805,6 +1925,9 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subHash = 'myTrades';
         $unSubHash = 'unsubscribe:' . $subHash;
         $this->clean_unsubscription($client, $subHash, $unSubHash, true);
+        // userFills also feeds watchMyLiquidations
+        $this->clean_unsubscription($client, 'myLiquidations', $unSubHash, true);
+        $this->myLiquidations = null;
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         $user = $this->safe_string_lower($subscription, 'user');

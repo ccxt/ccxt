@@ -4011,8 +4011,8 @@ func (this *Binance) Describe() any {
 					"-2010": InvalidOrder,
 					"-2011": OperationRejected,
 					"-2013": OrderNotFound,
-					"-2014": OperationRejected,
-					"-2015": OperationRejected,
+					"-2014": AuthenticationError,
+					"-2015": AuthenticationError,
 					"-2016": OperationFailed,
 					"-2018": OperationFailed,
 					"-2019": OperationFailed,
@@ -4692,7 +4692,7 @@ func (this *Binance) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...
  * @name binance#fetchCurrencies
  * @description fetches all available currencies on an exchange
  * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
- * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-margin-trading/api/rest-api/market-data#get-all-cross-margin-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -4979,7 +4979,6 @@ func (this *Binance) ParseCurrency(rawCurrency any) map[string]any {
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information               // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information         // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information         // future
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                                 // option // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#exchange-information // option
  * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                               // cross margin
  * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                           // isolated margin
@@ -5709,13 +5708,12 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) any {
  * @method
  * @name binance#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data  // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-account           // spot
  * @see https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
  * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
  * @see https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     // funding
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Futures-Account-Balance      // future
- * @see https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           // option // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information // option
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6045,11 +6043,10 @@ func (this *Binance) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
  * @method
  * @name binance#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book       // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#depth        // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book     // swap
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI // swap rpi
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book     // future
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                             // option // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#order-book // option
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
@@ -6428,7 +6425,6 @@ func (this *Binance) fetchStatusBody(ch chan EndpointResult[map[string]any], opt
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#rolling-window-price-change-statistics  // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
- * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics // option
  * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             // stock
  * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -6538,10 +6534,10 @@ func (this *Binance) CheckNoStockSymbols(symbols any, methodName string) {
  * @method
  * @name binance#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker-book-ticker     // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
- * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
+ * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics     // option
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -6630,7 +6626,7 @@ func (this *Binance) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ..
  * @method
  * @name binance#fetchLastPrices
  * @description fetches the last price for multiple markets
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker    // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker-price       // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // future
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
@@ -6740,10 +6736,9 @@ func (this *Binance) ParseLastPrice(entry any, optionalArgs ...any) any {
  * @method
  * @name binance#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics    // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker24hr                         // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // future
- * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics // option
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6887,25 +6882,25 @@ func (this *Binance) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], sym
 	var response []any = nil
 	if market["option"] == true {
 
-		listEp6737 := <-this.EapiPublicGetMark(this.Extend(request, paramsSubType))
-		if listEp6737.Err != nil {
-			panic(listEp6737.Err)
+		listEp6732 := <-this.EapiPublicGetMark(this.Extend(request, paramsSubType))
+		if listEp6732.Err != nil {
+			panic(listEp6732.Err)
 		}
-		response = listEp6737.Value
+		response = listEp6732.Value
 	} else if this.IsLinear(typeVar, subType) {
 
-		listEp6740 := <-this.FapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
-		if listEp6740.Err != nil {
-			panic(listEp6740.Err)
+		listEp6735 := <-this.FapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
+		if listEp6735.Err != nil {
+			panic(listEp6735.Err)
 		}
-		response = listEp6740.Value
+		response = listEp6735.Value
 	} else if this.IsInverse(typeVar, subType) {
 
-		listEp6743 := <-this.DapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
-		if listEp6743.Err != nil {
-			panic(listEp6743.Err)
+		listEp6738 := <-this.DapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
+		if listEp6738.Err != nil {
+			panic(listEp6738.Err)
 		}
-		response = listEp6743.Value
+		response = listEp6738.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchMarkPrice() does not support " + *typeVar + " markets yet"))
 	}
@@ -6960,25 +6955,25 @@ func (this *Binance) fetchMarkPricesBody(ch chan AsyncResult[map[string]any], op
 	var response []any = nil
 	if typeVar != nil && *typeVar == "option" {
 
-		listEp6795 := <-this.EapiPublicGetMark(paramsSubType)
-		if listEp6795.Err != nil {
-			panic(listEp6795.Err)
+		listEp6790 := <-this.EapiPublicGetMark(paramsSubType)
+		if listEp6790.Err != nil {
+			panic(listEp6790.Err)
 		}
-		response = listEp6795.Value
+		response = listEp6790.Value
 	} else if this.IsLinear(typeVar, subType) {
 
-		listEp6798 := <-this.FapiPublicGetPremiumIndex(paramsSubType)
-		if listEp6798.Err != nil {
-			panic(listEp6798.Err)
+		listEp6793 := <-this.FapiPublicGetPremiumIndex(paramsSubType)
+		if listEp6793.Err != nil {
+			panic(listEp6793.Err)
 		}
-		response = listEp6798.Value
+		response = listEp6793.Value
 	} else if this.IsInverse(typeVar, subType) {
 
-		listEp6801 := <-this.DapiPublicGetPremiumIndex(paramsSubType)
-		if listEp6801.Err != nil {
-			panic(listEp6801.Err)
+		listEp6796 := <-this.DapiPublicGetPremiumIndex(paramsSubType)
+		if listEp6796.Err != nil {
+			panic(listEp6796.Err)
 		}
-		response = listEp6801.Value
+		response = listEp6796.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchMarkPrices() does not support " + *typeVar + " markets yet"))
 	}
@@ -7054,19 +7049,16 @@ func (this *Binance) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @method
  * @name binance#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data // deprecated
- * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#kline-candlestick-data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data // deprecated
- * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#kline-candlestick-data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data // deprecated
- * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/market-data#kline-candlestick-data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#klines // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#kline-candlestick-data // option
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#kline-candlestick-data // swap
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data // swap index
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data // swap mark
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data // swap premium
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/market-data#kline-candlestick-data // future
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data // future index
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data // future mark
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data // future premium
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -7107,11 +7099,11 @@ func (this *Binance) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes517919 []any = ListTyped(r1.Value)
-		if retRes517919 == nil {
+		var retRes517119 []any = ListTyped(r1.Value)
+		if retRes517119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes517919}
+			ch <- AsyncResult[any]{Value: retRes517119}
 		}
 		return nil
 	}
@@ -7603,22 +7595,20 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option) // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#recent-trades-list // eapiPublicGetTrades (option)
  * Other fetchTradesMethod
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#get-trades                     // publicGetTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   // publicGetHistoricalTrades (spot)
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#historical-trades              // publicGetHistoricalTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option) // deprecated
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
  * @param {int} [limit] default 500, max 1000
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
- * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+ * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades'
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  *
  * EXCHANGE SPECIFIC PARAMETERS
@@ -7653,11 +7643,11 @@ func (this *Binance) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes561419 []any = ListTyped(r1.Value)
-		if retRes561419 == nil {
+		var retRes560419 []any = ListTyped(r1.Value)
+		if retRes560419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes561419}
+			ch <- AsyncResult[any]{Value: retRes560419}
 		}
 		return nil
 	}
@@ -7783,13 +7773,6 @@ func (this *Binance) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 			panic(r11.Err)
 		}
 		response = r11.Raw
-	} else if method != nil && *method == "eapiPublicGetHistoricalTrades" {
-
-		r12 := <-this.EapiPublicGetHistoricalTrades(this.Extend(request, paramsOmitted))
-		if r12.Err != nil {
-			panic(r12.Err)
-		}
-		response = r12.Raw
 	} else {
 		panic(NotSupported(this.Id + " fetchTrades() does not support this method"))
 	}
@@ -7873,7 +7856,7 @@ func (this *Binance) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
  * @name binance#editSpotOrder
  * @ignore
  * @description edit a trade order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-cancel-replace
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
@@ -8244,7 +8227,7 @@ func (this *Binance) editContractOrderBody(ch chan EndpointResult[map[string]any
  * @method
  * @name binance#editOrder
  * @description edit a trade order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-cancel-replace
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
  * @param {string} id cancel order id
@@ -8287,11 +8270,11 @@ func (this *Binance) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes608619 map[string]any = r1.Value
-		if retRes608619 == nil {
+		var retRes607419 map[string]any = r1.Value
+		if retRes607419 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes608619}
+			ch <- AsyncResult[map[string]any]{Value: retRes607419}
 		}
 		return nil
 	} else {
@@ -8300,11 +8283,11 @@ func (this *Binance) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes608819 map[string]any = r2.Value
-		if retRes608819 == nil {
+		var retRes607619 map[string]any = r2.Value
+		if retRes607619 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes608819}
+			ch <- AsyncResult[map[string]any]{Value: retRes607619}
 		}
 		return nil
 	}
@@ -9169,7 +9152,6 @@ func (this *Binance) ParseOrder(order any, optionalArgs ...any) Order {
  * @description *contract only* create a list of trade orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#place-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -9227,25 +9209,25 @@ func (this *Binance) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 	request = this.Extend(request, params)
 	if market["linear"] == true {
 
-		listEp8924 := <-this.FapiPrivatePostBatchOrders(request)
-		if listEp8924.Err != nil {
-			panic(listEp8924.Err)
+		listEp8909 := <-this.FapiPrivatePostBatchOrders(request)
+		if listEp8909.Err != nil {
+			panic(listEp8909.Err)
 		}
-		response = listEp8924.Value
+		response = listEp8909.Value
 	} else if market["option"] == true {
 
-		listEp8927 := <-this.EapiPrivatePostBatchOrders(request)
-		if listEp8927.Err != nil {
-			panic(listEp8927.Err)
+		listEp8912 := <-this.EapiPrivatePostBatchOrders(request)
+		if listEp8912.Err != nil {
+			panic(listEp8912.Err)
 		}
-		response = listEp8927.Value
+		response = listEp8912.Value
 	} else {
 
-		listEp8930 := <-this.DapiPrivatePostBatchOrders(request)
-		if listEp8930.Err != nil {
-			panic(listEp8930.Err)
+		listEp8915 := <-this.DapiPrivatePostBatchOrders(request)
+		if listEp8915.Err != nil {
+			panic(listEp8915.Err)
 		}
-		response = listEp8930.Value
+		response = listEp8915.Value
 	}
 
 	//
@@ -9290,18 +9272,17 @@ func (this *Binance) createOrdersBody(ch chan AsyncResult[any], orders any, opti
  * @method
  * @name binance#createOrder
  * @description create a trade order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
  * @see https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#test-new-order-trade
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api
- * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order // deprecated
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/trade#new-order
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#new-order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#sor-order
  * @see https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#sor
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#new-um-algo-order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
  * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#place-equity-order
@@ -9356,7 +9337,14 @@ func (this *Binance) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	var porfolioOptionsValue *bool = this.SafeBool2(this.Options, "papi", "portfolioMargin", false)
 	var isPortfolioMargin *bool = this.SafeBool2(params, "papi", "portfolioMargin", porfolioOptionsValue)
 	var isConditional bool = this.IsConditionalOrder(params)
-	var isAlgoOrder bool = ((market["swap"] == true) || (market["future"] == true)) && isConditional && !(isPortfolioMargin != nil && *isPortfolioMargin)
+	// algo and conditional endpoints use different arguments
+	// conditional swap and future orders go through the algo api
+	// except for portfolio margin inverse (cm) orders, which still use the conditional endpoints
+	var isSwapOrFuture bool = (market["swap"] == true) || (market["future"] == true)
+	var isLinear bool = (market["linear"] == true)
+	var isInverse bool = (market["inverse"] == true)
+	var isPortfolioMarginInverse bool = (isPortfolioMargin != nil && *isPortfolioMargin) && isInverse
+	var isAlgoOrder bool = isSwapOrFuture && isConditional && (!isPortfolioMarginInverse)
 	var sor *bool = this.SafeBool2(params, "sor", "SOR", false)
 	var test *bool = this.SafeBool(params, "test", false)
 	var stock *bool = this.SafeBool(market, "stock", false)
@@ -9391,11 +9379,12 @@ func (this *Binance) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 			}
 			response = r3.Value
 		}
-	} else if market["linear"] == true {
+	} else if isLinear {
 		if isPortfolioMargin != nil && *isPortfolioMargin == true {
 			if isConditional {
+				request["algoType"] = "CONDITIONAL"
 
-				r4 := <-this.PapiPostUmConditionalOrder(request)
+				r4 := <-this.PapiPostUmAlgoOrder(request)
 				if r4.Err != nil {
 					panic(r4.Err)
 				}
@@ -9426,7 +9415,7 @@ func (this *Binance) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 				response = r7.Raw
 			}
 		}
-	} else if market["inverse"] == true {
+	} else if isInverse {
 		if isPortfolioMargin != nil && *isPortfolioMargin == true {
 			if isConditional {
 
@@ -9798,7 +9787,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["newOrderRespType"] = "RESULT" // "ACK", "RESULT", default "ACK"
 	}
 	var typeRequest string = "type"
-	if isPortfolioMarginConditional {
+	if isPortfolioMarginConditional && !(isAlgoOrder != nil && *isAlgoOrder) {
 		typeRequest = "strategyType"
 	}
 	if stock != nil && *stock == true {
@@ -10019,7 +10008,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
  * @method
  * @name binance#createMarketOrderWithCost
  * @description create a market order by providing the symbol, side and cost
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
@@ -10055,11 +10044,11 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan AsyncResult[map[strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes759715 map[string]any = r1.Value
-	if retRes759715 == nil {
+	var retRes759115 map[string]any = r1.Value
+	if retRes759115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes759715}
+		ch <- AsyncResult[map[string]any]{Value: retRes759115}
 	}
 	return nil
 }
@@ -10068,7 +10057,7 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan AsyncResult[map[strin
  * @method
  * @name binance#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -10103,11 +10092,11 @@ func (this *Binance) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes762115 map[string]any = r1.Value
-	if retRes762115 == nil {
+	var retRes761515 map[string]any = r1.Value
+	if retRes761515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes762115}
+		ch <- AsyncResult[any]{Value: retRes761515}
 	}
 	return nil
 }
@@ -10116,7 +10105,7 @@ func (this *Binance) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
  * @method
  * @name binance#createMarketSellOrderWithCost
  * @description create a market sell order by providing the symbol and cost
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -10149,11 +10138,11 @@ func (this *Binance) createMarketSellOrderWithCostBody(ch chan AsyncResult[any],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes764315 map[string]any = r1.Value
-	if retRes764315 == nil {
+	var retRes763715 map[string]any = r1.Value
+	if retRes763715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes764315}
+		ch <- AsyncResult[any]{Value: retRes763715}
 	}
 	return nil
 }
@@ -10162,10 +10151,9 @@ func (this *Binance) createMarketSellOrderWithCostBody(ch chan AsyncResult[any],
  * @method
  * @name binance#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#query-order-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-single-order
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
@@ -10346,15 +10334,14 @@ func (this *Binance) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
  * @method
  * @name binance#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-um-algo-order-history
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
  * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
@@ -10402,11 +10389,11 @@ func (this *Binance) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes779419 []any = ListTyped(r1.Value)
-		if retRes779419 == nil {
+		var retRes778619 []any = ListTyped(r1.Value)
+		if retRes778619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes779419}
+			ch <- AsyncResult[any]{Value: retRes778619}
 		}
 		return nil
 	}
@@ -10480,7 +10467,7 @@ func (this *Binance) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				r3 := <-this.PapiGetUmConditionalAllOrders(this.Extend(request, paramsPaginate))
+				r3 := <-this.PapiGetUmAlgoAllAlgoOrders(this.Extend(request, paramsPaginate))
 				if r3.Err != nil {
 					panic(r3.Err)
 				}
@@ -10799,14 +10786,13 @@ func (this *Binance) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
  * @method
  * @name binance#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#current-open-orders-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-open-orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-current-open-option-orders
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-all-current-um-open-algo-orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
@@ -10891,7 +10877,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				r2 := <-this.PapiGetUmConditionalOpenOrders(this.Extend(request, paramsMarginMode))
+				r2 := <-this.PapiGetUmAlgoOpenAlgoOrders(this.Extend(request, paramsMarginMode))
 				if r2.Err != nil {
 					panic(r2.Err)
 				}
@@ -11004,7 +10990,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Current-Open-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-current-um-open-algo-order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
  * @param {string} id order id
@@ -11049,7 +11035,12 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[any], id any, option
 	}
 	var orderIdRequest string = "orderId"
 	if isPortfolioMarginConditional == true {
-		orderIdRequest = "strategyId"
+		orderIdRequest = func() string {
+			if market["linear"] == true {
+				return "algoId"
+			}
+			return "strategyId"
+		}()
 	}
 	request[orderIdRequest] = id
 	var response any = nil
@@ -11057,7 +11048,7 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[any], id any, option
 		if isPortfolioMargin {
 			if isConditional != nil && *isConditional == true {
 
-				r1 := <-this.PapiGetUmConditionalOpenOrder(this.Extend(request, paramsOmitted))
+				r1 := <-this.PapiGetUmAlgoAlgoOrder(this.Extend(request, paramsOmitted))
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
@@ -11270,15 +11261,14 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[any], id any, option
  * @method
  * @name binance#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-um-algo-order-history
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
  * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
  * @param {string} [symbol] unified market symbol of the market orders were made in
@@ -11337,10 +11327,9 @@ func (this *Binance) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArg
  * @method
  * @name binance#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -11407,7 +11396,6 @@ func (this *Binance) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optiona
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -11474,15 +11462,14 @@ func (this *Binance) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any]
  * @method
  * @name binance#cancelOrder
  * @description cancels an open order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#delete-order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order
- * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#cancel-option-order
  * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#cancel-um-algo-order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
@@ -11540,12 +11527,17 @@ func (this *Binance) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	var isOptionType bool = (typeVar != nil && *typeVar == "option")
 	var isLinearType bool = this.IsLinear(typeVar, subType)
 	var isInverseType bool = this.IsInverse(typeVar, subType)
-	var isContractConditional bool = (market != nil) && ((market["swap"] == true) || (market["future"] == true)) && (isConditional != nil && *isConditional == true) && (isPortfolioMargin != true)
+	// algo and conditional endpoints use different arguments
+	// conditional swap and future orders go through the algo api
+	// except for portfolio margin inverse (cm) orders, which still use the conditional endpoints
+	var isSwapOrFuture bool = (market != nil) && ((market["swap"] == true) || (market["future"] == true))
+	var isPortfolioMarginInverse bool = (isPortfolioMargin == true) && (isInverseType == true)
+	var isAlgoOrder bool = isSwapOrFuture && (isConditional != nil && *isConditional == true) && (!isPortfolioMarginInverse)
 	var clientOrderId *string = this.SafeStringN(paramsStock, []any{"origClientOrderId", "clientOrderId", "newClientStrategyId", "clientAlgoId"})
 	if clientOrderId != nil {
 		if isOptionType {
 			request["clientOrderId"] = clientOrderId
-		} else if isContractConditional == true {
+		} else if isAlgoOrder == true {
 			request["clientAlgoId"] = clientOrderId
 		} else {
 			if (isPortfolioMargin == true) && (isConditional != nil && *isConditional == true) {
@@ -11555,10 +11547,10 @@ func (this *Binance) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 			}
 		}
 	} else {
-		if (isPortfolioMargin == true) && (isConditional != nil && *isConditional == true) {
-			request["strategyId"] = id
-		} else if isContractConditional == true {
+		if isAlgoOrder == true {
 			request["algoId"] = id
+		} else if (isPortfolioMargin == true) && (isConditional != nil && *isConditional == true) {
+			request["strategyId"] = id
 		} else {
 			request["orderId"] = id
 		}
@@ -11576,7 +11568,7 @@ func (this *Binance) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				r2 := <-this.PapiDeleteUmConditionalOrder(this.Extend(request, paramsStock))
+				r2 := <-this.PapiDeleteUmAlgoOrder(this.Extend(request, paramsStock))
 				if r2.Err != nil {
 					panic(r2.Err)
 				}
@@ -11686,16 +11678,13 @@ func (this *Binance) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
  * @method
  * @name binance#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders // deprecated
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#delete-open-orders
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/trade#cancel-all-open-orders
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/trade#cancel-all-open-orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#cancel-all-option-orders-on-specific-symbol
  * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#cancel-all-um-algo-open-orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
@@ -11767,7 +11756,7 @@ func (this *Binance) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				r2 := <-this.PapiDeleteUmConditionalAllOpenOrders(this.Extend(request, paramsStock))
+				r2 := <-this.PapiDeleteUmAlgoAllOpenOrders(this.Extend(request, paramsStock))
 				if r2.Err != nil {
 					panic(r2.Err)
 				}
@@ -11996,7 +11985,7 @@ func (this *Binance) cancelOrdersBody(ch chan AsyncResult[any], ids any, optiona
  * @method
  * @name binance#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-trades
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
@@ -12047,11 +12036,11 @@ func (this *Binance) fetchOrderTradesBody(ch chan AsyncResult[any], id string, o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes904115 []any = ListTyped(r1.Value)
-	if retRes904115 == nil {
+	var retRes903015 []any = ListTyped(r1.Value)
+	if retRes903015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes904115}
+		ch <- AsyncResult[any]{Value: retRes903015}
 	}
 	return nil
 }
@@ -12060,14 +12049,14 @@ func (this *Binance) fetchOrderTradesBody(ch chan AsyncResult[any], id string, o
  * @method
  * @name binance#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-trades
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
- * @see https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#account-trade-list
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Trade-List
  * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-trade-history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -12111,11 +12100,11 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes907519 []any = ListTyped(r1.Value)
-		if retRes907519 == nil {
+		var retRes906419 []any = ListTyped(r1.Value)
+		if retRes906419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes907519}
+			ch <- AsyncResult[any]{Value: retRes906419}
 		}
 		return nil
 	}
@@ -12668,11 +12657,11 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes950419 []any = ListTyped(r1.Value)
-		if retRes950419 == nil {
+		var retRes949319 []any = ListTyped(r1.Value)
+		if retRes949319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes950419}
+			ch <- AsyncResult[any]{Value: retRes949319}
 		}
 		return nil
 	}
@@ -12794,11 +12783,11 @@ func (this *Binance) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes962719 []any = ListTyped(r1.Value)
-		if retRes962719 == nil {
+		var retRes961619 []any = ListTyped(r1.Value)
+		if retRes961619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes962719}
+			ch <- AsyncResult[any]{Value: retRes961619}
 		}
 		return nil
 	}
@@ -13225,7 +13214,6 @@ func (this *Binance) ParseIncome(income any, optionalArgs ...any) any {
  * @method
  * @name binance#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://developers.binance.com/docs/wallet/asset/user-universal-transfer // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-wallet/api/rest-api/asset#user-universal-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
@@ -13351,6 +13339,7 @@ func (this *Binance) transferBody(ch chan AsyncResult[map[string]any], code stri
  * @name binance#fetchTransfers
  * @description fetch a history of internal transfers made on an account
  * @see https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
+ * @see https://developers.binance.com/docs/pay/rest-api/Get-Pay-Trade-History
  * @param {string} code unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfers structures to retrieve
@@ -13393,11 +13382,11 @@ func (this *Binance) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1018819 []any = ListTyped(r1.Value)
-		if retRes1018819 == nil {
+		var retRes1017719 []any = ListTyped(r1.Value)
+		if retRes1017719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1018819}
+			ch <- AsyncResult[any]{Value: retRes1017719}
 		}
 		return nil
 	}
@@ -13745,11 +13734,11 @@ func (this *Binance) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
 		}
 	}
 
-	listEp12967 := <-this.SapiGetCapitalConfigGetall(params)
-	if listEp12967.Err != nil {
-		panic(listEp12967.Err)
+	listEp12959 := <-this.SapiGetCapitalConfigGetall(params)
+	if listEp12959.Err != nil {
+		panic(listEp12959.Err)
 	}
-	var response []any = listEp12967.Value
+	var response []any = listEp12959.Value
 
 	//
 	//    [
@@ -14082,8 +14071,6 @@ func (this *Binance) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
  * @name binance#fetchTradingFees
  * @description fetch the trading fees for multiple markets
  * @see https://developers.binance.com/docs/wallet/asset/trade-fee
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -14313,7 +14300,6 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs
  * @name binance#futuresTransfer
  * @ignore
  * @description transfer between futures account
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer // deprecated
  * @param {string} code unified currency code
  * @param {float} amount the amount to transfer
  * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
@@ -14482,11 +14468,11 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1107719 []any = ListTyped(r1.Value)
-		if retRes1107719 == nil {
+		var retRes1106319 []any = ListTyped(r1.Value)
+		if retRes1106319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1107719}
+			ch <- AsyncResult[any]{Value: retRes1106319}
 		}
 		return nil
 	}
@@ -14514,18 +14500,18 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		listEp13672 := <-this.FapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
-		if listEp13672.Err != nil {
-			panic(listEp13672.Err)
+		listEp13661 := <-this.FapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
+		if listEp13661.Err != nil {
+			panic(listEp13661.Err)
 		}
-		response = listEp13672.Value
+		response = listEp13661.Value
 	} else if this.IsInverse(typeVar, subType) {
 
-		listEp13675 := <-this.DapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
-		if listEp13675.Err != nil {
-			panic(listEp13675.Err)
+		listEp13664 := <-this.DapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
+		if listEp13664.Err != nil {
+			panic(listEp13664.Err)
 		}
-		response = listEp13675.Value
+		response = listEp13664.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() is not supported for " + *typeVar + " markets"))
 	}
@@ -14598,18 +14584,18 @@ func (this *Binance) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArg
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		listEp13745 := <-this.FapiPublicGetPremiumIndex(query)
-		if listEp13745.Err != nil {
-			panic(listEp13745.Err)
+		listEp13734 := <-this.FapiPublicGetPremiumIndex(query)
+		if listEp13734.Err != nil {
+			panic(listEp13734.Err)
 		}
-		response = listEp13745.Value
+		response = listEp13734.Value
 	} else if this.IsInverse(typeVar, subType) {
 
-		listEp13748 := <-this.DapiPublicGetPremiumIndex(query)
-		if listEp13748.Err != nil {
-			panic(listEp13748.Err)
+		listEp13737 := <-this.DapiPublicGetPremiumIndex(query)
+		if listEp13737.Err != nil {
+			panic(listEp13737.Err)
 		}
-		response = listEp13748.Value
+		response = listEp13737.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRates() supports linear and inverse contracts only"))
 	}
@@ -15407,7 +15393,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan AsyncResult[any], optional
  * @name binance#fetchLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Symbol
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
  * @param {string[]|undefined} symbols list of unified market symbols
@@ -15570,7 +15556,6 @@ func (this *Binance) ParseMarketLeverageTiers(info any, optionalArgs ...any) any
  * @method
  * @name binance#fetchPosition
  * @description fetch data on an open position
- * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -15601,11 +15586,11 @@ func (this *Binance) fetchPositionBody(ch chan AsyncResult[any], symbol any, opt
 		"symbol": market["id"],
 	}
 
-	listEp14647 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
-	if listEp14647.Err != nil {
-		panic(listEp14647.Err)
+	listEp14635 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
+	if listEp14635.Err != nil {
+		panic(listEp14635.Err)
 	}
-	var response []any = listEp14647.Value
+	var response []any = listEp14635.Value
 
 	//
 	//     [
@@ -15638,7 +15623,6 @@ func (this *Binance) fetchPositionBody(ch chan AsyncResult[any], symbol any, opt
  * @method
  * @name binance#fetchOptionPositions
  * @description fetch data on open options positions
- * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -15686,11 +15670,11 @@ func (this *Binance) fetchOptionPositionsBody(ch chan AsyncResult[[]any], option
 		request["symbol"] = market["id"]
 	}
 
-	listEp14725 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
-	if listEp14725.Err != nil {
-		panic(listEp14725.Err)
+	listEp14712 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
+	if listEp14712.Err != nil {
+		panic(listEp14712.Err)
 	}
-	var response []any = listEp14725.Value
+	var response []any = listEp14712.Value
 	//
 	//     [
 	//         {
@@ -15793,11 +15777,9 @@ func (this *Binance) ParseOptionPosition(position any, optionalArgs ...any) any 
  * @name binance#fetchPositions
  * @description fetch all open positions
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
- * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -15838,11 +15820,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes1213519 []any = r.Value
-		if retRes1213519 == nil {
+		var retRes1211719 []any = r.Value
+		if retRes1211719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1213519}
+			ch <- AsyncResult[any]{Value: retRes1211719}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -15851,11 +15833,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1213719 []any = r1.Value
-		if retRes1213719 == nil {
+		var retRes1211919 []any = r1.Value
+		if retRes1211919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1213719}
+			ch <- AsyncResult[any]{Value: retRes1211919}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "option" {
@@ -15864,11 +15846,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes1213919 []any = r2.Value
-		if retRes1213919 == nil {
+		var retRes1212119 []any = r2.Value
+		if retRes1212119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1213919}
+			ch <- AsyncResult[any]{Value: retRes1212119}
 		}
 		return nil
 	} else {
@@ -15882,11 +15864,10 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
  * @ignore
  * @description fetch account positions
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/account#get-um-account-detail-v2
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
@@ -16259,34 +16240,34 @@ func (this *Binance) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalA
 	if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin {
 
-			listEp15232 := <-this.PapiGetUmIncome(this.Extend(requestUntil, paramsOmitted))
-			if listEp15232.Err != nil {
-				panic(listEp15232.Err)
+			listEp15216 := <-this.PapiGetUmIncome(this.Extend(requestUntil, paramsOmitted))
+			if listEp15216.Err != nil {
+				panic(listEp15216.Err)
 			}
-			response = listEp15232.Value
+			response = listEp15216.Value
 		} else {
 
-			listEp15235 := <-this.FapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
-			if listEp15235.Err != nil {
-				panic(listEp15235.Err)
+			listEp15219 := <-this.FapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
+			if listEp15219.Err != nil {
+				panic(listEp15219.Err)
 			}
-			response = listEp15235.Value
+			response = listEp15219.Value
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin {
 
-			listEp15240 := <-this.PapiGetCmIncome(this.Extend(requestUntil, paramsOmitted))
-			if listEp15240.Err != nil {
-				panic(listEp15240.Err)
+			listEp15224 := <-this.PapiGetCmIncome(this.Extend(requestUntil, paramsOmitted))
+			if listEp15224.Err != nil {
+				panic(listEp15224.Err)
 			}
-			response = listEp15240.Value
+			response = listEp15224.Value
 		} else {
 
-			listEp15243 := <-this.DapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
-			if listEp15243.Err != nil {
-				panic(listEp15243.Err)
+			listEp15227 := <-this.DapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
+			if listEp15227.Err != nil {
+				panic(listEp15227.Err)
 			}
-			response = listEp15243.Value
+			response = listEp15227.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingHistory() supports linear and inverse contracts only"))
@@ -16508,8 +16489,8 @@ func (this *Binance) setMarginModeBody(ch chan AsyncResult[any], marginMode stri
  * @description set hedged to true or false for a market
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Position-Mode
  * @param {bool} hedged set to true to use dualSidePosition
  * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -16599,8 +16580,6 @@ func (this *Binance) setPositionModeBody(ch chan AsyncResult[any], hedged any, o
  * @method
  * @name binance#fetchLeverages
  * @description fetch the set leverage for all markets
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
@@ -16729,7 +16708,6 @@ func (this *Binance) ParseLeverage(leverage any, optionalArgs ...any) map[string
  * @method
  * @name binance#fetchSettlementHistory
  * @description fetches historical settlement records
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#historical-exercise-records
  * @param {string} symbol unified market symbol of the settlement history
  * @param {int} [since] timestamp in ms
@@ -16787,11 +16765,11 @@ func (this *Binance) fetchSettlementHistoryBody(ch chan AsyncResult[[]any], opti
 		request["limit"] = limit
 	}
 
-	listEp15687 := <-this.EapiPublicGetExerciseHistory(this.Extend(request, paramsMarketType))
-	if listEp15687.Err != nil {
-		panic(listEp15687.Err)
+	listEp15668 := <-this.EapiPublicGetExerciseHistory(this.Extend(request, paramsMarketType))
+	if listEp15668.Err != nil {
+		panic(listEp15668.Err)
 	}
-	var response []any = listEp15687.Value
+	var response []any = listEp15668.Value
 	//
 	//     [
 	//         {
@@ -16814,7 +16792,6 @@ func (this *Binance) fetchSettlementHistoryBody(ch chan AsyncResult[[]any], opti
  * @method
  * @name binance#fetchMySettlementHistory
  * @description fetches historical settlement records of the user
- * @see https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#user-exercise-record
  * @param {string} symbol unified market symbol of the settlement history
  * @param {int} [since] timestamp in ms
@@ -16872,11 +16849,11 @@ func (this *Binance) fetchMySettlementHistoryBody(ch chan AsyncResult[[]any], op
 		request["limit"] = limit
 	}
 
-	listEp15765 := <-this.EapiPrivateGetExerciseRecord(this.Extend(request, paramsMarketType))
-	if listEp15765.Err != nil {
-		panic(listEp15765.Err)
+	listEp15745 := <-this.EapiPrivateGetExerciseRecord(this.Extend(request, paramsMarketType))
+	if listEp15745.Err != nil {
+		panic(listEp15745.Err)
 	}
-	var response []any = listEp15765.Value
+	var response []any = listEp15745.Value
 	//
 	//     [
 	//         {
@@ -16990,7 +16967,6 @@ func (this *Binance) ParseSettlements(settlements any, market any) []any {
  * @method
  * @name binance#fetchLedgerEntry
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#account-funding-flow
  * @param {string} id the identification number of the ledger entry
  * @param {string} code unified currency code
@@ -17053,7 +17029,6 @@ func (this *Binance) fetchLedgerEntryBody(ch chan AsyncResult[map[string]any], i
  * @method
  * @name binance#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#account-funding-flow
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
@@ -17101,11 +17076,11 @@ func (this *Binance) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1304019 []any = ListTyped(r1.Value)
-		if retRes1304019 == nil {
+		var retRes1301519 []any = ListTyped(r1.Value)
+		if retRes1301519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1304019}
+			ch <- AsyncResult[any]{Value: retRes1301519}
 		}
 		return nil
 	}
@@ -17139,42 +17114,42 @@ func (this *Binance) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...a
 		}
 		request["currency"] = GetValue(currency, "id")
 
-		listEp16015 := <-this.EapiPrivateGetBill(this.Extend(request, paramsPaginate))
-		if listEp16015.Err != nil {
-			panic(listEp16015.Err)
+		listEp15993 := <-this.EapiPrivateGetBill(this.Extend(request, paramsPaginate))
+		if listEp15993.Err != nil {
+			panic(listEp15993.Err)
 		}
-		response = listEp16015.Value
+		response = listEp15993.Value
 	} else if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			listEp16019 := <-this.PapiGetUmIncome(this.Extend(request, paramsPaginate))
-			if listEp16019.Err != nil {
-				panic(listEp16019.Err)
+			listEp15997 := <-this.PapiGetUmIncome(this.Extend(request, paramsPaginate))
+			if listEp15997.Err != nil {
+				panic(listEp15997.Err)
 			}
-			response = listEp16019.Value
+			response = listEp15997.Value
 		} else {
 
-			listEp16022 := <-this.FapiPrivateGetIncome(this.Extend(request, paramsPaginate))
-			if listEp16022.Err != nil {
-				panic(listEp16022.Err)
+			listEp16000 := <-this.FapiPrivateGetIncome(this.Extend(request, paramsPaginate))
+			if listEp16000.Err != nil {
+				panic(listEp16000.Err)
 			}
-			response = listEp16022.Value
+			response = listEp16000.Value
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			listEp16027 := <-this.PapiGetCmIncome(this.Extend(request, paramsPaginate))
-			if listEp16027.Err != nil {
-				panic(listEp16027.Err)
+			listEp16005 := <-this.PapiGetCmIncome(this.Extend(request, paramsPaginate))
+			if listEp16005.Err != nil {
+				panic(listEp16005.Err)
 			}
-			response = listEp16027.Value
+			response = listEp16005.Value
 		} else {
 
-			listEp16030 := <-this.DapiPrivateGetIncome(this.Extend(request, paramsPaginate))
-			if listEp16030.Err != nil {
-				panic(listEp16030.Err)
+			listEp16008 := <-this.DapiPrivateGetIncome(this.Extend(request, paramsPaginate))
+			if listEp16008.Err != nil {
+				panic(listEp16008.Err)
 			}
-			response = listEp16030.Value
+			response = listEp16008.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " fetchLedger() supports contract wallets only"))
@@ -17856,11 +17831,11 @@ func (this *Binance) reduceMarginBody(ch chan EndpointResult[map[string]any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes1363315 map[string]any = MapTyped(r.Value)
-	if retRes1363315 == nil {
+	var retRes1360815 map[string]any = MapTyped(r.Value)
+	if retRes1360815 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes1363315, Raw: retRes1363315}
+		ch <- EndpointResult[map[string]any]{Value: retRes1360815, Raw: retRes1360815}
 	}
 	return nil
 }
@@ -17891,11 +17866,11 @@ func (this *Binance) addMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes1364815 map[string]any = MapTyped(r.Value)
-	if retRes1364815 == nil {
+	var retRes1362315 map[string]any = MapTyped(r.Value)
+	if retRes1362315 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes1364815}
+		ch <- AsyncResult[map[string]any]{Value: retRes1362315}
 	}
 	return nil
 }
@@ -18800,11 +18775,11 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symb
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1428019 []any = ListTyped(r1.Value)
-		if retRes1428019 == nil {
+		var retRes1425519 []any = ListTyped(r1.Value)
+		if retRes1425519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1428019}
+			ch <- AsyncResult[any]{Value: retRes1425519}
 		}
 		return nil
 	}
@@ -18845,18 +18820,18 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symb
 	var response []any = nil
 	if market["inverse"] == true {
 
-		listEp17596 := <-this.DapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
-		if listEp17596.Err != nil {
-			panic(listEp17596.Err)
+		listEp17574 := <-this.DapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
+		if listEp17574.Err != nil {
+			panic(listEp17574.Err)
 		}
-		response = listEp17596.Value
+		response = listEp17574.Value
 	} else {
 
-		listEp17599 := <-this.FapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
-		if listEp17599.Err != nil {
-			panic(listEp17599.Err)
+		listEp17577 := <-this.FapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
+		if listEp17577.Err != nil {
+			panic(listEp17577.Err)
 		}
-		response = listEp17599.Value
+		response = listEp17577.Value
 	}
 
 	//
@@ -18880,7 +18855,6 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symb
  * @description retrieves the open interest of a contract trading pair
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#open-interest
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
@@ -19022,6 +18996,7 @@ func (this *Binance) ParseOpenInterest(interest any, optionalArgs ...any) map[st
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Users-Force-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-Margin-Force-Orders
  * @param {string} [symbol] unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -19063,11 +19038,11 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan AsyncResult[any], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1445819 []any = ListTyped(r1.Value)
-		if retRes1445819 == nil {
+		var retRes1443319 []any = ListTyped(r1.Value)
+		if retRes1443319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1445819}
+			ch <- AsyncResult[any]{Value: retRes1443319}
 		}
 		return nil
 	}
@@ -19334,7 +19309,6 @@ func (this *Binance) ParseLiquidation(liquidation any, optionalArgs ...any) any 
  * @method
  * @name binance#fetchGreeks
  * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#option-mark-price
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -19362,11 +19336,11 @@ func (this *Binance) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol
 		"symbol": market["id"],
 	}
 
-	listEp18062 := <-this.EapiPublicGetMark(this.Extend(request, params))
-	if listEp18062.Err != nil {
-		panic(listEp18062.Err)
+	listEp18039 := <-this.EapiPublicGetMark(this.Extend(request, params))
+	if listEp18039.Err != nil {
+		panic(listEp18039.Err)
 	}
-	var response []any = listEp18062.Value
+	var response []any = listEp18039.Value
 
 	//
 	//     [
@@ -19393,7 +19367,6 @@ func (this *Binance) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol
  * @method
  * @name binance#fetchAllGreeks
  * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#option-mark-price
  * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -19434,11 +19407,11 @@ func (this *Binance) fetchAllGreeksBody(ch chan AsyncResult[any], optionalArgs .
 		}
 	}
 
-	listEp18127 := <-this.EapiPublicGetMark(this.Extend(request, params))
-	if listEp18127.Err != nil {
-		panic(listEp18127.Err)
+	listEp18103 := <-this.EapiPublicGetMark(this.Extend(request, params))
+	if listEp18103.Err != nil {
+		panic(listEp18103.Err)
 	}
-	var response []any = listEp18127.Value
+	var response []any = listEp18103.Value
 
 	//
 	//     [
@@ -19520,8 +19493,8 @@ func (this *Binance) fetchTradingLimitsBody(ch chan EndpointResult[map[string]an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv18267, _ := r.Value.([]any)
-	var markets []any = listRecv18267
+	listRecv18243, _ := r.Value.([]any)
+	var markets []any = listRecv18243
 	var tradingLimits map[string]any = map[string]any{}
 	for i := 0; i < len(markets); i++ {
 		var market any = GetValue(markets, i)
@@ -19605,9 +19578,7 @@ func (this *Binance) fetchPositionModeBody(ch chan EndpointResult[map[string]any
  * @method
  * @name binance#fetchMarginModes
  * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -19676,7 +19647,6 @@ func (this *Binance) fetchMarginModesBody(ch chan AsyncResult[any], optionalArgs
  * @name binance#fetchMarginMode
  * @description fetches the margin mode of a specific symbol
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -19708,11 +19678,11 @@ func (this *Binance) fetchMarginModeBody(ch chan AsyncResult[any], symbol any, o
 			"symbol": market["id"],
 		}
 
-		listEp18371 := <-this.FapiPrivateGetSymbolConfig(this.Extend(request, paramsSubType))
-		if listEp18371.Err != nil {
-			panic(listEp18371.Err)
+		listEp18344 := <-this.FapiPrivateGetSymbolConfig(this.Extend(request, paramsSubType))
+		if listEp18344.Err != nil {
+			panic(listEp18344.Err)
 		}
-		response = listEp18371.Value
+		response = listEp18344.Value
 	} else if subType != nil && *subType == "inverse" {
 
 		r1 := <-this.FetchMarginModesAsync([]any{symbol}, paramsSubType)
@@ -19769,7 +19739,6 @@ func (this *Binance) ParseMarginMode(marginMode any, optionalArgs ...any) map[st
  * @method
  * @name binance#fetchOption
  * @description fetches option data that is commonly found in an option chain
- * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -19797,11 +19766,11 @@ func (this *Binance) fetchOptionBody(ch chan AsyncResult[map[string]any], symbol
 		"symbol": market["id"],
 	}
 
-	listEp18450 := <-this.EapiPublicGetTicker(this.Extend(request, params))
-	if listEp18450.Err != nil {
-		panic(listEp18450.Err)
+	listEp18422 := <-this.EapiPublicGetTicker(this.Extend(request, params))
+	if listEp18422.Err != nil {
+		panic(listEp18422.Err)
 	}
-	var response []any = listEp18450.Value
+	var response []any = listEp18422.Value
 	//
 	//     [
 	//         {
@@ -19949,18 +19918,18 @@ func (this *Binance) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]any]
 	var response []any = nil
 	if market["linear"] == true {
 
-		listEp18595 := <-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
-		if listEp18595.Err != nil {
-			panic(listEp18595.Err)
+		listEp18567 := <-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
+		if listEp18567.Err != nil {
+			panic(listEp18567.Err)
 		}
-		response = listEp18595.Value
+		response = listEp18567.Value
 	} else if market["inverse"] == true {
 
-		listEp18598 := <-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
-		if listEp18598.Err != nil {
-			panic(listEp18598.Err)
+		listEp18570 := <-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
+		if listEp18570.Err != nil {
+			panic(listEp18570.Err)
 		}
-		response = listEp18598.Value
+		response = listEp18570.Value
 	} else {
 		panic(BadRequest(Add(this.Id+" fetchMarginAdjustmentHistory () is not supported for markets of type ", market["type"])))
 	}
@@ -20014,11 +19983,11 @@ func (this *Binance) fetchConvertCurrenciesBody(ch chan EndpointResult[map[strin
 		}
 	}
 
-	listEp18649 := <-this.SapiGetConvertAssetInfo(params)
-	if listEp18649.Err != nil {
-		panic(listEp18649.Err)
+	listEp18621 := <-this.SapiGetConvertAssetInfo(params)
+	if listEp18621.Err != nil {
+		panic(listEp18621.Err)
 	}
-	var response []any = listEp18649.Value
+	var response []any = listEp18621.Value
 	//
 	//     [
 	//         {
@@ -20514,18 +20483,18 @@ func (this *Binance) fetchFundingIntervalsBody(ch chan AsyncResult[map[string]an
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		listEp19109 := <-this.FapiPublicGetFundingInfo(paramsSubType)
-		if listEp19109.Err != nil {
-			panic(listEp19109.Err)
+		listEp19081 := <-this.FapiPublicGetFundingInfo(paramsSubType)
+		if listEp19081.Err != nil {
+			panic(listEp19081.Err)
 		}
-		response = listEp19109.Value
+		response = listEp19081.Value
 	} else if this.IsInverse(typeVar, subType) {
 
-		listEp19112 := <-this.DapiPublicGetFundingInfo(paramsSubType)
-		if listEp19112.Err != nil {
-			panic(listEp19112.Err)
+		listEp19084 := <-this.DapiPublicGetFundingInfo(paramsSubType)
+		if listEp19084.Err != nil {
+			panic(listEp19084.Err)
 		}
-		response = listEp19112.Value
+		response = listEp19084.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingIntervals() supports linear and inverse swap contracts only"))
 	}
@@ -20606,19 +20575,19 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan AsyncResult[any], op
 	if subType != nil && *subType == "linear" {
 		AddElementToObject(requestUntil, "symbol", market["id"])
 
-		listEp19190 := <-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
-		if listEp19190.Err != nil {
-			panic(listEp19190.Err)
+		listEp19162 := <-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
+		if listEp19162.Err != nil {
+			panic(listEp19162.Err)
 		}
-		response = listEp19190.Value
+		response = listEp19162.Value
 	} else if subType != nil && *subType == "inverse" {
 		requestUntil["pair"] = GetValue(market["info"], "pair")
 
-		listEp19194 := <-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
-		if listEp19194.Err != nil {
-			panic(listEp19194.Err)
+		listEp19166 := <-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
+		if listEp19166.Err != nil {
+			panic(listEp19166.Err)
 		}
-		response = listEp19194.Value
+		response = listEp19166.Value
 	} else {
 		panic(BadRequest(this.Id + " fetchLongShortRatioHistory() supports linear and inverse subTypes only"))
 	}
@@ -20752,34 +20721,34 @@ func (this *Binance) fetchPositionsADLRankBody(ch chan AsyncResult[any], optiona
 	if subType != nil && *subType == "linear" {
 		if isPortfolioMargin {
 
-			listEp19318 := <-this.PapiGetUmAdlQuantile(paramsPapi)
-			if listEp19318.Err != nil {
-				panic(listEp19318.Err)
+			listEp19290 := <-this.PapiGetUmAdlQuantile(paramsPapi)
+			if listEp19290.Err != nil {
+				panic(listEp19290.Err)
 			}
-			response = listEp19318.Value
+			response = listEp19290.Value
 		} else {
 
-			listEp19321 := <-this.FapiPrivateGetAdlQuantile(paramsPapi)
-			if listEp19321.Err != nil {
-				panic(listEp19321.Err)
+			listEp19293 := <-this.FapiPrivateGetAdlQuantile(paramsPapi)
+			if listEp19293.Err != nil {
+				panic(listEp19293.Err)
 			}
-			response = listEp19321.Value
+			response = listEp19293.Value
 		}
 	} else if subType != nil && *subType == "inverse" {
 		if isPortfolioMargin {
 
-			listEp19326 := <-this.PapiGetCmAdlQuantile(paramsPapi)
-			if listEp19326.Err != nil {
-				panic(listEp19326.Err)
+			listEp19298 := <-this.PapiGetCmAdlQuantile(paramsPapi)
+			if listEp19298.Err != nil {
+				panic(listEp19298.Err)
 			}
-			response = listEp19326.Value
+			response = listEp19298.Value
 		} else {
 
-			listEp19329 := <-this.DapiPrivateGetAdlQuantile(paramsPapi)
-			if listEp19329.Err != nil {
-				panic(listEp19329.Err)
+			listEp19301 := <-this.DapiPrivateGetAdlQuantile(paramsPapi)
+			if listEp19301.Err != nil {
+				panic(listEp19301.Err)
 			}
-			response = listEp19329.Value
+			response = listEp19301.Value
 		}
 	} else {
 		panic(BadRequest(this.Id + " fetchPositionsADLRank() supports linear and inverse subTypes only"))
@@ -20896,7 +20865,7 @@ func (this *Binance) FetchTime(params ...any) (int64, error) {
  * @name binance#fetchCurrencies
  * @description fetches all available currencies on an exchange
  * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
- * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-margin-trading/api/rest-api/market-data#get-all-cross-margin-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -20916,7 +20885,6 @@ func (this *Binance) FetchCurrencies(params ...any) (Currencies, error) {
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information               // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information         // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information         // future
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                                 // option // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#exchange-information // option
  * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                               // cross margin
  * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                           // isolated margin
@@ -20937,13 +20905,12 @@ func (this *Binance) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @method
  * @name binance#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data  // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-account           // spot
  * @see https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
  * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
  * @see https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     // funding
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Futures-Account-Balance      // future
- * @see https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           // option // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information // option
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -20967,11 +20934,10 @@ func (this *Binance) FetchBalance(params ...any) (Balances, error) {
  * @method
  * @name binance#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book       // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#depth        // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book     // swap
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI // swap rpi
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book     // future
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                             // option // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#order-book // option
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
@@ -21019,7 +20985,6 @@ func (this *Binance) FetchStatus(params ...any) (Status, error) {
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#rolling-window-price-change-statistics  // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
- * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics // option
  * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             // stock
  * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -21046,10 +21011,10 @@ func (this *Binance) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @method
  * @name binance#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker-book-ticker     // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
- * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
+ * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics     // option
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -21074,7 +21039,7 @@ func (this *Binance) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, er
  * @method
  * @name binance#fetchLastPrices
  * @description fetches the last price for multiple markets
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker    // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker-price       // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // future
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
@@ -21101,10 +21066,9 @@ func (this *Binance) FetchLastPrices(options ...FetchLastPricesOptions) (LastPri
  * @method
  * @name binance#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics    // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker24hr                         // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // future
- * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics // option
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -21185,19 +21149,16 @@ func (this *Binance) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers
  * @method
  * @name binance#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data // deprecated
- * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#kline-candlestick-data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data // deprecated
- * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#kline-candlestick-data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data // deprecated
- * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/market-data#kline-candlestick-data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#klines // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#kline-candlestick-data // option
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#kline-candlestick-data // swap
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data // swap index
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data // swap mark
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data // swap premium
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/market-data#kline-candlestick-data // future
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data // future index
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data // future mark
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data // future premium
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -21231,22 +21192,20 @@ func (this *Binance) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option) // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#recent-trades-list // eapiPublicGetTrades (option)
  * Other fetchTradesMethod
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#get-trades                     // publicGetTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   // publicGetHistoricalTrades (spot)
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#historical-trades              // publicGetHistoricalTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option) // deprecated
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
  * @param {int} [limit] default 500, max 1000
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
- * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+ * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades'
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  *
  * EXCHANGE SPECIFIC PARAMETERS
@@ -21273,7 +21232,7 @@ func (this *Binance) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @name binance#editSpotOrder
  * @ignore
  * @description edit a trade order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-cancel-replace
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
@@ -21336,7 +21295,7 @@ func (this *Binance) EditContractOrder(id string, symbol string, typeVar string,
  * @method
  * @name binance#editOrder
  * @description edit a trade order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-cancel-replace
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
  * @param {string} id cancel order id
@@ -21394,7 +21353,6 @@ func (this *Binance) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
  * @description *contract only* create a list of trade orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#place-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -21419,18 +21377,17 @@ func (this *Binance) CreateOrders(orders []OrderRequest, options ...CreateOrders
  * @method
  * @name binance#createOrder
  * @description create a trade order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
  * @see https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#test-new-order-trade
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api
- * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order // deprecated
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/trade#new-order
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#new-order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#sor-order
  * @see https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#sor
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#new-um-algo-order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
  * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#place-equity-order
@@ -21478,7 +21435,7 @@ func (this *Binance) CreateOrder(symbol string, typeVar string, side string, amo
  * @method
  * @name binance#createMarketOrderWithCost
  * @description create a market order by providing the symbol, side and cost
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
@@ -21504,7 +21461,7 @@ func (this *Binance) CreateMarketOrderWithCost(symbol string, side string, cost 
  * @method
  * @name binance#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -21529,7 +21486,7 @@ func (this *Binance) CreateMarketBuyOrderWithCost(symbol string, cost float64, o
  * @method
  * @name binance#createMarketSellOrderWithCost
  * @description create a market sell order by providing the symbol and cost
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -21554,10 +21511,9 @@ func (this *Binance) CreateMarketSellOrderWithCost(symbol string, cost float64, 
  * @method
  * @name binance#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#query-order-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-single-order
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
@@ -21592,15 +21548,14 @@ func (this *Binance) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @method
  * @name binance#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-um-algo-order-history
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
  * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
@@ -21635,14 +21590,13 @@ func (this *Binance) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
  * @method
  * @name binance#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#current-open-orders-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-open-orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-current-open-option-orders
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-all-current-um-open-algo-orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
@@ -21680,7 +21634,7 @@ func (this *Binance) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Current-Open-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-current-um-open-algo-order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
  * @param {string} id order id
@@ -21709,15 +21663,14 @@ func (this *Binance) FetchOpenOrder(id string, options ...FetchOpenOrderOptions)
  * @method
  * @name binance#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-um-algo-order-history
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
  * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
  * @param {string} [symbol] unified market symbol of the market orders were made in
@@ -21749,10 +21702,9 @@ func (this *Binance) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @method
  * @name binance#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -21792,7 +21744,6 @@ func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -21829,15 +21780,14 @@ func (this *Binance) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClo
  * @method
  * @name binance#cancelOrder
  * @description cancels an open order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#delete-order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order
- * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#cancel-option-order
  * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#cancel-um-algo-order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
@@ -21869,16 +21819,13 @@ func (this *Binance) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @method
  * @name binance#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders // deprecated
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#delete-open-orders
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/trade#cancel-all-open-orders
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/trade#cancel-all-open-orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#cancel-all-option-orders-on-specific-symbol
  * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#cancel-all-um-algo-open-orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
@@ -21942,7 +21889,7 @@ func (this *Binance) CancelOrders(ids []string, options ...CancelOrdersOptions) 
  * @method
  * @name binance#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-trades
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
@@ -21972,14 +21919,14 @@ func (this *Binance) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
  * @method
  * @name binance#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-trades
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
- * @see https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#account-trade-list
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Trade-List
  * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-trade-history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -22097,7 +22044,6 @@ func (this *Binance) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
  * @method
  * @name binance#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://developers.binance.com/docs/wallet/asset/user-universal-transfer // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-wallet/api/rest-api/asset#user-universal-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
@@ -22128,6 +22074,7 @@ func (this *Binance) Transfer(code string, amount float64, fromAccount string, t
  * @name binance#fetchTransfers
  * @description fetch a history of internal transfers made on an account
  * @see https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
+ * @see https://developers.binance.com/docs/pay/rest-api/Get-Pay-Trade-History
  * @param {string} code unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfers structures to retrieve
@@ -22288,8 +22235,6 @@ func (this *Binance) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
  * @name binance#fetchTradingFees
  * @description fetch the trading fees for multiple markets
  * @see https://developers.binance.com/docs/wallet/asset/trade-fee
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -22391,7 +22336,7 @@ func (this *Binance) FetchFundingRates(options ...FetchFundingRatesOptions) (Fun
  * @name binance#fetchLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Symbol
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
  * @param {string[]|undefined} symbols list of unified market symbols
@@ -22419,7 +22364,6 @@ func (this *Binance) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (L
  * @method
  * @name binance#fetchPosition
  * @description fetch data on an open position
- * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -22444,7 +22388,6 @@ func (this *Binance) FetchPosition(symbol string, options ...FetchPositionOption
  * @method
  * @name binance#fetchOptionPositions
  * @description fetch data on open options positions
- * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -22470,11 +22413,9 @@ func (this *Binance) FetchOptionPositions(options ...FetchOptionPositionsOptions
  * @name binance#fetchPositions
  * @description fetch all open positions
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
- * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -22504,11 +22445,10 @@ func (this *Binance) FetchPositions(options ...FetchPositionsOptions) ([]Positio
  * @ignore
  * @description fetch account positions
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/account#get-um-account-detail-v2
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
@@ -22658,8 +22598,8 @@ func (this *Binance) SetMarginMode(marginMode string, options ...SetMarginModeOp
  * @description set hedged to true or false for a market
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Position-Mode
  * @param {bool} hedged set to true to use dualSidePosition
  * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -22686,8 +22626,6 @@ func (this *Binance) SetPositionMode(hedged bool, options ...SetPositionModeOpti
  * @method
  * @name binance#fetchLeverages
  * @description fetch the set leverage for all markets
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
@@ -22716,7 +22654,6 @@ func (this *Binance) FetchLeverages(options ...FetchLeveragesOptions) (Leverages
  * @method
  * @name binance#fetchSettlementHistory
  * @description fetches historical settlement records
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#historical-exercise-records
  * @param {string} symbol unified market symbol of the settlement history
  * @param {int} [since] timestamp in ms
@@ -22743,7 +22680,6 @@ func (this *Binance) FetchSettlementHistory(options ...FetchSettlementHistoryOpt
  * @method
  * @name binance#fetchMySettlementHistory
  * @description fetches historical settlement records of the user
- * @see https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#user-exercise-record
  * @param {string} symbol unified market symbol of the settlement history
  * @param {int} [since] timestamp in ms
@@ -22770,7 +22706,6 @@ func (this *Binance) FetchMySettlementHistory(options ...FetchMySettlementHistor
  * @method
  * @name binance#fetchLedgerEntry
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#account-funding-flow
  * @param {string} id the identification number of the ledger entry
  * @param {string} code unified currency code
@@ -22796,7 +22731,6 @@ func (this *Binance) FetchLedgerEntry(id string, options ...FetchLedgerEntryOpti
  * @method
  * @name binance#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#account-funding-flow
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
@@ -23015,7 +22949,6 @@ func (this *Binance) FetchOpenInterestHistory(symbol string, options ...FetchOpe
  * @description retrieves the open interest of a contract trading pair
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#open-interest
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
@@ -23045,6 +22978,7 @@ func (this *Binance) FetchOpenInterest(symbol string, options ...FetchOpenIntere
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Users-Force-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-Margin-Force-Orders
  * @param {string} [symbol] unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -23075,7 +23009,6 @@ func (this *Binance) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) 
  * @method
  * @name binance#fetchGreeks
  * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#option-mark-price
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -23100,7 +23033,6 @@ func (this *Binance) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
  * @method
  * @name binance#fetchAllGreeks
  * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#option-mark-price
  * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -23165,9 +23097,7 @@ func (this *Binance) FetchPositionMode(options ...FetchPositionModeOptions) (Pos
  * @method
  * @name binance#fetchMarginModes
  * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -23194,7 +23124,6 @@ func (this *Binance) FetchMarginModes(options ...FetchMarginModesOptions) (Margi
  * @name binance#fetchMarginMode
  * @description fetches the margin mode of a specific symbol
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -23220,7 +23149,6 @@ func (this *Binance) FetchMarginMode(symbol string, options ...FetchMarginModeOp
  * @method
  * @name binance#fetchOption
  * @description fetches option data that is commonly found in an option chain
- * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint

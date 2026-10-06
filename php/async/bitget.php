@@ -4765,7 +4765,8 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
          * @see https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
          * @see https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
-         * @see https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
+         * @see https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick
+         * @see https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick-history
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -4774,7 +4775,7 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [$params->useHistoryEndpoint] whether to force to use historical endpoint (it has max $limit of 200)
+         * @param {boolean} [$params->useHistoryEndpoint] whether to force to use historical endpoint (it has max $limit of 200, 100 for $uta)
          * @param {boolean} [$params->useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->price] *swap only* "mark" (to fetch mark price $candles) or "index" (to fetch index price $candles)
@@ -4789,9 +4790,14 @@ class bitget extends Exchange {
         $useHistoryEndpoint = $this->safe_bool($params, 'useHistoryEndpoint', false);
         $useHistoryEndpointForPagination = $this->safe_bool($params, 'useHistoryEndpointForPagination', true);
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($paramsPaginate, 'fetchOHLCV', false));
+        if ($uta === true) {
+            $maxLimitForHistoryEndpoint = 100; // the uta history endpoint rejects a limit above 100
+        }
         if ($paginate) {
             $limitForPagination = ($useHistoryEndpointForPagination === true) ? $maxLimitForHistoryEndpoint : $maxLimitForRecentEndpoint;
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $limitForPagination));
+            $paramsWithUta = $this->extend($paramsUTA, array( 'uta' => $uta ));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsWithUta, $limitForPagination));
         }
         $market = $this->market($symbol);
         $request = array(
@@ -4800,7 +4806,6 @@ class bitget extends Exchange {
         $marketType = null;
         $timeframes = null;
         $timeframesOption = $this->handle_option('fetchOHLCV', 'timeframes');
-        list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($paramsPaginate, 'fetchOHLCV', false));
         if ($uta === true) {
             $timeframes = $timeframesOption['uta'];
             $request['interval'] = $this->safe_string($timeframes, $timeframe, $timeframe);
@@ -4896,7 +4901,11 @@ class bitget extends Exchange {
                 }
             }
             $request['category'] = $productType;
-            $response = Async\await($this->publicUtaGetV3MarketCandles($this->extend($request, $paramsProductType)));
+            if ($historicalEndpointNeeded) {
+                $response = Async\await($this->publicUtaGetV3MarketHistoryCandles($this->extend($request, $paramsProductType)));
+            } else {
+                $response = Async\await($this->publicUtaGetV3MarketCandles($this->extend($request, $paramsProductType)));
+            }
         } elseif ($market['spot'] === true) {
             // checks if we need history endpoint
             if ($historicalEndpointNeeded) {
@@ -4991,7 +5000,7 @@ class bitget extends Exchange {
                 $results = $this->safe_dict($response, 'data', array());
                 $assets = $this->safe_list($results, 'assets', array());
             }
-            return $this->parse_uta_balance($assets);
+            return $this->parse_uta_balance($assets, $response);
         } elseif (($marketType === 'swap') || ($marketType === 'future')) {
             $productType = null;
             list($productType, $paramsUTA) = $this->handle_product_type_and_params(null, $paramsUTA);
@@ -5145,8 +5154,9 @@ class bitget extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_uta_balance(array $balance): array {
-        $result = array( 'info' => $balance );
+    public function parse_uta_balance(array $balance, ?array $response = null): array {
+        $info = ($response !== null) ? $response : $balance;
+        $result = array( 'info' => $info );
         //
         // uta
         //
@@ -9613,9 +9623,11 @@ class bitget extends Exchange {
          * fetch the current funding rates for all markets
          *
          * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+         * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
          *
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {string} [$params->method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
@@ -9631,11 +9643,19 @@ class bitget extends Exchange {
         }
         $request = array();
         list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $params);
+        list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($paramsProductType, 'fetchFundingRates', false));
         $method = 'publicMixGetV2MixMarketTickers';
-        list($methodOption, $paramsMethod) = $this->handle_option_string_and_params($paramsProductType, 'fetchFundingRates', 'method', $method);
+        list($methodOption, $paramsMethod) = $this->handle_option_string_and_params($paramsUTA, 'fetchFundingRates', 'method', $method);
         $response = null;
-        $request['productType'] = $productType;
-        if ($methodOption === 'publicMixGetV2MixMarketTickers') {
+        if ($uta === true) {
+            $request['category'] = $productType;
+            if ($methodOption === 'publicMixGetV2MixMarketTickers') {
+                $response = Async\await($this->publicUtaGetV3MarketTickers($this->extend($request, $paramsMethod)));
+            } elseif ($methodOption === 'publicMixGetV2MixMarketCurrentFundRate') {
+                $response = Async\await($this->publicUtaGetV3MarketCurrentFundRate($this->extend($request, $paramsMethod)));
+            }
+        } elseif ($methodOption === 'publicMixGetV2MixMarketTickers') {
+            $request['productType'] = $productType;
             // {
             //     "code": "00000",
             //     "msg": "success",
@@ -9670,6 +9690,7 @@ class bitget extends Exchange {
             // }
             $response = Async\await($this->publicMixGetV2MixMarketTickers($this->extend($request, $paramsMethod)));
         } elseif ($methodOption === 'publicMixGetV2MixMarketCurrentFundRate') {
+            $request['productType'] = $productType;
             //
             //     {
             //         "code": "00000",
@@ -9703,9 +9724,11 @@ class bitget extends Exchange {
          * fetch the funding rate interval for multiple markets
          *
          * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+         * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
          * @param {string} [$params->productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
