@@ -4312,7 +4312,6 @@ virtual std::shared_future<ccxt::any> runBrokerIdTests() {
                               this->testMexc(),
                               this->testHtx(),
                               this->testWoo(),
-                              this->testCoinex(),
                               this->testBingx(),
                               this->testPhemex(),
                               this->testBlofin(),
@@ -5674,47 +5673,6 @@ virtual std::shared_future<ccxt::any> testWoo() {
                                clientOrderIdStop),
                            std::string(" does not start with id: ")),
                        idString));
-               if (!isTrue(isSync())) {
-                 awaitValue(close(exchange));
-               }
-               return true;
-             })
-      .share();
-}
-
-virtual std::shared_future<ccxt::any> testCoinex() {
-  return std::async(
-             std::launch::deferred,
-             [=]() mutable -> ccxt::any {
-               ccxt::any exchange =
-                   this->initOfflineExchange(std::string("coinex"));
-               ccxt::any id = std::string("x-167673045");
-               assertTrue(
-                   isEqual(
-                       ::getValue(getProperty(exchange, std::string("options")),
-                                  std::string("brokerId")),
-                       id),
-                   add(add(std::string("coinex - id: "), id),
-                       std::string(" not in options")));
-               ccxt::any spotOrderRequest = ccxt::dict{};
-               try {
-                 awaitValue(callDynamically(
-                     exchange, std::string("createOrder"),
-                     ccxt::list{std::string("BTC/USDT"), std::string("limit"),
-                                std::string("buy"), 1, 20000}));
-               } catch (...) {
-                 std::exception_ptr e = std::current_exception();
-                 spotOrderRequest = jsonParse(
-                     getProperty(exchange, std::string("last_request_body")));
-               }
-               ccxt::any clientOrderId =
-                   ::getValue(spotOrderRequest, std::string("client_id"));
-               ccxt::any idString = toString(id);
-               assertTrue(isEqual(startsWith(clientOrderId, idString), true),
-                          add(add(add(std::string("coinex - clientOrderId: "),
-                                      clientOrderId),
-                                  std::string(" does not start with id: ")),
-                              idString));
                if (!isTrue(isSync())) {
                  awaitValue(close(exchange));
                }

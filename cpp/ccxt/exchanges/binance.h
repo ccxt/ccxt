@@ -5523,9 +5523,9 @@ public:
                             std::string("OperationRejected")},
                            {std::string("-2013"), std::string("OrderNotFound")},
                            {std::string("-2014"),
-                            std::string("OperationRejected")},
+                            std::string("AuthenticationError")},
                            {std::string("-2015"),
-                            std::string("OperationRejected")},
+                            std::string("AuthenticationError")},
                            {std::string("-2016"),
                             std::string("OperationFailed")},
                            {std::string("-2018"),
@@ -6343,7 +6343,7 @@ public:
    * @description fetches all available currencies on an exchange
    * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
    * @see
-   * https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
+   * https://developers.binance.com/en/docs/catalog/core-trading-margin-trading/api/rest-api/market-data#get-all-cross-margin-pairs
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @returns {object} an associative dictionary of currencies
@@ -6665,9 +6665,6 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information
    * // future
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information
-   * // option // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#exchange-information
    * // option
@@ -7579,7 +7576,7 @@ public:
    * @description query for balance and get the amount of funds available for
    * trading or funds locked in orders
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-account
    * // spot
    * @see
    * https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details
@@ -7595,9 +7592,6 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Futures-Account-Balance
    * // future
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information
-   * // option // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information
    * // option
@@ -7928,7 +7922,7 @@ public:
    * @description fetches information on open orders with bid (buy) and ask
    * (sell) prices, volumes and other data
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#depth
    * // spot
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book
@@ -7939,9 +7933,6 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book
    * // future
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/Order-Book
-   * // option // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#order-book
    * // option
@@ -8339,9 +8330,6 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics
    * // future
    * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
-   * // option // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics
    * // option
    * @see
@@ -8444,7 +8432,7 @@ public:
    * @name binance#fetchBidsAsks
    * @description fetches the bid and ask price and volume for multiple markets
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker-book-ticker
    * // spot
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker
@@ -8542,7 +8530,7 @@ public:
    * @name binance#fetchLastPrices
    * @description fetches the last price for multiple markets
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker-price
    * // spot
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker
@@ -8660,7 +8648,7 @@ public:
    * @description fetches price tickers for multiple markets, statistical
    * information calculated over the past 24 hours for each market
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker24hr
    * // spot
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics
@@ -8668,9 +8656,6 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics
    * // future
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
-   * // option // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics
    * // option
@@ -9002,34 +8987,35 @@ public:
    * @description fetches historical candlestick data containing the open, high,
    * low, and close price, and the volume of a market
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
-   * // deprecated
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#klines
+   * // spot
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#kline-candlestick-data
-   * @see
-   * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
-   * // deprecated
+   * // option
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#kline-candlestick-data
+   * // swap
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+   * // swap index
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+   * // swap mark
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
-   * @see
-   * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data
-   * // deprecated
+   * // swap premium
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/market-data#kline-candlestick-data
+   * // future
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+   * // future index
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+   * // future mark
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+   * // future premium
    * @param {string} symbol unified symbol of the market to fetch OHLCV data for
    * @param {string} timeframe the length of time each candle represents
    * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -9573,13 +9559,10 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List
    * // dapiPublicGetAggTrades (future)
    * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List
-   * // eapiPublicGetTrades (option) // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#recent-trades-list
    * // eapiPublicGetTrades (option) Other fetchTradesMethod
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#get-trades
    * // publicGetTrades (spot)
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List
@@ -9588,7 +9571,7 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List
    * // dapiPublicGetTrades (future)
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#historical-trades
    * // publicGetHistoricalTrades (spot)
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup
@@ -9596,9 +9579,6 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup
    * // dapiPublicGetHistoricalTrades (future)
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup
-   * // eapiPublicGetHistoricalTrades (option) // deprecated
    * @param {string} symbol unified symbol of the market to fetch trades for
    * @param {int} [since] only used when fetchTradesMethod is
    * 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
@@ -9612,7 +9592,7 @@ public:
    * (future default), 'eapiPublicGetTrades' (option default),
    * 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades',
    * 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades',
-   * 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+   * 'dapiPublicGetHistoricalTrades'
    * @param {boolean} [params.paginate] default false, when true will
    * automatically paginate by calling this endpoint multiple times. See in the
    * docs all the [availble
@@ -9764,12 +9744,6 @@ public:
                                 method, std::string("eapiPublicGetTrades")))) {
                    response = awaitValue(this->eapiPublicGetTrades(
                        this->extend(request, paramsOmitted)));
-                 } else if (isTrue(isEqual(
-                                method,
-                                std::string(
-                                    "eapiPublicGetHistoricalTrades")))) {
-                   response = awaitValue(this->eapiPublicGetHistoricalTrades(
-                       this->extend(request, paramsOmitted)));
                  } else {
                    throw NotSupported(toString(add(
                        this->id,
@@ -9863,7 +9837,7 @@ public:
    * @ignore
    * @description edit a trade order
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-cancel-replace
    * @param {string} id cancel order id
    * @param {string} symbol unified symbol of the market to create an order in
    * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or
@@ -10335,7 +10309,7 @@ public:
    * @name binance#editOrder
    * @description edit a trade order
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-cancel-replace
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
    * @see
@@ -11323,9 +11297,6 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
    * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#place-multiple-orders
    * @param {Array} orders list of orders to create, each object should contain
    * the parameters required by createOrder, namely symbol, type, side, amount,
@@ -11462,19 +11433,17 @@ public:
    * @name binance#createOrder
    * @description create a trade order
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
    * @see
    * https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#test-new-order-trade
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
    * @see
-   * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api
-   * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
-   * // deprecated
+   * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/trade#new-order
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#new-order
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#sor-order
    * @see
    * https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#sor
    * @see
@@ -11484,7 +11453,7 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
    * @see
-   * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
+   * https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#new-um-algo-order
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
    * @see
@@ -11563,16 +11532,24 @@ public:
                      params, std::string("papi"),
                      std::string("portfolioMargin"), porfolioOptionsValue);
                  ccxt::any isConditional = this->isConditionalOrder(params);
-                 ccxt::any isAlgoOrder =
-                     isTrue(
-                         isTrue((isTrue((isEqual(
-                                     ::getValue(market, std::string("swap")),
+                 // algo and conditional endpoints use different arguments
+                 // conditional swap and future orders go through the algo api
+                 // except for portfolio margin inverse (cm) orders, which still
+                 // use the conditional endpoints
+                 ccxt::any isSwapOrFuture =
+                     isTrue((isEqual(::getValue(market, std::string("swap")),
                                      true))) ||
-                                 isTrue((isEqual(
-                                     ::getValue(market, std::string("future")),
-                                     true))))) &&
-                         isTrue(isConditional)) &&
-                     !isTrue(isPortfolioMargin);
+                     isTrue((isEqual(::getValue(market, std::string("future")),
+                                     true)));
+                 ccxt::any isLinear =
+                     isEqual(::getValue(market, std::string("linear")), true);
+                 ccxt::any isInverse =
+                     isEqual(::getValue(market, std::string("inverse")), true);
+                 ccxt::any isPortfolioMarginInverse =
+                     isTrue(isPortfolioMargin) && isTrue(isInverse);
+                 ccxt::any isAlgoOrder =
+                     isTrue(isTrue(isSwapOrFuture) && isTrue(isConditional)) &&
+                     isTrue((!isTrue(isPortfolioMarginInverse)));
                  ccxt::any sor = this->safeBool2(params, std::string("sor"),
                                                  std::string("SOR"), false);
                  ccxt::any test =
@@ -11602,13 +11579,13 @@ public:
                    } else {
                      response = awaitValue(this->privatePostSorOrder(request));
                    }
-                 } else if (isTrue(isEqual(
-                                ::getValue(market, std::string("linear")),
-                                true))) {
+                 } else if (isTrue(isLinear)) {
                    if (isTrue(isEqual(isPortfolioMargin, true))) {
                      if (isTrue(isConditional)) {
-                       response = awaitValue(
-                           this->papiPostUmConditionalOrder(request));
+                       ::setValue(request, std::string("algoType"),
+                                  std::string("CONDITIONAL"));
+                       response =
+                           awaitValue(this->papiPostUmAlgoOrder(request));
                      } else {
                        response = awaitValue(this->papiPostUmOrder(request));
                      }
@@ -11623,9 +11600,7 @@ public:
                            awaitValue(this->fapiPrivatePostOrder(request));
                      }
                    }
-                 } else if (isTrue(isEqual(
-                                ::getValue(market, std::string("inverse")),
-                                true))) {
+                 } else if (isTrue(isInverse)) {
                    if (isTrue(isEqual(isPortfolioMargin, true))) {
                      if (isTrue(isConditional)) {
                        response = awaitValue(
@@ -12096,7 +12071,7 @@ public:
                  std::string("RESULT")); // "ACK", "RESULT", default "ACK"
     }
     ccxt::any typeRequest = std::string("type");
-    if (isTrue(isPortfolioMarginConditional)) {
+    if (isTrue(isTrue(isPortfolioMarginConditional) && !isTrue(isAlgoOrder))) {
       typeRequest = std::string("strategyType");
     }
     if (isTrue(isEqual(stock, true))) {
@@ -12429,7 +12404,7 @@ public:
    * @name binance#createMarketOrderWithCost
    * @description create a market order by providing the symbol, side and cost
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
    * @param {string} symbol unified symbol of the market to create an order in
    * @param {string} side 'buy' or 'sell'
    * @param {float} cost how much you want to trade in units of the quote
@@ -12470,7 +12445,7 @@ public:
    * @name binance#createMarketBuyOrderWithCost
    * @description create a market buy order by providing the symbol and cost
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
    * @param {string} symbol unified symbol of the market to create an order in
    * @param {float} cost how much you want to trade in units of the quote
    * currency
@@ -12510,7 +12485,7 @@ public:
    * @name binance#createMarketSellOrderWithCost
    * @description create a market sell order by providing the symbol and cost
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
    * @param {string} symbol unified symbol of the market to create an order in
    * @param {float} cost how much you want to trade in units of the quote
    * currency
@@ -12548,14 +12523,11 @@ public:
    * @name binance#fetchOrder
    * @description fetches information on an order made by the user
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#query-order-user_data
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-order
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-single-order
    * @see
@@ -12750,14 +12722,11 @@ public:
    * @name binance#fetchOrders
    * @description fetches information on multiple orders made by the user
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
    * @see
@@ -12767,7 +12736,7 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
    * @see
-   * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+   * https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-um-algo-order-history
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
    * @see
@@ -12936,9 +12905,8 @@ public:
                  } else if (isTrue(isLinearType)) {
                    if (isTrue(isPortfolioMargin)) {
                      if (isTrue(isEqual(isConditional, true))) {
-                       response =
-                           awaitValue(this->papiGetUmConditionalAllOrders(
-                               this->extend(request, paramsPaginate)));
+                       response = awaitValue(this->papiGetUmAlgoAllAlgoOrders(
+                           this->extend(request, paramsPaginate)));
                      } else {
                        response = awaitValue(this->papiGetUmAllOrders(
                            this->extend(request, paramsPaginate)));
@@ -13215,14 +13183,11 @@ public:
    * @name binance#fetchOpenOrders
    * @description fetch all unfilled currently open orders
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#current-open-orders-user_data
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-open-orders
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-current-open-option-orders
    * @see
@@ -13230,7 +13195,7 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
    * @see
-   * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
+   * https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-all-current-um-open-algo-orders
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
    * @see
@@ -13367,9 +13332,8 @@ public:
                  } else if (isTrue(this->isLinear(type, subType))) {
                    if (isTrue(isPortfolioMargin)) {
                      if (isTrue(isEqual(isConditional, true))) {
-                       response =
-                           awaitValue(this->papiGetUmConditionalOpenOrders(
-                               this->extend(request, paramsMarginMode)));
+                       response = awaitValue(this->papiGetUmAlgoOpenAlgoOrders(
+                           this->extend(request, paramsMarginMode)));
                      } else {
                        response = awaitValue(this->papiGetUmOpenOrders(
                            this->extend(request, paramsMarginMode)));
@@ -13446,7 +13410,7 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
    * @see
-   * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
+   * https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-current-um-open-algo-order
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
    * @see
@@ -13519,7 +13483,11 @@ public:
                  }
                  ccxt::any orderIdRequest = std::string("orderId");
                  if (isTrue(isEqual(isPortfolioMarginConditional, true))) {
-                   orderIdRequest = std::string("strategyId");
+                   orderIdRequest =
+                       (isTrue((isEqual(
+                            ::getValue(market, std::string("linear")), true)))
+                            ? ccxt::any(std::string("algoId"))
+                            : ccxt::any(std::string("strategyId")));
                  }
                  ::setValue(request, orderIdRequest, id);
                  ccxt::any response = ccxt::any{};
@@ -13527,9 +13495,8 @@ public:
                                     true))) {
                    if (isTrue(isPortfolioMargin)) {
                      if (isTrue(isEqual(isConditional, true))) {
-                       response =
-                           awaitValue(this->papiGetUmConditionalOpenOrder(
-                               this->extend(request, paramsOmitted)));
+                       response = awaitValue(this->papiGetUmAlgoAlgoOrder(
+                           this->extend(request, paramsOmitted)));
                      } else {
                        response = awaitValue(this->papiGetUmOpenOrder(
                            this->extend(request, paramsOmitted)));
@@ -13727,14 +13694,11 @@ public:
    * @name binance#fetchClosedOrders
    * @description fetches information on multiple closed orders made by the user
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
    * @see
@@ -13744,7 +13708,7 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
    * @see
-   * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+   * https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-um-algo-order-history
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
    * @see
@@ -13812,14 +13776,11 @@ public:
    * @description fetches information on multiple canceled orders made by the
    * user
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
    * @see
@@ -13902,9 +13863,6 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
    * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
    * @see
    * https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
@@ -13985,14 +13943,11 @@ public:
    * @name binance#cancelOrder
    * @description cancels an open order
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-order-trade
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#delete-order
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#cancel-option-order
    * @see
@@ -14002,7 +13957,7 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
    * @see
-   * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
+   * https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#cancel-um-algo-order
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
    * @see
@@ -14092,19 +14047,25 @@ public:
                  ccxt::any isOptionType = isEqual(type, std::string("option"));
                  ccxt::any isLinearType = this->isLinear(type, subType);
                  ccxt::any isInverseType = this->isInverse(type, subType);
-                 ccxt::any isContractConditional =
-                     isTrue(
+                 // algo and conditional endpoints use different arguments
+                 // conditional swap and future orders go through the algo api
+                 // except for portfolio margin inverse (cm) orders, which still
+                 // use the conditional endpoints
+                 ccxt::any isSwapOrFuture =
+                     isTrue((!isEqual(market, ccxt::any{}))) &&
+                     isTrue((
+                         isTrue((isEqual(
+                             ::getValue(market, std::string("swap")), true))) ||
                          isTrue(
-                             isTrue((!isEqual(market, ccxt::any{}))) &&
-                             isTrue(
-                                 (isTrue((isEqual(
-                                      ::getValue(market, std::string("swap")),
-                                      true))) ||
-                                  isTrue((isEqual(
-                                      ::getValue(market, std::string("future")),
-                                      true)))))) &&
-                         isTrue((isEqual(isConditional, true)))) &&
-                     isTrue((!isEqual(isPortfolioMargin, true)));
+                             (isEqual(::getValue(market, std::string("future")),
+                                      true)))));
+                 ccxt::any isPortfolioMarginInverse =
+                     isTrue((isEqual(isPortfolioMargin, true))) &&
+                     isTrue((isEqual(isInverseType, true)));
+                 ccxt::any isAlgoOrder =
+                     isTrue(isTrue(isSwapOrFuture) &&
+                            isTrue((isEqual(isConditional, true)))) &&
+                     isTrue((!isTrue(isPortfolioMarginInverse)));
                  ccxt::any clientOrderId = this->safeStringN(
                      paramsStock, ccxt::list{std::string("origClientOrderId"),
                                              std::string("clientOrderId"),
@@ -14114,7 +14075,7 @@ public:
                    if (isTrue(isOptionType)) {
                      ::setValue(request, std::string("clientOrderId"),
                                 clientOrderId);
-                   } else if (isTrue(isEqual(isContractConditional, true))) {
+                   } else if (isTrue(isEqual(isAlgoOrder, true))) {
                      ::setValue(request, std::string("clientAlgoId"),
                                 clientOrderId);
                    } else {
@@ -14128,11 +14089,11 @@ public:
                      }
                    }
                  } else {
-                   if (isTrue(isTrue(isPortfolioMargin) &&
-                              isTrue((isEqual(isConditional, true))))) {
-                     ::setValue(request, std::string("strategyId"), id);
-                   } else if (isTrue(isEqual(isContractConditional, true))) {
+                   if (isTrue(isEqual(isAlgoOrder, true))) {
                      ::setValue(request, std::string("algoId"), id);
+                   } else if (isTrue(isTrue(isPortfolioMargin) &&
+                                     isTrue((isEqual(isConditional, true))))) {
+                     ::setValue(request, std::string("strategyId"), id);
                    } else {
                      ::setValue(request, std::string("orderId"), id);
                    }
@@ -14152,7 +14113,7 @@ public:
                  } else if (isTrue(isLinearType)) {
                    if (isTrue(isPortfolioMargin)) {
                      if (isTrue(isEqual(isConditional, true))) {
-                       response = awaitValue(this->papiDeleteUmConditionalOrder(
+                       response = awaitValue(this->papiDeleteUmAlgoOrder(
                            this->extend(request, paramsStock)));
                      } else {
                        response = awaitValue(this->papiDeleteUmOrder(
@@ -14222,20 +14183,11 @@ public:
    * @name binance#cancelAllOrders
    * @description cancel all open orders in a market
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade
-   * @see
-   * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
-   * // deprecated
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#delete-open-orders
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/trade#cancel-all-open-orders
    * @see
-   * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/trade#cancel-all-open-orders
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#cancel-all-option-orders-on-specific-symbol
    * @see
@@ -14243,7 +14195,7 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
    * @see
-   * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
+   * https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#cancel-all-um-algo-open-orders
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
    * @see
@@ -14348,8 +14300,8 @@ public:
                  } else if (isTrue(isLinearType)) {
                    if (isTrue(isPortfolioMargin)) {
                      if (isTrue(isEqual(isConditional, true))) {
-                       response = awaitValue(
-                           this->papiDeleteUmConditionalAllOpenOrders(
+                       response =
+                           awaitValue(this->papiDeleteUmAlgoAllOpenOrders(
                                this->extend(request, paramsStock)));
                      } else {
                        response = awaitValue(this->papiDeleteUmAllOpenOrders(
@@ -14546,7 +14498,7 @@ public:
    * @name binance#fetchOrderTrades
    * @description fetch all the trades made from a single order
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-trades
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
    * @see
@@ -14605,7 +14557,7 @@ public:
    * @name binance#fetchMyTrades
    * @description fetch all trades made by the user
    * @see
-   * https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+   * https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-trades
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
    * @see
@@ -14613,14 +14565,13 @@ public:
    * @see
    * https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
    * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#account-trade-list
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+   * @see
+   * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Trade-List
    * @see
    * https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-trade-history
    * @param {string} [symbol] unified market symbol
@@ -15766,9 +15717,6 @@ public:
    * @description transfer currency internally between wallets on the same
    * account
    * @see
-   * https://developers.binance.com/docs/wallet/asset/user-universal-transfer //
-   * deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-wallet/api/rest-api/asset#user-universal-transfer
    * @param {string} code unified currency code
    * @param {float} amount amount to transfer
@@ -15939,6 +15887,7 @@ public:
    * @description fetch a history of internal transfers made on an account
    * @see
    * https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
+   * @see https://developers.binance.com/docs/pay/rest-api/Get-Pay-Trade-History
    * @param {string} code unified currency code of the currency transferred
    * @param {int} [since] the earliest time in ms to fetch transfers for
    * @param {int} [limit] the maximum number of transfers structures to retrieve
@@ -16679,11 +16628,6 @@ public:
    * @description fetch the trading fees for multiple markets
    * @see https://developers.binance.com/docs/wallet/asset/trade-fee
    * @see
-   * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-   * @see
-   * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
@@ -16968,9 +16912,6 @@ public:
    * @name binance#futuresTransfer
    * @ignore
    * @description transfer between futures account
-   * @see
-   * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
-   * // deprecated
    * @param {string} code unified currency code
    * @param {float} amount the amount to transfer
    * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures
@@ -18166,7 +18107,7 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
    * @see
-   * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
+   * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Symbol
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
    * @see
@@ -18344,9 +18285,6 @@ public:
    * @name binance#fetchPosition
    * @description fetch data on an open position
    * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
    * @param {string} symbol unified market symbol of the market the position is
    * held in
@@ -18410,9 +18348,6 @@ public:
    * @method
    * @name binance#fetchOptionPositions
    * @description fetch data on open options positions
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
    * @param {string[]|undefined} symbols list of unified market symbols
@@ -18562,17 +18497,11 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
    * @see
-   * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
    * @param {string[]} [symbols] list of unified market symbols
@@ -18656,16 +18585,13 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
    * @see
-   * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
    * @see
-   * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
-   * @see
-   * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
-   * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
+   * @see
+   * https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/account#get-um-account-detail-v2
+   * @see
+   * https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
    * @param {string[]} [symbols] list of unified market symbols
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
@@ -19307,9 +19233,9 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
    * @see
-   * https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
+   * https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Position-Mode
    * @see
-   * https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
+   * https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Position-Mode
    * @param {bool} hedged set to true to use dualSidePosition
    * @param {string} symbol not used by setPositionMode ()
    * @param {object} [params] extra parameters specific to the exchange API
@@ -19407,11 +19333,6 @@ public:
    * @method
    * @name binance#fetchLeverages
    * @description fetch the set leverage for all markets
-   * @see
-   * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-   * @see
-   * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
    * @see
@@ -19537,9 +19458,6 @@ public:
    * @name binance#fetchSettlementHistory
    * @description fetches historical settlement records
    * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#historical-exercise-records
    * @param {string} symbol unified market symbol of the settlement history
    * @param {int} [since] timestamp in ms
@@ -19619,9 +19537,6 @@ public:
    * @method
    * @name binance#fetchMySettlementHistory
    * @description fetches historical settlement records of the user
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#user-exercise-record
    * @param {string} symbol unified market symbol of the settlement history
@@ -19798,9 +19713,6 @@ public:
    * @description fetch the history of changes, actions done by the user or
    * operations that altered the balance of the user
    * @see
-   * https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#account-funding-flow
    * @param {string} id the identification number of the ledger entry
    * @param {string} code unified currency code
@@ -19861,9 +19773,6 @@ public:
    * @name binance#fetchLedger
    * @description fetch the history of changes, actions done by the user or
    * operations that altered the balance of the user
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#account-funding-flow
    * @see
@@ -21840,9 +21749,6 @@ public:
    * @see
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
    * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#open-interest
    * @param {string} symbol unified CCXT market symbol
    * @param {object} [params] exchange specific parameters
@@ -21996,6 +21902,8 @@ public:
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
    * @see
    * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
+   * @see
+   * https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-Margin-Force-Orders
    * @param {string} [symbol] unified CCXT market symbol
    * @param {int} [since] the earliest time in ms to fetch liquidations for
    * @param {int} [limit] the maximum number of liquidation structures to
@@ -22317,9 +22225,6 @@ public:
    * @description fetches an option contracts greeks, financial metrics used to
    * measure the factors that affect the price of an options contract
    * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#option-mark-price
    * @param {string} symbol unified symbol of the market to fetch greeks for
    * @param {object} [params] extra parameters specific to the exchange API
@@ -22369,9 +22274,6 @@ public:
    * @name binance#fetchAllGreeks
    * @description fetches all option contracts greeks, financial metrics used to
    * measure the factors that affect the price of an options contract
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#option-mark-price
    * @param {string[]} [symbols] unified symbols of the markets to fetch greeks
@@ -22575,12 +22477,7 @@ public:
    * for the symbol in in, with symbol=undefined all markets for a subType
    * (linear/inverse) are returned
    * @see
-   * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
-   * // deprecated
-   * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
-   * @see
-   * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
    * @param {string[]} symbols unified market symbols
@@ -22642,9 +22539,6 @@ public:
    * @description fetches the margin mode of a specific symbol
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-   * @see
-   * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
    * @param {string} symbol unified symbol of the market the order was made in
@@ -22732,9 +22626,6 @@ public:
    * @method
    * @name binance#fetchOption
    * @description fetches option data that is commonly found in an option chain
-   * @see
-   * https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
-   * // deprecated
    * @see
    * https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics
    * @param {string} symbol unified market symbol
