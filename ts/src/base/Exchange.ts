@@ -4321,8 +4321,10 @@ export class BaseExchange {
 
     createNetworksByIdObject () {
         // automatically generate network-id-to-code mappings
-        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary
-        this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
+        const networksDict = this.safeDict (this.options, 'networks', {});
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (networksDict, true); // invert defined networks dictionary
+        const networksByIdExisting = this.safeDict (this.options, 'networksById', {}); // support manually overriden "networksById" dictionary too
+        this.options['networksById'] = this.extend (networkIdsToCodesGenerated, networksByIdExisting);
     }
 
     getDefaultOptions () {
@@ -5311,7 +5313,7 @@ export class BaseExchange {
         return result;
     }
 
-    invertFlatStringDictionary (dict: any): Dict {
+    invertFlatStringDictionary (dict: any, expandArrays = false): Dict {
         const reversed: Dict = {};
         const keys = Object.keys (dict);
         for (let i = 0; i < keys.length; i++) {
@@ -5319,6 +5321,11 @@ export class BaseExchange {
             const value = dict[key];
             if (typeof value === 'string') {
                 reversed[value] = key;
+            } else if (expandArrays && Array.isArray(value)) {
+                // in case there was mapping like :  BEP20: [ 'BSC', 'Bep_20', ... ]
+                for (let j = 0; j < value.length; j++) {
+                    reversed[value[j]] = key;
+                }
             }
         }
         return reversed;
