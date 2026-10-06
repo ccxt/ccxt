@@ -3191,7 +3191,7 @@ export default class bingx extends Exchange {
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossPriceOrder = stopLossPrice !== undefined;
         const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
-        let exchangeClientOrderId: Str = 'clientOrderID';
+        let exchangeClientOrderId: Str = 'clientOrderId';
         if (isSpot) {
             exchangeClientOrderId = 'newClientOrderId';
         }
@@ -4157,14 +4157,18 @@ export default class bingx extends Exchange {
                 'symbol': market['id'],
             };
             const clientOrderId = this.safeString2 (paramsOmitted, 'clientOrderId', 'clientOrderID');
-            const paramsOmitted2 = this.omit (paramsOmitted, [ 'clientOrderId' ]);
+            const paramsOmitted2 = this.omit (paramsOmitted, [ 'clientOrderId', 'clientOrderID' ]);
+            const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, paramsOmitted2);
+            const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('cancelOrder', market, paramsMarketType);
             if (clientOrderId !== undefined) {
-                request['clientOrderID'] = clientOrderId;
+                let clientOrderIdRequest = 'clientOrderId';
+                if (type === 'spot') {
+                    clientOrderIdRequest = 'clientOrderID';
+                }
+                request[clientOrderIdRequest] = clientOrderId;
             } else {
                 request['orderId'] = id;
             }
-            const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, paramsOmitted2);
-            const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('cancelOrder', market, paramsMarketType);
             if (type === 'spot') {
                 response = await this.spotV1PrivatePostTradeCancel (this.extend (request, paramsSubType));
             } else {
@@ -4648,10 +4652,20 @@ export default class bingx extends Exchange {
             market = this.market (symbol);
             const request: Dict = {
                 'symbol': market['id'],
-                'orderId': id,
             };
-            const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, paramsOmitted);
+            const clientOrderId = this.safeString2 (paramsOmitted, 'clientOrderId', 'clientOrderID');
+            const paramsOmitted2 = this.omit (paramsOmitted, [ 'clientOrderId', 'clientOrderID' ]);
+            const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, paramsOmitted2);
             const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchOrder', market, paramsMarketType);
+            if (clientOrderId !== undefined) {
+                let clientOrderIdRequest = 'clientOrderId';
+                if (type === 'spot') {
+                    clientOrderIdRequest = 'clientOrderID';
+                }
+                request[clientOrderIdRequest] = clientOrderId;
+            } else {
+                request['orderId'] = id;
+            }
             if (type === 'spot') {
                 response = await this.spotV1PrivateGetTradeQuery (this.extend (request, paramsSubType));
                 //
@@ -6781,6 +6795,7 @@ export default class bingx extends Exchange {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+     * @param {string} [params.cancelClientOrderId] the client order id of the order to cancel
      * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
      * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
      * @param {float} [params.quoteOrderQty] order amount
@@ -6799,9 +6814,19 @@ export default class bingx extends Exchange {
         if (market['inverse'] === true) {
             throw new NotSupported (this.id + ' editOrder() is not supported for inverse swap markets');
         }
-        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        request['cancelOrderId'] = id;
-        request['cancelReplaceMode'] = this.safeString (params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
+        const cancelClientOrderId = this.safeString2 (params, 'cancelClientOrderId', 'cancelClientOrderID');
+        const paramsOmitted = this.omit (params, [ 'cancelClientOrderId', 'cancelClientOrderID' ]);
+        const request = this.createOrderRequest (symbol, type, side, amount, price, paramsOmitted);
+        if (cancelClientOrderId !== undefined) {
+            let cancelClientOrderIdRequest = 'cancelClientOrderId';
+            if (market['spot'] === true) {
+                cancelClientOrderIdRequest = 'cancelClientOrderID';
+            }
+            request[cancelClientOrderIdRequest] = cancelClientOrderId;
+        } else {
+            request['cancelOrderId'] = id;
+        }
+        request['cancelReplaceMode'] = this.safeString (paramsOmitted, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         let response: Dict;
         if (market['swap'] === true) {
             response = await this.swapV1PrivatePostTradeCancelReplace (request);
