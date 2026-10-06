@@ -39,6 +39,19 @@
         ],
         "fetchFundingIntervals": [
             {
+                "description": "uta inverse fetchFundingIntervals",
+                "method": "fetchFundingIntervals",
+                "url": "https://api.bitget.com/api/v3/market/current-fund-rate?category=COIN-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "productType": "COIN-FUTURES",
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchFundingIntervals with params",
                 "method": "fetchFundingIntervals",
                 "url": "https://api.bitget.com/api/v2/mix/market/current-fund-rate?productType=COIN-FUTURES",
@@ -3331,6 +3344,33 @@
             }
         ],
         "fetchFundingRates": [
+            {
+                "description": "uta inverse fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "https://api.bitget.com/api/v3/market/tickers?category=COIN-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse",
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta fetchFundingRates for one symbol",
+                "method": "fetchFundingRates",
+                "url": "https://api.bitget.com/api/v3/market/tickers?category=USDT-FUTURES",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ],
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetchFundingRates with publicMixGetV2MixMarketCurrentFundRate",
                 "method": "fetchFundingRates",
