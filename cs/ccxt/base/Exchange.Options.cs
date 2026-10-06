@@ -143,6 +143,7 @@ public partial class BaseExchange
     public object name { get; set; }
 
     public object headers { get; set; } = new dict();
+    public double marketsCacheMinutes { get; set; } = 0.0;
     public bool returnResponseHeaders { get; set; } = false;
 
     public Dictionary<string, object> httpExceptions { get; set; } = new dict();
