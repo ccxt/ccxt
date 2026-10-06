@@ -45,6 +45,7 @@
 * [fetchOrders](#fetchorders)
 * [fetchOrder](#fetchorder)
 * [fetchMyTrades](#fetchmytrades)
+* [fetchMyLiquidations](#fetchmyliquidations)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
 * [setMarginMode](#setmarginmode)
@@ -74,6 +75,8 @@
 * [watchTickers](#watchtickers)
 * [unWatchTickers](#unwatchtickers)
 * [watchMyTrades](#watchmytrades)
+* [watchMyLiquidations](#watchmyliquidations)
+* [watchMyLiquidationsForSymbols](#watchmyliquidationsforsymbols)
 * [unWatchMyTrades](#unwatchmytrades)
 * [watchTrades](#watchtrades)
 * [unWatchTrades](#unwatchtrades)
@@ -1050,6 +1053,35 @@ hyperliquid.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
+<a name="fetchMyLiquidations" id="fetchmyliquidations"></a>
+
+### fetchMyLiquidations{docsify-ignore}
+retrieves the users liquidated positions
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
+
+**See**
+
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified CCXT market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
+| limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
+| params | <code>object</code> | No | exchange specific parameters |
+| params.until | <code>int</code> | No | timestamp in ms of the latest liquidation |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.fetchMyLiquidations (symbol?, since?, limit?, params?)
+```
+
+
 <a name="fetchPosition" id="fetchposition"></a>
 
 ### fetchPosition{docsify-ignore}
@@ -1726,6 +1758,54 @@ watches information on multiple trades made by the user
 
 ```javascript
 hyperliquid.watchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="watchMyLiquidations" id="watchmyliquidations"></a>
+
+### watchMyLiquidations{docsify-ignore}
+watch the private liquidations of a trading pair
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified CCXT market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
+| limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.watchMyLiquidations (symbol, since?, limit?, params?)
+```
+
+
+<a name="watchMyLiquidationsForSymbols" id="watchmyliquidationsforsymbols"></a>
+
+### watchMyLiquidationsForSymbols{docsify-ignore}
+watch the private liquidations of a list of trading pairs
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
+| since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
+| limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.watchMyLiquidationsForSymbols (symbols, since?, limit?, params?)
 ```
 
 

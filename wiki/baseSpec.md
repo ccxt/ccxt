@@ -4122,6 +4122,7 @@ retrieves the users liquidated positions
 * [bybit](/exchanges/bybit.md#fetchmyliquidations)
 * [deribit](/exchanges/deribit.md#fetchmyliquidations)
 * [gate](/exchanges/gate.md#fetchmyliquidations)
+* [hyperliquid](/exchanges/hyperliquid.md#fetchmyliquidations)
 * [paradex](/exchanges/paradex.md#fetchmyliquidations)
 
 ---
@@ -8199,6 +8200,7 @@ watch the private liquidations of a trading pair
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchmyliquidations)
 * [gate](/exchanges/gate.md#watchmyliquidations)
+* [hyperliquid](/exchanges/hyperliquid.md#watchmyliquidations)
 
 ---
 
@@ -8221,6 +8223,7 @@ watch the private liquidations of a trading pair
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchmyliquidationsforsymbols)
 * [gate](/exchanges/gate.md#watchmyliquidationsforsymbols)
+* [hyperliquid](/exchanges/hyperliquid.md#watchmyliquidationsforsymbols)
 * [okx](/exchanges/okx.md#watchmyliquidationsforsymbols)
 
 ---
