@@ -3008,6 +3008,60 @@ class testMainClass {
             }
             const papiMarginOcoListClientOrderId = exchange.safeString (implicitPapiMarginOcoRequest, 'listClientOrderId');
             assert ((papiMarginOcoListClientOrderId !== undefined) && (papiMarginOcoListClientOrderId.startsWith (spotId) === true), 'binance - implicit papi margin oco listClientOrderId must inject the spot broker id');
+            const papiMarginOcoLimitClientOrderId = exchange.safeString (implicitPapiMarginOcoRequest, 'limitClientOrderId');
+            const papiMarginOcoStopClientOrderId = exchange.safeString (implicitPapiMarginOcoRequest, 'stopClientOrderId');
+            assert ((papiMarginOcoLimitClientOrderId !== undefined) && (papiMarginOcoLimitClientOrderId.startsWith (spotId) === true), 'binance - implicit papi margin oco limitClientOrderId must inject the spot broker id');
+            assert ((papiMarginOcoStopClientOrderId !== undefined) && (papiMarginOcoStopClientOrderId.startsWith (spotId) === true), 'binance - implicit papi margin oco stopClientOrderId must inject the spot broker id');
+            let implicitLegacyOcoRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'privatePostOrderOco', [ { 'symbol': 'BTCUSDT', 'side': 'SELL', 'quantity': '0.001', 'price': '110000', 'stopPrice': '95000' } ]);
+            } catch (e) {
+                implicitLegacyOcoRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const legacyOcoListClientOrderId = exchange.safeString (implicitLegacyOcoRequest, 'listClientOrderId');
+            const legacyOcoLimitClientOrderId = exchange.safeString (implicitLegacyOcoRequest, 'limitClientOrderId');
+            const legacyOcoStopClientOrderId = exchange.safeString (implicitLegacyOcoRequest, 'stopClientOrderId');
+            assert ((legacyOcoListClientOrderId !== undefined) && (legacyOcoListClientOrderId.startsWith (spotId) === true), 'binance - implicit legacy oco listClientOrderId must inject the spot broker id');
+            assert ((legacyOcoLimitClientOrderId !== undefined) && (legacyOcoLimitClientOrderId.startsWith (spotId) === true), 'binance - implicit legacy oco limitClientOrderId must inject the spot broker id');
+            assert ((legacyOcoStopClientOrderId !== undefined) && (legacyOcoStopClientOrderId.startsWith (spotId) === true), 'binance - implicit legacy oco stopClientOrderId must inject the spot broker id');
+            let implicitOtoListRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'privatePostOrderListOto', [ { 'symbol': 'BTCUSDT', 'workingType': 'LIMIT', 'workingSide': 'BUY', 'workingPrice': '100000', 'workingQuantity': '0.001', 'pendingType': 'MARKET', 'pendingSide': 'SELL', 'pendingQuantity': '0.001' } ]);
+            } catch (e) {
+                implicitOtoListRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const otoListClientOrderId = exchange.safeString (implicitOtoListRequest, 'listClientOrderId');
+            const otoWorkingClientOrderId = exchange.safeString (implicitOtoListRequest, 'workingClientOrderId');
+            const otoPendingClientOrderId = exchange.safeString (implicitOtoListRequest, 'pendingClientOrderId');
+            assert ((otoListClientOrderId !== undefined) && (otoListClientOrderId.startsWith (spotId) === true), 'binance - implicit oto listClientOrderId must inject the spot broker id');
+            assert ((otoWorkingClientOrderId !== undefined) && (otoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit oto workingClientOrderId must inject the spot broker id');
+            assert ((otoPendingClientOrderId !== undefined) && (otoPendingClientOrderId.startsWith (spotId) === true), 'binance - implicit oto pendingClientOrderId must inject the spot broker id');
+            let implicitOpoListRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'privatePostOrderListOpo', [ { 'symbol': 'BTCUSDT', 'workingType': 'LIMIT', 'workingSide': 'BUY', 'workingPrice': '100000', 'workingQuantity': '0.001', 'pendingType': 'MARKET', 'pendingSide': 'SELL', 'pendingQuantity': '0.001' } ]);
+            } catch (e) {
+                implicitOpoListRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const opoListClientOrderId = exchange.safeString (implicitOpoListRequest, 'listClientOrderId');
+            const opoWorkingClientOrderId = exchange.safeString (implicitOpoListRequest, 'workingClientOrderId');
+            const opoPendingClientOrderId = exchange.safeString (implicitOpoListRequest, 'pendingClientOrderId');
+            assert ((opoListClientOrderId !== undefined) && (opoListClientOrderId.startsWith (spotId) === true), 'binance - implicit opo listClientOrderId must inject the spot broker id');
+            assert ((opoWorkingClientOrderId !== undefined) && (opoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit opo workingClientOrderId must inject the spot broker id');
+            assert ((opoPendingClientOrderId !== undefined) && (opoPendingClientOrderId.startsWith (spotId) === true), 'binance - implicit opo pendingClientOrderId must inject the spot broker id');
+            let implicitOpocoListRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'privatePostOrderListOpoco', [ { 'symbol': 'BTCUSDT', 'workingType': 'LIMIT', 'workingSide': 'BUY', 'workingPrice': '100000', 'workingQuantity': '0.001', 'pendingSide': 'SELL', 'pendingQuantity': '0.001', 'pendingAboveType': 'LIMIT_MAKER', 'pendingAbovePrice': '110000', 'pendingBelowType': 'STOP_LOSS', 'pendingBelowStopPrice': '95000' } ]);
+            } catch (e) {
+                implicitOpocoListRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const opocoListClientOrderId = exchange.safeString (implicitOpocoListRequest, 'listClientOrderId');
+            const opocoWorkingClientOrderId = exchange.safeString (implicitOpocoListRequest, 'workingClientOrderId');
+            const opocoPendingAboveClientOrderId = exchange.safeString (implicitOpocoListRequest, 'pendingAboveClientOrderId');
+            const opocoPendingBelowClientOrderId = exchange.safeString (implicitOpocoListRequest, 'pendingBelowClientOrderId');
+            assert ((opocoListClientOrderId !== undefined) && (opocoListClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco listClientOrderId must inject the spot broker id');
+            assert ((opocoWorkingClientOrderId !== undefined) && (opocoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco workingClientOrderId must inject the spot broker id');
+            assert ((opocoPendingAboveClientOrderId !== undefined) && (opocoPendingAboveClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id');
+            assert ((opocoPendingBelowClientOrderId !== undefined) && (opocoPendingBelowClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id');
         }
         if (!isSync ()) {
             await close (exchange);
