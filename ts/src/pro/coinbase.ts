@@ -474,7 +474,7 @@ export default class coinbase extends coinbaseRest {
                 }
                 const result = this.parseWsTicker (ticker);
                 result['timestamp'] = timestamp;
-                result['datetime'] = datetime;
+                result['datetime'] = this.iso8601 (timestamp);
                 const symbol = result['symbol'];
                 if (symbol !== undefined) {
                     this.tickers[symbol] = result;
@@ -862,7 +862,7 @@ export default class coinbase extends coinbaseRest {
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_order_id');
         const marketId = this.safeString (order, 'product_id');
-        const datetime = this.safeString2 (order, 'time', 'creation_time');
+        const timestamp = this.parse8601 (this.safeString2 (order, 'time', 'creation_time'));
         const marketResolved: Market = this.safeMarket (marketId, market);
         const stopPrice = this.safeString (order, 'stop_price');
         return this.safeOrder ({
@@ -870,8 +870,8 @@ export default class coinbase extends coinbaseRest {
             'symbol': this.safeString (marketResolved, 'symbol'),
             'id': id,
             'clientOrderId': clientOrderId,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'type': this.safeString (order, 'order_type'),
             'timeInForce': undefined,
@@ -960,8 +960,9 @@ export default class coinbase extends coinbaseRest {
             }
             const orderbook = this.orderbooks[symbol];
             this.handleOrderBookHelper (orderbook, updates);
-            orderbook['timestamp'] = this.parse8601 (datetime);
-            orderbook['datetime'] = datetime;
+            const timestamp = this.parse8601 (datetime);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
             orderbook['symbol'] = symbol;
             client.resolve (orderbook, messageHash);
             this.tryResolveUsdc (client, messageHash, orderbook);
