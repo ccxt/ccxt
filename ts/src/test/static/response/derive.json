@@ -1068,7 +1068,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -1563,7 +1563,7 @@
                     0.01,
                     83000,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "max_fee": 100
                     }
                 ],
@@ -1694,7 +1694,7 @@
                     0.01,
                     86500,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "max_fee": 100,
                         "triggerPrice": 86000
                     }
@@ -1826,7 +1826,7 @@
                     0.01,
                     85500,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "max_fee": 100,
                         "takeProfitPrice": 86000
                     }
@@ -1961,7 +1961,7 @@
                     0.01,
                     83500,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "max_fee": 100
                     }
                 ],
@@ -2129,7 +2129,7 @@
                     "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
                     "BTC/USDC:USDC",
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -2254,7 +2254,7 @@
                 "input": [
                     null,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -2302,7 +2302,7 @@
                 "input": [
                     "BTC/USDC:USDC",
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -2357,7 +2357,7 @@
                     "50351ad6-934a-4c2e-9651-6cb6dbfdd09e",
                     null,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -2484,7 +2484,7 @@
                     null,
                     3,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -2842,7 +2842,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -2974,7 +2974,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "trigger": true
                     }
                 ],
@@ -3110,7 +3110,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -3211,7 +3211,7 @@
                     null,
                     2,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -3383,7 +3383,7 @@
                 "input": [
                     null,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -3493,7 +3493,7 @@
                     null,
                     2,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -4275,7 +4275,7 @@
                 "method": "fetchBalance",
                 "input": [
                     {
-                        "subaccount_id": 74412
+                        "subaccount_id": "74412"
                     }
                 ],
                 "httpResponse": {
@@ -4519,7 +4519,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "until": 1790900000000
                     }
                 ],
@@ -4693,7 +4693,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86815,
+                        "subaccount_id": "86815",
                         "until": 1791030000000
                     }
                 ],
@@ -4757,7 +4757,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86815
+                        "subaccount_id": "86815"
                     }
                 ],
                 "httpResponse": {
@@ -4844,7 +4844,7 @@
                     null,
                     null,
                     {
-                        "subaccount_id": 86820
+                        "subaccount_id": "86820"
                     }
                 ],
                 "httpResponse": {
