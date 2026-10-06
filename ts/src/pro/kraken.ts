@@ -985,8 +985,13 @@ export default class kraken extends krakenRest {
         } else {
             // snapshot
             const depth = a.length;
-            this.orderbooks[symbol] = this.orderBook ({}, depth);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook ({}, depth);
+            }
+            // reset in place so that references held by users keep receiving
+            // updates after a reconnect snapshot (a new object would orphan them)
             orderbook = this.orderbooks[symbol] as WsOrderBook;
+            orderbook.reset ({});
             const keys = [ 'asks', 'bids' ];
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
