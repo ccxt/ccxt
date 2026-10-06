@@ -902,6 +902,7 @@ public struct Balance
     public double? total;
     public double? debt;
 
+    public Dictionary<string, object> info;
     public Balance(object balance2)
     {
         var balance = (Dictionary<string, object>)balance2;
@@ -909,6 +910,7 @@ public struct Balance
         used = Exchange.SafeFloat(balance, "used");
         total = Exchange.SafeFloat(balance, "total");
         debt = Exchange.SafeFloat(balance, "debt");
+        info = Helper.GetInfo(balance);
     }
 }
 
