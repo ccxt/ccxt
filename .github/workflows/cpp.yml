@@ -76,5 +76,25 @@ jobs:
       run: cpp/build/ccxt-tests all --requestTests
     - name: Static response tests (all exchanges)
       run: cpp/build/ccxt-tests all --responseTests
+
+  live-tests:
+    runs-on: [ self-hosted, linux, x64, cpp ]
+    needs: build
+    timeout-minutes: 60
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 2
+        clean: false
+    - uses: actions/setup-node@v5
+      with:
+        node-version: '22'
+    - name: Workspace ownership
+      # reuses the build job's workspace (cpp/build + node_modules) on this
+      # runner; a previous root-owned tree breaks the rerun, so fix ownership
+      run: |
+        if [ "$(id -u)" -ne 0 ]; then
+          sudo chown -R "$(id -u):$(id -g)" . 2>/dev/null || true
+        fi
     - name: binance live tests (public endpoints)
       run: node run-tests binance --cpp
