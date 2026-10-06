@@ -1,0 +1,254 @@
+{
+    "exchange": "luno",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "trade updates reduce the maker order volume and delete fully filled orders",
+                "input": [
+                    "BTC/EUR"
+                ],
+                "url": "wss://ws.luno.com/api/1/stream/XBTEUR",
+                "messages": [
+                    {
+                        "sequence": "24352",
+                        "asks": [
+                            {
+                                "id": "BXA1",
+                                "price": "100.00",
+                                "volume": "3.00"
+                            },
+                            {
+                                "id": "BXA2",
+                                "price": "101.00",
+                                "volume": "1.00"
+                            }
+                        ],
+                        "bids": [
+                            {
+                                "id": "BXB1",
+                                "price": "90.00",
+                                "volume": "2.00"
+                            }
+                        ],
+                        "status": "ACTIVE",
+                        "timestamp": 1728000000000
+                    },
+                    {
+                        "sequence": "24353",
+                        "trade_updates": [
+                            {
+                                "base": "1.00",
+                                "counter": "100.00",
+                                "maker_order_id": "BXA1",
+                                "taker_order_id": "BXT1"
+                            }
+                        ],
+                        "create_update": null,
+                        "delete_update": null,
+                        "status_update": null,
+                        "timestamp": 1728000001000
+                    },
+                    {
+                        "sequence": "24354",
+                        "trade_updates": [
+                            {
+                                "base": "2.00",
+                                "counter": "180.00",
+                                "maker_order_id": "BXB1",
+                                "taker_order_id": "BXT2"
+                            }
+                        ],
+                        "create_update": null,
+                        "delete_update": null,
+                        "status_update": null,
+                        "timestamp": 1728000002000
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/EUR",
+                    "bids": [],
+                    "asks": [
+                        [
+                            100,
+                            2,
+                            "BXA1"
+                        ],
+                        [
+                            101,
+                            1,
+                            "BXA2"
+                        ]
+                    ],
+                    "timestamp": 1728000002000,
+                    "datetime": "2024-10-04T00:00:02.000Z",
+                    "nonce": 24354
+                },
+                "sentMessages": [
+                    {
+                        "api_key_id": "key",
+                        "api_key_secret": "secretsecret"
+                    }
+                ]
+            },
+            {
+                "description": "older or duplicate sequence frames are discarded without touching the book",
+                "input": [
+                    "BTC/EUR"
+                ],
+                "url": "wss://ws.luno.com/api/1/stream/XBTEUR",
+                "messages": [
+                    {
+                        "sequence": "500",
+                        "asks": [
+                            {
+                                "id": "BXA1",
+                                "price": "100.00",
+                                "volume": "3.00"
+                            }
+                        ],
+                        "bids": [
+                            {
+                                "id": "BXB1",
+                                "price": "90.00",
+                                "volume": "2.00"
+                            }
+                        ],
+                        "status": "ACTIVE",
+                        "timestamp": 1728000000000
+                    },
+                    {
+                        "sequence": "500",
+                        "trade_updates": [
+                            {
+                                "base": "3.00",
+                                "counter": "300.00",
+                                "maker_order_id": "BXA1",
+                                "taker_order_id": "BXT1"
+                            }
+                        ],
+                        "create_update": null,
+                        "delete_update": null,
+                        "status_update": null,
+                        "timestamp": 1728000001000
+                    },
+                    {
+                        "sequence": "501",
+                        "trade_updates": [
+                            {
+                                "base": "1.00",
+                                "counter": "90.00",
+                                "maker_order_id": "BXB1",
+                                "taker_order_id": "BXT2"
+                            }
+                        ],
+                        "create_update": null,
+                        "delete_update": null,
+                        "status_update": null,
+                        "timestamp": 1728000002000
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/EUR",
+                    "bids": [
+                        [
+                            90,
+                            1,
+                            "BXB1"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            100,
+                            3,
+                            "BXA1"
+                        ]
+                    ],
+                    "timestamp": 1728000002000,
+                    "datetime": "2024-10-04T00:00:02.000Z",
+                    "nonce": 501
+                }
+            },
+            {
+                "description": "a sequence gap frame is not applied, the book stays frozen at the last consistent state",
+                "disabledRS": "the rust static runner re-arms the watch while injected frames remain queued, so that extra pending watch is torn down by the gap path - the harness cannot assert an expected rejection",
+                "input": [
+                    "BTC/EUR"
+                ],
+                "url": "wss://ws.luno.com/api/1/stream/XBTEUR",
+                "messages": [
+                    {
+                        "sequence": "600",
+                        "asks": [
+                            {
+                                "id": "BXA1",
+                                "price": "100.00",
+                                "volume": "3.00"
+                            }
+                        ],
+                        "bids": [
+                            {
+                                "id": "BXB1",
+                                "price": "90.00",
+                                "volume": "2.00"
+                            }
+                        ],
+                        "status": "ACTIVE",
+                        "timestamp": 1728000000000
+                    },
+                    {
+                        "sequence": "601",
+                        "trade_updates": [
+                            {
+                                "base": "1.00",
+                                "counter": "100.00",
+                                "maker_order_id": "BXA1",
+                                "taker_order_id": "BXT1"
+                            }
+                        ],
+                        "create_update": null,
+                        "delete_update": null,
+                        "status_update": null,
+                        "timestamp": 1728000001000
+                    },
+                    {
+                        "sequence": "605",
+                        "trade_updates": [
+                            {
+                                "base": "1.00",
+                                "counter": "100.00",
+                                "maker_order_id": "BXA1",
+                                "taker_order_id": "BXT2"
+                            }
+                        ],
+                        "create_update": null,
+                        "delete_update": null,
+                        "status_update": null,
+                        "timestamp": 1728000002000
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/EUR",
+                    "bids": [
+                        [
+                            90,
+                            2,
+                            "BXB1"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            100,
+                            2,
+                            "BXA1"
+                        ]
+                    ],
+                    "timestamp": 1728000001000,
+                    "datetime": "2024-10-04T00:00:01.000Z",
+                    "nonce": 601
+                }
+            }
+        ]
+    }
+}
