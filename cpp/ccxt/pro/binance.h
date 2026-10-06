@@ -6405,12 +6405,16 @@ public:
                                 std::string("origClientOrderId"),
                                 std::string("clientOrderId")});
                  ccxt::any shouldUseAlgoOrder =
-                     isTrue(isTrue((isEqual(
-                                ::getValue(market, std::string("linear")),
-                                true))) &&
-                            isTrue((
-                                isEqual(::getValue(market, std::string("swap")),
-                                        true)))) &&
+                     isTrue(
+                         isTrue(
+                             (isEqual(::getValue(market, std::string("linear")),
+                                      true))) &&
+                         isTrue((isTrue((isEqual(
+                                     ::getValue(market, std::string("swap")),
+                                     true))) ||
+                                 isTrue((isEqual(
+                                     ::getValue(market, std::string("future")),
+                                     true)))))) &&
                      isTrue((isEqual(isConditional, true)));
                  if (isTrue(!isEqual(clientOrderId, ccxt::any{}))) {
                    if (isTrue(isEqual(shouldUseAlgoOrder, true))) {
