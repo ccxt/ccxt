@@ -7368,8 +7368,8 @@ export default class gate extends Exchange {
 
     /**
      * @method
-     * @name gate#fetchOpenInterest
-     * @description Retrieves the open interest of a currency
+     * @name gate#fetchOpenInterestHistory
+     * @description Retrieves the open interest history of a currency
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
