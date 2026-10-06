@@ -1251,7 +1251,8 @@ fetchWebEndpoint(ccxt::any method, ccxt::any endpointMethod,
                          this, endpointMethod, ccxt::list{ccxt::dict{}}));
                      shouldBreak = true;
                      break;
-                   } catch (const std::exception &e) {
+                   } catch (...) {
+                     std::exception_ptr e = std::current_exception();
                      retry = add(retry, 1);
                      if (isTrue(isEqual(retry, maxRetries))) {
                        throw;
@@ -1300,7 +1301,8 @@ fetchWebEndpoint(ccxt::any method, ccxt::any endpointMethod,
                  } else {
                    return content;
                  }
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  errorMessage = add(
                      add(add(this->id, std::string(" ")), method),
                      std::string("() failed to fetch correct data from "
@@ -1652,7 +1654,8 @@ fetch2(ccxt::any path, ccxt::any api = std::string("public"),
                     this->addFetchCache(fetchData);
                   }
                   return response;
-                } catch (const std::exception &e) {
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
                   if (isTrue(!isEqual(fetchData, ccxt::any{}))) {
                     ::setValue(fetchData, std::string("error"), e);
                     this->addFetchCache(fetchData);
@@ -3537,7 +3540,8 @@ fetchPaginatedCallDynamic(ccxt::any method, ccxt::any symbol = ccxt::any{},
                       break;
                     }
                   }
-                } catch (const std::exception &e) {
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
                   errors = add(errors, 1);
                   if (isTrue(isGreaterThan(errors, maxRetriesOption))) {
                     throw;
@@ -3592,7 +3596,8 @@ virtual std::shared_future<ccxt::any> safeDeterministicCall(
                          this, method,
                          ccxt::list{symbol, since, limit, paramsMaxRetries}));
                    }
-                 } catch (const std::exception &e) {
+                 } catch (...) {
+                   std::exception_ptr e = std::current_exception();
                    if (isTrue(isInstanceOf<RateLimitExceeded>(e))) {
                      throw;
                    }
@@ -3891,7 +3896,8 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallCursor(
                              isTrue(isLessThan(lastTimestamp, since)))) {
                     break;
                   }
-                } catch (const std::exception &e) {
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
                   errors = add(errors, 1);
                   if (isTrue(isGreaterThan(errors, maxRetriesOption))) {
                     throw;
@@ -3972,7 +3978,8 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallIncremental(
                     break;
                   }
                   result = this->arrayConcat(result, response);
-                } catch (const std::exception &e) {
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
                   errors = add(errors, 1);
                   if (isTrue(isGreaterThan(errors, maxRetriesOption))) {
                     throw;

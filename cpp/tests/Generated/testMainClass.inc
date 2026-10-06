@@ -58,7 +58,8 @@ init(ccxt::any exchangeId, ccxt::any symbolArgv, ccxt::any methodArgv) {
                try {
                  awaitValue(
                      this->initInner(exchangeId, symbolArgv, methodArgv));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  dump(std::string(
                      "[TEST_FAILURE]")); // tell run-tests.js this is failure
                  throw;
@@ -579,7 +580,8 @@ virtual std::shared_future<ccxt::any> testSafe(ccxt::any methodName,
                    awaitValue(
                        this->testMethod(methodName, exchange, args, isPublic));
                    return true;
-                 } catch (const std::exception &ex) {
+                 } catch (...) {
+                   std::exception_ptr ex = std::current_exception();
                    // close the TESTING marker (pairs with the dump in
                    // `testMethod`), so on a RUNTEST_TIMED_OUT run-tests.js
                    // doesn't misreport a failed method as hung
@@ -1098,7 +1100,8 @@ getMostActiveSymbols(ccxt::any exchange, ccxt::any defaultSymbols) {
                  // other call sites
                  tickers = awaitValue(callExchangeMethodDynamically(
                      exchange, std::string("fetchTickers"), ccxt::list{}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  // choosing a symbol must never fail the run, keep the static
                  // choice
                  tickers = ccxt::any{};
@@ -1443,7 +1446,8 @@ virtual std::shared_future<ccxt::any> runPredictionTests(ccxt::any exchange) {
                       awaitValue(callExchangeMethodDynamically(
                           exchange, std::string("fetchEvents"),
                           ccxt::list{ccxt::dict{}}));
-                    } catch (const std::exception &e) {
+                    } catch (...) {
+                      std::exception_ptr e = std::current_exception();
                       unscopedError = exceptionMessage(e);
                     }
                     assertTrue(
@@ -1600,7 +1604,8 @@ virtual std::shared_future<ccxt::any> runPredictionTests(ccxt::any exchange) {
                                    std::string(
                                        " fetchEvents did not honour limit=1")));
                   }
-                } catch (const std::exception &e) {
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
                   dump(std::string("[TEST_FAILURE]"),
                        getProperty(exchange, std::string("id")),
                        std::string("fetchEvents/fetchEvent failed:"),
@@ -1628,7 +1633,8 @@ virtual std::shared_future<ccxt::any> runPredictionTests(ccxt::any exchange) {
                   try {
                     awaitValue(callExchangeMethodDynamically(
                         exchange, std::string("fetchTickers"), ccxt::list{}));
-                  } catch (const std::exception &e) {
+                  } catch (...) {
+                    std::exception_ptr e = std::current_exception();
                     tickersError = exceptionMessage(e);
                   }
                   assertTrue(
@@ -1955,7 +1961,8 @@ testPredictionCreateCancelOrder(ccxt::any exchange, ccxt::any outcome) {
                                  outcome),
                              std::string("\" for ")),
                          getProperty(exchange, std::string("id"))));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  failure = exceptionMessage(e);
                }
                // always cancel any placed order (cancelPredictionOrder swallows
@@ -2000,7 +2007,8 @@ virtual std::shared_future<ccxt::any> cancelPredictionOrder(ccxt::any exchange,
                  }
                  dump(std::string("[INFO:MAIN] prediction order cancelled"),
                       getProperty(exchange, std::string("id")), orderId);
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  dump(std::string("[WARN] prediction order cancel failed"),
                       getProperty(exchange, std::string("id")), orderId,
                       exceptionMessage(e));
@@ -2142,7 +2150,8 @@ virtual std::shared_future<ccxt::any> testProxies(ccxt::any exchange) {
                    awaitValue(this->testMethod(proxyTestName, exchange,
                                                ccxt::list{}, true));
                    return true; // if successfull, then end the test
-                 } catch (const std::exception &e) {
+                 } catch (...) {
+                   std::exception_ptr e = std::current_exception();
                    exceptionMessageString = exceptionMessage(e);
                    awaitValue(callDynamically(exchange, std::string("sleep"),
                                               ccxt::list{multiply(j, 1000)}));
@@ -2285,7 +2294,8 @@ virtual std::shared_future<ccxt::any> startTest(ccxt::any exchange,
                  if (!isTrue(isSync())) {
                    awaitValue(close(exchange));
                  }
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  if (!isTrue(isSync())) {
                    awaitValue(close(exchange));
                  }
@@ -2784,7 +2794,8 @@ assertNewAndStoredOutputInner(ccxt::any exchange, ccxt::any skipKeys,
                                 ccxt::list{sanitizedStoredOutput});
           }
           isNumber = true;
-        } catch (const std::exception &e) {
+        } catch (...) {
+          std::exception_ptr e = std::current_exception();
           isNumber = false;
         }
         if (isTrue(isNumber)) {
@@ -2811,7 +2822,8 @@ assertNewAndStoredOutputInner(ccxt::any exchange, ccxt::any skipKeys,
             callDynamically(exchange, std::string("parseToNumeric"),
                             ccxt::list{sanitizedNewOutput});
             isNumber = true;
-          } catch (const std::exception &e) {
+          } catch (...) {
+            std::exception_ptr e = std::current_exception();
             // if we can't parse it to number, then it's not a number
             isNumber = false;
           }
@@ -2876,7 +2888,8 @@ assertNewAndStoredOutput(ccxt::any exchange, ccxt::any skipKeys,
     res = this->assertNewAndStoredOutputInner(exchange, skipKeys, newOutput,
                                               storedOutput, strictTypeCheck,
                                               assertingKey);
-  } catch (const std::exception &e) {
+  } catch (...) {
+    std::exception_ptr e = std::current_exception();
     if (isTrue(this->info)) {
       ccxt::any errorMessage = add(add(add(add(this->varToString(newOutput),
                                                std::string("(calculated)")),
@@ -3018,7 +3031,8 @@ testRequestStatically(ccxt::any exchange, ccxt::any method, ccxt::any data,
                        this->sanitizeDataInput(
                            ::getValue(data, std::string("input"))));
                  }
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  if (!isTrue((isInstanceOf<InvalidProxySettings>(e)))) {
                    throw;
                  }
@@ -3070,7 +3084,8 @@ testRequestStatically(ccxt::any exchange, ccxt::any method, ccxt::any data,
                          storedHeaderValue, sentHeaderValue);
                    }
                  }
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  this->requestTestsFailed = true;
                  ccxt::any errorMessage = add(
                      add(add(add(add(add(add(add(add(add(add(add(std::string(
@@ -3147,7 +3162,8 @@ virtual std::shared_future<ccxt::any> testResponseStatically(ccxt::any exchange,
                                                     unifiedResultSync,
                                                     expectedResult);
                  }
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  this->responseTestsFailed = true;
                  ccxt::any errorMessage = add(
                      add(add(add(add(add(add(add(add(add(add(add(std::string(
@@ -3257,7 +3273,8 @@ watchAndAssertSequence(ccxt::any exchange, ccxt::any url, ccxt::any method,
                        exchange, skipKeys, unifiedResult,
                        ::getValue(expectedResults, i));
                  }
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  // let the injector's rejection loop exit before the caller
                  // reports — the explicit try/catch also keeps the java
                  // transpilation compilable (checked exceptions)
@@ -3375,7 +3392,8 @@ virtual std::shared_future<ccxt::any> testWsStatically(ccxt::any exchange,
                        ::getValue(data, std::string("parsedResponse")));
                    this->assertWsSentMessages(exchange, url, data);
                  }
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  this->staticWsTestsFailed = true;
                  ccxt::any errorMessage = add(
                      add(add(add(add(add(add(add(add(add(add(add(std::string(
@@ -4199,7 +4217,8 @@ runStaticTests(ccxt::any type, ccxt::any targetExchange = ccxt::any{},
                }
                try {
                  awaitValue(promiseAll(promises));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  if (isTrue(isEqual(type, std::string("request")))) {
                    this->requestTestsFailed = true;
                  } else if (isTrue(isEqual(type, std::string("ws")))) {
@@ -4338,7 +4357,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                     exchange, std::string("createOrder"),
                     ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                std::string("buy"), 1, 20000}));
-              } catch (const std::exception &e) {
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
                 spotOrderRequest = this->urlencodedToDict(
                     getProperty(exchange, std::string("last_request_body")));
               }
@@ -4357,7 +4377,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                                     ccxt::list{std::string("BTC/USDT:USDT"),
                                                std::string("limit"),
                                                std::string("buy"), 1, 20000}));
-              } catch (const std::exception &e) {
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
                 swapOrderRequest = this->urlencodedToDict(
                     getProperty(exchange, std::string("last_request_body")));
               }
@@ -4367,7 +4388,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                     exchange, std::string("createOrder"),
                     ccxt::list{std::string("BTC/USD:BTC"), std::string("limit"),
                                std::string("buy"), 1, 20000}));
-              } catch (const std::exception &e) {
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
                 swapInverseOrderRequest = this->urlencodedToDict(
                     getProperty(exchange, std::string("last_request_body")));
               }
@@ -4402,7 +4424,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                                ccxt::dict{
                                    {std::string("triggerPrice"), 101000},
                                }}));
-              } catch (const std::exception &e) {
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
                 swapAlgoOrderRequest = this->urlencodedToDict(
                     getProperty(exchange, std::string("last_request_body")));
               }
@@ -4427,7 +4450,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                                ccxt::dict{
                                    {std::string("triggerPrice"), 21000},
                                }}));
-              } catch (const std::exception &e) {
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
                 inverseAlgoOrderRequest = this->urlencodedToDict(
                     getProperty(exchange, std::string("last_request_body")));
               }
@@ -4461,7 +4485,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                     }};
                 awaitValue(callDynamically(
                     exchange, std::string("createOrders"), ccxt::list{orders}));
-              } catch (const std::exception &e) {
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
                 createOrdersRequest = this->urlencodedToDict(
                     getProperty(exchange, std::string("last_request_body")));
               }
@@ -4497,7 +4522,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                 awaitValue(
                     callDynamically(exchange, std::string("createOrders"),
                                     ccxt::list{linearConditionalOrders}));
-              } catch (const std::exception &e) {
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
                 linearConditionalBatchNotSupported =
                     (isInstanceOf<NotSupported>(e));
               }
@@ -4524,7 +4550,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                 awaitValue(
                     callDynamically(exchange, std::string("createOrders"),
                                     ccxt::list{inverseConditionalOrders}));
-              } catch (const std::exception &e) {
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
                 inverseConditionalBatchNotSupported =
                     (isInstanceOf<NotSupported>(e));
                 inverseConditionalBatchRequest = this->urlencodedToDict(
@@ -4567,7 +4594,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                     ccxt::list{std::string("ETH/USDT:USDT-261225"),
                                std::string("limit"), std::string("buy"), 1,
                                2000}));
-              } catch (const std::exception &e) {
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
                 linearFutureOrderRequest = this->urlencodedToDict(
                     getProperty(exchange, std::string("last_request_body")));
               }
@@ -4587,7 +4615,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                     ccxt::list{std::string("ETH/USD:ETH-261225"),
                                std::string("limit"), std::string("buy"), 1,
                                2000}));
-              } catch (const std::exception &e) {
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
                 inverseFutureOrderRequest = this->urlencodedToDict(
                     getProperty(exchange, std::string("last_request_body")));
               }
@@ -4617,7 +4646,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                           {std::string("price"), std::string("4100")},
                           {std::string("timeInForce"), std::string("GTC")},
                       }}));
-                } catch (const std::exception &e) {
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
                   implicitDapiOrderRequest = this->urlencodedToDict(
                       getProperty(exchange, std::string("last_request_body")));
                 }
@@ -4648,7 +4678,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                                {std::string("timeInForce"), std::string("GTC")},
                            }}},
                       }}));
-                } catch (const std::exception &e) {
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
                   implicitDapiBatchRequest = this->urlencodedToDict(
                       getProperty(exchange, std::string("last_request_body")));
                 }
@@ -4692,7 +4723,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                           {std::string("triggerPrice"), std::string("4200")},
                           {std::string("timeInForce"), std::string("GTC")},
                       }}));
-                } catch (const std::exception &e) {
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
                   implicitFapiAlgoOrderRequest = this->urlencodedToDict(
                       getProperty(exchange, std::string("last_request_body")));
                 }
@@ -4732,7 +4764,8 @@ virtual std::shared_future<ccxt::any> testOkx() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  spotOrderRequest = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -4758,7 +4791,8 @@ virtual std::shared_future<ccxt::any> testOkx() {
                                      ccxt::list{std::string("BTC/USDT:USDT"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  swapOrderRequest = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -4799,7 +4833,8 @@ virtual std::shared_future<ccxt::any> testCryptocom() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -4837,7 +4872,8 @@ virtual std::shared_future<ccxt::any> testBybit() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  // we expect an error here, we're only interested in the
                  // headers
                  reqHeaders =
@@ -4881,7 +4917,8 @@ virtual std::shared_future<ccxt::any> testBithumb() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/KRW"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  // we expect an error here, we're only interested in the
                  // headers
                  reqHeaders =
@@ -4913,7 +4950,8 @@ virtual std::shared_future<ccxt::any> testBithumb() {
                                 ccxt::dict{
                                     {std::string("generation"), 1},
                                 }}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  reqHeaders =
                      (isTrue(
                           (isTrue(!isEqual(
@@ -4940,7 +4978,8 @@ virtual std::shared_future<ccxt::any> testBithumb() {
                  awaitValue(
                      callDynamically(exchange, std::string("fetchTicker"),
                                      ccxt::list{std::string("BTC/KRW")}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  reqHeaders =
                      (isTrue(
                           (isTrue(!isEqual(
@@ -5021,7 +5060,8 @@ virtual std::shared_future<ccxt::any> testExtended() {
                                      ccxt::list{std::string("BTC/USDC:USDC"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5057,7 +5097,8 @@ virtual std::shared_future<ccxt::any> testExtended() {
                                     {std::string("builderFeeRate"),
                                      std::string("0.0002")},
                                 }}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5088,7 +5129,8 @@ virtual std::shared_future<ccxt::any> testExtended() {
                                      ccxt::list{std::string("BTC/USDC:USDC"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5108,7 +5150,8 @@ virtual std::shared_future<ccxt::any> testExtended() {
                              {std::string("builderFeeRate"),
                               std::string("0.0003")},
                          }}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5188,7 +5231,8 @@ virtual std::shared_future<ccxt::any> testKucoin() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  // we expect an error here, we're only interested in the
                  // headers
                  reqHeaders =
@@ -5219,7 +5263,8 @@ virtual std::shared_future<ccxt::any> testKucoin() {
                                 ccxt::dict{
                                     {std::string("uta"), true},
                                 }}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  reqHeaders =
                      (isTrue(
                           (isTrue(!isEqual(
@@ -5247,7 +5292,8 @@ virtual std::shared_future<ccxt::any> testKucoin() {
                                      ccxt::list{std::string("BTC/USDT:USDT"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  reqHeaders =
                      (isTrue(
                           (isTrue(!isEqual(
@@ -5276,7 +5322,8 @@ virtual std::shared_future<ccxt::any> testKucoin() {
                                                 ccxt::dict{
                                                     {std::string("uta"), true},
                                                 }}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  reqHeaders =
                      (isTrue(
                           (isTrue(!isEqual(
@@ -5342,7 +5389,8 @@ virtual std::shared_future<ccxt::any> testKucoinfutures() {
                                      ccxt::list{std::string("BTC/USDT:USDT"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  reqHeaders =
                      (isTrue(
                           (isTrue(!isEqual(
@@ -5370,7 +5418,8 @@ virtual std::shared_future<ccxt::any> testKucoinfutures() {
                                      ccxt::list{std::string("BTC/USDT:USDT"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  reqHeaders =
                      (isTrue(
                           (isTrue(!isEqual(
@@ -5418,7 +5467,8 @@ virtual std::shared_future<ccxt::any> testBitget() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  reqHeaders =
                      (isTrue(
                           (isTrue(!isEqual(
@@ -5468,7 +5518,8 @@ virtual std::shared_future<ccxt::any> testMexc() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  reqHeaders =
                      (isTrue(
                           (isTrue(!isEqual(
@@ -5509,7 +5560,8 @@ virtual std::shared_future<ccxt::any> testHtx() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  spotOrderRequest = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5529,7 +5581,8 @@ virtual std::shared_future<ccxt::any> testHtx() {
                                      ccxt::list{std::string("BTC/USDT:USDT"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  swapOrderRequest = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5540,7 +5593,8 @@ virtual std::shared_future<ccxt::any> testHtx() {
                                      ccxt::list{std::string("BTC/USD:BTC"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  swapInverseOrderRequest = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5583,7 +5637,8 @@ virtual std::shared_future<ccxt::any> testWoo() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  spotOrderRequest = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5606,7 +5661,8 @@ virtual std::shared_future<ccxt::any> testWoo() {
                                 ccxt::dict{
                                     {std::string("stopPrice"), 30000},
                                 }}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  stopOrderRequest = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5646,7 +5702,8 @@ virtual std::shared_future<ccxt::any> testCoinex() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  spotOrderRequest = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5686,7 +5743,8 @@ virtual std::shared_future<ccxt::any> testBingx() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  // we expect an error here, we're only interested in the
                  // headers
                  reqHeaders =
@@ -5729,7 +5787,8 @@ virtual std::shared_future<ccxt::any> testPhemex() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5762,7 +5821,8 @@ virtual std::shared_future<ccxt::any> testBlofin() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("LTC/USDT:USDT"),
                                 std::string("market"), std::string("buy"), 1}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5822,7 +5882,8 @@ virtual std::shared_future<ccxt::any> testCoinbaseinternational() {
                                      ccxt::list{std::string("BTC/USDC:USDC"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5858,7 +5919,8 @@ virtual std::shared_future<ccxt::any> testCoinbaseAdvanced() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDC"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5897,7 +5959,8 @@ virtual std::shared_future<ccxt::any> testWoofiPro() {
                                      ccxt::list{std::string("BTC/USDC:USDC"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5928,7 +5991,8 @@ virtual std::shared_future<ccxt::any> testXT() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  spotOrderRequest = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -5945,7 +6009,8 @@ virtual std::shared_future<ccxt::any> testXT() {
                                      ccxt::list{std::string("BTC/USDT:USDT"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  swapOrderRequest = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -6052,7 +6117,8 @@ virtual std::shared_future<ccxt::any> testParadex() {
                                      ccxt::list{std::string("BTC/USD:USDC"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  reqHeaders =
                      (isTrue(
                           (isTrue(!isEqual(
@@ -6093,7 +6159,8 @@ virtual std::shared_future<ccxt::any> testHashkey() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  // we expect an error here, we're only interested in the
                  // headers
                  reqHeaders =
@@ -6135,7 +6202,8 @@ virtual std::shared_future<ccxt::any> testCryptomus() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("sell"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -6188,7 +6256,8 @@ virtual std::shared_future<ccxt::any> testDerive() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("LBTC/USDC"), std::string("limit"),
                                 std::string("sell"), 0.01, 3000, params}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -6227,7 +6296,8 @@ virtual std::shared_future<ccxt::any> testModeTrade() {
                                      ccxt::list{std::string("BTC/USDC:USDC"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -6264,7 +6334,8 @@ virtual std::shared_future<ccxt::any> testBackpack() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("ETH/USDC"), std::string("limit"),
                                 std::string("buy"), 1, 5000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  // we expect an error here, we're only interested in the
                  // headers
                  reqHeaders =
@@ -6307,7 +6378,8 @@ virtual std::shared_future<ccxt::any> testToobit() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  // we expect an error here, we're only interested in the
                  // headers
                  reqHeaders =
@@ -6357,7 +6429,8 @@ virtual std::shared_future<ccxt::any> testWeex() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/USDT"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -6376,7 +6449,8 @@ virtual std::shared_future<ccxt::any> testWeex() {
                                      ccxt::list{std::string("BTC/USDT:USDT"),
                                                 std::string("limit"),
                                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  request = jsonParse(
                      getProperty(exchange, std::string("last_request_body")));
                }
@@ -6407,7 +6481,8 @@ virtual std::shared_future<ccxt::any> testFoxbit() {
                      exchange, std::string("createOrder"),
                      ccxt::list{std::string("BTC/BRL"), std::string("limit"),
                                 std::string("buy"), 1, 20000}));
-               } catch (const std::exception &e) {
+               } catch (...) {
+                 std::exception_ptr e = std::current_exception();
                  // we expect an error here, we're only interested in the
                  // headers
                  reqHeaders =
