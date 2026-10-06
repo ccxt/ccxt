@@ -556,7 +556,7 @@ export default class derive extends Exchange {
         const request: Dict = {
             'wallet': deriveWalletAddress,
         };
-        const response = await this.privatePostGetSubaccounts (this.extend (request, paramsDeriveWalletAddress)); // todo: check on main-net
+        const response = await this.privatePostGetSubaccounts (this.extend (request, paramsDeriveWalletAddress));
         //
         //     {
         //         "id": "1c314a3a-f7f5-47bd-998a-cea5dda11c30",
@@ -996,7 +996,7 @@ export default class derive extends Exchange {
         const request: Dict = {
             'instrument_name': market['id'],
         };
-        const response = await this.publicPostGetTicker (this.extend (request, params)); // todo: check on main-net
+        const response = await this.publicPostGetTicker (this.extend (request, params));
         //
         //     {
         //         "id": "a24f964a-4c80-4389-950e-1f68b9bfb40f",
@@ -1793,7 +1793,7 @@ export default class derive extends Exchange {
         if (until !== undefined) {
             request['end_timestamp'] = until; // the venue silently ignores the to_timestamp spelling other endpoints use
         }
-        const response = await this.publicPostGetFundingRateHistory (this.extend (request, paramsOmitted)); // todo: check on main-net
+        const response = await this.publicPostGetFundingRateHistory (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": "6dcdcdd2-1523-4d48-9b45-e1f3e61b3711",
@@ -3722,7 +3722,7 @@ export default class derive extends Exchange {
             'signature': signature,
             'signature_expiry_sec': signatureExpiry,
         };
-        const response = await this.privatePostTransferSpot (this.extend (request, paramsDeriveWalletAddress)); // todo: check on main-net
+        const response = await this.privatePostTransferSpot (this.extend (request, paramsDeriveWalletAddress));
         //
         //     {
         //         "id": "cc745aff-d485-464d-bc2f-cd99f821ea52",
@@ -3790,7 +3790,7 @@ export default class derive extends Exchange {
         if (until !== undefined) {
             request['end_timestamp'] = until;
         }
-        const response = await this.privatePostGetErc20TransferHistory (this.extend (request, paramsOmitted)); // todo: check on main-net
+        const response = await this.privatePostGetErc20TransferHistory (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": "6475ec25-b0ac-4f38-a5d6-6fc8f7cc5611",
@@ -3857,7 +3857,7 @@ export default class derive extends Exchange {
         if (until !== undefined) {
             request['end_timestamp'] = until;
         }
-        const response = await this.publicPostGetInterestRateHistory (this.extend (request, paramsOmitted)); // todo: check on main-net
+        const response = await this.publicPostGetInterestRateHistory (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": "d9f3db6f-9ebd-4d29-ae83-006f22ce07af",
@@ -4095,7 +4095,7 @@ export default class derive extends Exchange {
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
-        const response = await this.privatePostGetDepositHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+        const response = await this.privatePostGetDepositHistory (this.extend (request, paramsDeriveSubaccountId));
         //
         //     {
         //         "id": "4ba60e41-fa05-490c-b849-9ead5aef63c8",
