@@ -5165,7 +5165,20 @@ export default class bingx extends Exchange {
             //
         } else {
             const isTwapOrder = this.safeBool (paramsStandard, 'twap', false);
-            const paramsOmitted = this.omit (paramsStandard, 'twap');
+            let paramsOmitted = this.omit (paramsStandard, 'twap');
+            if (!isTwapOrder) {
+                if (limit !== undefined) {
+                    request['limit'] = Math.min (limit, 1000);
+                }
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                const until = this.safeInteger (paramsOmitted, 'until');
+                if (until !== undefined) {
+                    request['endTime'] = until;
+                    paramsOmitted = this.omit (paramsOmitted, 'until');
+                }
+            }
             if (isTwapOrder === true) {
                 request['pageIndex'] = 1;
                 request['pageSize'] = (limit === undefined) ? 100 : limit;
