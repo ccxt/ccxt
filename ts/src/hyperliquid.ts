@@ -3776,17 +3776,15 @@ export default class hyperliquid extends Exchange {
         if (symbolsLength === 0) {
             return undefined;
         }
-        let dexName: Str = undefined;
-        for (let i = 0; i < symbolsLength; i++) {
-            if (dexName === undefined) {
-                const market = this.market (symbols[i]);
-                dexName = this.getDexFromHip3Symbol (market);
-            } else {
-                const market = this.market (symbols[i]);
-                const currentDexName = this.getDexFromHip3Symbol (market);
-                if (currentDexName !== dexName) {
-                    throw new NotSupported (this.id + ' ' + methodName + ' only supports symbols from one DEX at a time for HIP3 markets');
-                }
+        // the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
+        // so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
+        const firstMarket = this.market (symbols[0]);
+        const dexName = this.getDexFromHip3Symbol (firstMarket);
+        for (let i = 1; i < symbolsLength; i++) {
+            const market = this.market (symbols[i]);
+            const currentDexName = this.getDexFromHip3Symbol (market);
+            if (currentDexName !== dexName) {
+                throw new NotSupported (this.id + ' ' + methodName + ' only supports symbols from one DEX at a time for HIP3 markets');
             }
         }
         return dexName;
