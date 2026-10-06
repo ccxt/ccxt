@@ -80,8 +80,12 @@ jobs:
   live-tests:
     runs-on: [ self-hosted, linux, x64, cpp ]
     needs: build
-    timeout-minutes: 60
+    timeout-minutes: 150
     steps:
+    # self-hosted runners delete the workspace between jobs, so this job is
+    # fully self-sufficient: fresh checkout + npm ci + transpile + warm-ccache
+    # build, then the live tests through the standard node harness — same
+    # shape the js/python live-test workflows use.
     - uses: actions/checkout@v6
       with:
         fetch-depth: 2
@@ -89,12 +93,27 @@ jobs:
     - uses: actions/setup-node@v5
       with:
         node-version: '22'
-    - name: Workspace ownership
-      # reuses the build job's workspace (cpp/build + node_modules) on this
-      # runner; a previous root-owned tree breaks the rerun, so fix ownership
+    - name: Install npm dependencies
+      run: npm ci --include=dev
+    - name: ccache
+      run: |
+        echo "CCACHE_DIR=/mnt/cache/ccache" >> "$GITHUB_ENV"
+        echo "CCACHE_MAXSIZE=2G" >> "$GITHUB_ENV"
+    - name: Emit implicit API
+      run: npm run emitAPI -- --cpp
+    - name: Transpile everything (base, tests, all exchanges)
+      run: npm run transpileCpp -- --all --force
+    - name: Transpile pro (ws) tier
+      run: npm run transpileCpp -- --pro --force
+    - name: Configure
       run: |
         if [ "$(id -u)" -ne 0 ]; then
           sudo chown -R "$(id -u):$(id -g)" . 2>/dev/null || true
         fi
+        cmake -S cpp -B cpp/build -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld
+    - name: Build (parallel compile)
+      run: cmake --build cpp/build --parallel 4
     - name: binance live tests (public endpoints)
       run: node run-tests binance --cpp
