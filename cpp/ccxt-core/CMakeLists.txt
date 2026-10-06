@@ -23,9 +23,15 @@ endif ()
 
 # parseJson/serialise/json hot paths are header-heavy and pay ~12x at -O0
 # (parsing the 22MB markets payload drops from ~17s to ~2.5s at -O2).
-set_source_files_properties (ccxt/base/ExchangeBase.cpp PROPERTIES COMPILE_OPTIONS "-O2")
+# -Wno-deprecated-declarations: the secp256k1 sign/verify helpers use the
+# legacy EC_KEY API — deprecated since OpenSSL 3.0 but fully functional;
+# strict runners escalate the deprecation to an error. (EVP migration is the
+# long-term fix; the API must not move until signatures are re-verified.)
+set_source_files_properties (ccxt/base/ExchangeBase.cpp PROPERTIES COMPILE_OPTIONS "-O2;-Wno-deprecated-declarations")
 # per-key/per-value free helpers (getValue/setValue/isEqual/safeString/…) that
 # setMarkets-style generated code calls millions of times through std::any.
 set_source_files_properties (ccxt/base/helpers.cpp PROPERTIES COMPILE_OPTIONS "-O2")
 # the lazy-view resolution (field scans, sub-parses, the byte-scan counter).
 set_source_files_properties (ccxt/base/JsonView.cpp PROPERTIES COMPILE_OPTIONS "-O2")
+# same EC_KEY/OpenSSL 3.0 deprecation treatment as ExchangeBase.cpp.
+set_source_files_properties (ccxt/base/Crypto.cpp PROPERTIES COMPILE_OPTIONS "-O2;-Wno-deprecated-declarations")
