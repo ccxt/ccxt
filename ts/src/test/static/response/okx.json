@@ -10598,7 +10598,7 @@
                     "lastUpdateTimestamp": 1768899783914,
                     "maintenanceMargin": 0.0000043300962256,
                     "maintenanceMarginPercentage": 0.004,
-                    "collateral": 0.0003611412062116,
+                    "collateral": 0.0003620407684556,
                     "initialMargin": 0.000361141206211628,
                     "initialMarginPercentage": 0.3333333333333333,
                     "leverage": 3,
@@ -10772,11 +10772,11 @@
                     "lastUpdateTimestamp": 1773228124186,
                     "maintenanceMargin": 0.02778276,
                     "maintenanceMarginPercentage": 0.004,
-                    "collateral": 0.693047,
+                    "collateral": 0.7082669999999997,
                     "initialMargin": 0.69457594569,
                     "initialMarginPercentage": 0.1,
                     "leverage": 10,
-                    "marginRatio": 0.04,
+                    "marginRatio": 0.0392,
                     "stopLossPrice": null,
                     "takeProfitPrice": null
                 }
