@@ -115,7 +115,7 @@ cpp/ccxt/prediction/*.h
 cpp/ccxt/prediction/tu_*.cpp
 cpp/ccxt/api/
 cpp/ccxt/base/*.inc
-cpp/ccxt/base/Errors.h
+cpp/ccxt-core/ccxt/base/Errors.h
 cpp/ccxt/base/PredictionExchange.h
 cpp/ccxt/base/Types.h
 cpp/tests/Generated/

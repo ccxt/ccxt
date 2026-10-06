@@ -1,7 +1,7 @@
 // Gate for the D1 value model: insertion order, reference semantics, and the
 // JavaScript semantics of the helper surface. Runs offline, no exchange needed.
 
-#include "../ccxt/base/helpers.h"
+#include "ccxt/base/helpers.h"
 
 #include <iostream>
 #include <string>

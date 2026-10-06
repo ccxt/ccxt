@@ -7,9 +7,9 @@
 // `testSharedMethods.` prefix), so those names have to resolve to something at global
 // scope here. This is the C++ counterpart of cs/tests/BaseTest.Bridge.cs.
 
-#include "../ccxt/base/Exchange.h"
-#include "../ccxt/base/ws/Cache.h"
-#include "../ccxt/base/ws/OrderBook.h"
+#include "ccxt/base/Exchange.h"
+#include "ccxt/base/ws/Cache.h"
+#include "ccxt/base/ws/OrderBook.h"
 
 #include <any>
 #include <future>

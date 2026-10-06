@@ -56,15 +56,12 @@ find_package (simdjson QUIET)
 # and the giant copy (and its rename race) disappears entirely.
 set (CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> crT <TARGET> <LINK_FLAGS> <OBJECTS>")
 
+# ccxt-core: the hand-written engine runtime (see cpp/ccxt-core/CMakeLists.txt).
+# Separate package so runtime edits rebuild only its ~7 TUs, not the venue TUs.
+add_subdirectory (ccxt-core)
+
 add_library (ccxt STATIC
-    ccxt/base/helpers.cpp
-    ccxt/base/JsonView.cpp
-    ccxt/base/ExchangeBase.cpp
     ccxt/base/Exchange.SetMarkets.cpp
-    ccxt/base/Crypto.cpp
-    ccxt/base/Starknet.cpp
-    ccxt/base/Number.cpp
-    ccxt/base/ws/Ws.cpp
     ccxt/exchanges/ExchangeFactory.cpp
     ccxt/pro/ProExchangeFactory.cpp
     ccxt/prediction/PredictionFactory.cpp
@@ -77,25 +74,13 @@ file (GLOB EXCHANGE_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/exchanges/tu_*.cpp)
 file (GLOB PRO_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/pro/tu_*.cpp)
 file (GLOB PREDICTION_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/prediction/tu_*.cpp)
 target_sources (ccxt PRIVATE ${EXCHANGE_TUS} ${PRO_TUS} ${PREDICTION_TUS})
-# parseJson/serialise/json hot paths (ExchangeBase.cpp) are header-heavy
-# (nlohmann + the big-int quoting pass) and pay ~12x at -O0: parsing a 22MB
-# markets payload drops from ~17s to ~2.5s with this one TU at -O2.
-set_source_files_properties (ccxt/base/ExchangeBase.cpp PROPERTIES COMPILE_OPTIONS "-O2")
-# helpers.cpp holds the per-key/per-value free helpers (getValue/setValue/
-# isEqual/safeString/...) that setMarkets-style generated code calls millions
-# of times through std::any; same one-TU -O2 treatment.
-set_source_files_properties (ccxt/base/helpers.cpp PROPERTIES COMPILE_OPTIONS "-O2")
-# the lazy-view resolution (field scans, sub-parses, the byte-scan counter) is
-# the same hot loop at -O0 otherwise.
-set_source_files_properties (ccxt/base/JsonView.cpp PROPERTIES COMPILE_OPTIONS "-O2")
-# the out-of-line setMarkets definition (see Exchange.SetMarkets.cpp)
+# the out-of-line setMarkets definition (see Exchange.SetMarkets.cpp) stays in
+# this package: it includes the generated Exchange.h + Exchange.SetMarkets.inc.
 set_source_files_properties (ccxt/base/Exchange.SetMarkets.cpp PROPERTIES COMPILE_OPTIONS "-O2")
 target_include_directories (ccxt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries (ccxt PUBLIC Threads::Threads CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
-if (simdjson_FOUND)
-    target_link_libraries (ccxt PUBLIC simdjson::simdjson)
-    target_compile_definitions (ccxt PUBLIC CCXT_HAS_SIMDJSON=1)
-endif ()
+# the engine runtime (value model, exchange core, helpers, ws) + its deps
+# (threads/curl/ssl/simdjson) come transitively from the ccxt-core package.
+target_link_libraries (ccxt PUBLIC ccxt_core)
 
 # The value model underpins everything else (ordered dicts, reference semantics), so it
 # is its own binary and runs first.

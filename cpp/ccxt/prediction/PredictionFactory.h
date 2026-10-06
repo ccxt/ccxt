@@ -6,7 +6,7 @@
 // library and look prediction venues up by id at runtime (the C++ counterpart
 // of C#'s ccxt.prediction namespace / DynamicallyCreateInstance).
 
-#include "../base/ExchangeBase.h"
+#include "ccxt/base/ExchangeBase.h"
 
 #include <any>
 #include <functional>

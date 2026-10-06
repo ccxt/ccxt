@@ -11,7 +11,7 @@
 // half and vice versa. An inheritance chain would need a hand-maintained list of
 // virtual stubs to make those base-to-derived calls dispatch.
 
-#include "ExchangeBase.h"
+#include "ccxt/base/ExchangeBase.h"
 #include "Types.h"
 
 #include <memory>

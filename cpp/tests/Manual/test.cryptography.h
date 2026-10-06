@@ -15,7 +15,7 @@
 // are NOT here -- see the note at the bottom.
 
 #include "../BaseTest.Bridge.h"
-#include "../../ccxt/base/Crypto.h"
+#include "ccxt/base/Crypto.h"
 
 inline void testCryptography () {
     using namespace ccxt;
