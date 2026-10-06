@@ -393,7 +393,34 @@ function test_php_consume_resets_the_seen_set() {
 
 // ----------------------------------------------------------------------------
 
+function remove_symbol_check($condition) { check($condition, 'remove symbol polling scopes'); }
+
+function test_php_remove_symbol_polling_scopes() {
+foreach([false,true] as $global)foreach([false,true] as $symbol){
+$c=new \ccxt\pro\ArrayCacheBySymbolBySide();
+$c->append(['symbol'=>'ETH','side'=>'long','contracts'=>4]);$c->append(['symbol'=>'LTC','side'=>'long','contracts'=>2]);$c->append(['symbol'=>'ETH','side'=>'short','contracts'=>5]);
+if($global)remove_symbol_check($c->getLimit(null,null)===3);
+if($symbol){remove_symbol_check($c->getLimit('ETH',null)===2);remove_symbol_check($c->getLimit('LTC',null)===1);}
+$c->remove('MISSING');remove_symbol_check(count($c)===3);$c->remove('LTC');remove_symbol_check(count($c)===2&&$c[0]['contracts']===4&&$c[1]['contracts']===5);remove_symbol_check($c->getLimit('LTC',null)===0);
+$c->remove('LTC');$c->append(['symbol'=>'LTC','side'=>'both','contracts'=>0]);remove_symbol_check($c->getLimit(null,null)===($global?1:3));
+$c->append(['symbol'=>'ETH','side'=>'long','contracts'=>6]);remove_symbol_check($c->getLimit('ETH',null)===($symbol?1:2));remove_symbol_check(count($c)===3);
+}
+
+    foreach ([123, '123'] as $argument) {
+        foreach ([123, '123'] as $rowSymbol) {
+            $cache = new ArrayCacheBySymbolBySide();
+            $cache->append(['symbol' => $rowSymbol, 'side' => 'long']);
+            $cache->remove($argument);
+            check(count($cache) === 0, 'normalized symbol removes row');
+            check($cache->getLimit('123', null) === 0, 'normalized symbol resets count');
+            $cache->append(['symbol' => $rowSymbol, 'side' => 'short']);
+            check(count($cache) === 1, 'normalized symbol can reopen');
+        }
+    }
+}
+
 function test_ws_cache_php() {
+    test_php_remove_symbol_polling_scopes();
     test_php_field_wise_merge();
     test_php_two_field_match();
     test_php_strict_index_search();

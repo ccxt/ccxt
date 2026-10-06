@@ -43,6 +43,7 @@ public partial class BaseTest
 
     public void testWsCacheRegressions()
     {
+        testRemoveSymbolPollingScopes();
         testArrayCacheByTimestampEviction();
         testArrayCacheByTimestampInPlaceMerge();
         testArrayCacheByTimestampShorterUpdateDropsTail();

@@ -1,3 +1,4 @@
+import { installCacheRemoveCall } from './cache-remove-call.js';
 import Transpiler from "ast-transpiler";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
@@ -2278,6 +2279,7 @@ class NewTranspiler {
 
     setupTranspiler() {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
+        installCacheRemoveCall(this.transpiler, 'java');
         this.transpiler.setVerboseMode(false);
         // a lambda body cannot capture a reassigned parameter: fail the transpile instead of copying it
         (this.transpiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
