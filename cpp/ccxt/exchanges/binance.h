@@ -19263,7 +19263,8 @@ public:
                              std::string(" setMarginMode() supports linear and "
                                          "inverse contracts only"))));
                    }
-                 } catch (const std::exception &e) {
+                 } catch (...) {
+                   std::exception_ptr e = std::current_exception();
                    // not an error
                    // https://github.com/ccxt/ccxt/issues/11268
                    // https://github.com/ccxt/ccxt/pull/11624
@@ -20574,7 +20575,8 @@ public:
       if (isTrue(!isEqual(messageNew, ccxt::any{}))) {
         try {
           parsedMessage = parseJson(messageNew);
-        } catch (const std::exception &e) {
+        } catch (...) {
+          std::exception_ptr e = std::current_exception();
           // do nothing
           parsedMessage = ccxt::any{};
         }
