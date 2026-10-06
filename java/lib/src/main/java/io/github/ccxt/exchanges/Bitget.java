@@ -12017,8 +12017,10 @@ public class Bitget extends BitgetApi
      * @name bitget#fetchFundingRates
      * @description fetch the current funding rates for all markets
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
@@ -12043,14 +12045,27 @@ public class Bitget extends BitgetApi
             List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
             Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsProductType), "fetchFundingRates", false)).join();
+            Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
+            Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
             String method = "publicMixGetV2MixMarketTickers";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> methodOptionparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsProductType), "fetchFundingRates", "method", method);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodOptionparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUTA), "fetchFundingRates", "method", method);
             String methodOption = methodOptionparamsMethodVariable.first();
             Map<String, Object> paramsMethod = methodOptionparamsMethodVariable.second();
             Map<String, Object> response = null;
-            request.put("productType", productType);
-            if (java.util.Objects.equals(methodOption, "publicMixGetV2MixMarketTickers"))
+            if (java.util.Objects.equals(uta, true))
             {
+                request.put("category", productType);
+                if (java.util.Objects.equals(methodOption, "publicMixGetV2MixMarketTickers"))
+                {
+                    response = (this.publicUtaGetV3MarketTickers(this.extend(request, paramsMethod))).join();
+                } else if (java.util.Objects.equals(methodOption, "publicMixGetV2MixMarketCurrentFundRate"))
+                {
+                    response = (this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, paramsMethod))).join();
+                }
+            } else if (java.util.Objects.equals(methodOption, "publicMixGetV2MixMarketTickers"))
+            {
+                request.put("productType", productType);
                 // {
                 //     "code": "00000",
                 //     "msg": "success",
@@ -12086,6 +12101,7 @@ public class Bitget extends BitgetApi
                 response = (this.publicMixGetV2MixMarketTickers(this.extend(request, paramsMethod))).join();
             } else if (java.util.Objects.equals(methodOption, "publicMixGetV2MixMarketCurrentFundRate"))
             {
+                request.put("productType", productType);
                 //
                 //     {
                 //         "code": "00000",
@@ -12117,8 +12133,10 @@ public class Bitget extends BitgetApi
      * @name bitget#fetchFundingIntervals
      * @description fetch the funding rate interval for multiple markets
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
