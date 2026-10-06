@@ -5950,8 +5950,8 @@ public partial class bingx : Exchange
         string? datetime = this.iso8601(timestamp);
         if ((timestamp == null))
         {
-            datetime = this.safeString(transaction, "applyTime");
-            timestamp = this.parse8601(datetime);
+            timestamp = this.parse8601(this.safeString(transaction, "applyTime"));
+            datetime = this.iso8601(timestamp);
         }
         string? network = this.safeString(transaction, "network");
         string? currencyId = this.safeString(transaction, "coin");
@@ -5963,11 +5963,17 @@ public partial class bingx : Exchange
                 code = code.Replace(network, (string)"");
             }
         }
+        // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         string? rawType = this.safeString(transaction, "transferType");
         string type = "withdrawal";
-        if (rawType == "0")
+        if ((rawType == "0") || ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("insertTime"))))
         {
             type = "deposit";
+        }
+        bool? intern = null;
+        if ((rawType != null))
+        {
+            intern = (rawType == "2");
         }
         return new Dictionary<string, object>() {
             { "info", transaction },
@@ -5977,7 +5983,7 @@ public partial class bingx : Exchange
             { "currency", code },
             { "network", this.networkIdToCode(network, code) },
             { "amount", this.safeNumber(transaction, "amount") },
-            { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
+            { "status", this.parseTransactionStatus(this.safeString(transaction, "status"), type) },
             { "timestamp", timestamp },
             { "datetime", datetime },
             { "address", address },
@@ -5993,12 +5999,25 @@ public partial class bingx : Exchange
                 { "cost", this.safeNumber(transaction, "transactionFee") },
                 { "rate", null },
             } },
-            { "internal", null },
+            { "internal", intern },
         };
     }
 
-    public virtual string? parseTransactionStatus(string? status)
+    public virtual string? parseTransactionStatus(string? status, object type = null)
     {
+        Dictionary<string, object> statusesByType = new Dictionary<string, object>() {
+            { "deposit", new Dictionary<string, object>() {
+                { "0", "pending" },
+                { "6", "pending" },
+                { "1", "ok" },
+            } },
+            { "withdrawal", new Dictionary<string, object>() {
+                { "4", "pending" },
+                { "5", "failed" },
+                { "6", "ok" },
+            } },
+        };
+        IDictionary<string, object> directional = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "0", "pending" },
             { "1", "ok" },
@@ -6015,7 +6034,8 @@ public partial class bingx : Exchange
             { "5", "rejected" },
             { "6", "ok" },
         };
-        return this.safeString(statuses, status, status);
+        string? fallback = this.safeString(statuses, status, status);
+        return this.safeString(directional, status, fallback);
     }
 
     /**
