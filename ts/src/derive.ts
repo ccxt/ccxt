@@ -1218,7 +1218,7 @@ export default class derive extends Exchange {
         const request: Dict = {
             'currency': market['baseId'],
         };
-        const response = await this.publicPostGetOptionSettlementPrices (this.extend (request, params)); // todo: check on main-net
+        const response = await this.publicPostGetOptionSettlementPrices (this.extend (request, params));
         //
         //     {
         //         "id": "d1847bad-5917-424b-bd9a-37262a03fd47",
@@ -1264,7 +1264,7 @@ export default class derive extends Exchange {
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
-        const response = await this.privatePostGetOptionSettlementHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+        const response = await this.privatePostGetOptionSettlementHistory (this.extend (request, paramsDeriveSubaccountId));
         //
         //     {
         //         "id": "f92af59c-33d6-4bed-b237-378250f5727b",
@@ -2105,7 +2105,7 @@ export default class derive extends Exchange {
         const paramsOmitted = this.omit (paramsDeriveWalletAddress, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type' ]);
         let response: Dict;
         if (test === true) {
-            response = await this.privatePostOrderDebug (this.extend (request, paramsOmitted)); // todo: check on main-net
+            response = await this.privatePostOrderDebug (this.extend (request, paramsOmitted));
         } else {
             response = await this.privatePostOrder (this.extend (request, paramsOmitted));
         }
@@ -2250,7 +2250,7 @@ export default class derive extends Exchange {
         }
         request['signature'] = signature;
         const paramsOmitted = this.omit (paramsDeriveWalletAddress, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId' ]);
-        const response = await this.privatePostReplace (this.extend (request, paramsOmitted)); // todo: check on main-net
+        const response = await this.privatePostReplace (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": "bdeaa36f-5eae-4193-a1d2-81fb7f0dfd9d",
@@ -2374,11 +2374,11 @@ export default class derive extends Exchange {
         if (isByClientOrder) {
             request['label'] = clientOrderIdExchangeSpecific;
             const paramsLabel: Dict = this.omit (paramsOmitted, [ 'clientOrderId', 'label' ]);
-            response = await this.privatePostCancelByLabel (this.extend (request, paramsLabel)); // todo: check on main-net
+            response = await this.privatePostCancelByLabel (this.extend (request, paramsLabel));
         } else {
             request['order_id'] = id;
             if (isTrigger === true) {
-                response = await this.privatePostCancelTriggerOrder (this.extend (request, paramsOmitted)); // todo: check on main-net
+                response = await this.privatePostCancelTriggerOrder (this.extend (request, paramsOmitted));
             } else {
                 response = await this.privatePostCancel (this.extend (request, paramsOmitted));
             }
@@ -2459,9 +2459,9 @@ export default class derive extends Exchange {
         let response: Dict;
         if (market !== undefined) {
             request['instrument_name'] = market['id'];
-            response = await this.privatePostCancelByInstrument (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+            response = await this.privatePostCancelByInstrument (this.extend (request, paramsDeriveSubaccountId));
         } else {
-            response = await this.privatePostCancelAll (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+            response = await this.privatePostCancelAll (this.extend (request, paramsDeriveSubaccountId));
         }
         //
         //     {
@@ -2642,7 +2642,7 @@ export default class derive extends Exchange {
         }
         let response: Dict;
         if (isTrigger === true) {
-            response = await this.privatePostGetTriggerOrders (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+            response = await this.privatePostGetTriggerOrders (this.extend (request, paramsDeriveSubaccountId));
         } else {
             response = await this.privatePostGetOpenOrders (this.extend (request, paramsDeriveSubaccountId));
         }
@@ -4152,7 +4152,7 @@ export default class derive extends Exchange {
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
-        const response = await this.privatePostGetWithdrawalHistory (this.extend (request, paramsDeriveSubaccountId)); // todo: check on main-net
+        const response = await this.privatePostGetWithdrawalHistory (this.extend (request, paramsDeriveSubaccountId));
         //
         //     {
         //         "id": "f3d46c05-5c8f-4e4a-9d2f-5a86d26124b3",
@@ -4220,6 +4220,8 @@ export default class derive extends Exchange {
                 'currency': code,
             };
         }
+        // withdrawal rows carry the recipient address, deposit rows carry l1_sender/wallet instead
+        const addressTo = this.safeString (transaction, 'recipient');
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'operation_id', 'transaction_id'),
@@ -4228,11 +4230,11 @@ export default class derive extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'address': undefined,
             'addressFrom': undefined,
-            'addressTo': this.safeString (transaction, 'recipient'),
+            'addressTo': addressTo,
             'tag': undefined,
             'tagFrom': undefined,
             'tagTo': undefined,
-            'type': undefined,
+            'type': (addressTo !== undefined) ? 'withdrawal' : 'deposit',
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus (this.safeString2 (transaction, 'batch_status', 'tx_status')),
