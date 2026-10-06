@@ -4819,7 +4819,7 @@
                         "tag": null,
                         "tagFrom": null,
                         "tagTo": null,
-                        "type": null,
+                        "type": "deposit",
                         "amount": 10000,
                         "currency": "USDC",
                         "status": "ok",
@@ -4894,7 +4894,7 @@
                         "tag": null,
                         "tagFrom": null,
                         "tagTo": null,
-                        "type": null,
+                        "type": "withdrawal",
                         "amount": 100,
                         "currency": "USDC",
                         "status": "pending",
@@ -4903,6 +4903,79 @@
                         "internal": null,
                         "fee": {
                             "cost": 1.000073283608,
+                            "currency": "USDC"
+                        },
+                        "network": null
+                    }
+                ]
+            },
+            {
+                "description": "fetchWithdrawals mainnet pending",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDC",
+                    null,
+                    null,
+                    {
+                        "subaccount_id": "74412"
+                    }
+                ],
+                "httpResponse": {
+                    "id": "f40bd721-977c-4e9e-855b-8a573fd1cd2e",
+                    "result": {
+                        "withdrawals": [
+                            {
+                                "operation_id": "01a112dd-5324-7d91-aa9d-91e91a838ef2",
+                                "subaccount_id": 74412,
+                                "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                                "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                                "asset": "USDC",
+                                "erc20_address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                                "amount": "4",
+                                "fee": "1.000084483397",
+                                "timestamp": 1791317857000,
+                                "batch_uuid": "01a112d9-d1df-71b1-8f80-77b1c3cac150",
+                                "batch_status": "Proving",
+                                "tx_hash": null
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "operation_id": "01a112dd-5324-7d91-aa9d-91e91a838ef2",
+                            "subaccount_id": 74412,
+                            "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                            "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                            "asset": "USDC",
+                            "erc20_address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                            "amount": "4",
+                            "fee": "1.000084483397",
+                            "timestamp": 1791317857000,
+                            "batch_uuid": "01a112d9-d1df-71b1-8f80-77b1c3cac150",
+                            "batch_status": "Proving",
+                            "tx_hash": null
+                        },
+                        "id": "01a112dd-5324-7d91-aa9d-91e91a838ef2",
+                        "txid": null,
+                        "timestamp": 1791317857000,
+                        "datetime": "2026-10-06T20:17:37.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "withdrawal",
+                        "amount": 4,
+                        "currency": "USDC",
+                        "status": "pending",
+                        "updated": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": 1.000084483397,
                             "currency": "USDC"
                         },
                         "network": null
