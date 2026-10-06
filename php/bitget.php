@@ -9433,9 +9433,11 @@ class bitget extends Exchange {
          * fetch the current funding rates for all markets
          *
          * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+         * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
          *
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {string} [$params->method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
@@ -9451,11 +9453,19 @@ class bitget extends Exchange {
         }
         $request = array();
         list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $params);
+        list($uta, $paramsUTA) = $this->handle_uta_and_params($paramsProductType, 'fetchFundingRates', false);
         $method = 'publicMixGetV2MixMarketTickers';
-        list($methodOption, $paramsMethod) = $this->handle_option_string_and_params($paramsProductType, 'fetchFundingRates', 'method', $method);
+        list($methodOption, $paramsMethod) = $this->handle_option_string_and_params($paramsUTA, 'fetchFundingRates', 'method', $method);
         $response = null;
-        $request['productType'] = $productType;
-        if ($methodOption === 'publicMixGetV2MixMarketTickers') {
+        if ($uta === true) {
+            $request['category'] = $productType;
+            if ($methodOption === 'publicMixGetV2MixMarketTickers') {
+                $response = $this->publicUtaGetV3MarketTickers($this->extend($request, $paramsMethod));
+            } elseif ($methodOption === 'publicMixGetV2MixMarketCurrentFundRate') {
+                $response = $this->publicUtaGetV3MarketCurrentFundRate($this->extend($request, $paramsMethod));
+            }
+        } elseif ($methodOption === 'publicMixGetV2MixMarketTickers') {
+            $request['productType'] = $productType;
             // {
             //     "code": "00000",
             //     "msg": "success",
@@ -9490,6 +9500,7 @@ class bitget extends Exchange {
             // }
             $response = $this->publicMixGetV2MixMarketTickers($this->extend($request, $paramsMethod));
         } elseif ($methodOption === 'publicMixGetV2MixMarketCurrentFundRate') {
+            $request['productType'] = $productType;
             //
             //     {
             //         "code": "00000",
@@ -9519,9 +9530,11 @@ class bitget extends Exchange {
          * fetch the funding rate interval for multiple markets
          *
          * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+         * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
          * @param {string} [$params->productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
