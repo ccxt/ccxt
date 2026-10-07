@@ -1069,7 +1069,7 @@ export default class derive extends Exchange {
         const request: Dict = {
             'instrument_name': market['id'],
         };
-        const response = await this.publicPostGetTicker (this.extend (request, params)); // todo: check on main-net
+        const response = await this.publicPostGetTicker (this.extend (request, params));
         //
         //     {
         //         "id": "b9c8e59e-aa05-4517-8412-0a119f561cfb",
@@ -1160,7 +1160,7 @@ export default class derive extends Exchange {
         const request: Dict = {
             'instrument_name': market['id'],
         };
-        const response = await this.publicPostGetTicker (this.extend (request, params)); // todo: check on main-net
+        const response = await this.publicPostGetTicker (this.extend (request, params));
         // the response sample is listed in fetchGreeks, both methods read the same endpoint
         const result = this.safeDict (response, 'result', {});
         return this.parseOption (result, undefined, market);
