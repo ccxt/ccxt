@@ -6,6 +6,8 @@ import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '@scure/
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
 import * as functions from './functions.js';
+import crypto from 'node:crypto';
+
 // import {
 //     // keys as keysFunc,
 //     // values as valuesFunc,
@@ -2389,7 +2391,7 @@ export class BaseExchange {
     }
   
     readDhParam(path: string) {
-        const pem: any = readFile (path, null);
+        const pem: any = readFile (path);
         const der = Buffer.from (pem.replace (/-----[^-]+-----|\s/g, ''), 'base64');
 
         let pos = 0;
@@ -2449,15 +2451,16 @@ export class BaseExchange {
         };
     }
 
-    async getLiveSessionToken(urlBase, encKeyPath, signKeyPath, accessTokenSecret, dhParamPath, consumerKey, consumerAccessToken) {
+    async getLiveSessionToken(urlBase, encKeyPath, signKeyPath, accessTokenSecret, dhParamPath, consumerKey, consumerAccessToken, dhGen) {
         const encKeyFile = readFile (encKeyPath);
         const signKey = readFile (signKeyPath);
-        const dhPrime = this.readDhParam (dhParamPath);
+        const dhPrimeContent = this.readDhParam (dhParamPath);
+        const dhPrime = this.convertToBigInt ('0x' + dhPrimeContent);
         const privKey = { key: encKeyFile, padding: crypto.constants.RSA_PKCS1_PADDING };
         const bufferValue = Buffer.from (accessTokenSecret, 'base64');
         const prepend = crypto.privateDecrypt (privKey, bufferValue).toString ('hex');
-        const a = BigInt('0x' + crypto.randomBytes (32).toString ('hex'));
-        const A = this.modPow (dhParamPath, a, dhPrime);
+        const a = this.convertToBigInt ('0x' + crypto.randomBytes (32).toString ('hex'));
+        const A = this.modPow (dhGen, a, dhPrime);
         const url = `${urlBase}/oauth/live_session_token`;
         const params: Record<string, string> = {
             ...this.oauthBase (consumerKey, consumerAccessToken),
