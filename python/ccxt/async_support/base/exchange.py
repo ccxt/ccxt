@@ -360,14 +360,18 @@ class BaseExchange(SyncExchange):
             coroutine = self.load_markets_helper(reload, params)
             # coroutines can only be awaited once so we wrap it in a task
             self.markets_loading = asyncio.ensure_future(coroutine)
-            def _clear_loading(_):
+            def _clear_loading(fut):
                 self.reloading_markets = False
-                self.markets_loading = None
+                if fut.cancelled():
+                    self.markets_loading = None
+                else:
+                    exc = fut.exception()
+                    if exc is not None:
+                        self.markets_loading = None
             self.markets_loading.add_done_callback(_clear_loading)
         try:
             result = await asyncio.shield(self.markets_loading)
         except asyncio.CancelledError as e:
-            # Only propagate cancellation to the caller; the shared task continues
             raise e
         return result
 

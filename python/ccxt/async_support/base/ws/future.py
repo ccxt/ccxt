@@ -39,20 +39,18 @@ class Future(asyncio.Future):
             if not f.cancelled():
                 f.exception()
 
-        def detach_all():
+        def detach_all(cancel_losers=False):
             for f, cb in list(callbacks.items()):
                 try:
                     f.remove_done_callback(cb)
                 except Exception:
                     pass
-                # losers may already be done when a broadcast reject settles all
-                # raced futures at once, swallow those immediately, still-pending
-                # losers get the swallow for their eventual rejection, otherwise
-                # every broadcast reject leaves unretrieved exceptions that asyncio
-                # dumps at gc as "Future exception was never retrieved" walls
+                if cancel_losers and not f.done():
+                    f.cancel()
                 if f.done():
                     _swallow(f)
                 else:
+                    f.remove_done_callback(_swallow)
                     f.add_done_callback(_swallow)
             callbacks.clear()
 
@@ -70,7 +68,7 @@ class Future(asyncio.Future):
                 else:
                     out.set_result(f.result())
             finally:
-                detach_all()
+                detach_all(cancel_losers=True)
 
         # Fast path: if any future is already done, settle immediately.
         for f in futures:
@@ -85,9 +83,12 @@ class Future(asyncio.Future):
             callbacks[f] = _cb
             f.add_done_callback(_cb)
 
-        # If the returned future is cancelled externally, detach callbacks.
+        # If the returned future is cancelled externally, detach callbacks and cancel losers.
         def _out_done(_):
-            detach_all()
+            if out.cancelled():
+                detach_all(cancel_losers=True)
+            else:
+                detach_all()
         out.add_done_callback(_out_done)
 
         return out

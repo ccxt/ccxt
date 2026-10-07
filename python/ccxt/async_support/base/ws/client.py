@@ -109,7 +109,7 @@ class Client(object):
             shared_future._waiters = []
             def _propagate(f):
                 for waiter in list(shared_future._waiters):
-                    if waiter.cancelled():
+                    if waiter.done():
                         continue
                     if f.cancelled():
                         waiter.cancel()
