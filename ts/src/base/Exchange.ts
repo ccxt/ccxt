@@ -2387,8 +2387,7 @@ export class BaseExchange {
             'signatures': [ this.base16ToBinary (signature) ],
         })).finish ());
     }
-
-        
+  
     readDhParam(path: string) {
         const pem: any = readFile (path, null);
         const der = Buffer.from (pem.replace (/-----[^-]+-----|\s/g, ''), 'base64');
@@ -2415,6 +2414,69 @@ export class BaseExchange {
         readLen();
         const result = { prime: readInt(), generator: BigInt('0x' + readInt()) };
         return result.prime;
+    }
+
+    encIbkr (s: string) {
+        return encodeURIComponent(s).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+    }
+
+    modPow (b: bigint, e: bigint, m: bigint) {
+        let r = 1n; b %= m; while (e > 0n) { if (e & 1n) r = r * b % m; b = b * b % m; e >>= 1n; } return r;
+    }
+
+    bigToBytes (n: bigint) {
+        let h = n.toString(16);
+        if (h.length % 2) h = '0' + h;
+        if (parseInt(h[0], 16) >= 8) h = '00' + h;
+        return Buffer.from(h, 'hex');
+    }
+
+    baseString (method: string, url: string, params: Record<string, string>, prepend = '') {
+        const p = Object.keys (params).sort ().map (k => `${k}=${params[k]}`).join ('&');
+        return `${prepend}${method}&${this.encIbkr (url)}&${this.encIbkr(p)}`;
+    }
+
+    authHeader (params: Record<string, string>) {
+        return 'OAuth realm="' + this.options['realm'] + '", ' + Object.keys (params).sort ().map (k => `${k}="${params[k]}"`).join (', ');
+    }
+
+    oauthBase (consumerKey, consumerAccessToken) {
+        return {
+            'oauth_consumer_key': consumerKey,
+            'oauth_nonce': crypto.randomBytes(16).toString('hex'),
+            'oauth_timestamp': Math.floor(Date.now() / 1000).toString(),
+            'oauth_token': consumerAccessToken,
+        };
+    }
+
+    async getLiveSessionToken(urlBase, encKeyPath, signKeyPath, accessTokenSecret, dhParamPath, consumerKey, consumerAccessToken) {
+        const encKeyFile = readFile (encKeyPath);
+        const signKey = readFile (signKeyPath);
+        const dhPrime = this.readDhParam (dhParamPath);
+        const privKey = { key: encKeyFile, padding: crypto.constants.RSA_PKCS1_PADDING };
+        const bufferValue = Buffer.from (accessTokenSecret, 'base64');
+        const prepend = crypto.privateDecrypt (privKey, bufferValue).toString ('hex');
+        const a = BigInt('0x' + crypto.randomBytes (32).toString ('hex'));
+        const A = this.modPow (dhParamPath, a, dhPrime);
+        const url = `${urlBase}/oauth/live_session_token`;
+        const params: Record<string, string> = {
+            ...this.oauthBase (consumerKey, consumerAccessToken),
+            oauth_signature_method: 'RSA-SHA256',
+            diffie_hellman_challenge: A.toString(16),
+        };
+        const sig = crypto.sign ('RSA-SHA256', Buffer.from (this.baseString ('POST', url, params, prepend)), signKey).toString ('base64');
+        params['oauth_signature'] = this.encIbkr (sig);
+
+        const res = await fetch (url, { method: 'POST', headers: { Authorization: this.authHeader(params), 'User-Agent': 'ccxt' } });
+        const json = await res.json ();
+        const j = json as { diffie_hellman_response: string; live_session_token_signature: string; live_session_token_expiration: number };
+
+        const K = this.modPow (BigInt ('0x' + j.diffie_hellman_response), a, dhPrime);
+        const lst = crypto.createHmac ('sha1', this.bigToBytes (K)).update (Buffer.from (prepend, 'hex')).digest('base64');
+
+        const check = crypto.createHmac ('sha1', Buffer.from (lst, 'base64')).update (consumerKey).digest ('hex');
+        if (check !== j.live_session_token_signature) throw new Error ('LST validation failed');
+        return { lst, expires: j.live_session_token_expiration };
     }
 
     intToBase16 (elem: any): string {
