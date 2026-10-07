@@ -313,7 +313,7 @@ export default class interactivebrokers extends Exchange {
         const params: Record<string, string> = { ...this.oauthBase(this.uid, this.apiKey), oauth_signature_method: 'HMAC-SHA256' };
         // note: query-string params must be included in the base string too
         const sig = crypto.createHmac('sha256', Buffer.from(lst, 'base64')).update(this.baseString(method, url.split('?')[0], params)).digest('base64');
-        params.oauth_signature = this.encIbkr(sig);
+        params['oauth_signature'] = this.encIbkr(sig);
         const res = await fetch(url, {
             method,
             headers: { Authorization: this.authHeader(params), 'Content-Type': 'application/json', 'User-Agent': 'ccxt' },

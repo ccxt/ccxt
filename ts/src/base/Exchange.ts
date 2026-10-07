@@ -50,6 +50,7 @@ import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, B
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
+import { rsa } from './functions/rsa.js';
 import { abiEncode, TypedDataEncoder } from './functions/ethabi.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from './functions/starknet.js';
@@ -2418,68 +2419,105 @@ export class BaseExchange {
         return result.prime;
     }
 
-    encIbkr (s: string) {
-        return encodeURIComponent(s).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+    encIbkr (value: string): string {
+        // RFC 3986 percent-encoding (also escapes !'()*), as required by the OAuth 1.0a signature base string
+        const encoded = this.urlencode ({ 'v': value });
+        return encoded.slice (2); // strip the 'v=' prefix
     }
 
-    modPow (b: bigint, e: bigint, m: bigint) {
-        let r = 1n; b %= m; while (e > 0n) { if (e & 1n) r = r * b % m; b = b * b % m; e >>= 1n; } return r;
+    modPow (base: bigint, exponent: bigint, modulus: bigint): bigint {
+        const zero = this.convertToBigInt ('0');
+        const one = this.convertToBigInt ('1');
+        let result = one;
+        let b = base % modulus;
+        let e = exponent;
+        while (e > zero) {
+            if ((e & one) === one) {
+                result = (result * b) % modulus;
+            }
+            b = (b * b) % modulus;
+            e = e >> one;
+        }
+        return result;
     }
 
-    bigToBytes (n: bigint) {
-        let h = n.toString(16);
-        if (h.length % 2) h = '0' + h;
-        if (parseInt(h[0], 16) >= 8) h = '00' + h;
-        return Buffer.from(h, 'hex');
+    bigToBytes (value: bigint): Uint8Array {
+        // big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+        let hex = this.intToBase16 (value);
+        if ((hex.length % 2) === 1) {
+            hex = '0' + hex;
+        }
+        if (parseInt (hex[0], 16) >= 8) {
+            hex = '00' + hex; // prepend the sign byte
+        }
+        return this.base16ToBinary (hex);
     }
 
-    baseString (method: string, url: string, params: Record<string, string>, prepend = '') {
-        const p = Object.keys (params).sort ().map (k => `${k}=${params[k]}`).join ('&');
-        return `${prepend}${method}&${this.encIbkr (url)}&${this.encIbkr(p)}`;
+    baseString (method: string, url: string, params: Dict, prepend: string = ''): string {
+        const query = this.rawencode (this.keysort (params));
+        return prepend + method + '&' + this.encIbkr (url) + '&' + this.encIbkr (query);
     }
 
-    authHeader (params: Record<string, string>) {
-        return 'OAuth realm="' + this.options['realm'] + '", ' + Object.keys (params).sort ().map (k => `${k}="${params[k]}"`).join (', ');
+    authHeader (params: Dict): string {
+        const sorted = this.keysort (params);
+        const keys = Object.keys (sorted);
+        const parts: string[] = [];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            parts.push (key + '="' + sorted[key] + '"');
+        }
+        return 'OAuth realm="' + this.options['realm'] + '", ' + parts.join (', ');
     }
 
-    oauthBase (consumerKey, consumerAccessToken) {
+    oauthBase (consumerKey: string, consumerAccessToken: string): Dict {
         return {
             'oauth_consumer_key': consumerKey,
-            'oauth_nonce': crypto.randomBytes(16).toString('hex'),
-            'oauth_timestamp': Math.floor(Date.now() / 1000).toString(),
+            'oauth_nonce': this.randomBytes (16),
+            'oauth_timestamp': this.seconds ().toString (),
             'oauth_token': consumerAccessToken,
         };
     }
 
-    async getLiveSessionToken(urlBase, encKeyPath, signKeyPath, accessTokenSecret, dhParamPath, consumerKey, consumerAccessToken, dhGen) {
-        const encKeyFile = readFile (encKeyPath);
-        const signKey = readFile (signKeyPath);
-        const dhPrimeContent = this.readDhParam (dhParamPath);
-        const dhPrime = this.convertToBigInt ('0x' + dhPrimeContent);
-        const privKey = { key: encKeyFile, padding: crypto.constants.RSA_PKCS1_PADDING };
-        const bufferValue = Buffer.from (accessTokenSecret, 'base64');
-        const prepend = crypto.privateDecrypt (privKey, bufferValue).toString ('hex');
-        const a = this.convertToBigInt ('0x' + crypto.randomBytes (32).toString ('hex'));
-        const A = this.modPow (dhGen, a, dhPrime);
-        const url = `${urlBase}/oauth/live_session_token`;
-        const params: Record<string, string> = {
-            ...this.oauthBase (consumerKey, consumerAccessToken),
-            oauth_signature_method: 'RSA-SHA256',
-            diffie_hellman_challenge: A.toString(16),
+    async getLiveSessionToken (urlBase: string, encKeyPath: string, signKeyPath: string, accessTokenSecret: string, dhParamPath: string, consumerKey: string, consumerAccessToken: string, dhGen: bigint): Promise<Dict> {
+        const encKey = readFile (encKeyPath) as string;
+        const signKey = readFile (signKeyPath) as string;
+        const dhPrime = this.convertToBigInt ('0x' + this.readDhParam (dhParamPath));
+        // the access token secret is encrypted with the consumer's public encryption key;
+        // ccxt has no rsa-decrypt helper, so node:crypto is used directly here
+        const decrypted = crypto.privateDecrypt ({ 'key': encKey, 'padding': crypto.constants.RSA_PKCS1_PADDING }, this.base64ToBinary (accessTokenSecret));
+        const prepend = this.binaryToBase16 (decrypted);
+        const dhRandom = this.convertToBigInt ('0x' + this.randomBytes (32));
+        const dhChallenge = this.modPow (dhGen, dhRandom, dhPrime);
+        const url = urlBase + '/oauth/live_session_token';
+        const oauthParams = this.extend (this.oauthBase (consumerKey, consumerAccessToken), {
+            'oauth_signature_method': 'RSA-SHA256',
+            'diffie_hellman_challenge': this.intToBase16 (dhChallenge),
+        });
+        const signature = rsa (this.baseString ('POST', url, oauthParams, prepend), signKey, sha256);
+        oauthParams['oauth_signature'] = this.encIbkr (signature);
+        const headers: Dict = {
+            'Authorization': this.authHeader (oauthParams),
+            'User-Agent': 'ccxt',
         };
-        const sig = crypto.sign ('RSA-SHA256', Buffer.from (this.baseString ('POST', url, params, prepend)), signKey).toString ('base64');
-        params['oauth_signature'] = this.encIbkr (sig);
-
-        const res = await fetch (url, { method: 'POST', headers: { Authorization: this.authHeader(params), 'User-Agent': 'ccxt' } });
-        const json = await res.json ();
-        const j = json as { diffie_hellman_response: string; live_session_token_signature: string; live_session_token_expiration: number };
-
-        const K = this.modPow (BigInt ('0x' + j.diffie_hellman_response), a, dhPrime);
-        const lst = crypto.createHmac ('sha1', this.bigToBytes (K)).update (Buffer.from (prepend, 'hex')).digest('base64');
-
-        const check = crypto.createHmac ('sha1', Buffer.from (lst, 'base64')).update (consumerKey).digest ('hex');
-        if (check !== j.live_session_token_signature) throw new Error ('LST validation failed');
-        return { lst, expires: j.live_session_token_expiration };
+        const response = await this.fetch (url, 'POST', headers);
+        //
+        //     {
+        //         "diffie_hellman_response": "1d9c...",
+        //         "live_session_token_signature": "9a7e...",
+        //         "live_session_token_expiration": 1714661586311
+        //     }
+        //
+        const dhResponse = this.safeString (response, 'diffie_hellman_response');
+        const sharedSecret = this.modPow (this.convertToBigInt ('0x' + dhResponse), dhRandom, dhPrime);
+        const lst = this.hmac (this.base16ToBinary (prepend), this.bigToBytes (sharedSecret), sha1, 'base64');
+        const check = this.hmac (this.encode (consumerKey), this.base64ToBinary (lst), sha1, 'hex');
+        if (check !== this.safeString (response, 'live_session_token_signature')) {
+            throw new AuthenticationError (this.id + ' getLiveSessionToken() live session token validation failed');
+        }
+        return {
+            'lst': lst,
+            'expires': this.safeInteger (response, 'live_session_token_expiration'),
+        };
     }
 
     intToBase16 (elem: any): string {
