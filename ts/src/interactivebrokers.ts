@@ -4,6 +4,7 @@ import Exchange from './abstract/interactivebrokers.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Account, Balances, Dict, Endpoint, List, NullableDict, Str, int } from './base/types.js';
+import crypto from 'node:crypto';
 
 //  ---------------------------------------------------------------------------
 
