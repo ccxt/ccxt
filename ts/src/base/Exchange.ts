@@ -4212,10 +4212,6 @@ export class BaseExchange {
                 if (!('symbolRequired' in featureBlock)) {
                     featureBlock['symbolRequired'] = this.inArray (key, [ 'createOrder', 'createOrders', 'fetchOHLCV' ]);
                 }
-                // unchecked candle volume stays undefined so callers can tell it from 'base'
-                if ((key === 'fetchOHLCV') && this.isDictionary (featureBlock) && !('volume' in featureBlock)) {
-                    featureBlock['volume'] = undefined;
-                }
             }
         }
         return featuresObj;

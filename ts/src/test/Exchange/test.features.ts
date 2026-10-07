@@ -113,7 +113,6 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
         },
         'fetchOHLCV': {
             'limit': 0,
-            'volume': 'base',
         },
     };
     const featureKeys = Object.keys (featureObj);

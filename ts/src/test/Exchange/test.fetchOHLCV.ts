@@ -3,6 +3,7 @@ import { Exchange } from "../../../ccxt.js";
 import testOHLCV from './base/test.ohlcv.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 import Precise from '../../base/Precise.js';
+import type { Str } from '../../base/types.js';
 
 async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchOHLCV';
@@ -38,6 +39,11 @@ async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, sy
     if ('ohlcvVolumeNotional' in skippedProperties) {
         return true;
     }
+    const market = exchange.market (symbol);
+    // inverse tickers report quoteVolume in the base coin, so it is not comparable with the candle notional
+    if (exchange.safeBool (market, 'inverse') === true) {
+        return true;
+    }
     let candleLimit = 100;
     const maxLimit = exchange.featureValue (symbol, 'fetchOHLCV', 'limit');
     if ((maxLimit !== undefined) && (maxLimit < candleLimit)) {
@@ -71,16 +77,13 @@ async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, sy
     if ((close === undefined) || (candleVolume === undefined) || (quoteVolume === undefined)) {
         return true;
     }
-    const market = exchange.market (symbol);
     let contractSize = exchange.safeString (market, 'contractSize');
     if (contractSize === undefined) {
         contractSize = '1';
     }
-    let notional = candleVolume;
+    let notional: Str = candleVolume;
     if (volumeUnit === 'quote') {
         notional = candleVolume;
-    } else if ((volumeUnit === 'contracts') && (exchange.safeBool (market, 'inverse') === true)) {
-        notional = Precise.stringMul (candleVolume, contractSize);
     } else {
         let multiplier = '1';
         if (volumeUnit === 'contracts') {
@@ -89,7 +92,7 @@ async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, sy
         notional = Precise.stringMul (Precise.stringMul (candleVolume, multiplier), close);
     }
     let larger = notional;
-    let smaller = quoteVolume;
+    let smaller: Str = quoteVolume;
     if (Precise.stringGt (quoteVolume, notional)) {
         larger = quoteVolume;
         smaller = notional;
