@@ -49,10 +49,12 @@ func (this *BaseExchange) EnsureWhitelistedFile(filePath any) {
 	if err != nil {
 		panic("invalid file path: " + derefScalar(filePath).(string))
 	}
-	if strings.HasPrefix(sanitized, tempDir) && strings.HasSuffix(sanitized, ".ccxtfile") {
-		return
+	if !strings.HasSuffix(sanitized, ".ccxtfile") {
+		panic("File extension not permitted: " + derefScalar(filePath).(string))
 	}
-	panic("invalid file path: " + derefScalar(filePath).(string))
+	if !(strings.HasPrefix(sanitized, tempDir)) {
+		panic("File is not within the temporary directory: " + derefScalar(filePath).(string))
+	}
 }
 
 // GetTempDir returns the temporary directory

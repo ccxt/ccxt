@@ -1443,10 +1443,12 @@ class BaseExchange {
             throw new \RuntimeException('dir path does not exist: ' . $filePath);
         }
         $sanitized = $dir . DIRECTORY_SEPARATOR . basename($filePath);
-        if (str_starts_with($sanitized, $tempDir) && str_ends_with($sanitized, '.ccxtfile')) {
-            return;
+        if (!str_ends_with($sanitized, '.ccxtfile')) {
+            throw new \RuntimeException('File extension not permitted: ' . $filePath);
         }
-        throw new \RuntimeException('invalid file path: ' . $filePath);
+        if (!str_starts_with($sanitized, $tempDir)) {
+            throw new \RuntimeException('File is not within the temporary directory: ' . $filePath);
+        }
     }
 
     public function read_file(string $filePath) {

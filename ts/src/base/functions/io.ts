@@ -76,9 +76,12 @@ function ensureWhitelistedFile(filePath: string) {
     const resolvedInputFilePath = pathSyncModule.resolve (filePath);
     const allowedExtensions = [ '.ccxtfile', '.wasm' ];
     if (!allowedExtensions.some (ext => resolvedInputFilePath.endsWith (ext))) {
-        throw new Error ('File path is not permitted: ' + filePath + ', allowed extensions are: ' + allowedExtensions.join (', '));
+        throw new Error ('File extension not permitted: ' + filePath + ', allowed extensions are: ' + allowedExtensions.join (', '));
     }
-    return resolvedInputFilePath;
+    const normalizedPath = resolvedInputFilePath.replaceAll (new RegExp('\\' + pathSyncModule.sep, 'g'), '/');
+    if (!normalizedPath.startsWith(getTempDir())) {
+        throw new Error ('File is not within the temporary directory: ' + filePath);
+    }
 }
 
 /*  ------------------------------------------------------------------------ */

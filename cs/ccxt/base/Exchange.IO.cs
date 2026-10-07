@@ -12,10 +12,12 @@ public partial class BaseExchange
     {
         var tempDir = getTempDir();
         var sanitized = Path.GetFullPath(filePath as string);
-        if (sanitized.StartsWith(tempDir) && sanitized.EndsWith(".ccxtfile")) {
-            return;
+        if (!sanitized.EndsWith(".ccxtfile")) {
+            throw new InvalidOperationException($"File extension not permitted: {filePath as string}");
         }
-        throw new InvalidOperationException($"invalid file path: {filePath as string}");
+        if (!sanitized.StartsWith(tempDir))
+            throw new InvalidOperationException($"File is not within the temporary directory: {filePath as string}");
+        }
     }
 
     public string readFile(object filePath)
