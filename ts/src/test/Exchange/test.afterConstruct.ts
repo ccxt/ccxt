@@ -2,6 +2,7 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 
 async function testAfterConstruct (exchange: Exchange, skippedProperties: object) {
+    assert (exchange.isTickPrecision () || exchange.isSignificantPrecision (), 'exchange must have either tick precision or significant precision');
     if (!('networks' in skippedProperties)) {
         testOptionsNetworks (exchange, skippedProperties);
     }
