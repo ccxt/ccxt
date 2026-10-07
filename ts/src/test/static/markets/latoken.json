@@ -544,5 +544,58 @@
         "tierBased": false,
         "percentage": true,
         "feeSide": "get"
+    },
+    "Unobtanium/USDT": {
+        "id": "5ded8a7e-dc1e-45e1-8fd2-cacd345a9f09",
+        "symbol": "Unobtanium/USDT",
+        "base": "Unobtanium",
+        "quote": "USDT",
+        "baseId": "cd8789a9-f715-4a7f-a390-a1f3cf408ef1",
+        "quoteId": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0049,
+        "maker": 0.0049,
+        "precision": {
+            "amount": 0.0001,
+            "price": 1e-08
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0
+            },
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "created": 1602081600318,
+        "info": {
+            "id": "5ded8a7e-dc1e-45e1-8fd2-cacd345a9f09",
+            "status": "PAIR_STATUS_ACTIVE",
+            "baseCurrency": "cd8789a9-f715-4a7f-a390-a1f3cf408ef1",
+            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            "priceTick": "0.000000010000000000",
+            "priceDecimals": 8,
+            "quantityTick": "0.000100000",
+            "quantityDecimals": 4,
+            "costDisplayDecimals": 8,
+            "created": 1602081600318,
+            "minOrderQuantity": "0",
+            "maxOrderCostUsd": "999999999999999999",
+            "minOrderCostUsd": "0",
+            "externalSymbol": "",
+            "activationDate": 0,
+            "popularity": 0
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
     }
 }

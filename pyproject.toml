@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ccxt"
-version = "4.5.84"
+version = "4.5.85"
 description = "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go"
 readme = "python/README.md"
 license = "MIT"
@@ -43,7 +43,7 @@ classifiers = [
 # all dependencies are pinned to exact versions to protect against
 # malicious or vulnerable releases of downstream dependencies
 dependencies = [
-    "certifi==2026.6.17",
+    "certifi>=2026.6.17",
     "requests>=2.32,<3",
     "cryptography>=50,<51",
     "typing_extensions==4.16.0",
@@ -60,12 +60,12 @@ dependencies = [
     # Windows counterpart of uvloop (same API, incl. winloop.run); wheels exist
     # for CPython 3.8-3.14 on win_amd64/win_arm64 only - no win32, no sdist builds
     "winloop==0.6.3; platform_system == \"Windows\" and implementation_name == \"cpython\" and python_version < \"3.15\" and platform_machine in \"AMD64 ARM64\"",
-    # fast JSON, installed only where orjson 3.11.9 ships a prebuilt wheel so that
+    # fast JSON, installed only where orjson 3.11.9+ ships a prebuilt wheel so that
     # `pip install ccxt` never triggers a Rust source build. Allowlist mirrors the
     # wheel matrix on PyPI (CPython 3.10-3.14 only, no PyPy, no free-threaded builds).
     # NOTE: lowercase "arm64" matches macOS but intentionally NOT Windows "ARM64"
     # (marker `in` is a case-sensitive substring match; cp310 has no win_arm64 wheel)
-    "orjson==3.11.9; implementation_name == \"cpython\" and python_version < \"3.15\" and platform_machine in \"x86_64 AMD64 aarch64 arm64 armv7l i686 ppc64le s390x\"",
+    "orjson>=3.11.9,<4; implementation_name == \"cpython\" and python_version < \"3.15\" and platform_machine in \"x86_64 AMD64 aarch64 arm64 armv7l i686 ppc64le s390x\"",
     # fast secp256k1 signing (libsecp256k1), installed only where coincurve 21.0.0
     # ships a prebuilt wheel so that `pip install ccxt` never triggers a C source
     # build. Allowlist mirrors the wheel matrix on PyPI (CPython 3.9-3.13 only,
@@ -91,7 +91,7 @@ dependencies = [
     # transitive dependencies of requests
     "charset_normalizer==3.4.7",
     "idna==3.18",
-    "urllib3==2.7.0",
+    "urllib3==2.8.0",
 ]
 
 [project.optional-dependencies]

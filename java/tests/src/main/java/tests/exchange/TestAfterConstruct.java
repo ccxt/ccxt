@@ -34,18 +34,18 @@ public class TestAfterConstruct extends BaseTest {
         if (!(Helpers.inOp(skippedProperties, "networks")))
         {
             // only allow these whitelisted unified networkCodes to be repeated
-            List<Object> allowedUnifiedAliases = new ArrayList<Object>(Arrays.asList("BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"));
+            List<String> allowedUnifiedAliases = new ArrayList<String>(Arrays.asList("BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"));
             // safeDict, not exchange.options['networks']: a direct missing-key access throws
             // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
             // hyperliquid prediction market)
-            Object networks = exchange.safeDict(exchange.options, "networks");
+            Object networks = exchange.safeDict(exchange.options, "networks", (Object) null);
             if (java.util.Objects.equals(networks, null))
             {
                 return;
             }
             // 1) ensure 'networks' dictionary exists in options
             Assert(exchange.isDictionary(networks), "exchange.options[\"networks\"] is not a dict");
-            if ((((List<?>)new ArrayList<Object>(((Map<String, Object>)networks).keySet())).size() == 0))
+            if ((((Map<String, Object>)networks).size() == 0))
             {
                 return;
             }
@@ -62,7 +62,7 @@ public class TestAfterConstruct extends BaseTest {
                 Object networkId = Helpers.GetValue(((Map<String, Object>)exchange.options).get("networks"), networkCode);
                 if (!Helpers.isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
-                    Assert(!Helpers.isTrue(exchange.inArray(networkId, collectedNetworkIds)), (Helpers.add("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"", networkId) + "\""));
+                    Assert(!Helpers.isTrue(exchange.inArray(networkId, collectedNetworkIds)), (("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"" + networkId) + "\""));
                 }
                 ((List<Object>)collectedNetworkIds).add(networkId);
             }
@@ -70,7 +70,7 @@ public class TestAfterConstruct extends BaseTest {
             List<Object> collectedNetworkCodes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
             {
-                Object networkCodeLower = ((String)((networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i)))).toLowerCase();
+                String networkCodeLower = ((String)((networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i)))).toLowerCase();
                 Assert(!Helpers.isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"" + (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i))) + "\" in different uppercase/lowercase format"));
                 ((List<Object>)collectedNetworkCodes).add(networkCodeLower);
             }
@@ -80,17 +80,17 @@ public class TestAfterConstruct extends BaseTest {
                 Object networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
                 Object networkId = Helpers.GetValue(((Map<String, Object>)exchange.options).get("networks"), networkCode);
                 // check networkCodeToId
-                Object networkIdConverted = exchange.networkCodeToId((String) (networkCode));
-                Assert(java.util.Objects.equals(networkId, networkIdConverted), (Helpers.add((((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + networkIdConverted) + "\" does not match exchange.options[\"networks\"][\"") + networkCode) + "\"]=\""), networkId) + "\""));
+                Object networkIdConverted = exchange.networkCodeToId((String) (networkCode), (String) null);
+                Assert(java.util.Objects.equals(networkId, networkIdConverted), (((((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + networkIdConverted) + "\" does not match exchange.options[\"networks\"][\"") + networkCode) + "\"]=\"") + networkId) + "\""));
                 // ensure it exists in networksById
-                Assert(Helpers.inOp(((Map<String, Object>)exchange.options).get("networksById"), networkId), (Helpers.add("exchange.options[\"networksById\"] does not contain networkId \"", networkId) + "\""));
+                Assert(Helpers.inOp(((Map<String, Object>)exchange.options).get("networksById"), networkId), (("exchange.options[\"networksById\"] does not contain networkId \"" + networkId) + "\""));
                 // ensure networkCode matches for networksById (however, it only works if one mapping is set)
                 if (!Helpers.isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
-                    Assert(java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId), networkCode), (Helpers.add((((Helpers.add("exchange.options[\"networksById\"][\"", networkId) + "\"] value is not expected \"") + networkCode) + "\", but: \""), Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId)) + "\""));
+                    Assert(java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId), networkCode), (((((("exchange.options[\"networksById\"][\"" + networkId) + "\"] value is not expected \"") + networkCode) + "\", but: \"") + Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId)) + "\""));
                     // check networkIdToCode conversion back
-                    Object networkCodeConverted = exchange.networkIdToCode(networkId);
-                    Assert(java.util.Objects.equals(networkCode, networkCodeConverted), (((((Helpers.add("exchange.networkIdToCode (\"", networkId) + "\")=\"") + networkCodeConverted) + "\" does not match key \"") + networkCode) + "\" of exchange.options[\"networks\"]"));
+                    Object networkCodeConverted = exchange.networkIdToCode(Helpers.toStringArg(networkId), (String) null);
+                    Assert(java.util.Objects.equals(networkCode, networkCodeConverted), (((((("exchange.networkIdToCode (\"" + networkId) + "\")=\"") + networkCodeConverted) + "\" does not match key \"") + networkCode) + "\" of exchange.options[\"networks\"]"));
                 }
             }
         }

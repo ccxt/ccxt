@@ -6,7 +6,7 @@ import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBoo
  */
 export default class lighter extends Exchange {
     describe(): any;
-    loadAccount(chainId: any, privateKey: any, apiKeyIndex: string, accountIndex: string, params?: Dict): Promise<any>;
+    loadAccount(chainId: any, privateKey: Str, apiKeyIndex: string, accountIndex: string, params?: Dict): Promise<any>;
     initAuthObject(strAccountIndex: string, strApiKeyIndex: string): void;
     getLighterPrivateKey(strAccountIndex: string, strApiKeyIndex: string): any;
     /**
@@ -17,8 +17,8 @@ export default class lighter extends Exchange {
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
     preLoadLighterLibrary(params?: Dict): Promise<boolean>;
-    handleApiKeyIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): any[];
-    handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<any[]>;
+    handleApiKeyIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): [Int, Dict];
+    handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<[Int, Dict]>;
     createSubAccount(name: string, params?: Dict): Promise<Dict>;
     createAuth(params?: Dict): Str;
     pow(n: string, m: string): string | undefined;
@@ -26,12 +26,13 @@ export default class lighter extends Exchange {
     signHash(hash: any, privateKey: any): string;
     signL1AndPrepareTxInfo(txInfo: any, message: any, privateKey: any): string;
     handleBuilderFeeApproval(accountIndex: number, apiKeyIndex: number): Promise<boolean>;
+    checkIfStandardTier(accountIndex: number): Promise<boolean>;
     approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: Dict): Promise<Dict>;
     changeApiKey(params?: Dict): Promise<any>;
     setSandboxMode(enable: boolean): void;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): any[];
     fetchNonce(accountIndex: any, apiKeyIndex: any, params?: Dict): Promise<Int>;
-    signAndCreateOrder(method: string, symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Promise<any[]>;
+    signAndCreateOrder(method: string, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Promise<any[]>;
     /**
      * @method
      * @name lighter#createOrder
@@ -241,9 +242,9 @@ export default class lighter extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): Str;
-    parseOrderType(type: any): string;
-    parseOrderTypeInteger(typeInteger: any): Str;
-    parseOrderTimeInForce(tif: any): string;
+    parseOrderType(type: Str): Str;
+    parseOrderTypeInteger(typeInteger: Int): Str;
+    parseOrderTimeInForce(tif: Str): Str;
     parseOrderTimeInForceInteger(tifInteger: any): Str;
     /**
      * @method
@@ -432,7 +433,7 @@ export default class lighter extends Exchange {
      */
     setMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
+    sign(path: string, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;

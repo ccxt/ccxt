@@ -16,6 +16,23 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchMyLiquidations": [
+            {
+                "description": "fetchMyLiquidations skips non-liquidation fills",
+                "method": "fetchMyLiquidations",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    null,
+                    1787172600000,
+                    null,
+                    {
+                        "user": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                        "until": 1787173400000
+                    }
+                ],
+                "output": "{\"user\":\"0x5c902b2eb0e1d9eb9a232014824ae6247df0a480\",\"type\":\"userFillsByTime\",\"startTime\":1787172600000,\"endTime\":1787173400000}"
+            }
+        ],
         "isUnifiedEnabled": [
             {
                 "disabled": true,
@@ -681,6 +698,32 @@
                 "output": { "action": { "type": "updateIsolatedMargin", "asset": 65, "isBuy": true, "ntli": -400000 }, "nonce": 1782826288096, "signature": { "r": "0x0", "s": "0x0", "v": 27 } }
             }
         ],
+        "createTwapOrder": [
+            {
+                "description": "twap buy order",
+                "method": "createTwapOrder",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    "HYPE/USDC:USDC",
+                    "buy",
+                    1,
+                    600000
+                ],
+                "output": { "action": { "type": "twapOrder", "twap": { "a": 159, "b": true, "s": "1", "r": false, "m": 10, "t": false } }, "nonce": 1782826288096, "signature": { "r": "0x0", "s": "0x0", "v": 27 } }
+            },
+            {
+                "description": "twap sell order",
+                "method": "createTwapOrder",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    "HYPE/USDC:USDC",
+                    "sell",
+                    1,
+                    600000
+                ],
+                "output": { "action": { "type": "twapOrder", "twap": { "a": 159, "b": false, "s": "1", "r": false, "m": 10, "t": false } }, "nonce": 1782826288096, "signature": { "r": "0x0", "s": "0x0", "v": 27 } }
+            }
+        ],
         "createOrders": [
             {
                 "description": "create limit orders",
@@ -763,7 +806,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                    6466108935,
+                    "6466108935",
                     "SOL/USDC:USDC"
                 ],
                 "output": { "nonce": 1709205271182, "action": { "type": "cancel", "cancels": [ { "a": 5, "o": 6466108935 } ] }, "signature": { "r": "0xba035847994c83ffeaadf906639c0f82548cbcae8195c527f74e3cb50148cd6b", "s": "0x64098742b1d2fdac9a11973c991de69b8adbcee4e461acb7dd06f41decf4995d", "v": 27 } }

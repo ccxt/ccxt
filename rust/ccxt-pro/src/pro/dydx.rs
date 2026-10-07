@@ -302,10 +302,11 @@ impl DydxCore {
         });
         let __ws_arg_0 = self.extend(request, &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
+        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limit = trades.get_limit(symbol, limit.clone());
+            limitResolved = trades.get_limit(symbol, limit);
         }
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -382,8 +383,8 @@ impl DydxCore {
         let mut parsedTrades: Value = self.parse_trades(rawTrades, &[market]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_306: bool = true;
-            while { if !__for_first_306 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_306 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsedTrades.len() as i64) as f64) } {
+            let mut __for_first_295: bool = true;
+            while { if !__for_first_295 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_295 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsedTrades.len() as i64) as f64) } {
             let mut parsed: Value = parsedTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             stored.append(parsed);
         }
@@ -588,10 +589,11 @@ impl DydxCore {
         });
         let __ws_arg_4 = self.extend(request, &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
+        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limit = ohlcv.get_limit(symbol, limit.clone());
+            limitResolved = ohlcv.get_limit(symbol, limit);
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limit, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
 
     Value::Null
 }
@@ -714,8 +716,10 @@ impl DydxCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            let mut msg: Value = self.safe_string_k(message.clone(), "message", &[]);
+            let mut msg: Value = (match message.get("message") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg)));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);

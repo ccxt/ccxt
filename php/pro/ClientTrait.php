@@ -247,7 +247,7 @@ trait ClientTrait {
                     $index = $this->get_cache_index($orderBook, $stored->cache);
                     if ($index >= 0) {
                         $stored->reset($orderBook);
-                        $this->handle_deltas($stored, array_slice($stored->cache, $index));
+                        $this->handle_book_deltas($stored, array_slice($stored->cache, $index));
                         $stored->cache = array();
                         $client->resolve($stored, $messageHash);
                         return;
@@ -262,10 +262,16 @@ trait ClientTrait {
             // same broken state - previously the catch invoked load_order_book again,
             // recursing endlessly when the snapshot request kept failing, see
             // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
-            // instead, reject the watcher and drop the connection and the cached
+            // instead, reject the watcher, close and drop the connection and the cached
             // orderbook, so the next watch_order_book() call resubscribes cleanly
             $client->reject($error, $messageHash);
-            unset($this->clients[$client->url]);
+            if (!$client->error) {
+                $client->error = $error; // on_close must not treat this as a server disconnect
+            }
+            $client->close();
+            if (array_key_exists($client->url, $this->clients) && $this->clients[$client->url] === $client) {
+                unset($this->clients[$client->url]);
+            }
             $this->orderbooks[$symbol] = $this->order_book(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
         }) ();
     }

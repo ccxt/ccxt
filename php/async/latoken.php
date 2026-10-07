@@ -239,6 +239,7 @@ class latoken extends Exchange {
                     'INTERNAL_ERROR' => '\\ccxt\\ExchangeError', // internal server error. You can contact our support to solve this problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
                     'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable', // requested information currently not available. You can contact our support to solve this problem or retry later.
                     'NOT_AUTHORIZED' => '\\ccxt\\AuthenticationError', // user's query not authorized. Check if you are logged in.
+                    'UNAUTHORIZED' => '\\ccxt\\AuthenticationError', // {"result":false,"message":"user must be authenticated","error":"UNAUTHORIZED","status":"FAILURE"}
                     'FORBIDDEN' => '\\ccxt\\PermissionDenied', // you don't have enough access rights.
                     'BAD_REQUEST' => '\\ccxt\\BadRequest', // some bad request, for example bad fields values or something else. Read response message for more information.
                     'NOT_FOUND' => '\\ccxt\\ExchangeError', // entity not found. Read message for more information.
@@ -261,6 +262,7 @@ class latoken extends Exchange {
                 ),
                 'broad' => array(
                     'invalid API key, signature or digest' => '\\ccxt\\AuthenticationError', // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+                    'Invalid API key specified' => '\\ccxt\\AuthenticationError', // {"result":false,"message":"Invalid API key specified","error":"NOT_FOUND","status":"FAILURE"}
                     'The API key was revoked' => '\\ccxt\\AuthenticationError', // {"result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad' => '\\ccxt\\InvalidNonce', // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string' => '\\ccxt\\BadRequest', // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
@@ -359,7 +361,11 @@ class latoken extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        $timeDifference = $this->safe_integer($this->options, 'timeDifference');
+        if ($timeDifference === null) {
+            throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return $this->milliseconds() - $timeDifference;
     }
 
     public function fetch_time($params = array()): PromiseInterface {
@@ -627,7 +633,7 @@ class latoken extends Exchange {
         $balancesByType = $this->group_by($response, 'type');
         $balances = $this->safe_list($balancesByType, $accountType, array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $timestamp = $this->safe_integer($balance, 'timestamp');
             if ($timestamp !== null) {
@@ -726,7 +732,7 @@ class latoken extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -741,14 +747,28 @@ class latoken extends Exchange {
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
-        $marketId = $this->safe_string($ticker, 'symbol');
+        // the "symbol" field carries the currency tags, which differ from the
+        // unified symbol whenever commonCurrencies renames a code, so resolve
+        // the market from the currency ids like parseTrade and parseOrder do
+        $baseId = $this->safe_string($ticker, 'baseCurrency');
+        $quoteId = $this->safe_string($ticker, 'quoteCurrency');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $symbol = null;
+        $marketResolved = $market;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
+                $marketResolved = $this->market($symbol);
+            }
+        }
         $last = $this->safe_string($ticker, 'lastPrice');
         $timestamp = $this->safe_integer_omit_zero($ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
         return $this->safe_ticker(array(
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'low' => null,
@@ -768,7 +788,7 @@ class latoken extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'amount24h'),
             'quoteVolume' => $this->safe_string($ticker, 'volume24h'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -796,7 +816,7 @@ class latoken extends Exchange {
         $response = Async\await($this->publicGetTickerBaseQuote($this->extend($request, $params)));
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -811,7 +831,7 @@ class latoken extends Exchange {
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
         return $this->parse_ticker($response, $market);
@@ -838,7 +858,7 @@ class latoken extends Exchange {
         //
         //    [
         //        {
-        //            "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //            "symbol": "BTC/USDT",
         //            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //            "volume24h": "165723597.189022176000000000",
@@ -853,7 +873,7 @@ class latoken extends Exchange {
         //            "bestBidQuantity": "0.6520232",
         //            "bestAsk": "25779.17",
         //            "bestAskQuantity": "0.4956043",
-        //            "updateTimestamp": "1693965231406"
+        //            "updateTimestamp": 1693965231406
         //        }
         //    ]
         //
@@ -916,9 +936,13 @@ class latoken extends Exchange {
         $quoteId = $this->safe_string($trade, 'quoteCurrency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $base . '/' . $quote;
-        if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
-            $market = $this->market($symbol);
+        $symbol = null;
+        $marketResolved = $market;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
+                $marketResolved = $this->market($symbol);
+            }
         }
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order');
@@ -944,7 +968,7 @@ class latoken extends Exchange {
             'amount' => $amountString,
             'cost' => $costString,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1005,11 +1029,11 @@ class latoken extends Exchange {
         $options = $this->safe_dict($this->options, 'fetchTradingFee', array());
         $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTradingFee');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $params = $this->omit($params, 'method');
+        $paramsOmitted = $this->omit($params, 'method');
         if ($method === 'fetchPrivateTradingFee') {
-            return Async\await($this->fetch_private_trading_fee($symbol, $params));
+            return Async\await($this->fetch_private_trading_fee($symbol, $paramsOmitted));
         } elseif ($method === 'fetchPublicTradingFee') {
-            return Async\await($this->fetch_public_trading_fee($symbol, $params));
+            return Async\await($this->fetch_public_trading_fee($symbol, $paramsOmitted));
         } else {
             throw new NotSupported($this->id . ' not support this method');
         }
@@ -1218,9 +1242,11 @@ class latoken extends Exchange {
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
-            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
-                $market = $this->market($symbol);
-            }
+        }
+        $symbolKnown = ($symbol !== null) && ($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets));
+        $marketResolved = $market;
+        if ($symbolKnown) {
+            $marketResolved = $this->market($symbol);
         }
         $orderSide = $this->safe_string($order, 'side');
         $side = null;
@@ -1267,7 +1293,7 @@ class latoken extends Exchange {
             'remaining' => null,
             'fee' => null,
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1289,13 +1315,13 @@ class latoken extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, 'stop');
+        $paramsOmitted = $this->omit($params, 'stop');
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         $market = $this->market($symbol);
         $request = array(
@@ -1303,9 +1329,9 @@ class latoken extends Exchange {
             'quote' => $market['quoteId'],
         );
         if ($isTrigger === true) {
-            $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuoteActive($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuoteActive($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privateGetAuthOrderPairCurrencyQuoteActive($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAuthOrderPairCurrencyQuoteActive($this->extend($request, $paramsOmitted)));
         }
         //
         //     [
@@ -1363,7 +1389,7 @@ class latoken extends Exchange {
         );
         $market = null;
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
@@ -1372,15 +1398,15 @@ class latoken extends Exchange {
             $request['currency'] = $market['baseId'];
             $request['quote'] = $market['quoteId'];
             if ($isTrigger === true) {
-                $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuote($this->extend($request, $params)));
+                $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuote($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privateGetAuthOrderPairCurrencyQuote($this->extend($request, $params)));
+                $response = Async\await($this->privateGetAuthOrderPairCurrencyQuote($this->extend($request, $paramsOmitted)));
             }
         } else {
             if ($isTrigger === true) {
-                $response = Async\await($this->privateGetAuthStopOrder($this->extend($request, $params)));
+                $response = Async\await($this->privateGetAuthStopOrder($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privateGetAuthOrder($this->extend($request, $params)));
+                $response = Async\await($this->privateGetAuthOrder($this->extend($request, $paramsOmitted)));
             }
         }
         //
@@ -1432,11 +1458,11 @@ class latoken extends Exchange {
             'id' => $id,
         );
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if ($isTrigger === true) {
-            $response = Async\await($this->privateGetAuthStopOrderGetOrderId($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAuthStopOrderGetOrderId($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privateGetAuthOrderGetOrderId($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAuthOrderGetOrderId($this->extend($request, $paramsOmitted)));
         }
         //
         //     {
@@ -1490,9 +1516,7 @@ class latoken extends Exchange {
         }
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'baseCurrency' => $market['baseId'],
             'quoteCurrency' => $market['quoteId'],
@@ -1509,12 +1533,12 @@ class latoken extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
+        $paramsOmitted = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
         if ($triggerPrice !== null) {
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            $response = Async\await($this->privatePostAuthStopOrderPlace($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAuthStopOrderPlace($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privatePostAuthOrderPlace($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAuthOrderPlace($this->extend($request, $paramsOmitted)));
         }
         //
         //    {
@@ -1555,11 +1579,11 @@ class latoken extends Exchange {
             'id' => $id,
         );
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if ($isTrigger === true) {
-            $response = Async\await($this->privatePostAuthStopOrderCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAuthStopOrderCancel($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privatePostAuthOrderCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAuthOrderCancel($this->extend($request, $paramsOmitted)));
         }
         //
         //     {
@@ -1598,21 +1622,21 @@ class latoken extends Exchange {
         );
         $market = null;
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['currency'] = $market['baseId'];
             $request['quote'] = $market['quoteId'];
             if ($isTrigger === true) {
-                $response = Async\await($this->privatePostAuthStopOrderCancelAllCurrencyQuote($this->extend($request, $params)));
+                $response = Async\await($this->privatePostAuthStopOrderCancelAllCurrencyQuote($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privatePostAuthOrderCancelAllCurrencyQuote($this->extend($request, $params)));
+                $response = Async\await($this->privatePostAuthOrderCancelAllCurrencyQuote($this->extend($request, $paramsOmitted)));
             }
         } else {
             if ($isTrigger === true) {
-                $response = Async\await($this->privatePostAuthStopOrderCancelAll($this->extend($request, $params)));
+                $response = Async\await($this->privatePostAuthStopOrderCancelAll($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privatePostAuthOrderCancelAll($this->extend($request, $params)));
+                $response = Async\await($this->privatePostAuthOrderCancelAll($this->extend($request, $paramsOmitted)));
             }
         }
         //
@@ -1937,7 +1961,9 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = $headers;
+        $requestBody = $body;
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $requestString = $request;
         $query = $this->omit($params, $this->extract_params($path));
@@ -1951,18 +1977,22 @@ class latoken extends Exchange {
             $this->check_required_credentials();
             $auth = $method . $request . $urlencodedQuery;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
-            $headers = array(
+            $requestHeaders = array(
                 'X-LA-APIKEY' => $this->apiKey,
                 'X-LA-SIGNATURE' => $signature,
                 'X-LA-DIGEST' => 'HMAC-SHA512', // HMAC-SHA384, HMAC-SHA512, optional
             );
             if ($method === 'POST') {
-                $headers['Content-Type'] = 'application/json';
-                $body = $this->json($query);
+                $requestHeaders['Content-Type'] = 'application/json';
+                $requestBody = $this->json($query);
             }
         }
-        $url = $this->urls['api']['rest'] . $requestString;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $requestString;
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -1981,9 +2011,8 @@ class latoken extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
-        $error = $this->safe_value($response, 'error');
-        $errorMessage = $this->safe_string($error, 'message');
-        if (($error !== null) || ($errorMessage !== null)) {
+        $error = $this->safe_string($response, 'error');
+        if ($error !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown message

@@ -288,10 +288,14 @@ impl IndependentreserveCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
-        symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("?subscribe=ticker-".into())), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
+        let mut market: Value = self.market(symbol);
+        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
+        if (wsUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() has no websocket url".into()))));
+        }
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl, Value::Str("?subscribe=ticker-".into())).into()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbolValue).into());
         let mut trades: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
         return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
 
@@ -393,14 +397,16 @@ impl IndependentreserveCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
-        symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if (limit == Value::Null) {
-            limit = Value::Int(100);
+        let mut market: Value = self.market(symbol);
+        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
+        let mut limitString: Value = self.number_to_string(limitResolved);
+        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
+        if (wsUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
         }
-        let mut limitString: Value = self.number_to_string(limit.clone());
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/orderbook/".into())), limitString).into()), Value::Str("?subscribe=".into())).into()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()), Value::Str(":".into())).into()), limitString).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl, Value::Str("/orderbook/".into())).into()), limitString).into()), Value::Str("?subscribe=".into())).into()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbolValue).into()), Value::Str(":".into())).into()), limitString).into());
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("receivedSnapshot".to_string(), Value::Bool(false));
@@ -448,6 +454,9 @@ impl IndependentreserveCore {
         let mut quoteId: Value = self.safe_string(parts, Value::Int(3), &[]);
         let mut base: Value = self.safe_currency_code(baseId, &[]);
         let mut quote: Value = self.safe_currency_code(quoteId, &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return;
+        }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut orderBook: Value = (match message.get("Data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -487,7 +496,7 @@ impl IndependentreserveCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
         let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
-        if (is_equal(&checksum, &Value::Bool(true))) && (receivedSnapshot.as_bool() == Some(true)) {
+        if (checksum.as_bool() == Some(true)) && (receivedSnapshot.as_bool() == Some(true)) {
             let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));
             let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
             let mut asksLength: Value = get_array_length(&storedAsks);
@@ -495,8 +504,8 @@ impl IndependentreserveCore {
             let mut payload: Value = Value::Str("".into());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_405: bool = true;
-                while { if !__for_first_405 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_405 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                let mut __for_first_399: bool = true;
+                while { if !__for_first_399 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_399 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) {
                     payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(0)))).into()), self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(1)))).into());
                 }
@@ -504,8 +513,8 @@ impl IndependentreserveCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_406: bool = true;
-                while { if !__for_first_406 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_406 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                let mut __for_first_400: bool = true;
+                while { if !__for_first_400 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_400 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) < asksLength.as_f64().unwrap_or(f64::NAN) {
                     payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(0)))).into()), self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(1)))).into());
                 }
@@ -548,8 +557,8 @@ impl IndependentreserveCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_407: bool = true;
-            while { if !__for_first_407 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_407 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_401: bool = true;
+            while { if !__for_first_401 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_401 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }

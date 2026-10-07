@@ -22,6 +22,11 @@
 * [fetchMyTrades](#fetchmytrades)
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
+* [fetchCurrencies](#fetchcurrencies)
+* [fetchDepositAddress](#fetchdepositaddress)
+* [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
+* [fetchDeposit](#fetchdeposit)
+* [fetchWithdrawal](#fetchwithdrawal)
 * [withdraw](#withdraw)
 * [fetchLedger](#fetchledger)
 * [cancelOrders](#cancelorders)
@@ -478,6 +483,115 @@ fetch all withdrawals made from an account
 
 ```javascript
 blofin.fetchWithdrawals (code, since?, limit?, params?)
+```
+
+
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
+
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an associative dictionary of currencies
+
+**See**: https://docs.blofin.com/index.html#get-currencies  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchCurrencies (params?)
+```
+
+
+<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
+
+### fetchDepositAddress{docsify-ignore}
+fetch the deposit address for a currency associated with this account
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+
+**See**: https://docs.blofin.com/index.html#get-deposit-address  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.network | <code>string</code> | No | unified network code, required unless the currency has a single network or a default in options['defaultNetworks'] |
+| params.chain | <code>string</code> | No | the exchange-specific chain id, takes precedence over params.network |
+
+
+```javascript
+blofin.fetchDepositAddress (code, params?)
+```
+
+
+<a name="fetchDepositWithdrawFees" id="fetchdepositwithdrawfees"></a>
+
+### fetchDepositWithdrawFees{docsify-ignore}
+fetch deposit and withdraw fees
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+
+**See**: https://docs.blofin.com/index.html#get-currencies  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchDepositWithdrawFees (codes?, params?)
+```
+
+
+<a name="fetchDeposit" id="fetchdeposit"></a>
+
+### fetchDeposit{docsify-ignore}
+fetch information on a deposit
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.blofin.com/index.html#get-deposit-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | deposit id |
+| code | <code>string</code> | No | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchDeposit (id, code?, params?)
+```
+
+
+<a name="fetchWithdrawal" id="fetchwithdrawal"></a>
+
+### fetchWithdrawal{docsify-ignore}
+fetch data on a currency withdrawal via the withdrawal id
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.blofin.com/index.html#get-withdraw-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | withdrawal id |
+| code | <code>string</code> | No | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientId | <code>string</code> | No | look up by the client-supplied id instead, with id set to undefined |
+
+
+```javascript
+blofin.fetchWithdrawal (id, code?, params?)
 ```
 
 

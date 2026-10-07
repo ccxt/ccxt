@@ -1,0 +1,11 @@
+{
+    "CancelAllSpotOrders": "[]any",
+    "CancelAllContractOrders": "[]any",
+    "CreateGiftCode": "map[string]any",
+    "CreateExtendedOrderRequest": "map[string]any",
+    "CreateSpotOrderRequest": "map[string]any",
+    "CreateOrderRequest": "map[string]any",
+    "EditOrderRequest": "map[string]any",
+    "CancelAllOrdersRequest": "map[string]any",
+    "CancelOrdersRequest": "map[string]any"
+}

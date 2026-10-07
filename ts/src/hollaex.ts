@@ -6,7 +6,7 @@ import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, NullableList, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -361,7 +361,7 @@ export default class hollaex extends Exchange {
         const result: List = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const market = pairs[key];
+            const market = this.safeDict (pairs, key);
             const baseId = this.safeString (market, 'pair_base');
             const quoteId = this.safeString (market, 'pair_2');
             const base = this.commonCurrencyCode ((baseId as string).toUpperCase ());
@@ -505,7 +505,10 @@ export default class hollaex extends Exchange {
         const code = this.safeCurrencyCode (id);
         const withdrawalLimits = this.safeList (rawCurrency, 'withdrawal_limits', []);
         const rawType = this.safeString (rawCurrency, 'type');
-        const type = (rawType === 'blockchain') ? 'crypto' : 'other';
+        let type: Str = 'other';
+        if (rawType === 'blockchain') {
+            type = 'crypto';
+        }
         const rawNetworks = this.safeDict (rawCurrency, 'withdrawal_fees', {});
         const networks: Dict = {};
         const networkIds = Object.keys (rawNetworks);
@@ -673,7 +676,7 @@ export default class hollaex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
         //
         //     {
@@ -690,7 +693,7 @@ export default class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        return this.parseTickers (response, symbols);
+        return this.parseTickers (response, symbolsNormalized);
     }
 
     override parseTickers (tickers: any, symbols: Strings = undefined, params: Dict = {}): Tickers {
@@ -735,8 +738,8 @@ export default class hollaex extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
+        const symbol = marketResolved['symbol'];
         const timestamp = this.parse8601 (this.safeString2 (ticker, 'time', 'timestamp'));
         const close = this.safeString (ticker, 'close');
         return this.safeTicker ({
@@ -760,7 +763,7 @@ export default class hollaex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -824,8 +827,8 @@ export default class hollaex extends Exchange {
         //  }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
+        const symbol = marketResolved['symbol'];
         const datetime = this.safeString (trade, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const side = this.safeString (trade, 'side');
@@ -855,7 +858,7 @@ export default class hollaex extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -943,13 +946,13 @@ export default class hollaex extends Exchange {
             'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        let paginate = false;
+        const paginate = false;
         const maxLimit = 500;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', paginate);
-        if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
+        const [ paginateOption, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', paginate);
+        if (paginateOption) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
-        let until = this.safeInteger (params, 'until');
+        let until = this.safeInteger (paramsPaginate, 'until');
         const timeDelta = this.parseTimeframe (timeframe) * maxLimit * 1000;
         let start = since;
         const now = this.milliseconds ();
@@ -961,8 +964,8 @@ export default class hollaex extends Exchange {
         }
         request['from'] = this.parseToInt (start / 1000); // convert to seconds
         request['to'] = this.parseToInt (until / 1000); // convert to seconds
-        params = this.omit (params, 'until');
-        const response = await this.publicGetChart (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (paramsPaginate, 'until');
+        const response = await this.publicGetChart (this.extend (request, paramsOmitted));
         //
         //     [
         //         {
@@ -1372,8 +1375,8 @@ export default class hollaex extends Exchange {
         if (postOnly) {
             request['meta'] = { 'post_only': true };
         }
-        params = this.omit (params, [ 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ]);
-        const response = await this.privatePostOrder (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ]);
+        const response = await this.privatePostOrder (this.extend (request, paramsOmitted));
         //
         //     {
         //         "fee": 0,
@@ -1528,7 +1531,7 @@ export default class hollaex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "currency":"usdt",
@@ -1548,11 +1551,11 @@ export default class hollaex extends Exchange {
         }
         this.checkAddress (address);
         const currencyId = this.safeString (depositAddress, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const network = this.safeString (depositAddress, 'network');
         return {
             'info': depositAddress,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'network': network,
             'address': address,
             'tag': tag,
@@ -1573,8 +1576,8 @@ export default class hollaex extends Exchange {
             await this.loadMarkets ();
         }
         const network = this.safeString (params, 'network');
-        params = this.omit (params, 'network');
-        const response = await this.privateGetUser (params);
+        const paramsOmitted: Dict = this.omit (params, 'network');
+        const response = await this.privateGetUser (paramsOmitted);
         //
         //     {
         //         "id":620,
@@ -1621,7 +1624,12 @@ export default class hollaex extends Exchange {
         //     }
         //
         const wallet = this.safeList (response, 'wallet', []);
-        const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', network);
+        let addresses: NullableList = undefined;
+        if (network === undefined) {
+            addresses = wallet;
+        } else {
+            addresses = this.filterBy (wallet, 'network', network);
+        }
         return this.parseDepositAddresses (addresses, codes, false) as DepositAddress[];
     }
 
@@ -1854,7 +1862,7 @@ export default class hollaex extends Exchange {
             tagTo = tag;
         }
         const currencyId = this.safeString (transaction, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         let status = this.safeValue (transaction, 'status');
         const dismissed = this.safeBool (transaction, 'dismissed');
         const rejected = this.safeBool (transaction, 'rejected');
@@ -1868,7 +1876,7 @@ export default class hollaex extends Exchange {
             status = 'pending';
         }
         const feeCurrencyId = this.safeString (transaction, 'fee_coin');
-        const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId, currency);
+        const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId, currencyResolved);
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
@@ -1892,7 +1900,7 @@ export default class hollaex extends Exchange {
             'tagTo': tagTo,
             'type': type,
             'amount': amount,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': status,
             'updated': updated,
             'comment': this.safeString (transaction, 'message'),
@@ -1914,27 +1922,28 @@ export default class hollaex extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        if (tag !== undefined) {
-            address += ':' + tag;
+        let addressWithTag = address;
+        if (tagWithdrawTag !== undefined) {
+            addressWithTag = address + ':' + tagWithdrawTag;
         }
-        const network = this.safeString (params, 'network');
+        const network = this.safeString (paramsWithdrawTag, 'network');
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
         }
-        params = this.omit (params, 'network');
+        const paramsOmitted: Dict = this.omit (paramsWithdrawTag, 'network');
         const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
-            'address': address,
+            'address': addressWithTag,
             'network': this.networkCodeToId (network, code),
         };
-        const response = await this.privatePostUserWithdrawal (this.extend (request, params));
+        const response = await this.privatePostUserWithdrawal (this.extend (request, paramsOmitted));
         //
         //     {
         //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -2001,7 +2010,7 @@ export default class hollaex extends Exchange {
             const keysLength = keys.length;
             for (let i = 0; i < keysLength; i++) {
                 const key = keys[i];
-                const value = withdrawalFees[key];
+                const value = this.safeDict (withdrawalFees, key);
                 const currencyId = this.safeString (value, 'symbol');
                 const currencyCode = this.safeCurrencyCode (currencyId);
                 const networkCode = this.networkIdToCode (key, currencyCode);
@@ -2069,36 +2078,44 @@ export default class hollaex extends Exchange {
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const query = this.omit (params, this.extractParams (path));
-        path = '/' + this.version + '/' + this.implodeParams (path, params);
+        let requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
             if (Object.keys (query).length > 0) {
-                path += '?' + this.urlencode (query);
+                requestPath += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api']['rest'] + path;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + requestPath;
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseToInt (this.timeout / 1000));
             const expires = this.sum (this.seconds (), defaultExpires);
             const expiresString = expires.toString ();
-            let auth = method + path + expiresString;
-            headers = {
+            let auth = method + requestPath + expiresString;
+            requestHeaders = {
                 'api-key': this.apiKey,
                 'api-expires': expiresString,
             };
             if (method === 'POST') {
-                headers['Content-type'] = 'application/json';
+                requestHeaders['Content-type'] = 'application/json';
                 if (Object.keys (query).length > 0) {
-                    body = this.json (query);
-                    auth += body;
+                    requestBody = this.json (query);
+                    auth += requestBody;
                 }
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            headers['api-signature'] = signature;
+            requestHeaders['api-signature'] = signature;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResult = (requestBody === undefined) ? body : requestBody;
+        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

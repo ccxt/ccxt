@@ -12,8 +12,8 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchPositions";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
-        while (isLessThan(now, ends))
+        Int64 ends = (now + 15000);
+        while (now < ends)
         {
             object response = null;
             bool success = true;
@@ -22,7 +22,7 @@ public partial class testMainClass : BaseTest
                 response = detypeForComparison(await exchange.WatchPositions(new List<object>() {symbol}));
                 if ((response == null))
                 {
-                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                    throw new Exception (add(exchange.id, " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {
@@ -38,7 +38,7 @@ public partial class testMainClass : BaseTest
             {
                 if ((response == null))
                 {
-                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                    throw new Exception (add(exchange.id, " watch returned undefined response")) ;
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();

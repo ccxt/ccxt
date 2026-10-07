@@ -51,7 +51,7 @@ export default class bitbns extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseStatus(status: any): string;
+    parseStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -156,7 +156,7 @@ export default class bitbns extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    parseTransactionStatusByType(status: any, type?: Str): string;
+    parseTransactionStatusByType(status: Str, type?: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -168,6 +168,6 @@ export default class bitbns extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

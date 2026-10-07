@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, FundingHistory } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, FundingHistory } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -188,7 +188,7 @@ export default class hyperliquid extends Exchange {
         source: string;
         connectionId: any;
     };
-    actionHash(action: any, vaultAddress: any, nonce: any, expiresAfter?: Int): any;
+    actionHash(action: any, vaultAddress: any, nonce: any, expiresAfter?: Int): Uint8Array<ArrayBufferLike>;
     signL1Action(action: any, nonce: any, vaultAdress?: Str, expiresAfter?: Int): object;
     signUserSignedAction(messageTypes: Dict, message: Dict): Dict;
     buildUsdSendSig(message: Dict): Dict;
@@ -384,7 +384,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: string, side: string, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name hyperliquid#editOrders
@@ -521,6 +521,22 @@ export default class hyperliquid extends Exchange {
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
+     * @name hyperliquid#fetchMyLiquidations
+     * @description retrieves the users liquidated positions
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+     * @param {string} [symbol] unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     */
+    fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
+    parseLiquidation(liquidation: any, market?: Market): Liquidation;
+    /**
+     * @method
      * @name hyperliquid#fetchPosition
      * @description fetch data on an open position
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
@@ -595,7 +611,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    modifyMarginHelper(symbol: string, amount: any, type: any, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: any, type: string, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
@@ -714,7 +730,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: any, market?: Market): Dict;
+    parseIncome(income: Dict, market?: Market): Dict;
     /**
      * @method
      * @name hyperliquid#reserveRequestWeight
@@ -735,11 +751,11 @@ export default class hyperliquid extends Exchange {
      */
     createSubAccount(name: string, params?: Dict): Promise<Dict>;
     extractTypeFromDelta(data?: Dict[]): Dict[];
-    formatVaultAddress(address?: Str): string | undefined;
+    formatVaultAddress(address?: Str): Str;
     handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
-    coinToMarketId(coin: Str): string | undefined;
+    coinToMarketId(coin: Str): Str;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: any): any;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
     parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): [Dict, Dict];
 }

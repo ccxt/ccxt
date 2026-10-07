@@ -29,6 +29,8 @@ export const blogPosts = defineCollections({
     // YAML parses bare dates (date: 2026-07-07) as Date; quoted strings coerce
     date: z.coerce.date(),
     tags: z.array(z.string()).default([]),
+    // optional social-preview (og:image / twitter:image) path under public/, e.g. /images/blog/x.png
+    image: z.string().optional(),
   }),
 });
 

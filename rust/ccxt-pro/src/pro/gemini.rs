@@ -318,12 +318,17 @@ impl GeminiCore {
             m
         });
         let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("l2:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
-        let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/v2/marketdata".into()));
-        let mut trades: Value = self.watch(url, messageHash, &[request, subscribeHash]).await;
-        if is_true(&self.newUpdates) {
-            limit = trades.get_limit(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), limit.clone());
+        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
+        if (wsUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() has no websocket url".into()))));
         }
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut url: Value = Value::Str(format!("{}{}", wsUrl, Value::Str("/v2/marketdata".into())).into());
+        let mut trades: Value = self.watch(url, messageHash, &[request, subscribeHash]).await;
+        let mut limitResolved: Value = limit.clone();
+        if is_true(&self.newUpdates) {
+            limitResolved = trades.get_limit(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), limit);
+        }
+        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -347,12 +352,13 @@ impl GeminiCore {
     m
 }));
         let mut trades: Value = self.helper_for_watch_multiple_construct(Value::Str("trades".into()), &[symbols, params]).await;
+        let mut first: Value = self.safe_list(trades.clone(), Value::Int(0), &[]);
+        let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
+        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            let mut first: Value = self.safe_list(trades.clone(), Value::Int(0), &[]);
-            let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
-            limit = trades.get_limit(tradeSymbol, limit.clone());
+            limitResolved = trades.get_limit(tradeSymbol, limit);
         }
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -499,8 +505,8 @@ impl GeminiCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_342: bool = true;
-                while { if !__for_first_342 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_342 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+                let mut __for_first_331: bool = true;
+                while { if !__for_first_331 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_331 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
                 let mut trade: Value = self.parse_ws_trade(trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
                 stored.append(trade);
             }
@@ -519,8 +525,8 @@ impl GeminiCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_343: bool = true;
-                while { if !__for_first_343 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_343 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+                let mut __for_first_332: bool = true;
+                while { if !__for_first_332 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_332 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
                 let mut marketId: Value = crate::value::get_value_k(&trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), "symbol");
                 let mut market: Value = self.safe_market(&[to_lower(&marketId)]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -539,8 +545,8 @@ impl GeminiCore {
             let mut symbols: Value = object_keys(&storesForSymbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_344: bool = true;
-                while { if !__for_first_344 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_344 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+                let mut __for_first_333: bool = true;
+                while { if !__for_first_333 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_333 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut stored: Value = get_value(&storesForSymbols, &symbol);
                 let mut stored: Value = get_value(&storesForSymbols, &symbol);
@@ -588,12 +594,17 @@ impl GeminiCore {
             m
         });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), timeframeId).into());
-        let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/v2/marketdata".into()));
-        let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
-        if is_true(&self.newUpdates) {
-            limit = ohlcv.get_limit(symbol, limit.clone());
+        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
+        if (wsUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() has no websocket url".into()))));
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limit, Value::Int(0), Value::Bool(true)]);
+        let mut url: Value = Value::Str(format!("{}{}", wsUrl, Value::Str("/v2/marketdata".into())).into());
+        let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+        let mut limitResolved: Value = limit.clone();
+        if is_true(&self.newUpdates) {
+            limitResolved = ohlcv.get_limit(symbol, limit);
+        }
+        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
 
     Value::Null
 }
@@ -653,8 +664,8 @@ impl GeminiCore {
         let mut changesLength: Value = Value::Int(changes.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_345: bool = true;
-            while { if !__for_first_345 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_345 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_334: bool = true;
+            while { if !__for_first_334 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_334 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(changesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut parsed: Value = self.parse_ohlcv(get_value(&changes, &index), &[market.clone()]);
             stored.append(parsed);
@@ -704,7 +715,11 @@ impl GeminiCore {
             m
         });
         let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("l2:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
-        let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/v2/marketdata".into()));
+        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
+        if (wsUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
+        }
+        let mut url: Value = Value::Str(format!("{}{}", wsUrl, Value::Str("/v2/marketdata".into())).into());
         let mut orderbook: Value = self.watch(url, messageHash, &[request, subscribeHash]).await;
         return orderbook.limit();
 
@@ -733,12 +748,12 @@ impl GeminiCore {
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_346: bool = true;
-            while { if !__for_first_346 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_346 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
+            let mut __for_first_335: bool = true;
+            while { if !__for_first_335 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_335 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
             let mut delta: Value = changes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut price: Value = self.safe_number(delta.clone(), Value::Int(1), &[]);
             let mut size: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
-            let mut side: Value = (if (get_value(&delta, &Value::Int(0)).as_str() == Some("buy")) { Value::Str("bids".into()) } else { Value::Str("asks".into()) });
+            let mut side: Value = (if (self.safe_string(delta, Value::Int(0), &[]).as_str() == Some("buy")) { Value::Str("bids".into()) } else { Value::Str("asks".into()) });
             let mut bookside: Value = get_value(&orderbook, &side);
             let mut bookside: Value = get_value(&orderbook, &side);
             bookside.store(price, size);
@@ -834,9 +849,9 @@ impl GeminiCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidsasks:".into()), symbol).into());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_347: bool = true;
-            while { if !__for_first_347 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_347 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBidAskChanges.len() as i64) as f64) } {
-            let mut entry: Value = rawBidAskChanges.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_336: bool = true;
+            while { if !__for_first_336 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_336 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBidAskChanges.len() as i64) as f64) } {
+            let mut entry: Value = self.safe_dict(rawBidAskChanges.clone(), i.clone(), &[]);
             let mut rawSide: Option<String> = self.safe_string_k(entry.clone(), "side", &[]).as_str().map(str::to_owned);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
             let mut sizeString: Value = self.safe_string_k(entry, "remaining", &[]);
@@ -877,8 +892,8 @@ impl GeminiCore {
         if (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchMultiple requires at least one symbol".into()))));
         }
-        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut firstMarket: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
+        let mut firstMarket: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
         if (firstMarket.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchMultiple supports only spot or linear-swap symbols".into()))));
         }
@@ -886,9 +901,9 @@ impl GeminiCore {
         let mut marketIds: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_348: bool = true;
-            while { if !__for_first_348 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_348 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_337: bool = true;
+            while { if !__for_first_337 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_337 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", itemHashName, Value::Str(":".into())).into()), symbol).into());
             append_to_array(&mut messageHashes, messageHash);
             let mut market: Value = self.market(symbol);
@@ -896,7 +911,11 @@ impl GeminiCore {
         }
         }
         let mut queryStr: Value = join(&marketIds, &Value::Str(",".into()));
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/v1/multimarketdata?symbols=".into())), queryStr).into()), Value::Str("&heartbeat=true&".into())).into());
+        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
+        if (wsUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" helperForWatchMultipleConstruct() has no websocket url".into()))));
+        }
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl, Value::Str("/v1/multimarketdata?symbols=".into())).into()), queryStr).into()), Value::Str("&heartbeat=true&".into())).into());
         if (itemHashName.as_str() == Some("orderbook")) {
             url = Value::Str(format!("{}{}", url, Value::Str("trades=false&bids=true&offers=true".into())).into());
         }  else if (itemHashName.as_str() == Some("bidsasks")) {
@@ -938,9 +957,9 @@ impl GeminiCore {
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_349: bool = true;
-            while { if !__for_first_349 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_349 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrderBookChanges.len() as i64) as f64) } {
-            let mut entry: Value = rawOrderBookChanges.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_338: bool = true;
+            while { if !__for_first_338 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_338 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrderBookChanges.len() as i64) as f64) } {
+            let mut entry: Value = self.safe_dict(rawOrderBookChanges.clone(), i.clone(), &[]);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
             let mut size: Value = self.safe_number_k(entry.clone(), "remaining", &[]);
             let mut rawSide: Option<String> = self.safe_string_k(entry, "side", &[]).as_str().map(str::to_owned);
@@ -1022,7 +1041,11 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked".into()));
+        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
+        if (wsUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() has no websocket url".into()))));
+        }
+        let mut url: Value = Value::Str(format!("{}{}", wsUrl, Value::Str("/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked".into())).into());
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -1032,16 +1055,18 @@ impl GeminiCore {
             m
         });
         self.authenticate(&[authParams]).await;
+        let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            let mut market: Value = self.market(symbol.clone());
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            market = self.market(symbol);
         }
+        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market, "symbol", &[]) } else { Value::Null });
         let mut messageHash: Value = Value::Str("orders".into());
         let mut orders: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
+        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limit = orders.get_limit(symbol.clone(), limit.clone());
+            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1100,8 +1125,8 @@ impl GeminiCore {
         let mut orders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_350: bool = true;
-            while { if !__for_first_350 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_350 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
+            let mut __for_first_339: bool = true;
+            while { if !__for_first_339 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_339 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
             let mut order: Value = self.parse_ws_order(message.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             orders.append(order);
         }
@@ -1281,8 +1306,8 @@ impl GeminiCore {
             let mut eventsLength: f64 = ((events.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_351: bool = true;
-                while { if !__for_first_351 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_351 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
+                let mut __for_first_340: bool = true;
+                while { if !__for_first_340 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_340 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
                 let mut event: Value = events.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut eventType: Option<String> = self.safe_string_k(event.clone(), "type", &[]).as_str().map(str::to_owned);
                 let mut isOrderBook: bool = (eventType.as_deref() == Some("change")) && (in_op(&event, &Value::Str("side".into()))) && self.in_array(crate::value::get_value_k(&event, "side"), Value::from(vec![Value::Str("ask".into()), Value::Str("bid".into())])).as_bool() == Some(true);

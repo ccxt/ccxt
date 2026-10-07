@@ -15,10 +15,12 @@ ccxt-prediction = { path = "../../rust/ccxt-prediction", default-features = fals
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
 async-trait = "0.1"
+mimalloc = { version = "0.1", default-features = false, optional = true }
 
 [features]
 all-venues = ["ccxt/all", "ccxt-pro?/all", "ccxt-prediction/all"]
 ws = ["dep:ccxt-pro"]
+mimalloc = ["dep:mimalloc"]
 
 # Typed prediction-market API demo (`ccxt_prediction::Kalshi::fetch_ticker`, …).
 [[bin]]

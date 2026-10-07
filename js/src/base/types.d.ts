@@ -6,7 +6,7 @@ export type Num = number | undefined;
 export type Bool = boolean | undefined;
 export type IndexType = number | string;
 export type NullableIndexType = IndexType | undefined;
-export type OrderSide = 'buy' | 'sell' | string | undefined;
+export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
 export type SubType = 'linear' | 'inverse' | undefined;
@@ -108,7 +108,17 @@ export interface MarketInterface {
         market?: MinMax;
     };
     created: Int;
+    baseName?: Str;
+    id2?: Str;
+    instIdCode?: Int;
+    tiers?: Dict;
     info: any;
+    market?: Str;
+    marketType?: Str;
+    executionModel?: Str;
+    collateral?: Str;
+    resolved?: Bool;
+    resolvedOutcome?: Str;
     outcomes?: PredictionOutcome[];
 }
 export interface PredictionFees {
@@ -136,6 +146,9 @@ export interface PredictionEvent {
     endDatetime?: Str;
     image?: Str;
     url?: Str;
+    resolutionSource?: Str;
+    lastUpdatedAt?: Int;
+    lastUpdatedAtDatetime?: Str;
 }
 export interface PredictionMarket {
     info: any;
@@ -172,6 +185,33 @@ export interface PredictionMarket {
     fees?: PredictionFees;
     resolutionSource?: Str;
     image?: Str;
+    base?: Str;
+    quote?: Str;
+    settle?: Str;
+    baseId?: Str;
+    quoteId?: Str;
+    settleId?: Str;
+    type?: MarketType;
+    spot?: Bool;
+    margin?: Bool;
+    swap?: Bool;
+    future?: Bool;
+    option?: Bool;
+    prediction?: Bool;
+    contract?: Bool;
+    linear?: Bool;
+    inverse?: Bool;
+    contractSize?: Num;
+    expiry?: Int;
+    expiryDatetime?: Str;
+    strike?: Num;
+    optionType?: Str;
+    taker?: Num;
+    maker?: Num;
+    percentage?: Bool;
+    tierBased?: Bool;
+    feeSide?: Str;
+    precision?: Precision;
 }
 export interface PredictionOutcome {
     info: any;
@@ -188,6 +228,16 @@ export interface PredictionOutcome {
     winner?: Bool;
     settleFraction?: Num;
     precision?: Precision;
+    id?: Str;
+    negRisk?: Bool;
+}
+export interface PredictionOutcomeMarket extends MarketInterface {
+    outcome: string;
+    outcomeId: string;
+    label?: Str;
+    market?: Str;
+    marketId?: Str;
+    event?: Str;
 }
 export interface PredictionOrder {
     id: Str;
@@ -362,6 +412,7 @@ export interface Trade {
     takerOrMaker: 'taker' | 'maker' | Str;
     cost: Num;
     fee: Fee;
+    fees?: Fee[];
 }
 export interface Order {
     id: Str;
@@ -387,8 +438,12 @@ export interface Order {
     cost: Num;
     trades: Trade[];
     fee: Fee;
+    fees?: Fee[];
     reduceOnly: Bool;
     postOnly: Bool;
+    marginMode?: Str;
+    leverage?: Num;
+    hedged?: Bool;
     info: any;
 }
 export interface OrderBook {
@@ -473,6 +528,8 @@ export interface CurrencyInterface {
         };
     };
     networks: Dictionary<any>;
+    fees?: Dict;
+    valueScale?: Int;
     info: any;
 }
 export interface Balance {
@@ -494,6 +551,7 @@ export interface Account {
     type: Str;
     code: Str;
     info: any;
+    name?: Str;
 }
 export interface PartialBalances extends Dictionary<number> {
 }
@@ -508,6 +566,7 @@ export interface DepositAddress {
     network?: Str;
     address: Str;
     tag?: Str;
+    note?: Str;
 }
 /** fetchDepositAddressesByNetwork: address structures indexed by unified network code */
 export interface DepositAddresses extends Dictionary<DepositAddress> {
@@ -567,6 +626,8 @@ export interface Position {
     stopLossPrice?: Num;
     takeProfitPrice?: Num;
     percentage?: Num;
+    isolated?: Bool;
+    exitPrice?: Num;
 }
 export interface BorrowInterest {
     info: any;
@@ -708,6 +769,8 @@ export interface FundingHistory {
     datetime?: Str;
     id: Str;
     amount: Num;
+    rate?: Num;
+    type?: Str;
 }
 export interface MarginMode {
     info: any;

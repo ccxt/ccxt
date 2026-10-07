@@ -39,6 +39,19 @@
         ],
         "fetchFundingIntervals": [
             {
+                "description": "uta inverse fetchFundingIntervals",
+                "method": "fetchFundingIntervals",
+                "url": "https://api.bitget.com/api/v3/market/current-fund-rate?category=COIN-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "productType": "COIN-FUTURES",
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchFundingIntervals with params",
                 "method": "fetchFundingIntervals",
                 "url": "https://api.bitget.com/api/v2/mix/market/current-fund-rate?productType=COIN-FUTURES",
@@ -250,7 +263,7 @@
                     "limit",
                     "buy",
                     0.0002,
-                    "25000"
+                    25000
                 ],
                 "output": { "symbol": "BTCUSDT", "orderType": "limit", "price": "25000", "force": "GTC", "side": "buy", "size": "0.0002" }
             },
@@ -263,7 +276,7 @@
                     "limit",
                     "buy",
                     0.001,
-                    "25000",
+                    25000,
                     {
                         "marginMode": "cross"
                     }
@@ -279,7 +292,7 @@
                     "limit",
                     "buy",
                     0.001,
-                    "25000",
+                    25000,
                     {
                         "triggerPrice": 26000,
                         "marginMode": "cross"
@@ -296,7 +309,7 @@
                     "market",
                     "buy",
                     0.0003,
-                    "37811"
+                    37811
                 ],
                 "output": { "symbol": "BTCUSDT", "orderType": "market", "force": "GTC", "side": "buy", "size": "11.34" }
             },
@@ -354,7 +367,7 @@
                     "market",
                     "buy",
                     0.0003,
-                    "25000",
+                    25000,
                     {
                         "triggerPrice": 26000
                     }
@@ -370,7 +383,7 @@
                     "limit",
                     "buy",
                     0.0002,
-                    "25000",
+                    25000,
                     {
                         "postOnly": true
                     }
@@ -386,7 +399,7 @@
                     "limit",
                     "sell",
                     0.001,
-                    "38000",
+                    38000,
                     {
                         "postOnly": true,
                         "reduceOnly": true,
@@ -404,7 +417,7 @@
                     "limit",
                     "buy",
                     0.0002,
-                    "25000",
+                    25000,
                     {
                         "marginMode": "cross"
                     }
@@ -862,7 +875,7 @@
                     "limit",
                     "buy",
                     0.0002,
-                    "27000",
+                    27000,
                     {
                         "triggerPrice": 28000
                     }
@@ -896,7 +909,7 @@
                     "limit",
                     "buy",
                     0.002,
-                    "27000"
+                    27000
                 ],
                 "output": { "orderId": "1113283350484385804", "symbol": "BTCUSDT", "productType": "USDT-FUTURES", "newSize": "0.002", "newPrice": "27000", "newClientOid": "f0c222d0-65c0-4502-b859-39d78e41450e" }
             },
@@ -910,7 +923,7 @@
                     "limit",
                     "buy",
                     0.001,
-                    "25000",
+                    25000,
                     {
                         "triggerPrice": 27000
                     }
@@ -927,7 +940,7 @@
                     "market",
                     "buy",
                     0.001,
-                    "25000",
+                    25000,
                     {
                         "stopLossPrice": 27000
                     }
@@ -1013,7 +1026,7 @@
                 "input": [
                     "BTC/USDT",
                     null,
-                    "3"
+                    3
                 ]
             },
             {
@@ -1022,8 +1035,8 @@
                 "url": "https://api.bitget.com/api/v2/mix/order/fills?limit=3&productType=USDT-FUTURES&startTime=1699457638000&symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT",
-                    "1699457638000",
-                    "3"
+                    1699457638000,
+                    3
                 ]
             },
             {
@@ -1033,7 +1046,7 @@
                 "input": [
                     "BTC/USDT",
                     null,
-                    "3",
+                    3,
                     {
                         "marginMode": "cross"
                     }
@@ -1046,7 +1059,7 @@
                 "input": [
                     "BTC/USDT",
                     null,
-                    "3",
+                    3,
                     {
                         "marginMode": "isolated"
                     }
@@ -2040,6 +2053,36 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "uta history limit capped at 100",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/history-candles?symbol=BTCUSDT&interval=1H&startTime=1780720000000&endTime=1781080000000&limit=100&category=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1780000000000,
+                    300,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot fetchOHLCV history endpoint",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/history-candles?symbol=BTCUSDT&interval=1H&startTime=1780000000000&endTime=1780007200000&limit=2&category=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1780000000000,
+                    2,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "futures 2h candle",
                 "method": "fetchOHLCV",
@@ -3301,6 +3344,33 @@
             }
         ],
         "fetchFundingRates": [
+            {
+                "description": "uta inverse fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "https://api.bitget.com/api/v3/market/tickers?category=COIN-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse",
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta fetchFundingRates for one symbol",
+                "method": "fetchFundingRates",
+                "url": "https://api.bitget.com/api/v3/market/tickers?category=USDT-FUTURES",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ],
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetchFundingRates with publicMixGetV2MixMarketCurrentFundRate",
                 "method": "fetchFundingRates",

@@ -217,6 +217,6 @@ export default class indodax extends Exchange {
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddresses(codes?: Strings, params?: Dict): Promise<DepositAddress[]>;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

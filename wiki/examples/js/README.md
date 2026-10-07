@@ -87,10 +87,6 @@ node path/to/example.js # substitute for actual filename here
 
 - [Coinbase Fetch All Balances](./examples/js/coinbase-fetch-all-balances.md)
 
-- [Coinex Fetch All Deposit Addresses Using FetchDepositAddress](./examples/js/coinex-fetch-all-deposit-addresses-using-fetchDepositAddress.md)
-
-- [Coinex Futures](./examples/js/coinex-futures.md)
-
 - [Coinone Fetch Tickers](./examples/js/coinone-fetch-tickers.md)
 
 - [Coinone Markets](./examples/js/coinone-markets.md)
@@ -140,6 +136,8 @@ node path/to/example.js # substitute for actual filename here
 - [Extended Builder](./examples/js/extended-builder.md)
 
 - [Fetch All Balances](./examples/js/fetch-all-balances.md)
+
+- [Fetch All Deposit Addresses Using FetchDepositAddress](./examples/js/fetch-all-deposit-addresses-using-fetchDepositAddress.md)
 
 - [Fetch All Tickers To Files 2](./examples/js/fetch-all-tickers-to-files-2.md)
 
