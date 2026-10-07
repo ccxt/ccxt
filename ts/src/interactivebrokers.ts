@@ -4,7 +4,6 @@ import Exchange from './abstract/interactivebrokers.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Account, Balances, Dict, Endpoint, List, NullableDict, Str, int } from './base/types.js';
-import crypto from 'node:crypto';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
@@ -352,31 +351,46 @@ export default class interactivebrokers extends Exchange {
         };
     }
 
-    async ibRequest(lst: string, method: string, path: string, body?: unknown) {
-        const url = `${this.urls['api']['private']}${path}`;
-        const params: Record<string, string> = { ...this.ibkrOauthBase(this.uid, this.apiKey), oauth_signature_method: 'HMAC-SHA256' };
-        // note: query-string params must be included in the base string too
-        const sig = crypto.createHmac('sha256', Buffer.from(lst, 'base64')).update(this.ibkrBaseString(method, url.split('?')[0], params)).digest('base64');
-        params['oauth_signature'] = this.ibkrEncrypt(sig);
-        const res = await fetch(url, {
-            method,
-            headers: { Authorization: this.ibkrAuthHeader(params), 'Content-Type': 'application/json', 'User-Agent': 'ccxt' },
-            body: body ? JSON.stringify(body) : undefined,
+    async ibRequest (lst: string, method: string, path: string, params: Dict = {}): Promise<any> {
+        const baseUrl = this.urls['api']['private'] + path;
+        let url = baseUrl;
+        let body: Str = undefined;
+        const oauthParams = this.extend (this.ibkrOauthBase (this.uid, this.apiKey), {
+            'oauth_signature_method': 'HMAC-SHA256',
         });
-        return res.json();
+        let signingParams = oauthParams;
+        const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
+        if (isGetOrDelete) {
+            if (Object.keys (params).length > 0) {
+                url += '?' + this.urlencode (params);
+                // query-string params must be included in the signature base string too
+                signingParams = this.extend (oauthParams, params);
+            }
+        } else if (Object.keys (params).length > 0) {
+            body = this.json (params);
+        }
+        const signature = this.hmac (this.encode (this.ibkrBaseString (method, baseUrl, signingParams)), this.base64ToBinary (lst), sha256, 'base64');
+        oauthParams['oauth_signature'] = this.ibkrEncrypt (signature);
+        const headers: Dict = {
+            'Authorization': this.ibkrAuthHeader (oauthParams),
+            'Content-Type': 'application/json',
+            'User-Agent': 'ccxt',
+        };
+        return await this.fetch (url, method, headers, body);
     }
 
-
-    async testMyBalance () {
-        // usage
+    async testMyBalance (): Promise<any> {
         const baseUrl = this.urls['api']['private'];
-        await this.sleep(100);
-        const { lst } = await this.getLiveSessionToken(baseUrl, this.options['encryptionPemPath'], this.options['signaturePemPath'], this.secret, this.options['dhParamPemPath'], this.uid, this.apiKey, this.options['dhGen']);
-        await this.ibRequest(lst, 'POST', '/iserver/auth/ssodh/init', { publish: true, compete: true }); // open brokerage session
-        const res = await this.ibRequest(lst, 'GET', '/portfolio/accounts');
-        console.log(res);
+        await this.sleep (100);
+        const session = await this.getLiveSessionToken (baseUrl, this.options['encryptionPemPath'], this.options['signaturePemPath'], this.secret, this.options['dhParamPemPath'], this.uid, this.apiKey, this.options['dhGen']);
+        const lst = session['lst'];
+        const initRequest: Dict = {
+            'publish': true,
+            'compete': true,
+        };
+        await this.ibRequest (lst, 'POST', '/iserver/auth/ssodh/init', initRequest); // open brokerage session
+        return await this.ibRequest (lst, 'GET', '/portfolio/accounts');
     }
-
 
     /**
      * @method
