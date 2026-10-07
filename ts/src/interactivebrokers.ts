@@ -115,6 +115,7 @@ export default class interactivebrokers extends Exchange {
                     'https://www.interactivebrokers.com/docs/web-api/introduction',
                     'https://github.com/Voyz/ibind/blob/master/docs/oauth/oauth_1a.md#enabling_oauth1a',
                     'https://ndcdyn.interactivebrokers.com/oauth/?loginType=1&action=OAUTH&clt=0&RL=1&ip2loc=US#/configuration',
+                    'https://ndcdyn.interactivebrokers.com/sso/Login?action=OAUTH&RL=1&ip2loc=US',
                 ],
                 'fees': 'https://www.interactivebrokers.com/en/index.php?f=1590&p=crypto',
             },
@@ -237,6 +238,7 @@ export default class interactivebrokers extends Exchange {
                 'encryptionPemPath': undefined,
                 'dhParamPemPath': undefined,
                 'dhGen': this.convertToBigInt ('2'),
+                'sessionLstToken': undefined,
             },
             'features': {
                 'default': {
@@ -310,15 +312,20 @@ export default class interactivebrokers extends Exchange {
         return authenticated && connected;
     }
 
-    async getLiveSessionToken (urlBase: string, encKeyPath: string, signKeyPath: string, accessTokenSecret: string, dhParamPath: string, consumerKey: string, consumerAccessToken: string, dhGen: bigint): Promise<Dict> {
-        const encKey = this.readFile (encKeyPath) as string;
-        const signKey = this.readFile (signKeyPath) as string;
-        const dhPrime = this.convertToBigInt ('0x' + this.readDhParam (dhParamPath));
+    async getLiveSessionToken (): Promise<Dict> {
+        const consumerAccessToken = this.apiKey;
+        const consumerAccessSecret = this.secret;
+        const consumerKey = this.uid;
+        const dhGen = this.options['dhGen'];
+        const encKey = this.readFile (this.options['encryptionPemPath']) as string;
+        const signKey = this.readFile (this.options['signaturePemPath']) as string;
+        const dhPrime = this.convertToBigInt ('0x' + this.readDhParam (this.options['dhParamPemPath']));
         // the access token secret is encrypted with the consumer's public encryption key;
-        const decrypted = this.decryptPrivateKey (encKey, accessTokenSecret);
+        const decrypted = this.decryptPrivateKey (encKey, consumerAccessSecret);
         const prepend = this.binaryToBase16 (decrypted);
         const dhRandom = this.convertToBigInt ('0x' + this.randomBytes (32));
         const dhChallenge = this.modPow (dhGen, dhRandom, dhPrime);
+        const urlBase = this.urls['api']['private'];
         const url = urlBase + '/oauth/live_session_token';
         const oauthParams = this.extend (this.ibkrOauthBase (consumerKey, consumerAccessToken), {
             'oauth_signature_method': 'RSA-SHA256',
@@ -369,7 +376,9 @@ export default class interactivebrokers extends Exchange {
         } else if (Object.keys (params).length > 0) {
             body = this.json (params);
         }
-        const signature = this.hmac (this.encode (this.ibkrBaseString (method, baseUrl, signingParams)), this.base64ToBinary (lst), sha256, 'base64');
+        const payload = this.ibkrBaseString (method, baseUrl, signingParams);
+        const secretBytes = this.base64ToBinary (lst);
+        const signature = this.hmac (this.encode (payload), secretBytes, sha256, 'base64');
         oauthParams['oauth_signature'] = this.ibkrEncrypt (signature);
         const headers: Dict = {
             'Authorization': this.ibkrAuthHeader (oauthParams),
@@ -380,16 +389,24 @@ export default class interactivebrokers extends Exchange {
     }
 
     async testMyBalance (): Promise<any> {
-        const baseUrl = this.urls['api']['private'];
         await this.sleep (100);
-        const session = await this.getLiveSessionToken (baseUrl, this.options['encryptionPemPath'], this.options['signaturePemPath'], this.secret, this.options['dhParamPemPath'], this.uid, this.apiKey, this.options['dhGen']);
+        const session = await this.getLiveSessionToken ();
+        if (!('lst' in session)) {
+            throw new Error('Live session token not found in session response');
+        }
         const lst = session['lst'];
+        this.options['sessionLstToken'] = lst;
         const initRequest: Dict = {
             'publish': true,
             'compete': true,
         };
         await this.ibRequest (lst, 'POST', '/iserver/auth/ssodh/init', initRequest); // open brokerage session
-        return await this.ibRequest (lst, 'GET', '/portfolio/accounts');
+    }
+
+    async fetchBalance1 () {
+        const lst = this.options['sessionLstToken'];
+        const response = await this.ibRequest (lst, 'GET', '/portfolio/accounts');
+        return response;
     }
 
     /**
