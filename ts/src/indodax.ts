@@ -64,9 +64,9 @@ export default class indodax extends Exchange {
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': true,
+                'fetchDeposits': false, // true with options.tapiVersion "2"
                 'fetchDepositsWithdrawals': true,
-                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFee': true, // false with options.tapiVersion "2"
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
@@ -97,7 +97,7 @@ export default class indodax extends Exchange {
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
-                'fetchMyTrades': true,
+                'fetchMyTrades': false, // true with options.tapiVersion "2"
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
@@ -107,7 +107,7 @@ export default class indodax extends Exchange {
                 'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false, // true with options.tapiVersion "2"
                 'fetchPosition': false,
                 'fetchPositionForSymbolWs': false,
                 'fetchPositionHistory': false,
@@ -126,7 +126,7 @@ export default class indodax extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': true,
-                'fetchTransactionFee': true,
+                'fetchTransactionFee': true, // false with options.tapiVersion "2"
                 'fetchTransactionFees': false,
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
@@ -134,7 +134,7 @@ export default class indodax extends Exchange {
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': true,
+                'fetchWithdrawals': false, // true with options.tapiVersion "2"
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -420,7 +420,27 @@ export default class indodax extends Exchange {
      * @returns {boolean} true when options.tapiVersion is "2"
      */
     isTapiV2 (): boolean {
+        this.updateTapiVersionFlags ();
         return this.safeString (this.options, 'tapiVersion', '1') === '2';
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name indodax#updateTapiVersionFlags
+     * @description set the has flags for the methods that only one TAPI version provides
+     */
+    updateTapiVersionFlags () {
+        const isV2 = this.safeString (this.options, 'tapiVersion', '1') === '2';
+        const flags: Dict = {
+            'fetchOrders': isV2,
+            'fetchMyTrades': isV2,
+            'fetchDeposits': isV2,
+            'fetchWithdrawals': isV2,
+            'fetchTransactionFee': !isV2,
+            'fetchDepositWithdrawFee': !isV2,
+        };
+        this.has = this.extend (this.has, flags);
     }
 
     /**
