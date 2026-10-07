@@ -4442,7 +4442,8 @@ export default class hyperliquid extends Exchange {
                 'type': 'vaultTransfer',
                 'vaultAddress': '0x' + vaultAddress,
                 'isDeposit': false,
-                'usd': amount,
+                // like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
+                'usd': this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000')),
             };
             sig = this.signL1Action (action, nonce);
         } else {
