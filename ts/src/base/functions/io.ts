@@ -95,12 +95,12 @@ export function readFile (path: string, encoding: BufferEncoding | null = 'utf8'
         // Sync module not initialized yet
         return undefined;
     }
-    const normalizedPath = ensureWhitelistedFile (path);
+    ensureWhitelistedFile (path);
     try {
         if (encoding === null) {
-            return fsSyncModule.readFileSync (normalizedPath);
+            return fsSyncModule.readFileSync (path);
         }
-        return fsSyncModule.readFileSync (normalizedPath, encoding);
+        return fsSyncModule.readFileSync (path, encoding);
     } catch (e) {
         return undefined;
     }
@@ -118,9 +118,9 @@ export function writeFile (path: string, data: string, encoding: BufferEncoding 
     if (!isNode || fsSyncModule === null) {
         return false;
     }
-    const normalizedPath = ensureWhitelistedFile (path);
+    ensureWhitelistedFile (path);
     try {
-        fsSyncModule.writeFileSync (normalizedPath, data, encoding);
+        fsSyncModule.writeFileSync (path, data, encoding);
         return true;
     } catch (e) {
         // Silent fail
@@ -140,9 +140,9 @@ export function existsFile (path: string): boolean {
         // Sync module not initialized yet
         return false;
     }
-    const normalizedPath = ensureWhitelistedFile (path);
+    ensureWhitelistedFile (path);
     try {
-        fsSyncModule.accessSync (normalizedPath);
+        fsSyncModule.accessSync (path);
         return true;
     } catch (e) {
         return false;
