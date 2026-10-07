@@ -230,9 +230,9 @@ export default class interactivebrokers extends Exchange {
                 },
                 // auth ways
                 'realm': 'limited_poa',
-                'sigKeyPath': 'private_signature.pem',
-                'encKeyPath': 'private_encryption.pem',
-                'dhPrimePath': 'dbParam_path.pem',
+                'signaturePemPath': undefined,
+                'encryptionPemPath': undefined,
+                'dhParamPemPath': undefined,
                 'dhGen': this.convertToBigInt ('2'),
             },
             'features': {
@@ -321,11 +321,16 @@ export default class interactivebrokers extends Exchange {
         return res.json();
     }
 
-    // usage
-    const { lst } = await getLiveSessionToken();
-    await ibRequest(lst, 'POST', '/iserver/auth/ssodh/init', { publish: true, compete: true }); // open brokerage session
-    const res = await ibRequest(lst, 'GET', '/portfolio/accounts');
-    console.log(res);
+
+    async testMyBalance () {
+        // usage
+        const baseUrl = this.urls['api']['private'];
+        await this.sleep(100);
+        const { lst } = await this.getLiveSessionToken(baseUrl, this.options['encryptionPemPath'], this.options['signaturePemPath'], this.secret, this.options['dhParamPemPath'], this.uid, this.apiKey);
+        await this.ibRequest(lst, 'POST', '/iserver/auth/ssodh/init', { publish: true, compete: true }); // open brokerage session
+        const res = await this.ibRequest(lst, 'GET', '/portfolio/accounts');
+        console.log(res);
+    }
 
 
     /**
