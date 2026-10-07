@@ -2390,6 +2390,12 @@ export class BaseExchange {
         })).finish ());
     }
   
+    async initFileSystem (): Promise<any> {
+        // node:fs / node:path are loaded asynchronously, await them before the first synchronous readFile call
+        await functions.initFileSystem ();
+        return undefined;
+    }
+
     readDhParam(path: string) {
         const pem: any = readFile (path);
         const der = Buffer.from (pem.replace (/-----[^-]+-----|\s/g, ''), 'base64');
@@ -2418,12 +2424,6 @@ export class BaseExchange {
         return result.prime;
     }
 
-    ibkrEncrypt (value: string): string {
-        // RFC 3986 percent-encoding (also escapes !'()*), as required by the OAuth 1.0a signature base string
-        const encoded = this.urlencode ({ 'v': value });
-        return encoded.slice (2); // strip the 'v=' prefix
-    }
-
     modPow (base: bigint, exponent: bigint, modulus: bigint): bigint {
         const zero = this.convertToBigInt ('0');
         const one = this.convertToBigInt ('1');
@@ -2450,31 +2450,6 @@ export class BaseExchange {
             hex = '00' + hex; // prepend the sign byte
         }
         return this.base16ToBinary (hex);
-    }
-
-    ibkrBaseString (method: string, url: string, params: Dict, prepend: string = ''): string {
-        const query = this.rawencode (this.keysort (params));
-        return prepend + method + '&' + this.ibkrEncrypt (url) + '&' + this.ibkrEncrypt (query);
-    }
-
-    ibkrAuthHeader (params: Dict): string {
-        const sorted = this.keysort (params);
-        const keys = Object.keys (sorted);
-        const parts: string[] = [];
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            parts.push (key + '="' + sorted[key] + '"');
-        }
-        return 'OAuth realm="' + this.options['realm'] + '", ' + parts.join (', ');
-    }
-
-    ibkrOauthBase (consumerKey: string, consumerAccessToken: string): Dict {
-        return {
-            'oauth_consumer_key': consumerKey,
-            'oauth_nonce': this.randomBytes (16),
-            'oauth_timestamp': this.seconds ().toString (),
-            'oauth_token': consumerAccessToken,
-        };
     }
 
     decryptPrivateKey (encryptionPrivKey: string, encryptionSecret: string) {

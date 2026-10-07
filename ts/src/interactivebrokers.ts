@@ -96,7 +96,7 @@ export default class interactivebrokers extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'signIn': false,
+                'signIn': true,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -106,7 +106,7 @@ export default class interactivebrokers extends Exchange {
             'urls': {
                 'logo': '',
                 'api': {
-                    // the client portal gateway runs locally and proxies the requests to IBKR
+                    'oauth': 'https://api.ibkr.com/v1/api',
                     'private': 'https://api.ibkr.com/v1/api',
                 },
                 'www': 'https://www.interactivebrokers.com/',
@@ -120,6 +120,11 @@ export default class interactivebrokers extends Exchange {
                 'fees': 'https://www.interactivebrokers.com/en/index.php?f=1590&p=crypto',
             },
             'api': {
+                'oauth': {
+                    'post': {
+                        'oauth/live_session_token': { 'cost': 1 } as Endpoint<Dict>, // diffie-hellman exchange for the live session token, signed with RSA-SHA256
+                    },
+                },
                 'private': {
                     'get': {
                         // informational
@@ -172,6 +177,7 @@ export default class interactivebrokers extends Exchange {
                     },
                     'post': {
                         // iserver
+                        'iserver/auth/ssodh/init': { 'cost': 1 } as Endpoint<Dict>, // opens the brokerage session
                         'iserver/auth/status': { 'cost': 1 } as Endpoint<Dict>,
                         'iserver/reauthenticate': { 'cost': 1 } as Endpoint<Dict>,
                         'iserver/account': { 'cost': 1 } as Endpoint<Dict>, // switch account
@@ -222,9 +228,10 @@ export default class interactivebrokers extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
-                // authentication is handled by the locally running client portal gateway
-                'apiKey': false,
-                'secret': false,
+                // oauth 1.0a credentials
+                'apiKey': true, // access token
+                'secret': true, // encrypted access token secret
+                'uid': true, // consumer key
             },
             'options': {
                 'accountId': undefined, // default account used by private methods, filled by fetchAccounts
@@ -232,13 +239,20 @@ export default class interactivebrokers extends Exchange {
                 'fetchPortfolioAccounts': {
                     'method': 'privateGetPortfolioAccounts', // or 'privateGetPortfolioSubaccounts'
                 },
-                // auth ways
+                // oauth 1.0a
                 'realm': 'limited_poa',
-                'signaturePemPath': undefined,
-                'encryptionPemPath': undefined,
-                'dhParamPemPath': undefined,
-                'dhGen': this.convertToBigInt ('2'),
-                'sessionLstToken': undefined,
+                'signaturePemPath': undefined, // private signature key, signs the live session token request
+                'encryptionPemPath': undefined, // private encryption key, decrypts the access token secret
+                'dhParamPemPath': undefined, // diffie-hellman parameters
+                'dhGen': this.convertToBigInt ('2'), // diffie-hellman generator
+                'liveSessionToken': undefined, // filled by signIn ()
+                'liveSessionTokenExpiration': undefined, // filled by signIn ()
+                'accessTokenSecretHex': undefined, // decrypted access token secret, filled by signIn ()
+                'liveSessionTokenRefreshMargin': 60000, // re-sign in when the token expires within this many ms
+                'signInInitRequest': {
+                    'publish': true,
+                    'compete': true,
+                },
             },
             'features': {
                 'default': {
@@ -283,6 +297,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {boolean} true if the brokerage session is authenticated
      */
     async isConnected (params: Dict = {}): Promise<boolean> {
+        await this.authenticate ();
         const response = await this.privatePostTickle (params);
         //
         //     {
@@ -312,32 +327,30 @@ export default class interactivebrokers extends Exchange {
         return authenticated && connected;
     }
 
-    async getLiveSessionToken (): Promise<Dict> {
-        const consumerAccessToken = this.apiKey;
-        const consumerAccessSecret = this.secret;
-        const consumerKey = this.uid;
-        const dhGen = this.options['dhGen'];
-        const encKey = this.readFile (this.options['encryptionPemPath']) as string;
-        const signKey = this.readFile (this.options['signaturePemPath']) as string;
+    /**
+     * @method
+     * @name interactivebrokers#signIn
+     * @description obtains a live session token via the oauth 1.0a diffie-hellman exchange and opens the brokerage session, must be called prior to using other authenticated methods (called automatically by authenticate)
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#oauth-lst
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#ssodh-init
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    override async signIn (params: Dict = {}): Promise<Dict> {
+        this.checkRequiredCredentials ();
+        await this.initFileSystem ();
+        const encryptionKey = this.readFile (this.options['encryptionPemPath']) as string;
         const dhPrime = this.convertToBigInt ('0x' + this.readDhParam (this.options['dhParamPemPath']));
-        // the access token secret is encrypted with the consumer's public encryption key;
-        const decrypted = this.decryptPrivateKey (encKey, consumerAccessSecret);
-        const prepend = this.binaryToBase16 (decrypted);
+        // the access token secret is encrypted with the consumer's public encryption key
+        const decrypted = this.decryptPrivateKey (encryptionKey, this.secret);
+        const accessTokenSecretHex = this.binaryToBase16 (decrypted);
+        this.options['accessTokenSecretHex'] = accessTokenSecretHex; // prepended to the signature base string in sign ()
         const dhRandom = this.convertToBigInt ('0x' + this.randomBytes (32));
-        const dhChallenge = this.modPow (dhGen, dhRandom, dhPrime);
-        const urlBase = this.urls['api']['private'];
-        const url = urlBase + '/oauth/live_session_token';
-        const oauthParams = this.extend (this.ibkrOauthBase (consumerKey, consumerAccessToken), {
-            'oauth_signature_method': 'RSA-SHA256',
+        const dhChallenge = this.modPow (this.options['dhGen'], dhRandom, dhPrime);
+        const request: Dict = {
             'diffie_hellman_challenge': this.intToBase16 (dhChallenge),
-        });
-        const signature = rsa (this.ibkrBaseString ('POST', url, oauthParams, prepend), signKey, sha256);
-        oauthParams['oauth_signature'] = this.ibkrEncrypt (signature);
-        const headers: Dict = {
-            'Authorization': this.ibkrAuthHeader (oauthParams),
-            'User-Agent': 'ccxt',
         };
-        const response = await this.fetch (url, 'POST', headers);
+        const response = await this.oauthPostOauthLiveSessionToken (this.extend (request, params));
         //
         //     {
         //         "diffie_hellman_response": "1d9c...",
@@ -347,97 +360,70 @@ export default class interactivebrokers extends Exchange {
         //
         const dhResponse = this.safeString (response, 'diffie_hellman_response');
         const sharedSecret = this.modPow (this.convertToBigInt ('0x' + dhResponse), dhRandom, dhPrime);
-        const lst = this.hmac (this.base16ToBinary (prepend), this.bigToBytes (sharedSecret), sha1, 'base64');
-        const check = this.hmac (this.encode (consumerKey), this.base64ToBinary (lst), sha1, 'hex');
+        const liveSessionToken = this.hmac (this.base16ToBinary (accessTokenSecretHex), this.bigToBytes (sharedSecret), sha1, 'base64');
+        const check = this.hmac (this.encode (this.uid), this.base64ToBinary (liveSessionToken), sha1, 'hex');
         if (check !== this.safeString (response, 'live_session_token_signature')) {
-            throw new AuthenticationError (this.id + ' getLiveSessionToken() live session token validation failed');
+            throw new AuthenticationError (this.id + ' signIn() live session token validation failed');
         }
-        return {
-            'lst': lst,
-            'expires': this.safeInteger (response, 'live_session_token_expiration'),
-        };
-    }
-
-    async ibRequest (lst: string, method: string, path: string, params: Dict = {}): Promise<any> {
-        const baseUrl = this.urls['api']['private'] + path;
-        let url = baseUrl;
-        let body: Str = undefined;
-        const oauthParams = this.extend (this.ibkrOauthBase (this.uid, this.apiKey), {
-            'oauth_signature_method': 'HMAC-SHA256',
-        });
-        let signingParams = oauthParams;
-        const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
-        if (isGetOrDelete) {
-            if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
-                // query-string params must be included in the signature base string too
-                signingParams = this.extend (oauthParams, params);
-            }
-        } else if (Object.keys (params).length > 0) {
-            body = this.json (params);
-        }
-        const payload = this.ibkrBaseString (method, baseUrl, signingParams);
-        const secretBytes = this.base64ToBinary (lst);
-        const signature = this.hmac (this.encode (payload), secretBytes, sha256, 'base64');
-        oauthParams['oauth_signature'] = this.ibkrEncrypt (signature);
-        const headers: Dict = {
-            'Authorization': this.ibkrAuthHeader (oauthParams),
-            'Content-Type': 'application/json',
-            'User-Agent': 'ccxt',
-        };
-        return await this.fetch (url, method, headers, body);
-    }
-
-    async testMyBalance (): Promise<any> {
-        await this.sleep (100);
-        const session = await this.getLiveSessionToken ();
-        if (!('lst' in session)) {
-            throw new Error('Live session token not found in session response');
-        }
-        const lst = session['lst'];
-        this.options['sessionLstToken'] = lst;
-        const initRequest: Dict = {
-            'publish': true,
-            'compete': true,
-        };
-        await this.ibRequest (lst, 'POST', '/iserver/auth/ssodh/init', initRequest); // open brokerage session
-    }
-
-    async fetchBalance1 () {
-        const lst = this.options['sessionLstToken'];
-        const response = await this.ibRequest (lst, 'GET', '/portfolio/accounts');
+        this.options['liveSessionToken'] = liveSessionToken;
+        this.options['liveSessionTokenExpiration'] = this.safeInteger (response, 'live_session_token_expiration');
+        // open the brokerage session
+        const initRequest = this.safeDict (this.options, 'signInInitRequest', {});
+        await this.privatePostIserverAuthSsodhInit (initRequest);
         return response;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#authenticate
+     * @description signs in when there is no live session token yet or the current one is about to expire
+     * @ignore
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {string} the live session token
+     */
+    async authenticate (params: Dict = {}): Promise<Str> {
+        const liveSessionToken = this.safeString (this.options, 'liveSessionToken');
+        const expiration = this.safeInteger (this.options, 'liveSessionTokenExpiration');
+        const refreshMargin = this.safeInteger (this.options, 'liveSessionTokenRefreshMargin', 60000);
+        let expired = false;
+        if (expiration !== undefined) {
+            expired = (this.milliseconds () + refreshMargin) >= expiration;
+        }
+        if ((liveSessionToken === undefined) || expired) {
+            await this.signIn (params);
+        }
+        return this.safeString (this.options, 'liveSessionToken');
     }
 
     /**
      * @method
      * @name interactivebrokers#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#accounts
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#portfolio-accounts
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-all-accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
      * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
-        const serviceAccounts = await this.fetchServiceAccounts ();
-        const portfolioAccounts = await this.fetchPortfolioAccounts (params);
-        const accounts = this.parseAccounts (portfolioAccounts);
-        const accountIds: string[] = [];
-        for (let i = 0; i < accounts.length; i++) {
-            const accountId = this.safeString (accounts[i], 'id');
-            if (accountId !== undefined) {
-                accountIds.push (accountId);
+        const serviceAccountsPromise = this.fetchServiceAccounts (params);
+        const portfolioAccountsPromise = this.fetchPortfolioAccounts (params);
+        const [ serviceAccounts, portfolioAccounts ] = await Promise.all ([ serviceAccountsPromise, portfolioAccountsPromise ]);
+        const accountIds = Object.keys (this.indexBy (portfolioAccounts, 'accountId'));
+        const length = accountIds.length;
+        if (length === 0) {
+            throw new ExchangeError ('No tradingaccount IDs found for the user');
+        }
+        if (this.safeString (this.options, 'accountId') === undefined) {
+            if (length === 1) {
+                this.options['accountId'] = accountIds[0];
+            } else {
+                throw new ExchangeError ('Multiple account IDs found, please set .options["accountId"] to desired one from: ' + accountIds.join(', '));
             }
         }
-        this.options['accounts'] = accountIds;
-        if (this.safeString (this.options, 'accountId') === undefined) {
-            let selectedAccount = this.safeString (serviceAccounts, 'selectedAccount');
-            if (selectedAccount === undefined) {
-                selectedAccount = this.safeString (accountIds, 0);
-            }
-            this.options['accountId'] = selectedAccount;
+        const accounts: Account[] = [];
+        for (let i = 0; i < portfolioAccounts.length; i++) {
+            accounts.push (this.parseAccount (portfolioAccounts[i]));
         }
         return accounts;
     }
@@ -464,6 +450,7 @@ export default class interactivebrokers extends Exchange {
             'type': this.safeStringLower (account, 'type'),
             'code': this.safeCurrencyCode (currencyId),
             'info': account,
+            'name': this.safeString (account, 'accountTitle'),
         };
     }
 
@@ -477,27 +464,80 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} the raw response from the exchange
      */
     async fetchServiceAccounts (params: Dict = {}): Promise<Dict> {
+        await this.authenticate ();
         const response = await this.privateGetIserverAccounts (params);
         //
-        //     {
-        //         "accounts": [ "U3449298" ],
-        //         "acctProps": {
-        //             "U3449298": {
-        //                 "hasChildAccounts": false,
-        //                 "supportsCashQty": true,
-        //                 "supportsFractions": false
-        //             }
-        //         },
-        //         "aliases": { "U3449298": "U3449298" },
-        //         "chartPeriods": { "STK": [ "*" ], "OPT": [ "2h", "1d", "2d", "1w", "1m" ], ... },
-        //         "selectedAccount": "U3449298",
-        //         "allowFeatures": { ... },
-        //         "serverInfo": {
-        //             "serverName": "JaeZ01197",
-        //             "serverVersion": "Build 10.14.0l, Mar 1, 2022 5:28:08 PM"
-        //         },
-        //         "sessionId": "613de523.0000000b"
-        //     }
+        //    {
+        //        "accounts": [
+        //            "U3448645"
+        //        ],
+        //        "acctProps": {
+        //            "U3448645": {
+        //                "hasChildAccounts": false,
+        //                "supportsCashQty": true,
+        //                "liteUnderPro": false,
+        //                "noFXConv": false,
+        //                "isProp": false,
+        //                "supportsFractions": true,
+        //                "allowCustomerTime": false,
+        //                "autoFx": false
+        //            }
+        //        },
+        //        "aliases": {
+        //            "U3448645": "U3448645"
+        //        },
+        //        "allowFeatures": {
+        //            "showGFIS": true,
+        //            "showEUCostReport": false,
+        //            "allowEventContract": true,
+        //            "allowFXConv": true,
+        //            "allowFinancialLens": false,
+        //            "allowMTA": true,
+        //            "allowTypeAhead": true,
+        //            "allowEventTrading": true,
+        //            "snapshotRefreshTimeout": 30,
+        //            "liteUser": false,
+        //            "showWebNews": true,
+        //            "research": true,
+        //            "debugPnl": true,
+        //            "showTaxOpt": true,
+        //            "showImpactDashboard": true,
+        //            "allowDynAccount": false,
+        //            "allowCrypto": false,
+        //            "allowFA": false,
+        //            "allowLiteUnderPro": false,
+        //            "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+        //            "restrictTradeSubscription": false,
+        //            "showUkUserLabels": true,
+        //            "sideBySide": true
+        //        },
+        //        "chartPeriods": {
+        //            "STK": [ "*" ],
+        //            "CFD": [ "*" ],
+        //            "OPT": [ "2h", "1d", "2d", "1w", "1m" ],
+        //            "FOP": [ "2h", "1d", "2d", "1w", "1m" ],
+        //            "WAR": [ "*" ],
+        //            "IOPT": [ "*" ],
+        //            "FUT": [ "*" ],
+        //            "CASH": [ "*" ],
+        //            "IND": [ "*" ],
+        //            "BOND": [ "*" ],
+        //            "FUND": [ "*" ],
+        //            "CMDTY": [ "*" ],
+        //            "PHYSS": [ "*" ],
+        //            "CRYPTO": [ "*" ]
+        //        },
+        //        "groups": [],
+        //        "profiles": [],
+        //        "selectedAccount": "U3448645",
+        //        "serverInfo": {
+        //            "serverName": "JifZ26071",
+        //            "serverVersion": "Build 10.50.1a, Sep 23, 2026 1:23:38 PM"
+        //        },
+        //        "sessionId": "6ac5c713.0000037a",
+        //        "isFT": false,
+        //        "isPaper": false
+        //    }
         //
         return response;
     }
@@ -514,41 +554,50 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} the raw response from the exchange
      */
     async fetchPortfolioAccounts (params: Dict = {}): Promise<Dict[]> {
+        await this.authenticate ();
         const [ method, query ] = this.handleOptionAndParams (params, 'fetchPortfolioAccounts', 'method', 'privateGetPortfolioAccounts');
         let response = undefined;
         if (method === 'privateGetPortfolioSubaccounts') {
             response = await this.privateGetPortfolioSubaccounts (query);
         } else {
             response = await this.privateGetPortfolioAccounts (query);
+            //
+            //    [
+            //        {
+            //            "id": "U3448645",
+            //            "PrepaidCrypto-Z": false,
+            //            "PrepaidCrypto-P": true,
+            //            "brokerageAccess": true,
+            //            "accountId": "U3448645",
+            //            "accountVan": "U3448645",
+            //            "accountTitle": "Toma Todua",
+            //            "displayName": "Toma Todua",
+            //            "accountAlias": null,
+            //            "accountStatus": 1646607600000,
+            //            "currency": "USD",
+            //            "type": "INDIVIDUAL",
+            //            "tradingType": "STKNOPT",
+            //            "businessType": "INDEPENDENT",
+            //            "category": "",
+            //            "ibEntity": "IBLLC-US",
+            //            "faclient": false,
+            //            "clearingStatus": "O",
+            //            "covestor": false,
+            //            "noClientTrading": false,
+            //            "trackVirtualFXPortfolio": true,
+            //            "acctCustType": "INDIVIDUAL",
+            //            "parent": {
+            //                "mmc": [],
+            //                "accountId": "",
+            //                "isMParent": false,
+            //                "isMChild": false,
+            //                "isMultiplex": false
+            //            },
+            //            "desc": "U3448645"
+            //        }
+            //    ]
+            //
         }
-        //
-        //     [
-        //         {
-        //             "id": "U3449298",
-        //             "accountId": "U3449298",
-        //             "accountVan": "U3449298",
-        //             "accountTitle": "John Doe",
-        //             "displayName": "John Doe",
-        //             "accountAlias": null,
-        //             "accountStatus": "1646607600000",
-        //             "currency": "USD",
-        //             "type": "INDIVIDUAL",
-        //             "tradingType": "STKNOPT",
-        //             "ibEntity": "IBLLC-US",
-        //             "faclient": false,
-        //             "clearingStatus": "O",
-        //             "covestor": false,
-        //             "parent": {
-        //                 "mmc": [],
-        //                 "accountId": "",
-        //                 "isMParent": false,
-        //                 "isMChild": false,
-        //                 "isMultiplex": false
-        //             },
-        //             "desc": "U3449298"
-        //         }
-        //     ]
-        //
         return response;
     }
 
@@ -569,6 +618,7 @@ export default class interactivebrokers extends Exchange {
         const request: Dict = {
             'acctId': accountId,
         };
+        await this.authenticate ();
         const response = await this.privatePostIserverAccount (this.extend (request, params));
         //
         //     {
@@ -614,6 +664,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        await this.authenticate ();
         const [ accountId, query ] = await this.loadAccountId (params);
         const request: Dict = {
             'accountId': accountId,
@@ -669,19 +720,85 @@ export default class interactivebrokers extends Exchange {
         return this.safeBalance (result);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api] + this.version + '/api/' + this.implodeParams (path, params);
+    ibkrEncrypt (value: string): string {
+        // RFC 3986 percent-encoding (also escapes !'()*), as required by the oauth 1.0a signature base string
+        const encoded = this.urlencode ({ 'v': value });
+        return encoded.slice (2); // strip the 'v=' prefix
+    }
+
+    ibkrBaseString (method: string, url: string, params: Dict, prepend: string = ''): string {
+        const query = this.rawencode (this.keysort (params));
+        return prepend + method + '&' + this.ibkrEncrypt (url) + '&' + this.ibkrEncrypt (query);
+    }
+
+    ibkrAuthHeader (params: Dict): string {
+        const sorted = this.keysort (params);
+        const keys = Object.keys (sorted);
+        const parts: string[] = [];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            parts.push (key + '="' + sorted[key] + '"');
+        }
+        return 'OAuth realm="' + this.options['realm'] + '", ' + parts.join (', ');
+    }
+
+    ibkrOauthBase (consumerKey: string, consumerAccessToken: string): Dict {
+        return {
+            'oauth_consumer_key': consumerKey,
+            'oauth_nonce': this.randomBytes (16),
+            'oauth_timestamp': this.seconds ().toString (),
+            'oauth_token': consumerAccessToken,
+        };
+    }
+
+    override sign (path: string, api = 'private', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const baseUrl = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        let url = baseUrl;
         const query = this.omit (params, this.extractParams (path));
+        const hasQuery = Object.keys (query).length > 0;
+        const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
         let requestBody: Str = body;
         let requestHeaders: NullableDict = headers;
-        if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys (query).length > 0) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
-            requestBody = this.json (query);
+        this.checkRequiredCredentials ();
+        const oauthParams = this.ibkrOauthBase (this.uid, this.apiKey);
+        if (api === 'oauth') {
+            // the live session token request is signed with RSA-SHA256,
+            // its parameters (diffie_hellman_challenge) are sent as oauth parameters in the Authorization header
+            const accessTokenSecretHex = this.safeString (this.options, 'accessTokenSecretHex', '');
+            const signatureKey = this.readFile (this.options['signaturePemPath']) as string;
+            oauthParams['oauth_signature_method'] = 'RSA-SHA256';
+            const authParams = this.extend (oauthParams, query);
+            const auth = this.ibkrBaseString (method, baseUrl, authParams, accessTokenSecretHex);
+            const signature = rsa (auth, signatureKey, sha256);
+            authParams['oauth_signature'] = this.ibkrEncrypt (signature);
             requestHeaders = {
+                'Authorization': this.ibkrAuthHeader (authParams),
+                'User-Agent': 'ccxt',
+            };
+        } else {
+            // private requests are signed with HMAC-SHA256 using the live session token obtained by signIn ()
+            const liveSessionToken = this.safeString (this.options, 'liveSessionToken');
+            if (liveSessionToken === undefined) {
+                throw new AuthenticationError (this.id + ' requires a live session token, call signIn() first');
+            }
+            oauthParams['oauth_signature_method'] = 'HMAC-SHA256';
+            let signingParams = oauthParams;
+            if (isGetOrDelete) {
+                if (hasQuery) {
+                    url += '?' + this.urlencode (query);
+                    // the query-string params are part of the signature base string too
+                    signingParams = this.extend (oauthParams, query);
+                }
+            } else if (hasQuery) {
+                requestBody = this.json (query);
+            }
+            const auth = this.ibkrBaseString (method, baseUrl, signingParams);
+            const signature = this.hmac (this.encode (auth), this.base64ToBinary (liveSessionToken), sha256, 'base64');
+            oauthParams['oauth_signature'] = this.ibkrEncrypt (signature);
+            requestHeaders = {
+                'Authorization': this.ibkrAuthHeader (oauthParams),
                 'Content-Type': 'application/json',
+                'User-Agent': 'ccxt',
             };
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };

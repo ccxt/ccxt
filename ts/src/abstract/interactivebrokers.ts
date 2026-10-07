@@ -5,10 +5,11 @@
 
 // -------------------------------------------------------------------------------
 
-import { List, Dict } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
+    oauthPostOauthLiveSessionToken (params?: {}): Promise<Dict>;
     privateGetTrsrvSecdefSchedule (params?: {}): Promise<List>;
     privateGetTrsrvFutures (params?: {}): Promise<Dict>;
     privateGetTrsrvStocks (params?: {}): Promise<Dict>;
@@ -48,6 +49,7 @@ interface Exchange {
     privateGetIbcustEntityInfo (params?: {}): Promise<Dict>;
     privateGetPortalSsoValidate (params?: {}): Promise<Dict>;
     privateGetSsoDispatcher (params?: {}): Promise<Dict>;
+    privatePostIserverAuthSsodhInit (params?: {}): Promise<Dict>;
     privatePostIserverAuthStatus (params?: {}): Promise<Dict>;
     privatePostIserverReauthenticate (params?: {}): Promise<Dict>;
     privatePostIserverAccount (params?: {}): Promise<Dict>;
