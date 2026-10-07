@@ -389,9 +389,34 @@ export default class interactivebrokers extends Exchange {
         if (expiration !== undefined) {
             expired = (this.milliseconds () + refreshMargin) >= expiration;
         }
-        if ((liveSessionToken === undefined) || expired) {
-            await this.signIn (params);
+        if ((liveSessionToken !== undefined) && !expired) {
+            return liveSessionToken;
         }
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
+        // concurrent private calls on a cold (or expiring) instance would each pass the staleness
+        // gate above and each run their own signIn (), so the first caller leads the flight and
+        // the rest wait for it. the flight is registered on a never-dialed client: client.futures
+        // is the registry, client.resolve () / client.reject () settle and remove the entry
+        const messageHash = 'authenticate';
+        const client = this.client ('authenticationFlights');
+        if (messageHash in client.futures) {
+            // a flight is already in progress - wake when the leader settles it
+            await client.future (messageHash);
+            return this.safeString (this.options, 'liveSessionToken');
+        }
+        // reusableFuture (), not future (), so the trailing await below is safe in every port
+        const future = client.reusableFuture (messageHash);
+        try {
+            await this.signIn (params);
+            const token = this.safeString (this.options, 'liveSessionToken');
+            // settle the flight and wake every waiter, resolve () also clears the registry entry
+            client.resolve (token, messageHash);
+        } catch (e) {
+            // reject the flight - waiters throw and the next caller re-leads instead of deadlocking
+            client.reject (e, messageHash);
+        }
+        // rethrows the leader's own failure and attaches the handler a lone leader needs
+        await future;
         return this.safeString (this.options, 'liveSessionToken');
     }
 
