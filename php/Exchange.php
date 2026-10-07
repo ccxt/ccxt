@@ -1433,10 +1433,6 @@ class BaseExchange {
 
 
     public function ensure_whitelisted_file(string $filePath) {
-        $tempDir = $this->get_temp_dir();
-        if (!str_ends_with($tempDir, DIRECTORY_SEPARATOR)) {
-            $tempDir .= DIRECTORY_SEPARATOR;
-        }
         // resolve parent dir (which exists) + filename
         $dir = realpath(dirname($filePath));
         if ($dir === false) {
@@ -1445,9 +1441,6 @@ class BaseExchange {
         $sanitized = $dir . DIRECTORY_SEPARATOR . basename($filePath);
         if (!str_ends_with($sanitized, '.ccxtfile')) {
             throw new \RuntimeException('File extension not permitted: ' . $filePath);
-        }
-        if (!str_starts_with($sanitized, $tempDir)) {
-            throw new \RuntimeException('File is not within the temporary directory: ' . $filePath);
         }
     }
 

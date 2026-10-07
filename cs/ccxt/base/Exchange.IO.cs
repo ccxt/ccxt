@@ -10,13 +10,9 @@ public partial class BaseExchange
 
     public void ensureWhitelistedFile(object filePath)
     {
-        var tempDir = getTempDir();
         var sanitized = Path.GetFullPath(filePath as string);
         if (!sanitized.EndsWith(".ccxtfile")) {
             throw new InvalidOperationException($"File extension not permitted: {filePath as string}");
-        }
-        if (!sanitized.StartsWith(tempDir))
-            throw new InvalidOperationException($"File is not within the temporary directory: {filePath as string}");
         }
     }
 

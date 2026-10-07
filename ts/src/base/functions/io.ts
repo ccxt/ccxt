@@ -78,10 +78,6 @@ function ensureWhitelistedFile(filePath: string) {
     if (!allowedExtensions.some (ext => resolvedInputFilePath.endsWith (ext))) {
         throw new Error ('File extension not permitted: ' + filePath + ', allowed extensions are: ' + allowedExtensions.join (', '));
     }
-    const normalizedPath = resolvedInputFilePath.replaceAll (new RegExp('\\' + pathSyncModule.sep, 'g'), '/');
-    if (!normalizedPath.startsWith(getTempDir())) {
-        throw new Error ('File is not within the temporary directory: ' + filePath);
-    }
 }
 
 /*  ------------------------------------------------------------------------ */
