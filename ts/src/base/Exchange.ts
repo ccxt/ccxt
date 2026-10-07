@@ -50,7 +50,6 @@ import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, B
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
-import { rsa } from './functions/rsa.js';
 import { abiEncode, TypedDataEncoder } from './functions/ethabi.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from './functions/starknet.js';
@@ -2419,7 +2418,7 @@ export class BaseExchange {
         return result.prime;
     }
 
-    encIbkr (value: string): string {
+    ibkrEncrypt (value: string): string {
         // RFC 3986 percent-encoding (also escapes !'()*), as required by the OAuth 1.0a signature base string
         const encoded = this.urlencode ({ 'v': value });
         return encoded.slice (2); // strip the 'v=' prefix
@@ -2453,12 +2452,12 @@ export class BaseExchange {
         return this.base16ToBinary (hex);
     }
 
-    baseString (method: string, url: string, params: Dict, prepend: string = ''): string {
+    ibkrBaseString (method: string, url: string, params: Dict, prepend: string = ''): string {
         const query = this.rawencode (this.keysort (params));
-        return prepend + method + '&' + this.encIbkr (url) + '&' + this.encIbkr (query);
+        return prepend + method + '&' + this.ibkrEncrypt (url) + '&' + this.ibkrEncrypt (query);
     }
 
-    authHeader (params: Dict): string {
+    ibkrAuthHeader (params: Dict): string {
         const sorted = this.keysort (params);
         const keys = Object.keys (sorted);
         const parts: string[] = [];
@@ -2469,7 +2468,7 @@ export class BaseExchange {
         return 'OAuth realm="' + this.options['realm'] + '", ' + parts.join (', ');
     }
 
-    oauthBase (consumerKey: string, consumerAccessToken: string): Dict {
+    ibkrOauthBase (consumerKey: string, consumerAccessToken: string): Dict {
         return {
             'oauth_consumer_key': consumerKey,
             'oauth_nonce': this.randomBytes (16),
@@ -2478,47 +2477,10 @@ export class BaseExchange {
         };
     }
 
-    async getLiveSessionToken (urlBase: string, encKeyPath: string, signKeyPath: string, accessTokenSecret: string, dhParamPath: string, consumerKey: string, consumerAccessToken: string, dhGen: bigint): Promise<Dict> {
-        const encKey = readFile (encKeyPath) as string;
-        const signKey = readFile (signKeyPath) as string;
-        const dhPrime = this.convertToBigInt ('0x' + this.readDhParam (dhParamPath));
-        // the access token secret is encrypted with the consumer's public encryption key;
-        // ccxt has no rsa-decrypt helper, so node:crypto is used directly here
-        const decrypted = crypto.privateDecrypt ({ 'key': encKey, 'padding': crypto.constants.RSA_PKCS1_PADDING }, this.base64ToBinary (accessTokenSecret));
-        const prepend = this.binaryToBase16 (decrypted);
-        const dhRandom = this.convertToBigInt ('0x' + this.randomBytes (32));
-        const dhChallenge = this.modPow (dhGen, dhRandom, dhPrime);
-        const url = urlBase + '/oauth/live_session_token';
-        const oauthParams = this.extend (this.oauthBase (consumerKey, consumerAccessToken), {
-            'oauth_signature_method': 'RSA-SHA256',
-            'diffie_hellman_challenge': this.intToBase16 (dhChallenge),
-        });
-        const signature = rsa (this.baseString ('POST', url, oauthParams, prepend), signKey, sha256);
-        oauthParams['oauth_signature'] = this.encIbkr (signature);
-        const headers: Dict = {
-            'Authorization': this.authHeader (oauthParams),
-            'User-Agent': 'ccxt',
-        };
-        const response = await this.fetch (url, 'POST', headers);
-        //
-        //     {
-        //         "diffie_hellman_response": "1d9c...",
-        //         "live_session_token_signature": "9a7e...",
-        //         "live_session_token_expiration": 1714661586311
-        //     }
-        //
-        const dhResponse = this.safeString (response, 'diffie_hellman_response');
-        const sharedSecret = this.modPow (this.convertToBigInt ('0x' + dhResponse), dhRandom, dhPrime);
-        const lst = this.hmac (this.base16ToBinary (prepend), this.bigToBytes (sharedSecret), sha1, 'base64');
-        const check = this.hmac (this.encode (consumerKey), this.base64ToBinary (lst), sha1, 'hex');
-        if (check !== this.safeString (response, 'live_session_token_signature')) {
-            throw new AuthenticationError (this.id + ' getLiveSessionToken() live session token validation failed');
-        }
-        return {
-            'lst': lst,
-            'expires': this.safeInteger (response, 'live_session_token_expiration'),
-        };
+    decryptPrivateKey (encryptionPrivKey: string, encryptionSecret: string) {
+        return crypto.privateDecrypt ({ 'key': encryptionPrivKey, 'padding': crypto.constants.RSA_PKCS1_PADDING }, this.base64ToBinary (encryptionSecret));
     }
+
 
     intToBase16 (elem: any): string {
         return elem.toString (16);

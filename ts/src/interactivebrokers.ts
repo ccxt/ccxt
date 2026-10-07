@@ -5,6 +5,9 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Account, Balances, Dict, Endpoint, List, NullableDict, Str, int } from './base/types.js';
 import crypto from 'node:crypto';
+import { rsa } from './base/functions/rsa.js';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { sha1 } from '@noble/hashes/legacy.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -308,15 +311,56 @@ export default class interactivebrokers extends Exchange {
         return authenticated && connected;
     }
 
+    async getLiveSessionToken (urlBase: string, encKeyPath: string, signKeyPath: string, accessTokenSecret: string, dhParamPath: string, consumerKey: string, consumerAccessToken: string, dhGen: bigint): Promise<Dict> {
+        const encKey = this.readFile (encKeyPath) as string;
+        const signKey = this.readFile (signKeyPath) as string;
+        const dhPrime = this.convertToBigInt ('0x' + this.readDhParam (dhParamPath));
+        // the access token secret is encrypted with the consumer's public encryption key;
+        const decrypted = this.decryptPrivateKey (encKey, accessTokenSecret);
+        const prepend = this.binaryToBase16 (decrypted);
+        const dhRandom = this.convertToBigInt ('0x' + this.randomBytes (32));
+        const dhChallenge = this.modPow (dhGen, dhRandom, dhPrime);
+        const url = urlBase + '/oauth/live_session_token';
+        const oauthParams = this.extend (this.ibkrOauthBase (consumerKey, consumerAccessToken), {
+            'oauth_signature_method': 'RSA-SHA256',
+            'diffie_hellman_challenge': this.intToBase16 (dhChallenge),
+        });
+        const signature = rsa (this.ibkrBaseString ('POST', url, oauthParams, prepend), signKey, sha256);
+        oauthParams['oauth_signature'] = this.ibkrEncrypt (signature);
+        const headers: Dict = {
+            'Authorization': this.ibkrAuthHeader (oauthParams),
+            'User-Agent': 'ccxt',
+        };
+        const response = await this.fetch (url, 'POST', headers);
+        //
+        //     {
+        //         "diffie_hellman_response": "1d9c...",
+        //         "live_session_token_signature": "9a7e...",
+        //         "live_session_token_expiration": 1714661586311
+        //     }
+        //
+        const dhResponse = this.safeString (response, 'diffie_hellman_response');
+        const sharedSecret = this.modPow (this.convertToBigInt ('0x' + dhResponse), dhRandom, dhPrime);
+        const lst = this.hmac (this.base16ToBinary (prepend), this.bigToBytes (sharedSecret), sha1, 'base64');
+        const check = this.hmac (this.encode (consumerKey), this.base64ToBinary (lst), sha1, 'hex');
+        if (check !== this.safeString (response, 'live_session_token_signature')) {
+            throw new AuthenticationError (this.id + ' getLiveSessionToken() live session token validation failed');
+        }
+        return {
+            'lst': lst,
+            'expires': this.safeInteger (response, 'live_session_token_expiration'),
+        };
+    }
+
     async ibRequest(lst: string, method: string, path: string, body?: unknown) {
         const url = `${this.urls['api']['private']}${path}`;
-        const params: Record<string, string> = { ...this.oauthBase(this.uid, this.apiKey), oauth_signature_method: 'HMAC-SHA256' };
+        const params: Record<string, string> = { ...this.ibkrOauthBase(this.uid, this.apiKey), oauth_signature_method: 'HMAC-SHA256' };
         // note: query-string params must be included in the base string too
-        const sig = crypto.createHmac('sha256', Buffer.from(lst, 'base64')).update(this.baseString(method, url.split('?')[0], params)).digest('base64');
-        params['oauth_signature'] = this.encIbkr(sig);
+        const sig = crypto.createHmac('sha256', Buffer.from(lst, 'base64')).update(this.ibkrBaseString(method, url.split('?')[0], params)).digest('base64');
+        params['oauth_signature'] = this.ibkrEncrypt(sig);
         const res = await fetch(url, {
             method,
-            headers: { Authorization: this.authHeader(params), 'Content-Type': 'application/json', 'User-Agent': 'ccxt' },
+            headers: { Authorization: this.ibkrAuthHeader(params), 'Content-Type': 'application/json', 'User-Agent': 'ccxt' },
             body: body ? JSON.stringify(body) : undefined,
         });
         return res.json();
