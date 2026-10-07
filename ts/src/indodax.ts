@@ -286,7 +286,6 @@ export default class indodax extends Exchange {
             // exchange-specific options
             'options': {
                 'tapiVersion': '1', // '2' opts private calls into TAPI v2; a v1 key cannot call v2
-                'deadmanUrl': undefined, // optional replacement for urls.api.private, no trailing path; unset keeps the production tapi host
                 'recvWindow': 5 * 1000, // default 5 sec
                 'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
@@ -587,8 +586,13 @@ export default class indodax extends Exchange {
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetApiPairs (params);
-        const incrementsResponse = await this.publicGetApiPriceIncrements (params);
-        const increments = this.safeDict (incrementsResponse, 'increments', {});
+        let increments: Dict = {};
+        try {
+            const incrementsResponse = await this.publicGetApiPriceIncrements ({});
+            increments = this.safeDict (incrementsResponse, 'increments', {});
+        } catch (e) {
+            increments = {};
+        }
         //
         //     [
         //         {
@@ -739,8 +743,13 @@ export default class indodax extends Exchange {
      */
     override async fetchTradingLimits (symbols: Strings = undefined, params: Dict = {}): Promise<Dict> {
         const response = await this.publicGetApiPairs (params);
-        const incrementsResponse = await this.publicGetApiPriceIncrements (params);
-        const increments = this.safeDict (incrementsResponse, 'increments', {});
+        let increments: Dict = {};
+        try {
+            const incrementsResponse = await this.publicGetApiPriceIncrements ({});
+            increments = this.safeDict (incrementsResponse, 'increments', {});
+        } catch (e) {
+            increments = {};
+        }
         const rawMarkets = this.toArray (response);
         const result: Dict = {};
         for (let i = 0; i < rawMarkets.length; i++) {
@@ -1599,7 +1608,7 @@ export default class indodax extends Exchange {
     /**
      * @method
      * @name indodax#cancelAllOrdersAfter
-     * @description dead man's switch, cancel all orders after a countdown in milliseconds, and 0 stops the timer. options.deadmanUrl replaces the tapi base and has no trailing path
+     * @description dead man's switch, cancel all orders after a countdown in milliseconds, and 0 stops the timer
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Deadman-switch.md
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2227,7 +2236,7 @@ export default class indodax extends Exchange {
         if ((amount !== undefined) && (filled !== undefined)) {
             remaining = Precise.stringSub (amount, filled);
         }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'fullOrderId', 'orderId'),
             'clientOrderId': this.safeString2 (order, 'clientOrderId', 'origClientOrderId'),
@@ -2255,7 +2264,7 @@ export default class indodax extends Exchange {
             'stopPrice': undefined,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
-        } as Order;
+        }, marketResolved);
     }
 
     /**
@@ -2970,10 +2979,6 @@ export default class indodax extends Exchange {
             }
         } else if (api === 'deadman') {
             this.checkRequiredCredentials ();
-            const deadmanUrl = this.safeString (this.options, 'deadmanUrl');
-            if ((deadmanUrl !== undefined) && (deadmanUrl !== '')) {
-                url = deadmanUrl;
-            }
             url = url + '/' + this.implodeParams (path, params);
             const query = this.urlencode (this.extend ({
                 'timestamp': this.requestTimestamp (),
@@ -3020,12 +3025,10 @@ export default class indodax extends Exchange {
         try {
             response = await this.fetch2 (path, api, method, params, headers, body, config);
         } catch (e) {
-            const adjusted = this.safeBool (this.options, 'timestampAdjusted', false);
-            if ((api === 'public') || adjusted || !(e instanceof InvalidNonce)) {
+            if ((api === 'public') || !(e instanceof InvalidNonce)) {
                 throw e;
             }
             await this.loadTimeDifference ();
-            this.options['timestampAdjusted'] = true;
             response = await this.fetch2 (path, api, method, params, headers, body, config);
         }
         return response;

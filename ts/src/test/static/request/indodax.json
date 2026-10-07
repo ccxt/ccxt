@@ -368,21 +368,6 @@
                     "Key": "key",
                     "Content-Type": "text/plain"
                 }
-            },
-            {
-                "description": "options.deadmanUrl replaces the tapi base",
-                "method": "cancelAllOrdersAfter",
-                "url": "https://example.com/tapi/countdownCancelAll",
-                "input": [
-                    10000,
-                    {
-                        "symbol": "BTC/IDR"
-                    }
-                ],
-                "output": "timestamp=1700000000000&recvWindow=5000&pair=btc_idr&countdownTime=10000",
-                "options": {
-                    "deadmanUrl": "https://example.com/tapi"
-                }
             }
         ]
     }
