@@ -2014,7 +2014,16 @@ export default class htx extends Exchange {
         const open = this.safeString (ticker, 'open');
         const close = this.safeString (ticker, 'close');
         const baseVolume = this.safeString (ticker, 'amount');
-        const quoteVolume = this.safeString (ticker, 'vol');
+        let quoteVolume = this.safeString (ticker, 'vol');
+        const marketResolved = this.safeDict (this.markets, symbol, market);
+        if (this.safeBool (marketResolved, 'contract') === true) {
+            // contract tickers count 'vol' in contracts
+            if (this.safeBool (marketResolved, 'linear') === true) {
+                quoteVolume = this.safeString (ticker, 'trade_turnover');
+            } else {
+                quoteVolume = Precise.stringMul (quoteVolume, this.safeString (marketResolved, 'contractSize'));
+            }
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
