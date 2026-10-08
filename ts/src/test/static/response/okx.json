@@ -7794,6 +7794,289 @@
                     }
                 ]
             }
+,
+            {
+                "description": "algo pending oco trailing iceberg and twap orders are not zero filled",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9020",
+                            "ordType": "oco",
+                            "state": "live",
+                            "ordPx": "",
+                            "triggerPx": "",
+                            "slTriggerPx": "80",
+                            "tpTriggerPx": "120",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": []
+                        },
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9021",
+                            "ordType": "move_order_stop",
+                            "state": "live",
+                            "ordPx": "-1",
+                            "triggerPx": "",
+                            "moveTriggerPx": "91",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": []
+                        },
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9022",
+                            "ordType": "iceberg",
+                            "state": "live",
+                            "ordPx": "89",
+                            "triggerPx": "",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": []
+                        },
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9023",
+                            "ordType": "twap",
+                            "state": "live",
+                            "ordPx": "89",
+                            "triggerPx": "",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": []
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9020",
+                            "ordType": "oco",
+                            "state": "live",
+                            "ordPx": "",
+                            "triggerPx": "",
+                            "slTriggerPx": "80",
+                            "tpTriggerPx": "120",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": []
+                        },
+                        "id": "9020",
+                        "clientOrderId": null,
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1700000001000,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "oco",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": null,
+                        "stopLossPrice": 80,
+                        "takeProfitPrice": 120,
+                        "triggerPrice": null,
+                        "average": null,
+                        "cost": null,
+                        "amount": 100,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "reduceOnly": true,
+                        "fees": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9021",
+                            "ordType": "move_order_stop",
+                            "state": "live",
+                            "ordPx": "-1",
+                            "triggerPx": "",
+                            "moveTriggerPx": "91",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": []
+                        },
+                        "id": "9021",
+                        "clientOrderId": null,
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1700000001000,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "move_order_stop",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "triggerPrice": 91,
+                        "average": null,
+                        "cost": null,
+                        "amount": 100,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "reduceOnly": true,
+                        "fees": [],
+                        "stopPrice": 91
+                    },
+                    {
+                        "info": {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9022",
+                            "ordType": "iceberg",
+                            "state": "live",
+                            "ordPx": "89",
+                            "triggerPx": "",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": []
+                        },
+                        "id": "9022",
+                        "clientOrderId": null,
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1700000001000,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "iceberg",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": 89,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "triggerPrice": null,
+                        "average": null,
+                        "cost": null,
+                        "amount": 100,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "reduceOnly": true,
+                        "fees": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9023",
+                            "ordType": "twap",
+                            "state": "live",
+                            "ordPx": "89",
+                            "triggerPx": "",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": []
+                        },
+                        "id": "9023",
+                        "clientOrderId": null,
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1700000001000,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "twap",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": 89,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "triggerPrice": null,
+                        "average": null,
+                        "cost": null,
+                        "amount": 100,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "reduceOnly": true,
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
         ],
         "fetchClosedOrders": [
             {
@@ -7949,6 +8232,95 @@
                                 "currency": "USDT"
                             }
                         ]
+                    }
+                ]
+            }
+,
+            {
+                "description": "algo history effective limit child preserves parseOrders result",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9001",
+                            "ordType": "trigger",
+                            "state": "effective",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "100",
+                            "actualPx": "89",
+                            "ordId": "42",
+                            "ordIdList": [],
+                            "accFillSz": ""
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9001",
+                            "ordType": "trigger",
+                            "state": "effective",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "100",
+                            "actualPx": "89",
+                            "ordId": "42",
+                            "ordIdList": [],
+                            "accFillSz": ""
+                        },
+                        "id": "9001",
+                        "clientOrderId": null,
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1700000001000,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "trigger",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": 89,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "triggerPrice": 90,
+                        "average": null,
+                        "cost": null,
+                        "amount": 100,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "closed",
+                        "fee": null,
+                        "trades": [],
+                        "reduceOnly": true,
+                        "fees": [],
+                        "stopPrice": 90
                     }
                 ]
             }
@@ -9981,6 +10353,1588 @@
                         "currency": "USDT"
                         }
                     ]
+                }
+            }
+,
+            {
+                "description": "algo effective limit child leaves execution unknown",
+                "method": "fetchOrder",
+                "input": [
+                    "9001",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9001",
+                            "ordType": "trigger",
+                            "state": "effective",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "100",
+                            "actualPx": "89",
+                            "ordId": "42",
+                            "ordIdList": [],
+                            "accFillSz": ""
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9001",
+                        "ordType": "trigger",
+                        "state": "effective",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "actualSz": "100",
+                        "actualPx": "89",
+                        "ordId": "42",
+                        "ordIdList": [],
+                        "accFillSz": ""
+                    },
+                    "id": "9001",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": null,
+                    "amount": 100,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "algo effective market child ignores ordPx sentinel",
+                "method": "fetchOrder",
+                "input": [
+                    "9002",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9002",
+                            "ordType": "trigger",
+                            "state": "effective",
+                            "ordPx": "-1",
+                            "triggerPx": "90",
+                            "actualSz": "100",
+                            "actualPx": "",
+                            "ordId": "43",
+                            "ordIdList": []
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9002",
+                        "ordType": "trigger",
+                        "state": "effective",
+                        "ordPx": "-1",
+                        "triggerPx": "90",
+                        "actualSz": "100",
+                        "actualPx": "",
+                        "ordId": "43",
+                        "ordIdList": []
+                    },
+                    "id": "9002",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": null,
+                    "amount": 100,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "algo effective child ids and missing amount do not infer remaining",
+                "method": "fetchOrder",
+                "input": [
+                    "9003",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "algoId": "9003",
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "ordType": "trigger",
+                            "side": "buy",
+                            "posSide": "net",
+                            "state": "effective",
+                            "ordPx": "50000",
+                            "triggerPx": "50000",
+                            "actualSz": "2",
+                            "actualPx": "49990",
+                            "ordId": "c1",
+                            "ordIdList": [
+                                "c1",
+                                "c2"
+                            ],
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "false"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "algoId": "9003",
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "ordType": "trigger",
+                        "side": "buy",
+                        "posSide": "net",
+                        "state": "effective",
+                        "ordPx": "50000",
+                        "triggerPx": "50000",
+                        "actualSz": "2",
+                        "actualPx": "49990",
+                        "ordId": "c1",
+                        "ordIdList": [
+                            "c1",
+                            "c2"
+                        ],
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "false"
+                    },
+                    "id": "9003",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 50000,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 50000,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": 50000
+                }
+            },
+            {
+                "description": "algo partially_effective leaves execution unknown",
+                "method": "fetchOrder",
+                "input": [
+                    "9004",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9004",
+                            "ordType": "trigger",
+                            "state": "partially_effective",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "40",
+                            "actualPx": "89",
+                            "ordId": "p1",
+                            "ordIdList": [
+                                "p1"
+                            ]
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9004",
+                        "ordType": "trigger",
+                        "state": "partially_effective",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "actualSz": "40",
+                        "actualPx": "89",
+                        "ordId": "p1",
+                        "ordIdList": [
+                            "p1"
+                        ]
+                    },
+                    "id": "9004",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": null,
+                    "amount": 100,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "trigger live with no child order is zero filled",
+                "method": "fetchOrder",
+                "input": [
+                    "9005",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9005",
+                            "ordType": "trigger",
+                            "state": "live",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "0",
+                            "actualPx": "",
+                            "ordId": "",
+                            "ordIdList": []
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9005",
+                        "ordType": "trigger",
+                        "state": "live",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "actualSz": "0",
+                        "actualPx": "",
+                        "ordId": "",
+                        "ordIdList": []
+                    },
+                    "id": "9005",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 100,
+                    "filled": 0,
+                    "remaining": 100,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "trigger canceled with no child order is zero filled",
+                "method": "fetchOrder",
+                "input": [
+                    "9006",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9006",
+                            "ordType": "trigger",
+                            "state": "canceled",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": []
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9006",
+                        "ordType": "trigger",
+                        "state": "canceled",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "actualSz": "0",
+                        "ordId": "",
+                        "ordIdList": []
+                    },
+                    "id": "9006",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 100,
+                    "filled": 0,
+                    "remaining": 100,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "trigger order_failed market child is zero filled without a negative price",
+                "method": "fetchOrder",
+                "input": [
+                    "9007",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9007",
+                            "ordType": "trigger",
+                            "state": "order_failed",
+                            "ordPx": "-1",
+                            "triggerPx": "90",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": [],
+                            "failCode": "51169"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9007",
+                        "ordType": "trigger",
+                        "state": "order_failed",
+                        "ordPx": "-1",
+                        "triggerPx": "90",
+                        "actualSz": "0",
+                        "ordId": "",
+                        "ordIdList": [],
+                        "failCode": "51169"
+                    },
+                    "id": "9007",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": null,
+                    "amount": 100,
+                    "filled": 0,
+                    "remaining": 100,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "trigger live with a child ordId is not a zero fill",
+                "method": "fetchOrder",
+                "input": [
+                    "9008",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9008",
+                            "ordType": "trigger",
+                            "state": "live",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "0",
+                            "ordId": "42",
+                            "ordIdList": []
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9008",
+                        "ordType": "trigger",
+                        "state": "live",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "actualSz": "0",
+                        "ordId": "42",
+                        "ordIdList": []
+                    },
+                    "id": "9008",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": null,
+                    "amount": 100,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "trigger live with ordIdList entries is not a zero fill",
+                "method": "fetchOrder",
+                "input": [
+                    "9009",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9009",
+                            "ordType": "trigger",
+                            "state": "live",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": [
+                                "7",
+                                "8"
+                            ]
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9009",
+                        "ordType": "trigger",
+                        "state": "live",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "actualSz": "0",
+                        "ordId": "",
+                        "ordIdList": [
+                            "7",
+                            "8"
+                        ]
+                    },
+                    "id": "9009",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": null,
+                    "amount": 100,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "trigger canceled with nonzero actualSz is not a zero fill",
+                "method": "fetchOrder",
+                "input": [
+                    "9010",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9010",
+                            "ordType": "trigger",
+                            "state": "canceled",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "3",
+                            "ordId": "",
+                            "ordIdList": []
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9010",
+                        "ordType": "trigger",
+                        "state": "canceled",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "actualSz": "3",
+                        "ordId": "",
+                        "ordIdList": []
+                    },
+                    "id": "9010",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": null,
+                    "amount": 100,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "trigger order_failed without actualSz stays unknown",
+                "method": "fetchOrder",
+                "input": [
+                    "9011",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9011",
+                            "ordType": "trigger",
+                            "state": "order_failed",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "ordId": "",
+                            "ordIdList": [],
+                            "failCode": "51169"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9011",
+                        "ordType": "trigger",
+                        "state": "order_failed",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "ordId": "",
+                        "ordIdList": [],
+                        "failCode": "51169"
+                    },
+                    "id": "9011",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": null,
+                    "amount": 100,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "trigger live without ordIdList stays unknown",
+                "method": "fetchOrder",
+                "input": [
+                    "9012",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9012",
+                            "ordType": "trigger",
+                            "state": "live",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "0",
+                            "ordId": ""
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9012",
+                        "ordType": "trigger",
+                        "state": "live",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "actualSz": "0",
+                        "ordId": ""
+                    },
+                    "id": "9012",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": null,
+                    "amount": 100,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "trigger effective with actualSz zero is not a zero fill",
+                "method": "fetchOrder",
+                "input": [
+                    "9013",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9013",
+                            "ordType": "trigger",
+                            "state": "effective",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "0",
+                            "ordId": "",
+                            "ordIdList": []
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9013",
+                        "ordType": "trigger",
+                        "state": "effective",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "actualSz": "0",
+                        "ordId": "",
+                        "ordIdList": []
+                    },
+                    "id": "9013",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": null,
+                    "amount": 100,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "algo effective explicit accFillSz zero stays authoritative",
+                "method": "fetchOrder",
+                "input": [
+                    "9014",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9014",
+                            "ordType": "trigger",
+                            "state": "effective",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "100",
+                            "ordId": "42",
+                            "ordIdList": [
+                                "42"
+                            ],
+                            "accFillSz": "0"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9014",
+                        "ordType": "trigger",
+                        "state": "effective",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "actualSz": "100",
+                        "ordId": "42",
+                        "ordIdList": [
+                            "42"
+                        ],
+                        "accFillSz": "0"
+                    },
+                    "id": "9014",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 100,
+                    "filled": 0,
+                    "remaining": 100,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "algo effective explicit accFillSz is authoritative",
+                "method": "fetchOrder",
+                "input": [
+                    "9015",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9015",
+                            "clOrdId": "algo-client-15",
+                            "ordType": "trigger",
+                            "state": "effective",
+                            "ordPx": "50",
+                            "triggerPx": "90",
+                            "actualSz": "10",
+                            "actualPx": "50",
+                            "ordId": "55",
+                            "ordIdList": [
+                                "55"
+                            ],
+                            "accFillSz": "10",
+                            "fee": "-0.02",
+                            "feeCcy": "USDT"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9015",
+                        "clOrdId": "algo-client-15",
+                        "ordType": "trigger",
+                        "state": "effective",
+                        "ordPx": "50",
+                        "triggerPx": "90",
+                        "actualSz": "10",
+                        "actualPx": "50",
+                        "ordId": "55",
+                        "ordIdList": [
+                            "55"
+                        ],
+                        "accFillSz": "10",
+                        "fee": "-0.02",
+                        "feeCcy": "USDT"
+                    },
+                    "id": "9015",
+                    "clientOrderId": "algo-client-15",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 50,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": 5,
+                    "amount": 100,
+                    "filled": 10,
+                    "remaining": 90,
+                    "status": "closed",
+                    "fee": {
+                        "cost": 0.02,
+                        "currency": "USDT"
+                    },
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [
+                        {
+                            "cost": 0.02,
+                            "currency": "USDT"
+                        }
+                    ],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "empty algoId does not suppress closed fill inference",
+                "method": "fetchOrder",
+                "input": [
+                    "8001",
+                    "BTC/USDT:USDT",
+                    {}
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "",
+                            "ordId": "8001",
+                            "ordType": "trigger",
+                            "state": "effective",
+                            "ordPx": "89",
+                            "triggerPx": "90",
+                            "actualSz": "0",
+                            "ordIdList": []
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "",
+                        "ordId": "8001",
+                        "ordType": "trigger",
+                        "state": "effective",
+                        "ordPx": "89",
+                        "triggerPx": "90",
+                        "actualSz": "0",
+                        "ordIdList": []
+                    },
+                    "id": "8001",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "trigger",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": 90,
+                    "average": null,
+                    "cost": 89,
+                    "amount": 100,
+                    "filled": 100,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": 90
+                }
+            },
+            {
+                "description": "missing algoId does not suppress closed fill inference",
+                "method": "fetchOrder",
+                "input": [
+                    "8002",
+                    "BTC/USDT:USDT",
+                    {}
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "false",
+                            "ordId": "8002",
+                            "ordType": "limit",
+                            "state": "effective",
+                            "px": "89"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "false",
+                        "ordId": "8002",
+                        "ordType": "limit",
+                        "state": "effective",
+                        "px": "89"
+                    },
+                    "id": "8002",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": 89,
+                    "amount": 100,
+                    "filled": 100,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "empty algoId keeps the ordPx sentinel",
+                "method": "fetchOrder",
+                "input": [
+                    "8003",
+                    "BTC/USDT:USDT",
+                    {}
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "buy",
+                            "posSide": "net",
+                            "sz": "1",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "false",
+                            "algoId": "",
+                            "ordId": "8003",
+                            "ordType": "limit",
+                            "state": "live",
+                            "ordPx": "-1"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "buy",
+                        "posSide": "net",
+                        "sz": "1",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "false",
+                        "algoId": "",
+                        "ordId": "8003",
+                        "ordType": "limit",
+                        "state": "live",
+                        "ordPx": "-1"
+                    },
+                    "id": "8003",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": -1,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": 1,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "conditional effective algo leaves execution unknown",
+                "method": "fetchOrder",
+                "input": [
+                    "9019",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "side": "sell",
+                            "posSide": "net",
+                            "sz": "100",
+                            "cTime": "1700000000000",
+                            "uTime": "1700000001000",
+                            "reduceOnly": "true",
+                            "algoId": "9019",
+                            "ordType": "conditional",
+                            "state": "effective",
+                            "ordPx": "89",
+                            "triggerPx": "",
+                            "slTriggerPx": "80",
+                            "actualSz": "100",
+                            "actualPx": "89",
+                            "ordId": "9",
+                            "ordIdList": [
+                                "9"
+                            ]
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "side": "sell",
+                        "posSide": "net",
+                        "sz": "100",
+                        "cTime": "1700000000000",
+                        "uTime": "1700000001000",
+                        "reduceOnly": "true",
+                        "algoId": "9019",
+                        "ordType": "conditional",
+                        "state": "effective",
+                        "ordPx": "89",
+                        "triggerPx": "",
+                        "slTriggerPx": "80",
+                        "actualSz": "100",
+                        "actualPx": "89",
+                        "ordId": "9",
+                        "ordIdList": [
+                            "9"
+                        ]
+                    },
+                    "id": "9019",
+                    "clientOrderId": null,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000001000,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "conditional",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 89,
+                    "stopLossPrice": 80,
+                    "takeProfitPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": 100,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [],
+                    "stopPrice": null
                 }
             }
         ],

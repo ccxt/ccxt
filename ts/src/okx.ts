@@ -4332,10 +4332,44 @@ export default class okx extends Exchange {
         const marketId = this.safeString (order, 'instId');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, marketResolved, '-');
-        const filled = this.safeString (order, 'accFillSz');
-        const price = this.safeString2 (order, 'px', 'ordPx');
+        let filled = this.safeString (order, 'accFillSz');
+        let price = this.safeString2 (order, 'px', 'ordPx');
         const average = this.safeString (order, 'avgPx');
-        const status = this.parseOrderStatus (this.safeString (order, 'state'));
+        const rawState = this.safeString (order, 'state');
+        const status = this.parseOrderStatus (rawState);
+        // Algo orders carry a nonempty algoId and omit accFillSz. "effective" only
+        // closes the algo lifecycle, so safeOrder must not treat that as a child fill.
+        // ordPx "-1" is the market-child placeholder. actualSz, actualPx and child ids
+        // are not fills. A live, canceled or order_failed trigger is zero-filled only
+        // when actualSz is 0 and no child order was created.
+        const algoId = this.safeString (order, 'algoId');
+        const isAlgoOrder = (algoId !== undefined);
+        if (isAlgoOrder && (price === '-1')) {
+            price = undefined;
+        }
+        let statusForSafeOrder = status;
+        let restoreAlgoStatus = false;
+        if (isAlgoOrder && (filled === undefined)) {
+            if (rawState === 'effective') {
+                statusForSafeOrder = undefined;
+                restoreAlgoStatus = true;
+            }
+            if ((type === 'trigger') && ((rawState === 'live') || (rawState === 'canceled') || (rawState === 'order_failed'))) {
+                const actualSz = this.safeString (order, 'actualSz');
+                const childOrderId = this.safeString (order, 'ordId');
+                const ordIdList = this.safeList (order, 'ordIdList');
+                // Assign length on its own so it transpiles as an array count.
+                // A missing ordIdList stays unknown.
+                let ordIdListLength: Int = undefined;
+                if (ordIdList !== undefined) {
+                    ordIdListLength = ordIdList.length;
+                }
+                const noChildOrders = (childOrderId === undefined) && (ordIdListLength === 0);
+                if (noChildOrders && (actualSz !== undefined) && Precise.stringEquals (actualSz, '0')) {
+                    filled = '0';
+                }
+            }
+        }
         const feeCostString = this.safeString (order, 'fee');
         let amount: Str = undefined;
         let cost: Str = undefined;
@@ -4372,7 +4406,7 @@ export default class okx extends Exchange {
         if (reduceOnlyRaw !== undefined) {
             reduceOnly = (reduceOnlyRaw === 'true');
         }
-        return this.safeOrder ({
+        const parsed = this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -4394,11 +4428,15 @@ export default class okx extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
-            'status': status,
+            'status': statusForSafeOrder,
             'fee': fee,
             'trades': undefined,
             'reduceOnly': reduceOnly,
         }, marketResolved);
+        if (restoreAlgoStatus) {
+            parsed['status'] = status;
+        }
+        return parsed;
     }
 
     /**
