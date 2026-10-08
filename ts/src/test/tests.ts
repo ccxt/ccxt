@@ -2825,6 +2825,16 @@ class testMainClass {
         }
         const clientOrderIdInverseFuture = inverseFutureOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverseFuture.startsWith (inverseSwapId) === true, 'binance - inverse future clientOrderId: ' + clientOrderIdInverseFuture + ' does not start with inverseSwapId' + inverseSwapId);
+        // the option api takes clientOrderId instead of newClientOrderId
+        let optionOrderRequest: Dict = {};
+        try {
+            await exchange.createOrder ('ETH/USDT:USDT-231229-800-C', 'limit', 'buy', 1, 100);
+        } catch (e) {
+            optionOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const optionClientOrderId = exchange.safeString (optionOrderRequest, 'clientOrderId');
+        assert (optionClientOrderId !== undefined, 'binance - option order must send clientOrderId');
+        assert (optionClientOrderId.startsWith (inverseSwapId) === true, 'binance - option clientOrderId: ' + optionClientOrderId + ' does not start with the option broker id ' + inverseSwapId);
         // the implicit order endpoints inject the broker id of their api section
         // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
         if (!isSync ()) {
@@ -2857,6 +2867,201 @@ class testMainClass {
             const implicitFapiClientAlgoId = exchange.safeString (implicitFapiAlgoOrderRequest, 'clientAlgoId');
             assert (implicitFapiClientAlgoId !== undefined, 'binance - implicit fapi algo order must inject clientAlgoId');
             assert (implicitFapiClientAlgoId.startsWith (swapId) === true, 'binance - implicit fapi clientAlgoId: ' + implicitFapiClientAlgoId + ' does not start with swapId' + swapId);
+            // the papi order endpoints resolve the broker id from the path, not from the api section
+            let implicitPapiUmOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'papiPostUmOrder', [ { 'symbol': 'ETHUSDT', 'side': 'SELL', 'type': 'LIMIT', 'quantity': '1', 'price': '4100', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitPapiUmOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitPapiUmClientOrderId = exchange.safeString (implicitPapiUmOrderRequest, 'newClientOrderId');
+            assert (implicitPapiUmClientOrderId !== undefined, 'binance - implicit papi um order must inject newClientOrderId');
+            assert (implicitPapiUmClientOrderId.startsWith (swapId) === true, 'binance - implicit papi um clientOrderId: ' + implicitPapiUmClientOrderId + ' does not start with swapId' + swapId);
+            let implicitPapiCmOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'papiPostCmOrder', [ { 'symbol': 'ETHUSD_PERP', 'side': 'SELL', 'type': 'LIMIT', 'quantity': '1', 'price': '4100', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitPapiCmOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitPapiCmClientOrderId = exchange.safeString (implicitPapiCmOrderRequest, 'newClientOrderId');
+            assert (implicitPapiCmClientOrderId !== undefined, 'binance - implicit papi cm order must inject newClientOrderId');
+            assert (implicitPapiCmClientOrderId.startsWith (inverseSwapId) === true, 'binance - implicit papi cm clientOrderId: ' + implicitPapiCmClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
+            let implicitPapiMarginOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'papiPostMarginOrder', [ { 'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'LIMIT', 'quantity': '0.001', 'price': '20000', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitPapiMarginOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitPapiMarginClientOrderId = exchange.safeString (implicitPapiMarginOrderRequest, 'newClientOrderId');
+            assert (implicitPapiMarginClientOrderId !== undefined, 'binance - implicit papi margin order must inject newClientOrderId');
+            assert (implicitPapiMarginClientOrderId.startsWith (spotId) === true, 'binance - implicit papi margin clientOrderId: ' + implicitPapiMarginClientOrderId + ' does not start with spotId' + spotId);
+            let implicitSapiMarginOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'sapiPostMarginOrder', [ { 'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'LIMIT', 'quantity': '0.001', 'price': '20000', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitSapiMarginOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitSapiMarginClientOrderId = exchange.safeString (implicitSapiMarginOrderRequest, 'newClientOrderId');
+            assert (implicitSapiMarginClientOrderId !== undefined, 'binance - implicit sapi margin order must inject newClientOrderId');
+            assert (implicitSapiMarginClientOrderId.startsWith (spotId) === true, 'binance - implicit sapi margin clientOrderId: ' + implicitSapiMarginClientOrderId + ' does not start with spotId' + spotId);
+            // the papi um algo order endpoint takes clientAlgoId
+            let implicitPapiUmAlgoOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'papiPostUmAlgoOrder', [ { 'symbol': 'ETHUSDT', 'side': 'SELL', 'algoType': 'CONDITIONAL', 'type': 'STOP', 'quantity': '1', 'price': '4100', 'triggerPrice': '4200', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitPapiUmAlgoOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitPapiUmClientAlgoId = exchange.safeString (implicitPapiUmAlgoOrderRequest, 'clientAlgoId');
+            assert (implicitPapiUmClientAlgoId !== undefined, 'binance - implicit papi um algo order must inject clientAlgoId');
+            assert (implicitPapiUmClientAlgoId.startsWith (swapId) === true, 'binance - implicit papi um clientAlgoId: ' + implicitPapiUmClientAlgoId + ' does not start with swapId' + swapId);
+            // the papi cm conditional order endpoint takes newClientStrategyId
+            let implicitPapiCmConditionalOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'papiPostCmConditionalOrder', [ { 'symbol': 'ETHUSD_PERP', 'side': 'SELL', 'strategyType': 'STOP', 'quantity': '1', 'price': '4100', 'stopPrice': '4200', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitPapiCmConditionalOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitPapiCmStrategyId = exchange.safeString (implicitPapiCmConditionalOrderRequest, 'newClientStrategyId');
+            assert (implicitPapiCmStrategyId !== undefined, 'binance - implicit papi cm conditional order must inject newClientStrategyId');
+            assert (implicitPapiCmStrategyId.startsWith (inverseSwapId) === true, 'binance - implicit papi cm newClientStrategyId: ' + implicitPapiCmStrategyId + ' does not start with inverseSwapId' + inverseSwapId);
+            let implicitPapiUmConditionalOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'papiPostUmConditionalOrder', [ { 'symbol': 'ETHUSDT', 'side': 'SELL', 'strategyType': 'STOP', 'quantity': '1', 'price': '4100', 'stopPrice': '4200', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitPapiUmConditionalOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitPapiUmStrategyId = exchange.safeString (implicitPapiUmConditionalOrderRequest, 'newClientStrategyId');
+            assert (implicitPapiUmStrategyId !== undefined, 'binance - implicit papi um conditional order must inject newClientStrategyId');
+            assert (implicitPapiUmStrategyId.startsWith (swapId) === true, 'binance - implicit papi um newClientStrategyId: ' + implicitPapiUmStrategyId + ' does not start with swapId' + swapId);
+            // the eapi order endpoints take clientOrderId
+            let implicitEapiOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'eapiPrivatePostOrder', [ { 'symbol': 'ETH-231229-800-C', 'side': 'BUY', 'type': 'LIMIT', 'quantity': '1', 'price': '100' } ]);
+            } catch (e) {
+                implicitEapiOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitEapiClientOrderId = exchange.safeString (implicitEapiOrderRequest, 'clientOrderId');
+            assert (implicitEapiClientOrderId !== undefined, 'binance - implicit eapi order must inject clientOrderId');
+            assert (implicitEapiClientOrderId.startsWith (inverseSwapId) === true, 'binance - implicit eapi clientOrderId: ' + implicitEapiClientOrderId + ' does not start with the option broker id ' + inverseSwapId);
+            let implicitEapiBatchRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'eapiPrivatePostBatchOrders', [ { 'batchOrders': [ { 'symbol': 'ETH-231229-800-C', 'side': 'BUY', 'type': 'LIMIT', 'quantity': '1', 'price': '100' } ] } ]);
+            } catch (e) {
+                implicitEapiBatchRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitEapiBatchOrders = exchange.safeList (implicitEapiBatchRequest, 'batchOrders', []);
+            const implicitEapiBatchOrder = exchange.safeDict (implicitEapiBatchOrders, 0, {});
+            const implicitEapiBatchClientOrderId = exchange.safeString (implicitEapiBatchOrder, 'clientOrderId');
+            assert (implicitEapiBatchClientOrderId !== undefined, 'binance - implicit eapi batch order must inject clientOrderId');
+            assert (implicitEapiBatchClientOrderId.startsWith (inverseSwapId) === true, 'binance - implicit eapi batch clientOrderId: ' + implicitEapiBatchClientOrderId + ' does not start with the option broker id ' + inverseSwapId);
+            // the equity order endpoint takes clientOrderId
+            let implicitEquityOrderRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'sapiPostEquityOrderPlace', [ { 'symbol': 'AAPLUSDC', 'side': 'BUY', 'orderType': 'LIMIT', 'quantity': '1', 'price': '100', 'timeInForce': 'GTC' } ]);
+            } catch (e) {
+                implicitEquityOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const implicitEquityClientOrderId = exchange.safeString (implicitEquityOrderRequest, 'clientOrderId');
+            assert (implicitEquityClientOrderId !== undefined, 'binance - implicit equity order must inject clientOrderId');
+            assert (implicitEquityClientOrderId.startsWith (spotId) === true, 'binance - implicit equity clientOrderId: ' + implicitEquityClientOrderId + ' does not start with spotId' + spotId);
+            // the order list endpoints inject a listClientOrderId and one client order id per leg
+            let implicitOcoListRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'privatePostOrderListOco', [ { 'symbol': 'BTCUSDT', 'side': 'SELL', 'quantity': '0.001', 'abovePrice': '110000', 'aboveType': 'LIMIT_MAKER', 'belowType': 'STOP_LOSS', 'belowStopPrice': '95000' } ]);
+            } catch (e) {
+                implicitOcoListRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const ocoListClientOrderId = exchange.safeString (implicitOcoListRequest, 'listClientOrderId');
+            const ocoAboveClientOrderId = exchange.safeString (implicitOcoListRequest, 'aboveClientOrderId');
+            const ocoBelowClientOrderId = exchange.safeString (implicitOcoListRequest, 'belowClientOrderId');
+            assert (ocoListClientOrderId !== undefined, 'binance - implicit oco list must inject listClientOrderId');
+            assert (ocoListClientOrderId.startsWith (spotId) === true, 'binance - implicit oco listClientOrderId: ' + ocoListClientOrderId + ' does not start with spotId' + spotId);
+            assert ((ocoAboveClientOrderId !== undefined) && (ocoAboveClientOrderId.startsWith (spotId) === true), 'binance - implicit oco aboveClientOrderId must inject the spot broker id');
+            assert ((ocoBelowClientOrderId !== undefined) && (ocoBelowClientOrderId.startsWith (spotId) === true), 'binance - implicit oco belowClientOrderId must inject the spot broker id');
+            let implicitOtocoListRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'privatePostOrderListOtoco', [ { 'symbol': 'BTCUSDT', 'workingType': 'LIMIT', 'workingSide': 'BUY', 'workingPrice': '100000', 'workingQuantity': '0.001', 'pendingSide': 'SELL', 'pendingQuantity': '0.001', 'pendingAboveType': 'LIMIT_MAKER', 'pendingAbovePrice': '110000', 'pendingBelowType': 'STOP_LOSS', 'pendingBelowStopPrice': '95000' } ]);
+            } catch (e) {
+                implicitOtocoListRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const otocoWorkingClientOrderId = exchange.safeString (implicitOtocoListRequest, 'workingClientOrderId');
+            const otocoPendingAboveClientOrderId = exchange.safeString (implicitOtocoListRequest, 'pendingAboveClientOrderId');
+            const otocoPendingBelowClientOrderId = exchange.safeString (implicitOtocoListRequest, 'pendingBelowClientOrderId');
+            assert ((otocoWorkingClientOrderId !== undefined) && (otocoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit otoco workingClientOrderId must inject the spot broker id');
+            assert ((otocoPendingAboveClientOrderId !== undefined) && (otocoPendingAboveClientOrderId.startsWith (spotId) === true), 'binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id');
+            assert ((otocoPendingBelowClientOrderId !== undefined) && (otocoPendingBelowClientOrderId.startsWith (spotId) === true), 'binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id');
+            let implicitSapiMarginOcoRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'sapiPostMarginOrderOco', [ { 'symbol': 'BTCUSDT', 'side': 'SELL', 'quantity': '0.001', 'price': '110000', 'stopPrice': '95000' } ]);
+            } catch (e) {
+                implicitSapiMarginOcoRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const sapiMarginOcoLimitClientOrderId = exchange.safeString (implicitSapiMarginOcoRequest, 'limitClientOrderId');
+            const sapiMarginOcoStopClientOrderId = exchange.safeString (implicitSapiMarginOcoRequest, 'stopClientOrderId');
+            assert ((sapiMarginOcoLimitClientOrderId !== undefined) && (sapiMarginOcoLimitClientOrderId.startsWith (spotId) === true), 'binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id');
+            assert ((sapiMarginOcoStopClientOrderId !== undefined) && (sapiMarginOcoStopClientOrderId.startsWith (spotId) === true), 'binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id');
+            let implicitPapiMarginOcoRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'papiPostMarginOrderOco', [ { 'symbol': 'BTCUSDT', 'side': 'SELL', 'quantity': '0.001', 'price': '110000', 'stopPrice': '95000' } ]);
+            } catch (e) {
+                implicitPapiMarginOcoRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const papiMarginOcoListClientOrderId = exchange.safeString (implicitPapiMarginOcoRequest, 'listClientOrderId');
+            assert ((papiMarginOcoListClientOrderId !== undefined) && (papiMarginOcoListClientOrderId.startsWith (spotId) === true), 'binance - implicit papi margin oco listClientOrderId must inject the spot broker id');
+            const papiMarginOcoLimitClientOrderId = exchange.safeString (implicitPapiMarginOcoRequest, 'limitClientOrderId');
+            const papiMarginOcoStopClientOrderId = exchange.safeString (implicitPapiMarginOcoRequest, 'stopClientOrderId');
+            assert ((papiMarginOcoLimitClientOrderId !== undefined) && (papiMarginOcoLimitClientOrderId.startsWith (spotId) === true), 'binance - implicit papi margin oco limitClientOrderId must inject the spot broker id');
+            assert ((papiMarginOcoStopClientOrderId !== undefined) && (papiMarginOcoStopClientOrderId.startsWith (spotId) === true), 'binance - implicit papi margin oco stopClientOrderId must inject the spot broker id');
+            let implicitLegacyOcoRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'privatePostOrderOco', [ { 'symbol': 'BTCUSDT', 'side': 'SELL', 'quantity': '0.001', 'price': '110000', 'stopPrice': '95000' } ]);
+            } catch (e) {
+                implicitLegacyOcoRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const legacyOcoListClientOrderId = exchange.safeString (implicitLegacyOcoRequest, 'listClientOrderId');
+            const legacyOcoLimitClientOrderId = exchange.safeString (implicitLegacyOcoRequest, 'limitClientOrderId');
+            const legacyOcoStopClientOrderId = exchange.safeString (implicitLegacyOcoRequest, 'stopClientOrderId');
+            assert ((legacyOcoListClientOrderId !== undefined) && (legacyOcoListClientOrderId.startsWith (spotId) === true), 'binance - implicit legacy oco listClientOrderId must inject the spot broker id');
+            assert ((legacyOcoLimitClientOrderId !== undefined) && (legacyOcoLimitClientOrderId.startsWith (spotId) === true), 'binance - implicit legacy oco limitClientOrderId must inject the spot broker id');
+            assert ((legacyOcoStopClientOrderId !== undefined) && (legacyOcoStopClientOrderId.startsWith (spotId) === true), 'binance - implicit legacy oco stopClientOrderId must inject the spot broker id');
+            let implicitOtoListRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'privatePostOrderListOto', [ { 'symbol': 'BTCUSDT', 'workingType': 'LIMIT', 'workingSide': 'BUY', 'workingPrice': '100000', 'workingQuantity': '0.001', 'pendingType': 'MARKET', 'pendingSide': 'SELL', 'pendingQuantity': '0.001' } ]);
+            } catch (e) {
+                implicitOtoListRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const otoListClientOrderId = exchange.safeString (implicitOtoListRequest, 'listClientOrderId');
+            const otoWorkingClientOrderId = exchange.safeString (implicitOtoListRequest, 'workingClientOrderId');
+            const otoPendingClientOrderId = exchange.safeString (implicitOtoListRequest, 'pendingClientOrderId');
+            assert ((otoListClientOrderId !== undefined) && (otoListClientOrderId.startsWith (spotId) === true), 'binance - implicit oto listClientOrderId must inject the spot broker id');
+            assert ((otoWorkingClientOrderId !== undefined) && (otoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit oto workingClientOrderId must inject the spot broker id');
+            assert ((otoPendingClientOrderId !== undefined) && (otoPendingClientOrderId.startsWith (spotId) === true), 'binance - implicit oto pendingClientOrderId must inject the spot broker id');
+            let implicitOpoListRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'privatePostOrderListOpo', [ { 'symbol': 'BTCUSDT', 'workingType': 'LIMIT', 'workingSide': 'BUY', 'workingPrice': '100000', 'workingQuantity': '0.001', 'pendingType': 'MARKET', 'pendingSide': 'SELL', 'pendingQuantity': '0.001' } ]);
+            } catch (e) {
+                implicitOpoListRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const opoListClientOrderId = exchange.safeString (implicitOpoListRequest, 'listClientOrderId');
+            const opoWorkingClientOrderId = exchange.safeString (implicitOpoListRequest, 'workingClientOrderId');
+            const opoPendingClientOrderId = exchange.safeString (implicitOpoListRequest, 'pendingClientOrderId');
+            assert ((opoListClientOrderId !== undefined) && (opoListClientOrderId.startsWith (spotId) === true), 'binance - implicit opo listClientOrderId must inject the spot broker id');
+            assert ((opoWorkingClientOrderId !== undefined) && (opoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit opo workingClientOrderId must inject the spot broker id');
+            assert ((opoPendingClientOrderId !== undefined) && (opoPendingClientOrderId.startsWith (spotId) === true), 'binance - implicit opo pendingClientOrderId must inject the spot broker id');
+            let implicitOpocoListRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'privatePostOrderListOpoco', [ { 'symbol': 'BTCUSDT', 'workingType': 'LIMIT', 'workingSide': 'BUY', 'workingPrice': '100000', 'workingQuantity': '0.001', 'pendingSide': 'SELL', 'pendingQuantity': '0.001', 'pendingAboveType': 'LIMIT_MAKER', 'pendingAbovePrice': '110000', 'pendingBelowType': 'STOP_LOSS', 'pendingBelowStopPrice': '95000' } ]);
+            } catch (e) {
+                implicitOpocoListRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const opocoListClientOrderId = exchange.safeString (implicitOpocoListRequest, 'listClientOrderId');
+            const opocoWorkingClientOrderId = exchange.safeString (implicitOpocoListRequest, 'workingClientOrderId');
+            const opocoPendingAboveClientOrderId = exchange.safeString (implicitOpocoListRequest, 'pendingAboveClientOrderId');
+            const opocoPendingBelowClientOrderId = exchange.safeString (implicitOpocoListRequest, 'pendingBelowClientOrderId');
+            assert ((opocoListClientOrderId !== undefined) && (opocoListClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco listClientOrderId must inject the spot broker id');
+            assert ((opocoWorkingClientOrderId !== undefined) && (opocoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco workingClientOrderId must inject the spot broker id');
+            assert ((opocoPendingAboveClientOrderId !== undefined) && (opocoPendingAboveClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id');
+            assert ((opocoPendingBelowClientOrderId !== undefined) && (opocoPendingBelowClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id');
         }
         if (!isSync ()) {
             await close (exchange);
