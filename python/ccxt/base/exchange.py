@@ -497,9 +497,8 @@ class BaseExchange(object):
 
     def _ensure_whitelisted_file(self, file_path: str):
         sanitized = os.path.realpath(file_path)
-        if sanitized.startswith(self.get_temp_dir()) and sanitized.endswith('.ccxtfile'):
-            return
-        raise ValueError(f'invalid file path: {file_path}')
+        if not sanitized.endswith('.ccxtfile'):
+            raise ValueError(f'File extension not permitted: {file_path}')
 
     def add_fetch_cache(self, data):
         if self.fetchHistoryCacheSize <= 0:
