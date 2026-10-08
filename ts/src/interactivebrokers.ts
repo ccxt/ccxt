@@ -1,9 +1,10 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/interactivebrokers.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Dict, Endpoint, List, NullableDict, Str, int } from './base/types.js';
+import { Precise } from './base/Precise.js';
+import type { Account, Balances, Dict, Endpoint, Int, List, Market, Num, NullableDict, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
@@ -32,14 +33,18 @@ export default class interactivebrokers extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': false,
-                'createLimitOrder': false,
-                'createMarketOrder': false,
-                'createOrder': false,
+                'createLimitOrder': true,
+                'createMarketOrder': true,
+                'createOrder': true,
+                'createStopOrder': true,
+                'createTrailingAmountOrder': true,
+                'createTrailingPercentOrder': true,
+                'createTriggerOrder': true,
                 'deposit': false,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
@@ -48,7 +53,7 @@ export default class interactivebrokers extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
@@ -65,24 +70,24 @@ export default class interactivebrokers extends Exchange {
                 'fetchLedgerEntry': false,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': false,
                 'fetchOrderBooks': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
-                'fetchPosition': false,
-                'fetchPositions': false,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
@@ -102,6 +107,20 @@ export default class interactivebrokers extends Exchange {
             },
             'timeframes': {
                 '1m': '1min',
+                '2m': '2min',
+                '3m': '3min',
+                '5m': '5min',
+                '10m': '10min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1h',
+                '2h': '2h',
+                '3h': '3h',
+                '4h': '4h',
+                '8h': '8h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1m',
             },
             'urls': {
                 'logo': '',
@@ -131,6 +150,10 @@ export default class interactivebrokers extends Exchange {
                         'trsrv/secdef/schedule': { 'cost': 1 } as Endpoint<List>, // trading schedule up to a month for the requested contract
                         'trsrv/futures': { 'cost': 1 } as Endpoint<Dict>, // non-expired future contracts (conid) for given symbol(s)
                         'trsrv/stocks': { 'cost': 1 } as Endpoint<Dict>, // stock contracts (conid) for given symbol(s)
+                        'trsrv/all-conids': { 'cost': 1 } as Endpoint<List>, // all tradable contracts on an exchange
+                        'trsrv/secdef': { 'cost': 1 } as Endpoint<Dict>, // contract definitions for given conids
+                        'iserver/currency/pairs': { 'cost': 1 } as Endpoint<Dict>, // fx pairs for a currency
+                        'iserver/exchangerate': { 'cost': 1 } as Endpoint<Dict>,
                         // iserver
                         'iserver/account/trades': { 'cost': 1 } as Endpoint<List>,
                         'iserver/account/{accountId}/alerts': { 'cost': 1 } as Endpoint<List>,
@@ -163,6 +186,8 @@ export default class interactivebrokers extends Exchange {
                         'portfolio/{accountId}/summary': { 'cost': 1 } as Endpoint<Dict>,
                         'portfolio/{accountId}/ledger': { 'cost': 1 } as Endpoint<Dict>,
                         'portfolio/positions/{conid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'portfolio2/{accountId}/positions': { 'cost': 1 } as Endpoint<List>, // real-time, uncached positions
+                        'iserver/account/{accountId}/summary/available_funds': { 'cost': 1 } as Endpoint<Dict>,
                         // fyi
                         'fyi/unreadnumber': { 'cost': 1 } as Endpoint<Dict>,
                         'fyi/settings': { 'cost': 1 } as Endpoint<List>,
@@ -189,6 +214,8 @@ export default class interactivebrokers extends Exchange {
                         'iserver/account/{accountId}/orders/whatif': { 'cost': 1 } as Endpoint<Dict>, // order preview with commission info
                         'iserver/account/{accountId}/order/{orderId}': { 'cost': 1 } as Endpoint<List>, // modify order
                         'iserver/secdef/search': { 'cost': 1 } as Endpoint<List>, // search by symbol or company name
+                        'iserver/contract/rules': { 'cost': 1 } as Endpoint<Dict>,
+                        'iserver/questions/suppress': { 'cost': 1 } as Endpoint<Dict>,
                         'iserver/scanner/run': { 'cost': 1 } as Endpoint<Dict>,
                         // portfolio
                         'portfolio/allocation': { 'cost': 1 } as Endpoint<Dict>, // consolidated view of all accounts returned by /portfolio/accounts
@@ -253,10 +280,106 @@ export default class interactivebrokers extends Exchange {
                     'publish': true,
                     'compete': true,
                 },
+                'serviceAccountsLoaded': false, // iserver/accounts must be called once per session before trading endpoints
+                'fetchMarkets': {
+                    'stockExchanges': [ 'NASDAQ', 'NYSE' ], // loaded via trsrv/all-conids
+                    'stockQuote': 'USD',
+                    'stockPriceIncrement': '0.01',
+                    'stockAmountIncrement': '1',
+                    'cryptoSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
+                    'cryptoAmountIncrement': '0.00000001',
+                    'fxCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
+                    'fxAmountIncrement': '1',
+                },
+                'fetchTickers': {
+                    // 31 last, 55 symbol, 70 high, 71 low, 82 change, 83 change %, 84 bid, 85 ask size, 86 ask, 88 bid size,
+                    // 7295 open, 7296 close, 7635 mark, 7741 prior close, 7762 volume (full precision), 6509 market data availability
+                    'fields': '31,55,70,71,82,83,84,85,86,88,6509,7295,7296,7635,7741,7762',
+                    'retries': 5, // the first snapshot request only subscribes, data arrives on subsequent requests
+                    'retryDelay': 500,
+                },
+                'fetchOHLCV': {
+                    'limit': 1000,
+                },
+                'fetchOrders': {
+                    'retryDelay': 500, // the first request of a session may return an incomplete snapshot
+                },
+                'fetchMyTrades': {
+                    'days': 7, // max 7
+                },
+                'createOrder': {
+                    'autoConfirmOrderReplies': true, // automatically confirm order warnings via iserver/reply/{replyid}
+                    'maxReplies': 10,
+                },
             },
             'features': {
                 'default': {
                     'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': true,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': 7,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': 1, // current brokerage session only
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': 1, // current brokerage session only
+                        'daysBackCanceled': 1,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
                 },
                 'spot': {
                     'extends': 'default',
@@ -280,6 +403,7 @@ export default class interactivebrokers extends Exchange {
                     'not authenticated': AuthenticationError,
                     'Invalid symbol': BadSymbol,
                     'Order not found': OrderNotFound,
+                    'is not found': OrderNotFound, // {"error":"Order 1888681780 is not found","statusCode":503}
                     'Bad Request': BadRequest,
                 },
             },
@@ -345,6 +469,7 @@ export default class interactivebrokers extends Exchange {
         const decrypted = this.decryptPrivateKey (encryptionKey, this.secret);
         const accessTokenSecretHex = this.binaryToBase16 (decrypted);
         this.options['accessTokenSecretHex'] = accessTokenSecretHex; // prepended to the signature base string in sign ()
+        this.options['serviceAccountsLoaded'] = false; // a new brokerage session needs iserver/accounts again
         const dhRandom = this.convertToBigInt ('0x' + this.randomBytes (32));
         const dhChallenge = this.modPow (this.options['dhGen'], dhRandom, dhPrime);
         const request: Dict = {
@@ -441,7 +566,7 @@ export default class interactivebrokers extends Exchange {
             if (length === 1) {
                 this.options['accountId'] = accountIds[0];
             } else {
-                throw new ExchangeError ('Multiple account IDs found, please set .options["accountId"] to desired one from: ' + accountIds.join(', '));
+                throw new ExchangeError ('Multiple account IDs found, please set .options["accountId"] to desired one from: ' + accountIds.join (', '));
             }
         }
         const accounts: Account[] = [];
