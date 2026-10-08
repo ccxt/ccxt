@@ -905,8 +905,7 @@
                     "BTC/USDT:USDT",
                     12,
                     {
-                        "hedged": true,
-                        "quoteOrderQty": 12
+                        "hedged": true
                     }
                 ]
             },

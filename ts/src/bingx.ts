@@ -3110,7 +3110,7 @@ export default class bingx extends Exchange {
     /**
      * @method
      * @name bingx#createMarketOrderWithCost
-     * @description create a spot market order by providing the symbol, side and cost
+     * @description create a spot or linear swap market order by providing the symbol, side and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
@@ -3125,7 +3125,7 @@ export default class bingx extends Exchange {
     /**
      * @method
      * @name bingx#createMarketBuyOrderWithCost
-     * @description create a spot market buy order by providing the symbol and cost
+     * @description create a spot or linear swap market buy order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3139,7 +3139,7 @@ export default class bingx extends Exchange {
     /**
      * @method
      * @name bingx#createMarketSellOrderWithCost
-     * @description create a spot market sell order by providing the symbol and cost
+     * @description create a spot or linear swap market sell order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3333,6 +3333,9 @@ export default class bingx extends Exchange {
                 }
             }
             if (hasStopLoss || hasTakeProfit) {
+                if (cost !== undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() does not support attached stopLoss or takeProfit on a market order by cost');
+                }
                 const stringifiedAmount = this.numberToString (amount);
                 if (hasStopLoss) {
                     const slTriggerPrice = this.safeString2 (stopLossDict, 'triggerPrice', 'stopPrice');
