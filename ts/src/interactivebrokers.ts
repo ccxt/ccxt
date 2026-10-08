@@ -622,46 +622,6 @@ export default class interactivebrokers extends Exchange {
 
     /**
      * @method
-     * @name interactivebrokers#isConnected
-     * @description checks whether the client portal gateway session is authenticated
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#tickle
-     * @ignore
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {boolean} true if the brokerage session is authenticated
-     */
-    async isConnected (params: Dict = {}): Promise<boolean> {
-        await this.authenticate ();
-        const response = await this.privatePostTickle (params);
-        //
-        //     {
-        //         "session": "140a9b1902d27e94x236dc142ce933a6",
-        //         "ssoExpires": 483732,
-        //         "collission": false,
-        //         "userId": 46130428,
-        //         "iserver": {
-        //             "authStatus": {
-        //                 "authenticated": true,
-        //                 "competing": false,
-        //                 "connected": true,
-        //                 "message": "",
-        //                 "MAC": "F4:03:43:E4:EF:C0",
-        //                 "serverInfo": {
-        //                     "serverName": "JieZ46418",
-        //                     "serverVersion": "Build 10.14.0l, Mar 1, 2022 5:28:08 PM"
-        //                 }
-        //             }
-        //         }
-        //     }
-        //
-        const iserver = this.safeDict (response, 'iserver', {});
-        const authStatus = this.safeDict (iserver, 'authStatus', {});
-        const authenticated = this.safeBool (authStatus, 'authenticated', false);
-        const connected = this.safeBool (authStatus, 'connected', false);
-        return authenticated && connected;
-    }
-
-    /**
-     * @method
      * @name interactivebrokers#signIn
      * @description obtains a live session token via the oauth 1.0a diffie-hellman exchange and opens the brokerage session, must be called prior to using other authenticated methods (called automatically by authenticate)
      * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#oauth-lst
@@ -1027,7 +987,6 @@ export default class interactivebrokers extends Exchange {
             'accountId': accountId,
         };
         const response = await this.privateGetPortfolioAccountIdLedger (this.extend (request, query));
-        const response2 = await this.gwPrivateGetAccountsAccountIdDetails (this.extend (request, query));
         //
         //     {
         //         "USD": {
