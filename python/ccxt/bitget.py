@@ -8949,9 +8949,11 @@ class bitget(Exchange, ImplicitAPI):
         fetch the current funding rates for all markets
 
         https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+        https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param str [params.subType]: *contract only* 'linear', 'inverse'
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param str [params.method]: either(default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
@@ -8965,11 +8967,18 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         request = {}
         productType, paramsProductType = self.handle_product_type_and_params(market, params)
+        uta, paramsUTA = self.handle_uta_and_params(paramsProductType, 'fetchFundingRates', False)
         method = 'publicMixGetV2MixMarketTickers'
-        methodOption, paramsMethod = self.handle_option_string_and_params(paramsProductType, 'fetchFundingRates', 'method', method)
+        methodOption, paramsMethod = self.handle_option_string_and_params(paramsUTA, 'fetchFundingRates', 'method', method)
         response = None
-        request['productType'] = productType
-        if methodOption == 'publicMixGetV2MixMarketTickers':
+        if uta is True:
+            request['category'] = productType
+            if methodOption == 'publicMixGetV2MixMarketTickers':
+                response = self.publicUtaGetV3MarketTickers(self.extend(request, paramsMethod))
+            elif methodOption == 'publicMixGetV2MixMarketCurrentFundRate':
+                response = self.publicUtaGetV3MarketCurrentFundRate(self.extend(request, paramsMethod))
+        elif methodOption == 'publicMixGetV2MixMarketTickers':
+            request['productType'] = productType
             # {
             #     "code": "00000",
             #     "msg": "success",
@@ -9004,6 +9013,7 @@ class bitget(Exchange, ImplicitAPI):
             # }
             response = self.publicMixGetV2MixMarketTickers(self.extend(request, paramsMethod))
         elif methodOption == 'publicMixGetV2MixMarketCurrentFundRate':
+            request['productType'] = productType
             #
             #     {
             #         "code": "00000",
@@ -9031,9 +9041,11 @@ class bitget(Exchange, ImplicitAPI):
         fetch the funding rate interval for multiple markets
 
         https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+        https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param str [params.productType]: 'USDT-FUTURES'(default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """

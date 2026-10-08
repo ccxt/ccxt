@@ -6178,8 +6178,8 @@ public class Bingx extends BingxApi
         String datetime = this.iso8601(timestamp);
         if (java.util.Objects.equals(timestamp, null))
         {
-            datetime = this.safeString(transaction, "applyTime");
-            timestamp = this.parse8601(datetime);
+            timestamp = this.parse8601(this.safeString(transaction, "applyTime"));
+            datetime = this.iso8601(timestamp);
         }
         String network = this.safeString(transaction, "network");
         String currencyId = this.safeString(transaction, "coin");
@@ -6191,11 +6191,17 @@ public class Bingx extends BingxApi
                 code = Helpers.replace(code, (String)network, (String)"");
             }
         }
+        // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         String rawType = this.safeString(transaction, "transferType");
         String type = "withdrawal";
-        if (java.util.Objects.equals(rawType, "0"))
+        if ((java.util.Objects.equals(rawType, "0")) || (transaction.containsKey("insertTime")))
         {
             type = "deposit";
+        }
+        Boolean intern = null;
+        if (!java.util.Objects.equals(rawType, null))
+        {
+            intern = (java.util.Objects.equals(rawType, "2"));
         }
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
@@ -6206,7 +6212,7 @@ public class Bingx extends BingxApi
             h2kMap3.put("currency", code);
             h2kMap3.put("network", this.networkIdToCode(network, code));
             h2kMap3.put("amount", this.safeNumber(transaction, "amount", (Object) null));
-            h2kMap3.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap3.put("status", this.parseTransactionStatus(this.safeString(transaction, "status"), type));
             h2kMap3.put("timestamp", timestamp);
             h2kMap3.put("datetime", datetime);
             h2kMap3.put("address", address);
@@ -6222,13 +6228,26 @@ public class Bingx extends BingxApi
             mapLiteral11.put("cost", this.safeNumber(transaction, "transactionFee", (Object) null));
             mapLiteral11.put("rate", null);
             h2kMap3.put("fee", mapLiteral11);
-            h2kMap3.put("internal", null);
+            h2kMap3.put("internal", intern);
             return h2kMap3;
         }
     }
 
-    public String parseTransactionStatus(String status)
+    public String parseTransactionStatus(String status, String type)
     {
+        Map<String, Object> statusesByType = new HashMap<String, Object>() {{
+            put( "deposit", new HashMap<String, Object>() {{
+                put( "0", "pending" );
+                put( "6", "pending" );
+                put( "1", "ok" );
+            }} );
+            put( "withdrawal", new HashMap<String, Object>() {{
+                put( "4", "pending" );
+                put( "5", "failed" );
+                put( "6", "ok" );
+            }} );
+        }};
+        Map<String, Object> directional = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "pending" );
             put( "1", "ok" );
@@ -6245,7 +6264,8 @@ public class Bingx extends BingxApi
             put( "5", "rejected" );
             put( "6", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        String fallback = this.safeString(statuses, status, status);
+        return this.safeString(directional, status, fallback);
     }
 
     /**

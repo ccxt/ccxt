@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, Transaction, FundingRateHistory, MarketInterface, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Liquidation, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -95,7 +95,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyLiquidations': False,
+                'fetchMyLiquidations': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -3453,6 +3453,105 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'currency': self.safe_string(trade, 'feeToken'),
                 'rate': None,
             },
+        }, marketResolved)
+
+    def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
+        """
+        retrieves the users liquidated positions
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+
+        :param str [symbol]: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters
+        :param int [params.until]: timestamp in ms of the latest liquidation
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
+        """
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchMyLiquidations', params)
+        if self.markets is None:
+            self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'user': userAddress,
+        }
+        if since is not None:
+            request['type'] = 'userFillsByTime'
+            request['startTime'] = since
+        else:
+            request['type'] = 'userFills'
+        until = self.safe_integer(paramsPublicAddress, 'until')
+        paramsOmitted = self.omit(paramsPublicAddress, 'until')
+        if until is not None:
+            request['endTime'] = until
+        response = self.publicPostInfo(self.extend(request, paramsOmitted))
+        #
+        #     [
+        #         {
+        #             "coin": "NEAR",
+        #             "px": "4.6879",
+        #             "sz": "64.8",
+        #             "side": "A",
+        #             "time": 1790964546856,
+        #             "startPosition": "64.8",
+        #             "dir": "Close Long",
+        #             "closedPnl": "-16.98408",
+        #             "hash": "0x2cdf7628db20daf2ea775b69cd99d5b63347faa4776a803907fc052901d0506f",
+        #             "oid": 719874965978,
+        #             "crossed": true,
+        #             "fee": "0.131231",
+        #             "tid": 5787071443114480,
+        #             "liquidation": {
+        #                 "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+        #                 "markPx": "4.69112",
+        #                 "method": "market"
+        #             },
+        #             "feeToken": "USDC",
+        #             "twapId": null
+        #         }
+        #     ]
+        #
+        fills = []
+        if isinstance(response, list):
+            user = self.safe_string_lower(request, 'user')
+            for i in range(0, len(response)):
+                fill = response[i]
+                liquidation = self.safe_dict(fill, 'liquidation', {})
+                # liquidator fills carry the liquidated counterparty here
+                if self.safe_string_lower(liquidation, 'liquidatedUser') == user:
+                    fills.append(fill)
+        return self.parse_liquidations(fills, market, since, limit)
+
+    def parse_liquidation(self, liquidation: object, market: Market = None) -> Liquidation:
+        #
+        # see fetchMyLiquidations
+        #
+        timestamp = self.safe_integer(liquidation, 'time')
+        marketId = self.coin_to_market_id(self.safe_string(liquidation, 'coin'))
+        marketResolved = self.safe_market(marketId)
+        symbol = marketResolved['symbol']
+        # swap ids are asset indexes, so the market is looked up by symbol
+        if (symbol is not None) and (self.markets is not None) and (symbol in self.markets):
+            marketResolved = self.market(symbol)
+        side = self.safe_string(liquidation, 'side')
+        if side is not None:
+            side = 'sell' if (side == 'A') else 'buy'
+        amount = self.safe_string(liquidation, 'sz')
+        price = self.safe_string(liquidation, 'px')
+        return self.safe_liquidation({
+            'info': liquidation,
+            'symbol': symbol,
+            'contracts': amount,
+            'price': price,
+            'baseValue': amount,
+            'quoteValue': Precise.string_mul(amount, price),
+            'side': side,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }, marketResolved)
 
     def fetch_position(self, symbol: str, params: dict = {}) -> Position:

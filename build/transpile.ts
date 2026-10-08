@@ -3318,7 +3318,8 @@ class Transpiler {
         });
 
         // create worker
-        const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
+        const requestedThreads = Number (process.env.CCXT_TRANSPILE_PROCESSES);
+        const maxThreads = requestedThreads > 0 ? requestedThreads : Math.max (1, Math.min (4, os.availableParallelism ()));
         const piscina = new Piscina({
             filename: resolve(__dirname, './ast-transpiler-worker.ts'),
             maxThreads,
@@ -3327,14 +3328,19 @@ class Transpiler {
         const chunkSize = 10;
         const promises: Promise<any>[] = [];
         const now = Date.now();
-        for (let i = 0; i < workerConfigArray.length; i += chunkSize) {
-            const chunk = workerConfigArray.slice(i, i + chunkSize);
-            promises.push(piscina.run({transpilerConfig:parserConfig, filesConfig:chunk}));
+        let flatResult: any[] = [];
+        try {
+            for (let i = 0; i < workerConfigArray.length; i += chunkSize) {
+                const chunk = workerConfigArray.slice(i, i + chunkSize);
+                promises.push(piscina.run({transpilerConfig:parserConfig, filesConfig:chunk}));
+            }
+            const workerResult = await Promise.all(promises);
+            const elapsed = Date.now() - now;
+            log.green ('[ast-transpiler] Transpiled', workerResult.length, 'tests in', elapsed, 'ms');
+            flatResult = workerResult.flat();
+        } finally {
+            await piscina.destroy();
         }
-        const workerResult = await Promise.all(promises);
-        const elapsed = Date.now() - now;
-        log.green ('[ast-transpiler] Transpiled', workerResult.length, 'tests in', elapsed, 'ms');
-        const flatResult = workerResult.flat();
         return flatResult;
     }
     // ============================================================================
@@ -4050,7 +4056,9 @@ class Transpiler {
 }
 
 async function parallelizeTranspiling (exchanges: string[], processes: number | string | undefined = undefined, force = false, python = false, php = false, allChildren = false) {
-    const processesNum = Math.min(Number(processes) || os.availableParallelism (), exchanges.length)
+    const requested = Number (processes || process.env.CCXT_TRANSPILE_PROCESSES);
+    const defaultProcesses = Math.max (1, Math.min (4, os.availableParallelism ()));
+    const processesNum = Math.min (requested > 0 ? requested : defaultProcesses, exchanges.length);
     log.bright.green ('starting ' + processesNum + ' new processes...')
     // by default the first fork runs without --child so it also transpiles the serial
     // tail (base methods, tests, ...); pass allChildren=true when the caller runs that

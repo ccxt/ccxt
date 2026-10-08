@@ -13020,8 +13020,10 @@ func (this *Bitget) fetchFundingRateBody(ch chan AsyncResult[map[string]any], sy
  * @name bitget#fetchFundingRates
  * @description fetch the current funding rates for all markets
  * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+ * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.subType] *contract only* 'linear', 'inverse'
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
@@ -13055,11 +13057,36 @@ func (this *Bitget) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs
 	productTypeparamsProductTypeVariable := this.HandleProductTypeAndParams(market, params)
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingRates", false)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	listRecv12161 := r1.Value
+	var utaparamsUTAVariable []any = listRecv12161
+	uta := GetValue(utaparamsUTAVariable, 0)
+	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	var method string = "publicMixGetV2MixMarketTickers"
-	methodOption, paramsMethod := this.HandleOptionStringAndParams(paramsProductType, "fetchFundingRates", "method", method)
+	methodOption, paramsMethod := this.HandleOptionStringAndParams(paramsUTA, "fetchFundingRates", "method", method)
 	var response map[string]any = nil
-	request["productType"] = productType
-	if methodOption != nil && *methodOption == "publicMixGetV2MixMarketTickers" {
+	if uta == true {
+		request["category"] = productType
+		if methodOption != nil && *methodOption == "publicMixGetV2MixMarketTickers" {
+
+			r2 := <-this.PublicUtaGetV3MarketTickers(this.Extend(request, paramsMethod))
+			if r2.Err != nil {
+				panic(r2.Err)
+			}
+			response = r2.Value
+		} else if methodOption != nil && *methodOption == "publicMixGetV2MixMarketCurrentFundRate" {
+
+			r3 := <-this.PublicUtaGetV3MarketCurrentFundRate(this.Extend(request, paramsMethod))
+			if r3.Err != nil {
+				panic(r3.Err)
+			}
+			response = r3.Value
+		}
+	} else if methodOption != nil && *methodOption == "publicMixGetV2MixMarketTickers" {
+		request["productType"] = productType
 		// {
 		//     "code": "00000",
 		//     "msg": "success",
@@ -13093,12 +13120,13 @@ func (this *Bitget) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs
 		//     ]
 		// }
 
-		r1 := <-this.PublicMixGetV2MixMarketTickers(this.Extend(request, paramsMethod))
-		if r1.Err != nil {
-			panic(r1.Err)
+		r4 := <-this.PublicMixGetV2MixMarketTickers(this.Extend(request, paramsMethod))
+		if r4.Err != nil {
+			panic(r4.Err)
 		}
-		response = r1.Value
+		response = r4.Value
 	} else if methodOption != nil && *methodOption == "publicMixGetV2MixMarketCurrentFundRate" {
+		request["productType"] = productType
 		//
 		//     {
 		//         "code": "00000",
@@ -13117,11 +13145,11 @@ func (this *Bitget) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs
 		//     }
 		//
 
-		r2 := <-this.PublicMixGetV2MixMarketCurrentFundRate(this.Extend(request, paramsMethod))
-		if r2.Err != nil {
-			panic(r2.Err)
+		r5 := <-this.PublicMixGetV2MixMarketCurrentFundRate(this.Extend(request, paramsMethod))
+		if r5.Err != nil {
+			panic(r5.Err)
 		}
-		response = r2.Value
+		response = r5.Value
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -13135,8 +13163,10 @@ func (this *Bitget) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs
  * @name bitget#fetchFundingIntervals
  * @description fetch the funding rate interval for multiple markets
  * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+ * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
@@ -13167,11 +13197,11 @@ func (this *Bitget) fetchFundingIntervalsBody(ch chan AsyncResult[map[string]any
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes954115 map[string]any = MapTyped(r1.Value)
-	if retRes954115 == nil {
+	var retRes955415 map[string]any = MapTyped(r1.Value)
+	if retRes955415 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes954115}
+		ch <- AsyncResult[map[string]any]{Value: retRes955415}
 	}
 	return nil
 }
@@ -13310,8 +13340,8 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalAr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12392 := r1.Value
-	var utaparamsUTAVariable []any = listRecv12392
+	listRecv12409 := r1.Value
+	var utaparamsUTAVariable []any = listRecv12409
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsUTA, "fetchFundingHistory", "paginate", false)
@@ -13322,11 +13352,11 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalAr
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			var retRes965823 []any = ListTyped(r2.Value)
-			if retRes965823 == nil {
+			var retRes967123 []any = ListTyped(r2.Value)
+			if retRes967123 == nil {
 				ch <- AsyncResult[any]{Value: nil}
 			} else {
-				ch <- AsyncResult[any]{Value: retRes965823}
+				ch <- AsyncResult[any]{Value: retRes967123}
 			}
 			return nil
 		}
@@ -13335,11 +13365,11 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalAr
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes966019 []any = ListTyped(r3.Value)
-		if retRes966019 == nil {
+		var retRes967319 []any = ListTyped(r3.Value)
+		if retRes967319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes966019}
+			ch <- AsyncResult[any]{Value: retRes967319}
 		}
 		return nil
 	}
@@ -13568,11 +13598,11 @@ func (this *Bitget) reduceMarginBody(ch chan EndpointResult[map[string]any], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes987615 map[string]any = MapTyped(r.Value)
-	if retRes987615 == nil {
+	var retRes988915 map[string]any = MapTyped(r.Value)
+	if retRes988915 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes987615, Raw: retRes987615}
+		ch <- EndpointResult[map[string]any]{Value: retRes988915, Raw: retRes988915}
 	}
 	return nil
 }
@@ -13606,11 +13636,11 @@ func (this *Bitget) addMarginBody(ch chan AsyncResult[map[string]any], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes989415 map[string]any = MapTyped(r.Value)
-	if retRes989415 == nil {
+	var retRes990715 map[string]any = MapTyped(r.Value)
+	if retRes990715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes989415}
+		ch <- AsyncResult[map[string]any]{Value: retRes990715}
 	}
 	return nil
 }
@@ -13767,8 +13797,8 @@ func (this *Bitget) setLeverageBody(ch chan AsyncResult[any], leverage int64, op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12803 := r1.Value
-	var utaparamsProductTypeVariable []any = listRecv12803
+	listRecv12820 := r1.Value
+	var utaparamsProductTypeVariable []any = listRecv12820
 	uta = GetValue(utaparamsProductTypeVariable, 0)
 	paramsProductType = GetValue(utaparamsProductTypeVariable, 1)
 	if uta == true {
@@ -13925,8 +13955,8 @@ func (this *Bitget) setPositionModeBody(ch chan AsyncResult[any], hedged any, op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12941 := r1.Value
-	var utaparamsUTAVariable []any = listRecv12941
+	listRecv12958 := r1.Value
+	var utaparamsUTAVariable []any = listRecv12958
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -13995,8 +14025,8 @@ func (this *Bitget) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12997 := r1.Value
-	var utaparamsUTAVariable []any = listRecv12997
+	listRecv13014 := r1.Value
+	var utaparamsUTAVariable []any = listRecv13014
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -14205,8 +14235,8 @@ func (this *Bitget) transferBody(ch chan AsyncResult[map[string]any], code strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv13180 := r1.Value
-	var utaparamsUTAVariable []any = listRecv13180
+	listRecv13197 := r1.Value
+	var utaparamsUTAVariable []any = listRecv13197
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	var currency map[string]any = this.Currency(code)
@@ -14782,11 +14812,11 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan AsyncResult[any], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1076819 []any = ListTyped(r1.Value)
-		if retRes1076819 == nil {
+		var retRes1078119 []any = ListTyped(r1.Value)
+		if retRes1078119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1076819}
+			ch <- AsyncResult[any]{Value: retRes1078119}
 		}
 		return nil
 	}
@@ -15116,8 +15146,8 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan AsyncResult[map[string]any]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14019 := r1.Value
-	var utaparamsUTAVariable []any = listRecv14019
+	listRecv14036 := r1.Value
+	var utaparamsUTAVariable []any = listRecv14036
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -15272,11 +15302,11 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan AsyncResult[[]any], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1115919 []any = ListTyped(r1.Value)
-		if retRes1115919 == nil {
+		var retRes1117219 []any = ListTyped(r1.Value)
+		if retRes1117219 == nil {
 			ch <- AsyncResult[[]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]any]{Value: retRes1115919}
+			ch <- AsyncResult[[]any]{Value: retRes1117219}
 		}
 		return nil
 	}
@@ -15470,8 +15500,8 @@ func (this *Bitget) closePositionBody(ch chan AsyncResult[any], symbol string, o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14342 := r1.Value
-	var utaparamsUTAVariable []any = listRecv14342
+	listRecv14359 := r1.Value
+	var utaparamsUTAVariable []any = listRecv14359
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -15546,8 +15576,8 @@ func (this *Bitget) closeAllPositionsBody(ch chan AsyncResult[[]any], optionalAr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14402 := r1.Value
-	var utaparamsUTAVariable []any = listRecv14402
+	listRecv14419 := r1.Value
+	var utaparamsUTAVariable []any = listRecv14419
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -15729,8 +15759,8 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan AsyncResult[[]any], option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14562 := r1.Value
-	var utaparamsUTAVariable []any = listRecv14562
+	listRecv14579 := r1.Value
+	var utaparamsUTAVariable []any = listRecv14579
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -16179,8 +16209,8 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14968 := r1.Value
-	var utaparamsUTAVariable []any = listRecv14968
+	listRecv14985 := r1.Value
+	var utaparamsUTAVariable []any = listRecv14985
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -17613,8 +17643,10 @@ func (this *Bitget) FetchFundingRate(symbol string, options ...FetchFundingRateO
  * @name bitget#fetchFundingRates
  * @description fetch the current funding rates for all markets
  * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+ * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.subType] *contract only* 'linear', 'inverse'
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
@@ -17640,8 +17672,10 @@ func (this *Bitget) FetchFundingRates(options ...FetchFundingRatesOptions) (Fund
  * @name bitget#fetchFundingIntervals
  * @description fetch the funding rate interval for multiple markets
  * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+ * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */

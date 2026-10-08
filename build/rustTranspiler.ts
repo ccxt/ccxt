@@ -60,9 +60,10 @@ function toSnakeCase(s: string): string {
 
 // ── output paths ─────────────────────────────────────────────────────────────
 const RUST_BASE              = './rust/ccxt-base/src';
-const BASE_METHODS_FILE      = `${RUST_BASE}/exchange_generated.rs`;
-const PREDICTION_BASE_FILE   = `${RUST_BASE}/prediction_exchange_generated.rs`;
-const ERRORS_FILE            = `${RUST_BASE}/exchange_errors.rs`;
+const RUST_CORE              = './rust/ccxt-core/src';
+const BASE_METHODS_FILE      = `${RUST_CORE}/exchange_generated.rs`;
+const PREDICTION_BASE_FILE   = `${RUST_CORE}/prediction_exchange_generated.rs`;
+const ERRORS_FILE            = `${RUST_CORE}/exchange_errors.rs`;
 const EXCHANGES_FOLDER       = `${RUST_BASE}/exchanges`;
 // The transpiled per-venue WS exchanges live in their own crate (`ccxt-pro`)
 // so each `rustc` invocation stays under the CI runner's memory ceiling. The
@@ -5034,12 +5035,18 @@ export class RustTranspilerBuilder {
         while ((om = ownRx.exec(content)) !== null) own.add(om[1]);
         if (this._rustBoolReturnMethods === null) {
             const cached = { bool: new Set<string>(), optionBool: new Set<string>(), src: [] as string[] };
-            for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`, `${RUST_BASE}/exchange.rs`]) {
+            for (const file of [BASE_METHODS_FILE, `${RUST_CORE}/exchange_stubs.rs`, `${RUST_CORE}/exchange.rs`]) {
                 try {
                     const src = fs.readFileSync(file, 'utf8');
                     cached.src.push(src);
                     collect(src, cached.bool, cached.optionBool, new Set<string>());
-                } catch (_) { /* base not generated yet */ }
+                } catch (e: any) {
+                    if (file === BASE_METHODS_FILE && e.code === 'ENOENT') {
+                        /* base not generated yet */
+                    } else {
+                        throw e;
+                    }
+                }
             }
             this._rustBoolReturnMethods = cached;
         }
@@ -7068,10 +7075,10 @@ export class RustTranspilerBuilder {
         if (this._discoveredVariadicsCache) return this._discoveredVariadicsCache;
         const out: Record<string, number> = {};
         const baseFiles = [
-            './rust/ccxt-base/src/exchange_generated.rs',
-            './rust/ccxt-base/src/exchange_stubs.rs',
+            './rust/ccxt-core/src/exchange_generated.rs',
+            './rust/ccxt-core/src/exchange_stubs.rs',
             // ExchangeRuntime dispatchers + super_* shims (review #1).
-            './rust/ccxt-base/src/exchange.rs',
+            './rust/ccxt-core/src/exchange.rs',
         ];
         for (const f of baseFiles) {
             const m = this.extractVariadicsFromFile(f);
@@ -7097,7 +7104,7 @@ export class RustTranspilerBuilder {
         const id = exchangeId.toLowerCase();
         if (!this._predictionVariadicsCache) {
             this._predictionVariadicsCache = this.extractVariadicsFromFile(
-                './rust/ccxt-base/src/prediction_exchange_generated.rs',
+                './rust/ccxt-core/src/prediction_exchange_generated.rs',
             );
         }
         return {
@@ -7472,7 +7479,7 @@ export class RustTranspilerBuilder {
         // optional `pub` — `ExchangeBase` trait methods are emitted as
         // `async fn` (trait methods can't be `pub`), so a `pub`-only regex would
         // miss every base async method and drop the `.await` at call sites.
-        for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`, `${RUST_BASE}/exchange.rs`]) {
+        for (const file of [BASE_METHODS_FILE, `${RUST_CORE}/exchange_stubs.rs`, `${RUST_CORE}/exchange.rs`]) {
             try {
                 const src = fs.readFileSync(file, 'utf8');
                 const re = /\b(?:pub )?async fn ([a-z_][a-z0-9_]*)\(/g;
@@ -7484,7 +7491,13 @@ export class RustTranspilerBuilder {
                 // async methods; call sites need their `.await`.
                 const futRe = /\b(?:pub\s+)?fn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>]*>)?\s*\(([^)]*)\)\s*->\s*(?:impl ::std::future::Future|::std::pin::Pin<Box<dyn ::std::future::Future)/g;
                 while ((m = futRe.exec(src)) !== null) s.add(m[1]);
-            } catch (_) { /* base not generated yet — fall back to empty */ }
+            } catch (e: any) {
+                if (file === BASE_METHODS_FILE && e.code === 'ENOENT') {
+                    /* base not generated yet — fall back to empty */
+                } else {
+                    throw e;
+                }
+            }
         }
         return s;
     }
@@ -7502,13 +7515,19 @@ export class RustTranspilerBuilder {
     allBaseMethodNames(): Set<string> {
         if (this._allBaseMethodNames) return this._allBaseMethodNames;
         const s = new Set<string>();
-        for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`, `${RUST_BASE}/exchange.rs`]) {
+        for (const file of [BASE_METHODS_FILE, `${RUST_CORE}/exchange_stubs.rs`, `${RUST_CORE}/exchange.rs`]) {
             try {
                 const src = fs.readFileSync(file, 'utf8');
                 const re = /\b(?:pub\s+)?(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)\s*[(<]/g;
                 let m: RegExpExecArray | null;
                 while ((m = re.exec(src)) !== null) s.add(m[1]);
-            } catch (_) { /* base not generated yet */ }
+            } catch (e: any) {
+                if (file === BASE_METHODS_FILE && e.code === 'ENOENT') {
+                    /* base not generated yet */
+                } else {
+                    throw e;
+                }
+            }
         }
         for (const n of Object.keys(this.traitMethodSignatures())) s.add(n);
         this._allBaseMethodNames = s;
@@ -8470,7 +8489,7 @@ ${arms.join('\n')}
             const predAsync: string[] = isPrediction
                 ? Object.keys({
                     ...this.extractAsyncFnNames(`./rust/ccxt-base/src/prediction/${className}_api.rs`),
-                    ...this.extractAsyncFnNames('./rust/ccxt-base/src/prediction_exchange_generated.rs'),
+                    ...this.extractAsyncFnNames('./rust/ccxt-core/src/prediction_exchange_generated.rs'),
                   })
                 : [];
             let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), ...predAsync, 'call_method', 'call_dynamic', 'call_dynamic_checked', 'fetch', 'load_markets', 'throttle']);
