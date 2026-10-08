@@ -210,6 +210,23 @@
         ],
         "createOrder": [
             {
+                "description": "swap trailing percent order with an activation price",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?activationPrice=60000&positionSide=LONG&priceRate=0.01&quantity=0.0001&side=BUY&symbol=BTC-USDT&timestamp=1791475633791&type=TRAILING_STOP_MARKET&signature=83e92222f6fd2d1ea35879c4d7fbee4f73ea409ddb4b2142f18ae8ec7737adb8",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.0001,
+                    null,
+                    {
+                        "hedged": true,
+                        "trailingPercent": 1,
+                        "trailingTriggerPrice": 60000
+                    }
+                ]
+            },
+            {
                 "description": "with stopLoss (exchange-specific)",
                 "disabledGO": true,
                 "disabledJava": true,
