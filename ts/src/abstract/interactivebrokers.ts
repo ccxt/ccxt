@@ -13,6 +13,10 @@ interface Exchange {
     privateGetTrsrvSecdefSchedule (params?: {}): Promise<List>;
     privateGetTrsrvFutures (params?: {}): Promise<Dict>;
     privateGetTrsrvStocks (params?: {}): Promise<Dict>;
+    privateGetTrsrvAllConids (params?: {}): Promise<List>;
+    privateGetTrsrvSecdef (params?: {}): Promise<Dict>;
+    privateGetIserverCurrencyPairs (params?: {}): Promise<Dict>;
+    privateGetIserverExchangerate (params?: {}): Promise<Dict>;
     privateGetIserverAccountTrades (params?: {}): Promise<List>;
     privateGetIserverAccountAccountIdAlerts (params?: {}): Promise<List>;
     privateGetIserverAccountAlertId (params?: {}): Promise<Dict>;
@@ -40,6 +44,8 @@ interface Exchange {
     privateGetPortfolioAccountIdSummary (params?: {}): Promise<Dict>;
     privateGetPortfolioAccountIdLedger (params?: {}): Promise<Dict>;
     privateGetPortfolioPositionsConid (params?: {}): Promise<Dict>;
+    privateGetPortfolio2AccountIdPositions (params?: {}): Promise<List>;
+    privateGetIserverAccountAccountIdSummaryAvailableFunds (params?: {}): Promise<Dict>;
     privateGetFyiUnreadnumber (params?: {}): Promise<Dict>;
     privateGetFyiSettings (params?: {}): Promise<List>;
     privateGetFyiDisclaimerTypecode (params?: {}): Promise<Dict>;
@@ -61,6 +67,8 @@ interface Exchange {
     privatePostIserverAccountAccountIdOrdersWhatif (params?: {}): Promise<Dict>;
     privatePostIserverAccountAccountIdOrderOrderId (params?: {}): Promise<List>;
     privatePostIserverSecdefSearch (params?: {}): Promise<List>;
+    privatePostIserverContractRules (params?: {}): Promise<Dict>;
+    privatePostIserverQuestionsSuppress (params?: {}): Promise<Dict>;
     privatePostIserverScannerRun (params?: {}): Promise<Dict>;
     privatePostPortfolioAllocation (params?: {}): Promise<Dict>;
     privatePostPortfolioAccountIdPositionsInvalidate (params?: {}): Promise<Dict>;

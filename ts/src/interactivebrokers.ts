@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/interactivebrokers.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import type { Account, Balances, Dict, Endpoint, Int, List, Market, Num, NullableDict, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
@@ -127,6 +127,7 @@ export default class interactivebrokers extends Exchange {
                 'api': {
                     'oauth': 'https://api.ibkr.com/v1/api',
                     'private': 'https://api.ibkr.com/v1/api',
+                    'gwPrivate': 'https://api.ibkr.com/gw/api/v1',
                 },
                 'www': 'https://www.interactivebrokers.com/',
                 'referral': '',
@@ -146,6 +147,7 @@ export default class interactivebrokers extends Exchange {
                 },
                 'private': {
                     'get': {
+                        'oauth/request_token': { 'cost': 1 } as Endpoint<Dict>,
                         // informational
                         'trsrv/secdef/schedule': { 'cost': 1 } as Endpoint<List>, // trading schedule up to a month for the requested contract
                         'trsrv/futures': { 'cost': 1 } as Endpoint<Dict>, // non-expired future contracts (conid) for given symbol(s)
@@ -201,6 +203,8 @@ export default class interactivebrokers extends Exchange {
                         'sso/Dispatcher': { 'cost': 1 } as Endpoint<Dict>, // undocumented: validates the login
                     },
                     'post': {
+                        'oauth/access_token': { 'cost': 1 } as Endpoint<Dict>,
+                        'oauth/live_session_token': { 'cost': 1 } as Endpoint<Dict>,
                         // iserver
                         'iserver/auth/ssodh/init': { 'cost': 1 } as Endpoint<Dict>, // opens the brokerage session
                         'iserver/auth/status': { 'cost': 1 } as Endpoint<Dict>,
@@ -241,6 +245,15 @@ export default class interactivebrokers extends Exchange {
                         'fyi/deliveryoptions/{deviceId}': { 'cost': 1 } as Endpoint<Dict>,
                         'iserver/account/{accountId}/alert/{alertId}': { 'cost': 1 } as Endpoint<Dict>,
                         'iserver/account/{accountId}/order/{orderId}': { 'cost': 1 } as Endpoint<Dict>, // cancel order
+                    },
+                },
+                'gwPrivate': {
+                    'get': {
+                        'accounts/{accountId}/details': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'accounts/{accountId}/tasks': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -818,6 +831,7 @@ export default class interactivebrokers extends Exchange {
             'accountId': accountId,
         };
         const response = await this.privateGetPortfolioAccountIdLedger (this.extend (request, query));
+        const response2 = await this.gwPrivateGetAccountsAccountIdDetails (this.extend (request, query));
         //
         //     {
         //         "USD": {
@@ -857,15 +871,1194 @@ export default class interactivebrokers extends Exchange {
                 continue; // aggregated entry in the account base currency
             }
             const balance = this.safeDict (response, currencyId, {});
-            const code = this.safeCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId) as string;
             const account = this.account ();
             account['total'] = this.safeString (balance, 'cashbalance');
-            result[code as string] = account;
+            result[code] = account;
         }
         const timestamp = this.safeTimestamp (this.safeDict (response, 'BASE', {}), 'timestamp');
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#loadServiceAccounts
+     * @description calls iserver/accounts once per brokerage session, required by IBKR before trading and market data endpoints
+     * @ignore
+     * @returns {undefined}
+     */
+    async loadServiceAccounts (): Promise<any> {
+        await this.authenticate ();
+        if (!this.safeBool (this.options, 'serviceAccountsLoaded', false)) {
+            await this.fetchServiceAccounts ();
+            this.options['serviceAccountsLoaded'] = true;
+        }
+        return undefined;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchMarkets
+     * @description retrieves data on the configured markets: stocks of options.fetchMarkets.stockExchanges, crypto of options.fetchMarkets.cryptoSymbols and fx pairs of options.fetchMarkets.fxCurrencies, the market id is the IBKR conid
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-all-conids-by-exchange
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/search-contract-by-symbol
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-currency-pairs
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-security-definition-by-conid
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+        await this.loadServiceAccounts ();
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const stockExchanges = this.safeList (options, 'stockExchanges', []);
+        const cryptoSymbols = this.safeList (options, 'cryptoSymbols', []);
+        const fxCurrencies = this.safeList (options, 'fxCurrencies', []);
+        const stockQuote = this.safeString (options, 'stockQuote', 'USD');
+        const stockPriceIncrement = this.safeString (options, 'stockPriceIncrement', '0.01');
+        const stockAmountIncrement = this.safeString (options, 'stockAmountIncrement', '1');
+        const cryptoAmountIncrement = this.safeString (options, 'cryptoAmountIncrement', '0.00000001');
+        const fxAmountIncrement = this.safeString (options, 'fxAmountIncrement', '1');
+        const entries: Dict[] = [];
+        const seenStocks: Dict = {}; // the same conid is returned by several exchanges, e.g. NYSE also lists NASDAQ stocks
+        for (let i = 0; i < stockExchanges.length; i++) {
+            const stockRequest: Dict = {
+                'exchange': stockExchanges[i],
+                'assetClass': 'STK',
+            };
+            const stocks = await this.privateGetTrsrvAllConids (this.extend (stockRequest, params));
+            //
+            //     [ { "ticker": "AAPL", "conid": 265598, "exchange": "NMS" } ]
+            //
+            for (let j = 0; j < stocks.length; j++) {
+                const stock = stocks[j];
+                const stockConid = this.safeString (stock, 'conid');
+                if ((stockConid === undefined) || (stockConid in seenStocks)) {
+                    continue;
+                }
+                seenStocks[stockConid] = true;
+                entries.push ({
+                    'id': stockConid,
+                    'baseId': this.safeString (stock, 'ticker'),
+                    'quoteId': stockQuote,
+                    'assetClass': 'STK',
+                    'exchange': this.safeString (stock, 'exchange'),
+                    'priceIncrement': stockPriceIncrement,
+                    'amountIncrement': stockAmountIncrement,
+                    'info': stock,
+                });
+            }
+        }
+        // crypto and fx contracts get their tick size from trsrv/secdef
+        const detailIds: string[] = [];
+        const details: Dict = {};
+        for (let i = 0; i < cryptoSymbols.length; i++) {
+            const cryptoSymbol = cryptoSymbols[i];
+            const searchRequest: Dict = {
+                'symbol': cryptoSymbol,
+                'secType': 'CRYPTO',
+            };
+            const results = await this.privatePostIserverSecdefSearch (searchRequest);
+            //
+            //     [
+            //         {
+            //             "conid": "479624278",
+            //             "companyName": "Bitcoin cryptocurrency",
+            //             "symbol": "BTC",
+            //             "sections": [ { "secType": "CRYPTO", "exchange": "PAXOS;" } ]
+            //         },
+            //         ...
+            //     ]
+            //
+            for (let j = 0; j < results.length; j++) {
+                const result = results[j];
+                const sections = this.safeList (result, 'sections', []);
+                let isCrypto = false;
+                for (let k = 0; k < sections.length; k++) {
+                    if (this.safeString (sections[k], 'secType') === 'CRYPTO') {
+                        isCrypto = true;
+                    }
+                }
+                const conid = this.safeString (result, 'conid');
+                if (isCrypto && (this.safeString (result, 'symbol') === cryptoSymbol) && (conid !== undefined)) {
+                    detailIds.push (conid);
+                    details[conid] = {
+                        'id': conid,
+                        'baseId': cryptoSymbol,
+                        'quoteId': undefined,
+                        'assetClass': 'CRYPTO',
+                        'exchange': undefined,
+                        'priceIncrement': undefined,
+                        'amountIncrement': cryptoAmountIncrement,
+                        'info': result,
+                    };
+                    break;
+                }
+            }
+        }
+        for (let i = 0; i < fxCurrencies.length; i++) {
+            const fxCurrency = fxCurrencies[i];
+            const pairsRequest: Dict = {
+                'currency': fxCurrency,
+            };
+            const pairsResponse = await this.privateGetIserverCurrencyPairs (pairsRequest);
+            //
+            //     { "USD": [ { "symbol": "EUR.USD", "conid": 12087792, "ccyPair": "EUR" }, ... ] }
+            //
+            const pairs = this.safeList (pairsResponse, fxCurrency, []);
+            for (let j = 0; j < pairs.length; j++) {
+                const pair = pairs[j];
+                const conid = this.safeString (pair, 'conid');
+                const pairSymbol = this.safeString (pair, 'symbol');
+                if ((conid === undefined) || (pairSymbol === undefined) || (conid in details)) {
+                    continue;
+                }
+                const parts = pairSymbol.split ('.');
+                detailIds.push (conid);
+                details[conid] = {
+                    'id': conid,
+                    'baseId': this.safeString (parts, 0),
+                    'quoteId': this.safeString (parts, 1),
+                    'assetClass': 'CASH',
+                    'exchange': undefined,
+                    'priceIncrement': undefined,
+                    'amountIncrement': fxAmountIncrement,
+                    'info': pair,
+                };
+            }
+        }
+        const numDetails = detailIds.length;
+        if (numDetails > 0) {
+            const secdefRequest: Dict = {
+                'conids': detailIds.join (','),
+            };
+            const secdefResponse = await this.privateGetTrsrvSecdef (secdefRequest);
+            //
+            //     {
+            //         "secdef": [
+            //             {
+            //                 "conid": 479624278,
+            //                 "currency": "USD",
+            //                 "incrementRules": [ { "lowerEdge": 0, "increment": 0.25 } ],
+            //                 "listingExchange": "PAXOS",
+            //                 "assetClass": "CRYPTO",
+            //                 "ticker": "BTC",
+            //                 ...
+            //             }
+            //         ]
+            //     }
+            //
+            const secdefs = this.safeList (secdefResponse, 'secdef', []);
+            for (let i = 0; i < secdefs.length; i++) {
+                const secdef = secdefs[i];
+                const conid = this.safeString (secdef, 'conid', '');
+                const entry = this.safeDict (details, conid);
+                if (entry === undefined) {
+                    continue;
+                }
+                const incrementRules = this.safeList (secdef, 'incrementRules', []);
+                const firstRule = this.safeDict (incrementRules, 0, {});
+                entry['priceIncrement'] = this.safeString (firstRule, 'increment');
+                entry['exchange'] = this.safeString (secdef, 'listingExchange');
+                if (entry['quoteId'] === undefined) {
+                    entry['quoteId'] = this.safeString (secdef, 'currency');
+                }
+                entry['info'] = this.extend (entry['info'], secdef);
+                details[conid] = entry;
+            }
+        }
+        for (let i = 0; i < detailIds.length; i++) {
+            entries.push (details[detailIds[i]]);
+        }
+        return this.parseMarkets (entries);
+    }
+
+    override parseMarket (market: Dict): Market {
+        //
+        // normalized by fetchMarkets
+        //
+        //     {
+        //         "id": "479624278",
+        //         "baseId": "BTC",
+        //         "quoteId": "USD",
+        //         "assetClass": "CRYPTO",
+        //         "exchange": "PAXOS",
+        //         "priceIncrement": "0.25",
+        //         "amountIncrement": "0.00000001",
+        //         "info": { ... }
+        //     }
+        //
+        const assetClass = this.safeString (market, 'assetClass');
+        const baseId = this.safeString (market, 'baseId', '');
+        const quoteId = this.safeString (market, 'quoteId', 'USD');
+        let base: Str = undefined;
+        if (assetClass === 'STK') {
+            // stock tickers are not currencies, skip commonCurrencies remapping, 'BRK B' -> 'BRK.B'
+            base = baseId.split (' ').join ('.');
+        } else {
+            base = this.safeCurrencyCode (baseId);
+        }
+        const quote = this.safeCurrencyCode (quoteId);
+        const amountIncrement = this.safeString (market, 'amountIncrement');
+        return this.safeMarketStructure ({
+            'id': this.safeString (market, 'id'),
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (amountIncrement),
+                'price': this.parseNumber (this.safeString (market, 'priceIncrement')),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.parseNumber (amountIncrement),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': this.safeDict (market, 'info'),
+        });
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tickers = await this.fetchTickers ([ market['symbol'] ], params);
+        return this.safeDict (tickers, market['symbol']) as Ticker;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchTickers
+     * @description fetches price tickers for multiple markets, the first snapshot request only subscribes to the market data, so the request is retried until data arrives
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.fields] comma-separated snapshot field ids, max 50
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument');
+        }
+        await this.loadMarkets ();
+        await this.loadServiceAccounts ();
+        const symbolsNormalized = this.marketSymbols (symbols);
+        const conids: string[] = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
+            conids.push (this.safeString (market, 'id', ''));
+        }
+        const options = this.safeDict (this.options, 'fetchTickers', {});
+        const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields', '31,55,70,71,82,83,84,85,86,88,6509,7295,7296,7635,7741,7762');
+        const retries = this.safeInteger (options, 'retries', 5);
+        const retryDelay = this.safeInteger (options, 'retryDelay', 500);
+        const request: Dict = {
+            'conids': conids.join (','),
+            'fields': fields,
+        };
+        let response: List = [];
+        for (let i = 0; i <= retries; i++) {
+            response = await this.privateGetIserverMarketdataSnapshot (this.extend (request, query));
+            if (this.ibkrSnapshotReady (response)) {
+                break;
+            }
+            if (i < retries) {
+                await this.sleep (retryDelay);
+            }
+        }
+        //
+        //     [
+        //         {
+        //             "31": "82838.50",
+        //             "70": "85639.25",
+        //             "71": "82209.75",
+        //             "84": "82836.00",
+        //             "85": "0.00018171",
+        //             "86": "82843.75",
+        //             "88": "0.27167244",
+        //             "6509": "R",
+        //             "7762": "78",
+        //             "conidEx": "479624278",
+        //             "_updated": 1791449398940,
+        //             "conid": 479624278
+        //         }
+        //     ]
+        //
+        return this.parseTickers (response, symbolsNormalized);
+    }
+
+    ibkrSnapshotReady (response: List): boolean {
+        const numItems = response.length;
+        if (numItems === 0) {
+            return false;
+        }
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const last = this.safeString (item, '31');
+            const bid = this.safeString (item, '84');
+            const ask = this.safeString (item, '86');
+            if ((last === undefined) && (bid === undefined) && (ask === undefined)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    ibkrParseValue (value: Str): Str {
+        // snapshot values are formatted strings: "C82838.50" (prior close), "H1.2" (halted), "+1.04", "1.5%", "1M", "1,234"
+        if ((value === undefined) || (value === '') || (value === 'N/A')) {
+            return undefined;
+        }
+        let result = value.split (',').join ('');
+        if (result.startsWith ('C') || result.startsWith ('H') || result.startsWith ('+')) {
+            result = result.slice (1);
+        }
+        if (result.endsWith ('%')) {
+            result = result.slice (0, result.length - 1);
+        }
+        let multiplier: Str = undefined;
+        if (result.endsWith ('K')) {
+            multiplier = '1000';
+        } else if (result.endsWith ('M')) {
+            multiplier = '1000000';
+        } else if (result.endsWith ('B')) {
+            multiplier = '1000000000';
+        }
+        if (multiplier !== undefined) {
+            const scaled = Precise.stringMul (result.slice (0, result.length - 1), multiplier);
+            if (scaled === undefined) {
+                return undefined;
+            }
+            result = scaled;
+        }
+        if (result === '') {
+            return undefined;
+        }
+        return result;
+    }
+
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'conid');
+        const resolved = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (ticker, '_updated');
+        const last = this.ibkrParseValue (this.safeString (ticker, '31'));
+        return this.safeTicker ({
+            'symbol': resolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.ibkrParseValue (this.safeString (ticker, '70')),
+            'low': this.ibkrParseValue (this.safeString (ticker, '71')),
+            'bid': this.ibkrParseValue (this.safeString (ticker, '84')),
+            'bidVolume': this.ibkrParseValue (this.safeString (ticker, '88')),
+            'ask': this.ibkrParseValue (this.safeString (ticker, '86')),
+            'askVolume': this.ibkrParseValue (this.safeString (ticker, '85')),
+            'vwap': undefined,
+            'open': this.ibkrParseValue (this.safeString (ticker, '7295')),
+            'close': last,
+            'last': last,
+            'previousClose': this.ibkrParseValue (this.safeString (ticker, '7741')),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.ibkrParseValue (this.safeString (ticker, '7762')),
+            'quoteVolume': undefined,
+            'markPrice': this.ibkrParseValue (this.safeString (ticker, '7635')),
+            'indexPrice': undefined,
+            'info': ticker,
+        }, resolved);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-historical-market-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch, max 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.outsideRth] include data outside regular trading hours
+     * @param {string} [params.source] 'Last', 'Bid_Ask' or 'Midpoint'
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        await this.loadServiceAccounts ();
+        const market = this.market (symbol);
+        const maxLimit = this.safeInteger (this.safeDict (this.options, 'fetchOHLCV', {}), 'limit', 1000);
+        const requestLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        const request: Dict = {
+            'conid': market['id'],
+            'bar': this.safeString (this.timeframes, timeframe, timeframe),
+            'period': this.ibkrPeriod (this.parseTimeframe (timeframe), requestLimit),
+        };
+        if (since !== undefined) {
+            request['startTime'] = this.ibkrFormatTime (since);
+            request['direction'] = '1'; // forward from startTime, by default startTime is the end of the range
+        }
+        const response = await this.privateGetIserverMarketdataHistory (this.extend (request, params));
+        //
+        //     {
+        //         "points": 99,
+        //         "startTime": "20261007-18:20:00",
+        //         "data": [
+        //             { "o": 336.94, "c": 336.89, "h": 336.97, "l": 336.85, "v": 1164.625, "t": 1791397200000 }
+        //         ],
+        //         ...
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    ibkrPeriod (duration: int, limit: int): string {
+        // duration of one bar in seconds, the period is expressed in the largest fitting unit
+        const total = duration * limit;
+        if (duration < 3600) {
+            return this.numberToString (this.parseToInt (total / 60)) + 'min';
+        } else if (duration < 86400) {
+            return this.numberToString (this.parseToInt (total / 3600)) + 'h';
+        } else if (duration < 604800) {
+            return this.numberToString (this.parseToInt (total / 86400)) + 'd';
+        } else if (duration < 2592000) {
+            return this.numberToString (this.parseToInt (total / 604800)) + 'w';
+        }
+        return this.numberToString (this.parseToInt (total / 2592000)) + 'm';
+    }
+
+    ibkrFormatTime (timestamp: int): string {
+        // YYYYMMDD-hh:mm:ss in UTC
+        const iso = this.iso8601 (timestamp) as string;
+        return this.yyyymmdd (timestamp, '') + '-' + iso.slice (11, 19);
+    }
+
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#createOrder
+     * @description create a trade order, order reply prompts are confirmed automatically when options.createOrder.autoConfirmOrderReplies is true
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/submit-new-order
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/respond-to-server-prompt
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the stop price, creates a STP (market) or STP LMT (limit) order
+     * @param {float} [params.trailingAmount] the trailing offset in quote currency, creates a TRAIL or TRAILLMT order
+     * @param {float} [params.trailingPercent] the trailing offset in percent, creates a TRAIL or TRAILLMT order
+     * @param {string} [params.timeInForce] 'DAY', 'IOC', 'GTC', 'OPG' or 'PAX'
+     * @param {string} [params.clientOrderId] a unique id for the order, sent as cOID
+     * @param {boolean} [params.outsideRTH] allow the order to execute outside regular trading hours
+     * @param {string} [params.accountId] the account id, defaults to options["accountId"]
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        await this.loadServiceAccounts ();
+        const market = this.market (symbol);
+        const [ accountId, query ] = await this.loadAccountId (params);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, query);
+        orderRequest['acctId'] = accountId;
+        const request: Dict = {
+            'accountId': accountId,
+            'orders': [ orderRequest ],
+        };
+        const response = await this.privatePostIserverAccountAccountIdOrders (request);
+        const result = await this.ibkrHandleOrderReplies (response, 'createOrder');
+        //
+        //     [ { "order_id": "1370093239", "order_status": "PreSubmitted", "encrypt_message": "1" } ]
+        //
+        const order = this.parseOrder (result, market);
+        order['type'] = type;
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        return order;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#createOrderRequest
+     * @description builds a single order ticket for createOrder and editOrder
+     * @ignore
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the order ticket
+     */
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Dict {
+        const market = this.market (symbol);
+        const isMarket = (type === 'market');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const trailingAmount = this.safeString (params, 'trailingAmount');
+        const trailingPercent = this.safeString (params, 'trailingPercent');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'cOID');
+        const assetClass = this.safeString (market['info'], 'assetClass');
+        const request: Dict = {
+            'conid': this.parseToInt (market['id']),
+            'side': side.toUpperCase (),
+            'quantity': this.parseNumber (this.amountToPrecision (symbol, amount)),
+        };
+        let orderType: Str = undefined;
+        if ((trailingAmount !== undefined) || (trailingPercent !== undefined)) {
+            orderType = isMarket ? 'TRAIL' : 'TRAILLMT';
+            if (trailingPercent !== undefined) {
+                request['trailingType'] = '%';
+                request['trailingAmt'] = this.parseNumber (trailingPercent);
+            } else {
+                request['trailingType'] = 'amt';
+                request['trailingAmt'] = this.parseNumber (this.priceToPrecision (symbol, trailingAmount));
+            }
+            if (triggerPrice !== undefined) {
+                request['auxPrice'] = this.parseNumber (this.priceToPrecision (symbol, triggerPrice));
+            }
+            if (!isMarket) {
+                request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
+            }
+        } else if (triggerPrice !== undefined) {
+            if (isMarket) {
+                orderType = 'STP';
+                request['price'] = this.parseNumber (this.priceToPrecision (symbol, triggerPrice));
+            } else {
+                orderType = 'STP LMT';
+                request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
+                request['auxPrice'] = this.parseNumber (this.priceToPrecision (symbol, triggerPrice));
+            }
+        } else if (isMarket) {
+            orderType = 'MKT';
+        } else {
+            orderType = 'LMT';
+            request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
+        }
+        request['orderType'] = orderType;
+        let defaultTimeInForce = 'DAY';
+        if (assetClass === 'CRYPTO') {
+            defaultTimeInForce = isMarket ? 'IOC' : 'PAX';
+        }
+        const timeInForce = this.safeStringUpper2 (params, 'timeInForce', 'tif', defaultTimeInForce);
+        request['tif'] = timeInForce;
+        if (clientOrderId !== undefined) {
+            request['cOID'] = clientOrderId;
+        }
+        const query = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trailingAmount', 'trailingPercent', 'clientOrderId', 'cOID', 'timeInForce', 'tif' ]);
+        return this.extend (request, query);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrHandleOrderReplies
+     * @description confirms order reply prompts until the order is accepted, or throws InvalidOrder when options.createOrder.autoConfirmOrderReplies is false
+     * @ignore
+     * @param {object} response the order submission response
+     * @param {string} methodName the calling method name
+     * @returns {object} the accepted order entry
+     */
+    async ibkrHandleOrderReplies (response: any, methodName: string): Promise<Dict> {
+        const options = this.safeDict (this.options, 'createOrder', {});
+        const autoConfirm = this.safeBool (options, 'autoConfirmOrderReplies', true);
+        const maxReplies = this.safeInteger (options, 'maxReplies', 10);
+        let current = response;
+        for (let i = 0; i <= maxReplies; i++) {
+            if (!Array.isArray (current)) {
+                //
+                // advanced order reject
+                //
+                //     { "orderId": 123456789, "reqId": "22170", "text": "...", "options": [ ... ], "messageId": "p12", "prompt": true }
+                //
+                const text = this.safeString (current, 'text');
+                throw new InvalidOrder (this.id + ' ' + methodName + '() rejected: ' + text);
+            }
+            const first = this.safeDict (current, 0, {});
+            const orderId = this.safeString2 (first, 'order_id', 'orderId');
+            if (orderId !== undefined) {
+                return first;
+            }
+            //
+            // reply prompt
+            //
+            //     [ { "id": "99097238-...", "isSuppressed": false, "message": [ "You are submitting an order without market data..." ], "messageIds": [ "o354" ] } ]
+            //
+            const replyId = this.safeString (first, 'id');
+            const messages = this.safeList (first, 'message', []);
+            const message = messages.join (' ');
+            if (replyId === undefined) {
+                throw new InvalidOrder (this.id + ' ' + methodName + '() unexpected response: ' + this.json (current));
+            }
+            if (!autoConfirm) {
+                throw new InvalidOrder (this.id + ' ' + methodName + '() requires confirmation (reply id ' + replyId + '): ' + message);
+            }
+            const replyRequest: Dict = {
+                'replyid': replyId,
+                'confirmed': true,
+            };
+            current = await this.privatePostIserverReplyReplyid (replyRequest);
+        }
+        throw new InvalidOrder (this.id + ' ' + methodName + '() exceeded options.createOrder.maxReplies order reply confirmations');
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#editOrder
+     * @description edit a trade order
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/modify-open-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, see createOrder
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
+        }
+        await this.loadMarkets ();
+        await this.loadServiceAccounts ();
+        const market = this.market (symbol);
+        const [ accountId, query ] = await this.loadAccountId (params);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, query);
+        orderRequest['acctId'] = accountId;
+        orderRequest['accountId'] = accountId;
+        orderRequest['orderId'] = id;
+        const response = await this.privatePostIserverAccountAccountIdOrderOrderId (orderRequest);
+        const result = await this.ibkrHandleOrderReplies (response, 'editOrder');
+        const order = this.parseOrder (result, market);
+        order['type'] = type;
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        return order;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#cancelOrder
+     * @description cancels an open order
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/cancel-open-order
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountId] the account id, defaults to options["accountId"]
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        await this.loadServiceAccounts ();
+        const market = this.marketOrNull (symbol);
+        const [ accountId, query ] = await this.loadAccountId (params);
+        const request: Dict = {
+            'accountId': accountId,
+            'orderId': id,
+        };
+        const response = await this.privateDeleteIserverAccountAccountIdOrderOrderId (this.extend (request, query));
+        //
+        //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
+        //
+        const order = this.parseOrder (response, market);
+        order['status'] = 'canceled';
+        return order;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchOrder
+     * @description fetches information on an order made by the user, only orders of the current brokerage session are available
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-order-status
+     * @param {string} id the order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        await this.loadServiceAccounts ();
+        const market = this.marketOrNull (symbol);
+        const request: Dict = {
+            'orderId': id,
+        };
+        const response = await this.privateGetIserverAccountOrderStatusOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "order_id": 1799796559,
+        //         "conid": 265598,
+        //         "side": "BUY",
+        //         "order_status": "Filled",
+        //         "order_type": "MARKET",
+        //         "size": "0.0",
+        //         "total_size": "5.0",
+        //         "cum_fill": "5.0",
+        //         "average_price": "192.26",
+        //         "tif": "DAY",
+        //         "order_time": "231211180049",
+        //         ...
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchOrders
+     * @description fetches information on multiple orders of the current brokerage session
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.filters] comma-separated status filters, e.g. 'submitted,filled'
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        await this.loadServiceAccounts ();
+        const market = this.marketOrNull (symbol);
+        const retryDelay = this.safeInteger (this.safeDict (this.options, 'fetchOrders', {}), 'retryDelay', 500);
+        let response = await this.privateGetIserverAccountOrders (params);
+        if (!this.safeBool (response, 'snapshot', true)) {
+            // the first request of a session only starts the order subscription
+            await this.sleep (retryDelay);
+            response = await this.privateGetIserverAccountOrders (params);
+        }
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "acct": "U1234567",
+        //                 "conid": 265598,
+        //                 "orderId": 1234568790,
+        //                 "cashCcy": "USD",
+        //                 "remainingQuantity": 5.0,
+        //                 "filledQuantity": 0.0,
+        //                 "totalSize": 5.0,
+        //                 "status": "Submitted",
+        //                 "origOrderType": "LIMIT",
+        //                 "orderType": "Limit",
+        //                 "side": "BUY",
+        //                 "price": "185.50",
+        //                 "timeInForce": "CLOSE",
+        //                 "lastExecutionTime_r": 1702317649000,
+        //                 ...
+        //             }
+        //         ],
+        //         "snapshot": true
+        //     }
+        //
+        const orders = this.safeList (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchOpenOrders
+     * @description fetch all unfilled currently open orders of the current brokerage session
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const result: Order[] = [];
+        for (let i = 0; i < orders.length; i++) {
+            if (orders[i]['status'] === 'open') {
+                result.push (orders[i]);
+            }
+        }
+        return this.filterBySinceLimit (result, since, limit) as Order[];
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchClosedOrders
+     * @description fetches information on multiple closed orders of the current brokerage session
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const result: Order[] = [];
+        for (let i = 0; i < orders.length; i++) {
+            const status = orders[i]['status'];
+            if ((status === 'closed') || (status === 'canceled') || (status === 'rejected')) {
+                result.push (orders[i]);
+            }
+        }
+        return this.filterBySinceLimit (result, since, limit) as Order[];
+    }
+
+    parseOrderStatus (status: Str): Str {
+        const statuses: Dict = {
+            'Inactive': 'rejected',
+            'PendingSubmit': 'open',
+            'PreSubmitted': 'open',
+            'Submitted': 'open',
+            'Filled': 'closed',
+            'PendingCancel': 'open',
+            'PreCancelled': 'canceled',
+            'Cancelled': 'canceled',
+            'WarnState': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (orderType: Str): Str {
+        if (orderType === undefined) {
+            return undefined;
+        }
+        const types: Dict = {
+            'LMT': 'limit',
+            'LIMIT': 'limit',
+            'MKT': 'market',
+            'MARKET': 'market',
+            'STP': 'market',
+            'STOP': 'market',
+            'STP LMT': 'limit',
+            'STOP_LIMIT': 'limit',
+            'STOPLIMIT': 'limit',
+            'TRAIL': 'market',
+            'TRAILLMT': 'limit',
+            'TRAILING_STOP': 'market',
+            'TRAILING_STOP_LIMIT': 'limit',
+            'MIDPRICE': 'limit',
+        };
+        return this.safeString (types, orderType.toUpperCase (), orderType);
+    }
+
+    parseOrderTimeInForce (timeInForce: Str): Str {
+        const timeInForces: Dict = {
+            'DAY': 'Day',
+            'GTC': 'GTC',
+            'IOC': 'IOC',
+            'OPG': 'OPG',
+            'PAX': 'PAX',
+            'CLOSE': 'Day',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
+    override parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // createOrder / editOrder
+        //
+        //     { "order_id": "1370093239", "order_status": "PreSubmitted", "encrypt_message": "1" }
+        //
+        // cancelOrder
+        //
+        //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
+        //
+        // fetchOrder
+        //
+        //     { "order_id": 1799796559, "conid": 265598, "side": "BUY", "order_status": "Filled", "order_type": "MARKET", "size": "0.0", "total_size": "5.0", "cum_fill": "5.0", "average_price": "192.26", "tif": "DAY", "order_time": "231211180049" }
+        //
+        // fetchOrders
+        //
+        //     { "orderId": 1234568790, "conid": 265598, "side": "BUY", "status": "Submitted", "orderType": "Limit", "price": "185.50", "avgPrice": "185.40", "filledQuantity": 0.0, "remainingQuantity": 5.0, "totalSize": 5.0, "timeInForce": "CLOSE", "lastExecutionTime_r": 1702317649000, "order_ref": "my-id" }
+        //
+        const marketId = this.safeString (order, 'conid');
+        const resolved = this.safeMarket (marketId, market);
+        const orderTime = this.safeString (order, 'order_time');
+        let timestamp = this.safeInteger (order, 'lastExecutionTime_r');
+        if ((timestamp === undefined) && (orderTime !== undefined)) {
+            // YYMMDDhhmmss in UTC
+            const datetime = '20' + orderTime.slice (0, 2) + '-' + orderTime.slice (2, 4) + '-' + orderTime.slice (4, 6) + 'T' + orderTime.slice (6, 8) + ':' + orderTime.slice (8, 10) + ':' + orderTime.slice (10, 12) + 'Z';
+            timestamp = this.parse8601 (datetime);
+        }
+        const rawType = this.safeString2 (order, 'origOrderType', 'order_type');
+        const orderType = this.safeString (order, 'orderType', rawType);
+        const sideId = this.safeStringUpper (order, 'side');
+        let side: Str = undefined;
+        if ((sideId === 'B') || (sideId === 'BUY')) {
+            side = 'buy';
+        } else if ((sideId === 'S') || (sideId === 'SELL')) {
+            side = 'sell';
+        }
+        let average = this.safeString2 (order, 'avgPrice', 'average_price');
+        if (Precise.stringEq (average, '0')) {
+            average = undefined;
+        }
+        let price = this.safeString2 (order, 'price', 'limit_price');
+        if (Precise.stringEq (price, '0')) {
+            price = undefined;
+        }
+        return this.safeOrder ({
+            'id': this.safeString2 (order, 'order_id', 'orderId'),
+            'clientOrderId': this.safeString2 (order, 'order_ref', 'cOID'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'symbol': resolved['symbol'],
+            'type': this.parseOrderType (orderType),
+            'timeInForce': this.parseOrderTimeInForce (this.safeString2 (order, 'timeInForce', 'tif')),
+            'postOnly': undefined,
+            'reduceOnly': undefined,
+            'side': side,
+            'price': price,
+            'triggerPrice': this.safeString (order, 'auxPrice'),
+            'amount': this.safeString2 (order, 'totalSize', 'total_size'),
+            'cost': undefined,
+            'average': average,
+            'filled': this.safeString2 (order, 'filledQuantity', 'cum_fill'),
+            'remaining': this.safeString2 (order, 'remainingQuantity', 'size'),
+            'status': this.parseOrderStatus (this.safeString2 (order, 'status', 'order_status')),
+            'fee': undefined,
+            'trades': undefined,
+            'info': order,
+        }, resolved);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchMyTrades
+     * @description fetch all trades made by the user over the last days (max 7)
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-trades
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.days] number of days to fetch, max 7
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        await this.loadServiceAccounts ();
+        const market = this.marketOrNull (symbol);
+        let days = this.safeInteger (this.safeDict (this.options, 'fetchMyTrades', {}), 'days', 7);
+        if (since !== undefined) {
+            days = Math.min (7, Math.max (1, this.parseToInt (Math.ceil ((this.milliseconds () - since) / 86400000))));
+        }
+        const request: Dict = {
+            'days': days,
+        };
+        const response = await this.privateGetIserverAccountTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "execution_id": "0000e0d5.6576fd38.01.01",
+        //             "symbol": "BTC",
+        //             "side": "B",
+        //             "order_description": "Bot 0.0001 @ 82000",
+        //             "trade_time_r": 1702319818000,
+        //             "size": 0.0001,
+        //             "price": "82000",
+        //             "order_ref": "my-id",
+        //             "exchange": "PAXOS",
+        //             "commission": "0.02",
+        //             "net_amount": 8.2,
+        //             "account": "U1234567",
+        //             "sec_type": "CRYPTO",
+        //             "conidex": "479624278",
+        //             "conid": 479624278,
+        //             "order_id": 1234567890
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        const marketId = this.safeString (trade, 'conid');
+        const resolved = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (trade, 'trade_time_r');
+        const sideId = this.safeString (trade, 'side');
+        let side: Str = undefined;
+        if ((sideId === 'B') || (sideId === 'BUY')) {
+            side = 'buy';
+        } else if ((sideId === 'S') || (sideId === 'SELL')) {
+            side = 'sell';
+        }
+        const commission = this.safeString (trade, 'commission');
+        let fee = undefined;
+        if (commission !== undefined) {
+            fee = {
+                'cost': commission,
+                'currency': resolved['quote'],
+            };
+        }
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'execution_id'),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': resolved['symbol'],
+            'order': this.safeString (trade, 'order_id'),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'size'),
+            'cost': undefined,
+            'fee': fee,
+        }, resolved);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchPositions
+     * @description fetch all open positions
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-positions-in-real-time
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountId] the account id, defaults to options["accountId"]
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const [ accountId, query ] = await this.loadAccountId (params);
+        const request: Dict = {
+            'accountId': accountId,
+        };
+        const response = await this.privateGetPortfolio2AccountIdPositions (this.extend (request, query));
+        //
+        //     [
+        //         {
+        //             "position": 12.0,
+        //             "conid": "265598",
+        //             "avgCost": 192.5,
+        //             "avgPrice": 192.5,
+        //             "currency": "USD",
+        //             "description": "AAPL",
+        //             "isLastToLoq": false,
+        //             "marketPrice": 193.12,
+        //             "marketValue": 2317.44,
+        //             "realizedPnl": 0.0,
+        //             "secType": "STK",
+        //             "timestamp": 1717444668,
+        //             "unrealizedPnl": 7.44,
+        //             "assetClass": "STK",
+        //             "sector": "Technology",
+        //             "group": "Computers",
+        //             "model": ""
+        //         }
+        //     ]
+        //
+        return this.parsePositions (response, symbols);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchPosition
+     * @description fetch data on a single open position
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-positions-in-real-time
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const positions = await this.fetchPositions ([ market['symbol'] ], params);
+        return this.safeDict (positions, 0) as Position;
+    }
+
+    override parsePosition (position: Dict, market: Market = undefined): Position {
+        const marketId = this.safeString (position, 'conid');
+        const resolved = this.safeMarket (marketId, market);
+        const timestamp = this.safeTimestamp (position, 'timestamp');
+        const contracts = this.safeString (position, 'position');
+        let side: Str = undefined;
+        if (Precise.stringGt (contracts, '0')) {
+            side = 'long';
+        } else if (Precise.stringLt (contracts, '0')) {
+            side = 'short';
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': resolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'isolated': undefined,
+            'hedged': undefined,
+            'side': side,
+            'contracts': this.parseNumber (Precise.stringAbs (contracts)),
+            'contractSize': undefined,
+            'entryPrice': this.safeNumber2 (position, 'avgPrice', 'avgCost'),
+            'markPrice': this.safeNumber2 (position, 'marketPrice', 'mktPrice'),
+            'notional': this.safeNumber2 (position, 'marketValue', 'mktValue'),
+            'leverage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'maintenanceMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
+            'realizedPnl': this.safeNumber (position, 'realizedPnl'),
+            'liquidationPrice': undefined,
+            'marginMode': undefined,
+            'marginRatio': undefined,
+            'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'lastUpdateTimestamp': undefined,
+        });
     }
 
     ibkrEncrypt (value: string): string {
