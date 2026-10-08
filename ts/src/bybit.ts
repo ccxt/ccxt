@@ -226,7 +226,7 @@ export default class bybit extends Exchange {
                         'v5/system/status': { 'cost': 5 } as Endpoint<Dict>,
                         // market
                         'v5/market/time': { 'cost': 5 } as Endpoint<Dict>,
-                        'v5/market/kline': { 'cost': 5 } as Endpoint<Dict>,
+                        'v5/market/kline': { 'cost': 5.2 } as Endpoint<Dict>, // added several % buffer to official value, to avoid RL issues https://github.com/ccxt/ccxt/pull/30573
                         'v5/market/mark-price-kline': { 'cost': 5 } as Endpoint<Dict>,
                         'v5/market/index-price-kline': { 'cost': 5 } as Endpoint<Dict>,
                         'v5/market/premium-index-price-kline': { 'cost': 5 } as Endpoint<Dict>,
