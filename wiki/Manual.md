@@ -414,7 +414,8 @@ console.log(exchange.features);
     },
     fetchOHLCV: {
       paginate: true,
-      limit: 1000
+      limit: 1000,
+      volume: 'base'            // candle volume unit: 'base', 'quote', 'contracts', or undefined when unchecked
     }
   },
   swap: {
@@ -3688,11 +3689,13 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
         4240.6,        // (H)ighest price, float
         4230.0,        // (L)owest price, float
         4230.7,        // (C)losing price, float
-        37.72941911    // (V)olume float (usually in terms of the base currency, the exchanges docstring may list whether quote or base units are used)
+        37.72941911    // (V)olume, float, in the unit from featureValue (symbol, 'fetchOHLCV', 'volume')
     ],
     ...
 ]
 ```
+
+Candle volume is not in one fixed unit. Callers read `exchange.featureValue (symbol, 'fetchOHLCV', 'volume')`. The value is `'base'`, `'quote'`, `'contracts'`, or `undefined`. `undefined` means the unit has not been checked, not that the volume is in the base currency. `'quote'` is already quote notional. `'base'` times the candle close is quote notional. `'contracts'` times the market `contractSize` (missing `contractSize` counts as 1) is the base currency on linear markets and the quote currency on inverse markets. CCXT does not rescale the parsed candle.
 
 The list of candles is returned sorted in ascending (historical/chronological) order, oldest candle first, most recent candle last.
 

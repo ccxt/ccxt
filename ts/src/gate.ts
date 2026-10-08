@@ -1009,6 +1009,9 @@ export default class gate extends Exchange {
                 'swap': {
                     'linear': {
                         'extends': 'forDerivatives',
+                        'fetchOHLCV': {
+                            'volume': 'contracts',
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivatives',

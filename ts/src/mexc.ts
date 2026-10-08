@@ -873,6 +873,9 @@ export default class mexc extends Exchange {
                 'swap': {
                     'linear': {
                         'extends': 'forDerivs',
+                        'fetchOHLCV': {
+                            'volume': 'contracts',
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivs',

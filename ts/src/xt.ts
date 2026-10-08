@@ -858,11 +858,17 @@ export default class xt extends Exchange {
                         'createOrder': {
                             'trailing': true,
                         },
+                        'fetchOHLCV': {
+                            'volume': 'contracts',
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivatives',
                         'createOrder': {
                             'trailing': true,
+                        },
+                        'fetchOHLCV': {
+                            'volume': 'base',
                         },
                     },
                 },
