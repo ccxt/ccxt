@@ -898,6 +898,19 @@
         ],
         "createMarketBuyOrderWithCost": [
             {
+                "description": "swap market buy by cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&quoteOrderQty=12&side=BUY&symbol=BTC-USDT&timestamp=1791476517430&type=MARKET&signature=d426b29b7fc116a8e76acc82f1bf8850adffca45a1da7a16c9c4dc5342a0569d",
+                "input": [
+                    "BTC/USDT:USDT",
+                    12,
+                    {
+                        "hedged": true,
+                        "quoteOrderQty": 12
+                    }
+                ]
+            },
+            {
                 "description": "Fill this with a description of the method call",
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=10&side=BUY&symbol=BTC-USDT&timestamp=1701413753563&type=MARKET&signature=4194ff6c2eb53217252960743199e47e8e45dea7755c1f3b055552a0d4b6d93c",

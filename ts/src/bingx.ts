@@ -724,7 +724,7 @@ export default class bingx extends Exchange {
                         'trailing': true,
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': false,
+                        'marketBuyByCost': true,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
@@ -777,6 +777,9 @@ export default class bingx extends Exchange {
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
                     'sandbox': false,
+                    'createOrder': {
+                        'marketBuyByCost': false,
+                    },
                     'createOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -3169,8 +3172,8 @@ export default class bingx extends Exchange {
          */
         const market = this.market (symbol);
         const cost = this.safeString2 (params, 'cost', 'quoteOrderQty');
-        if ((market['contract'] === true) && (cost !== undefined)) {
-            throw new NotSupported (this.id + ' createOrder() with cost or quoteOrderQty is not supported for contract markets');
+        if ((market['inverse'] === true) && (cost !== undefined)) {
+            throw new NotSupported (this.id + ' createOrder() with cost or quoteOrderQty is not supported for inverse swap markets');
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const typeValue: Str = type.toUpperCase ();
@@ -3388,7 +3391,9 @@ export default class bingx extends Exchange {
             }
             request['positionSide'] = positionSide;
             const closePosition = this.safeBool (paramsOrder, 'closePosition', false);
-            if (closePosition !== true) {
+            if (cost !== undefined) {
+                request['quoteOrderQty'] = this.parseToNumeric (this.costToPrecision (symbol, cost));
+            } else if (closePosition !== true) {
                 let amountReq = amount;
                 if (market['inverse'] !== true) {
                     amountReq = this.parseToNumeric (this.amountToPrecision (symbol, amount));
@@ -3396,7 +3401,7 @@ export default class bingx extends Exchange {
                 request['quantity'] = amountReq; // precision not available for inverse contracts
             }
         }
-        const paramsRequest = this.omit (paramsOrder, [ 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId' ]);
+        const paramsRequest = this.omit (paramsOrder, [ 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId', 'cost', 'quoteOrderQty' ]);
         return this.extend (request, paramsRequest);
     }
 
@@ -3421,8 +3426,8 @@ export default class bingx extends Exchange {
      * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
      * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
      * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
-     * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
-     * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
+     * @param {float} [params.cost] *spot and linear swap only* the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.quoteOrderQty] *spot and linear swap only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
