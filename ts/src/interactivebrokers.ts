@@ -2289,7 +2289,7 @@ export default class interactivebrokers extends Exchange {
     }
 
     override sign (path: string, api = 'private', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const baseUrl = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        const baseUrl = this.urls['api'][api] + this.implodeParams (path, params);
         let url = baseUrl;
         const query = this.omit (params, this.extractParams (path));
         const hasQuery = Object.keys (query).length > 0;
