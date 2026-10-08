@@ -2185,6 +2185,17 @@ export default class mexc extends Exchange {
             ask = this.safeString (ticker, 'ask1');
             baseVolume = this.safeString (ticker, 'volume24');
             quoteVolume = this.safeString (ticker, 'amount24');
+            const contractSize = this.safeString (marketResolved, 'contractSize');
+            if ((isSwap === true) && (contractSize !== undefined)) {
+                // volume24 counts contracts, amount24 is in the settle currency
+                const contractVolume = Precise.stringMul (baseVolume, contractSize);
+                if (marketResolved['inverse'] === true) {
+                    baseVolume = quoteVolume;
+                    quoteVolume = contractVolume;
+                } else {
+                    baseVolume = contractVolume;
+                }
+            }
             high = this.safeString (ticker, 'high24Price');
             low = this.safeString (ticker, 'lower24Price');
             changeValue = this.safeString (ticker, 'riseFallValue');
