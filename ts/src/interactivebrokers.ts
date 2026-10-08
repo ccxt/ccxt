@@ -716,241 +716,6 @@ export default class interactivebrokers extends Exchange {
 
     /**
      * @method
-     * @name interactivebrokers#fetchAccounts
-     * @description fetch all the accounts associated with a profile
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-all-accounts
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
-     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
-     */
-    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
-        // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
-        const portfolioAccounts = await this.fetchPortfolioAccounts (params);
-        const accountIds = Object.keys (this.indexBy (portfolioAccounts, 'accountId'));
-        const length = accountIds.length;
-        if (length === 0) {
-            throw new ExchangeError ('No tradingaccount IDs found for the user');
-        }
-        if (this.safeString (this.options, 'accountId') === undefined) {
-            if (length === 1) {
-                this.options['accountId'] = accountIds[0];
-            } else {
-                throw new ExchangeError ('Multiple account IDs found, please set .options["accountId"] to desired one from: ' + accountIds.join (', '));
-            }
-        }
-        const accounts: Account[] = [];
-        for (let i = 0; i < portfolioAccounts.length; i++) {
-            accounts.push (this.parseAccount (portfolioAccounts[i]));
-        }
-        return accounts;
-    }
-
-    override parseAccount (account: Dict): Account {
-        //
-        //     {
-        //         "id": "U3449298",
-        //         "accountId": "U3449298",
-        //         "accountVan": "U3449298",
-        //         "accountTitle": "John Doe",
-        //         "displayName": "John Doe",
-        //         "accountAlias": null,
-        //         "accountStatus": "1646607600000",
-        //         "currency": "USD",
-        //         "type": "INDIVIDUAL",
-        //         "tradingType": "STKNOPT",
-        //         ...
-        //     }
-        //
-        const currencyId = this.safeString (account, 'currency');
-        return {
-            'id': this.safeString2 (account, 'accountId', 'id'),
-            'type': this.safeStringLower (account, 'type'),
-            'code': this.safeCurrencyCode (currencyId),
-            'info': account,
-            'name': this.safeString (account, 'accountTitle'),
-        };
-    }
-
-    /**
-     * @method
-     * @name interactivebrokers#fetchServiceAccounts
-     * @description fetch the accounts the user has trading access to, must be called before modifying an order or querying open orders
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#accounts
-     * @ignore
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} the raw response from the exchange
-     */
-    async fetchServiceAccounts (params: Dict = {}): Promise<Dict> {
-        await this.authenticate ();
-        const response = await this.privateGetIserverAccounts (params);
-        //
-        //    {
-        //        "accounts": [
-        //            "U3448645"
-        //        ],
-        //        "acctProps": {
-        //            "U3448645": {
-        //                "hasChildAccounts": false,
-        //                "supportsCashQty": true,
-        //                "liteUnderPro": false,
-        //                "noFXConv": false,
-        //                "isProp": false,
-        //                "supportsFractions": true,
-        //                "allowCustomerTime": false,
-        //                "autoFx": false
-        //            }
-        //        },
-        //        "aliases": {
-        //            "U3448645": "U3448645"
-        //        },
-        //        "allowFeatures": {
-        //            "showGFIS": true,
-        //            "showEUCostReport": false,
-        //            "allowEventContract": true,
-        //            "allowFXConv": true,
-        //            "allowFinancialLens": false,
-        //            "allowMTA": true,
-        //            "allowTypeAhead": true,
-        //            "allowEventTrading": true,
-        //            "snapshotRefreshTimeout": 30,
-        //            "liteUser": false,
-        //            "showWebNews": true,
-        //            "research": true,
-        //            "debugPnl": true,
-        //            "showTaxOpt": true,
-        //            "showImpactDashboard": true,
-        //            "allowDynAccount": false,
-        //            "allowCrypto": false,
-        //            "allowFA": false,
-        //            "allowLiteUnderPro": false,
-        //            "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
-        //            "restrictTradeSubscription": false,
-        //            "showUkUserLabels": true,
-        //            "sideBySide": true
-        //        },
-        //        "chartPeriods": {
-        //            "STK": [ "*" ],
-        //            "CFD": [ "*" ],
-        //            "OPT": [ "2h", "1d", "2d", "1w", "1m" ],
-        //            "FOP": [ "2h", "1d", "2d", "1w", "1m" ],
-        //            "WAR": [ "*" ],
-        //            "IOPT": [ "*" ],
-        //            "FUT": [ "*" ],
-        //            "CASH": [ "*" ],
-        //            "IND": [ "*" ],
-        //            "BOND": [ "*" ],
-        //            "FUND": [ "*" ],
-        //            "CMDTY": [ "*" ],
-        //            "PHYSS": [ "*" ],
-        //            "CRYPTO": [ "*" ]
-        //        },
-        //        "groups": [],
-        //        "profiles": [],
-        //        "selectedAccount": "U3448645",
-        //        "serverInfo": {
-        //            "serverName": "JifZ26071",
-        //            "serverVersion": "Build 10.50.1a, Sep 23, 2026 1:23:38 PM"
-        //        },
-        //        "sessionId": "6ac5c713.0000037a",
-        //        "isFT": false,
-        //        "isPaper": false
-        //    }
-        //
-        return response;
-    }
-
-    /**
-     * @method
-     * @name interactivebrokers#fetchPortfolioAccounts
-     * @description fetch the accounts for which the user can view position and account information
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#portfolio-accounts
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#portfolio-subaccounts
-     * @ignore
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
-     * @returns {object[]} the raw response from the exchange
-     */
-    async fetchPortfolioAccounts (params: Dict = {}): Promise<Dict[]> {
-        await this.authenticate ();
-        const [ method, query ] = this.handleOptionAndParams (params, 'fetchPortfolioAccounts', 'method', 'privateGetPortfolioAccounts');
-        let response = undefined;
-        if (method === 'privateGetPortfolioSubaccounts') {
-            response = await this.privateGetPortfolioSubaccounts (query);
-        } else {
-            response = await this.privateGetPortfolioAccounts (query);
-            //
-            //    [
-            //        {
-            //            "id": "U3448645",
-            //            "PrepaidCrypto-Z": false,
-            //            "PrepaidCrypto-P": true,
-            //            "brokerageAccess": true,
-            //            "accountId": "U3448645",
-            //            "accountVan": "U3448645",
-            //            "accountTitle": "Toma Todua",
-            //            "displayName": "Toma Todua",
-            //            "accountAlias": null,
-            //            "accountStatus": 1646607600000,
-            //            "currency": "USD",
-            //            "type": "INDIVIDUAL",
-            //            "tradingType": "STKNOPT",
-            //            "businessType": "INDEPENDENT",
-            //            "category": "",
-            //            "ibEntity": "IBLLC-US",
-            //            "faclient": false,
-            //            "clearingStatus": "O",
-            //            "covestor": false,
-            //            "noClientTrading": false,
-            //            "trackVirtualFXPortfolio": true,
-            //            "acctCustType": "INDIVIDUAL",
-            //            "parent": {
-            //                "mmc": [],
-            //                "accountId": "",
-            //                "isMParent": false,
-            //                "isMChild": false,
-            //                "isMultiplex": false
-            //            },
-            //            "desc": "U3448645"
-            //        }
-            //    ]
-            //
-        }
-        return response;
-    }
-
-    /**
-     * @method
-     * @name interactivebrokers#switchToAccount
-     * @description switch the active account (for users with multiple accounts)
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#switch-account
-     * @ignore
-     * @param {string} accountId the account id to switch to
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} the raw response from the exchange
-     */
-    async switchToAccount (accountId: string, params: Dict = {}): Promise<Dict> {
-        if (accountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' switchToAccount() requires an accountId argument');
-        }
-        const request: Dict = {
-            'acctId': accountId,
-        };
-        await this.authenticate ();
-        const response = await this.privatePostIserverAccount (this.extend (request, params));
-        //
-        //     {
-        //         "set": true,
-        //         "acctId": "U3449298"
-        //     }
-        //
-        // if the account is already selected, the gateway responds with http 501 instead
-        //
-        this.options['accountId'] = accountId;
-        return response;
-    }
-
-    /**
-     * @method
      * @name interactivebrokers#loadAccountId
      * @description returns the account id from params, options, or the first account returned by fetchAccounts
      * @ignore
@@ -1539,6 +1304,241 @@ export default class interactivebrokers extends Exchange {
             this.safeNumber (ohlcv, 'c'),
             this.safeNumber (ohlcv, 'v'),
         ];
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-all-accounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+     */
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
+        // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
+        const portfolioAccounts = await this.fetchPortfolioAccounts (params);
+        const accountIds = Object.keys (this.indexBy (portfolioAccounts, 'accountId'));
+        const length = accountIds.length;
+        if (length === 0) {
+            throw new ExchangeError ('No tradingaccount IDs found for the user');
+        }
+        if (this.safeString (this.options, 'accountId') === undefined) {
+            if (length === 1) {
+                this.options['accountId'] = accountIds[0];
+            } else {
+                throw new ExchangeError ('Multiple account IDs found, please set .options["accountId"] to desired one from: ' + accountIds.join (', '));
+            }
+        }
+        const accounts: Account[] = [];
+        for (let i = 0; i < portfolioAccounts.length; i++) {
+            accounts.push (this.parseAccount (portfolioAccounts[i]));
+        }
+        return accounts;
+    }
+
+    override parseAccount (account: Dict): Account {
+        //
+        //     {
+        //         "id": "U3449298",
+        //         "accountId": "U3449298",
+        //         "accountVan": "U3449298",
+        //         "accountTitle": "John Doe",
+        //         "displayName": "John Doe",
+        //         "accountAlias": null,
+        //         "accountStatus": "1646607600000",
+        //         "currency": "USD",
+        //         "type": "INDIVIDUAL",
+        //         "tradingType": "STKNOPT",
+        //         ...
+        //     }
+        //
+        const currencyId = this.safeString (account, 'currency');
+        return {
+            'id': this.safeString2 (account, 'accountId', 'id'),
+            'type': this.safeStringLower (account, 'type'),
+            'code': this.safeCurrencyCode (currencyId),
+            'info': account,
+            'name': this.safeString (account, 'accountTitle'),
+        };
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchServiceAccounts
+     * @description fetch the accounts the user has trading access to, must be called before modifying an order or querying open orders
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#accounts
+     * @ignore
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw response from the exchange
+     */
+    async fetchServiceAccounts (params: Dict = {}): Promise<Dict> {
+        await this.authenticate ();
+        const response = await this.privateGetIserverAccounts (params);
+        //
+        //    {
+        //        "accounts": [
+        //            "U3448645"
+        //        ],
+        //        "acctProps": {
+        //            "U3448645": {
+        //                "hasChildAccounts": false,
+        //                "supportsCashQty": true,
+        //                "liteUnderPro": false,
+        //                "noFXConv": false,
+        //                "isProp": false,
+        //                "supportsFractions": true,
+        //                "allowCustomerTime": false,
+        //                "autoFx": false
+        //            }
+        //        },
+        //        "aliases": {
+        //            "U3448645": "U3448645"
+        //        },
+        //        "allowFeatures": {
+        //            "showGFIS": true,
+        //            "showEUCostReport": false,
+        //            "allowEventContract": true,
+        //            "allowFXConv": true,
+        //            "allowFinancialLens": false,
+        //            "allowMTA": true,
+        //            "allowTypeAhead": true,
+        //            "allowEventTrading": true,
+        //            "snapshotRefreshTimeout": 30,
+        //            "liteUser": false,
+        //            "showWebNews": true,
+        //            "research": true,
+        //            "debugPnl": true,
+        //            "showTaxOpt": true,
+        //            "showImpactDashboard": true,
+        //            "allowDynAccount": false,
+        //            "allowCrypto": false,
+        //            "allowFA": false,
+        //            "allowLiteUnderPro": false,
+        //            "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+        //            "restrictTradeSubscription": false,
+        //            "showUkUserLabels": true,
+        //            "sideBySide": true
+        //        },
+        //        "chartPeriods": {
+        //            "STK": [ "*" ],
+        //            "CFD": [ "*" ],
+        //            "OPT": [ "2h", "1d", "2d", "1w", "1m" ],
+        //            "FOP": [ "2h", "1d", "2d", "1w", "1m" ],
+        //            "WAR": [ "*" ],
+        //            "IOPT": [ "*" ],
+        //            "FUT": [ "*" ],
+        //            "CASH": [ "*" ],
+        //            "IND": [ "*" ],
+        //            "BOND": [ "*" ],
+        //            "FUND": [ "*" ],
+        //            "CMDTY": [ "*" ],
+        //            "PHYSS": [ "*" ],
+        //            "CRYPTO": [ "*" ]
+        //        },
+        //        "groups": [],
+        //        "profiles": [],
+        //        "selectedAccount": "U3448645",
+        //        "serverInfo": {
+        //            "serverName": "JifZ26071",
+        //            "serverVersion": "Build 10.50.1a, Sep 23, 2026 1:23:38 PM"
+        //        },
+        //        "sessionId": "6ac5c713.0000037a",
+        //        "isFT": false,
+        //        "isPaper": false
+        //    }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchPortfolioAccounts
+     * @description fetch the accounts for which the user can view position and account information
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#portfolio-accounts
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#portfolio-subaccounts
+     * @ignore
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
+     * @returns {object[]} the raw response from the exchange
+     */
+    async fetchPortfolioAccounts (params: Dict = {}): Promise<Dict[]> {
+        await this.authenticate ();
+        const [ method, query ] = this.handleOptionAndParams (params, 'fetchPortfolioAccounts', 'method', 'privateGetPortfolioAccounts');
+        let response = undefined;
+        if (method === 'privateGetPortfolioSubaccounts') {
+            response = await this.privateGetPortfolioSubaccounts (query);
+        } else {
+            response = await this.privateGetPortfolioAccounts (query);
+            //
+            //    [
+            //        {
+            //            "id": "U3448645",
+            //            "PrepaidCrypto-Z": false,
+            //            "PrepaidCrypto-P": true,
+            //            "brokerageAccess": true,
+            //            "accountId": "U3448645",
+            //            "accountVan": "U3448645",
+            //            "accountTitle": "Toma Todua",
+            //            "displayName": "Toma Todua",
+            //            "accountAlias": null,
+            //            "accountStatus": 1646607600000,
+            //            "currency": "USD",
+            //            "type": "INDIVIDUAL",
+            //            "tradingType": "STKNOPT",
+            //            "businessType": "INDEPENDENT",
+            //            "category": "",
+            //            "ibEntity": "IBLLC-US",
+            //            "faclient": false,
+            //            "clearingStatus": "O",
+            //            "covestor": false,
+            //            "noClientTrading": false,
+            //            "trackVirtualFXPortfolio": true,
+            //            "acctCustType": "INDIVIDUAL",
+            //            "parent": {
+            //                "mmc": [],
+            //                "accountId": "",
+            //                "isMParent": false,
+            //                "isMChild": false,
+            //                "isMultiplex": false
+            //            },
+            //            "desc": "U3448645"
+            //        }
+            //    ]
+            //
+        }
+        return response;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#switchToAccount
+     * @description switch the active account (for users with multiple accounts)
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#switch-account
+     * @ignore
+     * @param {string} accountId the account id to switch to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw response from the exchange
+     */
+    async switchToAccount (accountId: string, params: Dict = {}): Promise<Dict> {
+        if (accountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' switchToAccount() requires an accountId argument');
+        }
+        const request: Dict = {
+            'acctId': accountId,
+        };
+        await this.authenticate ();
+        const response = await this.privatePostIserverAccount (this.extend (request, params));
+        //
+        //     {
+        //         "set": true,
+        //         "acctId": "U3449298"
+        //     }
+        //
+        // if the account is already selected, the gateway responds with http 501 instead
+        //
+        this.options['accountId'] = accountId;
+        return response;
     }
 
     /**
