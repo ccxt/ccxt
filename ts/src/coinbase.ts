@@ -2545,6 +2545,22 @@ export default class coinbase extends Exchange {
         } else if ((isV3 === true) || (method === 'v3PrivateGetBrokerageAccounts')) {
             request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts (this.extend (request, paramsMarketType));
+            // an explicit params.cursor means the caller pages manually
+            if (this.safeString (paramsMarketType, 'cursor') === undefined) {
+                let accounts = this.safeList (response, 'accounts', []);
+                let page = response;
+                let cursor = this.safeString (page, 'cursor');
+                while (this.safeBool (page, 'has_next', false) && (cursor !== undefined) && (cursor !== '')) {
+                    request['cursor'] = cursor;
+                    page = await this.v3PrivateGetBrokerageAccounts (this.extend (request, paramsMarketType));
+                    accounts = this.arrayConcat (accounts, this.safeList (page, 'accounts', []));
+                    const nextCursor = this.safeString (page, 'cursor');
+                    cursor = (nextCursor === cursor) ? undefined : nextCursor;
+                }
+                response['accounts'] = accounts;
+                response['has_next'] = this.safeBool (page, 'has_next', false);
+                response['cursor'] = this.safeString (page, 'cursor');
+            }
         } else {
             request['limit'] = 250;
             response = await this.v2PrivateGetAccounts (this.extend (request, paramsMarketType));
