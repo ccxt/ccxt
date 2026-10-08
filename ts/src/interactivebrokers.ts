@@ -498,6 +498,7 @@ export default class interactivebrokers extends Exchange {
                         // CASH = Forex (includes currency conversion and leveraged forex)
                         // MRGN = Margin (Only applicable for IB-UK/IB-EU/IB-IE/IB-CE accounts requesting Margin).
                         'STK': [ 'NYSE' ], // "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0",
+                        // SMART;AMEX;BATS;BOX;CBOE;CBOE2;EDGX;EMERALD;…2;NASDAQBX;NASDAQOM;PEARL;PHLX;PSE;SAPPHIRE
                         // 'CRYPTO': [ 'PAXOS', 'ZEROHASH', 'ZEROHASHE' ],
                     },
                     'stockQuote': 'USD',
@@ -861,12 +862,11 @@ export default class interactivebrokers extends Exchange {
         const detailIds = Object.keys (rawEntries);
         const details: Dict = {};
         const numDetails = detailIds.length;
-        const detailPromises = [];
         if (numDetails > 0) {
             const secdefRequest: Dict = {
                 'conids': detailIds.join (','),
             };
-            detailPromises.push (this.privateGetTrsrvSecdef (secdefRequest));
+            const secdefResponse = await this.privateGetTrsrvSecdef (secdefRequest);
             //
             //     {
             //         "secdef": [
@@ -882,10 +882,6 @@ export default class interactivebrokers extends Exchange {
             //         ]
             //     }
             //
-        }
-        const allDetailsResults = await Promise.all (detailPromises);
-        for (let i = 0; i < allDetailsResults.length; i++) {
-            const secdefResponse = allDetailsResults[i];
             const secdefs = this.safeList (secdefResponse, 'secdef', []);
             for (let i = 0; i < secdefs.length; i++) {
                 const secdef = secdefs[i];
@@ -978,13 +974,17 @@ export default class interactivebrokers extends Exchange {
                 const entry = result[j];
                 const sections = this.safeList (entry, 'sections', []);
                 let isCrypto = false;
+                let isOpt = false;
+                let isCfd = false;
                 for (let k = 0; k < sections.length; k++) {
-                    if (this.safeString (sections[k], 'secType') === 'CRYPTO') {
+                    const secType = this.safeString (sections[k], 'secType');
+                    if (secType === 'CRYPTO') {
                         isCrypto = true;
+                        break;
                     }
                 }
                 const conid = this.safeString (entry, 'conid');
-                if (isCrypto && conid !== undefined) {
+                if (conid !== undefined) {
                     entries[conid] = entry;
                 }
             }
