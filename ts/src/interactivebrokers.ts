@@ -125,10 +125,8 @@ export default class interactivebrokers extends Exchange {
             'urls': {
                 'logo': '',
                 'api': {
-                    'localhost': 'https://localhost:5000/',
-                    'oauth': 'https://api.ibkr.com/v1/api/',
+                    'webapi': 'https://api.ibkr.com/',
                     'private': 'https://api.ibkr.com/v1/api/',
-                    'gwPrivate': 'https://api.ibkr.com/gw/api/v1/',
                 },
                 'www': 'https://www.interactivebrokers.com/',
                 'referral': '',
@@ -141,12 +139,7 @@ export default class interactivebrokers extends Exchange {
                 'fees': 'https://www.interactivebrokers.com/en/index.php?f=1590&p=crypto',
             },
             'api': {
-                'oauth': {
-                    'post': {
-                        'oauth/live_session_token': { 'cost': 1 } as Endpoint<Dict>, // diffie-hellman exchange for the live session token, signed with RSA-SHA256
-                    },
-                },
-                'localhost': {
+                'webapi': {
                     'get': {
                         'v1/api/iserver/account/pnl/partitioned': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/acesws/:accountId/signatures-and-owners': { 'cost': 1 } as Endpoint<Dict>,
@@ -691,7 +684,7 @@ export default class interactivebrokers extends Exchange {
         const request: Dict = {
             'diffie_hellman_challenge': this.intToBase16 (dhChallenge),
         };
-        const response = await this.oauthPostOauthLiveSessionToken (this.extend (request, params));
+        const response = await this.webapiPostV1ApiOauthLiveSessionToken (this.extend (request, params));
         //
         //     {
         //         "diffie_hellman_response": "1d9c...",
@@ -2305,7 +2298,7 @@ export default class interactivebrokers extends Exchange {
         let requestHeaders: NullableDict = headers;
         this.checkRequiredCredentials ();
         const oauthParams = this.ibkrOauthBase (this.uid, this.apiKey);
-        if (api === 'oauth') {
+        if (path.endsWith ('v1/api/oauth/live_session_token')) {
             // the live session token request is signed with RSA-SHA256,
             // its parameters (diffie_hellman_challenge) are sent as oauth parameters in the Authorization header
             const accessTokenSecretHex = this.safeString (this.options, 'accessTokenSecretHex', '');
