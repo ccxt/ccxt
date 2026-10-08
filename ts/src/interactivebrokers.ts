@@ -22,7 +22,7 @@ export default class interactivebrokers extends Exchange {
             'name': 'Interactive Brokers',
             'countries': [ 'US' ],
             'version': 'v1',
-            'rateLimit': 100, // the client portal gateway allows ~10 requests per second
+            'rateLimit': 100 * 1.01, // the client portal gateway allows ~10 requests per second
             'pro': false,
             'has': {
                 'CORS': undefined,
@@ -491,11 +491,20 @@ export default class interactivebrokers extends Exchange {
                 },
                 'serviceAccountsLoaded': false, // iserver/accounts must be called once per session before trading endpoints
                 'fetchMarkets': {
-                    'stockExchanges': [ 'NASDAQ', 'NYSE' ], // loaded via trsrv/all-conids
+                    'exchanges': {
+                        // STK  = Stocks (ETFs, ADRs, and Mutual Funds)
+                        // BOND = Bonds (T-Bills, Municipal/Corporate Bonds)
+                        // OPT  = Options FUT= Futures (includes Single Stock Futures, Futures Options) 
+                        // CASH = Forex (includes currency conversion and leveraged forex)
+                        // MRGN = Margin (Only applicable for IB-UK/IB-EU/IB-IE/IB-CE accounts requesting Margin).
+                        'STK': [ 'NYSE' ], // "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0",
+                        // 'CRYPTO': [ 'PAXOS', 'ZEROHASH', 'ZEROHASHE' ],
+                    },
                     'stockQuote': 'USD',
                     'stockPriceIncrement': '0.01',
                     'stockAmountIncrement': '1',
-                    'cryptoSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
+                    'cryptoSymbols': [ 'BTC' ], // resolved via iserver/secdef/search
+                    // 'cryptoSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
                     'cryptoAmountIncrement': '0.00000001',
                     'fxCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
                     'fxAmountIncrement': '1',
@@ -818,6 +827,14 @@ export default class interactivebrokers extends Exchange {
         return undefined;
     }
 
+    async test1() {
+        await this.loadServiceAccounts ();
+        // const res1 = await this.privateGetTrsrvSecdef ({conids:'479624278'});
+        // const res2 = await this.webapiGetV1ApiTrsrvAllConids ({exchange:'PAXOS'});
+        const res = await this.fetchCryptoMarkets ();
+        return res;
+    }
+
     /**
      * @method
      * @name interactivebrokers#fetchMarkets
@@ -831,20 +848,164 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         await this.loadServiceAccounts ();
+        const stockMarketsPromise = this.fetchStockMarkets (params);
+        const cryptoMarketsPromise = this.fetchCryptoMarkets (params);
+        const fxMarketsPromise = this.fetchForexMarkets (params);
+        const [ stockMarkets, cryptoMarkets, fxMarkets ] = await Promise.all ([ stockMarketsPromise, cryptoMarketsPromise, fxMarketsPromise ]);
+        const markets1 = this.arrayConcat (stockMarkets, cryptoMarkets);
+        const markets2 = this.arrayConcat (markets1, fxMarkets);
+        return markets2;
+    }
+
+    async fetchWithDetails (rawEntries: Dict) {
+        const detailIds = Object.keys (rawEntries);
+        const details: Dict = {};
+        const numDetails = detailIds.length;
+        const detailPromises = [];
+        if (numDetails > 0) {
+            const secdefRequest: Dict = {
+                'conids': detailIds.join (','),
+            };
+            detailPromises.push (this.privateGetTrsrvSecdef (secdefRequest));
+            //
+            //     {
+            //         "secdef": [
+            //             {
+            //                 "conid": 479624278,
+            //                 "currency": "USD",
+            //                 "incrementRules": [ { "lowerEdge": 0, "increment": 0.25 } ],
+            //                 "listingExchange": "PAXOS",
+            //                 "assetClass": "CRYPTO",
+            //                 "ticker": "BTC",
+            //                 ...
+            //             }
+            //         ]
+            //     }
+            //
+        }
+        const allDetailsResults = await Promise.all (detailPromises);
+        for (let i = 0; i < allDetailsResults.length; i++) {
+            const secdefResponse = allDetailsResults[i];
+            const secdefs = this.safeList (secdefResponse, 'secdef', []);
+            for (let i = 0; i < secdefs.length; i++) {
+                const secdef = secdefs[i];
+                const conid = this.safeString (secdef, 'conid', '');
+                const entry = this.safeDict (rawEntries, conid);
+                if (entry === undefined) {
+                    continue;
+                }
+                details[conid] = this.extend (entry, secdef);
+            }
+        }
+        return details;
+    }
+
+    async fetchForexMarkets (params: Dict = {}): Promise<Market[]> {
+        const entries: Dict[] = [];
+        const detailIds: string[] = [];
+        const details: Dict = {};
         const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const stockExchanges = this.safeList (options, 'stockExchanges', []);
-        const cryptoSymbols = this.safeList (options, 'cryptoSymbols', []);
+        const fxAmountIncrement = this.safeString (options, 'fxAmountIncrement', '1');
         const fxCurrencies = this.safeList (options, 'fxCurrencies', []);
+        const fxPromises = [];
+        for (let i = 0; i < fxCurrencies.length; i++) {
+            const fxCurrency = fxCurrencies[i];
+            const pairsRequest: Dict = {
+                'currency': fxCurrency,
+            };
+            fxPromises.push (this.privateGetIserverCurrencyPairs (pairsRequest));
+            //
+            //     { "USD": [ { "symbol": "EUR.USD", "conid": 12087792, "ccyPair": "EUR" }, ... ] }
+            //
+        }
+        const fxResults = await Promise.all (fxPromises);
+        for (let i = 0; i < fxResults.length; i++) {
+            const pairsResponse = fxResults[i];
+            const fxCurrency = fxCurrencies[i];
+            const pairs = this.safeList (pairsResponse, fxCurrency, []);
+            for (let j = 0; j < pairs.length; j++) {
+                const pair = pairs[j];
+                const conid = this.safeString (pair, 'conid');
+                const pairSymbol = this.safeString (pair, 'symbol');
+                if ((conid === undefined) || (pairSymbol === undefined) || (conid in details)) {
+                    continue;
+                }
+                const parts = pairSymbol.split ('.');
+                detailIds.push (conid);
+                entries.push ({
+                    'id': conid,
+                    'baseId': this.safeString (parts, 0),
+                    'quoteId': this.safeString (parts, 1),
+                    'assetClass': 'CASH',
+                    'exchange': undefined,
+                    'priceIncrement': undefined,
+                    'amountIncrement': fxAmountIncrement,
+                    'info': pair,
+                });
+            }
+        }
+        return this.parseMarkets (entries);
+    }
+
+    async fetchCryptoMarkets (params: Dict = {}): Promise<Market[]> {
+        const entries: Dict = {};
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const cryptoSymbols = this.safeList (options, 'cryptoSymbols', []);
+        const promises = [];
+        for (let i = 0; i < cryptoSymbols.length; i++) {
+            const cryptoSymbol = cryptoSymbols[i];
+            const searchRequest: Dict = {
+                'symbol': cryptoSymbol,
+                'secType': 'CRYPTO',
+            };
+            promises.push (this.privatePostIserverSecdefSearch (searchRequest));
+            //
+            //     [
+            //         {
+            //             "conid": "479624278",
+            //             "companyName": "Bitcoin cryptocurrency",
+            //             "symbol": "BTC",
+            //             "sections": [ { "secType": "CRYPTO", "exchange": "PAXOS;" } ]
+            //         },
+            //         ...
+            //     ]
+            //
+        }
+        const results = await Promise.all (promises);
+        for (let i = 0; i < results.length; i++) {
+            const result = results[i];
+            for (let j = 0; j < result.length; j++) {
+                const entry = result[j];
+                const sections = this.safeList (entry, 'sections', []);
+                let isCrypto = false;
+                for (let k = 0; k < sections.length; k++) {
+                    if (this.safeString (sections[k], 'secType') === 'CRYPTO') {
+                        isCrypto = true;
+                    }
+                }
+                const conid = this.safeString (entry, 'conid');
+                if (isCrypto && conid !== undefined) {
+                    entries[conid] = entry;
+                }
+            }
+        }
+        const detailMarkets = await this.fetchWithDetails (entries);
+        return this.parseMarkets (detailMarkets);
+    }
+
+    async fetchStockMarkets (params: Dict = {}): Promise<Market[]> {
+        const entries: Dict[] = [];
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const exchangesDict = this.safeDict (options, 'exchanges', {});
         const stockQuote = this.safeString (options, 'stockQuote', 'USD');
         const stockPriceIncrement = this.safeString (options, 'stockPriceIncrement', '0.01');
         const stockAmountIncrement = this.safeString (options, 'stockAmountIncrement', '1');
-        const cryptoAmountIncrement = this.safeString (options, 'cryptoAmountIncrement', '0.00000001');
-        const fxAmountIncrement = this.safeString (options, 'fxAmountIncrement', '1');
-        const entries: Dict[] = [];
         const seenStocks: Dict = {}; // the same conid is returned by several exchanges, e.g. NYSE also lists NASDAQ stocks
-        for (let i = 0; i < stockExchanges.length; i++) {
+        const stockExchanges = this.safeList (exchangesDict, 'STK', []);
+        for (let j = 0; j < stockExchanges.length; j++) {
+            const exchange = stockExchanges[j];
             const stockRequest: Dict = {
-                'exchange': stockExchanges[i],
+                'exchange': exchange,
                 'assetClass': 'STK',
             };
             const stocks = await this.privateGetTrsrvAllConids (this.extend (stockRequest, params));
@@ -870,127 +1031,6 @@ export default class interactivebrokers extends Exchange {
                 });
             }
         }
-        // crypto and fx contracts get their tick size from trsrv/secdef
-        const detailIds: string[] = [];
-        const details: Dict = {};
-        for (let i = 0; i < cryptoSymbols.length; i++) {
-            const cryptoSymbol = cryptoSymbols[i];
-            const searchRequest: Dict = {
-                'symbol': cryptoSymbol,
-                'secType': 'CRYPTO',
-            };
-            const results = await this.privatePostIserverSecdefSearch (searchRequest);
-            //
-            //     [
-            //         {
-            //             "conid": "479624278",
-            //             "companyName": "Bitcoin cryptocurrency",
-            //             "symbol": "BTC",
-            //             "sections": [ { "secType": "CRYPTO", "exchange": "PAXOS;" } ]
-            //         },
-            //         ...
-            //     ]
-            //
-            for (let j = 0; j < results.length; j++) {
-                const result = results[j];
-                const sections = this.safeList (result, 'sections', []);
-                let isCrypto = false;
-                for (let k = 0; k < sections.length; k++) {
-                    if (this.safeString (sections[k], 'secType') === 'CRYPTO') {
-                        isCrypto = true;
-                    }
-                }
-                const conid = this.safeString (result, 'conid');
-                if (isCrypto && (this.safeString (result, 'symbol') === cryptoSymbol) && (conid !== undefined)) {
-                    detailIds.push (conid);
-                    details[conid] = {
-                        'id': conid,
-                        'baseId': cryptoSymbol,
-                        'quoteId': undefined,
-                        'assetClass': 'CRYPTO',
-                        'exchange': undefined,
-                        'priceIncrement': undefined,
-                        'amountIncrement': cryptoAmountIncrement,
-                        'info': result,
-                    };
-                    break;
-                }
-            }
-        }
-        for (let i = 0; i < fxCurrencies.length; i++) {
-            const fxCurrency = fxCurrencies[i];
-            const pairsRequest: Dict = {
-                'currency': fxCurrency,
-            };
-            const pairsResponse = await this.privateGetIserverCurrencyPairs (pairsRequest);
-            //
-            //     { "USD": [ { "symbol": "EUR.USD", "conid": 12087792, "ccyPair": "EUR" }, ... ] }
-            //
-            const pairs = this.safeList (pairsResponse, fxCurrency, []);
-            for (let j = 0; j < pairs.length; j++) {
-                const pair = pairs[j];
-                const conid = this.safeString (pair, 'conid');
-                const pairSymbol = this.safeString (pair, 'symbol');
-                if ((conid === undefined) || (pairSymbol === undefined) || (conid in details)) {
-                    continue;
-                }
-                const parts = pairSymbol.split ('.');
-                detailIds.push (conid);
-                details[conid] = {
-                    'id': conid,
-                    'baseId': this.safeString (parts, 0),
-                    'quoteId': this.safeString (parts, 1),
-                    'assetClass': 'CASH',
-                    'exchange': undefined,
-                    'priceIncrement': undefined,
-                    'amountIncrement': fxAmountIncrement,
-                    'info': pair,
-                };
-            }
-        }
-        const numDetails = detailIds.length;
-        if (numDetails > 0) {
-            const secdefRequest: Dict = {
-                'conids': detailIds.join (','),
-            };
-            const secdefResponse = await this.privateGetTrsrvSecdef (secdefRequest);
-            //
-            //     {
-            //         "secdef": [
-            //             {
-            //                 "conid": 479624278,
-            //                 "currency": "USD",
-            //                 "incrementRules": [ { "lowerEdge": 0, "increment": 0.25 } ],
-            //                 "listingExchange": "PAXOS",
-            //                 "assetClass": "CRYPTO",
-            //                 "ticker": "BTC",
-            //                 ...
-            //             }
-            //         ]
-            //     }
-            //
-            const secdefs = this.safeList (secdefResponse, 'secdef', []);
-            for (let i = 0; i < secdefs.length; i++) {
-                const secdef = secdefs[i];
-                const conid = this.safeString (secdef, 'conid', '');
-                const entry = this.safeDict (details, conid);
-                if (entry === undefined) {
-                    continue;
-                }
-                const incrementRules = this.safeList (secdef, 'incrementRules', []);
-                const firstRule = this.safeDict (incrementRules, 0, {});
-                entry['priceIncrement'] = this.safeString (firstRule, 'increment');
-                entry['exchange'] = this.safeString (secdef, 'listingExchange');
-                if (entry['quoteId'] === undefined) {
-                    entry['quoteId'] = this.safeString (secdef, 'currency');
-                }
-                entry['info'] = this.extend (entry['info'], secdef);
-                details[conid] = entry;
-            }
-        }
-        for (let i = 0; i < detailIds.length; i++) {
-            entries.push (details[detailIds[i]]);
-        }
         return this.parseMarkets (entries);
     }
 
@@ -1009,6 +1049,20 @@ export default class interactivebrokers extends Exchange {
         //         "info": { ... }
         //     }
         //
+        const isCrypto = true;
+        if (isCrypto) {
+            const options = this.safeDict (this.options, 'fetchMarkets', {});
+            const cryptoAmountIncrement = this.safeString (options, 'cryptoAmountIncrement', '0.00000001');
+            const incrementRules = this.safeList (market, 'incrementRules', []);
+            const firstRule = this.safeDict (incrementRules, 0, {});
+            market['priceIncrement'] = this.safeString (firstRule, 'increment');
+            market['exchange'] = this.safeString (market, 'listingExchange');
+            if (market['quoteId'] === undefined) {
+                market['quoteId'] = this.safeString (market, 'currency');
+            }
+            market['info'] = this.extend (market['info'], market);
+            return market;
+        }
         const assetClass = this.safeString (market, 'assetClass');
         const baseId = this.safeString (market, 'baseId', '');
         const quoteId = this.safeString (market, 'quoteId', 'USD');
