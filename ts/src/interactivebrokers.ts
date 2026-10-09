@@ -497,18 +497,16 @@ export default class interactivebrokers extends Exchange {
                         // OPT  = Options FUT= Futures (includes Single Stock Futures, Futures Options) 
                         // CASH = Forex (includes currency conversion and leveraged forex)
                         // MRGN = Margin (Only applicable for IB-UK/IB-EU/IB-IE/IB-CE accounts requesting Margin).
-                        'STK': [ 'NYSE' ], // "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0",
-                        // SMART;AMEX;BATS;BOX;CBOE;CBOE2;EDGX;EMERALD;…2;NASDAQBX;NASDAQOM;PEARL;PHLX;PSE;SAPPHIRE
+                        'STK': [ 'NYSE' ], // "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0, SMART;AMEX;BATS;BOX;CBOE;CBOE2;EDGX;EMERALD;…2;NASDAQBX;NASDAQOM; OTC,IDEAL,IBFX,UBSFX,JPMCFX,DBKFX,CITIFX,BARCFX,RBSFX,RBCFX,BOAFX,HSBCFX,GSFX,IDEALFX,NOMFX,MSFX,BARC2FX,ETFFX,NATIXISFX,NOM2FX,CSFX,DBK2FX,RBS2FX,UBS2FX,BOA2FX,GS2FX,JPMC2FX,RBC2FX,SCBFX,CITADELFX,KNIGHTFX,HSBC2FX,CBKFX,SCB2FX,CBK2FX,NOM3FX,BNPFX,BNP2FX,VIRTUFX,ANZFX,ANZ2FX,XTXFX,FXSETTLE,TDFX,WFFX,CITI2FX,IBCMSCFX,WF2FX,BNYFX,BNY2FX,PEARL;PHLX;PSE;SAPPHIRE
                         // 'CRYPTO': [ 'PAXOS', 'ZEROHASH', 'ZEROHASHE' ],
                     },
                     'stockQuote': 'USD',
                     'stockPriceIncrement': '0.01',
                     'stockAmountIncrement': '1',
-                    'cryptoSymbols': [ 'BTC' ], // resolved via iserver/secdef/search
-                    // 'cryptoSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
+                    'cryptoSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
                     'cryptoAmountIncrement': '0.00000001',
-                    'fxCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
-                    'fxAmountIncrement': '1',
+                    'forexAmountIncrement': '1',
+                    'forexCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
                     'defaultMinCost': 1,
                 },
                 'fetchTickers': {
@@ -833,14 +831,14 @@ export default class interactivebrokers extends Exchange {
         await this.loadServiceAccounts ();
         // const res1 = await this.privateGetTrsrvSecdef ({conids:'479624278'});
         // const res2 = await this.webapiGetV1ApiTrsrvAllConids ({exchange:'PAXOS'});
-        const res = await this.fetchCryptoMarkets ();
+        const res = await this.fetchForexMarkets ();
         return res;
     }
 
     /**
      * @method
      * @name interactivebrokers#fetchMarkets
-     * @description retrieves data on the configured markets: stocks of options.fetchMarkets.stockExchanges, crypto of options.fetchMarkets.cryptoSymbols and fx pairs of options.fetchMarkets.fxCurrencies, the market id is the IBKR conid
+     * @description retrieves data on the configured markets: stocks of options.fetchMarkets.stockExchanges, crypto of options.fetchMarkets.cryptoSymbols and fx pairs of options.fetchMarkets.forexCurrencies, the market id is the IBKR conid
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-all-conids-by-exchange
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/search-contract-by-symbol
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-currency-pairs
@@ -850,6 +848,7 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         await this.loadServiceAccounts ();
+        const aaa = await this.fetchForexMarkets (params);
         const stockMarketsPromise = this.fetchStockMarkets (params);
         const cryptoMarketsPromise = this.fetchCryptoMarkets (params);
         const fxMarketsPromise = this.fetchForexMarkets (params);
@@ -886,7 +885,7 @@ export default class interactivebrokers extends Exchange {
             const secdefs = this.safeList (secdefResponse, 'secdef', []);
             for (let i = 0; i < secdefs.length; i++) {
                 const secdef = secdefs[i];
-                const conid = this.safeString (secdef, 'conid', '');
+                const conid = this.safeString (secdef, 'conid');
                 const entry = this.safeDict (plainEntries, conid);
                 if (entry !== undefined) {
                     entries.push (this.extend (entry, secdef));
@@ -899,34 +898,33 @@ export default class interactivebrokers extends Exchange {
     async fetchForexMarkets (params: Dict = {}): Promise<Market[]> {
         const entries: Dict = {};
         const options = this.safeDict (this.options, 'fetchMarkets', {});
-        // const fxAmountIncrement = this.safeString (options, 'fxAmountIncrement', '1');
-        const fxCurrencies = this.safeList (options, 'fxCurrencies', []);
+        const forexCurrencies = this.safeList (options, 'forexCurrencies', []);
         const promises = [];
-        for (let i = 0; i < fxCurrencies.length; i++) {
-            const fxCurrency = fxCurrencies[i];
+        for (let i = 0; i < forexCurrencies.length; i++) {
+            const fxCurrency = forexCurrencies[i];
             const pairsRequest: Dict = {
                 'currency': fxCurrency,
             };
             promises.push (this.privateGetIserverCurrencyPairs (pairsRequest));
             //
-            //     { "USD": [ { "symbol": "EUR.USD", "conid": 12087792, "ccyPair": "EUR" }, ... ] }
+            //    { "USD": [ { "symbol": "EUR.USD", "conid": 12087792, "ccyPair": "EUR" } ] }
             //
         }
         const fxResults = await Promise.all (promises);
         for (let i = 0; i < fxResults.length; i++) {
             const pairsResponse = fxResults[i];
-            const fxCurrency = fxCurrencies[i];
+            const fxCurrency = forexCurrencies[i];
             const pairs = this.safeList (pairsResponse, fxCurrency, []);
             for (let j = 0; j < pairs.length; j++) {
                 const pair = pairs[j];
                 const conid = this.safeString (pair, 'conid');
-                const pairSymbol = this.safeString (pair, 'symbol');
-                if ((conid !== undefined) && (pairSymbol !== undefined)) {
+                if (conid !== undefined) {
                     entries[conid] = pair;
                 }
             }
         }
-        return this.parseMarkets (entries);
+        const detailMarkets = await this.fetchWithDetails (entries);
+        return this.parseMarkets (detailMarkets);
     }
 
     async fetchCryptoMarkets (params: Dict = {}): Promise<Market[]> {
@@ -1022,17 +1020,8 @@ export default class interactivebrokers extends Exchange {
         //
         //    {
         //        "conid": 479624278,
-        //        "companyHeader": "Bitcoin cryptocurrency",
-        //        "companyName": "Bitcoin cryptocurrency",
-        //        "symbol": "BTC",
-        //        "description": null,
-        //        "restricted": null,
-        //        "sections": [
-        //            {
-        //                "secType": "CRYPTO",
-        //                "exchange": "PAXOS;"
-        //            }
-        //        ],
+        //        "symbol": "BTC", // "BTC", "EUR.USD",
+        //        "ccyPair": "EUR",              // field only present in Forex
         //        "incrementRules": [
         //            {
         //                "lowerEdge": 0,
@@ -1052,11 +1041,11 @@ export default class interactivebrokers extends Exchange {
         //        "currency": "USD",
         //        "time": 11,
         //        "chineseName": "&#x7F8E;&#x5143;",
-        //        "allExchanges": "PAXOS",
+        //        "allExchanges": "PAXOS",        // OTC, PAXOS, ...
         //        "listingExchange": "PAXOS",
         //        "countryCode": "US",
         //        "name": "Bitcoin cryptocurrency",
-        //        "assetClass": "CRYPTO",
+        //        "assetClass": "CRYPTO",     // CRYPTO, CASH ..
         //        "expiry": null,
         //        "lastTradingDay": null,
         //        "group": null,
@@ -1064,17 +1053,29 @@ export default class interactivebrokers extends Exchange {
         //        "sector": null,
         //        "sectorGroup": null,
         //        "strike": "0",
-        //        "ticker": "BTC",
+        //        "ticker": "BTC",            // BTC, EUR
         //        "undConid": 0,
         //        "multiplier": 0,
         //        "type": "",
         //        "hasOptions": false,
-        //        "fullName": "BTC",
-        //        "isEventContract": false
+        //        "fullName": "BTC",          // BTC, EUR.USD
+        //        "isEventContract": false,
+        //        // the below fields are not present in all markets
+        //        "companyHeader": "Bitcoin cryptocurrency",
+        //        "companyName": "Bitcoin cryptocurrency",
+        //        "description": null,
+        //        "restricted": null,
+        //        "sections": [
+        //            {
+        //                "secType": "CRYPTO",
+        //                "exchange": "PAXOS;"
+        //            }
+        //        ],
         //    }
         //
         const assetClass = this.safeString (market, 'assetClass');
         const isCrypto = (assetClass === 'CRYPTO');
+        const isForex = (assetClass === 'CASH');
         const id = this.safeString (market, 'id');
         const baseTickerId = this.safeString (market, 'ticker') as string; 
         const quoteId = this.safeString (market, 'currency');
@@ -1086,6 +1087,8 @@ export default class interactivebrokers extends Exchange {
         let amountPrecision: Str = undefined;
         if (isCrypto) {
             amountPrecision = this.safeString (options, 'cryptoAmountIncrement', '0.00000001');
+        } else if (isForex) {
+            amountPrecision = this.safeString (options, 'forexAmountIncrement', '1');
         }
         let base: Str = undefined;
         if (assetClass === 'STK') {
