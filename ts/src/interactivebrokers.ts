@@ -509,6 +509,7 @@ export default class interactivebrokers extends Exchange {
                     'cryptoAmountIncrement': '0.00000001',
                     'fxCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
                     'fxAmountIncrement': '1',
+                    'defaultMinCost': 1,
                 },
                 'fetchTickers': {
                     // 31 last, 55 symbol, 70 high, 71 low, 82 change, 83 change %, 84 bid, 85 ask size, 86 ask, 88 bid size,
@@ -858,9 +859,9 @@ export default class interactivebrokers extends Exchange {
         return markets2;
     }
 
-    async fetchWithDetails (rawEntries: Dict) {
-        const detailIds = Object.keys (rawEntries);
-        const details: Dict = {};
+    async fetchWithDetails (plainEntries: Dict) {
+        const detailIds = Object.keys (plainEntries);
+        const entries: Dict[] = [];
         const numDetails = detailIds.length;
         if (numDetails > 0) {
             const secdefRequest: Dict = {
@@ -886,35 +887,32 @@ export default class interactivebrokers extends Exchange {
             for (let i = 0; i < secdefs.length; i++) {
                 const secdef = secdefs[i];
                 const conid = this.safeString (secdef, 'conid', '');
-                const entry = this.safeDict (rawEntries, conid);
-                if (entry === undefined) {
-                    continue;
+                const entry = this.safeDict (plainEntries, conid);
+                if (entry !== undefined) {
+                    entries.push (this.extend (entry, secdef));
                 }
-                details[conid] = this.extend (entry, secdef);
             }
         }
-        return details;
+        return entries;
     }
 
     async fetchForexMarkets (params: Dict = {}): Promise<Market[]> {
-        const entries: Dict[] = [];
-        const detailIds: string[] = [];
-        const details: Dict = {};
+        const entries: Dict = {};
         const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const fxAmountIncrement = this.safeString (options, 'fxAmountIncrement', '1');
+        // const fxAmountIncrement = this.safeString (options, 'fxAmountIncrement', '1');
         const fxCurrencies = this.safeList (options, 'fxCurrencies', []);
-        const fxPromises = [];
+        const promises = [];
         for (let i = 0; i < fxCurrencies.length; i++) {
             const fxCurrency = fxCurrencies[i];
             const pairsRequest: Dict = {
                 'currency': fxCurrency,
             };
-            fxPromises.push (this.privateGetIserverCurrencyPairs (pairsRequest));
+            promises.push (this.privateGetIserverCurrencyPairs (pairsRequest));
             //
             //     { "USD": [ { "symbol": "EUR.USD", "conid": 12087792, "ccyPair": "EUR" }, ... ] }
             //
         }
-        const fxResults = await Promise.all (fxPromises);
+        const fxResults = await Promise.all (promises);
         for (let i = 0; i < fxResults.length; i++) {
             const pairsResponse = fxResults[i];
             const fxCurrency = fxCurrencies[i];
@@ -923,21 +921,9 @@ export default class interactivebrokers extends Exchange {
                 const pair = pairs[j];
                 const conid = this.safeString (pair, 'conid');
                 const pairSymbol = this.safeString (pair, 'symbol');
-                if ((conid === undefined) || (pairSymbol === undefined) || (conid in details)) {
-                    continue;
+                if ((conid !== undefined) && (pairSymbol !== undefined)) {
+                    entries[conid] = pair;
                 }
-                const parts = pairSymbol.split ('.');
-                detailIds.push (conid);
-                entries.push ({
-                    'id': conid,
-                    'baseId': this.safeString (parts, 0),
-                    'quoteId': this.safeString (parts, 1),
-                    'assetClass': 'CASH',
-                    'exchange': undefined,
-                    'priceIncrement': undefined,
-                    'amountIncrement': fxAmountIncrement,
-                    'info': pair,
-                });
             }
         }
         return this.parseMarkets (entries);
@@ -968,24 +954,20 @@ export default class interactivebrokers extends Exchange {
             //
         }
         const results = await Promise.all (promises);
+        const neededSecTypes = [ 'CRYPTO' ]; // CFD, OPT - they should already be fetched in other calls
         for (let i = 0; i < results.length; i++) {
             const result = results[i];
             for (let j = 0; j < result.length; j++) {
                 const entry = result[j];
                 const sections = this.safeList (entry, 'sections', []);
-                let isCrypto = false;
-                let isOpt = false;
-                let isCfd = false;
                 for (let k = 0; k < sections.length; k++) {
                     const secType = this.safeString (sections[k], 'secType');
-                    if (secType === 'CRYPTO') {
-                        isCrypto = true;
-                        break;
+                    if (this.inArray (secType, neededSecTypes)) {
+                        const conid = this.safeString (entry, 'conid');
+                        if (conid !== undefined) {
+                            entries[conid] = entry;
+                        }
                     }
-                }
-                const conid = this.safeString (entry, 'conid');
-                if (conid !== undefined) {
-                    entries[conid] = entry;
                 }
             }
         }
@@ -1036,53 +1018,91 @@ export default class interactivebrokers extends Exchange {
 
     override parseMarket (market: Dict): Market {
         //
-        // normalized by fetchMarkets
+        // crypto
         //
-        //     {
-        //         "id": "479624278",
-        //         "baseId": "BTC",
-        //         "quoteId": "USD",
-        //         "assetClass": "CRYPTO",
-        //         "exchange": "PAXOS",
-        //         "priceIncrement": "0.25",
-        //         "amountIncrement": "0.00000001",
-        //         "info": { ... }
-        //     }
+        //    {
+        //        "conid": 479624278,
+        //        "companyHeader": "Bitcoin cryptocurrency",
+        //        "companyName": "Bitcoin cryptocurrency",
+        //        "symbol": "BTC",
+        //        "description": null,
+        //        "restricted": null,
+        //        "sections": [
+        //            {
+        //                "secType": "CRYPTO",
+        //                "exchange": "PAXOS;"
+        //            }
+        //        ],
+        //        "incrementRules": [
+        //            {
+        //                "lowerEdge": 0,
+        //                "increment": 0.25
+        //            }
+        //        ],
+        //        "displayRule": {
+        //            "magnification": 0,
+        //            "displayRuleStep": [
+        //                {
+        //                    "decimalDigits": 2,
+        //                    "lowerEdge": 0,
+        //                    "wholeDigits": 4
+        //                }
+        //            ]
+        //        },
+        //        "currency": "USD",
+        //        "time": 11,
+        //        "chineseName": "&#x7F8E;&#x5143;",
+        //        "allExchanges": "PAXOS",
+        //        "listingExchange": "PAXOS",
+        //        "countryCode": "US",
+        //        "name": "Bitcoin cryptocurrency",
+        //        "assetClass": "CRYPTO",
+        //        "expiry": null,
+        //        "lastTradingDay": null,
+        //        "group": null,
+        //        "putOrCall": null,
+        //        "sector": null,
+        //        "sectorGroup": null,
+        //        "strike": "0",
+        //        "ticker": "BTC",
+        //        "undConid": 0,
+        //        "multiplier": 0,
+        //        "type": "",
+        //        "hasOptions": false,
+        //        "fullName": "BTC",
+        //        "isEventContract": false
+        //    }
         //
-        const isCrypto = true;
-        if (isCrypto) {
-            const options = this.safeDict (this.options, 'fetchMarkets', {});
-            const cryptoAmountIncrement = this.safeString (options, 'cryptoAmountIncrement', '0.00000001');
-            const incrementRules = this.safeList (market, 'incrementRules', []);
-            const firstRule = this.safeDict (incrementRules, 0, {});
-            market['priceIncrement'] = this.safeString (firstRule, 'increment');
-            market['exchange'] = this.safeString (market, 'listingExchange');
-            if (market['quoteId'] === undefined) {
-                market['quoteId'] = this.safeString (market, 'currency');
-            }
-            market['info'] = this.extend (market['info'], market);
-            return market;
-        }
         const assetClass = this.safeString (market, 'assetClass');
-        const baseId = this.safeString (market, 'baseId', '');
-        const quoteId = this.safeString (market, 'quoteId', 'USD');
+        const isCrypto = (assetClass === 'CRYPTO');
+        const id = this.safeString (market, 'id');
+        const baseTickerId = this.safeString (market, 'ticker') as string; 
+        const quoteId = this.safeString (market, 'currency');
+        const quote = this.safeCurrencyCode (quoteId);
+        const incrementRules = this.safeList (market, 'incrementRules', []);
+        const firstRule = this.safeDict (incrementRules, 0, {});
+        const incrementTickSize = this.safeString (firstRule, 'increment');
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        let amountPrecision: Str = undefined;
+        if (isCrypto) {
+            amountPrecision = this.safeString (options, 'cryptoAmountIncrement', '0.00000001');
+        }
         let base: Str = undefined;
         if (assetClass === 'STK') {
             // stock tickers are not currencies, skip commonCurrencies remapping, 'BRK B' -> 'BRK.B'
-            base = baseId.split (' ').join ('.');
+            base = baseTickerId.split (' ').join ('.');
         } else {
-            base = this.safeCurrencyCode (baseId);
+            base = this.safeCurrencyCode (baseTickerId);
         }
-        const quote = this.safeCurrencyCode (quoteId);
-        const amountIncrement = this.safeString (market, 'amountIncrement');
+        const symbol = base + '/' + quote;
         return this.safeMarketStructure ({
-            'id': this.safeString (market, 'id'),
-            'symbol': base + '/' + quote,
-            'base': base,
+            'id': id,
+            'symbol': symbol,
             'quote': quote,
-            'settle': undefined,
-            'baseId': baseId,
             'quoteId': quoteId,
+            'base': base,
+            'baseId': baseTickerId,
+            'settle': undefined,
             'settleId': undefined,
             'type': 'spot',
             'spot': true,
@@ -1100,8 +1120,8 @@ export default class interactivebrokers extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (amountIncrement),
-                'price': this.parseNumber (this.safeString (market, 'priceIncrement')),
+                'amount': this.parseNumber (amountPrecision),
+                'price': this.parseNumber (incrementTickSize),
             },
             'limits': {
                 'leverage': {
@@ -1109,7 +1129,7 @@ export default class interactivebrokers extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.parseNumber (amountIncrement),
+                    'min': undefined,
                     'max': undefined,
                 },
                 'price': {
@@ -1117,12 +1137,12 @@ export default class interactivebrokers extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.safeNumber (options, 'defaultMinCost', 1),
                     'max': undefined,
                 },
             },
             'created': undefined,
-            'info': this.safeDict (market, 'info'),
+            'info': market,
         });
     }
 
