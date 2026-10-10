@@ -6,6 +6,8 @@ import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '@scure/
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
 import * as functions from './functions.js';
+import crypto from 'node:crypto';
+
 // import {
 //     // keys as keysFunc,
 //     // values as valuesFunc,
@@ -2387,6 +2389,73 @@ export class BaseExchange {
             'signatures': [ this.base16ToBinary (signature) ],
         })).finish ());
     }
+  
+    async initFileSystem (): Promise<any> {
+        // node:fs / node:path are loaded asynchronously, await them before the first synchronous readFile call
+        await functions.initFileSystem ();
+        return undefined;
+    }
+
+    readDhParam(path: string) {
+        const pem: any = readFile (path);
+        const der = Buffer.from (pem.replace (/-----[^-]+-----|\s/g, ''), 'base64');
+
+        let pos = 0;
+        const readLen = () => {
+            let len = der[pos++];
+            if (len & 0x80) {
+            const n = len & 0x7f;
+            len = 0;
+            for (let i = 0; i < n; i++) len = (len << 8) | der[pos++];
+            }
+            return len;
+        };
+        const readInt = () => {
+            if (der[pos++] !== 0x02) throw new Error('expected INTEGER while reading DH_param file');
+            const len = readLen();
+            const hex = der.subarray(pos, pos + len).toString('hex');
+            pos += len;
+            return hex.replace(/^00/, ''); // strip sign byte
+        };
+
+        if (der[pos++] !== 0x30) throw new Error('expected SEQUENCE');
+        readLen();
+        const result = { prime: readInt(), generator: BigInt('0x' + readInt()) };
+        return result.prime;
+    }
+
+    modPow (base: bigint, exponent: bigint, modulus: bigint): bigint {
+        const zero = this.convertToBigInt ('0');
+        const one = this.convertToBigInt ('1');
+        let result = one;
+        let b = base % modulus;
+        let e = exponent;
+        while (e > zero) {
+            if ((e & one) === one) {
+                result = (result * b) % modulus;
+            }
+            b = (b * b) % modulus;
+            e = e >> one;
+        }
+        return result;
+    }
+
+    bigToBytes (value: bigint): Uint8Array {
+        // big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+        let hex = this.intToBase16 (value);
+        if ((hex.length % 2) === 1) {
+            hex = '0' + hex;
+        }
+        if (parseInt (hex[0], 16) >= 8) {
+            hex = '00' + hex; // prepend the sign byte
+        }
+        return this.base16ToBinary (hex);
+    }
+
+    decryptPrivateKey (encryptionPrivKey: string, encryptionSecret: string) {
+        return crypto.privateDecrypt ({ 'key': encryptionPrivKey, 'padding': crypto.constants.RSA_PKCS1_PADDING }, this.base64ToBinary (encryptionSecret));
+    }
+
 
     intToBase16 (elem: any): string {
         return elem.toString (16);
