@@ -1,0 +1,16 @@
+{
+    "exchange": "novadax",
+    "skipKeys": [],
+    "accounts": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.novadax.com/v1/common/symbols",
+                "input": []
+            }
+        ]
+    }
+}
