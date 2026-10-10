@@ -9,6 +9,8 @@
                 "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
                 "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
                 "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledJava": "the java static-ws harness never runs the spawned loadBalanceSnapshot against the mocked rest response, so the snapshot future stays pending, watchBalance blocks before subscribing and the injected frames cannot resolve the watch - rest seeding is covered by the other lanes",
+                "disabledRS": "the rust static-ws harness does not route the mocked rest response into the spawned loadBalanceSnapshot task, so the 'balances:fetchBalanceSnapshot' future times out and the task's proxy-validation error surfaces under the next entry - rest seeding is covered by the other lanes",
                 "input": [],
                 "url": "wss://ws.poloniex.com/ws/private",
                 "messages": [

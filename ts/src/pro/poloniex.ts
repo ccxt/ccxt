@@ -616,8 +616,27 @@ export default class poloniex extends poloniexRest {
 
     async loadBalanceSnapshot (client: Client, messageHash: string, type: string) {
         const response = await this.fetchBalance ();
-        // deltas that arrived while the snapshot was in flight win over it
-        this.balance = this.extend (response, this.balance);
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        const reserved = [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ];
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray (key, reserved)) {
+                continue;
+            }
+            if (!(key in this.balance)) {
+                this.balance[key] = response[key];
+            }
+        }
+        if (!('info' in this.balance)) {
+            this.balance['info'] = response['info'];
+            this.balance['timestamp'] = response['timestamp'];
+            this.balance['datetime'] = response['datetime'];
+        }
+        this.balance = this.safeBalance (this.balance);
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
