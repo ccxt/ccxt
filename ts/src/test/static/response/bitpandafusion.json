@@ -121,7 +121,7 @@
                 "method": "fetchOrders",
                 "input": [ "BTC/EUR" ],
                 "httpResponse": { "data": [ { "id": "order-canceled", "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "status": "canceled", "quantity": "0.5", "filledQuantity": "0.1", "filledAmount": "3000", "limitPrice": "30000", "createdAt": "2024-06-15T10:29:55.000Z" } ], "meta": { "limit": 100, "hasNextPage": true, "nextCursor": "next-page" } },
-                "parsedResponse": [ { "info": { "id": "order-canceled", "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "status": "canceled", "quantity": "0.5", "filledQuantity": "0.1", "filledAmount": "3000", "limitPrice": "30000", "createdAt": "2024-06-15T10:29:55.000Z" }, "id": "order-canceled", "clientOrderId": null, "timestamp": 1718447395000, "datetime": "2024-06-15T10:29:55.000Z", "lastTradeTimestamp": null, "lastUpdateTimestamp": null, "status": "canceled", "symbol": "BTC/EUR", "type": "limit", "timeInForce": null, "postOnly": null, "side": "buy", "price": 30000, "triggerPrice": null, "cost": 3000, "amount": 0.5, "filled": 0.1, "remaining": 0.4, "average": 30000, "fee": null, "trades": [], "fees": [], "reduceOnly": null, "stopPrice": null, "takeProfitPrice": null, "stopLossPrice": null } ]
+                "parsedResponse": [ { "info": { "id": "order-canceled", "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "status": "canceled", "quantity": "0.5", "filledQuantity": "0.1", "filledAmount": "3000", "limitPrice": "30000", "createdAt": "2024-06-15T10:29:55.000Z", "hasNextPage": true, "nextCursor": "next-page" }, "id": "order-canceled", "clientOrderId": null, "timestamp": 1718447395000, "datetime": "2024-06-15T10:29:55.000Z", "lastTradeTimestamp": null, "lastUpdateTimestamp": null, "status": "canceled", "symbol": "BTC/EUR", "type": "limit", "timeInForce": null, "postOnly": null, "side": "buy", "price": 30000, "triggerPrice": null, "cost": 3000, "amount": 0.5, "filled": 0.1, "remaining": 0.4, "average": 30000, "fee": null, "trades": [], "fees": [], "reduceOnly": null, "stopPrice": null, "takeProfitPrice": null, "stopLossPrice": null } ]
             }
         ],
         "createOrder": [
@@ -163,6 +163,13 @@
                 "input": [ "BTC/EUR" ],
                 "httpResponse": { "data": [ { "id": "trade-detail", "orderId": "order-123", "pair": "BTC-EUR", "side": "sell", "price": "61501.20", "amount": "0.15000000", "fee": { "amount": "2.25", "symbol": "EUR" }, "total": "9225.18", "executedAt": "2025-09-11T12:15:30.000Z" } ], "meta": { "limit": 100, "hasNextPage": false, "nextCursor": null } },
                 "parsedResponse": [ { "info": { "id": "trade-detail", "orderId": "order-123", "pair": "BTC-EUR", "side": "sell", "price": "61501.20", "amount": "0.15000000", "fee": { "amount": "2.25", "symbol": "EUR" }, "total": "9225.18", "executedAt": "2025-09-11T12:15:30.000Z" }, "id": "trade-detail", "order": "order-123", "timestamp": 1757592930000, "datetime": "2025-09-11T12:15:30.000Z", "symbol": "BTC/EUR", "type": null, "side": "sell", "takerOrMaker": null, "price": 61501.2, "amount": 0.15, "cost": 9225.18, "fee": { "currency": "EUR", "cost": 2.25 }, "fees": [ { "currency": "EUR", "cost": 2.25 } ] } ]
+            },
+            {
+                "description": "preserve pagination metadata when another trade page is available",
+                "method": "fetchMyTrades",
+                "input": [ "BTC/EUR" ],
+                "httpResponse": { "data": [ { "id": "trade-next", "orderId": "order-456", "pair": "BTC-EUR", "side": "buy", "price": "60000.00", "quantity": "0.10000000", "fee": { "amount": "1.00", "currency": "EUR" }, "totalAmount": "6000.00", "executedAt": "2025-09-11T12:16:30.000Z" } ], "meta": { "limit": 100, "hasNextPage": true, "nextCursor": "next-page" } },
+                "parsedResponse": [ { "info": { "id": "trade-next", "orderId": "order-456", "pair": "BTC-EUR", "side": "buy", "price": "60000.00", "quantity": "0.10000000", "fee": { "amount": "1.00", "currency": "EUR" }, "totalAmount": "6000.00", "executedAt": "2025-09-11T12:16:30.000Z", "hasNextPage": true, "nextCursor": "next-page" }, "id": "trade-next", "order": "order-456", "timestamp": 1757592990000, "datetime": "2025-09-11T12:16:30.000Z", "symbol": "BTC/EUR", "type": null, "side": "buy", "takerOrMaker": null, "price": 60000, "amount": 0.1, "cost": 6000, "fee": { "currency": "EUR", "cost": 1 }, "fees": [ { "currency": "EUR", "cost": 1 } ] } ]
             }
         ]
     }

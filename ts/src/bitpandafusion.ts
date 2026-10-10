@@ -142,7 +142,7 @@ export default class bitpandafusion extends Exchange {
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': undefined,
                         'symbolRequired': false,
@@ -696,6 +696,29 @@ export default class bitpandafusion extends Exchange {
 
     /**
      * @method
+     * @ignore
+     * @name bitpandafusion#addPaginationCursorToResult
+     * @description adds the pagination cursor to the first result so it is available after parsing
+     * @param {object} response exchange response
+     * @returns {object[]} response data with pagination metadata
+     */
+    addPaginationCursorToResult (response: Dict): List {
+        const data = this.safeList (response, 'data', []);
+        const meta = this.safeDict (response, 'meta', {});
+        const hasNextPage = this.safeBool (meta, 'hasNextPage', false);
+        const nextCursor = this.safeString (meta, 'nextCursor');
+        const dataLength = data.length;
+        if ((hasNextPage === true) && (nextCursor !== undefined) && (dataLength > 0)) {
+            const first = data[0];
+            first['hasNextPage'] = hasNextPage;
+            first['nextCursor'] = nextCursor;
+            data[0] = first;
+        }
+        return data;
+    }
+
+    /**
+     * @method
      * @name bitpandafusion#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://docs.fusion.bitpanda.com/get-orders-4203921e0
@@ -728,7 +751,7 @@ export default class bitpandafusion extends Exchange {
         }
         params = this.omit (params, 'until');
         const response = await this.privateGetV1AccountOrders (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.addPaginationCursorToResult (response);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -942,10 +965,17 @@ export default class bitpandafusion extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest trade
      * @param {string} [params.cursor] cursor from the previous page
      * @param {string} [params.orderId] filter by exchange order id
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.paginationCalls] the maximum number of requests while automatically paginating, default 10
      * @returns {object[]} a list of trade structures
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'nextCursor', 'cursor', undefined, 1000) as Trade[];
+        }
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -956,7 +986,7 @@ export default class bitpandafusion extends Exchange {
             request['startTime'] = this.parseToInt (Precise.stringDiv (this.numberToString (since), '1000'));
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000);
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
@@ -964,7 +994,7 @@ export default class bitpandafusion extends Exchange {
         }
         params = this.omit (params, 'until');
         const response = await this.privateGetV1AccountTrades (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.addPaginationCursorToResult (response);
         return this.parseTrades (data, market, since, limit);
     }
 
