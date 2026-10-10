@@ -1,0 +1,354 @@
+{
+  "exchange": "dase",
+  "skipKeys": [],
+  "methods": {
+    "fetchOrderBook": [
+      {
+        "description": "public spot order book snapshot",
+        "method": "fetchOrderBook",
+        "input": ["BTC/EUR"],
+        "httpResponse": {
+          "timestamp": "1719354237834.784",
+          "bids": [
+            [49999, 1.5],
+            [49998, 2]
+          ],
+          "asks": [
+            [50001, 1],
+            [50002, 1.5]
+          ],
+          "event_id": 123456
+        },
+        "parsedResponse": {
+          "symbol": "BTC/EUR",
+          "bids": [
+            [49999, 1.5],
+            [49998, 2]
+          ],
+          "asks": [
+            [50001, 1],
+            [50002, 1.5]
+          ],
+          "timestamp": 1719354237834,
+          "datetime": "2024-06-25T22:23:57.834Z",
+          "nonce": null
+        }
+      }
+    ],
+    "fetchClosedOrders": [
+      {
+        "description": "private closed orders",
+        "method": "fetchClosedOrders",
+        "input": [
+          "BTC/EUR"
+        ],
+        "httpResponse": {
+          "orders": [
+            {
+              "id": "6ed3004f-d595-4663-940c-a47a7d6e7fb8",
+              "market": "BTC-EUR",
+              "type": "LIMIT",
+              "side": "buy",
+              "price": "61435.2",
+              "size": "0.12963471",
+              "filled": "0.12963471",
+              "filled_cost": "7964.13",
+              "filled_price": "61435.2",
+              "status": "closed",
+              "created_at": 1751622235746
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "id": "6ed3004f-d595-4663-940c-a47a7d6e7fb8",
+              "market": "BTC-EUR",
+              "type": "LIMIT",
+              "side": "buy",
+              "price": "61435.2",
+              "size": "0.12963471",
+              "filled": "0.12963471",
+              "filled_cost": "7964.13",
+              "filled_price": "61435.2",
+              "status": "closed",
+              "created_at": 1751622235746
+            },
+            "id": "6ed3004f-d595-4663-940c-a47a7d6e7fb8",
+            "clientOrderId": null,
+            "timestamp": 1751622235746,
+            "datetime": "2025-07-04T09:43:55.746Z",
+            "lastTradeTimestamp": null,
+            "symbol": "BTC/EUR",
+            "type": "limit",
+            "timeInForce": null,
+            "postOnly": null,
+            "side": "buy",
+            "price": 61435.2,
+            "triggerPrice": null,
+            "amount": 0.12963471,
+            "cost": 7964.13,
+            "average": 61435.2,
+            "filled": 0.12963471,
+            "remaining": 0,
+            "status": "closed",
+            "trades": [],
+            "fee": null,
+            "fees": [],
+            "lastUpdateTimestamp": null,
+            "reduceOnly": null,
+            "stopPrice": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        ]
+      }
+    ],
+    "fetchTicker": [
+      {
+        "description": "public spot ticker",
+        "method": "fetchTicker",
+        "input": ["BTC/EUR"],
+        "httpResponse": {
+          "time": "1719354237834.784",
+          "ask": "50001.0",
+          "bid": "49999.0",
+          "volume": "100.0",
+          "price": "50000.0",
+          "size": "0.5"
+        },
+        "parsedResponse": {
+          "symbol": "BTC/EUR",
+          "timestamp": 1719354237834,
+          "datetime": "2024-06-25T22:23:57.834Z",
+          "high": null,
+          "low": null,
+          "bid": 49999,
+          "bidVolume": null,
+          "ask": 50001,
+          "askVolume": null,
+          "vwap": null,
+          "open": null,
+          "close": 50000,
+          "last": 50000,
+          "previousClose": null,
+          "change": null,
+          "percentage": null,
+          "average": null,
+          "baseVolume": 100,
+          "quoteVolume": null,
+          "markPrice": null,
+          "indexPrice": null,
+          "info": {
+            "time": "1719354237834.784",
+            "ask": "50001.0",
+            "bid": "49999.0",
+            "volume": "100.0",
+            "price": "50000.0",
+            "size": "0.5"
+          }
+        }
+      }
+    ],
+    "fetchTickers": [
+      {
+        "description": "public spot tickers",
+        "method": "fetchTickers",
+        "input": [],
+        "httpResponse": {
+          "stats": [
+            {
+              "market": "BTC-EUR",
+              "last_price": "50000.0",
+              "open_24h": "48000.0",
+              "high_24h": "51000.0",
+              "low_24h": "47000.0",
+              "volume_24h": "100.0"
+            },
+            {
+              "market": "ETH-EUR",
+              "last_price": "3500.0",
+              "open_24h": "3400.0",
+              "high_24h": "3600.0",
+              "low_24h": "3300.0",
+              "volume_24h": "250.5"
+            }
+          ]
+        },
+        "parsedResponse": {
+          "BTC/EUR": {
+            "symbol": "BTC/EUR",
+            "timestamp": null,
+            "datetime": null,
+            "high": 51000,
+            "low": 47000,
+            "bid": null,
+            "bidVolume": null,
+            "ask": null,
+            "askVolume": null,
+            "vwap": null,
+            "open": 48000,
+            "close": 50000,
+            "last": 50000,
+            "previousClose": null,
+            "change": 2000,
+            "percentage": 4.166666666666667,
+            "average": 49000,
+            "baseVolume": 100,
+            "quoteVolume": null,
+            "markPrice": null,
+            "indexPrice": null,
+            "info": {
+              "market": "BTC-EUR",
+              "last_price": "50000.0",
+              "open_24h": "48000.0",
+              "high_24h": "51000.0",
+              "low_24h": "47000.0",
+              "volume_24h": "100.0"
+            }
+          },
+          "ETH/EUR": {
+            "symbol": "ETH/EUR",
+            "timestamp": null,
+            "datetime": null,
+            "high": 3600,
+            "low": 3300,
+            "bid": null,
+            "bidVolume": null,
+            "ask": null,
+            "askVolume": null,
+            "vwap": null,
+            "open": 3400,
+            "close": 3500,
+            "last": 3500,
+            "previousClose": null,
+            "change": 100,
+            "percentage": 2.941176470588235,
+            "average": 3450,
+            "baseVolume": 250.5,
+            "quoteVolume": null,
+            "markPrice": null,
+            "indexPrice": null,
+            "info": {
+              "market": "ETH-EUR",
+              "last_price": "3500.0",
+              "open_24h": "3400.0",
+              "high_24h": "3600.0",
+              "low_24h": "3300.0",
+              "volume_24h": "250.5"
+            }
+          }
+        }
+      }
+    ],
+    "fetchTrades": [
+      {
+        "description": "public spot trades",
+        "method": "fetchTrades",
+        "input": ["BTC/EUR", null, 3],
+        "httpResponse": {
+          "trades": [
+            {
+              "time": "1719347541953",
+              "id": "12345678-1234-1234-1234-123456789abc",
+              "price": "50000.0",
+              "size": "0.5",
+              "side": "buy"
+            },
+            {
+              "time": "1719347542953",
+              "id": "22345678-1234-1234-1234-123456789abc",
+              "price": "50005.0",
+              "size": "0.25",
+              "side": "sell"
+            },
+            {
+              "time": "1719347543953",
+              "id": "32345678-1234-1234-1234-123456789abc",
+              "price": "49990.0",
+              "size": "0.75",
+              "side": "buy"
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "time": "1719347541953",
+              "id": "12345678-1234-1234-1234-123456789abc",
+              "price": "50000.0",
+              "size": "0.5",
+              "side": "buy"
+            },
+            "timestamp": 1719347541953,
+            "datetime": "2024-06-25T20:32:21.953Z",
+            "symbol": "BTC/EUR",
+            "id": "12345678-1234-1234-1234-123456789abc",
+            "order": null,
+            "type": null,
+            "side": "buy",
+            "takerOrMaker": null,
+            "price": 50000,
+            "amount": 0.5,
+            "cost": 25000,
+            "fee": {
+              "cost": null,
+              "currency": null
+            },
+            "fees": []
+          },
+          {
+            "info": {
+              "time": "1719347542953",
+              "id": "22345678-1234-1234-1234-123456789abc",
+              "price": "50005.0",
+              "size": "0.25",
+              "side": "sell"
+            },
+            "timestamp": 1719347542953,
+            "datetime": "2024-06-25T20:32:22.953Z",
+            "symbol": "BTC/EUR",
+            "id": "22345678-1234-1234-1234-123456789abc",
+            "order": null,
+            "type": null,
+            "side": "sell",
+            "takerOrMaker": null,
+            "price": 50005,
+            "amount": 0.25,
+            "cost": 12501.25,
+            "fee": {
+              "cost": null,
+              "currency": null
+            },
+            "fees": []
+          },
+          {
+            "info": {
+              "time": "1719347543953",
+              "id": "32345678-1234-1234-1234-123456789abc",
+              "price": "49990.0",
+              "size": "0.75",
+              "side": "buy"
+            },
+            "timestamp": 1719347543953,
+            "datetime": "2024-06-25T20:32:23.953Z",
+            "symbol": "BTC/EUR",
+            "id": "32345678-1234-1234-1234-123456789abc",
+            "order": null,
+            "type": null,
+            "side": "buy",
+            "takerOrMaker": null,
+            "price": 49990,
+            "amount": 0.75,
+            "cost": 37492.5,
+            "fee": {
+              "cost": null,
+              "currency": null
+            },
+            "fees": []
+          }
+        ]
+      }
+    ]
+  }
+}
