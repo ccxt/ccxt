@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/interactivebrokers.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, OperationFailed, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import type { Account, Balances, Dict, Endpoint, Int, List, Market, Num, NullableDict, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
@@ -22,7 +22,7 @@ export default class interactivebrokers extends Exchange {
             'name': 'Interactive Brokers',
             'countries': [ 'US' ],
             'version': 'v1',
-            'rateLimit': 100 * 1.01, // the client portal gateway allows ~10 requests per second
+            'rateLimit': 100 * 1.2, // the client portal gateway allows ~10 requests per second
             'pro': false,
             'has': {
                 'CORS': undefined,
@@ -500,12 +500,10 @@ export default class interactivebrokers extends Exchange {
                         'STK': [ 'NYSE' ], // "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0, SMART;AMEX;BATS;BOX;CBOE;CBOE2;EDGX;EMERALD;…2;NASDAQBX;NASDAQOM; OTC,IDEAL,IBFX,UBSFX,JPMCFX,DBKFX,CITIFX,BARCFX,RBSFX,RBCFX,BOAFX,HSBCFX,GSFX,IDEALFX,NOMFX,MSFX,BARC2FX,ETFFX,NATIXISFX,NOM2FX,CSFX,DBK2FX,RBS2FX,UBS2FX,BOA2FX,GS2FX,JPMC2FX,RBC2FX,SCBFX,CITADELFX,KNIGHTFX,HSBC2FX,CBKFX,SCB2FX,CBK2FX,NOM3FX,BNPFX,BNP2FX,VIRTUFX,ANZFX,ANZ2FX,XTXFX,FXSETTLE,TDFX,WFFX,CITI2FX,IBCMSCFX,WF2FX,BNYFX,BNY2FX,PEARL;PHLX;PSE;SAPPHIRE
                         // 'CRYPTO': [ 'PAXOS', 'ZEROHASH', 'ZEROHASHE' ],
                     },
-                    'stockQuote': 'USD',
-                    'stockPriceIncrement': '0.01',
                     'stockAmountIncrement': '1',
-                    'cryptoSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
-                    'cryptoAmountIncrement': '0.00000001',
                     'forexAmountIncrement': '1',
+                    'cryptoAmountIncrement': '0.00000001',
+                    'cryptoSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
                     'forexCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
                     'defaultMinCost': 1,
                 },
@@ -613,16 +611,9 @@ export default class interactivebrokers extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '401': AuthenticationError,
-                    '429': RateLimitExceeded,
+                    '503': OperationFailed, // {"error":"Service Unavailable","statusCode":503}
                 },
                 'broad': {
-                    'Conid(s) missing': ArgumentsRequired, // {"error":"Bad Request: Conid(s) missing","statusCode":400}
-                    'not authenticated': AuthenticationError,
-                    'Invalid symbol': BadSymbol,
-                    'Order not found': OrderNotFound,
-                    'is not found': OrderNotFound, // {"error":"Order 1888681780 is not found","statusCode":503}
-                    'Bad Request': BadRequest,
                 },
             },
             'commonCurrencies': {},
@@ -831,7 +822,7 @@ export default class interactivebrokers extends Exchange {
         await this.loadServiceAccounts ();
         // const res1 = await this.privateGetTrsrvSecdef ({conids:'479624278'});
         // const res2 = await this.webapiGetV1ApiTrsrvAllConids ({exchange:'PAXOS'});
-        const res = await this.fetchForexMarkets ();
+        const res = await this.fetchStockMarkets ();
         return res;
     }
 
@@ -848,7 +839,8 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         await this.loadServiceAccounts ();
-        const aaa = await this.fetchForexMarkets (params);
+        const aaa = await this.fetchStockMarkets (params);
+        return aaa;
         const stockMarketsPromise = this.fetchStockMarkets (params);
         const cryptoMarketsPromise = this.fetchCryptoMarkets (params);
         const fxMarketsPromise = this.fetchForexMarkets (params);
@@ -862,29 +854,41 @@ export default class interactivebrokers extends Exchange {
         const detailIds = Object.keys (plainEntries);
         const entries: Dict[] = [];
         const numDetails = detailIds.length;
-        if (numDetails > 0) {
+        if (numDetails === 0) {
+            return entries;
+        }
+        const chunkSize = 300;
+        const promises = [];
+        let offset = 0;
+        while (offset < numDetails) {
+            const end = Math.min (offset + chunkSize, numDetails);
+            const chunk = this.arraySlice (detailIds, offset, end);
             const secdefRequest: Dict = {
-                'conids': detailIds.join (','),
+                'conids': chunk.join (','),
             };
-            const secdefResponse = await this.privateGetTrsrvSecdef (secdefRequest);
-            //
-            //     {
-            //         "secdef": [
-            //             {
-            //                 "conid": 479624278,
-            //                 "currency": "USD",
-            //                 "incrementRules": [ { "lowerEdge": 0, "increment": 0.25 } ],
-            //                 "listingExchange": "PAXOS",
-            //                 "assetClass": "CRYPTO",
-            //                 "ticker": "BTC",
-            //                 ...
-            //             }
-            //         ]
-            //     }
-            //
-            const secdefs = this.safeList (secdefResponse, 'secdef', []);
-            for (let i = 0; i < secdefs.length; i++) {
-                const secdef = secdefs[i];
+            promises.push (this.privateGetTrsrvSecdef (secdefRequest));
+            offset = end;
+        }
+        const responses = await Promise.all (promises);
+        //
+        //     {
+        //         "secdef": [
+        //             {
+        //                 "conid": 479624278,
+        //                 "currency": "USD",
+        //                 "incrementRules": [ { "lowerEdge": 0, "increment": 0.25 } ],
+        //                 "listingExchange": "PAXOS",
+        //                 "assetClass": "CRYPTO",
+        //                 "ticker": "BTC",
+        //                 ...
+        //             }
+        //         ]
+        //     }
+        //
+        for (let i = 0; i < responses.length; i++) {
+            const secdefs = this.safeList (responses[i], 'secdef', []);
+            for (let j = 0; j < secdefs.length; j++) {
+                const secdef = secdefs[j];
                 const conid = this.safeString (secdef, 'conid');
                 const entry = this.safeDict (plainEntries, conid);
                 if (entry !== undefined) {
@@ -974,13 +978,9 @@ export default class interactivebrokers extends Exchange {
     }
 
     async fetchStockMarkets (params: Dict = {}): Promise<Market[]> {
-        const entries: Dict[] = [];
+        const entries: Dict = {};
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const exchangesDict = this.safeDict (options, 'exchanges', {});
-        const stockQuote = this.safeString (options, 'stockQuote', 'USD');
-        const stockPriceIncrement = this.safeString (options, 'stockPriceIncrement', '0.01');
-        const stockAmountIncrement = this.safeString (options, 'stockAmountIncrement', '1');
-        const seenStocks: Dict = {}; // the same conid is returned by several exchanges, e.g. NYSE also lists NASDAQ stocks
         const stockExchanges = this.safeList (exchangesDict, 'STK', []);
         for (let j = 0; j < stockExchanges.length; j++) {
             const exchange = stockExchanges[j];
@@ -995,33 +995,20 @@ export default class interactivebrokers extends Exchange {
             for (let j = 0; j < stocks.length; j++) {
                 const stock = stocks[j];
                 const stockConid = this.safeString (stock, 'conid');
-                if ((stockConid === undefined) || (stockConid in seenStocks)) {
-                    continue;
+                if (stockConid !== undefined) {
+                    entries[stockConid] = stock;
                 }
-                seenStocks[stockConid] = true;
-                entries.push ({
-                    'id': stockConid,
-                    'baseId': this.safeString (stock, 'ticker'),
-                    'quoteId': stockQuote,
-                    'assetClass': 'STK',
-                    'exchange': this.safeString (stock, 'exchange'),
-                    'priceIncrement': stockPriceIncrement,
-                    'amountIncrement': stockAmountIncrement,
-                    'info': stock,
-                });
             }
         }
-        return this.parseMarkets (entries);
+        const markets = await this.fetchWithDetails (entries);
+        return this.parseMarkets (markets);
     }
 
     override parseMarket (market: Dict): Market {
         //
-        // crypto
-        //
         //    {
         //        "conid": 479624278,
         //        "symbol": "BTC", // "BTC", "EUR.USD",
-        //        "ccyPair": "EUR",              // field only present in Forex
         //        "incrementRules": [
         //            {
         //                "lowerEdge": 0,
@@ -1060,17 +1047,19 @@ export default class interactivebrokers extends Exchange {
         //        "hasOptions": false,
         //        "fullName": "BTC",          // BTC, EUR.USD
         //        "isEventContract": false,
-        //        // the below fields are not present in all markets
-        //        "companyHeader": "Bitcoin cryptocurrency",
-        //        "companyName": "Bitcoin cryptocurrency",
-        //        "description": null,
-        //        "restricted": null,
-        //        "sections": [
+        //        "companyHeader": "Bitcoin cryptocurrency",  // in CRYPTO
+        //        "companyName": "Bitcoin cryptocurrency",    // in CRYPTO
+        //        "description": null,                        // in CRYPTO
+        //        "restricted": null,                         // in CRYPTO
+        //        "sections": [                               // in CRYPTO
         //            {
         //                "secType": "CRYPTO",
         //                "exchange": "PAXOS;"
         //            }
         //        ],
+        //        "isUS": true,                               // in Stock
+        //        "exchange": "NYSE",                         // in Stock
+        //        "ccyPair": "EUR",                           // in Forex
         //    }
         //
         const assetClass = this.safeString (market, 'assetClass');
@@ -1089,6 +1078,8 @@ export default class interactivebrokers extends Exchange {
             amountPrecision = this.safeString (options, 'cryptoAmountIncrement', '0.00000001');
         } else if (isForex) {
             amountPrecision = this.safeString (options, 'forexAmountIncrement', '1');
+        } else {
+            amountPrecision = this.safeString (options, 'stockAmountIncrement', '1');
         }
         let base: Str = undefined;
         if (assetClass === 'STK') {
