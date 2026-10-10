@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import poloniexRest from '../poloniex.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList, Market, List } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList, Market } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -46,6 +46,10 @@ export default class poloniex extends poloniexRest {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true, // or false
+                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                },
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -579,7 +583,66 @@ export default class poloniex extends poloniexRest {
         }
         const name = 'balances';
         await this.authenticate ();
+        // the balances channel only streams per-event deltas, so seed the
+        // balance from a rest snapshot once per subscription - otherwise the
+        // first resolves would only list the currencies that changed since
+        // subscribing
+        const url = this.urls['api']['ws']['private'];
+        const client = this.client (url);
+        this.setBalanceCache (client, name);
+        const options = this.safeDict (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+            await client.future (name + ':fetchBalanceSnapshot');
+        }
         return await this.subscribe (name, name, true, undefined, params);
+    }
+
+    setBalanceCache (client: Client, type: string) {
+        if (type in client.subscriptions) {
+            return;
+        }
+        const options = this.safeDict (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        if (fetchBalanceSnapshot === true) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        }
+    }
+
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string) {
+        const response = await this.fetchBalance ();
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        const reserved = [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ];
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray (key, reserved)) {
+                continue;
+            }
+            if (!(key in this.balance)) {
+                this.balance[key] = response[key];
+            }
+        }
+        if (!('info' in this.balance)) {
+            this.balance['info'] = response['info'];
+            this.balance['timestamp'] = response['timestamp'];
+            this.balance['datetime'] = response['datetime'];
+        }
+        this.balance = this.safeBalance (this.balance);
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve ();
+            client.resolve (this.balance, type);
+        }
     }
 
     override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1150,7 +1213,7 @@ export default class poloniex extends poloniexRest {
             const asks = this.safeList (item, 'asks');
             const bids = this.safeList (item, 'bids');
             if (snapshot || update) {
-                if (snapshot) {
+                if (snapshot && !(symbol in this.orderbooks)) {
                     this.orderbooks[symbol] = this.orderBook ({}, limit);
                 }
                 if (!(symbol in this.orderbooks)) {
@@ -1158,6 +1221,13 @@ export default class poloniex extends poloniexRest {
                     continue;
                 }
                 const orderbook = this.orderbooks[symbol];
+                if (snapshot) {
+                    // reset the existing orderbook in place instead of
+                    // replacing it: a consumer awakened earlier keeps a
+                    // reference to the old object and would be orphaned
+                    // from later updates on a resync/reconnect otherwise
+                    orderbook.reset ({});
+                }
                 if (bids !== undefined) {
                     for (let j = 0; j < bids.length; j++) {
                         const bid = this.safeList (bids, j);
@@ -1204,48 +1274,36 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
+        // the balances channel only sends per-event deltas for the currencies
+        // that changed, so merge them into the existing balance object instead
+        // of rebuilding it from the current message: a rebuilt object would
+        // drop every other currency, and a consumer awakened by an earlier
+        // message keeps a reference to the old object while Client.resolve is
+        // a no-op with no waiter, so updates landing in that window would
+        // never reach that consumer (same class as kraken issue #26773)
         const data = this.safeList (message, 'data', []);
         const messageHash = 'balances';
-        this.balance = this.parseWsBalance (data);
-        client.resolve (this.balance, messageHash);
-    }
-
-    parseWsBalance (response: List): Balances {
-        //
-        //    [
-        //        {
-        //            "changeTime": 1657312008411,
-        //            "accountId": "1234",
-        //            "accountType": "SPOT",
-        //            "eventType": "place_order",
-        //            "available": "9999999983.668",
-        //            "currency": "BTC",
-        //            "id": 60018450912695040,
-        //            "userId": 12345,
-        //            "hold": "16.332",
-        //            "ts": 1657312008443
-        //        }
-        //    ]
-        //
-        const firstBalance = this.safeDict (response, 0, {});
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = data;
+        const firstBalance = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (firstBalance, 'ts');
-        const result: Dict = {
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict (response, i);
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
+        for (let i = 0; i < data.length; i++) {
+            const balance = this.safeDict (data, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const newAccount = this.account ();
             newAccount['free'] = this.safeString (balance, 'available');
             newAccount['used'] = this.safeString (balance, 'hold');
             if (code !== undefined) {
-                result[code] = newAccount;
+                this.balance[code] = newAccount;
             }
         }
-        return this.safeBalance (result);
+        this.balance = this.safeBalance (this.balance);
+        client.resolve (this.balance, messageHash);
     }
 
     handleMyTrades (client: Client, parsedTrade: Trade) {
