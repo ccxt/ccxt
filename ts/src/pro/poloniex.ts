@@ -46,6 +46,10 @@ export default class poloniex extends poloniexRest {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true, // or false
+                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                },
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -579,7 +583,47 @@ export default class poloniex extends poloniexRest {
         }
         const name = 'balances';
         await this.authenticate ();
+        // the balances channel only streams per-event deltas, so seed the
+        // balance from a rest snapshot once per subscription - otherwise the
+        // first resolves would only list the currencies that changed since
+        // subscribing
+        const url = this.urls['api']['ws']['private'];
+        const client = this.client (url);
+        this.setBalanceCache (client, name);
+        const options = this.safeDict (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+            await client.future (name + ':fetchBalanceSnapshot');
+        }
         return await this.subscribe (name, name, true, undefined, params);
+    }
+
+    setBalanceCache (client: Client, type: string) {
+        if (type in client.subscriptions) {
+            return;
+        }
+        const options = this.safeDict (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        if (fetchBalanceSnapshot === true) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        }
+    }
+
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string) {
+        const response = await this.fetchBalance ();
+        // deltas that arrived while the snapshot was in flight win over it
+        this.balance = this.extend (response, this.balance);
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve ();
+            client.resolve (this.balance, type);
+        }
     }
 
     override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {

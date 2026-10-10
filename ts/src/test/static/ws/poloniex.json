@@ -5,7 +5,7 @@
     "methods": {
         "watchBalance": [
             {
-                "description": "balance deltas for different currencies arriving while no consumer is awaiting must still reach the object handed to the consumer (same class as kraken issue 26773; frames captured live 2026-10-10)",
+                "description": "rest snapshot seed plus balance deltas for different currencies arriving while no consumer is awaiting - all must reach the object handed to the consumer (same class as kraken issue 26773; frames and rest response captured live 2026-10-10)",
                 "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
                 "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
                 "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
@@ -22,6 +22,9 @@
                     {
                         "event": "subscribe",
                         "channel": "balances"
+                    },
+                    {
+                        "event": "pong"
                     },
                     {
                         "channel": "balances",
@@ -144,24 +147,58 @@
                         "used": 0,
                         "total": 116.266002
                     },
-                    "free": {
-                        "DOGE": 116.266002,
-                        "USDT": 20.000075337
-                    },
-                    "used": {
-                        "DOGE": 0,
-                        "USDT": 0
-                    },
-                    "total": {
-                        "DOGE": 116.266002,
-                        "USDT": 20.000075337
+                    "XLM": {
+                        "free": 9.98,
+                        "used": 0,
+                        "total": 9.98
                     },
                     "USDT": {
                         "free": 20.000075337,
                         "used": 0,
                         "total": 20.000075337
+                    },
+                    "free": {
+                        "DOGE": 116.266002,
+                        "XLM": 9.98,
+                        "USDT": 20.000075337
+                    },
+                    "used": {
+                        "DOGE": 0,
+                        "XLM": 0,
+                        "USDT": 0
+                    },
+                    "total": {
+                        "DOGE": 116.266002,
+                        "XLM": 9.98,
+                        "USDT": 20.000075337
                     }
-                }
+                },
+                "httpResponse": [
+                    {
+                        "accountId": "1234",
+                        "accountType": "SPOT",
+                        "balances": [
+                            {
+                                "currencyId": "59",
+                                "currency": "DOGE",
+                                "available": "116.266002",
+                                "hold": "0.00"
+                            },
+                            {
+                                "currencyId": "198",
+                                "currency": "XLM",
+                                "available": "9.98",
+                                "hold": "0.00"
+                            },
+                            {
+                                "currencyId": "214",
+                                "currency": "USDT",
+                                "available": "20.000075337",
+                                "hold": "0.00"
+                            }
+                        ]
+                    }
+                ]
             }
         ],
         "watchOrderBook": [
