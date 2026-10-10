@@ -1584,6 +1584,12 @@ export default class okx extends okxRest {
                     if (!(messageHash in client.subscriptions)) {
                         // a nonce gap rejected the future and always cleared the subscription entry, while the book
                         // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        //
+                        // the channel itself is still subscribed on this connection, and okx sends a snapshot only in
+                        // reply to a subscribe - a new subscribe is acknowledged without one, and every update after it
+                        // is dropped for lack of a book, so the channel is unsubscribed before the caller subscribes again
+                        client.subscriptions['resync:' + messageHash] = true;
+                        this.spawn (this.unsubscribeAfterNonceGap, client, channel, marketId);
                         break;
                     }
                     client.resolve (orderbook, messageHash);
@@ -2708,8 +2714,22 @@ export default class okx extends okxRest {
         }
     }
 
+    async unsubscribeAfterNonceGap (client: Client, channel: string, marketId: string) {
+        const request: Dict = {
+            'op': 'unsubscribe',
+            'args': [ { 'channel': channel, 'instId': marketId } ],
+        };
+        await client.send (request);
+    }
+
     handleUnsubscriptionOrderBook (client: Client, symbol: string, channel: string) {
         const subMessageHash = channel + ':' + symbol;
+        const resyncHash = 'resync:' + subMessageHash;
+        if (resyncHash in client.subscriptions) {
+            // the unsubscribe sent after a nonce gap, a subscription the caller placed in the meantime stays intact
+            delete client.subscriptions[resyncHash];
+            return;
+        }
         const messageHash = 'unsubscribe:orderbook:' + symbol;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (symbol in this.orderbooks) {
