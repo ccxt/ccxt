@@ -60,7 +60,8 @@
             { "description": "cancel order without requiring symbol", "method": "cancelOrder", "url": "https://api.fusion.bitpanda.com/v1/account/orders/order-123", "input": [ "order-123" ] }
         ],
         "fetchMyTrades": [
-            { "description": "translate unified trade pagination filters", "method": "fetchMyTrades", "url": "https://api.fusion.bitpanda.com/v1/account/trades?pair=BTC-EUR&startTime=1726041600&limit=100&endTime=1726127999&orderId=order-123&cursor=next-page", "input": [ "BTC/EUR", 1726041600000, 100, { "until": 1726127999000, "orderId": "order-123", "cursor": "next-page" } ] }
+            { "description": "translate unified trade pagination filters", "method": "fetchMyTrades", "url": "https://api.fusion.bitpanda.com/v1/account/trades?pair=BTC-EUR&startTime=1726041600&limit=100&endTime=1726127999&orderId=order-123&cursor=next-page", "input": [ "BTC/EUR", 1726041600000, 100, { "until": 1726127999000, "orderId": "order-123", "cursor": "next-page" } ] },
+            { "description": "cap the page size at the documented maximum", "method": "fetchMyTrades", "url": "https://api.fusion.bitpanda.com/v1/account/trades?pair=BTC-EUR&limit=1000", "input": [ "BTC/EUR", null, 1001 ] }
         ]
     }
 }
