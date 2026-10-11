@@ -1237,9 +1237,87 @@
                 "httpResponse": {
                     "success": true,
                     "code": 0,
-                    "data": []
+                    "data": [
+                        {
+                            "id": "864240665238925824",
+                            "symbol": "ADA_USDT",
+                            "leverage": 2,
+                            "side": 1,
+                            "triggerPrice": 0.4,
+                            "vol": 1,
+                            "openType": 2,
+                            "triggerType": 1,
+                            "state": 1,
+                            "executeCycle": 24,
+                            "trend": 1,
+                            "orderType": 5,
+                            "errorCode": 0,
+                            "priceProtect": 0,
+                            "createTime": 1791721431000,
+                            "updateTime": 1791721431000,
+                            "positionMode": 1,
+                            "lossTrend": 1,
+                            "profitTrend": 1,
+                            "reduceOnly": false,
+                            "ensureStopLoss": 0,
+                            "extraTakerFeeRate": 0
+                        }
+                    ]
                 },
-                "parsedResponse": []
+                "parsedResponse": [
+                    {
+                        "id": "864240665238925824",
+                        "clientOrderId": null,
+                        "timestamp": 1791721431000,
+                        "datetime": "2026-10-11T12:23:51.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1791721431000,
+                        "status": "open",
+                        "symbol": "ADA/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "side": "buy",
+                        "price": null,
+                        "triggerPrice": 0.4,
+                        "average": null,
+                        "amount": 1,
+                        "cost": null,
+                        "filled": null,
+                        "remaining": null,
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "id": "864240665238925824",
+                            "symbol": "ADA_USDT",
+                            "leverage": 2,
+                            "side": 1,
+                            "triggerPrice": 0.4,
+                            "vol": 1,
+                            "openType": 2,
+                            "triggerType": 1,
+                            "state": 1,
+                            "executeCycle": 24,
+                            "trend": 1,
+                            "orderType": 5,
+                            "errorCode": 0,
+                            "priceProtect": 0,
+                            "createTime": 1791721431000,
+                            "updateTime": 1791721431000,
+                            "positionMode": 1,
+                            "lossTrend": 1,
+                            "profitTrend": 1,
+                            "reduceOnly": false,
+                            "ensureStopLoss": 0,
+                            "extraTakerFeeRate": 0
+                        },
+                        "fees": [],
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": 0.4,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
             },
             {
                 "description": "swap open orders",
@@ -1545,22 +1623,21 @@
                     "buy",
                     1,
                     null,
-                    "{\"triggerPrice\": <цена заметно выше рынка>}"
+                    {
+                        "triggerPrice": 0.4
+                    }
                 ],
                 "httpResponse": {
                     "success": true,
-                    "code": 0,
-                    "data": {
-                        "orderId": "864239270301496832",
-                        "ts": 1791721098836
-                    }
+                    "code": "0",
+                    "data": "864240665238925824"
                 },
                 "parsedResponse": {
-                    "id": "864239270301496832",
-                    "timestamp": 1791721098836,
+                    "id": "864240665238925824",
+                    "timestamp": null,
                     "fees": [],
                     "clientOrderId": null,
-                    "datetime": "2026-10-11T12:18:18.836Z",
+                    "datetime": null,
                     "symbol": null,
                     "type": null,
                     "side": null,
