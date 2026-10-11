@@ -1,5 +1,8 @@
 {
     "exchange": "mexc",
+    "skipKeys": [
+        "vwap"
+    ],
     "options": {},
     "methods": {
         "fetchTickers": [
