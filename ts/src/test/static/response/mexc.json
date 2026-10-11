@@ -2,6 +2,55 @@
     "exchange": "mexc",
     "options": {},
     "methods": {
+        "cancelOrder": [
+            {
+                "description": "cancel swap trigger order",
+                "method": "cancelOrder",
+                "input": [
+                    "864240665238925824",
+                    "ADA/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0
+                },
+                "parsedResponse": {
+                    "id": "864240665238925824",
+                    "symbol": "ADA/USDT:USDT",
+                    "info": {
+                        "success": true,
+                        "code": 0
+                    },
+                    "fees": [],
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
@@ -1224,6 +1273,102 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "swap open trigger orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "ADA/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0,
+                    "data": [
+                        {
+                            "id": "864240665238925824",
+                            "symbol": "ADA_USDT",
+                            "leverage": 2,
+                            "side": 1,
+                            "triggerPrice": 0.4,
+                            "vol": 1,
+                            "openType": 2,
+                            "triggerType": 1,
+                            "state": 1,
+                            "executeCycle": 24,
+                            "trend": 1,
+                            "orderType": 5,
+                            "errorCode": 0,
+                            "priceProtect": 0,
+                            "createTime": 1791721431000,
+                            "updateTime": 1791721431000,
+                            "positionMode": 1,
+                            "lossTrend": 1,
+                            "profitTrend": 1,
+                            "reduceOnly": false,
+                            "ensureStopLoss": 0,
+                            "extraTakerFeeRate": 0
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "864240665238925824",
+                        "clientOrderId": null,
+                        "timestamp": 1791721431000,
+                        "datetime": "2026-10-11T12:23:51.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1791721431000,
+                        "status": "open",
+                        "symbol": "ADA/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "side": "buy",
+                        "price": null,
+                        "triggerPrice": 0.4,
+                        "average": null,
+                        "amount": 1,
+                        "cost": null,
+                        "filled": null,
+                        "remaining": null,
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "id": "864240665238925824",
+                            "symbol": "ADA_USDT",
+                            "leverage": 2,
+                            "side": 1,
+                            "triggerPrice": 0.4,
+                            "vol": 1,
+                            "openType": 2,
+                            "triggerType": 1,
+                            "state": 1,
+                            "executeCycle": 24,
+                            "trend": 1,
+                            "orderType": 5,
+                            "errorCode": 0,
+                            "priceProtect": 0,
+                            "createTime": 1791721431000,
+                            "updateTime": 1791721431000,
+                            "positionMode": 1,
+                            "lossTrend": 1,
+                            "profitTrend": 1,
+                            "reduceOnly": false,
+                            "ensureStopLoss": 0,
+                            "extraTakerFeeRate": 0
+                        },
+                        "fees": [],
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": 0.4,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
                 "description": "swap open orders",
                 "method": "fetchOpenOrders",
                 "options": {
@@ -1518,6 +1663,53 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "swap market buy trigger order",
+                "method": "createOrder",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": 0.4
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": "0",
+                    "data": "864240665238925824"
+                },
+                "parsedResponse": {
+                    "id": "864240665238925824",
+                    "timestamp": null,
+                    "fees": [],
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "symbol": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null
+                }
+            },
             {
                 "description": "place swap order",
                 "method": "createOrder",
