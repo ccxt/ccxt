@@ -3383,6 +3383,9 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
+            if (method === 'contractPrivatePostPlanorderCancel') {
+                return this.safeOrder ({ 'id': id, 'symbol': this.safeString (market, 'symbol'), 'info': response }, market); // planorder/cancel answers without data, failures are raised by handleErrors
+            }
             data = this.safeValue (response, 'data');
             const order = this.safeDict (data, 0);
             const errorMsg = this.safeString (order, 'errorMsg', '');
