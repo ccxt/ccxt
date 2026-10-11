@@ -3004,7 +3004,12 @@ public partial class mexc : Exchange
             request["triggerType"] = this.safeInteger(paramsOmitted, "triggerType", 1);
             request["executeCycle"] = this.safeInteger(paramsOmitted, "executeCycle", 1);
             request["trend"] = this.safeInteger(paramsOmitted, "trend", 1);
-            request["orderType"] = this.safeInteger(paramsOmitted, "orderType", 1);
+            object planOrderType = orderType;
+            if (isEqual(orderType, 6))
+            {
+                planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+            }
+            request["orderType"] = this.safeInteger(paramsOmitted, "orderType", planOrderType);
             response = await this.contractPrivatePostPlanorderPlace(this.extend(request, paramsOmitted));
         } else
         {
@@ -3020,7 +3025,15 @@ public partial class mexc : Exchange
         // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         //
         IDictionary<string, object> data = this.safeDict(response, "data");
-        return this.safeOrder(new Dictionary<string, object>() {             { "id", this.safeString(data, "orderId") },             { "timestamp", this.safeInteger(data, "ts") },         }, market);
+        string? id = null;
+        if ((data == null))
+        {
+            id = this.safeString(response, "data"); // planorder/place answers with the bare trigger order id
+        } else
+        {
+            id = this.safeString(data, "orderId");
+        }
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "timestamp", this.safeInteger(data, "ts") },         }, market);
     }
 
     /**
@@ -3501,6 +3514,7 @@ public partial class mexc : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3592,13 +3606,24 @@ public partial class mexc : Exchange
             return this.parseOrders(response, market, since, limit);
         } else
         {
+            bool? trigger = this.safeBool2(paramsMarketType, "stop", "trigger");
+            Dictionary<string, object> swapParams = this.omit(paramsMarketType, new List<object>() {"stop", "trigger"});
             if ((limit == null))
             {
                 request["page_size"] = 100; // max
             }
-            Dictionary<string, object> swapResponse = await this.contractPrivateGetOrderListOpenOrders(this.extend(request, paramsMarketType));
-            List<object> data = this.safeList(swapResponse, "data", new List<object>() {});
-            return this.parseOrders(data, market, since, limit, paramsMarketType);
+            List<object> data = new List<object>() {};
+            if ((trigger == true))
+            {
+                request["states"] = 1; // untriggered
+                Dictionary<string, object> triggerResponse = await this.contractPrivateGetPlanorderListOrders(this.extend(request, swapParams));
+                data = this.safeList(triggerResponse, "data", new List<object>() {});
+            } else
+            {
+                Dictionary<string, object> swapResponse = await this.contractPrivateGetOrderListOpenOrders(this.extend(request, swapParams));
+                data = this.safeList(swapResponse, "data", new List<object>() {});
+            }
+            return this.parseOrders(data, market, since, limit, swapParams);
         }
     }
 
@@ -3675,6 +3700,7 @@ public partial class mexc : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for canceling trigger orders
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3729,16 +3755,28 @@ public partial class mexc : Exchange
             }
         } else
         {
-            // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
+            bool? trigger = this.safeBool2(query, "stop", "trigger");
             string? method = this.safeString(this.options, "cancelOrder", "contractPrivatePostOrderCancel"); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = this.safeString(query, "method", method);
+            if ((trigger == true))
+            {
+                method = "contractPrivatePostPlanorderCancel";
+            }
             Dictionary<string, object> response = null;
             if (method == "contractPrivatePostOrderCancel")
             {
                 response = await this.contractPrivatePostOrderCancel(new List<object>() {id}); // the request cannot be changed or extended. This is the only way to send.
             } else if (method == "contractPrivatePostPlanorderCancel")
             {
-                response = await this.contractPrivatePostPlanorderCancel(new List<object>() {id}); // the request cannot be changed or extended. This is the only way to send.
+                if ((symbol == null))
+                {
+                    throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument for trigger orders")) ;
+                }
+                Dictionary<string, object> cancelRequest = new Dictionary<string, object>() {
+                    { "symbol", this.safeString(market, "id") },
+                    { "orderId", id },
+                };
+                response = await this.contractPrivatePostPlanorderCancel(new List<object>() {cancelRequest}); // the request cannot be changed or extended. This is the only way to send.
             } else
             {
                 throw new NotSupported ((this.id + " cancelOrder() not support this method")) ;
@@ -3756,6 +3794,10 @@ public partial class mexc : Exchange
             //         ]
             //     }
             //
+            if (method == "contractPrivatePostPlanorderCancel")
+            {
+                return this.safeOrder(new Dictionary<string, object>() {                     { "id", id },                     { "symbol", this.safeString(market, "symbol") },                     { "info", response },                 }, market);  // planorder/cancel answers without data, failures are raised by handleErrors
+            }
             data = this.safeValue(response, "data");
             IDictionary<string, object> order = this.safeDict(data, 0);
             string? errorMsg = this.safeString(order, "errorMsg", "");
@@ -4166,6 +4208,7 @@ public partial class mexc : Exchange
             { "CANCELED", "canceled" },
             { "PARTIALLY_FILLED", "open" },
             { "PARTIALLY_CANCELED", "canceled" },
+            { "1", "open" },
             { "2", "open" },
             { "3", "closed" },
             { "4", "canceled" },
