@@ -3401,7 +3401,11 @@ func (this *Mexc) createSwapOrderBody(ch chan EndpointResult[map[string]any], ma
 		request["triggerType"] = this.SafeInteger(paramsOmitted, "triggerType", 1)
 		request["executeCycle"] = this.SafeInteger(paramsOmitted, "executeCycle", 1)
 		request["trend"] = this.SafeInteger(paramsOmitted, "trend", 1)
-		request["orderType"] = this.SafeInteger(paramsOmitted, "orderType", 1)
+		var planOrderType any = orderType
+		if IsEqual(orderType, 6) {
+			planOrderType = 5 // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+		}
+		request["orderType"] = this.SafeInteger(paramsOmitted, "orderType", planOrderType)
 
 		r1 := <-this.ContractPrivatePostPlanorderPlace(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {
@@ -3426,9 +3430,15 @@ func (this *Mexc) createSwapOrderBody(ch chan EndpointResult[map[string]any], ma
 	// {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
+	var id *string = nil
+	if data == nil {
+		id = this.SafeString(response, "data") // planorder/place answers with the bare trigger order id
+	} else {
+		id = this.SafeString(data, "orderId")
+	}
 
 	chValue := OrderToMap(this.SafeOrder(map[string]any{
-		"id":        this.SafeString(data, "orderId"),
+		"id":        id,
 		"timestamp": this.SafeInteger(data, "ts"),
 	}, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
@@ -3494,11 +3504,11 @@ func (this *Mexc) createOrdersBody(ch chan AsyncResult[any], orders any, optiona
 		"batchOrders": this.Json(ordersRequests),
 	}
 
-	listEp3327 := <-this.SpotPrivatePostBatchOrders(request)
-	if listEp3327.Err != nil {
-		panic(listEp3327.Err)
+	listEp3337 := <-this.SpotPrivatePostBatchOrders(request)
+	if listEp3337.Err != nil {
+		panic(listEp3337.Err)
 	}
-	var response []any = listEp3327.Value
+	var response []any = listEp3337.Value
 
 	//
 	// [
@@ -3977,6 +3987,7 @@ func (this *Mexc) fetchOrdersByIdsBody(ch chan AsyncResult[any], ids any, option
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.trigger] set to true for fetching trigger orders
  * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -4020,18 +4031,18 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 				panic(BadRequest(this.Id + " fetchOpenOrders() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
-			listEp3811 := <-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))
-			if listEp3811.Err != nil {
-				panic(listEp3811.Err)
+			listEp3822 := <-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))
+			if listEp3822.Err != nil {
+				panic(listEp3822.Err)
 			}
-			response = listEp3811.Value
+			response = listEp3822.Value
 		} else {
 
-			listEp3814 := <-this.SpotPrivateGetOpenOrders(this.Extend(request, query))
-			if listEp3814.Err != nil {
-				panic(listEp3814.Err)
+			listEp3825 := <-this.SpotPrivateGetOpenOrders(this.Extend(request, query))
+			if listEp3825.Err != nil {
+				panic(listEp3825.Err)
 			}
-			response = listEp3814.Value
+			response = listEp3825.Value
 		}
 
 		//
@@ -4085,18 +4096,32 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
 		return nil
 	} else {
+		var trigger *bool = this.SafeBool2(paramsMarketType, "stop", "trigger")
+		var swapParams map[string]any = this.OmitDict(paramsMarketType, []any{"stop", "trigger"})
 		if limit == nil {
 			request["page_size"] = 100 // max
 		}
+		var data []any = []any{}
+		if trigger != nil && *trigger == true {
+			request["states"] = 1 // untriggered
 
-		r1 := <-this.ContractPrivateGetOrderListOpenOrders(this.Extend(request, paramsMarketType))
-		if r1.Err != nil {
-			panic(r1.Err)
+			r1 := <-this.ContractPrivateGetPlanorderListOrders(this.Extend(request, swapParams))
+			if r1.Err != nil {
+				panic(r1.Err)
+			}
+			var triggerResponse map[string]any = r1.Value
+			data = ArrayTyped(this.SafeList(triggerResponse, "data", []any{}))
+		} else {
+
+			r2 := <-this.ContractPrivateGetOrderListOpenOrders(this.Extend(request, swapParams))
+			if r2.Err != nil {
+				panic(r2.Err)
+			}
+			var swapResponse map[string]any = r2.Value
+			data = ArrayTyped(this.SafeList(swapResponse, "data", []any{}))
 		}
-		var swapResponse map[string]any = r1.Value
-		var data []any = SafeListTypedDefault(swapResponse, "data", []any{})
 
-		ch <- AsyncResult[any]{Value: this.ParseOrders(data, market, since, limit, paramsMarketType)}
+		ch <- AsyncResult[any]{Value: this.ParseOrders(data, market, since, limit, swapParams)}
 		return nil
 	}
 }
@@ -4135,12 +4160,12 @@ func (this *Mexc) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3918, _ := r.Value, r.Value != nil
-	var retRes321315 []any = listRecv3918
-	if retRes321315 == nil {
+	listRecv3939, _ := r.Value, r.Value != nil
+	var retRes323315 []any = listRecv3939
+	if retRes323315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes321315}
+		ch <- AsyncResult[any]{Value: retRes323315}
 	}
 	return nil
 }
@@ -4179,12 +4204,12 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3957, _ := r.Value, r.Value != nil
-	var retRes323015 []any = listRecv3957
-	if retRes323015 == nil {
+	listRecv3978, _ := r.Value, r.Value != nil
+	var retRes325015 []any = listRecv3978
+	if retRes325015 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes323015}
+		ch <- AsyncResult[[]any]{Value: retRes325015}
 	}
 	return nil
 }
@@ -4226,11 +4251,11 @@ func (this *Mexc) fetchOrdersByStateBody(ch chan AsyncResult[[]any], state any, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes324719 []any = ListTyped(r1.Value)
-		if retRes324719 == nil {
+		var retRes326719 []any = ListTyped(r1.Value)
+		if retRes326719 == nil {
 			ch <- AsyncResult[[]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]any]{Value: retRes324719}
+			ch <- AsyncResult[[]any]{Value: retRes326719}
 		}
 		return nil
 	}
@@ -4246,6 +4271,7 @@ func (this *Mexc) fetchOrdersByStateBody(ch chan AsyncResult[[]any], state any, 
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.trigger] set to true for canceling trigger orders
  * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -4269,10 +4295,10 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var market map[string]any = nil
+	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = market["id"]
+		request["symbol"] = GetValue(market, "id")
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("cancelOrder", paramsMarketType)
@@ -4309,9 +4335,12 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 			data = r2.Raw
 		}
 	} else {
-		// TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
+		var trigger *bool = this.SafeBool2(query, "stop", "trigger")
 		var method *string = this.SafeString(this.Options, "cancelOrder", "contractPrivatePostOrderCancel") // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
 		method = this.SafeString(query, "method", method)
+		if trigger != nil && *trigger == true {
+			method = SafeStringPtr("contractPrivatePostPlanorderCancel")
+		}
 		var response map[string]any = nil
 		if method != nil && *method == "contractPrivatePostOrderCancel" {
 
@@ -4321,8 +4350,15 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 			}
 			response = r3.Value // the request cannot be changed or extended. This is the only way to send.
 		} else if method != nil && *method == "contractPrivatePostPlanorderCancel" {
+			if symbol == nil {
+				panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument for trigger orders"))
+			}
+			var cancelRequest map[string]any = map[string]any{
+				"symbol":  this.SafeString(market, "id"),
+				"orderId": id,
+			}
 
-			r4 := <-this.ContractPrivatePostPlanorderCancel([]any{id})
+			r4 := <-this.ContractPrivatePostPlanorderCancel([]any{cancelRequest})
 			if r4.Err != nil {
 				panic(r4.Err)
 			}
@@ -4343,6 +4379,15 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 		//         ]
 		//     }
 		//
+		if method != nil && *method == "contractPrivatePostPlanorderCancel" {
+
+			ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
+				"id":     id,
+				"symbol": this.SafeString(market, "symbol"),
+				"info":   response,
+			}, market))} // planorder/cancel answers without data, failures are raised by handleErrors
+			return nil
+		}
 		data = this.SafeValue(response, "data")
 		var order map[string]any = SafeMapTyped(data, 0)
 		var errorMsg *string = this.SafeString(order, "errorMsg", "")
@@ -4792,6 +4837,7 @@ func (this *Mexc) ParseOrderStatus(status *string) *string {
 		"CANCELED":           "canceled",
 		"PARTIALLY_FILLED":   "open",
 		"PARTIALLY_CANCELED": "canceled",
+		"1":                  "open",
 		"2":                  "open",
 		"3":                  "closed",
 		"4":                  "canceled",
@@ -5559,11 +5605,11 @@ func (this *Mexc) reduceMarginBody(ch chan EndpointResult[map[string]any], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes438415 map[string]any = MapTyped(r.Value)
-	if retRes438415 == nil {
+	var retRes441515 map[string]any = MapTyped(r.Value)
+	if retRes441515 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes438415, Raw: retRes438415}
+		ch <- EndpointResult[map[string]any]{Value: retRes441515, Raw: retRes441515}
 	}
 	return nil
 }
@@ -5593,11 +5639,11 @@ func (this *Mexc) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes439815 map[string]any = MapTyped(r.Value)
-	if retRes439815 == nil {
+	var retRes442915 map[string]any = MapTyped(r.Value)
+	if retRes442915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes439815}
+		ch <- AsyncResult[map[string]any]{Value: retRes442915}
 	}
 	return nil
 }
@@ -5847,11 +5893,11 @@ func (this *Mexc) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes457915 map[string]any = r.Value
-	if retRes457915 == nil {
+	var retRes461015 map[string]any = r.Value
+	if retRes461015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes457915}
+		ch <- AsyncResult[map[string]any]{Value: retRes461015}
 	}
 	return nil
 }
@@ -6280,11 +6326,11 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
-	listEp5877 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
-	if listEp5877.Err != nil {
-		panic(listEp5877.Err)
+	listEp5919 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
+	if listEp5919.Err != nil {
+		panic(listEp5919.Err)
 	}
-	var response []any = listEp5877.Value
+	var response []any = listEp5919.Value
 	//
 	//    [
 	//        {
@@ -6505,11 +6551,11 @@ func (this *Mexc) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...an
 		return params
 	}()
 
-	listEp6080 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
-	if listEp6080.Err != nil {
-		panic(listEp6080.Err)
+	listEp6122 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
+	if listEp6122.Err != nil {
+		panic(listEp6122.Err)
 	}
-	var response []any = listEp6080.Value
+	var response []any = listEp6122.Value
 
 	//
 	// [
@@ -6584,11 +6630,11 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ..
 		request["limit"] = limit
 	}
 
-	listEp6152 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
-	if listEp6152.Err != nil {
-		panic(listEp6152.Err)
+	listEp6194 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
+	if listEp6194.Err != nil {
+		panic(listEp6194.Err)
 	}
-	var response []any = listEp6152.Value
+	var response []any = listEp6194.Value
 
 	//
 	// [
@@ -7650,11 +7696,11 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[any], optionalArg
 		}
 	}
 
-	listEp7138 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7138.Err != nil {
-		panic(listEp7138.Err)
+	listEp7180 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7180.Err != nil {
+		panic(listEp7180.Err)
 	}
-	var response []any = listEp7138.Value
+	var response []any = listEp7180.Value
 
 	//
 	//    [
@@ -7777,11 +7823,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], optiona
 		}
 	}
 
-	listEp7258 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7258.Err != nil {
-		panic(listEp7258.Err)
+	listEp7300 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7300.Err != nil {
+		panic(listEp7300.Err)
 	}
-	var response []any = listEp7258.Value
+	var response []any = listEp7300.Value
 
 	//
 	//    [
@@ -8777,6 +8823,7 @@ func (this *Mexc) FetchOrdersByIds(ids []string, options ...FetchOrdersByIdsOpti
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.trigger] set to true for fetching trigger orders
  * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -8875,6 +8922,7 @@ func (this *Mexc) FetchOrdersByState(state float64, options ...FetchOrdersByStat
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.trigger] set to true for canceling trigger orders
  * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
