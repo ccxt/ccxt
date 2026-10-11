@@ -2630,7 +2630,11 @@ export default class mexc extends Exchange {
             request['triggerType'] = this.safeInteger (paramsOmitted, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger (paramsOmitted, 'executeCycle', 1);
             request['trend'] = this.safeInteger (paramsOmitted, 'trend', 1);
-            request['orderType'] = this.safeInteger (paramsOmitted, 'orderType', 1);
+            let planOrderType = orderType;
+            if (orderType === 6) {
+                planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+            }
+            request['orderType'] = this.safeInteger (paramsOmitted, 'orderType', planOrderType);
             response = await this.contractPrivatePostPlanorderPlace (this.extend (request, paramsOmitted));
         } else {
             response = await this.contractPrivatePostOrderCreate (this.extend (request, paramsOmitted));
@@ -2645,7 +2649,13 @@ export default class mexc extends Exchange {
         // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         //
         const data = this.safeDict (response, 'data');
-        return this.safeOrder ({ 'id': this.safeString (data, 'orderId'), 'timestamp': this.safeInteger (data, 'ts') }, market);
+        let id: Str = undefined;
+        if (data === undefined) {
+            id = this.safeString (response, 'data'); // planorder/place answers with the bare trigger order id
+        } else {
+            id = this.safeString (data, 'orderId');
+        }
+        return this.safeOrder ({ 'id': id, 'timestamp': this.safeInteger (data, 'ts') }, market);
     }
 
     /**
@@ -3111,6 +3121,7 @@ export default class mexc extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3188,12 +3199,21 @@ export default class mexc extends Exchange {
             //
             return this.parseOrders (response, market, since, limit);
         } else {
+            const trigger = this.safeBool2 (paramsMarketType, 'stop', 'trigger');
+            const swapParams = this.omit (paramsMarketType, [ 'stop', 'trigger' ]);
             if (limit === undefined) {
                 request['page_size'] = 100; // max
             }
-            const swapResponse = await this.contractPrivateGetOrderListOpenOrders (this.extend (request, paramsMarketType));
-            const data: Dict[] = this.safeList (swapResponse, 'data', []);
-            return this.parseOrders (data, market, since, limit, paramsMarketType);
+            let data: Dict[] = [];
+            if (trigger === true) {
+                request['states'] = 1; // untriggered
+                const triggerResponse = await this.contractPrivateGetPlanorderListOrders (this.extend (request, swapParams));
+                data = this.safeList (triggerResponse, 'data', []);
+            } else {
+                const swapResponse = await this.contractPrivateGetOrderListOpenOrders (this.extend (request, swapParams));
+                data = this.safeList (swapResponse, 'data', []);
+            }
+            return this.parseOrders (data, market, since, limit, swapParams);
         }
     }
 
@@ -3259,6 +3279,7 @@ export default class mexc extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for canceling trigger orders
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3331,14 +3352,21 @@ export default class mexc extends Exchange {
             //     ]
             //
         } else {
-            // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
+            const trigger = this.safeBool2 (query, 'stop', 'trigger');
             let method = this.safeString (this.options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = this.safeString (query, 'method', method);
+            if (trigger === true) {
+                method = 'contractPrivatePostPlanorderCancel';
+            }
             let response: Dict;
             if (method === 'contractPrivatePostOrderCancel') {
                 response = await this.contractPrivatePostOrderCancel ([ id ]); // the request cannot be changed or extended. This is the only way to send.
             } else if (method === 'contractPrivatePostPlanorderCancel') {
-                response = await this.contractPrivatePostPlanorderCancel ([ id ]); // the request cannot be changed or extended. This is the only way to send.
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for trigger orders');
+                }
+                const cancelRequest: Dict = { 'symbol': this.safeString (market, 'id'), 'orderId': id };
+                response = await this.contractPrivatePostPlanorderCancel ([ cancelRequest ]); // the request cannot be changed or extended. This is the only way to send.
             } else {
                 throw new NotSupported (this.id + ' cancelOrder() not support this method');
             }
@@ -3740,7 +3768,7 @@ export default class mexc extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'PARTIALLY_CANCELED': 'canceled',
             // contracts v1
-            // '1': 'uninformed', // TODO: wt?
+            '1': 'open', // regular: uninformed, trigger: untriggered
             '2': 'open',
             '3': 'closed',
             '4': 'canceled',

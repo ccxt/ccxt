@@ -54,6 +54,20 @@
         ],
         "createOrder": [
             {
+                "description": "swap market buy trigger order",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/order/create",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    "{\"triggerPrice\": <цена заметно выше рынка>}"
+                ],
+                "output": "{\"0\":\"{\",\"1\":\"\\\"\",\"2\":\"t\",\"3\":\"r\",\"4\":\"i\",\"5\":\"g\",\"6\":\"g\",\"7\":\"e\",\"8\":\"r\",\"9\":\"P\",\"10\":\"r\",\"11\":\"i\",\"12\":\"c\",\"13\":\"e\",\"14\":\"\\\"\",\"15\":\":\",\"16\":\" \",\"17\":\"<\",\"18\":\"ц\",\"19\":\"е\",\"20\":\"н\",\"21\":\"а\",\"22\":\" \",\"23\":\"з\",\"24\":\"а\",\"25\":\"м\",\"26\":\"е\",\"27\":\"т\",\"28\":\"н\",\"29\":\"о\",\"30\":\" \",\"31\":\"в\",\"32\":\"ы\",\"33\":\"ш\",\"34\":\"е\",\"35\":\" \",\"36\":\"р\",\"37\":\"ы\",\"38\":\"н\",\"39\":\"к\",\"40\":\"а\",\"41\":\">\",\"42\":\"}\",\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":6,\"openType\":2,\"side\":1}"
+            },
+            {
                 "description": "place swap order",
                 "method": "createOrder",
                 "url": "https://api.mexc.com/api/v1/private/order/create",
@@ -387,6 +401,20 @@
             }
         ],
         "fetchOpenOrders": [
+            {
+                "description": "swap open trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.mexc.com/api/v1/private/planorder/list/orders?page_size=100&states=1",
+                "input": [
+                    "ADA/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "swap open orders",
                 "options": {
