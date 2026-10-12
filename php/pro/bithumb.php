@@ -367,8 +367,9 @@ class bithumb extends \ccxt\async\bithumb {
             'close' => $this->safe_string($ticker, 'closePrice'),
             'last' => null,
             'previousClose' => $this->safe_string($ticker, 'prevClosePrice'),
-            'change' => $this->safe_string($ticker, 'chgAmt'),
-            'percentage' => $this->safe_string($ticker, 'chgRate'),
+            // safeTicker derives change/percentage from open, matching the REST parser
+            'change' => null,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'value'),
