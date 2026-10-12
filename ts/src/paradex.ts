@@ -2578,10 +2578,8 @@ export default class paradex extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market);
         const symbol = marketResolved['symbol'];
         const side = this.safeStringLower (position, 'side');
-        let quantity = this.safeString (position, 'size');
-        if (side !== 'long') {
-            quantity = Precise.stringMul ('-1', quantity);
-        }
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        const quantity = Precise.stringAbs (this.safeString (position, 'size'));
         const timestamp = this.safeInteger (position, 'created_at');
         const liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidation_price')));
         // cost_usd is signed by side, the unified notional is a magnitude
