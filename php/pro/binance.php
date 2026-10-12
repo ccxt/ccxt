@@ -4908,6 +4908,7 @@ class binance extends \ccxt\async\binance {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             $timeInForce = 'PO';
         }
+        $postOnly = ($orderType === 'limit_maker') || ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
@@ -4919,7 +4920,7 @@ class binance extends \ccxt\async\binance {
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'type' => $this->parseOrderTypeByMarket($orderType, $marketType),
             'timeInForce' => $timeInForce,
-            'postOnly' => null,
+            'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($order, 'R'),
             'side' => $this->safe_string_lower($order, 'S'),
             'price' => $this->safe_string($order, 'p'),

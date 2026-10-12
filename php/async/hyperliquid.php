@@ -1410,11 +1410,20 @@ class hyperliquid extends Exchange {
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->dex] perp dex name for hip3 markets, eg => 'xyz', inferred from the $symbols if not provided
          * @return {array[]} an array of objects representing market $data
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
             'type' => 'metaAndAssetCtxs',
         );
+        $dexName = $this->get_dex_from_symbols('fetchFundingRates', $symbolsNormalized);
+        if ($dexName !== null) {
+            $request['dex'] = $dexName;
+        }
         $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
         //
         //     [
@@ -1458,7 +1467,7 @@ class hyperliquid extends Exchange {
             );
             $result[] = $data;
         }
-        return $this->parse_funding_rates($result, $symbols);
+        return $this->parse_funding_rates($result, $symbolsNormalized);
     }
 
     public function parse_funding_rate(mixed $info, ?array $market = null): array {
@@ -4031,17 +4040,15 @@ class hyperliquid extends Exchange {
         if ($symbolsLength === 0) {
             return null;
         }
-        $dexName = null;
-        for ($i = 0; $i < $symbolsLength; $i++) {
-            if ($dexName === null) {
-                $market = $this->market($symbols[$i]);
-                $dexName = $this->get_dex_from_hip3_symbol($market);
-            } else {
-                $market = $this->market($symbols[$i]);
-                $currentDexName = $this->get_dex_from_hip3_symbol($market);
-                if ($currentDexName !== $dexName) {
-                    throw new NotSupported($this->id . ' ' . $methodName . ' only supports fetching positions for one DEX at a time for HIP3 markets');
-                }
+        // the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
+        // so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
+        $firstMarket = $this->market($symbols[0]);
+        $dexName = $this->get_dex_from_hip3_symbol($firstMarket);
+        for ($i = 1; $i < $symbolsLength; $i++) {
+            $market = $this->market($symbols[$i]);
+            $currentDexName = $this->get_dex_from_hip3_symbol($market);
+            if ($currentDexName !== $dexName) {
+                throw new NotSupported($this->id . ' ' . $methodName . ' only supports symbols from one DEX at a time for HIP3 markets');
             }
         }
         return $dexName;
@@ -5078,13 +5085,19 @@ class hyperliquid extends Exchange {
          * Retrieves the open interest for a list of $symbols
          * @param {string[]} [$symbols] Unified CCXT market symbol
          * @param {array} [$params] exchange specific parameters
+         * @param {string} [$params->dex] perp dex name for hip3 markets, eg => 'xyz', inferred from the $symbols if not provided
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $swapMarkets = Async\await($this->fetch_swap_markets());
+        $request = array();
+        $dexName = $this->get_dex_from_symbols('fetchOpenInterests', $symbolsNormalized);
+        if ($dexName !== null) {
+            $request['dex'] = $dexName;
+        }
+        $swapMarkets = Async\await($this->fetch_swap_markets($this->extend($request, $params)));
         return $this->parse_open_interests($swapMarkets, $symbolsNormalized);
     }
 
