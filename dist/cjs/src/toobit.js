@@ -1398,7 +1398,15 @@ class toobit extends toobit$1["default"] {
         //        },
         //        ...
         //
-        return this.parseTickers(response, symbolsNormalized, paramsMarketType);
+        const rows = [];
+        for (let i = 0; i < response.length; i++) {
+            const ticker = response[i];
+            const marketId = this.safeString(ticker, 's');
+            if ((marketId !== undefined) && (this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+                rows.push(ticker);
+            }
+        }
+        return this.parseTickers(rows, symbolsNormalized, paramsMarketType);
     }
     parseTicker(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 's');
@@ -2815,7 +2823,22 @@ class toobit extends toobit$1["default"] {
             // ]
             //
         }
-        return this.parseTransactions(response, currency, since, limit, paramsUntil);
+        const transactType = (type === 'deposits') ? 'deposit' : 'withdrawal';
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+            results.push(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
+        }
+        const sorted = this.sortBy(results, 'timestamp');
+        const currencyCode = (currency !== undefined) ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit(sorted, currencyCode, since, limit);
+    }
+    parseTransactionWithType(transaction, currency = undefined, transactType = undefined) {
+        const result = this.parseTransaction(transaction, currency);
+        if (transactType !== undefined) {
+            result['type'] = transactType;
+            result['status'] = this.parseTransactionStatus(this.safeString(transaction, 'status'), transactType);
+        }
+        return result;
     }
     parseTransaction(transaction, currency = undefined) {
         //
@@ -2874,7 +2897,7 @@ class toobit extends toobit$1["default"] {
         const tagFrom = this.safeString(transaction, 'fromAddressTag');
         const addressTo = this.safeString(transaction, 'address');
         const addressFrom = this.safeString(transaction, 'fromAddress');
-        const isWithdraw = ('arriveQuantity' in transaction);
+        const isWithdraw = ('arriveQuantity' in transaction) || ('success' in transaction);
         const type = isWithdraw ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
@@ -2892,23 +2915,36 @@ class toobit extends toobit$1["default"] {
             'type': type,
             'amount': this.safeNumber(transaction, 'quantity'),
             'currency': code,
-            'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
+            'status': this.parseTransactionStatus(this.safeString(transaction, 'status'), type),
             'updated': undefined,
             'fee': fee,
             'comment': undefined,
             'internal': undefined,
         };
     }
-    parseTransactionStatus(status) {
-        const statuses = {
-            '2': 'pending',
-            '12': 'pending',
-            '11': 'failed',
-            '3': 'ok',
+    parseTransactionStatus(status, type = undefined) {
+        const statusesByType = {
+            'deposit': {
+                '2': 'ok', // DEPOSIT_CAN_WITHDRAW
+                '11': 'failed', // REJECT
+                '12': 'pending', // AUDIT
+            },
+            'withdrawal': {
+                '0': 'pending', // WITHDRAWAL_STATUS_UNKNOWN
+                '1': 'pending', // BROKER_AUDITING_STATUS
+                '2': 'failed', // BROKER_REJECT_STATUS
+                '3': 'pending', // AUDITING_STATUS
+                '6': 'ok', // WITHDRAWAL_SUCCESS_STATUS
+                '7': 'failed', // WITHDRAWAL_FAILURE_STATUS
+                '9': 'canceled', // WITHDRAWAL_CANCELLED_STATUS
+                '10': 'pending', // WAIT_MERCHANT_PASS
+                '11': 'pending', // APPLY_CANCEL, cancellation requested but not final yet
+            },
         };
         if (status === undefined) {
             return undefined;
         }
+        const statuses = this.safeDict(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
     /**

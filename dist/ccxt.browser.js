@@ -241258,11 +241258,20 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object[]} an array of objects representing market data
      */ async fetchFundingRates(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
         const request = {
             'type': 'metaAndAssetCtxs'
         };
+        const dexName = this.getDexFromSymbols('fetchFundingRates', symbolsNormalized);
+        if (dexName !== undefined) {
+            request['dex'] = dexName;
+        }
         const response = await this.publicPostInfo(this.extend(request, params));
         //
         //     [
@@ -241303,7 +241312,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             const data = this.extend(this.safeDict(universe, i, {}), this.safeDict(assetCtxs, i, {}));
             result.push(data);
         }
-        return this.parseFundingRates(result, symbols);
+        return this.parseFundingRates(result, symbolsNormalized);
     }
     parseFundingRate(info, market = undefined) {
         //
@@ -243845,17 +243854,15 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (symbolsLength === 0) {
             return undefined;
         }
-        let dexName = undefined;
-        for(let i = 0; i < symbolsLength; i++){
-            if (dexName === undefined) {
-                const market = this.market(symbols[i]);
-                dexName = this.getDexFromHip3Symbol(market);
-            } else {
-                const market = this.market(symbols[i]);
-                const currentDexName = this.getDexFromHip3Symbol(market);
-                if (currentDexName !== dexName) {
-                    throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' ' + methodName + ' only supports fetching positions for one DEX at a time for HIP3 markets');
-                }
+        // the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
+        // so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
+        const firstMarket = this.market(symbols[0]);
+        const dexName = this.getDexFromHip3Symbol(firstMarket);
+        for(let i = 1; i < symbolsLength; i++){
+            const market = this.market(symbols[i]);
+            const currentDexName = this.getDexFromHip3Symbol(market);
+            if (currentDexName !== dexName) {
+                throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' ' + methodName + ' only supports symbols from one DEX at a time for HIP3 markets');
             }
         }
         return dexName;
@@ -244840,13 +244847,19 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @description Retrieves the open interest for a list of symbols
      * @param {string[]} [symbols] Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
+     * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */ async fetchOpenInterests(symbols = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        const swapMarkets = await this.fetchSwapMarkets();
+        const request = {};
+        const dexName = this.getDexFromSymbols('fetchOpenInterests', symbolsNormalized);
+        if (dexName !== undefined) {
+            request['dex'] = dexName;
+        }
+        const swapMarkets = await this.fetchSwapMarkets(this.extend(request, params));
         return this.parseOpenInterests(swapMarkets, symbolsNormalized);
     }
     /**
@@ -283540,6 +283553,17 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             ask = this.safeString(ticker, 'ask1');
             baseVolume = this.safeString(ticker, 'volume24');
             quoteVolume = this.safeString(ticker, 'amount24');
+            const contractSize = this.safeString(marketResolved, 'contractSize');
+            if (isSwap === true && contractSize !== undefined) {
+                // volume24 counts contracts, amount24 is in the settle currency
+                const contractVolume = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(baseVolume, contractSize);
+                if (marketResolved['inverse'] === true) {
+                    baseVolume = quoteVolume;
+                    quoteVolume = contractVolume;
+                } else {
+                    baseVolume = contractVolume;
+                }
+            }
             high = this.safeString(ticker, 'high24Price');
             low = this.safeString(ticker, 'lower24Price');
             changeValue = this.safeString(ticker, 'riseFallValue');
@@ -319832,9 +319856,11 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         //                 "realized_pnl": "0",
         //                 "unrealized_pnl": "-2.39677214",
         //                 "unrealized_funding_pnl": "-0.11214013",
+        //                 "leverage": "5",
         //                 "cost": "648.39960537",
         //                 "cost_usd": "648.529",
         //                 "cached_funding_index": "35202.1002351",
+        //                 "created_at": 1718947571560,
         //                 "last_updated_at": 1718950074249,
         //                 "last_fill_id": "1718947571560201703986670001",
         //                 "seq_no": 1718950074249176253,
@@ -319859,9 +319885,11 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         //         "realized_pnl": "0",
         //         "unrealized_pnl": "-2.39677214",
         //         "unrealized_funding_pnl": "-0.11214013",
+        //         "leverage": "5",
         //         "cost": "648.39960537",
         //         "cost_usd": "648.529",
         //         "cached_funding_index": "35202.1002351",
+        //         "created_at": 1718947571560,
         //         "last_updated_at": 1718950074249,
         //         "last_fill_id": "1718947571560201703986670001",
         //         "seq_no": 1718950074249176253,
@@ -319872,32 +319900,33 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
         const side = this.safeStringLower(position, 'side');
-        let quantity = this.safeString(position, 'size');
-        if (side !== 'long') {
-            quantity = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul('-1', quantity);
-        }
-        const timestamp = this.safeInteger(position, 'time');
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        const quantity = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(this.safeString(position, 'size'));
+        const timestamp = this.safeInteger(position, 'created_at');
         const liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, 'liquidation_price')));
+        // cost_usd is signed by side, the unified notional is a magnitude
+        const notionalString = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(this.safeString(position, 'cost_usd'));
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
             'symbol': symbol,
             'entryPrice': this.safeNumber(position, 'average_entry_price'),
             'markPrice': undefined,
-            'notional': undefined,
-            'collateral': this.safeNumber(position, 'cost'),
+            'notional': this.parseNumber(notionalString),
+            'collateral': undefined,
             'unrealizedPnl': this.safeNumber(position, 'unrealized_pnl'),
             'side': side,
             'contracts': this.parseNumber(quantity),
             'contractSize': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': this.safeInteger(position, 'last_updated_at'),
             'hedged': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
-            'leverage': undefined,
+            'leverage': this.safeNumber(position, 'leverage'),
             'liquidationPrice': liquidationPrice,
             'marginRatio': undefined,
             'marginMode': undefined,
@@ -370050,6 +370079,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO';
         }
+        const postOnly = orderType === 'limit_maker' || timeInForce === 'PO';
         return this.safeOrder({
             'info': order,
             'symbol': symbol,
@@ -370061,7 +370091,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'type': this.parseOrderTypeByMarket(orderType, marketType),
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool(order, 'R'),
             'side': this.safeStringLower(order, 'S'),
             'price': this.safeString(order, 'p'),
@@ -415676,9 +415706,26 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
             orderbook['datetime'] = datetime;
         } else {
             // snapshot
-            const depth = a.length;
-            this.orderbooks[symbol] = this.orderBook({}, depth);
+            const subscription = this.safeDict(client.subscriptions, messageHash, {});
+            // size the book from the subscribed depth (10 by default), not from
+            // the level count of this snapshot: a thin market's snapshot can
+            // carry fewer levels than the subscription and must not cap the book
+            const limit = this.safeInteger(subscription, 'limit', 10);
+            const asksLength = a.length;
+            const depth = asksLength > limit ? asksLength : limit;
+            const depths = this.safeDict(this.options, 'wsOrderBookDepths', {});
+            const storedDepth = this.safeInteger(depths, symbol);
+            if (!(symbol in this.orderbooks) || storedDepth !== depth) {
+                // rebuild only on the first snapshot or when the depth changes,
+                // e.g. a re-subscription with a different limit
+                this.orderbooks[symbol] = this.orderBook({}, depth);
+                depths[symbol] = depth;
+                this.options['wsOrderBookDepths'] = depths;
+            }
+            // reset in place so that references held by users keep receiving
+            // updates after a reconnect snapshot (a new object would orphan them)
             orderbook = this.orderbooks[symbol];
+            orderbook.reset({});
             const keys = [
                 'asks',
                 'bids'
@@ -432663,6 +432710,25 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'args': topics
         };
         const url = this.getUrl(depth, 'public');
+        const client = this.client(url);
+        const resyncTopics = [];
+        const resyncHashes = [];
+        let resyncNeeded = false;
+        for(let i = 0; i < messageHashes.length; i++){
+            if (this.safeString(client.subscriptions, messageHashes[i]) === 'resync') {
+                // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+                resyncTopics.push(topics[i]);
+                resyncHashes.push('unsubscribe:orderbook:' + symbolsNormalized[i]);
+                resyncNeeded = true;
+            }
+        }
+        if (resyncNeeded) {
+            const unsubscribeRequest = {
+                'op': 'unsubscribe',
+                'args': resyncTopics
+            };
+            await this.watchMultiple(url, resyncHashes, unsubscribeRequest, resyncHashes);
+        }
         const orderbook = await this.watchMultiple(url, messageHashes, request, messageHashes);
         return orderbook.limit();
     }
@@ -432921,6 +432987,8 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
                     const update = data[i];
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
                     if (!(messageHash in client.subscriptions)) {
+                        // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        client.subscriptions[messageHash] = 'resync';
                         break;
                     }
                     client.resolve(orderbook, messageHash);
@@ -461151,7 +461219,15 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         //        },
         //        ...
         //
-        return this.parseTickers(response, symbolsNormalized, paramsMarketType);
+        const rows = [];
+        for(let i = 0; i < response.length; i++){
+            const ticker = response[i];
+            const marketId = this.safeString(ticker, 's');
+            if (marketId !== undefined && this.markets_by_id !== undefined && marketId in this.markets_by_id) {
+                rows.push(ticker);
+            }
+        }
+        return this.parseTickers(rows, symbolsNormalized, paramsMarketType);
     }
     parseTicker(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 's');
@@ -462551,7 +462627,22 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         // ]
         //
         }
-        return this.parseTransactions(response, currency, since, limit, paramsUntil);
+        const transactType = type === 'deposits' ? 'deposit' : 'withdrawal';
+        const results = [];
+        for(let i = 0; i < response.length; i++){
+            results.push(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
+        }
+        const sorted = this.sortBy(results, 'timestamp');
+        const currencyCode = currency !== undefined ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit(sorted, currencyCode, since, limit);
+    }
+    parseTransactionWithType(transaction, currency = undefined, transactType = undefined) {
+        const result = this.parseTransaction(transaction, currency);
+        if (transactType !== undefined) {
+            result['type'] = transactType;
+            result['status'] = this.parseTransactionStatus(this.safeString(transaction, 'status'), transactType);
+        }
+        return result;
     }
     parseTransaction(transaction, currency = undefined) {
         //
@@ -462610,7 +462701,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         const tagFrom = this.safeString(transaction, 'fromAddressTag');
         const addressTo = this.safeString(transaction, 'address');
         const addressFrom = this.safeString(transaction, 'fromAddress');
-        const isWithdraw = 'arriveQuantity' in transaction;
+        const isWithdraw = 'arriveQuantity' in transaction || 'success' in transaction;
         const type = isWithdraw ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
@@ -462628,23 +462719,36 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
             'type': type,
             'amount': this.safeNumber(transaction, 'quantity'),
             'currency': code,
-            'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
+            'status': this.parseTransactionStatus(this.safeString(transaction, 'status'), type),
             'updated': undefined,
             'fee': fee,
             'comment': undefined,
             'internal': undefined
         };
     }
-    parseTransactionStatus(status) {
-        const statuses = {
-            '2': 'pending',
-            '12': 'pending',
-            '11': 'failed',
-            '3': 'ok'
+    parseTransactionStatus(status, type = undefined) {
+        const statusesByType = {
+            'deposit': {
+                '2': 'ok',
+                '11': 'failed',
+                '12': 'pending'
+            },
+            'withdrawal': {
+                '0': 'pending',
+                '1': 'pending',
+                '2': 'failed',
+                '3': 'pending',
+                '6': 'ok',
+                '7': 'failed',
+                '9': 'canceled',
+                '10': 'pending',
+                '11': 'pending'
+            }
         };
         if (status === undefined) {
             return undefined;
         }
+        const statuses = this.safeDict(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
     /**

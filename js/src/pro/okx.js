@@ -1290,6 +1290,25 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl(depth, 'public');
+        const client = this.client(url);
+        const resyncTopics = [];
+        const resyncHashes = [];
+        let resyncNeeded = false;
+        for (let i = 0; i < messageHashes.length; i++) {
+            if (this.safeString(client.subscriptions, messageHashes[i]) === 'resync') {
+                // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+                resyncTopics.push(topics[i]);
+                resyncHashes.push('unsubscribe:orderbook:' + symbolsNormalized[i]);
+                resyncNeeded = true;
+            }
+        }
+        if (resyncNeeded) {
+            const unsubscribeRequest = {
+                'op': 'unsubscribe',
+                'args': resyncTopics,
+            };
+            await this.watchMultiple(url, resyncHashes, unsubscribeRequest, resyncHashes);
+        }
         const orderbook = await this.watchMultiple(url, messageHashes, request, messageHashes);
         return orderbook.limit();
     }
@@ -1552,8 +1571,8 @@ export default class okx extends okxRest {
                     const update = data[i];
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
                     if (!(messageHash in client.subscriptions)) {
-                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
-                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        client.subscriptions[messageHash] = 'resync';
                         break;
                     }
                     client.resolve(orderbook, messageHash);
