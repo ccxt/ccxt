@@ -13,6 +13,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.LedgerEntry;
+import io.github.ccxt.types.Liquidation;
 import io.github.ccxt.types.MarginModification;
 import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
@@ -116,7 +117,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "fetchMarketLeverageTiers", false );
                 put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
-                put( "fetchMyLiquidations", false );
+                put( "fetchMyLiquidations", true );
                 put( "fetchMyTrades", true );
                 put( "fetchOHLCV", true );
                 put( "fetchOpenInterest", true );
@@ -4340,6 +4341,135 @@ public class Hyperliquid extends HyperliquidApi
 
     /**
      * @method
+     * @name hyperliquid#fetchMyLiquidations
+     * @description retrieves the users liquidated positions
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+     * @param {string} [symbol] unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     */
+    public CompletableFuture<List<Liquidation>> fetchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchMyLiquidations", (Map<String, Object>) (parameters));
+            String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
+            Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = null;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                market = this.market(symbol);
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "user", userAddress );
+            }};
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("type", "userFillsByTime");
+                request.put("startTime", since);
+            } else
+            {
+                request.put("type", "userFills");
+            }
+            Long until = this.safeInteger(paramsPublicAddress, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsPublicAddress, "until");
+            if (!java.util.Objects.equals(until, null))
+            {
+                request.put("endTime", until);
+            }
+            Object response = (this.publicPostInfo(this.extend(request, paramsOmitted))).join();
+            //
+            //     [
+            //         {
+            //             "coin": "NEAR",
+            //             "px": "4.6879",
+            //             "sz": "64.8",
+            //             "side": "A",
+            //             "time": 1790964546856,
+            //             "startPosition": "64.8",
+            //             "dir": "Close Long",
+            //             "closedPnl": "-16.98408",
+            //             "hash": "0x2cdf7628db20daf2ea775b69cd99d5b63347faa4776a803907fc052901d0506f",
+            //             "oid": 719874965978,
+            //             "crossed": true,
+            //             "fee": "0.131231",
+            //             "tid": 5787071443114480,
+            //             "liquidation": {
+            //                 "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+            //                 "markPx": "4.69112",
+            //                 "method": "market"
+            //             },
+            //             "feeToken": "USDC",
+            //             "twapId": null
+            //         }
+            //     ]
+            //
+            List<Object> fills = new ArrayList<Object>(Arrays.asList());
+            if ((response instanceof List))
+            {
+                String user = this.safeStringLower(request, "user");
+                for (var i = 0; i < ((List<?>)response).size(); i++)
+                {
+                    Object fill = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
+                    Map<String, Object> liquidation = (Map<String, Object>) this.safeDict(fill, "liquidation", new HashMap<String, Object>() {{}});
+                    // liquidator fills carry the liquidated counterparty here
+                    if (java.util.Objects.equals(this.safeStringLower(liquidation, "liquidatedUser"), user))
+                    {
+                        ((List<Object>)fills).add(fill);
+                    }
+                }
+            }
+            return this.parseLiquidations(fills, market, since, limit);
+        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+
+    }
+
+    public Object parseLiquidation(Object liquidation, Map<String, Object> market)
+    {
+        //
+        // see fetchMyLiquidations
+        //
+        Long timestamp = this.safeInteger(liquidation, "time");
+        String marketId = this.coinToMarketId(this.safeString(liquidation, "coin"));
+        Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = (String) marketResolved.get("symbol");
+        // swap ids are asset indexes, so the market is looked up by symbol
+        if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
+        {
+            marketResolved = this.market(symbol);
+        }
+        String side = this.safeString(liquidation, "side");
+        if (!java.util.Objects.equals(side, null))
+        {
+            side = (((java.util.Objects.equals(side, "A")))) ? "sell" : "buy";
+        }
+        String amount = this.safeString(liquidation, "sz");
+        String price = this.safeString(liquidation, "px");
+        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+        mapLiteral13.put("info", liquidation);
+        mapLiteral13.put("symbol", symbol);
+        mapLiteral13.put("contracts", amount);
+        mapLiteral13.put("price", price);
+        mapLiteral13.put("baseValue", amount);
+        mapLiteral13.put("quoteValue", Precise.stringMul(amount, price));
+        mapLiteral13.put("side", side);
+        mapLiteral13.put("timestamp", timestamp);
+        mapLiteral13.put("datetime", this.iso8601(timestamp));
+        return this.safeLiquidation(mapLiteral13, marketResolved);
+    }
+
+    /**
+     * @method
      * @name hyperliquid#fetchPosition
      * @description fetch data on an open position
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
@@ -4537,31 +4667,31 @@ public class Hyperliquid extends HyperliquidApi
             initialMargin = marginUsed;
         }
         String percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, marginUsed), "100");
-        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
-        mapLiteral13.put("info", position);
-        mapLiteral13.put("id", null);
-        mapLiteral13.put("symbol", symbol);
-        mapLiteral13.put("timestamp", null);
-        mapLiteral13.put("datetime", null);
-        mapLiteral13.put("isolated", isIsolated);
-        mapLiteral13.put("hedged", null);
-        mapLiteral13.put("side", side);
-        mapLiteral13.put("contracts", this.parseNumber(size));
-        mapLiteral13.put("contractSize", null);
-        mapLiteral13.put("entryPrice", this.safeNumber(entry, "entryPx", (Object) null));
-        mapLiteral13.put("markPrice", null);
-        mapLiteral13.put("notional", this.safeNumber(entry, "positionValue", (Object) null));
-        mapLiteral13.put("leverage", this.safeNumber(leverage, "value", (Object) null));
-        mapLiteral13.put("collateral", this.parseNumber(marginUsed));
-        mapLiteral13.put("initialMargin", this.parseNumber(initialMargin));
-        mapLiteral13.put("maintenanceMargin", null);
-        mapLiteral13.put("initialMarginPercentage", null);
-        mapLiteral13.put("maintenanceMarginPercentage", null);
-        mapLiteral13.put("unrealizedPnl", this.parseNumber(rawUnrealizedPnl));
-        mapLiteral13.put("liquidationPrice", this.safeNumber(entry, "liquidationPx", (Object) null));
-        mapLiteral13.put("marginMode", marginMode);
-        mapLiteral13.put("percentage", this.parseNumber(percentage));
-        return this.safePosition(mapLiteral13);
+        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+        mapLiteral14.put("info", position);
+        mapLiteral14.put("id", null);
+        mapLiteral14.put("symbol", symbol);
+        mapLiteral14.put("timestamp", null);
+        mapLiteral14.put("datetime", null);
+        mapLiteral14.put("isolated", isIsolated);
+        mapLiteral14.put("hedged", null);
+        mapLiteral14.put("side", side);
+        mapLiteral14.put("contracts", this.parseNumber(size));
+        mapLiteral14.put("contractSize", null);
+        mapLiteral14.put("entryPrice", this.safeNumber(entry, "entryPx", (Object) null));
+        mapLiteral14.put("markPrice", null);
+        mapLiteral14.put("notional", this.safeNumber(entry, "positionValue", (Object) null));
+        mapLiteral14.put("leverage", this.safeNumber(leverage, "value", (Object) null));
+        mapLiteral14.put("collateral", this.parseNumber(marginUsed));
+        mapLiteral14.put("initialMargin", this.parseNumber(initialMargin));
+        mapLiteral14.put("maintenanceMargin", null);
+        mapLiteral14.put("initialMarginPercentage", null);
+        mapLiteral14.put("maintenanceMarginPercentage", null);
+        mapLiteral14.put("unrealizedPnl", this.parseNumber(rawUnrealizedPnl));
+        mapLiteral14.put("liquidationPrice", this.safeNumber(entry, "liquidationPx", (Object) null));
+        mapLiteral14.put("marginMode", marginMode);
+        mapLiteral14.put("percentage", this.parseNumber(percentage));
+        return this.safePosition(mapLiteral14);
     }
 
     /**
@@ -5311,23 +5441,23 @@ public class Hyperliquid extends HyperliquidApi
         }
         String type = this.safeString(delta, "type");
         String amount = this.safeString(delta, "usdc");
-        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
-        mapLiteral14.put("info", item);
-        mapLiteral14.put("id", this.safeString(item, "hash"));
-        mapLiteral14.put("direction", null);
-        mapLiteral14.put("account", null);
-        mapLiteral14.put("referenceAccount", this.safeString(delta, "user"));
-        mapLiteral14.put("referenceId", this.safeString(item, "hash"));
-        mapLiteral14.put("type", this.parseLedgerEntryType(type));
-        mapLiteral14.put("currency", null);
-        mapLiteral14.put("amount", this.parseNumber(amount));
-        mapLiteral14.put("timestamp", timestamp);
-        mapLiteral14.put("datetime", this.iso8601(timestamp));
-        mapLiteral14.put("before", null);
-        mapLiteral14.put("after", null);
-        mapLiteral14.put("status", null);
-        mapLiteral14.put("fee", fee);
-        return this.safeLedgerEntry(mapLiteral14, currency);
+        HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
+        mapLiteral15.put("info", item);
+        mapLiteral15.put("id", this.safeString(item, "hash"));
+        mapLiteral15.put("direction", null);
+        mapLiteral15.put("account", null);
+        mapLiteral15.put("referenceAccount", this.safeString(delta, "user"));
+        mapLiteral15.put("referenceId", this.safeString(item, "hash"));
+        mapLiteral15.put("type", this.parseLedgerEntryType(type));
+        mapLiteral15.put("currency", null);
+        mapLiteral15.put("amount", this.parseNumber(amount));
+        mapLiteral15.put("timestamp", timestamp);
+        mapLiteral15.put("datetime", this.iso8601(timestamp));
+        mapLiteral15.put("before", null);
+        mapLiteral15.put("after", null);
+        mapLiteral15.put("status", null);
+        mapLiteral15.put("fee", fee);
+        return this.safeLedgerEntry(mapLiteral15, currency);
     }
 
     public String parseLedgerEntryType(String type)
@@ -5597,14 +5727,14 @@ public class Hyperliquid extends HyperliquidApi
         {
             marketId = this.coinToMarketId(coin);
         }
-        HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
-        mapLiteral15.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null));
-        mapLiteral15.put("openInterestAmount", this.safeNumber(interestValue, "openInterest", (Object) null));
-        mapLiteral15.put("openInterestValue", null);
-        mapLiteral15.put("timestamp", null);
-        mapLiteral15.put("datetime", null);
-        mapLiteral15.put("info", interestValue);
-        return this.safeOpenInterest(mapLiteral15, market);
+        HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
+        mapLiteral16.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null));
+        mapLiteral16.put("openInterestAmount", this.safeNumber(interestValue, "openInterest", (Object) null));
+        mapLiteral16.put("openInterestValue", null);
+        mapLiteral16.put("timestamp", null);
+        mapLiteral16.put("datetime", null);
+        mapLiteral16.put("info", interestValue);
+        return this.safeOpenInterest(mapLiteral16, market);
     }
 
     /**

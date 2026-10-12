@@ -36,9 +36,12 @@
 * [setLeverage](#setleverage)
 * [withdraw](#withdraw)
 * [fetchTradingFee](#fetchtradingfee)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchOpenInterests](#fetchopeninterests)
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchLedger](#fetchledger)
+* [fetchDeposits](#fetchdeposits)
+* [fetchWithdrawals](#fetchwithdrawals)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [transfer](#transfer)
 * [createSubAccount](#createsubaccount)
@@ -798,6 +801,27 @@ pacifica.fetchTradingFee (symbol, params?)
 ```
 
 
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets, the account fee level applies to every market
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | will default to walletAddress if not provided |
+
+
+```javascript
+pacifica.fetchTradingFees (params?)
+```
+
+
 <a name="fetchOpenInterests" id="fetchopeninterests"></a>
 
 ### fetchOpenInterests{docsify-ignore}
@@ -863,6 +887,54 @@ fetch the history of changes, actions done by the user or operations that altere
 
 ```javascript
 pacifica.fetchLedger (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchDeposits" id="fetchdeposits"></a>
+
+### fetchDeposits{docsify-ignore}
+fetch all USDC deposits made to an account, spot asset deposits are not included
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
+| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | will default to walletAddress if not provided |
+
+
+```javascript
+pacifica.fetchDeposits (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
+
+### fetchWithdrawals{docsify-ignore}
+fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
+| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | will default to walletAddress if not provided |
+
+
+```javascript
+pacifica.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 

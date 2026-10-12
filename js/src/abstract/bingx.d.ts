@@ -171,7 +171,6 @@ interface Exchange {
     userAuthPrivatePostUserDataStream(params?: {}): Promise<Dict>;
     userAuthPrivatePutUserDataStream(params?: {}): Promise<Dict>;
     userAuthPrivateDeleteUserDataStream(params?: {}): Promise<Dict>;
-    copyTradingV1PrivateGetSwapTraceCurrentTrack(params?: {}): Promise<Dict>;
     copyTradingV1PrivateGetPFuturesTraderDetail(params?: {}): Promise<Dict>;
     copyTradingV1PrivateGetPFuturesProfitHistorySummarys(params?: {}): Promise<Dict>;
     copyTradingV1PrivateGetPFuturesProfitDetail(params?: {}): Promise<Dict>;
@@ -180,7 +179,6 @@ interface Exchange {
     copyTradingV1PrivateGetSpotProfitHistorySummarys(params?: {}): Promise<Dict>;
     copyTradingV1PrivateGetSpotProfitDetail(params?: {}): Promise<Dict>;
     copyTradingV1PrivateGetSpotHistoryOrder(params?: {}): Promise<Dict>;
-    copyTradingV1PrivatePostSwapTraceCloseTrackOrder(params?: {}): Promise<Dict>;
     copyTradingV1PrivatePostSwapTraceSetTPSL(params?: {}): Promise<Dict>;
     copyTradingV1PrivatePostPFuturesSetCommission(params?: {}): Promise<Dict>;
     copyTradingV1PrivatePostSpotTraderSellOrder(params?: {}): Promise<Dict>;

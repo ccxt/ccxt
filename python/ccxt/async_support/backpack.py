@@ -973,6 +973,7 @@ class backpack(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
+        duration = self.parse_timeframe(timeframe)
         request = {
             'symbol': market['id'],
             'interval': interval,
@@ -985,13 +986,18 @@ class backpack(Exchange, ImplicitAPI):
         if (since is None) and (limit is None):
             limitResolved = defaultLimit
         if since is None:
-            duration = self.parse_timeframe(timeframe)
             endTime = self.parse_to_int(until / 1000) if (until is not None and until is not None and until != 0) else self.seconds()
             windowLimit = defaultLimit if (limit is None) else limit
             startTime = endTime - (windowLimit * duration)
             request['startTime'] = startTime
         else:
             request['startTime'] = self.parse_to_int(since / 1000)  # convert milliseconds to seconds
+        if until is None:
+            currentMs = self.seconds()  # default to current time in seconds
+            windowLimit = defaultLimit if (limit is None) else limit
+            windowEnd = self.sum(request['startTime'], windowLimit * duration)  # sum (): `+` on a dict value is string concatenation in php
+            minTimestamp = min(currentMs, windowEnd)
+            request['endTime'] = self.parse_to_int(minTimestamp)  # default to current time in seconds if until is not specified
         price = self.safe_string(paramsUntil, 'price')
         paramsOmitted = self.omit(paramsUntil, 'price') if (price is not None) else paramsUntil
         if price is not None:

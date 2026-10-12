@@ -2639,15 +2639,18 @@ class extended extends Exchange {
         $fee = $this->safe_string($params, 'fee', '0.0005');
         $builderFeeRate = null;
         $builderId = null;
-        $paramsBuilder = null;
-        if ($this->isSandboxModeEnabled) {
-            $builderFeeRate = $this->safe_string_2($params, 'builderFeeRate', 'defaultBuilderFeeRate');
-            $builderId = $this->safe_string_2($params, 'builderId', 'defaultBuilderId');
-            $paramsBuilder = $this->omit($params, array( 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ));
-        } else {
-            $paramsBuilderFeeRate = null;
-            list($builderFeeRate, $paramsBuilderFeeRate) = $this->handle_option_string_and_params($params, 'createOrder', 'builderFeeRate', '0.0001');
-            list($builderId, $paramsBuilder) = $this->handle_option_string_and_params($paramsBuilderFeeRate, 'createOrder', 'builderId');
+        $paramsBuilder = $params;
+        $builderEnabled = $this->safe_bool($this->options, 'builderFee');
+        if ($builderEnabled === true) {
+            if ($this->isSandboxModeEnabled) {
+                $builderFeeRate = $this->safe_string_2($params, 'builderFeeRate', 'defaultBuilderFeeRate');
+                $builderId = $this->safe_string_2($params, 'builderId', 'defaultBuilderId');
+                $paramsBuilder = $this->omit($params, array( 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ));
+            } else {
+                $paramsBuilderFeeRate = null;
+                list($builderFeeRate, $paramsBuilderFeeRate) = $this->handle_option_string_and_params($params, 'createOrder', 'builderFeeRate', '0.0001');
+                list($builderId, $paramsBuilder) = $this->handle_option_string_and_params($paramsBuilderFeeRate, 'createOrder', 'builderId');
+            }
         }
         $totalFee = $fee;
         if ($builderFeeRate !== null) {

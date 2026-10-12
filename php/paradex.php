@@ -428,7 +428,7 @@ class paradex extends Exchange {
                     ),
                     'fetchClosedOrders' => null, // todo
                     'fetchOHLCV' => array(
-                        'limit' => null, // todo by from/to
+                        'limit' => 1000, // todo by from/to
                     ),
                 ),
                 'swap' => array(
@@ -845,30 +845,28 @@ class paradex extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'symbol' => $market['id'],
         );
-        $now = $this->milliseconds();
+        $maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         $duration = $this->parse_timeframe($timeframe);
-        $until = $this->safe_integer_2($params, 'until', 'till', $now);
         $price = $this->safe_string($params, 'price');
         if ($price !== null) {
             $request['price_kind'] = $price;
         }
-        $paramsOmitted = $this->omit($params, array( 'until', 'till', 'price' ));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $params);
+        $hasEnd = (is_array($request) && array_key_exists('end_at' ?? '', $request));
+        $paramsOmitted = $this->omit($paramsUntil, array( 'price' ));
+        $limitResolved = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
         if ($since !== null) {
-            $request['start_at'] = $since;
-            if ($limit !== null) {
-                $request['end_at'] = $since . $duration * ($limit + 1) * 1000 - 1;
-            } else {
-                $request['end_at'] = $until;
+            $requestUntil['start_at'] = $since;
+            if (!$hasEnd) {
+                $requestUntil['end_at'] = $since . $duration * ($limitResolved + 1) * 1000 - 1;
             }
         } else {
-            $request['end_at'] = $until;
-            if ($limit !== null) {
-                $request['start_at'] = $until - $duration * ($limit + 1) * 1000 + 1;
-            } else {
-                $request['start_at'] = $until - $duration * 101 * 1000 + 1;
+            if (!$hasEnd) {
+                $requestUntil['end_at'] = $this->milliseconds();
             }
+            $requestUntil['start_at'] = $requestUntil['end_at'] - $duration * ($limitResolved + 1) * 1000 + 1;
         }
-        $response = $this->publicGetMarketsKlines($this->extend($request, $paramsOmitted));
+        $response = $this->publicGetMarketsKlines($this->extend($requestUntil, $paramsOmitted));
         //
         //     {
         //         "results": [

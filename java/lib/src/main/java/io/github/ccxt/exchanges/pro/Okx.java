@@ -82,10 +82,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }} );
             put( "urls", new HashMap<String, Object>() {{
                 put( "api", new HashMap<String, Object>() {{
-                    put( "ws", "wss://ws.okx.com:8443/ws/v5" );
+                    put( "ws", "wss://ws.okx.com:443/ws/v5" );
                 }} );
                 put( "test", new HashMap<String, Object>() {{
-                    put( "ws", "wss://wspap.okx.com:8443/ws/v5" );
+                    put( "ws", "wss://wspap.okx.com:443/ws/v5" );
                 }} );
             }} );
             put( "options", new HashMap<String, Object>() {{

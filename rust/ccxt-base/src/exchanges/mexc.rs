@@ -2316,8 +2316,8 @@ impl MexcCore {
         let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_939: bool = true;
-            while { if !__for_first_939 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_939 = false; j.as_f64().unwrap_or(f64::NAN) < ((chains.len() as i64) as f64) } {
+            let mut __for_first_919: bool = true;
+            while { if !__for_first_919 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_919 = false; j.as_f64().unwrap_or(f64::NAN) < ((chains.len() as i64) as f64) } {
             let mut chain: Value = chains.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string2(chain.clone(), Value::Str("netWork".into()), Value::Str("network".into()), &[]);
             let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -2465,8 +2465,8 @@ impl MexcCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_940: bool = true;
-            while { if !__for_first_940 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_940 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_920: bool = true;
+            while { if !__for_first_920 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_920 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut market: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
@@ -2624,8 +2624,8 @@ impl MexcCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_941: bool = true;
-            while { if !__for_first_941 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_941 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_921: bool = true;
+            while { if !__for_first_921 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_921 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut market: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseCoin", &[]);
@@ -3277,7 +3277,14 @@ impl MexcCore {
             //         ]
             //     }
             //
-            tickers = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+            if isSingularMarket {
+                tickers = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]); // when queried with a symbol, "data" holds a single ticker object, like in fetchTicker
+            }  else {
+                tickers = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+            }
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if isSingularMarket {
@@ -3896,7 +3903,11 @@ impl MexcCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerType".into(), self.safe_integer_k(paramsOmitted.clone(), "triggerType", &[Value::Int(1)])); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("executeCycle".into(), self.safe_integer_k(paramsOmitted.clone(), "executeCycle", &[Value::Int(1)])); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trend".into(), self.safe_integer_k(paramsOmitted.clone(), "trend", &[Value::Int(1)])); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderType".into(), self.safe_integer_k(paramsOmitted.clone(), "orderType", &[Value::Int(1)])); }
+            let mut planOrderType: Value = orderType.clone();
+            if is_equal(&orderType, &Value::Int(6)) {
+                planOrderType = Value::Int(5); // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+            }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderType".into(), self.safe_integer_k(paramsOmitted.clone(), "orderType", &[planOrderType])); }
             let __ws_arg_16 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.contract_private_post_planorder_place(&[__ws_arg_16]).await;
         }  else {
@@ -3912,10 +3923,16 @@ impl MexcCore {
         //
         // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut id: Value = Value::Null;
+        if (data == Value::Null) {
+            id = self.safe_string_k(response, "data", &[]); // planorder/place answers with the bare trigger order id
+        }  else {
+            id = self.safe_string_k(data.clone(), "orderId", &[]);
+        }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(data.clone(), "orderId", &[]));
+        m.insert("id".to_string(), id);
         m.insert("timestamp".to_string(), self.safe_integer_k(data, "ts", &[]));
     m
 }), &[market]);
@@ -3945,8 +3962,8 @@ impl MexcCore {
         let mut paramsLoop: Value = params;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_942: bool = true;
-            while { if !__for_first_942 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_942 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_922: bool = true;
+            while { if !__for_first_922 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_922 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut market: Value = self.market(marketId.clone());
@@ -4339,6 +4356,7 @@ impl MexcCore {
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.trigger] set to true for fetching trigger orders
  * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -4384,13 +4402,23 @@ impl MexcCore {
             }
             return self.parse_orders(response, &[market.clone(), since.clone(), limit.clone()]);
         }  else {
+            let mut trigger: Value = self.safe_bool2(paramsMarketType.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+            let mut swapParams: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
             if (limit == Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(100)); }; // max
             }
-            let __ws_arg_28 = self.extend(request, &[paramsMarketType.clone()]);
-            let mut swapResponse: Value = self.contract_private_get_order_list_open_orders(&[__ws_arg_28]).await;
-            let mut data: Value = self.safe_list_k(swapResponse, "data", &[Value::from(vec![])]);
-            return self.parse_orders(data, &[market, since, limit, paramsMarketType]);
+            let mut data: Value = Value::from(vec![]);
+            if (trigger.as_bool() == Some(true)) {
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("states".into(), Value::Int(1)); }; // untriggered
+                let __ws_arg_28 = self.extend(request.clone(), &[swapParams.clone()]);
+                let mut triggerResponse: Value = self.contract_private_get_planorder_list_orders(&[__ws_arg_28]).await;
+                data = self.safe_list_k(triggerResponse, "data", &[Value::from(vec![])]);
+            }  else {
+                let __ws_arg_29 = self.extend(request, &[swapParams.clone()]);
+                let mut swapResponse: Value = self.contract_private_get_order_list_open_orders(&[__ws_arg_29]).await;
+                data = self.safe_list_k(swapResponse, "data", &[Value::from(vec![])]);
+            }
+            return self.parse_orders(data, &[market, since, limit, swapParams]);
         }
 
     Value::Null
@@ -4473,8 +4501,8 @@ impl MexcCore {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByState() is not supported for ".into())).into()), marketType)));
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("states".into(), state); }
-            let __ws_arg_29 = self.extend(request, &[params]);
-            return self.fetch_orders(&[symbol, since, limit, __ws_arg_29]).await;
+            let __ws_arg_30 = self.extend(request, &[params]);
+            return self.fetch_orders(&[symbol, since, limit, __ws_arg_30]).await;
         }
 
     Value::Null
@@ -4490,6 +4518,7 @@ impl MexcCore {
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.trigger] set to true for canceling trigger orders
  * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -4537,21 +4566,33 @@ impl MexcCore {
                 if (marginMode.as_str() != Some("isolated")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() does not support marginMode ".into())).into()), marginMode).into()), Value::Str(" for spot-margin trading".into()))));
                 }
-                let __ws_arg_30 = self.extend(requestInner.clone(), &[query.clone()]);
-                data = self.spot_private_delete_margin_order(&[__ws_arg_30]).await;
+                let __ws_arg_31 = self.extend(requestInner.clone(), &[query.clone()]);
+                data = self.spot_private_delete_margin_order(&[__ws_arg_31]).await;
             }  else {
-                let __ws_arg_31 = self.extend(requestInner, &[query.clone()]);
-                data = self.spot_private_delete_order(&[__ws_arg_31]).await;
+                let __ws_arg_32 = self.extend(requestInner, &[query.clone()]);
+                data = self.spot_private_delete_order(&[__ws_arg_32]).await;
             }
         }  else {
-            // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
+            let mut trigger: Value = self.safe_bool2(query.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
             let mut method: Value = self.safe_string_k(self.options.clone(), "cancelOrder", &[Value::Str("contractPrivatePostOrderCancel".into())]); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = self.safe_string_k(query, "method", &[method.clone()]);
+            if (trigger.as_bool() == Some(true)) {
+                method = Value::Str("contractPrivatePostPlanorderCancel".into());
+            }
             let mut response: Value = Value::Null;
             if (method.as_str() == Some("contractPrivatePostOrderCancel")) {
                 response = self.contract_private_post_order_cancel(&[Value::from(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
             }  else if (method.as_str() == Some("contractPrivatePostPlanorderCancel")) {
-                response = self.contract_private_post_planorder_cancel(&[Value::from(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
+                if (symbol == Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument for trigger orders".into()))));
+                }
+                let mut cancelRequest: Value = Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id", &[]));
+                        m.insert("orderId".to_string(), id.clone());
+                    m
+                });
+                response = self.contract_private_post_planorder_cancel(&[Value::from(vec![cancelRequest])]).await; // the request cannot be changed or extended. This is the only way to send.
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() not support this method".into()))));
             }
@@ -4568,6 +4609,15 @@ impl MexcCore {
             //         ]
             //     }
             //
+            if (method.as_str() == Some("contractPrivatePostPlanorderCancel")) {
+                return self.safe_order(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), id.clone());
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("info".to_string(), response.clone());
+    m
+}), &[market.clone()]);
+            }
             data = self.safe_value_k(response, "data", &[]);
             let mut order: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
             let mut errorMsg: Value = self.safe_string_k(order, "errorMsg", &[Value::Str("".into())]);
@@ -4664,8 +4714,8 @@ impl MexcCore {
                 return Value::from(vec![]);
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[])); }
-            let __ws_arg_32 = self.extend(request.clone(), &[paramsMarketType.clone()]);
-            let mut response: Value = self.spot_private_delete_open_orders(&[__ws_arg_32]).await;
+            let __ws_arg_33 = self.extend(request.clone(), &[paramsMarketType.clone()]);
+            let mut response: Value = self.spot_private_delete_open_orders(&[__ws_arg_33]).await;
             return self.parse_orders(response.clone(), &[market.clone()]);
         }  else {
             if (symbol != Value::Null) {
@@ -4680,11 +4730,11 @@ impl MexcCore {
                 m
             });
             if (method.as_str() == Some("contractPrivatePostOrderCancelAll")) {
-                let __ws_arg_33 = self.extend(request.clone(), &[paramsMarketType.clone()]);
-                response = self.contract_private_post_order_cancel_all(&[__ws_arg_33]).await;
+                let __ws_arg_34 = self.extend(request.clone(), &[paramsMarketType.clone()]);
+                response = self.contract_private_post_order_cancel_all(&[__ws_arg_34]).await;
             }  else if (method.as_str() == Some("contractPrivatePostPlanorderCancelAll")) {
-                let __ws_arg_34 = self.extend(request, &[paramsMarketType]);
-                response = self.contract_private_post_planorder_cancel_all(&[__ws_arg_34]).await;
+                let __ws_arg_35 = self.extend(request, &[paramsMarketType]);
+                response = self.contract_private_post_planorder_cancel_all(&[__ws_arg_35]).await;
             }
             //
             //     {
@@ -4970,6 +5020,7 @@ impl MexcCore {
                 m.insert("CANCELED".to_string(), Value::Str("canceled".into()));
                 m.insert("PARTIALLY_FILLED".to_string(), Value::Str("open".into()));
                 m.insert("PARTIALLY_CANCELED".to_string(), Value::Str("canceled".into()));
+                m.insert("1".to_string(), Value::Str("open".into()));
                 m.insert("2".to_string(), Value::Str("open".into()));
                 m.insert("3".to_string(), Value::Str("closed".into()));
                 m.insert("4".to_string(), Value::Str("canceled".into()));
@@ -5047,8 +5098,8 @@ impl MexcCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_943: bool = true;
-            while { if !__for_first_943 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_943 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_923: bool = true;
+            while { if !__for_first_923 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_923 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut account: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string2(account.clone(), Value::Str("asset".into()), Value::Str("currency".into()), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -5093,8 +5144,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_35 = self.extend(request, &[params]);
-        let mut response: Value = self.spot_private_get_trade_fee(&[__ws_arg_35]).await;
+        let __ws_arg_36 = self.extend(request, &[params]);
+        let mut response: Value = self.spot_private_get_trade_fee(&[__ws_arg_36]).await;
         //
         //  {
         //      "data":{
@@ -5201,8 +5252,8 @@ impl MexcCore {
         if (marketType.as_str() == Some("margin")) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_944: bool = true;
-                while { if !__for_first_944 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_944 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallet.len() as i64) as f64) } {
+                let mut __for_first_924: bool = true;
+                while { if !__for_first_924 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_924 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallet.len() as i64) as f64) } {
                 let mut entry: Value = self.safe_dict(wallet.clone(), i.clone(), &[]);
                 let mut base: Value = self.safe_dict_k(entry.clone(), "baseAsset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5226,8 +5277,8 @@ impl MexcCore {
         }  else if (marketType.as_str() == Some("swap")) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_945: bool = true;
-                while { if !__for_first_945 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_945 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallet.len() as i64) as f64) } {
+                let mut __for_first_925: bool = true;
+                while { if !__for_first_925 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_925 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallet.len() as i64) as f64) } {
                 let mut entry: Value = self.safe_dict(wallet.clone(), i.clone(), &[]);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -5243,8 +5294,8 @@ impl MexcCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_946: bool = true;
-                while { if !__for_first_946 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_946 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallet.len() as i64) as f64) } {
+                let mut __for_first_926: bool = true;
+                while { if !__for_first_926 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_926 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallet.len() as i64) as f64) } {
                 let mut entry: Value = self.safe_dict(wallet.clone(), i.clone(), &[]);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -5326,14 +5377,14 @@ impl MexcCore {
             marketType = Value::Str("margin".into());
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".into(), parsedSymbols); }
             let mut paramsOmitted: Value = self.omit(paramsOmitted2.clone(), Value::from(vec![Value::Str("symbol".into()), Value::Str("symbols".into())]), &[]);
-            let __ws_arg_36 = self.extend(request.clone(), &[paramsOmitted]);
-            response = self.spot_private_get_margin_isolated_account(&[__ws_arg_36]).await;
+            let __ws_arg_37 = self.extend(request.clone(), &[paramsOmitted]);
+            response = self.spot_private_get_margin_isolated_account(&[__ws_arg_37]).await;
         }  else if (marketType.as_str() == Some("spot")) {
-            let __ws_arg_37 = self.extend(request.clone(), &[paramsOmitted2.clone()]);
-            response = self.spot_private_get_account(&[__ws_arg_37]).await;
+            let __ws_arg_38 = self.extend(request.clone(), &[paramsOmitted2.clone()]);
+            response = self.spot_private_get_account(&[__ws_arg_38]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let __ws_arg_38 = self.extend(request, &[paramsOmitted2]);
-            response = self.contract_private_get_account_assets(&[__ws_arg_38]).await;
+            let __ws_arg_39 = self.extend(request, &[paramsOmitted2]);
+            response = self.contract_private_get_account_assets(&[__ws_arg_39]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() not support this method".into()))));
         }
@@ -5391,8 +5442,8 @@ impl MexcCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until.clone()); }
             }
             let mut paramsUntil: Value = (if (until != Value::Null) { self.omit(paramsMarketType.clone(), Value::Str("until".into()), &[]) } else { paramsMarketType.clone() });
-            let __ws_arg_39 = self.extend(request.clone(), &[paramsUntil]);
-            trades = self.spot_private_get_my_trades(&[__ws_arg_39]).await;
+            let __ws_arg_40 = self.extend(request.clone(), &[paramsUntil]);
+            trades = self.spot_private_get_my_trades(&[__ws_arg_40]).await;
         }  else {
             if (since != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
@@ -5404,8 +5455,8 @@ impl MexcCore {
             if (limit != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
             }
-            let __ws_arg_40 = self.extend(request, &[paramsMarketType]);
-            let mut response: Value = self.contract_private_get_order_list_order_deals(&[__ws_arg_40]).await;
+            let __ws_arg_41 = self.extend(request, &[paramsMarketType]);
+            let mut response: Value = self.contract_private_get_order_list_order_deals(&[__ws_arg_41]).await;
             //
             //     {
             //         "success": true,
@@ -5478,12 +5529,12 @@ impl MexcCore {
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[])); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".into(), id.clone()); }
-            let __ws_arg_41 = self.extend(request.clone(), &[query.clone()]);
-            trades = self.spot_private_get_my_trades(&[__ws_arg_41]).await;
+            let __ws_arg_42 = self.extend(request.clone(), &[query.clone()]);
+            trades = self.spot_private_get_my_trades(&[__ws_arg_42]).await;
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id); }
-            let __ws_arg_42 = self.extend(request, &[query.clone()]);
-            let mut response: Value = self.contract_private_get_order_deal_details_order_id(&[__ws_arg_42]).await;
+            let __ws_arg_43 = self.extend(request, &[query.clone()]);
+            let mut response: Value = self.contract_private_get_order_deal_details_order_id(&[__ws_arg_43]).await;
             //
             //     {
             //         "success": true,
@@ -5533,8 +5584,8 @@ impl MexcCore {
                 m.insert("type".to_string(), addOrReduce);
             m
         });
-        let __ws_arg_43 = self.extend(request, &[params]);
-        let mut response: Value = self.contract_private_post_position_change_margin(&[__ws_arg_43]).await;
+        let __ws_arg_44 = self.extend(request, &[params]);
+        let mut response: Value = self.contract_private_post_position_change_margin(&[__ws_arg_44]).await;
         return response;
 
     Value::Null
@@ -5619,8 +5670,8 @@ impl MexcCore {
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionId".into(), positionId); }
         }
-        let __ws_arg_44 = self.extend(request, &[params]);
-        return self.contract_private_post_position_change_leverage(&[__ws_arg_44]).await;
+        let __ws_arg_45 = self.extend(request, &[params]);
+        return self.contract_private_post_position_change_leverage(&[__ws_arg_45]).await;
 
     Value::Null
 }
@@ -5659,8 +5710,8 @@ impl MexcCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit); }
         }
-        let __ws_arg_45 = self.extend(request, &[params]);
-        let mut response: Value = self.contract_private_get_position_funding_records(&[__ws_arg_45]).await;
+        let __ws_arg_46 = self.extend(request, &[params]);
+        let mut response: Value = self.contract_private_get_position_funding_records(&[__ws_arg_46]).await;
         //
         //     {
         //         "success": true,
@@ -5701,8 +5752,8 @@ impl MexcCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_947: bool = true;
-            while { if !__for_first_947 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_947 = false; i.as_f64().unwrap_or(f64::NAN) < ((resultList.len() as i64) as f64) } {
+            let mut __for_first_927: bool = true;
+            while { if !__for_first_927 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_927 = false; i.as_f64().unwrap_or(f64::NAN) < ((resultList.len() as i64) as f64) } {
             let mut entry: Value = resultList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "settleTime", &[]);
             append_to_array(&mut result, Value::Map({
@@ -5822,8 +5873,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_46 = self.extend(request, &[params]);
-        let mut response: Value = self.contract_public_get_funding_rate_symbol(&[__ws_arg_46]).await;
+        let __ws_arg_47 = self.extend(request, &[params]);
+        let mut response: Value = self.contract_public_get_funding_rate_symbol(&[__ws_arg_47]).await;
         //
         //     {
         //         "success": true,
@@ -5882,8 +5933,8 @@ impl MexcCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }
-        let __ws_arg_47 = self.extend(request, &[params]);
-        let mut response: Value = self.contract_public_get_funding_rate_history(&[__ws_arg_47]).await;
+        let __ws_arg_48 = self.extend(request, &[params]);
+        let mut response: Value = self.contract_public_get_funding_rate_history(&[__ws_arg_48]).await;
         //
         //    {
         //        "success": true,
@@ -5913,8 +5964,8 @@ impl MexcCore {
         let mut rates: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_948: bool = true;
-            while { if !__for_first_948 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_948 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
+            let mut __for_first_928: bool = true;
+            while { if !__for_first_928 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_928 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut entry: Value = result.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut symbolInner: Value = self.safe_symbol(marketId, &[]);
@@ -6104,7 +6155,8 @@ impl MexcCore {
         //        coin: "USDT",
         //        network: "BNB Smart Chain(BEP20)",
         //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //        memo:  null
+        //        memo:  null,
+        //        netWork: "BSC"
         //    }
         //
         let mut address: Value = self.safe_string_k(depositAddress.clone(), "address", &[]);
@@ -6177,15 +6229,16 @@ impl MexcCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".into(), networkId); }
         }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
-        let __ws_arg_48 = self.extend(request, &[paramsOmitted]);
-        let mut response: Value = self.spot_private_get_capital_deposit_address(&[__ws_arg_48]).await;
+        let __ws_arg_49 = self.extend(request, &[paramsOmitted]);
+        let mut response: Value = self.spot_private_get_capital_deposit_address(&[__ws_arg_49]).await;
         //
         //    [
         //        {
         //            coin: "USDT",
         //            network: "BNB Smart Chain(BEP20)",
         //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //            memo:  null
+        //            memo:  null,
+        //            netWork: "BSC"
         //        }
         //        ...
         //    ]
@@ -6251,8 +6304,8 @@ impl MexcCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".into(), networkId); }
         }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
-        let __ws_arg_49 = self.extend(request, &[paramsOmitted]);
-        let mut response: Value = self.spot_private_post_capital_deposit_address(&[__ws_arg_49]).await;
+        let __ws_arg_50 = self.extend(request, &[paramsOmitted]);
+        let mut response: Value = self.spot_private_post_capital_deposit_address(&[__ws_arg_50]).await;
         return self.parse_deposit_address(response, &[currency]);
 
     Value::Null
@@ -6348,8 +6401,8 @@ impl MexcCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let mut paramsOmitted: Value = (if (rawNetwork != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
-        let __ws_arg_50 = self.extend(request, &[paramsOmitted]);
-        let mut response: Value = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_50]).await;
+        let __ws_arg_51 = self.extend(request, &[paramsOmitted]);
+        let mut response: Value = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_51]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
 
     Value::Null
@@ -6395,8 +6448,8 @@ impl MexcCore {
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_51 = self.extend(request, &[params]);
-        let mut response: Value = self.spot_private_get_capital_withdraw_history(&[__ws_arg_51]).await;
+        let __ws_arg_52 = self.extend(request, &[params]);
+        let mut response: Value = self.spot_private_get_capital_withdraw_history(&[__ws_arg_52]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
 
     Value::Null
@@ -6420,7 +6473,7 @@ impl MexcCore {
         //     "memo": "xxyy1122",
         //     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //     "updateTime": "1664805621000",
-        //     "netWork: "TRX"
+        //     "netWork": "TRX"
         // }
         //
         // fetchWithdrawals
@@ -6442,7 +6495,7 @@ impl MexcCore {
         //     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "updateTime": "1664882799000",
-        //     "netWork: "MATIC"
+        //     "netWork": "MATIC"
         //   }
         //
         // withdraw
@@ -6609,8 +6662,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_52 = self.extend(request, &[params]);
-        let mut response: Value = self.fetch_positions(&[Value::Null, __ws_arg_52]).await;
+        let __ws_arg_53 = self.extend(request, &[params]);
+        let mut response: Value = self.fetch_positions(&[Value::Null, __ws_arg_53]).await;
         return self.safe_dict(response, Value::Int(0), &[]);
 
     Value::Null
@@ -6808,8 +6861,8 @@ impl MexcCore {
                     m.insert("transact_id".to_string(), id.clone());
                 m
             });
-            let __ws_arg_53 = self.extend(request, &[query]);
-            let mut response: Value = self.spot_private_get_asset_internal_transfer_record(&[__ws_arg_53]).await;
+            let __ws_arg_54 = self.extend(request, &[query]);
+            let mut response: Value = self.spot_private_get_asset_internal_transfer_record(&[__ws_arg_54]).await;
             //
             //     {
             //         "code": "200",
@@ -6908,8 +6961,8 @@ impl MexcCore {
                 }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), limit.clone()); }
             }
-            let __ws_arg_54 = self.extend(request.clone(), &[paramsToAccountType.clone()]);
-            let mut response: Value = self.spot_private_get_capital_transfer(&[__ws_arg_54]).await;
+            let __ws_arg_55 = self.extend(request.clone(), &[paramsToAccountType.clone()]);
+            let mut response: Value = self.spot_private_get_capital_transfer(&[__ws_arg_55]).await;
             //
             //
             // {
@@ -6933,8 +6986,8 @@ impl MexcCore {
             if (limit != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
             }
-            let __ws_arg_55 = self.extend(request, &[paramsToAccountType]);
-            let mut response: Value = self.contract_private_get_account_transfer_record(&[__ws_arg_55]).await;
+            let __ws_arg_56 = self.extend(request, &[paramsToAccountType]);
+            let mut response: Value = self.contract_private_get_account_transfer_record(&[__ws_arg_56]).await;
             let mut data: Value = self.safe_dict_k(response, "data", &[]);
             resultList = self.safe_value_k(data, "resultList", &[]);
         }
@@ -7003,8 +7056,8 @@ impl MexcCore {
         if isIsolatedMargin {
             paramsOmitted = self.omit(params, Value::Str("symbol".into()), &[]);
         }
-        let __ws_arg_56 = self.extend(request, &[paramsOmitted]);
-        let mut response: Value = self.spot_private_post_capital_transfer(&[__ws_arg_56]).await;
+        let __ws_arg_57 = self.extend(request, &[paramsOmitted]);
+        let mut response: Value = self.spot_private_post_capital_transfer(&[__ws_arg_57]).await;
         //
         //     {
         //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
@@ -7167,8 +7220,8 @@ impl MexcCore {
             if (toAccountType.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE".into()))));
             }
-            let __ws_arg_57 = self.extend(requestForInternal, &[paramsInternal]);
-            let mut responseForInternal: Value = self.spot_private_post_capital_transfer_internal(&[__ws_arg_57]).await;
+            let __ws_arg_58 = self.extend(requestForInternal, &[paramsInternal]);
+            let mut responseForInternal: Value = self.spot_private_post_capital_transfer_internal(&[__ws_arg_58]).await;
             return self.parse_transaction(responseForInternal, &[currency.clone()]);
         }
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
@@ -7193,8 +7246,8 @@ impl MexcCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("netWork".into(), network.clone()); }
         }
         let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(paramsWithdrawTag.clone(), Value::from(vec![Value::Str("network".into()), Value::Str("netWork".into())]), &[]) } else { paramsWithdrawTag });
-        let __ws_arg_58 = self.extend(request, &[paramsOmitted]);
-        let mut response: Value = self.spot_private_post_capital_withdraw(&[__ws_arg_58]).await;
+        let __ws_arg_59 = self.extend(request, &[paramsOmitted]);
+        let mut response: Value = self.spot_private_post_capital_withdraw(&[__ws_arg_59]).await;
         return self.parse_transaction(response, &[currency]);
 
     Value::Null
@@ -7221,8 +7274,8 @@ impl MexcCore {
                 m.insert("positionMode".to_string(), (if is_true(&hedged) { Value::Int(1) } else { Value::Int(2) }));
             m
         });
-        let __ws_arg_59 = self.extend(request, &[params]);
-        let mut response: Value = self.contract_private_post_position_change_position_mode(&[__ws_arg_59]).await;
+        let __ws_arg_60 = self.extend(request, &[params]);
+        let mut response: Value = self.contract_private_post_position_change_position_mode(&[__ws_arg_60]).await;
         return response;
 
     Value::Null
@@ -7294,8 +7347,8 @@ impl MexcCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_949: bool = true;
-            while { if !__for_first_949 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_949 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_929: bool = true;
+            while { if !__for_first_929 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_929 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut entry: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut currency: Value = self.safe_currency(currencyId, &[]);
@@ -7356,8 +7409,8 @@ impl MexcCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_950: bool = true;
-            while { if !__for_first_950 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_950 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkList.len() as i64) as f64) } {
+            let mut __for_first_930: bool = true;
+            while { if !__for_first_930 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_930 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkList.len() as i64) as f64) } {
             let mut networkEntry: Value = self.safe_dict(networkList.clone(), j.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut networkCode: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkId.clone(), &[networkId.clone()]);
@@ -7428,8 +7481,8 @@ impl MexcCore {
         let mut result: Value = self.deposit_withdraw_fee(fee);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_951: bool = true;
-            while { if !__for_first_951 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_951 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkList.len() as i64) as f64) } {
+            let mut __for_first_931: bool = true;
+            while { if !__for_first_931 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_931 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkList.len() as i64) as f64) } {
             let mut networkEntry: Value = self.safe_dict(networkList.clone(), j.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId, (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
@@ -7481,8 +7534,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_60 = self.extend(request, &[params]);
-        let mut response: Value = self.contract_private_get_position_leverage(&[__ws_arg_60]).await;
+        let __ws_arg_61 = self.extend(request, &[params]);
+        let mut response: Value = self.contract_private_get_position_leverage(&[__ws_arg_61]).await;
         //
         //     {
         //         "success": true,
@@ -7526,8 +7579,8 @@ impl MexcCore {
         let mut shortLeverage: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_952: bool = true;
-            while { if !__for_first_952 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_952 = false; i.as_f64().unwrap_or(f64::NAN) < ((leverage.len() as i64) as f64) } {
+            let mut __for_first_932: bool = true;
+            while { if !__for_first_932 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_932 = false; i.as_f64().unwrap_or(f64::NAN) < ((leverage.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(leverage.clone(), i.clone(), &[]);
             let mut openType: Option<i64> = self.safe_integer_k(entry.clone(), "openType", &[]).as_i64();
             let mut positionType: Option<i64> = self.safe_integer_k(entry.clone(), "positionType", &[]).as_i64();
@@ -7619,8 +7672,8 @@ impl MexcCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }
-        let __ws_arg_61 = self.extend(request, &[params.clone()]);
-        let mut response: Value = self.contract_private_get_position_list_history_positions(&[__ws_arg_61]).await;
+        let __ws_arg_62 = self.extend(request, &[params.clone()]);
+        let mut response: Value = self.contract_private_get_position_list_history_positions(&[__ws_arg_62]).await;
         //
         //    {
         //        success: true,
@@ -7715,8 +7768,8 @@ impl MexcCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionType".into(), (if (direction.as_deref() == Some("short")) { Value::Int(2) } else { Value::Int(1) })); }
         }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("direction".into()), &[]);
-        let __ws_arg_62 = self.extend(request, &[paramsOmitted]);
-        let mut response: Value = self.contract_private_post_position_change_leverage(&[__ws_arg_62]).await;
+        let __ws_arg_63 = self.extend(request, &[paramsOmitted]);
+        let mut response: Value = self.contract_private_post_position_change_leverage(&[__ws_arg_63]).await;
         return self.parse_leverage(response, &[market]);
 
     Value::Null

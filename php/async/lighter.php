@@ -3366,6 +3366,10 @@ class lighter extends Exchange {
             'api_key_index' => $apiKeyIndex,
             'account_index' => $accountIndex,
         );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $signRaw['cancel_all_market_index'] = $this->parse_to_int($market['id']);
+        }
         list($txType, $txInfo) = $this->lighter_sign_cancel_all_orders($signer, $this->extend($signRaw, $paramsAccountIndex));
         return array( $txType, $txInfo );
     }

@@ -728,7 +728,7 @@ class revolutx(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum number of trades to return(1-1900, default 1900)
+        :param int [limit]: the maximum number of trades to return(1-100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest trade to fetch
         :param str [params.cursor]: pagination cursor from the previous response
@@ -750,7 +750,7 @@ class revolutx(Exchange, ImplicitAPI):
         elif since is not None:
             request['end_date'] = self.milliseconds()
         if limit is not None:
-            request['limit'] = min(limit, 1900)
+            request['limit'] = min(limit, 100)
         cursor = self.safe_string(params, 'cursor')
         if cursor is not None:
             request['cursor'] = cursor

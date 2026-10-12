@@ -3718,6 +3718,11 @@ public partial class lighter : Exchange
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },
         };
+        if ((symbol != null))
+        {
+            Dictionary<string, object> market = this.market(symbol);
+            signRaw["cancel_all_market_index"] = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
+        }
         var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, paramsAccountIndex));
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfoVariable)[1];

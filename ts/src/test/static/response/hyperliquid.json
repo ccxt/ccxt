@@ -10,6 +10,154 @@
         }
     },
     "methods": {
+        "fetchMyLiquidations": [
+            {
+                "description": "fetchMyLiquidations skips non-liquidation fills",
+                "method": "fetchMyLiquidations",
+                "input": [
+                    null,
+                    1787172600000,
+                    null,
+                    {
+                        "user": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                        "until": 1787173400000
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "coin": "ETH",
+                        "px": "2283.1",
+                        "sz": "0.0069",
+                        "side": "B",
+                        "time": 1787172669235,
+                        "startPosition": "-0.0274",
+                        "dir": "Close Short",
+                        "closedPnl": "-1.16196",
+                        "hash": "0x4e4b469965bdcb86adcd3f07bd6967a65987629c4704dd531366be56d3cdbe98",
+                        "oid": 564609681839,
+                        "crossed": true,
+                        "fee": "0.006805",
+                        "tid": 325295060889672,
+                        "liquidation": {
+                            "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                            "markPx": "2214.3",
+                            "method": "market"
+                        },
+                        "feeToken": "USDC",
+                        "twapId": null
+                    },
+                    {
+                        "coin": "ETH",
+                        "px": "2243.9",
+                        "sz": "0.0205",
+                        "side": "B",
+                        "time": 1787172675479,
+                        "startPosition": "-0.0205",
+                        "dir": "Liquidated Isolated Short",
+                        "closedPnl": "-2.6486",
+                        "hash": "0x3527369ee3bdfbdd6da25220dbc577f0a63a7ab1ccf6b056b62eefab0a3be03b",
+                        "oid": 595183806303,
+                        "crossed": false,
+                        "fee": "0.0",
+                        "tid": 595891545182983,
+                        "liquidation": {
+                            "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                            "markPx": "2236.9",
+                            "method": "backstop"
+                        },
+                        "feeToken": "USDC",
+                        "twapId": null
+                    },
+                    {
+                        "coin": "LINK",
+                        "px": "10.708",
+                        "sz": "21.1",
+                        "side": "B",
+                        "time": 1787173379179,
+                        "startPosition": "-29.2",
+                        "dir": "Close Short",
+                        "closedPnl": "-10.525735",
+                        "hash": "0x591a1c0de5e3e45f21b2637e8c1f3c24d03b6f06e4a81b79eb1a0fd22ff7f34b",
+                        "oid": 770812132607,
+                        "crossed": true,
+                        "fee": "0.176683",
+                        "builderFee": "0.079078",
+                        "tid": 576306541453042,
+                        "cloid": "0x3d61a6bdcadfffa08ebb4804ee5eefbc",
+                        "feeToken": "USDC",
+                        "twapId": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "coin": "ETH",
+                            "px": "2283.1",
+                            "sz": "0.0069",
+                            "side": "B",
+                            "time": 1787172669235,
+                            "startPosition": "-0.0274",
+                            "dir": "Close Short",
+                            "closedPnl": "-1.16196",
+                            "hash": "0x4e4b469965bdcb86adcd3f07bd6967a65987629c4704dd531366be56d3cdbe98",
+                            "oid": 564609681839,
+                            "crossed": true,
+                            "fee": "0.006805",
+                            "tid": 325295060889672,
+                            "liquidation": {
+                                "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                                "markPx": "2214.3",
+                                "method": "market"
+                            },
+                            "feeToken": "USDC",
+                            "twapId": null
+                        },
+                        "symbol": "ETH/USDC:USDC",
+                        "contracts": 0.0069,
+                        "price": 2283.1,
+                        "baseValue": 0.0069,
+                        "quoteValue": 15.75339,
+                        "side": "buy",
+                        "timestamp": 1787172669235,
+                        "datetime": "2026-08-19T20:51:09.235Z",
+                        "contractSize": 1
+                    },
+                    {
+                        "info": {
+                            "coin": "ETH",
+                            "px": "2243.9",
+                            "sz": "0.0205",
+                            "side": "B",
+                            "time": 1787172675479,
+                            "startPosition": "-0.0205",
+                            "dir": "Liquidated Isolated Short",
+                            "closedPnl": "-2.6486",
+                            "hash": "0x3527369ee3bdfbdd6da25220dbc577f0a63a7ab1ccf6b056b62eefab0a3be03b",
+                            "oid": 595183806303,
+                            "crossed": false,
+                            "fee": "0.0",
+                            "tid": 595891545182983,
+                            "liquidation": {
+                                "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                                "markPx": "2236.9",
+                                "method": "backstop"
+                            },
+                            "feeToken": "USDC",
+                            "twapId": null
+                        },
+                        "symbol": "ETH/USDC:USDC",
+                        "contracts": 0.0205,
+                        "price": 2243.9,
+                        "baseValue": 0.0205,
+                        "quoteValue": 45.99995,
+                        "side": "buy",
+                        "timestamp": 1787172675479,
+                        "datetime": "2026-08-19T20:51:15.479Z",
+                        "contractSize": 1
+                    }
+                ]
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "ensure orders are dedup when hl returns 2 orders with same id",

@@ -13,8 +13,20 @@ interface AstTranspilerWorkerTask {
     filesConfig: FileConfig[];
 }
 
+let cachedTranspiler: Transpiler | null = null;
+let cachedConfigKey: string | null = null;
+let programCache: ReturnType<typeof Transpiler.createProgramCache> | null = null;
+
 export default async ({ transpilerConfig, filesConfig }: AstTranspilerWorkerTask) => {
-    const transpiler = new Transpiler (transpilerConfig);
+    const key = JSON.stringify (transpilerConfig);
+    if (!cachedTranspiler || cachedConfigKey !== key) {
+        if (!programCache) {
+            programCache = Transpiler.createProgramCache ();
+        }
+        cachedTranspiler = new Transpiler (transpilerConfig, programCache);
+        cachedConfigKey = key;
+    }
+    const transpiler = cachedTranspiler;
 
     const result: any[] = [];
     for (const fileConfig of filesConfig) {
@@ -27,3 +39,4 @@ export default async ({ transpilerConfig, filesConfig }: AstTranspilerWorkerTask
     }
     return result;
 }
+

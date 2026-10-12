@@ -53,7 +53,7 @@ response := <-bitget.PublicCommonGetV2PublicAnnoucements(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official bitget API documentation:** [bitget.com](https://www.bitget.com/api-doc/common/intro) · [bitget.com](https://www.bitget.com/api-doc/spot/intro) · [bitget.com](https://www.bitget.com/api-doc/contract/intro) · [bitget.com](https://www.bitget.com/api-doc/broker/intro) · [bitget.com](https://www.bitget.com/api-doc/margin/intro) · [bitget.com](https://www.bitget.com/api-doc/copytrading/intro) · [bitget.com](https://www.bitget.com/api-doc/earn/intro) · [bitgetlimited.github.io](https://bitgetlimited.github.io/apidoc/en/mix) · [bitgetlimited.github.io](https://bitgetlimited.github.io/apidoc/en/spot) · [bitgetlimited.github.io](https://bitgetlimited.github.io/apidoc/en/broker) · [bitgetlimited.github.io](https://bitgetlimited.github.io/apidoc/en/margin)
+📚 **Official bitget API documentation:** [bitget.com](https://www.bitget.com/docs/uta/Introduction) · [bitget.com](https://www.bitget.com/docs/classic/Introduction)
 
 > 791 implicit endpoints across 2 access groups.
 

@@ -439,7 +439,7 @@ class paradex(Exchange, ImplicitAPI):
                     },
                     'fetchClosedOrders': None,  # todo
                     'fetchOHLCV': {
-                        'limit': None,  # todo by from/to
+                        'limit': 1000,  # todo by from/to
                     },
                 },
                 'swap': {
@@ -840,26 +840,24 @@ class paradex(Exchange, ImplicitAPI):
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         }
-        now = self.milliseconds()
+        maxLimit = 1000  # exchange has undocumented limit slightly above, but this is reliable limit
         duration = self.parse_timeframe(timeframe)
-        until = self.safe_integer_2(params, 'until', 'till', now)
         price = self.safe_string(params, 'price')
         if price is not None:
             request['price_kind'] = price
-        paramsOmitted = self.omit(params, ['until', 'till', 'price'])
+        requestUntil, paramsUntil = self.handle_until_option('end_at', request, params)
+        hasEnd = ('end_at' in request)
+        paramsOmitted = self.omit(paramsUntil, ['price'])
+        limitResolved = maxLimit if (limit is None) else min(limit, maxLimit)
         if since is not None:
-            request['start_at'] = since
-            if limit is not None:
-                request['end_at'] = since + duration * (limit + 1) * 1000 - 1
-            else:
-                request['end_at'] = until
+            requestUntil['start_at'] = since
+            if not hasEnd:
+                requestUntil['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1
         else:
-            request['end_at'] = until
-            if limit is not None:
-                request['start_at'] = until - duration * (limit + 1) * 1000 + 1
-            else:
-                request['start_at'] = until - duration * 101 * 1000 + 1
-        response = self.publicGetMarketsKlines(self.extend(request, paramsOmitted))
+            if not hasEnd:
+                requestUntil['end_at'] = self.milliseconds()
+            requestUntil['start_at'] = requestUntil['end_at'] - duration * (limitResolved + 1) * 1000 + 1
+        response = self.publicGetMarketsKlines(self.extend(requestUntil, paramsOmitted))
         #
         #     {
         #         "results": [

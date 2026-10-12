@@ -4,7 +4,7 @@ import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version);
 // https://github.com/ccxt/ccxt/issues/15405
 async function main() {
-    const exchange = new ccxt.coinex({
+    const exchange = new ccxt.gate({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_API_SECRET',
     });

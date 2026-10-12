@@ -87,7 +87,7 @@ func (this *Hyperliquid) Describe() any {
 			"fetchMarketLeverageTiers":             false,
 			"fetchMarkets":                         true,
 			"fetchMarkOHLCV":                       false,
-			"fetchMyLiquidations":                  false,
+			"fetchMyLiquidations":                  true,
 			"fetchMyTrades":                        true,
 			"fetchOHLCV":                           true,
 			"fetchOpenInterest":                    true,
@@ -4938,6 +4938,150 @@ func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) Trade {
 
 /**
  * @method
+ * @name hyperliquid#fetchMyLiquidations
+ * @description retrieves the users liquidated positions
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+ * @param {string} [symbol] unified CCXT market symbol
+ * @param {int} [since] the earliest time in ms to fetch liquidations for
+ * @param {int} [limit] the maximum number of liquidation structures to retrieve
+ * @param {object} [params] exchange specific parameters
+ * @param {int} [params.until] timestamp in ms of the latest liquidation
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+ */
+func (this *Hyperliquid) FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchMyLiquidationsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchMyLiquidationsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchMyLiquidations", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = nil
+	if symbol != nil {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"user": userAddress,
+	}
+	if since != nil {
+		request["type"] = "userFillsByTime"
+		request["startTime"] = since
+	} else {
+		request["type"] = "userFills"
+	}
+	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
+	var paramsOmitted map[string]any = this.OmitDict(paramsPublicAddress, "until")
+	if until != nil {
+		request["endTime"] = until
+	}
+
+	r1 := <-this.PublicPostInfo(this.Extend(request, paramsOmitted))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
+	//
+	//     [
+	//         {
+	//             "coin": "NEAR",
+	//             "px": "4.6879",
+	//             "sz": "64.8",
+	//             "side": "A",
+	//             "time": 1790964546856,
+	//             "startPosition": "64.8",
+	//             "dir": "Close Long",
+	//             "closedPnl": "-16.98408",
+	//             "hash": "0x2cdf7628db20daf2ea775b69cd99d5b63347faa4776a803907fc052901d0506f",
+	//             "oid": 719874965978,
+	//             "crossed": true,
+	//             "fee": "0.131231",
+	//             "tid": 5787071443114480,
+	//             "liquidation": {
+	//                 "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+	//                 "markPx": "4.69112",
+	//                 "method": "market"
+	//             },
+	//             "feeToken": "USDC",
+	//             "twapId": null
+	//         }
+	//     ]
+	//
+	var fills []any = []any{}
+	if IsArray(response) {
+		var user *string = this.SafeStringLower(request, "user")
+		for i := 0; i < GetArrayLength(response); i++ {
+			var fill any = GetValue(response, i)
+			var liquidation map[string]any = SafeMapTyped(fill, "liquidation")
+			// liquidator fills carry the liquidated counterparty here
+			if this.SafeStringLower(liquidation, "liquidatedUser") == user || (this.SafeStringLower(liquidation, "liquidatedUser") != nil && user != nil && *this.SafeStringLower(liquidation, "liquidatedUser") == *user) {
+				fills = append(fills, fill)
+			}
+		}
+	}
+
+	ch <- AsyncResult[any]{Value: this.ParseLiquidations(fills, market, since, limit)}
+	return nil
+}
+func (this *Hyperliquid) ParseLiquidation(liquidation any, optionalArgs ...any) any {
+	//
+	// see fetchMyLiquidations
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var timestamp *int64 = this.SafeInteger(liquidation, "time")
+	var marketId any = this.CoinToMarketId(this.SafeString(liquidation, "coin"))
+	var marketResolved map[string]any = this.SafeMarket(marketId)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	// swap ids are asset indexes, so the market is looked up by symbol
+	if (symbol != nil) && (this.Markets != nil) && (InOp(this.Markets, symbol)) {
+		marketResolved = this.Market(symbol)
+	}
+	var side *string = this.SafeString(liquidation, "side")
+	if side != nil {
+		side = SafeStringPtr(func() string {
+			if side != nil && *side == "A" {
+				return "sell"
+			}
+			return "buy"
+		}())
+	}
+	var amount *string = this.SafeString(liquidation, "sz")
+	var price *string = this.SafeString(liquidation, "px")
+	return this.SafeLiquidation(map[string]any{
+		"info":       liquidation,
+		"symbol":     symbol,
+		"contracts":  amount,
+		"price":      price,
+		"baseValue":  amount,
+		"quoteValue": Precise.StringMul(amount, price),
+		"side":       side,
+		"timestamp":  timestamp,
+		"datetime":   this.Iso8601(timestamp),
+	}, marketResolved)
+}
+
+/**
+ * @method
  * @name hyperliquid#fetchPosition
  * @description fetch data on an open position
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
@@ -5377,11 +5521,11 @@ func (this *Hyperliquid) addMarginBody(ch chan AsyncResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes407515 map[string]any = MapTyped(r.Value)
-	if retRes407515 == nil {
+	var retRes418515 map[string]any = MapTyped(r.Value)
+	if retRes418515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes407515}
+		ch <- AsyncResult[map[string]any]{Value: retRes418515}
 	}
 	return nil
 }
@@ -5413,11 +5557,11 @@ func (this *Hyperliquid) reduceMarginBody(ch chan EndpointResult[map[string]any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes409115 map[string]any = MapTyped(r.Value)
-	if retRes409115 == nil {
+	var retRes420115 map[string]any = MapTyped(r.Value)
+	if retRes420115 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes409115, Raw: retRes409115}
+		ch <- EndpointResult[map[string]any]{Value: retRes420115, Raw: retRes420115}
 	}
 	return nil
 }
@@ -7643,6 +7787,35 @@ func (this *Hyperliquid) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade
 
 /**
  * @method
+ * @name hyperliquid#fetchMyLiquidations
+ * @description retrieves the users liquidated positions
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+ * @param {string} [symbol] unified CCXT market symbol
+ * @param {int} [since] the earliest time in ms to fetch liquidations for
+ * @param {int} [limit] the maximum number of liquidation structures to retrieve
+ * @param {object} [params] exchange specific parameters
+ * @param {int} [params.until] timestamp in ms of the latest liquidation
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+ */
+func (this *Hyperliquid) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
+
+	opts := FetchMyLiquidationsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchMyLiquidationsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []Liquidation = NewLiquidationArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
  * @name hyperliquid#fetchPosition
  * @description fetch data on an open position
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
@@ -8204,9 +8377,6 @@ func (this *Hyperliquid) FetchMarkPrice(symbol string, options ...FetchMarkPrice
 }
 func (this *Hyperliquid) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Hyperliquid) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
 }
 func (this *Hyperliquid) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)

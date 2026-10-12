@@ -847,9 +847,6 @@ func (this *Bingx) Describe() any {
 				"v1": map[string]any{
 					"private": map[string]any{
 						"get": map[string]any{
-							"swap/trace/currentTrack": map[string]any{
-								"cost": 2,
-							},
 							"PFutures/traderDetail": map[string]any{
 								"cost": 2,
 							},
@@ -876,9 +873,6 @@ func (this *Bingx) Describe() any {
 							},
 						},
 						"post": map[string]any{
-							"swap/trace/closeTrackOrder": map[string]any{
-								"cost": 2,
-							},
 							"swap/trace/setTPSL": map[string]any{
 								"cost": 2,
 							},
@@ -1792,11 +1786,11 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes123219 []any = ListTyped(r1.Value)
-		if retRes123219 == nil {
+		var retRes123019 []any = ListTyped(r1.Value)
+		if retRes123019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes123219}
+			ch <- AsyncResult[any]{Value: retRes123019}
 		}
 		return nil
 	}
@@ -2637,11 +2631,11 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes188819 []any = ListTyped(r1.Value)
-		if retRes188819 == nil {
+		var retRes188619 []any = ListTyped(r1.Value)
+		if retRes188619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes188819}
+			ch <- AsyncResult[any]{Value: retRes188619}
 		}
 		return nil
 	}
@@ -2757,11 +2751,11 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes196519 []any = ListTyped(r1.Value)
-		if retRes196519 == nil {
+		var retRes196319 []any = ListTyped(r1.Value)
+		if retRes196319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes196519}
+			ch <- AsyncResult[any]{Value: retRes196319}
 		}
 		return nil
 	}
@@ -4000,11 +3994,11 @@ func (this *Bingx) createMarketOrderWithCostBody(ch chan AsyncResult[map[string]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes312015 map[string]any = r.Value
-	if retRes312015 == nil {
+	var retRes311815 map[string]any = r.Value
+	if retRes311815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes312015}
+		ch <- AsyncResult[map[string]any]{Value: retRes311815}
 	}
 	return nil
 }
@@ -4034,11 +4028,11 @@ func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes313415 map[string]any = r.Value
-	if retRes313415 == nil {
+	var retRes313215 map[string]any = r.Value
+	if retRes313215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes313415}
+		ch <- AsyncResult[any]{Value: retRes313215}
 	}
 	return nil
 }
@@ -4068,11 +4062,11 @@ func (this *Bingx) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes314815 map[string]any = r.Value
-	if retRes314815 == nil {
+	var retRes314615 map[string]any = r.Value
+	if retRes314615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes314815}
+		ch <- AsyncResult[any]{Value: retRes314615}
 	}
 	return nil
 }
@@ -4374,8 +4368,8 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
  * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
  * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
  * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
- * @param {float} [params.stopLossPrice] stop loss trigger price
- * @param {float} [params.takeProfitPrice] take profit trigger price
+ * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
+ * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
  * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
  * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
@@ -4716,12 +4710,17 @@ func (this *Bingx) ParseOrderSide(side *string) *string {
 }
 func (this *Bingx) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
-		"trigger_market":     "market",
-		"trigger_limit":      "limit",
-		"stop_limit":         "limit",
-		"stop_market":        "market",
-		"take_profit_market": "market",
-		"stop":               "limit",
+		"trigger_market":       "market",
+		"trigger_limit":        "limit",
+		"stop_limit":           "limit",
+		"stop_market":          "market",
+		"take_profit_market":   "market",
+		"take_profit":          "limit",
+		"stop":                 "limit",
+		"take_stop_limit":      "limit",
+		"take_stop_market":     "market",
+		"trailing_stop_market": "market",
+		"trailing_tp_sl":       "market",
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
@@ -5032,6 +5031,11 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 	}(), market, nil, marketType)
 	var side *string = this.SafeStringLower2(orderData, "side", "S")
 	var timestamp *int64 = this.SafeIntegerN(orderData, []any{"time", "transactTime", "E", "createdTime"})
+	var transactTime *string = this.SafeString(orderData, "transactTime", "")
+	if len(*transactTime) == 10 {
+		// spot conditional orders are created with transactTime in seconds
+		timestamp = this.SafeTimestamp(orderData, "transactTime")
+	}
 	var lastTradeTimestamp *int64 = this.SafeInteger2(orderData, "updateTime", "T")
 	var statusId *string = this.SafeStringUpperN(orderData, []any{"status", "X", "orderStatus"})
 	var feeCurrencyCode any
@@ -5082,7 +5086,14 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 	var rawType *string = this.SafeStringLower2(orderData, "type", "o")
 	var stopPrice any = this.OmitZero(this.SafeString2(orderData, "StopPrice", "stopPrice"))
 	var triggerPrice any = stopPrice
-	if stopPrice != nil {
+	// spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
+	var isTakeStop bool = (rawType != nil) && (func() int {
+		if rawType == nil {
+			return -1
+		}
+		return strings.Index(*rawType, "take_stop")
+	}() > -1)
+	if (stopPrice != nil) && !isTakeStop {
 		if (func() int {
 			if rawType == nil {
 				return -1
@@ -6279,14 +6290,14 @@ func (this *Bingx) transferBody(ch chan AsyncResult[map[string]any], code string
 	subType, paramsSubType := this.HandleSubTypeAndParams("transfer", nil, params)
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
-	if fromId != nil && *fromId == "swap" {
+	if IsEqual(fromAccount, "swap") {
 		if subType != nil && *subType == "inverse" {
 			fromId = SafeStringPtr("coinMPerp")
 		} else {
 			fromId = SafeStringPtr("USDTMPerp")
 		}
 	}
-	if toId != nil && *toId == "swap" {
+	if toAccount == "swap" {
 		if subType != nil && *subType == "inverse" {
 			toId = SafeStringPtr("coinMPerp")
 		} else {
@@ -6399,11 +6410,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes539719 []any = ListTyped(r1.Value)
-		if retRes539719 == nil {
+		var retRes540719 []any = ListTyped(r1.Value)
+		if retRes540719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes539719}
+			ch <- AsyncResult[any]{Value: retRes540719}
 		}
 		return nil
 	}
@@ -6676,11 +6687,11 @@ func (this *Bingx) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6222 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
-	if listEp6222.Err != nil {
-		panic(listEp6222.Err)
+	listEp6233 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
+	if listEp6233.Err != nil {
+		panic(listEp6233.Err)
 	}
-	var response []any = listEp6222.Value
+	var response []any = listEp6233.Value
 
 	//
 	//    [
@@ -6752,11 +6763,11 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs .
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6291 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp6291.Err != nil {
-		panic(listEp6291.Err)
+	listEp6302 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp6302.Err != nil {
+		panic(listEp6302.Err)
 	}
-	var response []any = listEp6291.Value
+	var response []any = listEp6302.Value
 
 	//
 	//    [
@@ -6843,8 +6854,8 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 	var timestamp *int64 = this.SafeInteger2(transaction, "insertTime", "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
 	if timestamp == nil {
-		datetime = this.SafeString(transaction, "applyTime")
-		timestamp = this.Parse8601(datetime)
+		timestamp = this.Parse8601(this.SafeString(transaction, "applyTime"))
+		datetime = this.Iso8601(timestamp)
 	}
 	var network *string = this.SafeString(transaction, "network")
 	var currencyId *string = this.SafeString(transaction, "coin")
@@ -6854,10 +6865,15 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 			code = SafeStringPtr(strings.Replace(*code, *network, "", 1))
 		}
 	}
+	// deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
 	var rawType *string = this.SafeString(transaction, "transferType")
 	var typeVar string = "withdrawal"
-	if rawType != nil && *rawType == "0" {
+	if (rawType != nil && *rawType == "0") || (InOp(transaction, "insertTime")) {
 		typeVar = "deposit"
+	}
+	var internal any = nil
+	if rawType != nil {
+		internal = (rawType != nil && *rawType == "2")
 	}
 	return map[string]any{
 		"info":        transaction,
@@ -6867,7 +6883,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 		"currency":    code,
 		"network":     this.NetworkIdToCode(network, code),
 		"amount":      this.SafeNumber(transaction, "amount"),
-		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status")),
+		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status"), typeVar),
 		"timestamp":   timestamp,
 		"datetime":    datetime,
 		"address":     address,
@@ -6883,10 +6899,25 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 			"cost":     this.SafeNumber(transaction, "transactionFee"),
 			"rate":     nil,
 		},
-		"internal": nil,
+		"internal": internal,
 	}
 }
-func (this *Bingx) ParseTransactionStatus(status *string) *string {
+func (this *Bingx) ParseTransactionStatus(status *string, optionalArgs ...any) *string {
+	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = typeVar
+	var statusesByType map[string]any = map[string]any{
+		"deposit": map[string]any{
+			"0": "pending",
+			"6": "pending",
+			"1": "ok",
+		},
+		"withdrawal": map[string]any{
+			"4": "pending",
+			"5": "failed",
+			"6": "ok",
+		},
+	}
+	var directional map[string]any = SafeMapTyped(statusesByType, typeVar)
 	var statuses map[string]any = map[string]any{
 		"0":  "pending",
 		"1":  "ok",
@@ -6903,7 +6934,8 @@ func (this *Bingx) ParseTransactionStatus(status *string) *string {
 		"5":  "rejected",
 		"6":  "ok",
 	}
-	return this.SafeString(statuses, status, status)
+	var fallback *string = this.SafeString(statuses, status, status)
+	return this.SafeString(directional, status, fallback)
 }
 
 /**
@@ -6994,11 +7026,11 @@ func (this *Bingx) addMarginBody(ch chan AsyncResult[map[string]any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes583715 map[string]any = MapTyped(r.Value)
-	if retRes583715 == nil {
+	var retRes586615 map[string]any = MapTyped(r.Value)
+	if retRes586615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes583715}
+		ch <- AsyncResult[map[string]any]{Value: retRes586615}
 	}
 	return nil
 }
@@ -7020,11 +7052,11 @@ func (this *Bingx) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes584415 map[string]any = MapTyped(r.Value)
-	if retRes584415 == nil {
+	var retRes587315 map[string]any = MapTyped(r.Value)
+	if retRes587315 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes584415, Raw: retRes584415}
+		ch <- EndpointResult[map[string]any]{Value: retRes587315, Raw: retRes587315}
 	}
 	return nil
 }
@@ -8101,7 +8133,7 @@ func (this *Bingx) editOrderBody(ch chan AsyncResult[map[string]any], id string,
 	}
 	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	request["cancelOrderId"] = id
-	request["cancelReplaceMode"] = "STOP_ON_FAILURE"
+	request["cancelReplaceMode"] = this.SafeString(params, "cancelReplaceMode", "STOP_ON_FAILURE")
 	var response map[string]any = nil
 	if market["swap"] == true {
 
@@ -9199,8 +9231,8 @@ func (this *Bingx) CreateMarketSellOrderWithCost(symbol string, cost float64, op
  * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
  * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
  * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
- * @param {float} [params.stopLossPrice] stop loss trigger price
- * @param {float} [params.takeProfitPrice] take profit trigger price
+ * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
+ * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
  * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
  * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price

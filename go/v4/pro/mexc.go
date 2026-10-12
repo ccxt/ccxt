@@ -438,10 +438,10 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 }
 func (this *Mexc) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	// protobuf ticker
-	// "bidprice": "93387.28",  // Best bid price
-	// "bidquantity": "3.73485", // Best bid quantity
-	// "askprice": "93387.29", // Best ask price
-	// "askquantity": "7.669875" // Best ask quantity
+	// "bidPrice": "93387.28",  // Best bid price
+	// "bidQuantity": "3.73485", // Best bid quantity
+	// "askPrice": "93387.29", // Best ask price
+	// "askQuantity": "7.669875" // Best ask quantity
 	//
 	// spot
 	//
@@ -1101,12 +1101,13 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 	//            ]
 	//         ],
 	//         "end":4895965272,
-	//         "begin":4895965271
+	//         "begin":4895965271,
+	//         "version":4895965272
 	//      },
 	//      "symbol":"BTC_USDT",
 	//      "ts":1651239652372
 	//  }
-	// protofbuf
+	// protobuf
 	// {
 	//      "channel":"spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT",
 	//      "symbol":"BTCUSDT",
@@ -1827,7 +1828,7 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) any {
 	//        "s":1,
 	//        "i":"e03a5c7441e44ed899466a7140b71391",
 	//    }
-	// protofbuf spot order
+	// protobuf spot order
 	// {
 	//     "id":"C02__583905164440776704043",
 	//     "price":"0.001053",

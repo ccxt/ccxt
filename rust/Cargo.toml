@@ -1,5 +1,5 @@
 [workspace]
-members = ["ccxt-base", "ccxt", "ccxt-pro", "ccxt-prediction", "tests"]
+members = ["ccxt-core", "ccxt-base", "ccxt", "ccxt-pro", "ccxt-prediction", "tests"]
 resolver = "2"
 
 # Keep debug symbols in release so `sample`/`perf`/Instruments can attribute
@@ -7,3 +7,15 @@ resolver = "2"
 # perf impact (just larger binaries).
 [profile.release]
 debug = true
+
+# Dev profile: balance fast compilation, line-tables for usable backtraces,
+# and reduced memory consumption across 200+ generated exchange modules.
+[profile.dev]
+debug = 1
+split-debuginfo = "unpacked"
+
+# Test profile: mirrors dev profile so tests reuse compiled artifacts.
+[profile.test]
+debug = 1
+split-debuginfo = "unpacked"
+

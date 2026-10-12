@@ -27,6 +27,18 @@
     "methods": {
         "cancelAllOrders": [
             {
+                "description": "single market by symbol",
+                "method": "cancelAllOrders",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [
+                    "LTC/USDC:USDC"
+                ],
+                "output": {
+                    "tx_type": 16,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"TimeInForce\":0,\"Time\":0,\"ExpiredAt\":1790757346346,\"Nonce\":1790756747346,\"Sig\":\"wVdLRdkvgP0/xs2tSta6sI2xSFSS9hR3u9h+i3wtfLY1alaQl9gobp6w6bUIQen7myfJHKGXtD6Lna/cV41RNYzOGMmqpZuXYqQQWIcLOoc=\",\"L2TxAttributes\":{\"4\":1,\"5\":35}}"
+                }
+            },
+            {
                 "description": "default",
                 "method": "cancelAllOrders",
                 "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",

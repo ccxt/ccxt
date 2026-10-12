@@ -656,20 +656,22 @@ class deepcoin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        maxLimit = 300
+        market = self.market(symbol)
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        price = self.safe_string(paramsPaginate, 'price')
+        maxLimit = 300
+        if market['swap'] is True and price is None:
+            maxLimit = 1000
         if paginate:
             paramsExtended = self.extend(paramsPaginate, {'calculateUntil': True})
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsExtended, maxLimit)
-        market = self.market(symbol)
-        price = self.safe_string(paramsPaginate, 'price')
         bar = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'instId': market['id'],
             'bar': bar,
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, maxLimit)
         until = self.safe_integer(paramsPaginate, 'until')
         if until is not None:
             request['after'] = until

@@ -69,7 +69,7 @@ func (this *Pacifica) Describe() any {
 			"fetchCurrencies":                      false,
 			"fetchDepositAddress":                  false,
 			"fetchDepositAddresses":                false,
-			"fetchDeposits":                        false,
+			"fetchDeposits":                        true,
 			"fetchDepositWithdrawFee":              false,
 			"fetchDepositWithdrawFees":             false,
 			"fetchFundingHistory":                  true,
@@ -109,11 +109,11 @@ func (this *Pacifica) Describe() any {
 			"fetchTime":                            nil,
 			"fetchTrades":                          true,
 			"fetchTradingFee":                      true,
-			"fetchTradingFees":                     false,
+			"fetchTradingFees":                     true,
 			"fetchTransfer":                        false,
 			"fetchTransfers":                       false,
 			"fetchWithdrawal":                      false,
-			"fetchWithdrawals":                     false,
+			"fetchWithdrawals":                     true,
 			"reduceMargin":                         false,
 			"repayCrossMargin":                     false,
 			"repayIsolatedMargin":                  false,
@@ -4089,6 +4089,56 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan AsyncResult[any], symbol strin
 	ch <- AsyncResult[any]{Value: this.ParseTradingFee(data, market)}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#fetchTradingFees
+ * @description fetch the trading fees for multiple markets, the account fee level applies to every market
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.account] will default to walletAddress if not provided
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+ */
+func (this *Pacifica) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchTradingFeesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Pacifica) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchTradingFees", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
+	var request map[string]any = map[string]any{
+		"account": userAddress,
+	}
+
+	r1 := <-this.PublicGetAccount(this.Extend(request, paramsOriginAndSingleAddress))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var result map[string]any = map[string]any{}
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = symbols[i]
+		result[symbol] = this.ParseTradingFee(data, this.Market(symbol))
+	}
+
+	ch <- AsyncResult[any]{Value: result}
+	return nil
+}
 func (this *Pacifica) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//   {
@@ -4298,11 +4348,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes309019 []any = ListTyped(r1.Value)
-		if retRes309019 == nil {
+		var retRes311819 []any = ListTyped(r1.Value)
+		if retRes311819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes309019}
+			ch <- AsyncResult[any]{Value: retRes311819}
 		}
 		return nil
 	}
@@ -4395,6 +4445,158 @@ func (this *Pacifica) ParseLedgerEntryType(typeVar *string) *string {
 
 /**
  * @method
+ * @name pacifica#fetchDeposits
+ * @description fetch all USDC deposits made to an account, spot asset deposits are not included
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+ * @param {string} [code] unified currency code
+ * @param {int} [since] the earliest time in ms to fetch deposits for
+ * @param {int} [limit] the maximum number of deposits structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.account] will default to walletAddress if not provided
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Pacifica) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchDepositsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Pacifica) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = code
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	userAddressparamsAddressVariable := this.HandleOriginAndSingleAddress("fetchDeposits", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsAddressVariable, 0))
+	var paramsAddress map[string]any = MapTyped(GetValue(userAddressparamsAddressVariable, 1))
+	var request map[string]any = map[string]any{
+		"account": userAddress,
+	}
+
+	r1 := <-this.PublicGetAccountBalanceHistory(this.Extend(request, paramsAddress))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var transactions any = this.ParseTransactions(data, this.SafeCurrency(code))
+	var deposits []any = this.FilterBy(transactions, "type", "deposit")
+
+	ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(deposits, since, limit, "timestamp")}
+	return nil
+}
+
+/**
+ * @method
+ * @name pacifica#fetchWithdrawals
+ * @description fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+ * @param {string} [code] unified currency code
+ * @param {int} [since] the earliest time in ms to fetch withdrawals for
+ * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.account] will default to walletAddress if not provided
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Pacifica) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Pacifica) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = code
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	userAddressparamsAddressVariable := this.HandleOriginAndSingleAddress("fetchWithdrawals", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsAddressVariable, 0))
+	var paramsAddress map[string]any = MapTyped(GetValue(userAddressparamsAddressVariable, 1))
+	var request map[string]any = map[string]any{
+		"account": userAddress,
+	}
+
+	r1 := <-this.PublicGetAccountBalanceHistory(this.Extend(request, paramsAddress))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var transactions any = this.ParseTransactions(data, this.SafeCurrency(code))
+	var withdrawals []any = this.FilterBy(transactions, "type", "withdrawal")
+
+	ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(withdrawals, since, limit, "timestamp")}
+	return nil
+}
+func (this *Pacifica) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
+	//
+	//     {
+	//         "amount": "5000",
+	//         "balance": "5000",
+	//         "pending_balance": "0",
+	//         "event_type": "deposit",
+	//         "created_at": 1789199771373
+	//     }
+	//
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = currency
+	var timestamp *int64 = this.SafeInteger(transaction, "created_at")
+	var types map[string]any = map[string]any{
+		"deposit":  "deposit",
+		"withdraw": "withdrawal",
+	}
+	var eventType *string = this.SafeString(transaction, "event_type")
+	var amount *string = this.SafeString(transaction, "amount")
+	return map[string]any{
+		"info":        transaction,
+		"id":          nil,
+		"txid":        nil,
+		"timestamp":   timestamp,
+		"datetime":    this.Iso8601(timestamp),
+		"network":     nil,
+		"address":     nil,
+		"addressTo":   nil,
+		"addressFrom": nil,
+		"tag":         nil,
+		"tagTo":       nil,
+		"tagFrom":     nil,
+		"type":        this.SafeString(types, eventType),
+		"amount":      this.ParseNumber(Precise.StringAbs(amount)),
+		"currency":    this.SafeCurrencyCode("USDC", currency),
+		"status":      nil,
+		"updated":     nil,
+		"comment":     nil,
+		"internal":    nil,
+		"fee":         nil,
+	}
+}
+
+/**
+ * @method
  * @name pacifica#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history
@@ -4451,11 +4653,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[any], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes320419 []any = ListTyped(r1.Value)
-		if retRes320419 == nil {
+		var retRes332719 []any = ListTyped(r1.Value)
+		if retRes332719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes320419}
+			ch <- AsyncResult[any]{Value: retRes332719}
 		}
 		return nil
 	}
@@ -5880,6 +6082,24 @@ func (this *Pacifica) FetchTradingFee(symbol string, options ...FetchTradingFeeO
 
 /**
  * @method
+ * @name pacifica#fetchTradingFees
+ * @description fetch the trading fees for multiple markets, the account fee level applies to every market
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.account] will default to walletAddress if not provided
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+ */
+func (this *Pacifica) FetchTradingFees(params ...any) (TradingFees, error) {
+	r := <-this.FetchTradingFeesAsync(params...)
+	if r.Err != nil {
+		return TradingFees{}, r.Err
+	}
+	var res TradingFees = NewTradingFees(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
  * @name pacifica#fetchOpenInterests
  * @description Retrieves the open interest for a list of symbols
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
@@ -5952,6 +6172,60 @@ func (this *Pacifica) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
 		return nil, r.Err
 	}
 	var res []LedgerEntry = NewLedgerEntryArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name pacifica#fetchDeposits
+ * @description fetch all USDC deposits made to an account, spot asset deposits are not included
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+ * @param {string} [code] unified currency code
+ * @param {int} [since] the earliest time in ms to fetch deposits for
+ * @param {int} [limit] the maximum number of deposits structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.account] will default to walletAddress if not provided
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Pacifica) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
+
+	opts := FetchDepositsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []Transaction = NewTransactionArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name pacifica#fetchWithdrawals
+ * @description fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+ * @param {string} [code] unified currency code
+ * @param {int} [since] the earliest time in ms to fetch withdrawals for
+ * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.account] will default to walletAddress if not provided
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Pacifica) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
+
+	opts := FetchWithdrawalsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []Transaction = NewTransactionArray(r.Value)
 	return res, nil
 }
 
@@ -6206,9 +6480,6 @@ func (this *Pacifica) FetchDepositAddresses(options ...FetchDepositAddressesOpti
 func (this *Pacifica) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
-func (this *Pacifica) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDeposits(options...)
-}
 func (this *Pacifica) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
@@ -6335,9 +6606,6 @@ func (this *Pacifica) FetchTicker(symbol string, options ...FetchTickerOptions) 
 func (this *Pacifica) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
-func (this *Pacifica) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
-}
 func (this *Pacifica) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
@@ -6355,9 +6623,6 @@ func (this *Pacifica) FetchTransfer(id string, options ...FetchTransferOptions) 
 }
 func (this *Pacifica) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 	return this.exchangeTyped.FetchTransfers(options...)
-}
-func (this *Pacifica) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawals(options...)
 }
 func (this *Pacifica) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)

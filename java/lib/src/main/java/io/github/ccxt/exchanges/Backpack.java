@@ -1200,6 +1200,7 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "interval", interval );
@@ -1211,22 +1212,29 @@ public class Backpack extends BackpackApi
             {
                 request.put("endTime", this.parseToInt((((double) until) / ((double) 1000)))); // convert milliseconds to seconds
             }
-            Long defaultLimit = 100L;
-            Long limitResolved = limit;
+            Integer defaultLimit = 100;
+            Object limitResolved = limit;
             if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(limit, null)))
             {
                 limitResolved = defaultLimit;
             }
             if (java.util.Objects.equals(since, null))
             {
-                int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                 Long endTime = (((!java.util.Objects.equals(until, null) && !java.util.Objects.equals(until, null) && (until != 0)))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
-                Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
-                Object startTime = Helpers.subtract(endTime, ((windowLimit * duration)));
+                Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
+                Object startTime = Helpers.subtract(endTime, (Helpers.multiply(windowLimit, duration)));
                 request.put("startTime", startTime);
             } else
             {
                 request.put("startTime", this.parseToInt((((double) since) / ((double) 1000)))); // convert milliseconds to seconds
+            }
+            if (java.util.Objects.equals(until, null))
+            {
+                Long currentMs = this.seconds(); // default to current time in seconds
+                Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
+                Object windowEnd = this.sum(request.get("startTime"), Helpers.multiply(windowLimit, duration)); // sum (): `+` on a dict value is string concatenation in php
+                Object minTimestamp = Helpers.mathMin(currentMs, windowEnd);
+                request.put("endTime", this.parseToInt(minTimestamp)); // default to current time in seconds if until is not specified
             }
             String price = this.safeString(paramsUntil, "price");
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(price, null)))) ? this.omit(paramsUntil, "price") : paramsUntil;
@@ -1236,7 +1244,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.publicGetApiV1Klines(this.extend(request, paramsOmitted))).join();
             List<Object> ohlcvs = this.toArray(response);
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

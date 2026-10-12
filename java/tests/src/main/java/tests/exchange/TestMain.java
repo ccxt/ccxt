@@ -3127,7 +3127,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
             //  -----------------------------------------------------------------------------
-            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb()));
+            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended()));
             (Helpers.promiseAll(promises)).join();
             String successMessage = (("[" + this.lang) + "][TEST_SUCCESS] brokerId tests passed.");
             dump(("[INFO]" + successMessage));
@@ -3155,8 +3155,7 @@ public class TestMain extends BaseTest
                 spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
             }
             Object clientOrderId = ((Map<String, Object>)spotOrderRequest).get("newClientOrderId");
-            String spotIdString = String.valueOf(spotId);
-            Assert(java.util.Objects.equals(((String)clientOrderId).startsWith(spotIdString), true), ((("binance - spot clientOrderId: " + clientOrderId) + " does not start with spotId") + spotIdString));
+            Assert(java.util.Objects.equals(((String)clientOrderId).startsWith(spotId), true), ((("binance - spot clientOrderId: " + clientOrderId) + " does not start with spotId") + spotId));
             Object swapOrderRequest = new HashMap<String, Object>() {{}};
             try
             {
@@ -3175,8 +3174,7 @@ public class TestMain extends BaseTest
             }
             // linear swap
             Object clientOrderIdSwap = ((Map<String, Object>)swapOrderRequest).get("newClientOrderId");
-            String swapIdString = String.valueOf(swapId);
-            Assert(java.util.Objects.equals(((String)clientOrderIdSwap).startsWith(swapIdString), true), ((("binance - swap clientOrderId: " + clientOrderIdSwap) + " does not start with swapId") + swapIdString));
+            Assert(java.util.Objects.equals(((String)clientOrderIdSwap).startsWith(swapId), true), ((("binance - swap clientOrderId: " + clientOrderIdSwap) + " does not start with swapId") + swapId));
             // inverse swap
             Object clientOrderIdInverse = ((Map<String, Object>)swapInverseOrderRequest).get("newClientOrderId");
             Assert(java.util.Objects.equals(((String)clientOrderIdInverse).startsWith(inverseSwapId), true), ((("binance - swap clientOrderIdInverse: " + clientOrderIdInverse) + " does not start with swapId") + inverseSwapId));
@@ -3193,7 +3191,7 @@ public class TestMain extends BaseTest
             }
             Object clientAlgoIdSwap = ((Map<String, Object>)swapAlgoOrderRequest).get("clientAlgoId");
             Assert(!java.util.Objects.equals(clientAlgoIdSwap, null), "binance - swap conditional order must send clientAlgoId");
-            Assert(java.util.Objects.equals(((String)clientAlgoIdSwap).startsWith(swapIdString), true), ((("binance - swap clientAlgoId: " + clientAlgoIdSwap) + " does not start with swapId") + swapIdString));
+            Assert(java.util.Objects.equals(((String)clientAlgoIdSwap).startsWith(swapId), true), ((("binance - swap clientAlgoId: " + clientAlgoIdSwap) + " does not start with swapId") + swapId));
             // inverse swap conditional order
             Object inverseAlgoOrderRequest = new HashMap<String, Object>() {{}};
             try
@@ -3233,7 +3231,7 @@ public class TestMain extends BaseTest
             {
                 Object current = Helpers.GetValue(batchOrders, i);
                 Object currentClientOrderId = Helpers.GetValue(current, "newClientOrderId");
-                Assert(java.util.Objects.equals(((String)currentClientOrderId).startsWith(swapIdString), true), ((("binance createOrders - clientOrderId: " + currentClientOrderId) + " does not start with swapId") + swapIdString));
+                Assert(java.util.Objects.equals(((String)currentClientOrderId).startsWith(swapId), true), ((("binance createOrders - clientOrderId: " + currentClientOrderId) + " does not start with swapId") + swapId));
             }
             // linear conditional orders cannot be batched
             Boolean linearConditionalBatchNotSupported = false;
@@ -3282,6 +3280,92 @@ public class TestMain extends BaseTest
             String inverseConditionalClientOrderId = exchange.safeString(inverseConditionalBatchOrder, "newClientOrderId");
             Assert(!java.util.Objects.equals(inverseConditionalClientOrderId, null), "binance createOrders - inverse conditional order must send newClientOrderId");
             Assert(java.util.Objects.equals(inverseConditionalClientOrderId.startsWith(((String)inverseSwapId)), true), ((("binance createOrders - inverse conditional clientOrderId: " + inverseConditionalClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
+            // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
+            Object linearFutureOrderRequest = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"ETH/USDT:USDT-261225", "limit", "buy", 1, 2000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                linearFutureOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            Object clientOrderIdLinearFuture = ((Map<String, Object>)linearFutureOrderRequest).get("newClientOrderId");
+            Assert(java.util.Objects.equals(((String)clientOrderIdLinearFuture).startsWith(swapId), true), ((("binance - linear future clientOrderId: " + clientOrderIdLinearFuture) + " does not start with swapId") + swapId));
+            Object inverseFutureOrderRequest = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"ETH/USD:ETH-261225", "limit", "buy", 1, 2000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                inverseFutureOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            Object clientOrderIdInverseFuture = ((Map<String, Object>)inverseFutureOrderRequest).get("newClientOrderId");
+            Assert(java.util.Objects.equals(((String)clientOrderIdInverseFuture).startsWith(inverseSwapId), true), ((("binance - inverse future clientOrderId: " + clientOrderIdInverseFuture) + " does not start with inverseSwapId") + inverseSwapId));
+            // the implicit order endpoints inject the broker id of their api section
+            // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
+            if (!Helpers.isTrue(isSync()))
+            {
+                Object implicitDapiOrderRequest = new HashMap<String, Object>() {{}};
+                try
+                {
+                    (callExchangeMethodDynamically(exchange, "dapiPrivatePostOrder", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+        put( "symbol", "ETHUSD_PERP" );
+        put( "side", "SELL" );
+        put( "type", "LIMIT" );
+        put( "quantity", "1" );
+        put( "price", "4100" );
+        put( "timeInForce", "GTC" );
+    }})))).join();
+                } catch(Exception e)
+                {
+                    implicitDapiOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                }
+                Object implicitDapiClientOrderId = ((Map<String, Object>)implicitDapiOrderRequest).get("newClientOrderId");
+                Assert(java.util.Objects.equals(((String)implicitDapiClientOrderId).startsWith(inverseSwapId), true), ((("binance - implicit dapi clientOrderId: " + implicitDapiClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
+                Object implicitDapiBatchRequest = new HashMap<String, Object>() {{}};
+                try
+                {
+                    (callExchangeMethodDynamically(exchange, "dapiPrivatePostBatchOrders", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+        put( "batchOrders", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+        put( "symbol", "ETHUSD_PERP" );
+        put( "side", "SELL" );
+        put( "type", "LIMIT" );
+        put( "quantity", "1" );
+        put( "price", "4100" );
+        put( "timeInForce", "GTC" );
+    }})) );
+    }})))).join();
+                } catch(Exception e)
+                {
+                    implicitDapiBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+                }
+                Object implicitDapiBatchOrders = exchange.safeList(implicitDapiBatchRequest, "batchOrders", new ArrayList<Object>(Arrays.asList()));
+                Object implicitDapiBatchOrder = exchange.safeDict(implicitDapiBatchOrders, 0, new HashMap<String, Object>() {{}});
+                String implicitDapiBatchClientOrderId = exchange.safeString(implicitDapiBatchOrder, "newClientOrderId");
+                Assert(!java.util.Objects.equals(implicitDapiBatchClientOrderId, null), "binance - implicit dapi batch order must inject newClientOrderId");
+                Assert(java.util.Objects.equals(implicitDapiBatchClientOrderId.startsWith(((String)inverseSwapId)), true), ((("binance - implicit dapi batch clientOrderId: " + implicitDapiBatchClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
+                // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
+                Object implicitFapiAlgoOrderRequest = new HashMap<String, Object>() {{}};
+                try
+                {
+                    (callExchangeMethodDynamically(exchange, "fapiPrivatePostAlgoOrder", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+        put( "symbol", "ETHUSDT" );
+        put( "side", "SELL" );
+        put( "type", "STOP" );
+        put( "algoType", "CONDITIONAL" );
+        put( "quantity", "1" );
+        put( "price", "4100" );
+        put( "triggerPrice", "4200" );
+        put( "timeInForce", "GTC" );
+    }})))).join();
+                } catch(Exception e)
+                {
+                    implicitFapiAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                }
+                String implicitFapiClientAlgoId = exchange.safeString(implicitFapiAlgoOrderRequest, "clientAlgoId");
+                Assert(!java.util.Objects.equals(implicitFapiClientAlgoId, null), "binance - implicit fapi algo order must inject clientAlgoId");
+                Assert(java.util.Objects.equals(implicitFapiClientAlgoId.startsWith(((String)swapId)), true), ((("binance - implicit fapi clientAlgoId: " + implicitFapiClientAlgoId) + " does not start with swapId") + swapId));
+            }
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();
@@ -3426,6 +3510,85 @@ public class TestMain extends BaseTest
                 reqHeaders = (((!java.util.Objects.equals(exchange.last_request_headers, null) && !java.util.Objects.equals(exchange.last_request_headers, null)))) ? exchange.last_request_headers : new HashMap<String, Object>() {{}};
             }
             Assert(java.util.Objects.equals(((Map<String, Object>)reqHeaders).get("OPEN-API-PARTNER"), id), (("bithumb - id: " + id) + " not in headers (public endpoints)."));
+            if (!Helpers.isTrue(isSync()))
+            {
+                (close(exchange)).join();
+            }
+            return true;
+        });
+
+    }
+
+    public CompletableFuture<Object> testExtended()
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.lang, "RUST"))
+            {
+                return false;  // the extended static request suite is disabledRS as well
+            }
+            BaseExchange exchange = this.initOfflineExchange("extended", false);
+            exchange.privateKey = "0x12345";
+            ((Map<String, Object>)exchange.options).put("account", new HashMap<String, Object>() {{
+        put( "l2Key", "0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf" );
+        put( "l2Vault", "123456" );
+    }});
+            String builderId = "257624";
+            String builderFeeRate = "0.0001";
+            Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("builderFee"), true), "extended - builderFee is not enabled in options");
+            Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("builderId"), builderId), (("extended - builderId: " + builderId) + " not in options"));
+            Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("builderFeeRate"), builderFeeRate), (("extended - builderFeeRate: " + builderFeeRate) + " not in options"));
+            // default: the builder code and fee rate come from options
+            Object request = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                request = jsonParse(exchange.last_request_body);
+            }
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderId"), builderId), ((("extended - builderId: " + ((Map<String, Object>)request).get("builderId")) + " different from options: ") + builderId));
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderFee"), builderFeeRate), ((("extended - builderFee: " + ((Map<String, Object>)request).get("builderFee")) + " different from options: ") + builderFeeRate));
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("fee"), "0.0005"), (("extended - fee: " + ((Map<String, Object>)request).get("fee")) + " should stay the base fee, the builder fee is a separate field"));
+            // params override the fee rate, the builder code stays
+            request = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{
+                    put( "builderFeeRate", "0.0002" );
+                }}})).join();
+            } catch(Exception e)
+            {
+                request = jsonParse(exchange.last_request_body);
+            }
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderFee"), "0.0002"), (("extended - builderFee: " + ((Map<String, Object>)request).get("builderFee")) + " does not take the params value 0.0002"));
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderId"), builderId), (("extended - builderId: " + ((Map<String, Object>)request).get("builderId")) + " changed by a builderFeeRate param"));
+            Assert(!(((Map<?, ?>)request).containsKey("builderFeeRate")), "extended - builderFeeRate param leaked into the request");
+            // sandbox: the builder is only attached when passed explicitly in params
+            exchange.setSandboxMode(true);
+            request = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                request = jsonParse(exchange.last_request_body);
+            }
+            Assert(!(((Map<?, ?>)request).containsKey("builderId")), "extended - sandbox attached builderId from options");
+            request = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{
+                    put( "builderId", "999" );
+                    put( "builderFeeRate", "0.0003" );
+                }}})).join();
+            } catch(Exception e)
+            {
+                request = jsonParse(exchange.last_request_body);
+            }
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderId"), "999"), (("extended - sandbox builderId: " + ((Map<String, Object>)request).get("builderId")) + " does not take the params value 999"));
+            Assert(java.util.Objects.equals(((Map<String, Object>)request).get("builderFee"), "0.0003"), (("extended - sandbox builderFee: " + ((Map<String, Object>)request).get("builderFee")) + " does not take the params value 0.0003"));
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();
@@ -3672,34 +3835,6 @@ public class TestMain extends BaseTest
             }
             Object clientOrderIdStop = ((Map<String, Object>)stopOrderRequest).get("brokerId");
             Assert(java.util.Objects.equals(((String)clientOrderIdStop).startsWith(idString), true), ((("woo - brokerId: " + clientOrderIdStop) + " does not start with id: ") + idString));
-            if (!Helpers.isTrue(isSync()))
-            {
-                (close(exchange)).join();
-            }
-            return true;
-        });
-
-    }
-
-    public CompletableFuture<Object> testCoinex()
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            BaseExchange exchange = this.initOfflineExchange("coinex", false);
-            String id = "x-167673045";
-            Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("brokerId"), id), (("coinex - id: " + id) + " not in options"));
-            Object spotOrderRequest = new HashMap<String, Object>() {{}};
-            try
-            {
-                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
-            } catch(Exception e)
-            {
-                spotOrderRequest = jsonParse(exchange.last_request_body);
-            }
-            Object clientOrderId = ((Map<String, Object>)spotOrderRequest).get("client_id");
-            String idString = String.valueOf(id);
-            Assert(java.util.Objects.equals(((String)clientOrderId).startsWith(idString), true), ((("coinex - clientOrderId: " + clientOrderId) + " does not start with id: ") + idString));
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();

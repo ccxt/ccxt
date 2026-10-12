@@ -537,7 +537,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         'htx',
         'mexc',
         'cryptocom',
-        'coinex',
         'hashkey',
         'woo',
         'woofipro',

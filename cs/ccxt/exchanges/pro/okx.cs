@@ -52,10 +52,10 @@ public partial class okx : ccxt.okx
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
-                    { "ws", "wss://ws.okx.com:8443/ws/v5" },
+                    { "ws", "wss://ws.okx.com:443/ws/v5" },
                 } },
                 { "test", new Dictionary<string, object>() {
-                    { "ws", "wss://wspap.okx.com:8443/ws/v5" },
+                    { "ws", "wss://wspap.okx.com:443/ws/v5" },
                 } },
             } },
             { "options", new Dictionary<string, object>() {

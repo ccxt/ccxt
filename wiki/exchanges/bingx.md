@@ -649,8 +649,8 @@ create a trade order
 | params.timeInForce | <code>string</code> | No | spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK' |
 | params.reduceOnly | <code>bool</code> | No | *swap only* true or false whether the order is reduce only |
 | params.triggerPrice | <code>float</code> | No | triggerPrice at which the attached take profit / stop loss order will be triggered |
-| params.stopLossPrice | <code>float</code> | No | stop loss trigger price |
-| params.takeProfitPrice | <code>float</code> | No | take profit trigger price |
+| params.stopLossPrice | <code>float</code> | No | stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice |
+| params.takeProfitPrice | <code>float</code> | No | take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice |
 | params.cost | <code>float</code> | No | *spot only* the quote quantity that can be used as an alternative for the amount |
 | params.quoteOrderQty | <code>float</code> | No | *spot only* the quote quantity, an alternative to params.cost |
 | params.trailingAmount | <code>float</code> | No | *swap only* the quote amount to trail away from the current market price |

@@ -75,7 +75,7 @@ public partial class hyperliquid : Exchange
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
-                { "fetchMyLiquidations", false },
+                { "fetchMyLiquidations", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
@@ -4131,6 +4131,131 @@ public partial class hyperliquid : Exchange
                 { "currency", this.safeString(trade, "feeToken") },
                 { "rate", null },
             } },
+        }, marketResolved);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchMyLiquidations
+     * @description retrieves the users liquidated positions
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+     * @param {string} [symbol] unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     */
+    public async override Task<List<ccxt.Liquidation>> FetchMyLiquidations(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchMyLiquidations", parameters);
+        var userAddress = userAddressparamsPublicAddressVariable[0];
+        IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IDictionary<string, object> market = null;
+        if ((symbol != null))
+        {
+            market = this.market(symbol);
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "user", userAddress },
+        };
+        if ((since != null))
+        {
+            request["type"] = "userFillsByTime";
+            request["startTime"] = since;
+        } else
+        {
+            request["type"] = "userFills";
+        }
+        Int64? until = this.safeInteger(paramsPublicAddress, "until");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPublicAddress, "until");
+        if ((until != null))
+        {
+            request["endTime"] = until;
+        }
+        object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        //
+        //     [
+        //         {
+        //             "coin": "NEAR",
+        //             "px": "4.6879",
+        //             "sz": "64.8",
+        //             "side": "A",
+        //             "time": 1790964546856,
+        //             "startPosition": "64.8",
+        //             "dir": "Close Long",
+        //             "closedPnl": "-16.98408",
+        //             "hash": "0x2cdf7628db20daf2ea775b69cd99d5b63347faa4776a803907fc052901d0506f",
+        //             "oid": 719874965978,
+        //             "crossed": true,
+        //             "fee": "0.131231",
+        //             "tid": 5787071443114480,
+        //             "liquidation": {
+        //                 "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+        //                 "markPx": "4.69112",
+        //                 "method": "market"
+        //             },
+        //             "feeToken": "USDC",
+        //             "twapId": null
+        //         }
+        //     ]
+        //
+        List<object> fills = new List<object>() {};
+        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        {
+            string? user = this.safeStringLower(request, "user");
+            for (int i = 0; i < getArrayLength(response); i++)
+            {
+                object fill = getValue(response, i);
+                IDictionary<string, object> liquidation = this.safeDict(fill, "liquidation", new Dictionary<string, object>() {});
+                // liquidator fills carry the liquidated counterparty here
+                if ((this.safeStringLower(liquidation, "liquidatedUser") == user))
+                {
+                    fills.Add(fill);
+                }
+            }
+        }
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(fills, market, since, limit));
+    }
+
+    public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
+    {
+        //
+        // see fetchMyLiquidations
+        //
+        Int64? timestamp = this.safeInteger(liquidation, "time");
+        string? marketId = this.coinToMarketId(this.safeString(liquidation, "coin"));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId);
+        string? symbol = ((string)GetValue(marketResolved, "symbol"));
+        // swap ids are asset indexes, so the market is looked up by symbol
+        if (((symbol != null)) && ((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol))))
+        {
+            marketResolved = this.market(symbol);
+        }
+        string? side = this.safeString(liquidation, "side");
+        if ((side != null))
+        {
+            side = (side == "A") ? "sell" : "buy";
+        }
+        string? amount = this.safeString(liquidation, "sz");
+        string? price = this.safeString(liquidation, "px");
+        return this.safeLiquidation(new Dictionary<string, object>() {
+            { "info", liquidation },
+            { "symbol", symbol },
+            { "contracts", amount },
+            { "price", price },
+            { "baseValue", amount },
+            { "quoteValue", Precise.stringMul(amount, price) },
+            { "side", side },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         }, marketResolved);
     }
 

@@ -4,6 +4,140 @@
         "uta": false
     },
     "methods": {
+        "fetchFundingRates": [
+            {
+                "description": "uta fetchFundingRates for one symbol",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ],
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1791192473937,
+                    "data": [
+                        {
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "ts": "1791192473224",
+                            "lastPrice": "85875.5",
+                            "openPrice24h": "85186.6",
+                            "highPrice24h": "86966.9",
+                            "lowPrice24h": "85050",
+                            "ask1Price": "85875.5",
+                            "bid1Price": "85875.4",
+                            "bid1Size": "7.1585",
+                            "ask1Size": "0.7383",
+                            "price24hPcnt": "0.00809",
+                            "volume24h": "31015.3257",
+                            "turnover24h": "2667023592.67079",
+                            "indexPrice": "85906.089",
+                            "markPrice": "85875.5",
+                            "fundingRate": "0.000073",
+                            "openInterest": "31459.4330999999779",
+                            "deliveryStartTime": "",
+                            "deliveryTime": "",
+                            "deliveryStatus": ""
+                        },
+                        {
+                            "category": "USDT-FUTURES",
+                            "symbol": "ETHUSDT",
+                            "ts": "1791192473224",
+                            "lastPrice": "2718.58",
+                            "openPrice24h": "2701.54",
+                            "highPrice24h": "2738.66",
+                            "lowPrice24h": "2689.7",
+                            "ask1Price": "2718.76",
+                            "bid1Price": "2718.75",
+                            "bid1Size": "52.72",
+                            "ask1Size": "19.86",
+                            "price24hPcnt": "0.00631",
+                            "volume24h": "463506.22",
+                            "turnover24h": "1257951059.7171",
+                            "indexPrice": "2719.6755",
+                            "markPrice": "2718.75",
+                            "fundingRate": "0.000081",
+                            "openInterest": "747549.139999999814",
+                            "deliveryStartTime": "",
+                            "deliveryTime": "",
+                            "deliveryStatus": ""
+                        },
+                        {
+                            "category": "USDT-FUTURES",
+                            "symbol": "XRPUSDT",
+                            "ts": "1791192473224",
+                            "lastPrice": "1.5114",
+                            "openPrice24h": "1.5004",
+                            "highPrice24h": "1.5307",
+                            "lowPrice24h": "1.497",
+                            "ask1Price": "1.5117",
+                            "bid1Price": "1.5116",
+                            "bid1Size": "21935",
+                            "ask1Size": "32912",
+                            "price24hPcnt": "0.00733",
+                            "volume24h": "89104679",
+                            "turnover24h": "134854236.7081",
+                            "indexPrice": "1.5116840610814122",
+                            "markPrice": "1.5116",
+                            "fundingRate": "0.0001",
+                            "openInterest": "172733108",
+                            "deliveryStartTime": "",
+                            "deliveryTime": "",
+                            "deliveryStatus": ""
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "info": {
+                            "category": "USDT-FUTURES",
+                            "symbol": "ETHUSDT",
+                            "ts": "1791192473224",
+                            "lastPrice": "2718.58",
+                            "openPrice24h": "2701.54",
+                            "highPrice24h": "2738.66",
+                            "lowPrice24h": "2689.7",
+                            "ask1Price": "2718.76",
+                            "bid1Price": "2718.75",
+                            "bid1Size": "52.72",
+                            "ask1Size": "19.86",
+                            "price24hPcnt": "0.00631",
+                            "volume24h": "463506.22",
+                            "turnover24h": "1257951059.7171",
+                            "indexPrice": "2719.6755",
+                            "markPrice": "2718.75",
+                            "fundingRate": "0.000081",
+                            "openInterest": "747549.139999999814",
+                            "deliveryStartTime": "",
+                            "deliveryTime": "",
+                            "deliveryStatus": ""
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "markPrice": 2718.75,
+                        "indexPrice": 2719.6755,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1791192473224,
+                        "datetime": "2026-10-05T09:27:53.224Z",
+                        "fundingRate": 0.000081,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": null
+                    }
+                }
+            }
+        ],
         "fetchLedger": [
             {
                 "description": "uta spot ledger empty window returns an empty list",
@@ -4298,62 +4432,80 @@
                     }
                 },
                 "parsedResponse": {
-                    "info": [
-                        {
-                            "coin": "BTC",
-                            "equity": "1",
-                            "usdValue": "108131.66156274",
-                            "balance": "1",
-                            "available": "1",
-                            "debt": "0",
-                            "locked": "0"
-                        },
-                        {
-                            "coin": "WBTC",
-                            "equity": "1",
-                            "usdValue": "108079.95252426",
-                            "balance": "1",
-                            "available": "1",
-                            "debt": "0",
-                            "locked": "0"
-                        },
-                        {
-                            "coin": "USDC",
-                            "equity": "100000",
-                            "usdValue": "100000",
-                            "balance": "100000",
-                            "available": "100000",
-                            "debt": "0",
-                            "locked": "0"
-                        },
-                        {
-                            "coin": "ETH",
-                            "equity": "10",
-                            "usdValue": "26437.44821529",
-                            "balance": "10",
-                            "available": "10",
-                            "debt": "0",
-                            "locked": "0"
-                        },
-                        {
-                            "coin": "SOL",
-                            "equity": "100",
-                            "usdValue": "15791.8554721",
-                            "balance": "100",
-                            "available": "100",
-                            "debt": "0",
-                            "locked": "0"
-                        },
-                        {
-                            "coin": "USDT",
-                            "equity": "10000",
-                            "usdValue": "10003.4",
-                            "balance": "10000",
-                            "available": "10000",
-                            "debt": "0",
-                            "locked": "0"
+                    "info": {
+                        "code": "00000",
+                        "msg": "success",
+                        "requestTime": "1750098758334",
+                        "data": {
+                            "accountEquity": "368444.3177744",
+                            "usdtEquity": "368319.08928405",
+                            "btcEquity": "3.40736757",
+                            "unrealisedPnl": "0",
+                            "usdtUnrealisedPnl": "0",
+                            "btcUnrealizedPnl": "0",
+                            "effEquity": "256783.39028097",
+                            "mmr": "0",
+                            "imr": "0",
+                            "mgnRatio": "0",
+                            "positionMgnRatio": "0",
+                            "assets": [
+                                {
+                                    "coin": "BTC",
+                                    "equity": "1",
+                                    "usdValue": "108131.66156274",
+                                    "balance": "1",
+                                    "available": "1",
+                                    "debt": "0",
+                                    "locked": "0"
+                                },
+                                {
+                                    "coin": "WBTC",
+                                    "equity": "1",
+                                    "usdValue": "108079.95252426",
+                                    "balance": "1",
+                                    "available": "1",
+                                    "debt": "0",
+                                    "locked": "0"
+                                },
+                                {
+                                    "coin": "USDC",
+                                    "equity": "100000",
+                                    "usdValue": "100000",
+                                    "balance": "100000",
+                                    "available": "100000",
+                                    "debt": "0",
+                                    "locked": "0"
+                                },
+                                {
+                                    "coin": "ETH",
+                                    "equity": "10",
+                                    "usdValue": "26437.44821529",
+                                    "balance": "10",
+                                    "available": "10",
+                                    "debt": "0",
+                                    "locked": "0"
+                                },
+                                {
+                                    "coin": "SOL",
+                                    "equity": "100",
+                                    "usdValue": "15791.8554721",
+                                    "balance": "100",
+                                    "available": "100",
+                                    "debt": "0",
+                                    "locked": "0"
+                                },
+                                {
+                                    "coin": "USDT",
+                                    "equity": "10000",
+                                    "usdValue": "10003.4",
+                                    "balance": "10000",
+                                    "available": "10000",
+                                    "debt": "0",
+                                    "locked": "0"
+                                }
+                            ]
                         }
-                    ],
+                    },
                     "BTC": {
                         "free": 1,
                         "used": 0,
@@ -4622,6 +4774,54 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "uta spot fetchOHLCV history endpoint",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1780000000000,
+                    2,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1790956508356,
+                    "data": [
+                        [
+                            "1779998400000",
+                            "73419.99",
+                            "73725.43",
+                            "73240.23",
+                            "73576.82",
+                            "164.290986",
+                            "12077831.26603639"
+                        ],
+                        [
+                            "1780002000000",
+                            "73576.82",
+                            "73928.57",
+                            "73558",
+                            "73822.07",
+                            "163.783964",
+                            "12083321.20538534"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1780002000000,
+                        73576.82,
+                        73928.57,
+                        73558,
+                        73822.07,
+                        163.783964
+                    ]
+                ]
+            },
             {
                 "description": "Inverse market ohlcv",
                 "method": "fetchOHLCV",

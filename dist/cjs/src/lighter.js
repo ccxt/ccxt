@@ -3185,6 +3185,10 @@ class lighter extends lighter$1["default"] {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            signRaw['cancel_all_market_index'] = this.parseToInt(market['id']);
+        }
         const [txType, txInfo] = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, paramsAccountIndex));
         return [txType, txInfo];
     }

@@ -918,7 +918,7 @@ public class Revolutx extends RevolutxApi
      * @see https://developer.revolut.com/docs/api/revolut-x-crypto-exchange#tag-public-market-data
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum number of trades to return (1-1900, default 1900)
+     * @param {int} [limit] the maximum number of trades to return (1-100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @param {string} [params.cursor] pagination cursor from the previous response
@@ -957,7 +957,7 @@ public class Revolutx extends RevolutxApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Math.min(limit, 1900));
+                request.put("limit", Math.min(limit, 100));
             }
             String cursor = this.safeString(parameters, "cursor");
             if (!java.util.Objects.equals(cursor, null))

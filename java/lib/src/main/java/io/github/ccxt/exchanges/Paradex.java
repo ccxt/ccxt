@@ -719,7 +719,7 @@ public class Paradex extends ParadexApi
                     }} );
                     put( "fetchClosedOrders", null );
                     put( "fetchOHLCV", new HashMap<String, Object>() {{
-                        put( "limit", null );
+                        put( "limit", 1000 );
                     }} );
                 }} );
                 put( "swap", new HashMap<String, Object>() {{
@@ -1183,37 +1183,35 @@ public class Paradex extends ParadexApi
                 put( "resolution", Paradex.this.safeString(Paradex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
                 put( "symbol", market.get("id") );
             }};
-            Long now = this.milliseconds();
+            Long maxLimit = 1000L; // exchange has undocumented limit slightly above, but this is reliable limit
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Long until = (Long) this.safeInteger2(parameters, "until", "till", now);
             String price = this.safeString(parameters, "price");
             if (!java.util.Objects.equals(price, null))
             {
                 request.put("price_kind", price);
             }
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till", "price")));
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
+            Boolean hasEnd = (request.containsKey("end_at"));
+            Map<String, Object> paramsOmitted = this.omit(paramsUntil, new ArrayList<Object>(Arrays.asList("price")));
+            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Math.min(limit, maxLimit);
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start_at", since);
-                if (!java.util.Objects.equals(limit, null))
+                ((Map<String, Object>)requestUntil).put("start_at", since);
+                if (!Boolean.TRUE.equals(hasEnd))
                 {
-                    request.put("end_at", Helpers.subtract(Helpers.add(since, Helpers.multiply(Helpers.multiply(duration, ((limit + 1L))), 1000)), 1));
-                } else
-                {
-                    request.put("end_at", until);
+                    ((Map<String, Object>)requestUntil).put("end_at", Helpers.subtract(Helpers.add(since, Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limitResolved, 1))), 1000)), 1));
                 }
             } else
             {
-                request.put("end_at", until);
-                if (!java.util.Objects.equals(limit, null))
+                if (!Boolean.TRUE.equals(hasEnd))
                 {
-                    request.put("start_at", Helpers.add(Helpers.subtract(until, Helpers.multiply(Helpers.multiply(duration, ((limit + 1L))), 1000)), 1));
-                } else
-                {
-                    request.put("start_at", ((until - ((((long) duration) * 101L) * 1000L)) + 1L));
+                    ((Map<String, Object>)requestUntil).put("end_at", this.milliseconds());
                 }
+                ((Map<String, Object>)requestUntil).put("start_at", Helpers.add(Helpers.subtract(((Map<String, Object>)requestUntil).get("end_at"), Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limitResolved, 1))), 1000)), 1));
             }
-            Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted))).join();
             //
             //     {
             //         "results": [

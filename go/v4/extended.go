@@ -3723,15 +3723,18 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan EndpointResult[map[
 	var fee *string = this.SafeString(params, "fee", "0.0005")
 	var builderFeeRate *string = nil
 	var builderId *string = nil
-	var paramsBuilder any = nil
-	if this.IsSandboxModeEnabled {
-		builderFeeRate = this.SafeString2(params, "builderFeeRate", "defaultBuilderFeeRate")
-		builderId = this.SafeString2(params, "builderId", "defaultBuilderId")
-		paramsBuilder = this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"})
-	} else {
-		var paramsBuilderFeeRate any = nil
-		builderFeeRate, paramsBuilderFeeRate = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
-		builderId, paramsBuilder = this.HandleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId")
+	var paramsBuilder any = params
+	var builderEnabled *bool = this.SafeBool(this.Options, "builderFee")
+	if builderEnabled != nil && *builderEnabled == true {
+		if this.IsSandboxModeEnabled {
+			builderFeeRate = this.SafeString2(params, "builderFeeRate", "defaultBuilderFeeRate")
+			builderId = this.SafeString2(params, "builderId", "defaultBuilderId")
+			paramsBuilder = this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"})
+		} else {
+			var paramsBuilderFeeRate any = nil
+			builderFeeRate, paramsBuilderFeeRate = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
+			builderId, paramsBuilder = this.HandleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId")
+		}
 	}
 	var totalFee *string = fee
 	if builderFeeRate != nil {
@@ -4558,11 +4561,11 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes321219 []any = ListTyped(r1.Value)
-		if retRes321219 == nil {
+		var retRes321519 []any = ListTyped(r1.Value)
+		if retRes321519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes321219}
+			ch <- AsyncResult[any]{Value: retRes321519}
 		}
 		return nil
 	}

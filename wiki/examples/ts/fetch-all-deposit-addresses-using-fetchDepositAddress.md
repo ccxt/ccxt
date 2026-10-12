@@ -1,3 +1,4 @@
+```javascript
 // @NO_AUTO_TRANSPILE
 
 "use strict";
@@ -10,7 +11,7 @@ console.log ('CCXT Version:', ccxt.version)
 
 async function main () {
     
-    const exchange = new ccxt.coinex ({
+    const exchange = new ccxt.gate ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_API_SECRET',
     });
@@ -47,3 +48,5 @@ async function main () {
 };
 
 main ();
+
+```

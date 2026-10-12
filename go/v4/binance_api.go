@@ -2214,7 +2214,7 @@ func (this *Binance) DapiPublicGetTrades(args ...any) <-chan EndpointResult[[]an
 
 // DapiPublicGetHistoricalTrades returns a channel that yields a JSON array.
 func (this *Binance) DapiPublicGetHistoricalTrades(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "historicalTrades", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+	return Fetch2Result[[]any](this, "historicalTrades", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(200)})
 }
 
 // DapiPublicGetAggTrades returns a channel that yields a JSON array.
@@ -2350,6 +2350,16 @@ func (this *Binance) DapiPrivateGetOpenOrders(args ...any) <-chan EndpointResult
 // DapiPrivateGetOpenAlgoOrders returns a channel that yields a JSON array.
 func (this *Binance) DapiPrivateGetOpenAlgoOrders(args ...any) <-chan EndpointResult[[]any] {
 	return Fetch2Result[[]any](this, "openAlgoOrders", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// DapiPrivateGetAlgoOrder returns a channel that yields a JSON object.
+func (this *Binance) DapiPrivateGetAlgoOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "algoOrder", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// DapiPrivateGetAllAlgoOrders returns a channel that yields a JSON array.
+func (this *Binance) DapiPrivateGetAllAlgoOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "allAlgoOrders", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // DapiPrivateGetAllOrders returns a channel that yields a JSON array.
@@ -2517,6 +2527,11 @@ func (this *Binance) DapiPrivateDeleteAlgoOrder(args ...any) <-chan EndpointResu
 	return Fetch2Result[map[string]any](this, "algoOrder", "dapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
+// DapiPrivateDeleteAlgoOpenOrders returns a channel that yields a JSON object.
+func (this *Binance) DapiPrivateDeleteAlgoOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "algoOpenOrders", "dapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
 // DapiPrivateDeleteAllOpenOrders returns a channel that yields a JSON array.
 func (this *Binance) DapiPrivateDeleteAllOpenOrders(args ...any) <-chan EndpointResult[[]any] {
 	return Fetch2Result[[]any](this, "allOpenOrders", "dapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
@@ -2569,7 +2584,7 @@ func (this *Binance) FapiPublicGetTrades(args ...any) <-chan EndpointResult[[]an
 
 // FapiPublicGetHistoricalTrades returns a channel that yields a JSON array.
 func (this *Binance) FapiPublicGetHistoricalTrades(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "historicalTrades", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+	return Fetch2Result[[]any](this, "historicalTrades", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(200)})
 }
 
 // FapiPublicGetAggTrades returns a channel that yields a JSON array.

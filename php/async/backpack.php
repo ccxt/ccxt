@@ -1011,6 +1011,7 @@ class backpack extends Exchange {
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $duration = $this->parse_timeframe($timeframe);
         $request = array(
             'symbol' => $market['id'],
             'interval' => $interval,
@@ -1025,13 +1026,19 @@ class backpack extends Exchange {
             $limitResolved = $defaultLimit;
         }
         if ($since === null) {
-            $duration = $this->parse_timeframe($timeframe);
             $endTime = ($until !== null && $until !== null && $until !== 0) ? $this->parse_to_int($until / 1000) : $this->seconds();
             $windowLimit = ($limit === null) ? $defaultLimit : $limit;
             $startTime = $endTime - ($windowLimit * $duration);
             $request['startTime'] = $startTime;
         } else {
             $request['startTime'] = $this->parse_to_int($since / 1000); // convert milliseconds to seconds
+        }
+        if ($until === null) {
+            $currentMs = $this->seconds(); // default to current time in seconds
+            $windowLimit = ($limit === null) ? $defaultLimit : $limit;
+            $windowEnd = $this->sum($request['startTime'], $windowLimit * $duration); // sum (): `+` on a dict value is string concatenation in php
+            $minTimestamp = min($currentMs, $windowEnd);
+            $request['endTime'] = $this->parse_to_int($minTimestamp); // default to current time in seconds if until is not specified
         }
         $price = $this->safe_string($paramsUntil, 'price');
         $paramsOmitted = ($price !== null) ? $this->omit($paramsUntil, 'price') : $paramsUntil;
