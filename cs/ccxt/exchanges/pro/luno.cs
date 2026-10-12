@@ -243,20 +243,18 @@ public partial class luno : ccxt.luno
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {});
         }
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         List<object> asks = this.safeList(message, "asks");
         if ((asks != null))
         {
             Dictionary<string, object> snapshot = this.customParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id");
-            ccxt.pro.IOrderBook existing = this.getOrderBook(this.orderbooks, symbol);
-            existing.reset(snapshot);
+            (orderbook as IOrderBook).reset(snapshot);
         } else
         {
-            ccxt.pro.IOrderBook ob = this.getOrderBook(this.orderbooks, symbol);
-            this.handleBookDelta(ob, message);
-            ob["timestamp"] = timestamp;
-            ob["datetime"] = this.iso8601(timestamp);
+            this.handleBookDelta(orderbook, message);
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
         }
-        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? nonce = this.safeInteger(message, "sequence");
         orderbook["nonce"] = nonce;
         client.resolve(orderbook, messageHash);
