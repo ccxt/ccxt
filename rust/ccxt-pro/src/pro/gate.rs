@@ -1002,10 +1002,15 @@ impl GateCore {
         let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
         let mut limit: Value = self.safe_integer_k(subscription, "limit", &[]);
         if (symbol != Value::Null) {
-            { let __be_tmp = self.order_book(&[Value::Map({
+            if !(in_op(&self.orderbooks, &symbol)) {
+                { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+            }
+            let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+            crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
         }
 }
 
@@ -1178,7 +1183,8 @@ impl GateCore {
             self.handle_book_delta(storedOrderBook.clone(), delta);
         }  else {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
-            remove(&mut self.orderbooks, &symbol);
+            add_element_to_object(&mut storedOrderBook, &Value::Str("nonce".into()), Value::Null);
+            crate::set_value(&mut storedOrderBook, &Value::Str("cache".into()), Value::from(vec![]));
             let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
             if (checksum.as_bool() == Some(true)) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol))));
