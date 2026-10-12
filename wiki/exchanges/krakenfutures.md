@@ -473,7 +473,7 @@ Gets all canceled orders, including trigger orders, for an account from the exch
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: An array of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api/docs/futures-api/history/get-order-events  
+**See**: https://docs.kraken.com/api-reference/account-history/get-order-events  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

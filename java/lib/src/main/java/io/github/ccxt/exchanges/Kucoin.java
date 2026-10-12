@@ -1384,6 +1384,7 @@ public class Kucoin extends KucoinApi
                     put( "405", NotSupported.class );
                     put( "415", NotSupported.class );
                     put( "429", RateLimitExceeded.class );
+                    put( "429000", RateLimitExceeded.class );
                     put( "500", ExchangeNotAvailable.class );
                     put( "503", ExchangeNotAvailable.class );
                     put( "101030", PermissionDenied.class );

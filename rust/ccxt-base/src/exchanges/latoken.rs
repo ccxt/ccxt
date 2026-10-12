@@ -1006,7 +1006,10 @@ impl LatokenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut response: Value = self.private_get_auth_account(&[params.clone()]).await;
+        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType]);
+        let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
+        let mut response: Value = self.private_get_auth_account(&[paramsOmitted]).await;
         //
         //     [
         //         {
@@ -1037,8 +1040,6 @@ impl LatokenCore {
             m
         });
         let mut maxTimestamp: Value = Value::Null;
-        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]);
-        let mut type_var: Value = self.safe_string_k(params, "type", &[defaultType]);
         let mut types: Value = self.safe_dict_k(self.options.clone(), "types", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1745,7 +1746,7 @@ impl LatokenCore {
         }
         let mut response: Value = Value::Null;
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("stop".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({

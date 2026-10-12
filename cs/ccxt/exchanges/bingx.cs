@@ -3695,6 +3695,7 @@ public partial class bingx : Exchange
             string? trailingAmount = this.safeString(paramsPostOnly, "trailingAmount");
             string? trailingPercent = this.safeString2(paramsPostOnly, "trailingPercent", "priceRate");
             string? trailingType = this.safeString(paramsPostOnly, "trailingType", "TRAILING_STOP_MARKET");
+            string? trailingTriggerPrice = this.safeString2(paramsPostOnly, "trailingTriggerPrice", "activationPrice");
             bool isTrailingAmountOrder = (trailingAmount != null);
             bool isTrailingPercentOrder = (trailingPercent != null);
             bool isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
@@ -3763,6 +3764,10 @@ public partial class bingx : Exchange
                 {
                     string? requestTrailingPercent = Precise.stringDiv(trailingPercent, "100");
                     request["priceRate"] = this.parseToNumeric(requestTrailingPercent);
+                }
+                if ((trailingTriggerPrice != null))
+                {
+                    request["activationPrice"] = this.parseToNumeric(this.priceToPrecision(symbol, trailingTriggerPrice));
                 }
             }
             if (hasStopLoss || hasTakeProfit)
@@ -3845,7 +3850,7 @@ public partial class bingx : Exchange
                 request["quantity"] = amountReq; // precision not available for inverse contracts
             }
         }
-        object paramsRequest = this.omit(paramsOrder, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "clientOrderId"});
+        object paramsRequest = this.omit(paramsOrder, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId"});
         return this.extend(request, paramsRequest);
     }
 
@@ -3874,6 +3879,7 @@ public partial class bingx : Exchange
      * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+     * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
