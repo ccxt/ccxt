@@ -951,19 +951,18 @@ export default class coinbase extends coinbaseRest {
             const subscription = this.safeDict (client.subscriptions, messageHash, {});
             const limit = this.safeInteger (subscription, 'limit');
             const type = this.safeString (event, 'type');
-            if ((type === 'snapshot') && !(symbol in this.orderbooks)) {
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-            }
-            // an update can arrive after unWatchOrderBook deleted the orderbook (or before any snapshot)
-            if (!(symbol in this.orderbooks) && this.orderbooks[symbol] === undefined) {
+            if (type === 'snapshot') {
+                if (!(symbol in this.orderbooks)) {
+                    this.orderbooks[symbol] = this.orderBook ({}, limit);
+                }
+                // reset in place so consumers holding a reference keep receiving updates after a resync
+                const snapshotOrderbook = this.orderbooks[symbol];
+                snapshotOrderbook.reset ({});
+            } else if (!(symbol in this.orderbooks)) {
+                // an update can arrive after unWatchOrderBook deleted the orderbook (or before any snapshot)
                 continue;
             }
             const orderbook = this.orderbooks[symbol];
-            if (type === 'snapshot') {
-                // reset in place so consumers holding a reference to the
-                // orderbook keep receiving updates after a resync
-                orderbook.reset ({});
-            }
             this.handleOrderBookHelper (orderbook, updates);
             orderbook['timestamp'] = this.parse8601 (datetime);
             orderbook['datetime'] = datetime;
