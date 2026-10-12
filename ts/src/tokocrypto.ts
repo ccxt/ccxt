@@ -1841,11 +1841,10 @@ export default class tokocrypto extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId');
         const requestedType = type.toUpperCase ();
         const requestedTimeInForce = this.safeStringUpper (params, 'timeInForce');
-        let postOnly = false;
         const isMarketOrder = (requestedType === 'MARKET');
         // GTX is the venue spelling of post only, on top of the two unified spellings
         const isPostOnlyTimeInForce = (requestedTimeInForce === 'GTX');
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, isPostOnlyTimeInForce, params);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarketOrder, isPostOnlyTimeInForce, params);
         // only supported for spot/margin api
         const typeResolved: OrderType = (postOnly === true) ? 'LIMIT_MAKER' : type;
         // post only is expressed by the order type here, not by a time force
@@ -1854,7 +1853,7 @@ export default class tokocrypto extends Exchange {
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const triggerKeys: string[] = (triggerPrice !== undefined) ? [ 'triggerPrice', 'stopPrice' ] : [];
-        let paramsRequest: Dict = this.omit (params, this.arrayConcat ([ 'clientId', 'clientOrderId', 'timeInForce', 'postOnly' ], triggerKeys));
+        let paramsRequest: Dict = this.omit (paramsPostOnly, this.arrayConcat ([ 'clientId', 'clientOrderId', 'timeInForce' ], triggerKeys));
         if (triggerPrice !== undefined) {
             if (postOnly === true) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
