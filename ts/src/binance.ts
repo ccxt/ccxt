@@ -7190,7 +7190,6 @@ export default class binance extends Exchange {
      * @method
      * @name binance#handleClientOrderId
      * @ignore
-     * @description injects a broker client order id into the order-creating implicit api calls when the caller did not provide one
      * @param {object} params request params
      * @param {string} api the implicit api section the request is sent to
      * @param {string} path the implicit api path the request is sent to
