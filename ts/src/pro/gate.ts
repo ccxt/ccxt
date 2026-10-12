@@ -547,7 +547,12 @@ export default class gate extends gateRest {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol !== undefined) {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook.reset ({});
+            orderbook.cache = [];
         }
     }
 
@@ -704,7 +709,8 @@ export default class gate extends gateRest {
             this.handleBookDelta (storedOrderBook, delta);
         } else {
             delete client.subscriptions[messageHash];
-            delete this.orderbooks[symbol];
+            storedOrderBook.reset ({});
+            storedOrderBook.cache = [];
             const checksum: Bool = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum === true) {
                 const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));

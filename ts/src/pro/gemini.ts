@@ -427,17 +427,14 @@ export default class gemini extends geminiRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(symbol in this.orderbooks)) {
-            this.orderbooks[symbol] = this.orderBook ();
-        } else if (isInitial) {
-            // handle https://github.com/ccxt/ccxt/issues/29210
-            if (symbol in this.orderbooks) {
-                delete this.orderbooks[symbol];
-            }
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
+        if (isInitial) {
+            // reset in place on snapshot (https://github.com/ccxt/ccxt/issues/29210)
+            orderbook.reset ({});
+        }
         for (let i = 0; i < changes.length; i++) {
             const delta = changes[i];
             const price = this.safeNumber (delta, 1);

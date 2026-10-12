@@ -263,7 +263,7 @@ export default class upbit extends upbitRest {
         const type = this.safeString (message, 'stream_type');
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const limit = this.safeInteger (options, 'limit', 15);
-        if (type === 'SNAPSHOT') {
+        if ((type === 'SNAPSHOT') && !(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];

@@ -1265,8 +1265,11 @@ export default class krakenfutures extends krakenfuturesRest {
         const subscription = this.safeDict (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         const timestamp = this.safeInteger (message, 'timestamp');
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+        }
         const orderbook = this.orderbooks[symbol];
+        orderbook.reset ({});
         const bids = this.safeList (message, 'bids');
         if (bids === undefined) {
             return;
