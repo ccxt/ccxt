@@ -239,7 +239,8 @@ class luno extends \ccxt\async\luno {
         $asks = $this->safe_list($message, 'asks');
         if ($asks !== null) {
             $snapshot = $this->custom_parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            $this->orderbooks[$symbol] = $this->indexed_order_book($snapshot);
+            $existing = $this->orderbooks[$symbol];
+            $existing->reset($snapshot);
         } else {
             $ob = $this->orderbooks[$symbol];
             $this->handle_book_delta($ob, $message);

@@ -1242,10 +1242,12 @@ class binance extends \ccxt\async\binance {
         // handle list of symbols
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
-                unset($this->orderbooks[$symbol]);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
-            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            $orderbook = $this->orderbooks[$symbol];
+            $orderbook['nonce'] = null;
+            $orderbook->cache = array();
             $symbolSubscription = $this->extend($subscription, array( 'symbol' => $symbol ));
             // fetch the snapshot in a separate async call
             $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $symbolSubscription);

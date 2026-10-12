@@ -501,31 +501,13 @@ class bithumb extends \ccxt\async\bithumb {
         if ($symbol === null) {
             return;
         }
-        $streamType = $this->safe_string($message, 'stream_type');
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
         $obLimit = $this->safe_integer($options, 'limit', 1000);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) || ($streamType === 'SNAPSHOT')) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array(), $obLimit);
         }
         $orderbook = $this->orderbooks[$symbol];
-        $orderbook->reset(array());
-        $orderbook['symbol'] = $symbol;
-        $bids = $orderbook['bids'];
-        $asks = $orderbook['asks'];
         $units = $this->safe_list($message, 'orderbook_units', array());
-        for ($i = 0; $i < count($units); $i++) {
-            $entry = $this->safe_dict($units, $i);
-            $bidPrice = $this->safe_number($entry, 'bid_price');
-            $bidSize = $this->safe_number($entry, 'bid_size');
-            $askPrice = $this->safe_number($entry, 'ask_price');
-            $askSize = $this->safe_number($entry, 'ask_size');
-            if (($bidPrice !== null) && ($bidSize !== null)) {
-                $bids->store($bidPrice, $bidSize);
-            }
-            if (($askPrice !== null) && ($askSize !== null)) {
-                $asks->store($askPrice, $askSize);
-            }
-        }
         $gen2TimestampStr = $this->safe_string_2($message, 'timestamp', 'datetime');
         $timestamp = null;
         if ($gen2TimestampStr !== null) {
@@ -534,8 +516,23 @@ class bithumb extends \ccxt\async\bithumb {
         if ($timestamp === null) {
             $timestamp = $this->milliseconds();
         }
-        $orderbook['timestamp'] = $timestamp;
-        $orderbook['datetime'] = $this->iso8601($timestamp);
+        $bidsSnapshot = array();
+        $asksSnapshot = array();
+        for ($i = 0; $i < count($units); $i++) {
+            $entry = $this->safe_dict($units, $i);
+            $bidPrice = $this->safe_number($entry, 'bid_price');
+            $bidSize = $this->safe_number($entry, 'bid_size');
+            $askPrice = $this->safe_number($entry, 'ask_price');
+            $askSize = $this->safe_number($entry, 'ask_size');
+            if (($bidPrice !== null) && ($bidSize !== null)) {
+                $bidsSnapshot[] = array( $bidPrice, $bidSize );
+            }
+            if (($askPrice !== null) && ($askSize !== null)) {
+                $asksSnapshot[] = array( $askPrice, $askSize );
+            }
+        }
+        $snapshot = $this->parse_order_book(array( 'bids' => $bidsSnapshot, 'asks' => $asksSnapshot ), $symbol, $timestamp);
+        $orderbook->reset($snapshot);
         $messageHash = 'orderbook' . ':' . $symbol;
         $client->resolve($orderbook, $messageHash);
     }

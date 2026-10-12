@@ -283,7 +283,7 @@ class upbit extends \ccxt\async\upbit {
         $type = $this->safe_string($message, 'stream_type');
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
         $limit = $this->safe_integer($options, 'limit', 15);
-        if ($type === 'SNAPSHOT') {
+        if (($type === 'SNAPSHOT') && !(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -291,24 +291,25 @@ class upbit extends \ccxt\async\upbit {
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        $orderbook->reset(array());
-        $orderbook['symbol'] = $symbol;
-        $bids = $orderbook['bids'];
-        $asks = $orderbook['asks'];
         $data = $this->safe_list($message, 'orderbook_units', array());
+        $timestamp = $this->safe_integer($message, 'timestamp');
+        $bidsSnapshot = array();
+        $asksSnapshot = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $this->safe_dict($data, $i);
-            $ask_price = $this->safe_float($entry, 'ask_price');
-            $ask_size = $this->safe_float($entry, 'ask_size');
-            $bid_price = $this->safe_float($entry, 'bid_price');
-            $bid_size = $this->safe_float($entry, 'bid_size');
-            $asks->store($ask_price, $ask_size);
-            $bids->store($bid_price, $bid_size);
+            $bidPrice = $this->safe_number($entry, 'bid_price');
+            $bidSize = $this->safe_number($entry, 'bid_size');
+            $askPrice = $this->safe_number($entry, 'ask_price');
+            $askSize = $this->safe_number($entry, 'ask_size');
+            if (($bidPrice !== null) && ($bidSize !== null)) {
+                $bidsSnapshot[] = array( $bidPrice, $bidSize );
+            }
+            if (($askPrice !== null) && ($askSize !== null)) {
+                $asksSnapshot[] = array( $askPrice, $askSize );
+            }
         }
-        $timestamp = $this->safe_integer($message, 'timestamp');
-        $datetime = $this->iso8601($timestamp);
-        $orderbook['timestamp'] = $timestamp;
-        $orderbook['datetime'] = $datetime;
+        $snapshot = $this->parse_order_book(array( 'bids' => $bidsSnapshot, 'asks' => $asksSnapshot ), $symbol, $timestamp);
+        $orderbook->reset($snapshot);
         $messageHash = 'orderbook:' . $symbol;
         $client->resolve($orderbook, $messageHash);
     }

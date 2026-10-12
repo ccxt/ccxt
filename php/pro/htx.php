@@ -889,7 +889,12 @@ class htx extends \ccxt\async\htx {
         $market = $this->market($symbol);
         $limit = $this->safe_integer($subscription, 'limit');
         if ($symbol !== null) {
-            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $orderbook['nonce'] = null;
+            $orderbook->cache = array();
         }
         if ($market['spot'] === true) {
             $this->spawn(array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);

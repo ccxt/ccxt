@@ -1970,14 +1970,23 @@ class kucoin extends \ccxt\async\kucoin {
         $limit = $this->safe_integer($subscription, 'limit');
         $symbols = $this->safe_list($subscription, 'symbols');
         if ($symbols === null) {
-            $symbol = $this->safe_string($subscription, 'symbol');
-            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-        } else {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-            }
+            $symbols = array( $this->safe_string($subscription, 'symbol') );
         }
+        $limits = $this->safe_dict($this->options, 'orderBookLimits', array());
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $storedLimit = $this->safe_integer($limits, $symbol);
+            // reuse the existing book so user-held references keep updating; rebuild only if depth changed
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) || ($storedLimit !== $limit)) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            } else {
+                $orderbook = $this->orderbooks[$symbol];
+                $orderbook['nonce'] = null;
+                $orderbook->cache = array();
+            }
+            $limits[$symbol] = $limit;
+        }
+        $this->options['orderBookLimits'] = $limits;
         // moved snapshot initialization to handleOrderBook to fix
         // https://github.com/ccxt/ccxt/issues/6820
         // the general idea is to fetch the snapshot after the first delta
