@@ -510,8 +510,8 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		"close":         this.SafeString(ticker, "closePrice"),
 		"last":          nil,
 		"previousClose": this.SafeString(ticker, "prevClosePrice"),
-		"change":        this.SafeString(ticker, "chgAmt"),
-		"percentage":    this.SafeString(ticker, "chgRate"),
+		"change":        nil,
+		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeString(ticker, "volume"),
 		"quoteVolume":   this.SafeString(ticker, "value"),
@@ -670,31 +670,13 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	if symbol == nil {
 		return
 	}
-	var streamType *string = this.SafeString(message, "stream_type")
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var obLimit *int64 = this.SafeInteger(options, "limit", 1000)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) || (streamType != nil && *streamType == "SNAPSHOT") {
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, obLimit))
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	var bids any = ccxt.GetValue(orderbook, "bids")
-	var asks any = ccxt.GetValue(orderbook, "asks")
 	var units []any = ccxt.SafeListTyped(message, "orderbook_units")
-	for i := 0; i < len(units); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(units, i)
-		var bidPrice *float64 = this.SafeNumber(entry, "bid_price")
-		var bidSize *float64 = this.SafeNumber(entry, "bid_size")
-		var askPrice *float64 = this.SafeNumber(entry, "ask_price")
-		var askSize *float64 = this.SafeNumber(entry, "ask_size")
-		if (bidPrice != nil) && (bidSize != nil) {
-			bids.(ccxt.IOrderBookSide).Store(bidPrice, bidSize)
-		}
-		if (askPrice != nil) && (askSize != nil) {
-			asks.(ccxt.IOrderBookSide).Store(askPrice, askSize)
-		}
-	}
 	var gen2TimestampStr *string = this.SafeString2(message, "timestamp", "datetime")
 	var timestamp any = nil
 	if gen2TimestampStr != nil {
@@ -709,8 +691,26 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	if ccxt.IsEqual(timestamp, nil) {
 		timestamp = this.Milliseconds()
 	}
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	var bidsSnapshot []any = []any{}
+	var asksSnapshot []any = []any{}
+	for i := 0; i < len(units); i++ {
+		var entry map[string]any = ccxt.SafeMapTyped(units, i)
+		var bidPrice *float64 = this.SafeNumber(entry, "bid_price")
+		var bidSize *float64 = this.SafeNumber(entry, "bid_size")
+		var askPrice *float64 = this.SafeNumber(entry, "ask_price")
+		var askSize *float64 = this.SafeNumber(entry, "ask_size")
+		if (bidPrice != nil) && (bidSize != nil) {
+			bidsSnapshot = append(bidsSnapshot, []any{bidPrice, bidSize})
+		}
+		if (askPrice != nil) && (askSize != nil) {
+			asksSnapshot = append(asksSnapshot, []any{askPrice, askSize})
+		}
+	}
+	var snapshot map[string]any = this.ParseOrderBook(map[string]any{
+		"bids": bidsSnapshot,
+		"asks": asksSnapshot,
+	}, symbol, timestamp)
+	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash string = "orderbook" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

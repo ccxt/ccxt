@@ -1723,7 +1723,6 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 		}
 		response = listEp1672.Value
 	}
-
 	//
 	//    [
 	//        {
@@ -1740,7 +1739,16 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	//        },
 	//        ...
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbolsNormalized, paramsMarketType)}
+	var rows []any = []any{}
+	for i := 0; i < len(response); i++ {
+		var ticker any = GetValue(response, i)
+		var marketId *string = this.SafeString(ticker, "s")
+		if (marketId != nil) && (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
+			rows = append(rows, ticker)
+		}
+	}
+
+	ch <- AsyncResult[any]{Value: this.ParseTickers(rows, symbolsNormalized, paramsMarketType)}
 	return nil
 }
 func (this *Toobit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1823,11 +1831,11 @@ func (this *Toobit) fetchLastPricesBody(ch chan AsyncResult[any], optionalArgs .
 		}
 	}
 
-	listEp1771 := <-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))
-	if listEp1771.Err != nil {
-		panic(listEp1771.Err)
+	listEp1779 := <-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))
+	if listEp1779.Err != nil {
+		panic(listEp1779.Err)
 	}
-	var response []any = listEp1771.Value
+	var response []any = listEp1779.Value
 
 	//
 	//    [
@@ -1899,11 +1907,11 @@ func (this *Toobit) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 	}
 
-	listEp1840 := <-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))
-	if listEp1840.Err != nil {
-		panic(listEp1840.Err)
+	listEp1848 := <-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))
+	if listEp1848.Err != nil {
+		panic(listEp1848.Err)
 	}
-	var response []any = listEp1840.Value
+	var response []any = listEp1848.Value
 
 	//
 	//    [
@@ -1994,11 +2002,11 @@ func (this *Toobit) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs
 		}
 	}
 
-	listEp1928 := <-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))
-	if listEp1928.Err != nil {
-		panic(listEp1928.Err)
+	listEp1936 := <-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))
+	if listEp1936.Err != nil {
+		panic(listEp1936.Err)
 	}
-	var response []any = listEp1928.Value
+	var response []any = listEp1936.Value
 
 	//
 	//    [
@@ -2083,11 +2091,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes163719 []any = ListTyped(r1.Value)
-		if retRes163719 == nil {
+		var retRes164519 []any = ListTyped(r1.Value)
+		if retRes164519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes163719}
+			ch <- AsyncResult[any]{Value: retRes164519}
 		}
 		return nil
 	}
@@ -2102,11 +2110,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 		request["limit"] = limit
 	}
 
-	listEp2025 := <-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))
-	if listEp2025.Err != nil {
-		panic(listEp2025.Err)
+	listEp2033 := <-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))
+	if listEp2033.Err != nil {
+		panic(listEp2033.Err)
 	}
-	var response []any = listEp2025.Value
+	var response []any = listEp2033.Value
 
 	//
 	//    [
@@ -3253,18 +3261,18 @@ func (this *Toobit) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...an
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp3081 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3081.Err != nil {
-			panic(listEp3081.Err)
+		listEp3089 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3089.Err != nil {
+			panic(listEp3089.Err)
 		}
-		response = listEp3081.Value
+		response = listEp3089.Value
 	} else {
 
-		listEp3084 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3084.Err != nil {
-			panic(listEp3084.Err)
+		listEp3092 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3092.Err != nil {
+			panic(listEp3092.Err)
 		}
-		response = listEp3084.Value
+		response = listEp3092.Value
 	}
 
 	//
@@ -3442,11 +3450,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes275015 []any = r.Value
-	if retRes275015 == nil {
+	var retRes275815 []any = r.Value
+	if retRes275815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes275015}
+		ch <- AsyncResult[any]{Value: retRes275815}
 	}
 	return nil
 }
@@ -3483,11 +3491,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes276515 []any = r.Value
-	if retRes276515 == nil {
+	var retRes277315 []any = r.Value
+	if retRes277315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes276515}
+		ch <- AsyncResult[any]{Value: retRes277315}
 	}
 	return nil
 }
@@ -3537,9 +3545,38 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]a
 		}
 		response = r2.Raw
 	}
+	var transactType string = func() string {
+		if IsEqual(typeVar, "deposits") {
+			return "deposit"
+		}
+		return "withdrawal"
+	}()
+	var results []any = []any{}
+	for i := 0; i < GetArrayLength(response); i++ {
+		results = append(results, this.Extend(this.ParseTransactionWithType(GetValue(response, i), currency, transactType), paramsUntil))
+	}
+	var sorted []any = this.SortBy(results, "timestamp")
+	var currencyCode any = func() any {
+		if currency != nil {
+			return GetValue(currency, "code")
+		}
+		return nil
+	}()
 
-	ch <- AsyncResult[[]any]{Value: this.ParseTransactions(response, currency, since, limit, paramsUntil)}
+	ch <- AsyncResult[[]any]{Value: this.FilterByCurrencySinceLimit(sorted, currencyCode, since, limit)}
 	return nil
+}
+func (this *Toobit) ParseTransactionWithType(transaction any, optionalArgs ...any) any {
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = currency
+	var transactType *string = GetArgStringPtr(optionalArgs, 1, nil)
+	_ = transactType
+	var result map[string]any = this.ParseTransaction(transaction, currency)
+	if transactType != nil {
+		result["type"] = transactType
+		result["status"] = this.ParseTransactionStatus(this.SafeString(transaction, "status"), transactType)
+	}
+	return result
 }
 func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
@@ -3600,7 +3637,7 @@ func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) map[s
 	var tagFrom *string = this.SafeString(transaction, "fromAddressTag")
 	var addressTo *string = this.SafeString(transaction, "address")
 	var addressFrom *string = this.SafeString(transaction, "fromAddress")
-	var isWithdraw bool = (InOp(transaction, "arriveQuantity"))
+	var isWithdraw bool = (InOp(transaction, "arriveQuantity")) || (InOp(transaction, "success"))
 	var typeVar string = func() string {
 		if isWithdraw {
 			return "withdrawal"
@@ -3623,23 +3660,38 @@ func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) map[s
 		"type":        typeVar,
 		"amount":      this.SafeNumber(transaction, "quantity"),
 		"currency":    code,
-		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status")),
+		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status"), typeVar),
 		"updated":     nil,
 		"fee":         fee,
 		"comment":     nil,
 		"internal":    nil,
 	}
 }
-func (this *Toobit) ParseTransactionStatus(status *string) *string {
-	var statuses map[string]any = map[string]any{
-		"2":  "pending",
-		"12": "pending",
-		"11": "failed",
-		"3":  "ok",
+func (this *Toobit) ParseTransactionStatus(status *string, optionalArgs ...any) *string {
+	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = typeVar
+	var statusesByType map[string]any = map[string]any{
+		"deposit": map[string]any{
+			"2":  "ok",
+			"11": "failed",
+			"12": "pending",
+		},
+		"withdrawal": map[string]any{
+			"0":  "pending",
+			"1":  "pending",
+			"2":  "failed",
+			"3":  "pending",
+			"6":  "ok",
+			"7":  "failed",
+			"9":  "canceled",
+			"10": "pending",
+			"11": "pending",
+		},
 	}
 	if status == nil {
 		return nil
 	}
+	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
 
@@ -3923,11 +3975,11 @@ func (this *Toobit) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbo
 		"symbol": market["id"],
 	}
 
-	listEp3687 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
-	if listEp3687.Err != nil {
-		panic(listEp3687.Err)
+	listEp3739 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
+	if listEp3739.Err != nil {
+		panic(listEp3739.Err)
 	}
-	var response []any = listEp3687.Value
+	var response []any = listEp3739.Value
 	//
 	// [
 	//     {

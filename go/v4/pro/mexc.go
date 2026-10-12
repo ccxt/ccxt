@@ -1038,7 +1038,12 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any
 	var parts []string = strings.Split(*msg, "@")
 	var marketId *string = this.SafeString(parts, 2)
 	var symbol *string = this.SafeSymbol(marketId)
-	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+	}
+	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	ccxt.AddElementToObject(orderbook, "nonce", nil)
+	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 }
 func (this *Mexc) GetCacheIndex(orderbook any, cache any) any {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible

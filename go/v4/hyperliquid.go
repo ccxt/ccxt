@@ -1595,6 +1595,7 @@ func (this *Hyperliquid) fetchFundingRateBody(ch chan AsyncResult[map[string]any
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Hyperliquid) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
@@ -1609,15 +1610,27 @@ func (this *Hyperliquid) fetchFundingRatesBody(ch chan AsyncResult[any], optiona
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"type": "metaAndAssetCtxs",
 	}
-
-	r := <-this.PublicPostInfo(this.Extend(request, params))
-	if r.Err != nil {
-		panic(r.Err)
+	var dexName any = this.GetDexFromSymbols("fetchFundingRates", symbolsNormalized)
+	if dexName != nil {
+		request["dex"] = dexName
 	}
-	response := r.Value
+
+	r1 := <-this.PublicPostInfo(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
 	//
 	//     [
 	//         {
@@ -1658,7 +1671,7 @@ func (this *Hyperliquid) fetchFundingRatesBody(ch chan AsyncResult[any], optiona
 		result = append(result, data)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRates(result, symbols)}
+	ch <- AsyncResult[any]{Value: this.ParseFundingRates(result, symbolsNormalized)}
 	return nil
 }
 func (this *Hyperliquid) ParseFundingRate(info any, optionalArgs ...any) map[string]any {
@@ -3191,11 +3204,11 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[map[string]any], id
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes249219 map[string]any = r.Value
-		if retRes249219 == nil {
+		var retRes250119 map[string]any = r.Value
+		if retRes250119 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes249219}
+			ch <- AsyncResult[map[string]any]{Value: retRes250119}
 		}
 		return nil
 	}
@@ -3204,8 +3217,8 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[map[string]any], id
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv3047, _ := r1.Value.([]any)
-	var orders []any = listRecv3047
+	listRecv3057, _ := r1.Value.([]any)
+	var orders []any = listRecv3057
 	var canceled map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[map[string]any]{Value: canceled}
@@ -5120,17 +5133,25 @@ func (this *Hyperliquid) GetDexFromSymbols(methodName string, optionalArgs ...an
 	if symbolsLength == 0 {
 		return nil
 	}
-	var dexName any = nil
-	for i := 0; i < symbolsLength; i++ {
-		if dexName == nil {
-			var market map[string]any = this.Market(symbols[i])
-			dexName = this.GetDexFromHip3Symbol(market)
-		} else {
-			var market map[string]any = this.Market(symbols[i])
-			var currentDexName any = this.GetDexFromHip3Symbol(market)
-			if !IsEqual(currentDexName, dexName) {
-				panic(NotSupported(this.Id + " " + methodName + " only supports fetching positions for one DEX at a time for HIP3 markets"))
+	// the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
+	// so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
+	var firstMarket map[string]any = this.Market(func() any {
+		if 0 >= 0 && 0 < len(symbols) {
+			return symbols[0]
+		}
+		return nil
+	}())
+	var dexName any = this.GetDexFromHip3Symbol(firstMarket)
+	for i := 1; i < symbolsLength; i++ {
+		var market map[string]any = this.Market(func() any {
+			if i >= 0 && i < len(symbols) {
+				return symbols[i]
 			}
+			return nil
+		}())
+		var currentDexName any = this.GetDexFromHip3Symbol(market)
+		if !IsEqual(currentDexName, dexName) {
+			panic(NotSupported(this.Id + " " + methodName + " only supports symbols from one DEX at a time for HIP3 markets"))
 		}
 	}
 	return dexName
@@ -5521,11 +5542,11 @@ func (this *Hyperliquid) addMarginBody(ch chan AsyncResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes418515 map[string]any = MapTyped(r.Value)
-	if retRes418515 == nil {
+	var retRes419215 map[string]any = MapTyped(r.Value)
+	if retRes419215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes418515}
+		ch <- AsyncResult[map[string]any]{Value: retRes419215}
 	}
 	return nil
 }
@@ -5557,11 +5578,11 @@ func (this *Hyperliquid) reduceMarginBody(ch chan EndpointResult[map[string]any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes420115 map[string]any = MapTyped(r.Value)
-	if retRes420115 == nil {
+	var retRes420815 map[string]any = MapTyped(r.Value)
+	if retRes420815 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes420115, Raw: retRes420115}
+		ch <- EndpointResult[map[string]any]{Value: retRes420815, Raw: retRes420815}
 	}
 	return nil
 }
@@ -6452,6 +6473,7 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan AsyncResult[any], optional
  * @description Retrieves the open interest for a list of symbols
  * @param {string[]} [symbols] Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
+ * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Hyperliquid) FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
@@ -6474,8 +6496,13 @@ func (this *Hyperliquid) fetchOpenInterestsBody(ch chan AsyncResult[any], option
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var request map[string]any = map[string]any{}
+	var dexName any = this.GetDexFromSymbols("fetchOpenInterests", symbolsNormalized)
+	if dexName != nil {
+		request["dex"] = dexName
+	}
 
-	r1 := <-this.FetchSwapMarketsAsync()
+	r1 := <-this.FetchSwapMarketsAsync(this.Extend(request, params))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -7201,6 +7228,7 @@ func (this *Hyperliquid) FetchFundingRate(symbol string, options ...FetchFunding
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Hyperliquid) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
@@ -8089,6 +8117,7 @@ func (this *Hyperliquid) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([
  * @description Retrieves the open interest for a list of symbols
  * @param {string[]} [symbols] Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
+ * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Hyperliquid) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {

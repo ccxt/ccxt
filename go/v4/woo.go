@@ -23,7 +23,7 @@ func (this *Woo) Describe() any {
 		"countries": []any{"KY"},
 		"rateLimit": 100,
 		"version":   "v1",
-		"certified": true,
+		"certified": false,
 		"pro":       true,
 		"hostname":  "woox.io",
 		"has": map[string]any{

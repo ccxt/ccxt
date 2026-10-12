@@ -1026,7 +1026,12 @@ func (this *Bitstamp) HandleOrderBookSubscription(client any, message any) {
 	var parts []string = strings.Split(*channel, "_")
 	var marketId *string = this.SafeString(parts, 3)
 	var symbol *string = this.SafeSymbol(marketId)
-	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+	}
+	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	ccxt.AddElementToObject(orderbook, "nonce", nil)
+	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 }
 func (this *Bitstamp) HandleSubscriptionStatus(client any, message any) {
 	//
