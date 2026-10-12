@@ -3366,7 +3366,7 @@ export default class pacifica extends Exchange {
         const marketId = this.safeString (income, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const symbol = marketResolved['symbol'];
-        const amount = this.safeString (income, 'amount');
+        const amount = this.safeString (income, 'payout');
         const code = this.safeCurrencyCode ('USDC');
         const rate = this.safeNumber (income, 'rate');
         return {
