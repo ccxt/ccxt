@@ -3840,6 +3840,7 @@ public class Bingx extends BingxApi
             String trailingAmount = this.safeString(paramsPostOnly, "trailingAmount");
             String trailingPercent = this.safeString2(paramsPostOnly, "trailingPercent", "priceRate");
             String trailingType = this.safeString(paramsPostOnly, "trailingType", "TRAILING_STOP_MARKET");
+            String trailingTriggerPrice = this.safeString2(paramsPostOnly, "trailingTriggerPrice", "activationPrice");
             Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
             Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
             Boolean isTrailing = Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder);
@@ -3908,6 +3909,10 @@ public class Bingx extends BingxApi
                 {
                     String requestTrailingPercent = Precise.stringDiv(trailingPercent, "100");
                     request.put("priceRate", this.parseToNumeric(requestTrailingPercent));
+                }
+                if (!java.util.Objects.equals(trailingTriggerPrice, null))
+                {
+                    request.put("activationPrice", this.parseToNumeric(this.priceToPrecision(symbol, trailingTriggerPrice)));
                 }
             }
             if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
@@ -3990,7 +3995,7 @@ public class Bingx extends BingxApi
                 request.put("quantity", amountReq); // precision not available for inverse contracts
             }
         }
-        Object paramsRequest = this.omit(paramsOrder, new ArrayList<Object>(Arrays.asList("hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "clientOrderId")));
+        Object paramsRequest = this.omit(paramsOrder, new ArrayList<Object>(Arrays.asList("hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId")));
         return (Map<String, Object>) (this.extend(request, paramsRequest));
     }
 
@@ -4019,6 +4024,7 @@ public class Bingx extends BingxApi
      * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+     * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
