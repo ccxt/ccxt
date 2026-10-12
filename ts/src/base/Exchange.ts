@@ -4580,18 +4580,19 @@ export class BaseExchange {
 
     setMarkets (markets: any, currencies: any = undefined): Dictionary<Market> {
         const values: Dict[] = [];
-        this.markets_by_id = this.createSafeDictionary ();
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        const marketsById: Dict = this.createSafeDictionary ();
         // handle marketId conflicts
         // we insert spot markets first
         const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
-            if (value['id'] in this.markets_by_id) {
-                const marketsByIdArray = (this.markets_by_id[value['id']] as any);
+            if (value['id'] in marketsById) {
+                const marketsByIdArray = (marketsById[value['id']] as any);
                 marketsByIdArray.push (value);
-                this.markets_by_id[value['id']] = marketsByIdArray;
+                marketsById[value['id']] = marketsByIdArray;
             } else {
-                this.markets_by_id[value['id']] = [ value ];
+                marketsById[value['id']] = [ value ];
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -4618,6 +4619,7 @@ export class BaseExchange {
             values.push (market);
         }
         this.markets = this.mapToSafeMap (this.indexBy (values, 'symbol'));
+        this.markets_by_id = marketsById;
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
