@@ -228994,7 +228994,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             ],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome100'],
-            'certified': true,
+            'certified': false,
             'version': 'v1',
             'hostname': 'api.huobi.pro',
             'pro': true,
@@ -475078,7 +475078,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
             ],
             'rateLimit': 100,
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'hostname': 'woox.io',
             'has': {

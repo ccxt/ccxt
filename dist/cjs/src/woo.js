@@ -22,7 +22,7 @@ class woo extends woo$1["default"] {
             'countries': ['KY'], // Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'hostname': 'woox.io',
             'has': {
