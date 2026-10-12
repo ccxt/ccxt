@@ -1577,7 +1577,7 @@ public class Deepcoin extends DeepcoinApi
         //
         String chain = this.safeString(response, "chain");
         String address = this.safeString(response, "address");
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         String code = this.safeString(currency, "code");
         return new HashMap<String, Object>() {{
             put( "info", response );

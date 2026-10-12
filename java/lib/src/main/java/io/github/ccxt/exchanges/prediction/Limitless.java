@@ -2432,7 +2432,7 @@ public class Limitless extends LimitlessApi
             paramsValue = ((List<Object>) makerparamsValueVariable).get(1);
             try
             {
-                this.checkAddress(Helpers.toStringArg(maker));
+                this.checkAddress(Helpers.toStringArg(maker), (String) null, (String) null);
             } catch(Exception e)
             {
                 throw new InvalidAddress((this.id + " createOrder requires a valid maker address. Set the \"maker\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
@@ -2452,7 +2452,7 @@ public class Limitless extends LimitlessApi
             paramsValue = ((List<Object>) signerparamsValueVariable).get(1);
             try
             {
-                this.checkAddress(Helpers.toStringArg(signer));
+                this.checkAddress(Helpers.toStringArg(signer), (String) null, (String) null);
             } catch(Exception e)
             {
                 throw new InvalidAddress((this.id + " createOrder requires a valid signer address. Set the \"signer\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
@@ -2463,7 +2463,7 @@ public class Limitless extends LimitlessApi
             paramsValue = ((List<Object>) takerparamsValueVariable).get(1);
             try
             {
-                this.checkAddress(Helpers.toStringArg(taker));
+                this.checkAddress(Helpers.toStringArg(taker), (String) null, (String) null);
             } catch(Exception e)
             {
                 throw new InvalidAddress((this.id + " createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.")) ;

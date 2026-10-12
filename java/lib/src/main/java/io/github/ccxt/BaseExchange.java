@@ -4837,7 +4837,7 @@ public Object describe()
         }
     }
 
-    public Object checkAddress(String address)
+    public Object checkAddress(String address, String code, String tag)
     {
         if (java.util.Objects.equals(address, null))
         {
@@ -4849,6 +4849,17 @@ public Object describe()
         if (java.util.Objects.equals(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || ((String)address).indexOf(" ") > -1)
         {
             throw new InvalidAddress((((((this.id + " address is invalid or has less than ") + String.valueOf(this.minFundingAddressLength)) + " characters: \"") + String.valueOf(address)) + "\"")) ;
+        }
+        if (!java.util.Objects.equals(code, null))
+        {
+            List<Object> tagRequiredCurrencies = (List<Object>) this.safeList(this.options, "withdrawTagRequiredCurrencies", new ArrayList<Object>(Arrays.asList()));
+            if (this.inArray(code, tagRequiredCurrencies))
+            {
+                if (java.util.Objects.equals(tag, null))
+                {
+                    throw new ArgumentsRequired(((this.id + " withdraw() requires params[\"tag\"] for ") + code)) ;
+                }
+            }
         }
         return address;
     }
@@ -5504,7 +5515,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -6065,6 +6076,7 @@ public Object describe()
                 put( "ARBONE", "ARBITRUM" );
                 put( "ARBNOVA", "ARBITRUM_NOVA" );
             }} );
+            put( "withdrawTagRequiredCurrencies", new ArrayList<Object>(Arrays.asList("XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "KAVA", "STX", "XEM", "IOST", "OSMO", "WAXP")) );
         }};
     }
 
@@ -10034,25 +10046,6 @@ public Object describe()
         return false;
     }
 
-    public Object handleWithdrawTagAndParams(Object tag, Map<String, Object> parameters)
-    {
-        Map<String, Object> paramsExtended = parameters;
-        Object tagValue = tag;
-        if (Boolean.TRUE.equals(this.isDictionary(tag)))
-        {
-            paramsExtended = this.extend(tag, parameters);
-            tagValue = null;
-        }
-        Object tagResolved = (((java.util.Objects.equals(tagValue, null)))) ? this.safeString(paramsExtended, "tag") : tagValue;
-        Boolean tagFromParams = (java.util.Objects.equals(tagValue, null)) && (!java.util.Objects.equals(tagResolved, null));
-        Map<String, Object> paramsOmitted = paramsExtended;
-        if (Boolean.TRUE.equals(tagFromParams))
-        {
-            paramsOmitted = this.omit(paramsExtended, "tag");
-        }
-        return new ArrayList<Object>(Arrays.asList(tagResolved, paramsOmitted));
-    }
-
     public String costToPrecision(Object symbol, Object cost)
     {
         if (java.util.Objects.equals(cost, null))
@@ -12138,7 +12131,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Transaction> withdrawWs(String code, Object amount, Object address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdrawWs(String code, Object amount, Object address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

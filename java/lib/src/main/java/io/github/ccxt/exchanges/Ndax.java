@@ -2726,7 +2726,7 @@ public class Ndax extends NdaxApi
         {
             code = this.safeString(currency, "code");
         }
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", depositAddress);
@@ -3065,17 +3065,17 @@ public class Ndax extends NdaxApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             // this method required login, password and twofa key
             String sessionToken = this.safeString(this.options, "sessionToken");
@@ -3087,7 +3087,7 @@ public class Ndax extends NdaxApi
             {
                 throw new AuthenticationError((this.id + " withdraw() requires exchange.twofa credentials")) ;
             }
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {

@@ -2141,7 +2141,7 @@ public class Cex extends CexApi
         String address = this.safeString(depositAddress, "address");
         String currencyId = this.safeString(depositAddress, "currency");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", currencyResolved.get("code") );

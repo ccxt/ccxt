@@ -5039,7 +5039,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 throw new NotSupported((this.id + " transfer() only support main <> subaccount transfer")) ;
             }
-            this.checkAddress(Helpers.toStringArg(subAccountAddress));
+            this.checkAddress(Helpers.toStringArg(subAccountAddress), (String) null, (String) null);
             // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
             // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
             // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
@@ -5124,12 +5124,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.vaultAddress] vault address withdraw from
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5139,7 +5139,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             if (!java.util.Objects.equals(((String)code).toUpperCase(), "USDC"))
             {
                 throw new NotSupported((this.id + " withdraw() only support USDC")) ;

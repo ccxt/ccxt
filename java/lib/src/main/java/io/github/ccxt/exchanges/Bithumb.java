@@ -3032,8 +3032,8 @@ public class Bithumb extends BithumbApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
      * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
@@ -3048,7 +3048,7 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3060,16 +3060,16 @@ public class Bithumb extends BithumbApi
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "withdraw", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (paramsGeneration));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(paramsGeneration, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             String network = this.safeString2(paramsWithdrawTag, "network", "net_type");
             Map<String, Object> paramsNetwork = this.omit(paramsWithdrawTag, "network");
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
-            Object destinationRequest = null;
+            String destinationRequest = null;
             Boolean requiresDestination = (java.util.Objects.equals(code, "XRP") || java.util.Objects.equals(code, "XMR") || java.util.Objects.equals(code, "EOS") || java.util.Objects.equals(code, "STEEM") || java.util.Objects.equals(code, "TON"));
             Map<String, Object> paramsDestination = paramsNetwork;
             if (Boolean.TRUE.equals(requiresDestination))
@@ -3081,7 +3081,7 @@ public class Bithumb extends BithumbApi
                 String destination = this.safeString2(paramsNetwork, "destination", "secondary_address");
                 if ((java.util.Objects.equals(tagWithdrawTag, null)) && (java.util.Objects.equals(destination, null)))
                 {
-                    throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a tag argument or an extra destination param")) ;
+                    throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a tag or an extra destination param")) ;
                 } else if (!java.util.Objects.equals(tagWithdrawTag, null))
                 {
                     destinationRequest = tagWithdrawTag;
@@ -3738,7 +3738,7 @@ public class Bithumb extends BithumbApi
         {
             throw new ExchangeError((this.id + " parseDepositAddress() could not find deposit_address")) ;
         }
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", response);

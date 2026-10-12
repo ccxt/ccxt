@@ -1245,7 +1245,7 @@ public class Bit2c extends Bit2cApi
         //     }
         //
         String address = this.safeString(depositAddress, "address");
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         String code = this.safeCurrencyCode((String) (null), currency);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );

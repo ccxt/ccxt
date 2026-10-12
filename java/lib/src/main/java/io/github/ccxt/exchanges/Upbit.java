@@ -2717,7 +2717,7 @@ public class Upbit extends UpbitApi
         String currencyId = this.safeString(depositAddress, "currency");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String networkId = this.safeString(depositAddress, "net_type");
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
@@ -2831,17 +2831,17 @@ public class Upbit extends UpbitApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagResolvedparamsTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagResolved = ((List<Object>) tagResolvedparamsTagVariable).get(0);
+            List<Object> tagResolvedparamsTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagResolved = (String) ((List<Object>) tagResolvedparamsTagVariable).get(0);
             Map<String, Object> paramsTag = (Map<String, Object>) ((List<Object>) tagResolvedparamsTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2854,7 +2854,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(code, "KRW"))
             {
-                this.checkAddress(address);
+                this.checkAddress(address, code, tagResolved);
                 // 2023-05-23 Change to required parameters for digital assets
                 String network = this.safeStringUpper2(paramsTag, "network", "net_type");
                 if (java.util.Objects.equals(network, null))

@@ -3054,7 +3054,7 @@ public class Bitfinex extends BitfinexApi
             String poolAddress = this.safeString(result, 5);
             String address = (((java.util.Objects.equals(poolAddress, null)))) ? this.safeString(result, 4) : poolAddress;
             String tag = (((java.util.Objects.equals(poolAddress, null)))) ? null : this.safeString(result, 4);
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             return new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "address", address );
@@ -3447,24 +3447,27 @@ public class Bitfinex extends BitfinexApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.checkAddress(address);
+            List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
+            this.checkAddress(address, (String) null, (String) null);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
             // if not provided explicitly we will try to match using the currency name
-            String network = this.safeString(parameters, "network", code);
-            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
+            String network = this.safeString(paramsWithdrawTag, "network", code);
+            Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
             Map<String, Object> currencyNetworks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
             Map<String, Object> currencyNetwork = (Map<String, Object>) this.safeDict(currencyNetworks, network, (Object) null);
             String networkId = this.safeString(currencyNetwork, "id");

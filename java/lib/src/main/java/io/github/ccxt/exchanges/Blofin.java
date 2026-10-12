@@ -2721,7 +2721,7 @@ public class Blofin extends BlofinApi
         {
             tag = null;
         }
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("info", depositAddress);
@@ -2906,8 +2906,8 @@ public class Blofin extends BlofinApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
      * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
-     * @param {string} tag additional identifier (memo / payment id) required by certain networks
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
      * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
      * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -2915,7 +2915,7 @@ public class Blofin extends BlofinApi
      * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2930,10 +2930,10 @@ public class Blofin extends BlofinApi
             //   with 152002 "Invalid parameter" - see options["networks"]
             // - 152002 responses omit the offending field name even though the
             //   error table documents the message as "Parameter {} error"
-            Object tagValue = null;
+            String tagValue = null;
             Object query = null;
-            List<Object> tagValuequeryVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            tagValue = ((List<Object>) tagValuequeryVariable).get(0);
+            List<Object> tagValuequeryVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            tagValue = (String) ((List<Object>) tagValuequeryVariable).get(0);
             query = ((List<Object>) tagValuequeryVariable).get(1);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> currency = this.currency((String) (code));
@@ -2947,7 +2947,7 @@ public class Blofin extends BlofinApi
             query = this.omit(query, "dest");
             if (java.util.Objects.equals(dest, "onchain"))
             {
-                this.checkAddress(address);
+                this.checkAddress(address, code, tagValue);
                 // the doc's Request Parameters table marks addrType "Required:
                 // No", but the live venue rejects on-chain withdrawals without
                 // it (152001 "Parameter addrType cannot be empty") - default to

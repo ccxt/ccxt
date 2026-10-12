@@ -2522,15 +2522,18 @@ public class Dydx extends DydxApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
             if (!java.util.Objects.equals(code, "USDC"))
             {
                 throw new NotSupported((this.id + " withdraw() only support USDC")) ;
@@ -2539,8 +2542,8 @@ public class Dydx extends DydxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkAddress(address);
-            Long subaccountId = this.safeInteger(parameters, "subaccountId");
+            this.checkAddress(address, (String) null, (String) null);
+            Long subaccountId = this.safeInteger(paramsWithdrawTag, "subaccountId");
             if (java.util.Objects.equals(subaccountId, null))
             {
                 throw new ArgumentsRequired((this.id + " withdraw requires subaccountId.")) ;
@@ -2561,9 +2564,9 @@ public class Dydx extends DydxApi
                 put( "typeUrl", "/dydxprotocol.sending.MsgWithdrawFromSubaccount" );
                 put( "value", payload );
             }};
-            Map<String, Object> txFee = (this.estimateTxFee(signingPayload, (String) (tag), account)).join();
+            Map<String, Object> txFee = (this.estimateTxFee(signingPayload, tag, account)).join();
             String chainName = this.safeString(this.options, "chainName");
-            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, (String) (tag), chainName, account, null, txFee);
+            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, tag, chainName, account, null, txFee);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", signedTx );
             }};
