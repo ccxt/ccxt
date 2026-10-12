@@ -921,7 +921,8 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
     // Delete any .java under types/ that is not owned by types.ts (or the hand-written
     // keep list). Banner is not required — a stale file without a banner is still deleted
     // if it has no TS counterpart. TypeHelper + SKIPPED (OrderBook, Balances, Network*) stay.
-    const allowed: Record<string, boolean> = { 'TypeHelper': true };
+    // Pair: hand-written generic tuple used by generated exchange code, no types.ts counterpart.
+    const allowed: Record<string, boolean> = { 'TypeHelper': true, 'Pair': true };
     for (let i = 0; i < Object.keys (VIEW_BASES).length; i++) {
         allowed[Object.keys (VIEW_BASES)[i]] = true;
     }
