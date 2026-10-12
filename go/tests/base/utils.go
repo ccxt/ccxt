@@ -455,9 +455,69 @@ func CallExchangeMethodDynamically(exchange any, methodName2 any, args2 any) <-c
 		exchangeType := exchange.(ccxt.ICoreExchange)
 		exchangeType.WarmUpCache()
 		arg = coerceArgs(exchange, methodName2.(string), arg)
-		ch <- <-CallInternalMethod(exchangeType.GetCache(), exchange, methodName2.(string), arg...)
+		res := <-CallInternalMethod(exchangeType.GetCache(), exchange, methodName2.(string), arg...)
+		res.Value = DetypeForComparison(res.Value)
+		ch <- res
 	}()
 	return ch
+}
+
+// unified structs a core may return instead of a map (grows with each struct-typed family)
+var detypedStructs = map[reflect.Type]bool{
+	reflect.TypeOf(ccxt.Ticker{}): true,
+}
+
+// DetypeForComparison projects unified Go structs (Ticker, ...) and containers of them onto
+// the map shape the static fixtures store: lowerCamel keys, nil pointers dropped, Info as "info".
+func DetypeForComparison(value any) any {
+	if value == nil {
+		return nil
+	}
+	rv := reflect.ValueOf(value)
+	switch rv.Kind() {
+	case reflect.Struct:
+		if !detypedStructs[rv.Type()] {
+			return value
+		}
+		out := map[string]any{}
+		for i := 0; i < rv.NumField(); i++ {
+			field := rv.Type().Field(i)
+			if !field.IsExported() {
+				continue
+			}
+			fv := rv.Field(i)
+			if (fv.Kind() == reflect.Ptr || fv.Kind() == reflect.Map || fv.Kind() == reflect.Slice || fv.Kind() == reflect.Interface) && fv.IsNil() {
+				if field.Name != "Info" {
+					out[strings.ToLower(field.Name[:1])+field.Name[1:]] = nil
+				}
+				continue
+			}
+			if fv.Kind() == reflect.Ptr {
+				fv = fv.Elem()
+			}
+			out[strings.ToLower(field.Name[:1])+field.Name[1:]] = DetypeForComparison(fv.Interface())
+		}
+		return out
+	case reflect.Map:
+		if rv.Type().Key().Kind() != reflect.String || rv.IsNil() {
+			return value
+		}
+		out := map[string]any{}
+		for _, k := range rv.MapKeys() {
+			out[k.String()] = DetypeForComparison(rv.MapIndex(k).Interface())
+		}
+		return out
+	case reflect.Slice:
+		if k := rv.Type().Elem().Kind(); rv.IsNil() || (k != reflect.Struct && k != reflect.Interface && k != reflect.Map) {
+			return value
+		}
+		out := make([]any, rv.Len())
+		for i := 0; i < rv.Len(); i++ {
+			out[i] = DetypeForComparison(rv.Index(i).Interface())
+		}
+		return out
+	}
+	return value
 }
 
 // coerceArgs converts fixture string args to int64 where the method's parameter is int64

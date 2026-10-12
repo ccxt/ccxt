@@ -7,7 +7,7 @@ import { AuthenticationError, ArgumentsRequired, ChecksumError, ExchangeError, N
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ export default class cryptocom extends cryptocomRest {
             messageHashes.push (messageHash);
             topics.push (currentTopic);
         }
-        const orderbook: Ob = await this.watchPublicMultiple (messageHashes, topics, paramsBookUpdateFrequency2);
+        const orderbook: WsOrderBook = await this.watchPublicMultiple (messageHashes, topics, paramsBookUpdateFrequency2);
         return orderbook.limit ();
     }
 

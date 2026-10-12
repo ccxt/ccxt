@@ -13,6 +13,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -250,7 +251,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return BaseExchange.supplyAsync(() -> {
 
             Boolean privateAccess = java.util.Objects.equals(access, "private");
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Boolean isContract = (!java.util.Objects.equals(type, "spot"));
@@ -323,7 +324,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return BaseExchange.supplyAsync(() -> {
 
             Boolean privateAccess = java.util.Objects.equals(access, "private");
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, Helpers.toMapArg(parameters), (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, Helpers.toMapArg(parameters), (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Boolean isContract = (!java.util.Objects.equals(type, "spot"));
@@ -1646,8 +1647,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             put( "side", Xt.this.safeStringLower2(order, "sd", "orderSide") );
             put( "price", Xt.this.safeNumber2(order, "p", "price", (Object) null) );
             put( "stopPrice", null );
-            put( "stopLoss", null );
-            put( "takeProfit", null );
+            put( "stopLossPrice", null );
+            put( "takeProfitPrice", null );
             put( "amount", Xt.this.safeString2(order, "oq", "origQty") );
             put( "filled", Xt.this.safeString2(order, "eq", "executedQty") );
             put( "remaining", Xt.this.safeString(order, "lq") );

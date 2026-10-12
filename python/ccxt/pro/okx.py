@@ -61,10 +61,10 @@ class okx(ccxt.async_support.okx):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws.okx.com:8443/ws/v5',
+                    'ws': 'wss://ws.okx.com:443/ws/v5',
                 },
                 'test': {
-                    'ws': 'wss://wspap.okx.com:8443/ws/v5',
+                    'ws': 'wss://wspap.okx.com:443/ws/v5',
                 },
             },
             'options': {
@@ -1205,6 +1205,22 @@ class okx(ccxt.async_support.okx):
             'args': topics,
         }
         url = self.get_url(depth, 'public')
+        client = self.client(url)
+        resyncTopics = []
+        resyncHashes = []
+        resyncNeeded = False
+        for i in range(0, len(messageHashes)):
+            if self.safe_string(client.subscriptions, messageHashes[i]) == 'resync':
+                # okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+                resyncTopics.append(topics[i])
+                resyncHashes.append('unsubscribe:orderbook:' + symbolsNormalized[i])
+                resyncNeeded = True
+        if resyncNeeded:
+            unsubscribeRequest = {
+                'op': 'unsubscribe',
+                'args': resyncTopics,
+            }
+            await self.watch_multiple(url, resyncHashes, unsubscribeRequest, resyncHashes)
         orderbook = await self.watch_multiple(url, messageHashes, request, messageHashes)
         return orderbook.limit()
 
@@ -1453,8 +1469,8 @@ class okx(ccxt.async_support.okx):
                     update = data[i]
                     self.handle_order_book_message(client, update, orderbook, messageHash, market)
                     if not (messageHash in client.subscriptions):
-                        # a nonce gap rejected the future and always cleared the subscription entry, while the book
-                        # removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        # a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        client.subscriptions[messageHash] = 'resync'
                         break
                     client.resolve(orderbook, messageHash)
         elif (channel == 'books5') or (channel == 'bbo-tbt'):

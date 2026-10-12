@@ -158,6 +158,7 @@ public class Hibachi extends HibachiApi
                     put( "private", "https://api.hibachi.xyz" );
                 }} );
                 put( "www", "https://www.hibachi.xyz/" );
+                put( "doc", "https://api-doc.hibachi.xyz/" );
                 put( "referral", new HashMap<String, Object>() {{
                     put( "url", "https://hibachi.xyz/r/ZBL2YFWIHU" );
                 }} );

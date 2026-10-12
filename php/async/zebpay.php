@@ -1936,7 +1936,7 @@ class zebpay extends Exchange {
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => null,
             'collateral' => null,
-            'marginType' => 'isolated',
+            'marginMode' => 'isolated',
             'side' => $this->safe_string($position, 'side'),
             'percentage' => null,
         );

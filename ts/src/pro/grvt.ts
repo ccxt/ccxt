@@ -6,7 +6,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBy
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, List, Market, Position, Bool, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -568,7 +568,7 @@ export default class grvt extends grvtRest {
             'stream': channel,
             'selectors': rawHashes,
         };
-        const orderbook: Ob = await this.subscribeMultiple (messageHashes, this.extend (request, paramsInterval), rawHashes);
+        const orderbook: WsOrderBook = await this.subscribeMultiple (messageHashes, this.extend (request, paramsInterval), rawHashes);
         return orderbook.limit ();
     }
 

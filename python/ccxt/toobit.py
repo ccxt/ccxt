@@ -1370,7 +1370,13 @@ class toobit(Exchange, ImplicitAPI):
         #        },
         #        ...
         #
-        return self.parse_tickers(response, symbolsNormalized, paramsMarketType)
+        rows = []
+        for i in range(0, len(response)):
+            ticker = response[i]
+            marketId = self.safe_string(ticker, 's')
+            if (marketId is not None) and (self.markets_by_id is not None) and (marketId in self.markets_by_id):
+                rows.append(ticker)
+        return self.parse_tickers(rows, symbolsNormalized, paramsMarketType)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         marketId = self.safe_string(ticker, 's')
@@ -2672,7 +2678,20 @@ class toobit(Exchange, ImplicitAPI):
             #     }
             # ]
             #
-        return self.parse_transactions(response, currency, since, limit, paramsUntil)
+        transactType = 'deposit' if (type == 'deposits') else 'withdrawal'
+        results = []
+        for i in range(0, len(response)):
+            results.append(self.extend(self.parse_transaction_with_type(response[i], currency, transactType), paramsUntil))
+        sorted = self.sort_by(results, 'timestamp')
+        currencyCode = currency['code'] if (currency is not None) else None
+        return self.filter_by_currency_since_limit(sorted, currencyCode, since, limit)
+
+    def parse_transaction_with_type(self, transaction: dict, currency: Currency = None, transactType: Str = None):
+        result = self.parse_transaction(transaction, currency)
+        if transactType is not None:
+            result['type'] = transactType
+            result['status'] = self.parse_transaction_status(self.safe_string(transaction, 'status'), transactType)
+        return result
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -2730,7 +2749,7 @@ class toobit(Exchange, ImplicitAPI):
         tagFrom = self.safe_string(transaction, 'fromAddressTag')
         addressTo = self.safe_string(transaction, 'address')
         addressFrom = self.safe_string(transaction, 'fromAddress')
-        isWithdraw = ('arriveQuantity' in transaction)
+        isWithdraw = ('arriveQuantity' in transaction) or ('success' in transaction)
         type = 'withdrawal' if isWithdraw else 'deposit'
         return {
             'info': transaction,
@@ -2748,22 +2767,35 @@ class toobit(Exchange, ImplicitAPI):
             'type': type,
             'amount': self.safe_number(transaction, 'quantity'),
             'currency': code,
-            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'status'), type),
             'updated': None,
             'fee': fee,
             'comment': None,
             'internal': None,
         }
 
-    def parse_transaction_status(self, status: Str):
-        statuses = {
-            '2': 'pending',
-            '12': 'pending',
-            '11': 'failed',
-            '3': 'ok',
+    def parse_transaction_status(self, status: Str, type: Str = None):
+        statusesByType = {
+            'deposit': {
+                '2': 'ok',  # DEPOSIT_CAN_WITHDRAW
+                '11': 'failed',  # REJECT
+                '12': 'pending',  # AUDIT
+            },
+            'withdrawal': {
+                '0': 'pending',  # WITHDRAWAL_STATUS_UNKNOWN
+                '1': 'pending',  # BROKER_AUDITING_STATUS
+                '2': 'failed',  # BROKER_REJECT_STATUS
+                '3': 'pending',  # AUDITING_STATUS
+                '6': 'ok',  # WITHDRAWAL_SUCCESS_STATUS
+                '7': 'failed',  # WITHDRAWAL_FAILURE_STATUS
+                '9': 'canceled',  # WITHDRAWAL_CANCELLED_STATUS
+                '10': 'pending',  # WAIT_MERCHANT_PASS
+                '11': 'pending',  # APPLY_CANCEL, cancellation requested but not final yet
+            },
         }
         if status is None:
             return None
+        statuses = self.safe_dict(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
     def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:

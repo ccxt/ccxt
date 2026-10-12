@@ -1,7 +1,7 @@
 import kucoinRest from '../kucoin.js';
 import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class kucoin extends kucoinRest {
     describe(): any;
     negotiate(privateChannel: boolean, isFuturesMethod?: boolean, params?: Dict): Promise<any>;
@@ -236,7 +236,7 @@ export default class kucoin extends kucoinRest {
     handleOrderBook(client: Client, message: Dict): void;
     handleUtaOrderBook(client: Client, message: Dict): void;
     getCacheIndex(orderbook: any, cache: any): number;
-    handleBookDelta(orderbook: Ob, delta: any): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleBidAsks(bookSide: any, bidAsks: any[]): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): void;

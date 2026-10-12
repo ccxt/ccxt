@@ -7,7 +7,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCach
 import type { Bool, Dict, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -240,7 +240,7 @@ export default class apex extends apexRest {
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
         }
-        const orderbook: Ob = await this.watchTopics (url, messageHashes, topics, params);
+        const orderbook: WsOrderBook = await this.watchTopics (url, messageHashes, topics, params);
         return orderbook.limit ();
     }
 

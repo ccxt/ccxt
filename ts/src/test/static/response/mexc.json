@@ -1,7 +1,169 @@
 {
     "exchange": "mexc",
+    "skipKeys": [
+        "vwap"
+    ],
     "options": {},
     "methods": {
+        "fetchTickers": [
+            {
+                "description": "single swap symbol",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0,
+                    "data": {
+                        "contractId": 10,
+                        "symbol": "BTC_USDT",
+                        "lastPrice": 86098.5,
+                        "bid1": 86098.4,
+                        "ask1": 86098.5,
+                        "volume24": 610096173,
+                        "amount24": 5120857164.06816,
+                        "holdVol": 604073624,
+                        "lower24Price": 80539.1,
+                        "high24Price": 86320.3,
+                        "riseFallRate": 0.0025,
+                        "riseFallValue": 219.7,
+                        "indexPrice": 86129.7,
+                        "fairPrice": 86098.5,
+                        "fundingRate": 0.000032,
+                        "maxBidPrice": 94742.6,
+                        "minAskPrice": 77516.7,
+                        "timestamp": 1790018238729,
+                        "riseFallRates": {
+                            "zone": "UTC+8",
+                            "r": 0.0025,
+                            "v": 219.7,
+                            "r7": 0.0962,
+                            "r30": 0.1182,
+                            "r90": 0.3785,
+                            "r180": 0.216,
+                            "r365": -0.2543
+                        },
+                        "riseFallRatesOfTimezone": [
+                            0.0629,
+                            0.061,
+                            0.0025
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1790018238729,
+                        "datetime": "2026-09-21T19:17:18.729Z",
+                        "open": 85878.8,
+                        "high": 86320.3,
+                        "low": 80539.1,
+                        "close": 86098.5,
+                        "bid": 86098.4,
+                        "bidVolume": null,
+                        "ask": 86098.5,
+                        "askVolume": null,
+                        "vwap": 8.393524481374119,
+                        "previousClose": null,
+                        "change": 219.7,
+                        "percentage": 0.25,
+                        "average": 85988.6,
+                        "baseVolume": 61009.6173,
+                        "quoteVolume": 5120857164.06816,
+                        "info": {
+                            "contractId": 10,
+                            "symbol": "BTC_USDT",
+                            "lastPrice": 86098.5,
+                            "bid1": 86098.4,
+                            "ask1": 86098.5,
+                            "volume24": 610096173,
+                            "amount24": 5120857164.06816,
+                            "holdVol": 604073624,
+                            "lower24Price": 80539.1,
+                            "high24Price": 86320.3,
+                            "riseFallRate": 0.0025,
+                            "riseFallValue": 219.7,
+                            "indexPrice": 86129.7,
+                            "fairPrice": 86098.5,
+                            "fundingRate": 0.000032,
+                            "maxBidPrice": 94742.6,
+                            "minAskPrice": 77516.7,
+                            "timestamp": 1790018238729,
+                            "riseFallRates": {
+                                "zone": "UTC+8",
+                                "r": 0.0025,
+                                "v": 219.7,
+                                "r7": 0.0962,
+                                "r30": 0.1182,
+                                "r90": 0.3785,
+                                "r180": 0.216,
+                                "r365": -0.2543
+                            },
+                            "riseFallRatesOfTimezone": [
+                                0.0629,
+                                0.061,
+                                0.0025
+                            ]
+                        },
+                        "last": 86098.5,
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel swap trigger order",
+                "method": "cancelOrder",
+                "input": [
+                    "864240665238925824",
+                    "ADA/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0
+                },
+                "parsedResponse": {
+                    "id": "864240665238925824",
+                    "symbol": "ADA/USDT:USDT",
+                    "info": {
+                        "success": true,
+                        "code": 0
+                    },
+                    "fees": [],
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
@@ -1224,6 +1386,102 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "swap open trigger orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "ADA/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0,
+                    "data": [
+                        {
+                            "id": "864240665238925824",
+                            "symbol": "ADA_USDT",
+                            "leverage": 2,
+                            "side": 1,
+                            "triggerPrice": 0.4,
+                            "vol": 1,
+                            "openType": 2,
+                            "triggerType": 1,
+                            "state": 1,
+                            "executeCycle": 24,
+                            "trend": 1,
+                            "orderType": 5,
+                            "errorCode": 0,
+                            "priceProtect": 0,
+                            "createTime": 1791721431000,
+                            "updateTime": 1791721431000,
+                            "positionMode": 1,
+                            "lossTrend": 1,
+                            "profitTrend": 1,
+                            "reduceOnly": false,
+                            "ensureStopLoss": 0,
+                            "extraTakerFeeRate": 0
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "864240665238925824",
+                        "clientOrderId": null,
+                        "timestamp": 1791721431000,
+                        "datetime": "2026-10-11T12:23:51.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1791721431000,
+                        "status": "open",
+                        "symbol": "ADA/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "side": "buy",
+                        "price": null,
+                        "triggerPrice": 0.4,
+                        "average": null,
+                        "amount": 1,
+                        "cost": null,
+                        "filled": null,
+                        "remaining": null,
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "id": "864240665238925824",
+                            "symbol": "ADA_USDT",
+                            "leverage": 2,
+                            "side": 1,
+                            "triggerPrice": 0.4,
+                            "vol": 1,
+                            "openType": 2,
+                            "triggerType": 1,
+                            "state": 1,
+                            "executeCycle": 24,
+                            "trend": 1,
+                            "orderType": 5,
+                            "errorCode": 0,
+                            "priceProtect": 0,
+                            "createTime": 1791721431000,
+                            "updateTime": 1791721431000,
+                            "positionMode": 1,
+                            "lossTrend": 1,
+                            "profitTrend": 1,
+                            "reduceOnly": false,
+                            "ensureStopLoss": 0,
+                            "extraTakerFeeRate": 0
+                        },
+                        "fees": [],
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": 0.4,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
                 "description": "swap open orders",
                 "method": "fetchOpenOrders",
                 "options": {
@@ -1518,6 +1776,53 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "swap market buy trigger order",
+                "method": "createOrder",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": 0.4
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": "0",
+                    "data": "864240665238925824"
+                },
+                "parsedResponse": {
+                    "id": "864240665238925824",
+                    "timestamp": null,
+                    "fees": [],
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "symbol": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null
+                }
+            },
             {
                 "description": "place swap order",
                 "method": "createOrder",
@@ -2236,6 +2541,214 @@
                         "count": null
                     },
                     "last": 73397.77
+                }
+            },
+            {
+                "description": "linear swap ticker, volume24 counts contracts",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0,
+                    "data": {
+                        "contractId": 10,
+                        "symbol": "BTC_USDT",
+                        "lastPrice": 82342.2,
+                        "bid1": 82342.7,
+                        "ask1": 82342.8,
+                        "volume24": 384899312,
+                        "amount24": 3196066575.28747,
+                        "holdVol": 474820812,
+                        "lower24Price": 82180,
+                        "high24Price": 83730.8,
+                        "riseFallRate": -0.0128,
+                        "riseFallValue": -1069.1,
+                        "indexPrice": 82382.8,
+                        "fairPrice": 82346.3,
+                        "fundingRate": 0.000006,
+                        "maxBidPrice": 90621,
+                        "minAskPrice": 74144.5,
+                        "timestamp": 1791461552705,
+                        "riseFallRates": {
+                            "zone": "UTC+8",
+                            "r": -0.0128,
+                            "v": -1069.1,
+                            "r7": -0.0209,
+                            "r30": 0.0451,
+                            "r90": 0.3104,
+                            "r180": 0.1369,
+                            "r365": -0.3238
+                        },
+                        "riseFallRatesOfTimezone": [
+                            -0.0162,
+                            -0.0112,
+                            -0.0128
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1791461552705,
+                    "datetime": "2026-10-08T12:12:32.705Z",
+                    "open": 83411.3,
+                    "high": 83730.8,
+                    "low": 82180,
+                    "close": 82342.2,
+                    "bid": 82342.7,
+                    "bidVolume": null,
+                    "ask": 82342.8,
+                    "askVolume": null,
+                    "vwap": 83036.43253297034,
+                    "previousClose": null,
+                    "change": -1069.1,
+                    "percentage": -1.28,
+                    "average": 82876.7,
+                    "baseVolume": 38489.9312,
+                    "quoteVolume": 3196066575.28747,
+                    "info": {
+                        "contractId": 10,
+                        "symbol": "BTC_USDT",
+                        "lastPrice": 82342.2,
+                        "bid1": 82342.7,
+                        "ask1": 82342.8,
+                        "volume24": 384899312,
+                        "amount24": 3196066575.28747,
+                        "holdVol": 474820812,
+                        "lower24Price": 82180,
+                        "high24Price": 83730.8,
+                        "riseFallRate": -0.0128,
+                        "riseFallValue": -1069.1,
+                        "indexPrice": 82382.8,
+                        "fairPrice": 82346.3,
+                        "fundingRate": 0.000006,
+                        "maxBidPrice": 90621,
+                        "minAskPrice": 74144.5,
+                        "timestamp": 1791461552705,
+                        "riseFallRates": {
+                            "zone": "UTC+8",
+                            "r": -0.0128,
+                            "v": -1069.1,
+                            "r7": -0.0209,
+                            "r30": 0.0451,
+                            "r90": 0.3104,
+                            "r180": 0.1369,
+                            "r365": -0.3238
+                        },
+                        "riseFallRatesOfTimezone": [
+                            -0.0162,
+                            -0.0112,
+                            -0.0128
+                        ]
+                    },
+                    "last": 82342.2,
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "inverse swap ticker, volume24 counts contracts",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0,
+                    "data": {
+                        "contractId": 77,
+                        "symbol": "BTC_USD",
+                        "lastPrice": 82289.2,
+                        "bid1": 82289.1,
+                        "ask1": 82289.2,
+                        "volume24": 168946,
+                        "amount24": 203.56099371858127,
+                        "holdVol": 1590521,
+                        "lower24Price": 82135.3,
+                        "high24Price": 83683,
+                        "riseFallRate": -0.013,
+                        "riseFallValue": -1088.4,
+                        "indexPrice": 82314.7,
+                        "fairPrice": 82293.9,
+                        "fundingRate": 0.0001,
+                        "maxBidPrice": 90546.1,
+                        "minAskPrice": 74083.2,
+                        "timestamp": 1791461552898,
+                        "riseFallRates": {
+                            "zone": "UTC+8",
+                            "r": -0.013,
+                            "v": -1088.4,
+                            "r7": -0.0208,
+                            "r30": 0.0448,
+                            "r90": 0.3106,
+                            "r180": 0.1365,
+                            "r365": -0.325
+                        },
+                        "riseFallRatesOfTimezone": [
+                            -0.0164,
+                            -0.0114,
+                            -0.013
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": 1791461552898,
+                    "datetime": "2026-10-08T12:12:32.898Z",
+                    "open": 83377.6,
+                    "high": 83683,
+                    "low": 82135.3,
+                    "close": 82289.2,
+                    "bid": 82289.1,
+                    "bidVolume": null,
+                    "ask": 82289.2,
+                    "askVolume": null,
+                    "vwap": 82995.271792377,
+                    "previousClose": null,
+                    "change": -1088.4,
+                    "percentage": -1.3,
+                    "average": 82833.4,
+                    "baseVolume": 203.56099371858127,
+                    "quoteVolume": 16894600,
+                    "info": {
+                        "contractId": 77,
+                        "symbol": "BTC_USD",
+                        "lastPrice": 82289.2,
+                        "bid1": 82289.1,
+                        "ask1": 82289.2,
+                        "volume24": 168946,
+                        "amount24": 203.56099371858127,
+                        "holdVol": 1590521,
+                        "lower24Price": 82135.3,
+                        "high24Price": 83683,
+                        "riseFallRate": -0.013,
+                        "riseFallValue": -1088.4,
+                        "indexPrice": 82314.7,
+                        "fairPrice": 82293.9,
+                        "fundingRate": 0.0001,
+                        "maxBidPrice": 90546.1,
+                        "minAskPrice": 74083.2,
+                        "timestamp": 1791461552898,
+                        "riseFallRates": {
+                            "zone": "UTC+8",
+                            "r": -0.013,
+                            "v": -1088.4,
+                            "r7": -0.0208,
+                            "r30": 0.0448,
+                            "r90": 0.3106,
+                            "r180": 0.1365,
+                            "r365": -0.325
+                        },
+                        "riseFallRatesOfTimezone": [
+                            -0.0164,
+                            -0.0114,
+                            -0.013
+                        ]
+                    },
+                    "last": 82289.2,
+                    "indexPrice": null,
+                    "markPrice": null
                 }
             }
         ],

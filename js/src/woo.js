@@ -23,7 +23,7 @@ export default class woo extends Exchange {
             'countries': ['KY'], // Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'hostname': 'woox.io',
             'has': {
@@ -3115,7 +3115,7 @@ export default class woo extends Exchange {
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
         const currency = this.safeValue(currencyRows, 0);
         const rows = this.safeList(currencyRows, 1, []);
-        return this.parseTransactions(rows, currency, since, limit, params);
+        return this.parseTransactions(rows, currency, since, limit, this.omit(params, 'tokenSide'));
     }
     parseTransaction(transaction, currency = undefined) {
         //

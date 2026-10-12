@@ -1718,7 +1718,7 @@ class zebpay(Exchange, ImplicitAPI):
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': None,
             'collateral': None,
-            'marginType': 'isolated',
+            'marginMode': 'isolated',
             'side': self.safe_string(position, 'side'),
             'percentage': None,
         }

@@ -5,7 +5,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } f
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool, Fee } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -581,7 +581,7 @@ export default class toobit extends toobitRest {
             'topic': channel,
             'event': 'sub',
         };
-        const orderbook: Ob = await this.watchMultiple (url, messageHashes, this.extend (request, paramsChannel), messageHashes);
+        const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, this.extend (request, paramsChannel), messageHashes);
         return orderbook.limit ();
     }
 

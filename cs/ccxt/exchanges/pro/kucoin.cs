@@ -2075,16 +2075,26 @@ public partial class kucoin : ccxt.kucoin
         List<object> symbols = this.safeList(subscription, "symbols");
         if ((symbols == null))
         {
-            string? symbol = this.safeString(subscription, "symbol");
-            ((IDictionary<string,object>)this.orderbooks)[(string)((string)symbol)] = this.orderBook(new Dictionary<string, object>() {}, limit);
-        } else
-        {
-            for (int i = 0; i < symbols.Count; i++)
-            {
-                object symbol = symbols[i];
-                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
-            }
+            symbols = new List<object> {this.safeString(subscription, "symbol")};
         }
+        IDictionary<string, object> limits = this.safeDict(this.options, "orderBookLimits", new Dictionary<string, object>() {});
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
+        {
+            object symbol = symbols[i];
+            Int64? storedLimit = this.safeInteger(limits, symbol);
+            // reuse the existing book so user-held references keep updating; rebuild only if depth changed
+            if (!((this.orderbooks != null && symbol is string inOpKey4 && this.orderbooks.ContainsKey(inOpKey4))) || ((storedLimit != limit)))
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            } else
+            {
+                ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+                orderbook["nonce"] = null;
+                (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
+            }
+            limits[(string)symbol] = limit;
+        }
+        this.options["orderBookLimits"] = limits;
     }
 
     public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
@@ -2134,7 +2144,7 @@ public partial class kucoin : ccxt.kucoin
                 for (int i = 0; i < symbols.Count; i++)
                 {
                     object symbol = symbols[i];
-                    if ((this.fundingRates != null && symbol is string inOpKey4 && this.fundingRates.ContainsKey(inOpKey4)))
+                    if ((this.fundingRates != null && symbol is string inOpKey5 && this.fundingRates.ContainsKey(inOpKey5)))
                     {
                         this.fundingRates.Remove((string)symbol);
                     }
@@ -2981,7 +2991,7 @@ public partial class kucoin : ccxt.kucoin
                 { "privateChannel", true },
             };
             Dictionary<string, object> message = this.extend(request, paramsOmitted);
-            if (!((client.subscriptions != null && subscriptionHash is string inOpKey5 && client.subscriptions.ContainsKey(inOpKey5))))
+            if (!((client.subscriptions != null && subscriptionHash is string inOpKey6 && client.subscriptions.ContainsKey(inOpKey6))))
             {
                 ((IDictionary<string,object>)client.subscriptions)[requestId] = subscriptionHash;
             }
@@ -2991,7 +3001,7 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual void setBalanceCache(WebSocketClient client, object type)
     {
-        if (((client.subscriptions != null && type is string inOpKey6 && client.subscriptions.ContainsKey(inOpKey6))) && ((this.balance != null && type is string inOpKey7 && this.balance.ContainsKey(inOpKey7))))
+        if (((client.subscriptions != null && type is string inOpKey7 && client.subscriptions.ContainsKey(inOpKey7))) && ((this.balance != null && type is string inOpKey8 && this.balance.ContainsKey(inOpKey8))))
         {
             return;
         }

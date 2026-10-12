@@ -418,6 +418,31 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "spot above maxlimit",
+                "method": "fetchOHLCV",
+                "url": "https://api.deepcoin.com/deepcoin/market/candles?instId=BTC-USDT&bar=1m&limit=300",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    null,
+                    301
+                ],
+                "output": null
+            },
+            {
+                "description": "swap above maxlimit",
+                "method": "fetchOHLCV",
+                "url": "https://api.deepcoin.com/deepcoin/market/candles?instId=BTC-USDT-SWAP&bar=1m&limit=1000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1001
+                ],
+                "output": null
+            },
+           
+            {
                 "description": "Fetch candles for spot",
                 "method": "fetchOHLCV",
                 "url": "https://api.deepcoin.com/deepcoin/market/candles?instId=ETH-USDT&bar=1m&limit=1",

@@ -7,7 +7,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
-import type { Liquidation, OpenInterest } from './base/types.js';
+import type { Bool, Liquidation, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -507,7 +507,6 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'swap/trace/currentTrack': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/traderDetail': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/profitHistorySummarys': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/profitDetail': { 'cost': 2 } as Endpoint<Dict>,
@@ -518,7 +517,6 @@ export default class bingx extends Exchange {
                                 'spot/historyOrder': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'swap/trace/closeTrackOrder': { 'cost': 2 } as Endpoint<Dict>,
                                 'swap/trace/setTPSL': { 'cost': 2 } as Endpoint<Dict>,
                                 'PFutures/setCommission': { 'cost': 2 } as Endpoint<Dict>,
                                 'spot/trader/sellOrder': { 'cost': 10 } as Endpoint<Dict>,
@@ -3277,6 +3275,7 @@ export default class bingx extends Exchange {
             const trailingAmount = this.safeString (paramsPostOnly, 'trailingAmount');
             const trailingPercent = this.safeString2 (paramsPostOnly, 'trailingPercent', 'priceRate');
             const trailingType = this.safeString (paramsPostOnly, 'trailingType', 'TRAILING_STOP_MARKET');
+            const trailingTriggerPrice = this.safeString2 (paramsPostOnly, 'trailingTriggerPrice', 'activationPrice');
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
@@ -3329,6 +3328,9 @@ export default class bingx extends Exchange {
                 } else if (isTrailingPercentOrder) {
                     const requestTrailingPercent = Precise.stringDiv (trailingPercent, '100');
                     request['priceRate'] = this.parseToNumeric (requestTrailingPercent);
+                }
+                if (trailingTriggerPrice !== undefined) {
+                    request['activationPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, trailingTriggerPrice));
                 }
             }
             if (hasStopLoss || hasTakeProfit) {
@@ -3398,7 +3400,7 @@ export default class bingx extends Exchange {
                 request['quantity'] = amountReq; // precision not available for inverse contracts
             }
         }
-        const paramsRequest = this.omit (paramsOrder, [ 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId' ]);
+        const paramsRequest = this.omit (paramsOrder, [ 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId' ]);
         return this.extend (request, paramsRequest);
     }
 
@@ -3421,12 +3423,13 @@ export default class bingx extends Exchange {
      * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
      * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
      * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
-     * @param {float} [params.stopLossPrice] stop loss trigger price
-     * @param {float} [params.takeProfitPrice] take profit trigger price
+     * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
+     * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
      * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+     * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -3688,7 +3691,12 @@ export default class bingx extends Exchange {
             'stop_limit': 'limit',
             'stop_market': 'market',
             'take_profit_market': 'market',
+            'take_profit': 'limit',
             'stop': 'limit',
+            'take_stop_limit': 'limit',
+            'take_stop_market': 'market',
+            'trailing_stop_market': 'market',
+            'trailing_tp_sl': 'market',
         };
         return this.safeString (types, (type as string), type);
     }
@@ -3987,7 +3995,12 @@ export default class bingx extends Exchange {
         const marketId = this.safeString2 (orderData, 'symbol', 's');
         const marketResolved: Market = this.safeMarket ((market === undefined) ? marketId : undefined, market, undefined, marketType);
         const side = this.safeStringLower2 (orderData, 'side', 'S');
-        const timestamp = this.safeIntegerN (orderData, [ 'time', 'transactTime', 'E', 'createdTime' ]);
+        let timestamp = this.safeIntegerN (orderData, [ 'time', 'transactTime', 'E', 'createdTime' ]);
+        const transactTime = this.safeString (orderData, 'transactTime', '') as string;
+        if (transactTime.length === 10) {
+            // spot conditional orders are created with transactTime in seconds
+            timestamp = this.safeTimestamp (orderData, 'transactTime');
+        }
         const lastTradeTimestamp = this.safeInteger2 (orderData, 'updateTime', 'T');
         const statusId = this.safeStringUpperN (orderData, [ 'status', 'X', 'orderStatus' ]);
         let feeCurrencyCode = this.safeString2 (orderData, 'feeAsset', 'N');
@@ -4030,7 +4043,9 @@ export default class bingx extends Exchange {
         const rawType = this.safeStringLower2 (orderData, 'type', 'o') as string;
         const stopPrice = this.omitZero (this.safeString2 (orderData, 'StopPrice', 'stopPrice'));
         let triggerPrice = stopPrice;
-        if (stopPrice !== undefined) {
+        // spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
+        const isTakeStop = (rawType !== undefined) && (rawType.indexOf ('take_stop') > -1);
+        if ((stopPrice !== undefined) && !isTakeStop) {
             if ((rawType.indexOf ('stop') > -1) && (stopLossPrice === undefined)) {
                 stopLossPrice = stopPrice;
                 triggerPrice = undefined;
@@ -5306,14 +5321,14 @@ export default class bingx extends Exchange {
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('transfer', undefined, params);
         let fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         let toId = this.safeString (accountsByType, toAccount, toAccount);
-        if (fromId === 'swap') {
+        if (fromAccount === 'swap') {
             if (subType === 'inverse') {
                 fromId = 'coinMPerp';
             } else {
                 fromId = 'USDTMPerp';
             }
         }
-        if (toId === 'swap') {
+        if (toAccount === 'swap') {
             if (subType === 'inverse') {
                 toId = 'coinMPerp';
             } else {
@@ -5728,8 +5743,8 @@ export default class bingx extends Exchange {
         let timestamp = this.safeInteger2 (transaction, 'insertTime', 'timestamp');
         let datetime = this.iso8601 (timestamp);
         if (timestamp === undefined) {
-            datetime = this.safeString (transaction, 'applyTime');
-            timestamp = this.parse8601 (datetime);
+            timestamp = this.parse8601 (this.safeString (transaction, 'applyTime'));
+            datetime = this.iso8601 (timestamp);
         }
         const network = this.safeString (transaction, 'network');
         const currencyId = this.safeString (transaction, 'coin');
@@ -5739,10 +5754,15 @@ export default class bingx extends Exchange {
                 code = code.replace (network, '');
             }
         }
+        // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         const rawType = this.safeString (transaction, 'transferType');
         let type: Str = 'withdrawal';
-        if (rawType === '0') {
+        if ((rawType === '0') || ('insertTime' in transaction)) {
             type = 'deposit';
+        }
+        let internal: Bool = undefined;
+        if (rawType !== undefined) {
+            internal = (rawType === '2');
         }
         return {
             'info': transaction,
@@ -5752,7 +5772,7 @@ export default class bingx extends Exchange {
             'currency': code,
             'network': this.networkIdToCode (network, code),
             'amount': this.safeNumber (transaction, 'amount'),
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status'), type),
             'timestamp': timestamp,
             'datetime': datetime,
             'address': address,
@@ -5768,11 +5788,24 @@ export default class bingx extends Exchange {
                 'cost': this.safeNumber (transaction, 'transactionFee'),
                 'rate': undefined,
             },
-            'internal': undefined,
+            'internal': internal,
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str, type: Str = undefined) {
+        const statusesByType: Dict = {
+            'deposit': {
+                '0': 'pending',
+                '6': 'pending', // chain uploaded, not yet credited
+                '1': 'ok',
+            },
+            'withdrawal': {
+                '4': 'pending', // under review
+                '5': 'failed',
+                '6': 'ok',
+            },
+        };
+        const directional = this.safeDict (statusesByType, type, {});
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
@@ -5789,7 +5822,8 @@ export default class bingx extends Exchange {
             '5': 'rejected',
             '6': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        const fallback = this.safeString (statuses, status, status);
+        return this.safeString (directional, status, fallback);
     }
 
     /**
@@ -6106,7 +6140,7 @@ export default class bingx extends Exchange {
         let paramsTrades: NullableDict = undefined;
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
         if (subType === 'inverse') {
-            paramsTrades = paramsSubType;
+            paramsTrades = this.omit (paramsSubType, 'orderId');
             const orderId = this.safeString (paramsSubType, 'orderId');
             if (orderId === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades');
@@ -6772,7 +6806,7 @@ export default class bingx extends Exchange {
         }
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         request['cancelOrderId'] = id;
-        request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
+        request['cancelReplaceMode'] = this.safeString (params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         let response: Dict;
         if (market['swap'] === true) {
             response = await this.swapV1PrivatePostTradeCancelReplace (request);

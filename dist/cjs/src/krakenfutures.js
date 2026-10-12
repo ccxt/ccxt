@@ -1839,7 +1839,7 @@ class krakenfutures extends krakenfutures$1["default"] {
     /**
      * @method
      * @name krakenfutures#fetchCanceledOrders
-     * @see https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-order-events
      * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order.
@@ -1861,7 +1861,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             request['count'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = since;
+            request['since'] = since;
         }
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
@@ -3429,7 +3429,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'markPrice': undefined,
             'lastPrice': this.safeNumber(position, 'executionPrice'),
             'collateral': undefined,
-            'marginType': marginType,
+            'marginMode': marginType,
             'side': side,
             'percentage': undefined,
         };

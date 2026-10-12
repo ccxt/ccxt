@@ -1839,7 +1839,7 @@ class krakenfutures extends Exchange {
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
-         * @see https://docs.kraken.com/api/docs/futures-api/history/get-$order-events
+         * @see https://docs.kraken.com/api-reference/account-history/get-$order-events
          *
          * Gets all canceled orders, including trigger orders, for an account from the exchange api
          * @param {string} $symbol Unified $market $symbol
@@ -1861,7 +1861,7 @@ class krakenfutures extends Exchange {
             $request['count'] = $limit;
         }
         if ($since !== null) {
-            $request['from'] = $since;
+            $request['since'] = $since;
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
@@ -3431,7 +3431,7 @@ class krakenfutures extends Exchange {
             'markPrice' => null,
             'lastPrice' => $this->safe_number($position, 'executionPrice'),
             'collateral' => null,
-            'marginType' => $marginType,
+            'marginMode' => $marginType,
             'side' => $side,
             'percentage' => null,
         );

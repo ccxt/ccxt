@@ -8,7 +8,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import Precise from '../base/Precise.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -387,7 +387,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             'limit': limit,
         };
         const authentication = this.authenticate ();
-        const orderbook: Ob = await this.watchMultiple (url, messageHashes, this.extend (request, authentication), messageHashes, subscription);
+        const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, this.extend (request, authentication), messageHashes, subscription);
         return orderbook.limit ();
     }
 
@@ -426,7 +426,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             'limit': limit,
         };
         const authentication = this.authenticate ();
-        const orderbook: Ob = await this.watch (url, messageHash, this.extend (request, authentication), messageHash, subscription);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, this.extend (request, authentication), messageHash, subscription);
         return orderbook.limit ();
     }
 
@@ -947,13 +947,12 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const subscription = this.safeDict (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         if (type === 'snapshot') {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            }
             const orderbook = this.orderbooks[symbol];
-            this.handleDeltas (orderbook['asks'], this.safeList (message, 'asks', []));
-            this.handleDeltas (orderbook['bids'], this.safeList (message, 'bids', []));
-            orderbook['timestamp'] = undefined;
-            orderbook['datetime'] = undefined;
-            orderbook['symbol'] = symbol;
+            const snapshot = this.parseOrderBook (message, symbol);
+            orderbook.reset (snapshot);
             client.resolve (orderbook, messageHash);
         } else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];

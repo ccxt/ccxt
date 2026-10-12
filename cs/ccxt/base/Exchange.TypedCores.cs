@@ -2244,12 +2244,13 @@ public partial class BaseExchange
             }
             result["networks"] = networksTarget;
         }
-        if (typed.extra != null)
+        if (typed.fees != null)
         {
-            foreach (var pair in typed.extra)
-            {
-                result[pair.Key] = pair.Value;
-            }
+            result["fees"] = typed.fees;
+        }
+        if (typed.valueScale != null)
+        {
+            result["valueScale"] = typed.valueScale;
         }
         return result;
     }
@@ -2359,12 +2360,9 @@ public partial class BaseExchange
         {
             result["tag"] = typed.tag;
         }
-        if (typed.extra != null)
+        if (typed.note != null)
         {
-            foreach (var pair in typed.extra)
-            {
-                result[pair.Key] = pair.Value;
-            }
+            result["note"] = typed.note;
         }
         return result;
     }
@@ -2562,6 +2560,11 @@ public partial class BaseExchange
         return result;
     }
 
+    public static Dictionary<string, object> FromDepositWithdrawFeeNetworkEntry(DepositWithdrawFeeNetworkEntry value)
+    {
+        return (Dictionary<string, object>)FromDepositWithdrawFeeNetworkEntry((object)value);
+    }
+
     public static object FromDepositWithdrawFeeNetworkEntryList(object values)
     {
         if (!(values is List<DepositWithdrawFeeNetworkEntry>))
@@ -2575,6 +2578,11 @@ public partial class BaseExchange
             result.Add(FromDepositWithdrawFeeNetworkEntry(row));
         }
         return result;
+    }
+
+    public static List<object> FromDepositWithdrawFeeNetworkEntryList(List<DepositWithdrawFeeNetworkEntry> values)
+    {
+        return (List<object>)FromDepositWithdrawFeeNetworkEntryList((object)values);
     }
 
     public static object FromDepositWithdrawFees(object value)
@@ -2708,10 +2716,6 @@ public partial class BaseExchange
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
-        }
-        if (typed.currency != null)
-        {
-            result["currency"] = typed.currency;
         }
         if (typed.amount != null)
         {
@@ -2920,54 +2924,6 @@ public partial class BaseExchange
         else
         {
             result["fundingRate"] = null;
-        }
-        if (typed.markPrice != null)
-        {
-            result["markPrice"] = typed.markPrice;
-        }
-        if (typed.indexPrice != null)
-        {
-            result["indexPrice"] = typed.indexPrice;
-        }
-        if (typed.interestRate != null)
-        {
-            result["interestRate"] = typed.interestRate;
-        }
-        if (typed.estimatedSettlePrice != null)
-        {
-            result["estimatedSettlePrice"] = typed.estimatedSettlePrice;
-        }
-        if (typed.fundingTimestamp != null)
-        {
-            result["fundingTimestamp"] = typed.fundingTimestamp;
-        }
-        if (typed.fundingDatetime != null)
-        {
-            result["fundingDatetime"] = typed.fundingDatetime;
-        }
-        if (typed.nextFundingRate != null)
-        {
-            result["nextFundingRate"] = typed.nextFundingRate;
-        }
-        if (typed.nextFundingTimestamp != null)
-        {
-            result["nextFundingTimestamp"] = typed.nextFundingTimestamp;
-        }
-        if (typed.nextFundingDatetime != null)
-        {
-            result["nextFundingDatetime"] = typed.nextFundingDatetime;
-        }
-        if (typed.previousFundingRate != null)
-        {
-            result["previousFundingRate"] = typed.previousFundingRate;
-        }
-        if (typed.previousFundingTimestamp != null)
-        {
-            result["previousFundingTimestamp"] = typed.previousFundingTimestamp;
-        }
-        if (typed.previousFundingDatetime != null)
-        {
-            result["previousFundingDatetime"] = typed.previousFundingDatetime;
         }
         return result;
     }
@@ -3612,10 +3568,6 @@ public partial class BaseExchange
         else
         {
             result["marginMode"] = null;
-        }
-        if (typed.leverage != null)
-        {
-            result["leverage"] = typed.leverage;
         }
         if (typed.longLeverage != null)
         {
@@ -4494,12 +4446,54 @@ public partial class BaseExchange
         {
             result["feeSide"] = typed.feeSide;
         }
-        if (typed.extra != null)
+        if (typed.baseName != null)
         {
-            foreach (var pair in typed.extra)
+            result["baseName"] = typed.baseName;
+        }
+        if (typed.id2 != null)
+        {
+            result["id2"] = typed.id2;
+        }
+        if (typed.instIdCode != null)
+        {
+            result["instIdCode"] = typed.instIdCode;
+        }
+        if (typed.tiers != null)
+        {
+            result["tiers"] = typed.tiers;
+        }
+        if (typed.market != null)
+        {
+            result["market"] = typed.market;
+        }
+        if (typed.marketType != null)
+        {
+            result["marketType"] = typed.marketType;
+        }
+        if (typed.executionModel != null)
+        {
+            result["executionModel"] = typed.executionModel;
+        }
+        if (typed.collateral != null)
+        {
+            result["collateral"] = typed.collateral;
+        }
+        if (typed.resolved != null)
+        {
+            result["resolved"] = typed.resolved;
+        }
+        if (typed.resolvedOutcome != null)
+        {
+            result["resolvedOutcome"] = typed.resolvedOutcome;
+        }
+        if (typed.outcomes != null)
+        {
+            var outcomesRows = new List<object>();
+            foreach (var item in typed.outcomes)
             {
-                result[pair.Key] = pair.Value;
+                outcomesRows.Add(FromPredictionOutcome(item));
             }
+            result["outcomes"] = outcomesRows;
         }
         return result;
     }
@@ -5109,18 +5103,6 @@ public partial class BaseExchange
         {
             result["marginMode"] = typed.marginMode;
         }
-        if (typed.isMultiLeg != null)
-        {
-            result["isMultiLeg"] = typed.isMultiLeg;
-        }
-        if (typed.lastTradeTimeStamp != null)
-        {
-            result["lastTradeTimeStamp"] = typed.lastTradeTimeStamp;
-        }
-        if (typed.trigger != null)
-        {
-            result["trigger"] = typed.trigger;
-        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -5377,6 +5359,10 @@ public partial class BaseExchange
         {
             result["nonce"] = null;
         }
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
         return result;
     }
 
@@ -5588,10 +5574,6 @@ public partial class BaseExchange
         if (typed.exitPrice != null)
         {
             result["exitPrice"] = typed.exitPrice;
-        }
-        if (typed.marginType != null)
-        {
-            result["marginType"] = typed.marginType;
         }
         return result;
     }
@@ -5834,12 +5816,17 @@ public partial class BaseExchange
         {
             result["info"] = typed.info;
         }
-        if (typed.extra != null)
+        if (typed.resolutionSource != null)
         {
-            foreach (var pair in typed.extra)
-            {
-                result[pair.Key] = pair.Value;
-            }
+            result["resolutionSource"] = typed.resolutionSource;
+        }
+        if (typed.lastUpdatedAt != null)
+        {
+            result["lastUpdatedAt"] = typed.lastUpdatedAt;
+        }
+        if (typed.lastUpdatedAtDatetime != null)
+        {
+            result["lastUpdatedAtDatetime"] = typed.lastUpdatedAtDatetime;
         }
         return result;
     }
@@ -6062,12 +6049,113 @@ public partial class BaseExchange
         {
             result["info"] = typed.info;
         }
-        if (typed.extra != null)
+        if (typed.baseCurrency != null)
         {
-            foreach (var pair in typed.extra)
-            {
-                result[pair.Key] = pair.Value;
-            }
+            result["base"] = typed.baseCurrency;
+        }
+        if (typed.quote != null)
+        {
+            result["quote"] = typed.quote;
+        }
+        if (typed.settle != null)
+        {
+            result["settle"] = typed.settle;
+        }
+        if (typed.baseId != null)
+        {
+            result["baseId"] = typed.baseId;
+        }
+        if (typed.quoteId != null)
+        {
+            result["quoteId"] = typed.quoteId;
+        }
+        if (typed.settleId != null)
+        {
+            result["settleId"] = typed.settleId;
+        }
+        if (typed.type != null)
+        {
+            result["type"] = typed.type;
+        }
+        if (typed.spot != null)
+        {
+            result["spot"] = typed.spot;
+        }
+        if (typed.margin != null)
+        {
+            result["margin"] = typed.margin;
+        }
+        if (typed.swap != null)
+        {
+            result["swap"] = typed.swap;
+        }
+        if (typed.future != null)
+        {
+            result["future"] = typed.future;
+        }
+        if (typed.option != null)
+        {
+            result["option"] = typed.option;
+        }
+        if (typed.prediction != null)
+        {
+            result["prediction"] = typed.prediction;
+        }
+        if (typed.contract != null)
+        {
+            result["contract"] = typed.contract;
+        }
+        if (typed.linear != null)
+        {
+            result["linear"] = typed.linear;
+        }
+        if (typed.inverse != null)
+        {
+            result["inverse"] = typed.inverse;
+        }
+        if (typed.contractSize != null)
+        {
+            result["contractSize"] = typed.contractSize;
+        }
+        if (typed.expiry != null)
+        {
+            result["expiry"] = typed.expiry;
+        }
+        if (typed.expiryDatetime != null)
+        {
+            result["expiryDatetime"] = typed.expiryDatetime;
+        }
+        if (typed.strike != null)
+        {
+            result["strike"] = typed.strike;
+        }
+        if (typed.optionType != null)
+        {
+            result["optionType"] = typed.optionType;
+        }
+        if (typed.taker != null)
+        {
+            result["taker"] = typed.taker;
+        }
+        if (typed.maker != null)
+        {
+            result["maker"] = typed.maker;
+        }
+        if (typed.percentage != null)
+        {
+            result["percentage"] = typed.percentage;
+        }
+        if (typed.tierBased != null)
+        {
+            result["tierBased"] = typed.tierBased;
+        }
+        if (typed.feeSide != null)
+        {
+            result["feeSide"] = typed.feeSide;
+        }
+        if (typed.precision != null)
+        {
+            result["precision"] = FromPrecision(typed.precision);
         }
         return result;
     }
@@ -6544,12 +6632,13 @@ public partial class BaseExchange
         {
             result["info"] = typed.info;
         }
-        if (typed.extra != null)
+        if (typed.id != null)
         {
-            foreach (var pair in typed.extra)
-            {
-                result[pair.Key] = pair.Value;
-            }
+            result["id"] = typed.id;
+        }
+        if (typed.negRisk != null)
+        {
+            result["negRisk"] = typed.negRisk;
         }
         return result;
     }
@@ -7387,10 +7476,6 @@ public partial class BaseExchange
         {
             result["symbol"] = null;
         }
-        if (typed.id != null)
-        {
-            result["id"] = typed.id;
-        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -7744,10 +7829,6 @@ public partial class BaseExchange
             }
             result["fees"] = feesRows;
         }
-        if (typed.orderId != null)
-        {
-            result["orderId"] = typed.orderId;
-        }
         if (typed.info != null)
         {
             result["info"] = typed.info;
@@ -8075,10 +8156,6 @@ public partial class BaseExchange
         else
         {
             result["internal"] = null;
-        }
-        if (typed.tokenSide != null)
-        {
-            result["tokenSide"] = typed.tokenSide;
         }
         return result;
     }

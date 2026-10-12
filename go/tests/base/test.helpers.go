@@ -529,3 +529,7 @@ func ReturnPanicError[T any](ch chan ccxt.AsyncResult[T]) {
 func callDynamically(name2 interface{}, args ...interface{}) <-chan ccxt.AsyncResult[any] {
 	panic("not implemented")
 }
+
+// StructToMap normalises a unified struct (ccxt.Ticker, ...) into its map shape so the
+// static asserts compare it like the stored json.
+var StructToMap = ccxt.StructToMap

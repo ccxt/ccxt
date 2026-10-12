@@ -12,37 +12,6 @@ namespace ccxt;
 
 class Helper
 {
-    // Source keys that map to no struct field (venue-only market keys such as
-    // baseName / priceScale / instIdCode). Kept on the struct so a round-trip
-    // through the typed path does not silently drop them.
-    public static Dictionary<string, object> GetExtra(object data2, HashSet<string> known)
-    {
-        var data = (IDictionary<string, object>)data2;
-        Dictionary<string, object> result = null;
-        foreach (var pair in data)
-        {
-            if (pair.Key == "info")
-            {
-                // GetInfo keeps a dict (and re-wraps a list); a scalar `info` (independentreserve
-                // stores the market id string) has nowhere else to go, so keep it here
-                if (pair.Value == null || pair.Value is IDictionary<string, object> || pair.Value is IList<object>)
-                {
-                    continue;
-                }
-            }
-            else if (known.Contains(pair.Key))
-            {
-                continue;
-            }
-            if (result == null)
-            {
-                result = new Dictionary<string, object>();
-            }
-            result[pair.Key] = pair.Value;
-        }
-        return result;
-    }
-
     // safeOrder() / safeTrade() always attach a `fees` list next to the single `fee`.
     // Return null when the key is absent so the field stays null rather than becoming
     // a spurious empty list.
@@ -64,27 +33,6 @@ class Helper
             result.Add(row is Fee ? (Fee)row : new Fee(row));
         }
         return result;
-    }
-
-    // Undeclared source keys go into a copy of `info` so the typed struct does not drop them.
-    // A key already present in the raw info keeps the raw venue value.
-    public static Dictionary<string, object> GetInfoWithExtra(object data2, HashSet<string> known)
-    {
-        var info = GetInfo(data2);
-        var extra = GetExtra(data2, known);
-        if (extra == null)
-        {
-            return info;
-        }
-        info = info == null ? new Dictionary<string, object>() : new Dictionary<string, object>(info);
-        foreach (var pair in extra)
-        {
-            if (!info.ContainsKey(pair.Key))
-            {
-                info[pair.Key] = pair.Value;
-            }
-        }
-        return info;
     }
 
     public static Dictionary<string, object> GetInfo(object data2)
@@ -298,6 +246,16 @@ public struct Market
 
     public bool? index;
     public bool? stock;
+    public string? baseName;
+    public string? id2;
+    public Int64? instIdCode;
+    public Dictionary<string, object>? tiers;
+    public string? market;
+    public string? marketType;
+    public string? executionModel;
+    public string? collateral;
+    public bool? resolved;
+    public string? resolvedOutcome;
     public Market(object market2)
     {
         var market = (Dictionary<string, object>)market2;
@@ -336,6 +294,16 @@ public struct Market
         marginModes = market.ContainsKey("marginModes") ? new MarketMarginModes(market["marginModes"]) : null;
         index = market.ContainsKey("index") && market["index"] != null ? (bool)market["index"] : null;
         stock = market.ContainsKey("stock") && market["stock"] != null ? (bool)market["stock"] : null;
+        baseName = Exchange.SafeString(market, "baseName");
+        id2 = Exchange.SafeString(market, "id2");
+        instIdCode = Exchange.SafeInteger(market, "instIdCode");
+        tiers = Exchange.SafeValue(market, "tiers") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "tiers") : null;
+        this.market = Exchange.SafeString(market, "market");
+        marketType = Exchange.SafeString(market, "marketType");
+        executionModel = Exchange.SafeString(market, "executionModel");
+        collateral = Exchange.SafeString(market, "collateral");
+        resolved = market.ContainsKey("resolved") && market["resolved"] != null ? (bool)market["resolved"] : null;
+        resolvedOutcome = Exchange.SafeString(market, "resolvedOutcome");
     }
 }
 
@@ -357,14 +325,6 @@ public struct Trade
     // safeTrade() always sets a `fees` list alongside the single `fee`; without a
     // field for it the typed core would drop that data on the floor.
     public List<Fee>? fees;
-    // several venues (kraken, bybit, woo, hashkey, toobit, apex) put the raw venue order
-    // id on the trade as `orderId` next to the unified `order`.
-    public string? orderId;
-
-    private static readonly HashSet<string> TradeKeys = new HashSet<string> {
-        "amount", "price", "cost", "id", "order", "info", "timestamp", "datetime", "symbol", "type", "side", "takerOrMaker", "fee", "fees", "orderId",
-    };
-
     public Trade(object trade2)
     {
         var trade = (Dictionary<string, object>)trade2;
@@ -382,8 +342,7 @@ public struct Trade
         takerOrMaker = Exchange.SafeString(trade, "takerOrMaker");
         fee = trade.ContainsKey("fee") ? new Fee(trade["fee"]) : null;
         fees = Helper.GetFees(trade);
-        orderId = Exchange.SafeString(trade, "orderId");
-        info = Helper.GetInfoWithExtra(trade, TradeKeys);
+        info = Helper.GetInfo(trade);
     }
 }
 
@@ -421,22 +380,11 @@ public struct Order
     // safeOrder() always sets a `fees` list alongside the single `fee`; without a
     // field for it the typed core would drop that data on the floor.
     public List<Fee>? fees;
-    // keys several venues attach to the unified order that had no struct field, so a typed
-    // core dropped them: poloniex (hedged/leverage/marginMode), grvt (isMultiLeg/
-    // lastTradeTimeStamp), okx (trigger).
     public bool? hedged;
     public double? leverage;
     public string? marginMode;
-    public bool? isMultiLeg;
-    public Int64? lastTradeTimeStamp;
-    public bool? trigger;
     public IEnumerable<Trade>? trades;
     public Dictionary<string, object>? info;
-
-    private static readonly HashSet<string> OrderKeys = new HashSet<string> {
-        "id", "clientOrderId", "timestamp", "datetime", "lastTradeTimestamp", "lastUpdateTimestamp", "symbol", "type", "timeInForce", "side", "price", "cost", "average", "amount", "filled", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "remaining", "status", "reduceOnly", "postOnly", "fee", "fees", "hedged", "leverage", "marginMode", "isMultiLeg", "lastTradeTimeStamp", "trigger", "trades", "info",
-    };
-
     public Order(object order2)
     {
         var order = (Dictionary<string, object>)order2;
@@ -445,9 +393,6 @@ public struct Order
         hedged = Exchange.SafeValue(order, "hedged") != null ? (bool)Exchange.SafeValue(order, "hedged") : null;
         leverage = Exchange.SafeFloat(order, "leverage");
         marginMode = Exchange.SafeString(order, "marginMode");
-        isMultiLeg = Exchange.SafeValue(order, "isMultiLeg") != null ? (bool)Exchange.SafeValue(order, "isMultiLeg") : null;
-        lastTradeTimeStamp = Exchange.SafeInteger(order, "lastTradeTimeStamp");
-        trigger = Exchange.SafeValue(order, "trigger") != null ? (bool)Exchange.SafeValue(order, "trigger") : null;
         timestamp = Exchange.SafeInteger(order, "timestamp");
         datetime = Exchange.SafeString(order, "datetime");
         lastTradeTimestamp = Exchange.SafeInteger(order, "lastTradeTimestamp");
@@ -472,15 +417,13 @@ public struct Order
         reduceOnly = Exchange.SafeBool(order, "reduceOnly", false);
         postOnly = Exchange.SafeBool(order, "postOnly", false);
         fees = Helper.GetFees(order);
-        info = Helper.GetInfoWithExtra(order, OrderKeys);
+        info = Helper.GetInfo(order);
     }
 }
 
 public struct Ticker
 {
     public string? symbol;
-    // poloniex (and others) put the raw venue market id on the ticker next to `symbol`.
-    public string? id;
     public Int64? timestamp;
     public string? datetime;
     public double? high;
@@ -505,16 +448,10 @@ public struct Ticker
     public double? markPrice;
     public Dictionary<string, object> info;
 
-
-    private static readonly HashSet<string> TickerKeys = new HashSet<string> {
-        "symbol", "id", "timestamp", "datetime", "high", "low", "bid", "bidVolume", "ask", "askVolume", "vwap", "open", "close", "last", "previousClose", "change", "percentage", "average", "baseVolume", "quoteVolume", "indexPrice", "markPrice", "info",
-    };
-
     public Ticker(object ticker2)
     {
         var ticker = (Dictionary<string, object>)ticker2;
         symbol = Exchange.SafeString(ticker, "symbol");
-        id = Exchange.SafeString(ticker, "id");
         timestamp = Exchange.SafeInteger(ticker, "timestamp");
         datetime = Exchange.SafeString(ticker, "datetime");
         high = Exchange.SafeFloat(ticker, "high");
@@ -533,7 +470,7 @@ public struct Ticker
         average = Exchange.SafeFloat(ticker, "average");
         baseVolume = Exchange.SafeFloat(ticker, "baseVolume");
         quoteVolume = Exchange.SafeFloat(ticker, "quoteVolume");
-        info = Helper.GetInfoWithExtra(ticker, TickerKeys);
+        info = Helper.GetInfo(ticker);
         indexPrice = Exchange.SafeFloat(ticker, "indexPrice");
         markPrice = Exchange.SafeFloat(ticker, "markPrice");
     }
@@ -822,7 +759,6 @@ public struct Transaction
     public string? datetime;
     public Fee? fee;
     public bool? @internal;
-    public string? tokenSide;
 
     public Transaction(object transaction2)
     {
@@ -847,7 +783,6 @@ public struct Transaction
         datetime = Exchange.SafeString(transaction, "datetime");
         fee = Exchange.SafeValue(transaction, "fee") != null ? new Fee(Exchange.SafeValue(transaction, "fee")) : null;
         @internal = Exchange.SafeValue(transaction, "internal") != null ? (bool)Exchange.SafeValue(transaction, "internal") : null;
-        tokenSide = Exchange.SafeString(transaction, "tokenSide");
     }
 }
 
@@ -860,13 +795,8 @@ public struct OrderBook
     public Int64? timestamp;
     public string? datetime;
     public Int64? nonce;
-    // undeclared keys (and a dict `info`, if any) land here rather than being dropped
+    // the raw exchange response, when the parser kept one
     public Dictionary<string, object>? info;
-
-    private static readonly HashSet<string> OrderBookKeys = new HashSet<string> {
-        "bids", "asks", "symbol", "timestamp", "datetime", "nonce",
-    };
-
     public OrderBook(object orderbook2)
     {
         var orderbook = (IDictionary<string, object>)orderbook2;
@@ -876,7 +806,7 @@ public struct OrderBook
         timestamp = Exchange.SafeInteger(orderbook, "timestamp");
         datetime = Exchange.SafeString(orderbook, "datetime");
         nonce = Exchange.SafeInteger(orderbook, "nonce");
-        info = Helper.GetInfoWithExtra(orderbook, OrderBookKeys);
+        info = Helper.GetInfo(orderbook);
     }
 }
 
@@ -1092,14 +1022,7 @@ public struct DepositAddress
     public string address;
     public string? tag;
 
-
-    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
-    public Dictionary<string, object>? extra;
-
-    private static readonly HashSet<string> DepositAddressKeys = new HashSet<string> {
-        "info", "currency", "network", "address", "tag",
-    };
-
+    public string? note;
     public DepositAddress(object depositAddress2)
     {
         var depositAddress = (Dictionary<string, object>)depositAddress2;
@@ -1108,7 +1031,7 @@ public struct DepositAddress
         network = Exchange.SafeString(depositAddress, "network");
         address = Exchange.SafeString(depositAddress, "address");
         tag = Exchange.SafeString(depositAddress, "tag");
-        extra = Helper.GetExtra(depositAddress, DepositAddressKeys);
+        note = Exchange.SafeString(depositAddress, "note");
     }
 }
 
@@ -1448,21 +1371,6 @@ public struct FundingRateHistory
     public Int64? timestamp;
     public string? datetime;
     public double? fundingRate;
-    // coinbaseinternational (and others) emit the full funding-rate key set here, not just
-    // the {symbol, timestamp, fundingRate} triple the TS interface names.
-    public double? markPrice;
-    public double? indexPrice;
-    public double? interestRate;
-    public double? estimatedSettlePrice;
-    public Int64? fundingTimestamp;
-    public string? fundingDatetime;
-    public double? nextFundingRate;
-    public Int64? nextFundingTimestamp;
-    public string? nextFundingDatetime;
-    public double? previousFundingRate;
-    public Int64? previousFundingTimestamp;
-    public string? previousFundingDatetime;
-
     public FundingRateHistory(object fundingRateEntry)
     {
         info = Helper.GetInfo(fundingRateEntry);
@@ -1470,18 +1378,6 @@ public struct FundingRateHistory
         datetime = Exchange.SafeString(fundingRateEntry, "datetime");
         timestamp = Exchange.SafeInteger(fundingRateEntry, "timestamp");
         fundingRate = Exchange.SafeFloat(fundingRateEntry, "fundingRate");
-        markPrice = Exchange.SafeFloat(fundingRateEntry, "markPrice");
-        indexPrice = Exchange.SafeFloat(fundingRateEntry, "indexPrice");
-        interestRate = Exchange.SafeFloat(fundingRateEntry, "interestRate");
-        estimatedSettlePrice = Exchange.SafeFloat(fundingRateEntry, "estimatedSettlePrice");
-        fundingTimestamp = Exchange.SafeInteger(fundingRateEntry, "fundingTimestamp");
-        fundingDatetime = Exchange.SafeString(fundingRateEntry, "fundingDatetime");
-        nextFundingRate = Exchange.SafeFloat(fundingRateEntry, "nextFundingRate");
-        nextFundingTimestamp = Exchange.SafeInteger(fundingRateEntry, "nextFundingTimestamp");
-        nextFundingDatetime = Exchange.SafeString(fundingRateEntry, "nextFundingDatetime");
-        previousFundingRate = Exchange.SafeFloat(fundingRateEntry, "previousFundingRate");
-        previousFundingTimestamp = Exchange.SafeInteger(fundingRateEntry, "previousFundingTimestamp");
-        previousFundingDatetime = Exchange.SafeString(fundingRateEntry, "previousFundingDatetime");
     }
 }
 
@@ -1560,12 +1456,8 @@ public struct Position
     public Int64? lastUpdateTimestamp;
     public double? lastPrice;
     public double? percentage;
-    // documented unified position keys that had no struct field, so a typed core dropped
-    // them: `isolated` (30 fixtures), `exitPrice` (7), `marginType` (7 - the raw venue
-    // spelling several venues still emit alongside marginMode).
     public bool? isolated;
     public double? exitPrice;
-    public string? marginType;
 
     public Position(object position)
     {
@@ -1599,7 +1491,6 @@ public struct Position
         stopLossPrice = Exchange.SafeFloat(position, "stopLossPrice");
         isolated = Exchange.SafeValue(position, "isolated") != null ? (bool)Exchange.SafeValue(position, "isolated") : null;
         exitPrice = Exchange.SafeFloat(position, "exitPrice");
-        marginType = Exchange.SafeString(position, "marginType");
     }
 
 }
@@ -1881,10 +1772,7 @@ public struct FundingHistory
     public string? code;
     public string? symbol;
     public string? datetime;
-    public string? currency;
     public double? amount;
-    // several venues emit the funding `rate` (9 fixtures) and a `type` (2) next to the
-    // unified keys; without a field the typed core dropped them.
     public double? rate;
     public string? type;
 
@@ -1894,7 +1782,6 @@ public struct FundingHistory
         id = Exchange.SafeString(funding, "id");
         timestamp = Exchange.SafeInteger(funding, "timestamp");
         datetime = Exchange.SafeString(funding, "datetime");
-        currency = Exchange.SafeString(funding, "currency");
         amount = Exchange.SafeFloat(funding, "amount");
         code = Exchange.SafeString(funding, "code");
         symbol = Exchange.SafeString(funding, "symbol");
@@ -1923,7 +1810,6 @@ public struct Leverage
     public string? symbol;
     public string? marginMode;
 
-    public Int64? leverage;
     public double? longLeverage;
     public double? shortLeverage;
 
@@ -1932,7 +1818,6 @@ public struct Leverage
         info = Helper.GetInfo(levObj);
         symbol = Exchange.SafeString(levObj, "symbol");
         marginMode = Exchange.SafeString(levObj, "marginMode");
-        leverage = Exchange.SafeInteger(levObj, "leverage");
         longLeverage = Exchange.SafeFloat(levObj, "longLeverage");
         shortLeverage = Exchange.SafeFloat(levObj, "shortLeverage");
     }
@@ -2069,14 +1954,17 @@ public struct MarketInterface
     public bool? percentage;
     public bool? tierBased;
     public string? feeSide;
-
-    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
-    public Dictionary<string, object>? extra;
-
-    private static readonly HashSet<string> MarketInterfaceKeys = new HashSet<string> {
-        "info", "id", "uppercaseId", "lowercaseId", "symbol", "base", "quote", "baseId", "quoteId", "active", "type", "spot", "margin", "swap", "future", "option", "contract", "settle", "settleId", "contractSize", "linear", "inverse", "quanto", "expiry", "expiryDatetime", "strike", "optionType", "taker", "maker", "limits", "created", "precision", "marginModes", "numericId", "subType", "index", "stock", "prediction", "percentage", "tierBased", "feeSide",
-    };
-
+    public string? baseName;
+    public string? id2;
+    public Int64? instIdCode;
+    public Dictionary<string, object>? tiers;
+    public string? market;
+    public string? marketType;
+    public string? executionModel;
+    public string? collateral;
+    public bool? resolved;
+    public string? resolvedOutcome;
+    public List<PredictionOutcome>? outcomes;
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -2121,7 +2009,17 @@ public struct MarketInterface
         percentage = Exchange.SafeValue(market, "percentage") != null ? (bool)Exchange.SafeValue(market, "percentage") : null;
         tierBased = Exchange.SafeValue(market, "tierBased") != null ? (bool)Exchange.SafeValue(market, "tierBased") : null;
         feeSide = Exchange.SafeString(market, "feeSide");
-        extra = Helper.GetExtra(market, MarketInterfaceKeys);
+        baseName = Exchange.SafeString(market, "baseName");
+        id2 = Exchange.SafeString(market, "id2");
+        instIdCode = Exchange.SafeInteger(market, "instIdCode");
+        tiers = Exchange.SafeValue(market, "tiers") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "tiers") : null;
+        this.market = Exchange.SafeString(market, "market");
+        marketType = Exchange.SafeString(market, "marketType");
+        executionModel = Exchange.SafeString(market, "executionModel");
+        collateral = Exchange.SafeString(market, "collateral");
+        resolved = Exchange.SafeValue(market, "resolved") != null ? (bool)Exchange.SafeValue(market, "resolved") : null;
+        resolvedOutcome = Exchange.SafeString(market, "resolvedOutcome");
+        outcomes = Exchange.SafeValue(market, "outcomes") != null ? ((IEnumerable<object>)Exchange.SafeValue(market, "outcomes")).Select(x => new PredictionOutcome(x)).ToList() : null;
     }
 
 }
@@ -2159,14 +2057,8 @@ public struct Currency
     public CurrencyLimits? limits;
     public Dictionary<string, Network>? networks;
 
-
-    // venue-only source keys with no struct field; kept so the struct round-trips losslessly
-    public Dictionary<string, object>? extra;
-
-    private static readonly HashSet<string> CurrencyKeys = new HashSet<string> {
-        "info", "id", "code", "precision", "name", "fee", "active", "deposit", "withdraw", "numericId", "type", "margin", "limits", "networks",
-    };
-
+    public Dictionary<string, object>? fees;
+    public Int64? valueScale;
     public Currency(object currency)
     {
 
@@ -2194,7 +2086,8 @@ public struct Currency
             }
         }
 
-        extra = Helper.GetExtra(currency, CurrencyKeys);
+        fees = Exchange.SafeValue(currency, "fees") != null ? (Dictionary<string, object>)Exchange.SafeValue(currency, "fees") : null;
+        valueScale = Exchange.SafeInteger(currency, "valueScale");
     }
 }
 

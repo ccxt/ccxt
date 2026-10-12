@@ -2915,9 +2915,7 @@ class grvt(Exchange, ImplicitAPI):
             avgPrice = self.safe_string(avgPrices, primaryOrderIndex)
         timestamp = self.safe_integer_product(metadata, 'create_time', 0.000001)
         # const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        legsLength = len(legs)
         return self.safe_order({
-            'isMultiLeg': (legsLength > 1),
             'id': self.safe_string(order, 'order_id'),
             'clientOrderId': self.safe_string(metadata, 'client_order_id'),
             'timestamp': timestamp,

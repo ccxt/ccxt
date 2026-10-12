@@ -3353,7 +3353,6 @@ class hitbtc extends Exchange {
             'symbol' => $symbol,
             'notional' => null,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode,
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $entryPrice,
             'unrealizedPnl' => null,

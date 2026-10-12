@@ -54,15 +54,15 @@ public partial class blofin : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
-                { "fetchCurrencies", false },
-                { "fetchDeposit", false },
-                { "fetchDepositAddress", false },
+                { "fetchCurrencies", true },
+                { "fetchDeposit", true },
+                { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchDepositWithdrawFee", "emulated" },
-                { "fetchDepositWithdrawFees", false },
+                { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
@@ -119,7 +119,7 @@ public partial class blofin : Exchange
                 { "fetchTransfers", false },
                 { "fetchUnderlyingAssets", false },
                 { "fetchVolatilityHistory", false },
-                { "fetchWithdrawal", false },
+                { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
                 { "fetchWithdrawalWhitelist", false },
                 { "reduceMargin", false },
@@ -551,6 +551,9 @@ public partial class blofin : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "triggerPrice", false },
@@ -711,8 +714,12 @@ public partial class blofin : Exchange
                     { "MATIC", "Polygon POS" },
                     { "AVAXC", "AVAX C-Chain" },
                     { "ARBITRUM", "Arbitrum One" },
-                    { "OP", "Optimism" },
+                    { "OPTIMISM", "Optimism" },
                     { "KAIA", "KAIA" },
+                    { "PLASMA", "Plasma" },
+                } },
+                { "networkCodeAliases", new Dictionary<string, object>() {
+                    { "OP", "OPTIMISM" },
                 } },
                 { "networkPrefixes", new Dictionary<string, object>() {
                     { "TRC20", "Tron" },
@@ -733,8 +740,9 @@ public partial class blofin : Exchange
                     { "Polygon POS", "MATIC" },
                     { "AVAX C-Chain", "AVAXC" },
                     { "Arbitrum One", "ARBITRUM" },
-                    { "Optimism", "OP" },
+                    { "Optimism", "OPTIMISM" },
                     { "BSC", "BEP20" },
+                    { "Plasma", "PLASMA" },
                 } },
                 { "fetchOpenInterestHistory", new Dictionary<string, object>() {
                     { "timeframes", new Dictionary<string, object>() {
@@ -1806,10 +1814,9 @@ public partial class blofin : Exchange
         {
             clientOrderId = null; // fix empty clientOrderId string
         }
-        double? stopLossTriggerPrice = this.safeNumber(order, "slTriggerPrice");
-        double? stopLossPrice = this.safeNumber(order, "slOrderPrice");
-        double? takeProfitTriggerPrice = this.safeNumber(order, "tpTriggerPrice");
-        double? takeProfitPrice = this.safeNumber(order, "tpOrderPrice");
+        // unified stopLossPrice/takeProfitPrice are the trigger prices (createOrder sends them as sl/tpTriggerPrice)
+        double? stopLossPrice = this.safeNumber(order, "slTriggerPrice");
+        double? takeProfitPrice = this.safeNumber(order, "tpTriggerPrice");
         string? reduceOnlyRaw = this.safeString(order, "reduceOnly");
         bool reduceOnly = (reduceOnlyRaw == "true");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1826,8 +1833,6 @@ public partial class blofin : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopLossTriggerPrice", stopLossTriggerPrice },
-            { "takeProfitTriggerPrice", takeProfitTriggerPrice },
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "average", average },
@@ -2337,26 +2342,40 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit, paramsUntil));
     }
 
-    public virtual string? networkCodeToChainId(string? networkCode)
+    public virtual string? networkCodeToChainId(string? networkCode, object currency = null)
     {
+        IDictionary<string, object> aliases = this.safeDict(this.options, "networkCodeAliases", new Dictionary<string, object>() {});
+        string? unifiedCode = this.safeString(aliases, networkCode, networkCode);
+        // prefer the exact chain id from the currencies registry when it is
+        // loaded, since some ids are currency-specific (USDT on Optimism)
+        if ((currency != null))
+        {
+            IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+            IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, unifiedCode);
+            string? currencyNetworkId = this.safeString(currencyNetwork, "id");
+            if ((currencyNetworkId != null))
+            {
+                return currencyNetworkId;
+            }
+        }
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        string? direct = this.safeString(networks, networkCode);
+        string? direct = this.safeString(networks, unifiedCode);
         if ((direct != null))
         {
             return direct;
         }
         IDictionary<string, object> prefixes = this.safeDict(this.options, "networkPrefixes", new Dictionary<string, object>() {});
-        string? prefix = this.safeString(prefixes, networkCode);
+        string? prefix = this.safeString(prefixes, unifiedCode);
         if ((prefix != null))
         {
             IDictionary<string, object> suffixes = this.safeDict(this.options, "networkSuffixes", new Dictionary<string, object>() {});
-            string? suffix = this.safeString(suffixes, networkCode, networkCode);
+            string? suffix = this.safeString(suffixes, unifiedCode, unifiedCode);
             return ((((prefix + " ") + "(") + suffix) + ")");
         }
-        return ((string?)((object)(networkCode)));
+        return unifiedCode;
     }
 
     public virtual object chainIdToNetworkCode(string? chainId)
@@ -2379,12 +2398,379 @@ public partial class blofin : Exchange
             List<object> tailParts = tail.Split(new [] {")"}, StringSplitOptions.None).ToList<object>();
             string? suffix = this.safeString(tailParts, 0);
             IDictionary<string, object> bySuffix = this.safeDict(this.options, "networkCodesBySuffix", new Dictionary<string, object>() {});
-            return this.safeString(bySuffix, suffix, suffix);
+            string? suffixCode = this.safeString(bySuffix, suffix);
+            if ((suffixCode != null))
+            {
+                return suffixCode;
+            }
+            IDictionary<string, object> prefixes = this.safeDict(this.options, "networkPrefixes", new Dictionary<string, object>() {});
+            if (((suffix != null)) && (((suffix != null) && prefixes.ContainsKey(suffix))))
+            {
+                return suffix;
+            }
+            // the suffix is not always a chain: 'Optimism (USDT0)' carries
+            // the token name (verified live 2026-09-30), resolve by prefix
+            string? head = this.safeString(parts, 0, "");
+            return this.networkIdToCode(head.Trim());
         }
         // delegate the paren-free branch to the base resolver so the
         // currency-scoped networks and the deprecated-network-code aliases
         // keep applying alongside options['networksById']
         return this.networkIdToCode(chainId);
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.blofin.com/index.html#get-currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
+    {
+        // GET /asset/currencies is a private endpoint, while fetchCurrencies
+        // is invoked from loadMarkets - skip it when no credentials are set
+        // and on the demo host, which has no funding account
+        parameters ??= new Dictionary<string, object>();
+        if (!this.checkRequiredCredentials(false) || this.isSandboxModeEnabled)
+        {
+            return new Dictionary<string, object>() {};
+        }
+        Dictionary<string, object> response = await this.privateGetAssetCurrencies(parameters);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "chain": "TRC20",
+        //                 "depositMinAmount": "1",
+        //                 "depositUnsafeConfirmation": 1,
+        //                 "depositConfirmation": 20,
+        //                 "withdrawMinAmount": "10",
+        //                 "withdrawFee": "1",
+        //                 "withdrawPrecision": 8,
+        //                 "supportMemo": 0,
+        //                 "isDepositAvailable": 1,
+        //                 "isWithdrawAvailable": 1,
+        //                 "recoveryEtaDeposit": 0,
+        //                 "recoveryEtaWithdraw": 0,
+        //                 "logo": "https://example.com/usdt.png"
+        //             }
+        //         ]
+        //     }
+        //
+        // one row per currency + chain pair, group them per currency
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        Dictionary<string, object> dataByCurrencyId = this.groupBy(data, "currency");
+        List<object> currencies = new List<object>(dataByCurrencyId.Values);
+        return this.parseCurrencies(currencies);
+    }
+
+    public override Dictionary<string, object> parseCurrency(object currency)
+    {
+        object chains = currency;
+        IDictionary<string, object> firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
+        string? currencyId = this.safeString(firstChain, "currency");
+        string? code = this.safeCurrencyCode(currencyId);
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
+        int chainsLength = getArrayLength(chains);
+        for (int i = 0; i < chainsLength; i++)
+        {
+            IDictionary<string, object> chain = this.safeDict(chains, i);
+            string? networkId = this.safeString(chain, "chain");
+            string? networkCode = ((string)this.chainIdToNetworkCode(networkId));
+            if ((networkCode == null))
+            {
+                continue;
+            }
+            networks[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
+                { "active", null },
+                { "deposit", (this.safeInteger(chain, "isDepositAvailable") == 1) },
+                { "withdraw", (this.safeInteger(chain, "isWithdrawAvailable") == 1) },
+                { "fee", this.safeNumber(chain, "withdrawFee") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawPrecision"))) },
+                { "limits", new Dictionary<string, object>() {
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(chain, "depositMinAmount") },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(chain, "withdrawMinAmount") },
+                        { "max", null },
+                    } },
+                } },
+                { "info", chain },
+            };
+        }
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", chains },
+            { "code", code },
+            { "id", currencyId },
+            { "name", null },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "type", "crypto" },
+            { "networks", networks },
+        });
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.blofin.com/index.html#get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code, required unless the currency has a single network or a default in options['defaultNetworks']
+     * @param {string} [params.chain] the exchange-specific chain id, takes precedence over params.network
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> currency = this.currency(code);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
+        };
+        string? networkCode = null;
+        object query = null;
+        (string?, object) networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = networkCodequeryVariable.Item1;
+        query = networkCodequeryVariable.Item2;
+        string? chain = this.safeString(query, "chain");
+        if ((chain == null))
+        {
+            if ((networkCode == null))
+            {
+                IDictionary<string, object> networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+                List<object> networkKeys = new List<object>(networks.Keys);
+                int networkKeysLength = networkKeys.Count;
+                if ((networkKeysLength == 1))
+                {
+                    networkCode = this.safeString(networkKeys, 0);
+                } else
+                {
+                    IDictionary<string, object> defaultNetworks = this.safeDict(this.options, "defaultNetworks", new Dictionary<string, object>() {});
+                    networkCode = this.safeString(defaultNetworks, (currency.ContainsKey("code") ? currency["code"] : null));
+                }
+            }
+            if ((networkCode == null))
+            {
+                throw new ArgumentsRequired (((this.id + " fetchDepositAddress() requires a params[\"network\"] or params[\"chain\"] for ") + code)) ;
+            }
+            // the same display-name chain ids that withdrawal-apply and the currencies registry use
+            request["chain"] = this.networkCodeToChainId(networkCode, currency);
+        }
+        Dictionary<string, object> response = await this.privateGetAssetDepositAddress(this.extend(request, query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "chain": "TRC20",
+        //                 "address": "THmWeEJKyb976L76MvrTjeYMyNgiS9aKTu",
+        //                 "tag": ""
+        //             }
+        //         ]
+        //     }
+        //
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        IDictionary<string, object> first = this.safeDict(data, 0);
+        if ((first == null))
+        {
+            throw new InvalidAddress (((((this.id + " fetchDepositAddress() returned no address for ") + code) + " on ") + this.safeString(request, "chain", chain))) ;
+        }
+        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(first, currency));
+    }
+
+    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    {
+        string? address = this.safeString(depositAddress, "address");
+        string? currencyId = this.safeString(depositAddress, "currency");
+        string? networkId = this.safeString(depositAddress, "chain");
+        string? tag = this.safeString(depositAddress, "tag");
+        if (tag == "")
+        {
+            tag = null;
+        }
+        this.checkAddress(address);
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", this.chainIdToNetworkCode(networkId) },
+            { "address", address },
+            { "tag", tag },
+        };
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.blofin.com/index.html#get-currencies
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> response = await this.privateGetAssetCurrencies(parameters);
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        Dictionary<string, object> dataByCurrencyId = this.groupBy(data, "currency");
+        return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(dataByCurrencyId, codes));
+    }
+
+    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    {
+        //
+        // a list of GET /asset/currencies rows for one currency, see fetchCurrencies
+        //
+        Dictionary<string, object> result = this.depositWithdrawFee(fee);
+        int chainsLength = getArrayLength(fee);
+        for (int i = 0; i < chainsLength; i++)
+        {
+            IDictionary<string, object> chain = this.safeDict(fee, i);
+            string? networkCode = ((string)this.chainIdToNetworkCode(this.safeString(chain, "chain")));
+            if ((networkCode == null))
+            {
+                continue;
+            }
+            ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "fee", this.safeNumber(chain, "withdrawFee") },
+                    { "percentage", false },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", null },
+                } },
+            };
+        }
+        if ((chainsLength == 1))
+        {
+            // a single network means the currency-level fee is unambiguous
+            List<object> networkKeys = new List<object>(((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null)).Keys);
+            string? onlyNetwork = this.safeString(networkKeys, 0);
+            if ((onlyNetwork != null))
+            {
+                result["withdraw"] = getValue(getValue((result != null && result.ContainsKey("networks") ? result["networks"] : null), onlyNetwork), "withdraw");
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://docs.blofin.com/index.html#get-deposit-history
+     * @param {string} id deposit id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "depositId", id },
+        };
+        IDictionary<string, object> currency = null;
+        if ((code != null))
+        {
+            currency = this.currency(code);
+            request["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+        }
+        Dictionary<string, object> response = await this.privateGetAssetDepositHistory(this.extend(request, parameters));
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        // only accept a row that matches the requested id, in case the
+        // venue ignores the filter and returns the latest records instead
+        int dataLength = (data?.Count ?? 0);
+        for (int i = 0; i < dataLength; i++)
+        {
+            object entry = (data != null && i < data.Count ? data[i] : null);
+            if ((this.safeString(entry, "depositId") == id))
+            {
+                return ccxt.BaseExchange.ToTransaction(this.parseTransaction(entry, currency));
+            }
+        }
+        throw new ExchangeError (((this.id + " fetchDeposit() could not find deposit ") + id)) ;
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://docs.blofin.com/index.html#get-withdraw-history
+     * @param {string} id withdrawal id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? clientId = this.safeString(parameters, "clientId");
+        if (((id == null)) && ((clientId == null)))
+        {
+            throw new ArgumentsRequired ((this.id + " fetchWithdrawal() requires an id argument or a params[\"clientId\"]")) ;
+        }
+        await this.loadMarkets();
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        if ((id != null))
+        {
+            request["withdrawId"] = id;
+        }
+        IDictionary<string, object> currency = null;
+        if ((code != null))
+        {
+            currency = this.currency(code);
+            request["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+        }
+        Dictionary<string, object> response = await this.privateGetAssetWithdrawalHistory(this.extend(request, parameters));
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        // only accept a row that matches the requested id (or clientId), in
+        // case the venue ignores the filter and returns the latest records
+        int dataLength = (data?.Count ?? 0);
+        for (int i = 0; i < dataLength; i++)
+        {
+            object entry = (data != null && i < data.Count ? data[i] : null);
+            bool matches = false;
+            if ((id != null))
+            {
+                matches = ((this.safeString(entry, "withdrawId") == id));
+            } else
+            {
+                matches = ((this.safeString(entry, "clientId") == clientId));
+            }
+            if (matches)
+            {
+                return ccxt.BaseExchange.ToTransaction(this.parseTransaction(entry, currency));
+            }
+        }
+        object reference = ((id != null)) ? id : clientId;
+        throw new ExchangeError ((string)((this.id + " fetchWithdrawal() could not find withdrawal ") + (reference))) ;
     }
 
     /**
@@ -2457,7 +2843,7 @@ public partial class blofin : Exchange
         {
             if ((networkCode != null))
             {
-                request["chain"] = this.networkCodeToChainId(networkCode);
+                request["chain"] = this.networkCodeToChainId(networkCode, currency);
             } else if (dest == "onchain")
             {
                 throw new ArgumentsRequired ((this.id + " withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals")) ;

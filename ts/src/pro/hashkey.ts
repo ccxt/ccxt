@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -331,7 +331,7 @@ export default class hashkey extends hashkeyRest {
         const symbolValue: string = market['symbol'];
         const topic = 'depth';
         const messageHash = 'orderbook:' + symbolValue;
-        const orderbook: Ob = await this.wathPublic (market, topic, messageHash, params);
+        const orderbook: WsOrderBook = await this.wathPublic (market, topic, messageHash, params);
         return orderbook.limit ();
     }
 

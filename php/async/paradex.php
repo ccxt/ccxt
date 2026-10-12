@@ -438,7 +438,7 @@ class paradex extends Exchange {
                     ),
                     'fetchClosedOrders' => null, // todo
                     'fetchOHLCV' => array(
-                        'limit' => null, // todo by from/to
+                        'limit' => 1000, // todo by from/to
                     ),
                 ),
                 'swap' => array(
@@ -879,30 +879,28 @@ class paradex extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'symbol' => $market['id'],
         );
-        $now = $this->milliseconds();
+        $maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         $duration = $this->parse_timeframe($timeframe);
-        $until = $this->safe_integer_2($params, 'until', 'till', $now);
         $price = $this->safe_string($params, 'price');
         if ($price !== null) {
             $request['price_kind'] = $price;
         }
-        $paramsOmitted = $this->omit($params, array( 'until', 'till', 'price' ));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $params);
+        $hasEnd = (is_array($request) && array_key_exists('end_at' ?? '', $request));
+        $paramsOmitted = $this->omit($paramsUntil, array( 'price' ));
+        $limitResolved = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
         if ($since !== null) {
-            $request['start_at'] = $since;
-            if ($limit !== null) {
-                $request['end_at'] = $since . $duration * ($limit + 1) * 1000 - 1;
-            } else {
-                $request['end_at'] = $until;
+            $requestUntil['start_at'] = $since;
+            if (!$hasEnd) {
+                $requestUntil['end_at'] = $since . $duration * ($limitResolved + 1) * 1000 - 1;
             }
         } else {
-            $request['end_at'] = $until;
-            if ($limit !== null) {
-                $request['start_at'] = $until - $duration * ($limit + 1) * 1000 + 1;
-            } else {
-                $request['start_at'] = $until - $duration * 101 * 1000 + 1;
+            if (!$hasEnd) {
+                $requestUntil['end_at'] = $this->milliseconds();
             }
+            $requestUntil['start_at'] = $requestUntil['end_at'] - $duration * ($limitResolved + 1) * 1000 + 1;
         }
-        $response = Async\await($this->publicGetMarketsKlines($this->extend($request, $paramsOmitted)));
+        $response = Async\await($this->publicGetMarketsKlines($this->extend($requestUntil, $paramsOmitted)));
         //
         //     {
         //         "results": [
@@ -2666,9 +2664,11 @@ class paradex extends Exchange {
         //                 "realized_pnl": "0",
         //                 "unrealized_pnl": "-2.39677214",
         //                 "unrealized_funding_pnl": "-0.11214013",
+        //                 "leverage": "5",
         //                 "cost": "648.39960537",
         //                 "cost_usd": "648.529",
         //                 "cached_funding_index": "35202.1002351",
+        //                 "created_at": 1718947571560,
         //                 "last_updated_at": 1718950074249,
         //                 "last_fill_id": "1718947571560201703986670001",
         //                 "seq_no": 1718950074249176253,
@@ -2694,9 +2694,11 @@ class paradex extends Exchange {
         //         "realized_pnl": "0",
         //         "unrealized_pnl": "-2.39677214",
         //         "unrealized_funding_pnl": "-0.11214013",
+        //         "leverage": "5",
         //         "cost": "648.39960537",
         //         "cost_usd": "648.529",
         //         "cached_funding_index": "35202.1002351",
+        //         "created_at": 1718947571560,
         //         "last_updated_at": 1718950074249,
         //         "last_fill_id": "1718947571560201703986670001",
         //         "seq_no": 1718950074249176253,
@@ -2707,32 +2709,33 @@ class paradex extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market);
         $symbol = $marketResolved['symbol'];
         $side = $this->safe_string_lower($position, 'side');
-        $quantity = $this->safe_string($position, 'size');
-        if ($side !== 'long') {
-            $quantity = Precise::string_mul('-1', $quantity);
-        }
-        $timestamp = $this->safe_integer($position, 'time');
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        $quantity = Precise::string_abs($this->safe_string($position, 'size'));
+        $timestamp = $this->safe_integer($position, 'created_at');
         $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidation_price')));
+        // cost_usd is signed by side, the unified notional is a magnitude
+        $notionalString = Precise::string_abs($this->safe_string($position, 'cost_usd'));
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
             'symbol' => $symbol,
             'entryPrice' => $this->safe_number($position, 'average_entry_price'),
             'markPrice' => null,
-            'notional' => null,
-            'collateral' => $this->safe_number($position, 'cost'),
+            'notional' => $this->parse_number($notionalString),
+            'collateral' => null, // cross margin is held at the account level, the position payload only carries its cost
             'unrealizedPnl' => $this->safe_number($position, 'unrealized_pnl'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
             'contractSize' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'lastUpdateTimestamp' => $this->safe_integer($position, 'last_updated_at'),
             'hedged' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
             'initialMargin' => null,
             'initialMarginPercentage' => null,
-            'leverage' => null,
+            'leverage' => $this->safe_number($position, 'leverage'),
             'liquidationPrice' => $liquidationPrice,
             'marginRatio' => null,
             'marginMode' => null,

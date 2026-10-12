@@ -1,6 +1,6 @@
 [package]
 name = "ccxt"
-version = "4.5.84"
+version = "4.5.85"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed unified-method API (re-exports the ccxt-base engine)"
 license = "MIT"
@@ -62,7 +62,6 @@ coinbase = ["ccxt-base/coinbase"]
 coinbaseexchange = ["ccxt-base/coinbaseexchange"]
 coinbaseinternational = ["ccxt-base/coinbaseinternational"]
 coincheck = ["ccxt-base/coincheck"]
-coinex = ["ccxt-base/coinex"]
 coinmate = ["ccxt-base/coinmate"]
 coinone = ["ccxt-base/coinone"]
 coinsph = ["ccxt-base/coinsph"]
@@ -125,7 +124,7 @@ woofipro = ["ccxt-base/woofipro"]
 xt = ["ccxt-base/xt"]
 zaif = ["ccxt-base/zaif"]
 zebpay = ["ccxt-base/zebpay"]
-all = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "binancecoinm", "binanceus", "binanceusdm", "bingx", "bit2c", "bitbank", "bitbns", "bitfinex", "bitflyer", "bitget", "bithumb", "bitopro", "bitrue", "bitso", "bitstamp", "bitteam", "bittrade", "bitvavo", "blockchaincom", "blofin", "btcbox", "btcmarkets", "btcturk", "btse", "bullish", "bybit", "bybiteu", "bybitid", "bydfi", "cex", "coinbase", "coinbaseexchange", "coinbaseinternational", "coincheck", "coinex", "coinmate", "coinone", "coinsph", "coinspot", "cryptocom", "cryptomus", "deepcoin", "delta", "deribit", "derive", "digifinex", "dydx", "extended", "fmfwio", "foxbit", "gate", "gateeu", "gemini", "grvt", "hashkey", "hibachi", "hitbtc", "hollaex", "htx", "hyperliquid", "independentreserve", "indodax", "kraken", "krakenfutures", "kucoin", "kucoinfutures", "latoken", "lbank", "lighter", "luno", "mercado", "mexc", "modetrade", "mudrex", "myokx", "nado", "ndax", "okx", "okxus", "onetrading", "p2b", "pacifica", "paradex", "paymium", "phemex", "poloniex", "revolutx", "tokocrypto", "toobit", "upbit", "weex", "whitebit", "woo", "woofipro", "xt", "zaif", "zebpay"]
+all = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "binancecoinm", "binanceus", "binanceusdm", "bingx", "bit2c", "bitbank", "bitbns", "bitfinex", "bitflyer", "bitget", "bithumb", "bitopro", "bitrue", "bitso", "bitstamp", "bitteam", "bittrade", "bitvavo", "blockchaincom", "blofin", "btcbox", "btcmarkets", "btcturk", "btse", "bullish", "bybit", "bybiteu", "bybitid", "bydfi", "cex", "coinbase", "coinbaseexchange", "coinbaseinternational", "coincheck", "coinmate", "coinone", "coinsph", "coinspot", "cryptocom", "cryptomus", "deepcoin", "delta", "deribit", "derive", "digifinex", "dydx", "extended", "fmfwio", "foxbit", "gate", "gateeu", "gemini", "grvt", "hashkey", "hibachi", "hitbtc", "hollaex", "htx", "hyperliquid", "independentreserve", "indodax", "kraken", "krakenfutures", "kucoin", "kucoinfutures", "latoken", "lbank", "lighter", "luno", "mercado", "mexc", "modetrade", "mudrex", "myokx", "nado", "ndax", "okx", "okxus", "onetrading", "p2b", "pacifica", "paradex", "paymium", "phemex", "poloniex", "revolutx", "tokocrypto", "toobit", "upbit", "weex", "whitebit", "woo", "woofipro", "xt", "zaif", "zebpay"]
 # END GENERATED FEATURES
 
 [dependencies]
@@ -134,7 +133,7 @@ all = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "b
 # invocation compiles the whole generated surface at once (CI memory ceiling).
 # This `ccxt` crate re-exports ccxt-base at its root, so `ccxt::Value`,
 # `ccxt::exchanges::…`, `ccxt::runtime::…` resolve alongside the typed wrappers.
-ccxt-base = { path = "../ccxt-base", version = "4.5.84", features = ["engine"] }
+ccxt-base = { path = "../ccxt-base", version = "4.5.85", features = ["engine"] }
 
 # The generated typed wrappers (`src/exchanges/*_typed.rs`, `typed.rs`, emitted
 # by build/generateRustWrappers.ts) reference exactly one external crate

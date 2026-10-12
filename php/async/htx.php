@@ -31,7 +31,7 @@ class htx extends Exchange {
             'countries' => array( 'CN' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome100'],
-            'certified' => true,
+            'certified' => false,
             'version' => 'v1',
             'hostname' => 'api.huobi.pro', // api.testnet.huobi.pro
             'pro' => true,
@@ -2052,6 +2052,15 @@ class htx extends Exchange {
         $close = $this->safe_string($ticker, 'close');
         $baseVolume = $this->safe_string($ticker, 'amount');
         $quoteVolume = $this->safe_string($ticker, 'vol');
+        $marketResolved = $this->safe_dict($this->markets, $symbol, $market);
+        if ($this->safe_bool($marketResolved, 'contract') === true) {
+            // contract tickers count 'vol' in contracts
+            if ($this->safe_bool($marketResolved, 'linear') === true) {
+                $quoteVolume = $this->safe_string($ticker, 'trade_turnover');
+            } else {
+                $quoteVolume = Precise::string_mul($quoteVolume, $this->safe_string($marketResolved, 'contractSize'));
+            }
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -3443,6 +3452,9 @@ class htx extends Exchange {
 
     public function network_id_to_code(?string $networkId = null, ?string $currencyCode = null): ?string {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if ($networkId === null) {
+            return null;
+        }
         $keys = is_array($this->options['networkNamesByChainIds']) ? array_keys($this->options['networkNamesByChainIds']) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
@@ -6844,7 +6856,7 @@ class htx extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($transaction, 'created-at');
-        $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'));
+        $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'), $currency);
         $type = $this->safe_string($transaction, 'type');
         if ($type === 'withdraw') {
             $type = 'withdrawal';
@@ -6855,10 +6867,9 @@ class htx extends Exchange {
         }
         $networkId = $this->safe_string($transaction, 'chain');
         $txHash = $this->safe_string($transaction, 'tx-hash');
-        if ($txHash === null) {
-            throw new ExchangeError($this->id . ' parseTransaction() missing txHash');
-        }
-        if ($networkId === 'ETH' && mb_strpos($txHash, '0x') === false) {
+        // a freshly created withdrawal has no tx-hash yet, the create
+        // endpoint returns only { "status": "ok", "data": "<id>" }
+        if (($txHash !== null) && ($networkId === 'ETH') && (mb_strpos($txHash, '0x') === false)) {
             $txHash = '0x' . $txHash;
         }
         $subType = $this->safe_string($transaction, 'sub-type');

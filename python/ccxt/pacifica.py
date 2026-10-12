@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -77,7 +77,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'fetchCurrencies': False,
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
-                'fetchDeposits': False,
+                'fetchDeposits': True,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
@@ -117,11 +117,11 @@ class pacifica(Exchange, ImplicitAPI):
                 'fetchTime': None,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
-                'fetchTradingFees': False,
+                'fetchTradingFees': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
-                'fetchWithdrawals': False,
+                'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
@@ -2789,6 +2789,31 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_trading_fee(data, market)
 
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
+        """
+        fetch the trading fees for multiple markets, the account fee level applies to every market
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.account]: will default to walletAddress if not provided
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
+        """
+        if self.markets is None:
+            self.load_markets()
+        userAddress, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchTradingFees', params)
+        request = {
+            'account': userAddress,
+        }
+        response = self.publicGetAccount(self.extend(request, paramsOriginAndSingleAddress))
+        data = self.safe_dict(response, 'data', {})
+        result = {}
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            result[symbol] = self.parse_trading_fee(data, self.market(symbol))
+        return result
+
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #
         #   {
@@ -2989,6 +3014,96 @@ class pacifica(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
+        """
+        fetch all USDC deposits made to an account, spot asset deposits are not included
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+
+        :param str [code]: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.account]: will default to walletAddress if not provided
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        userAddress, paramsAddress = self.handle_origin_and_single_address('fetchDeposits', params)
+        request = {
+            'account': userAddress,
+        }
+        response = self.publicGetAccountBalanceHistory(self.extend(request, paramsAddress))
+        data = self.safe_list(response, 'data', [])
+        transactions = self.parse_transactions(data, self.safe_currency(code))
+        deposits = self.filter_by(transactions, 'type', 'deposit')
+        return self.filter_by_since_limit(deposits, since, limit, 'timestamp')
+
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
+        """
+        fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+
+        :param str [code]: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.account]: will default to walletAddress if not provided
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        userAddress, paramsAddress = self.handle_origin_and_single_address('fetchWithdrawals', params)
+        request = {
+            'account': userAddress,
+        }
+        response = self.publicGetAccountBalanceHistory(self.extend(request, paramsAddress))
+        data = self.safe_list(response, 'data', [])
+        transactions = self.parse_transactions(data, self.safe_currency(code))
+        withdrawals = self.filter_by(transactions, 'type', 'withdrawal')
+        return self.filter_by_since_limit(withdrawals, since, limit, 'timestamp')
+
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
+        #
+        #     {
+        #         "amount": "5000",
+        #         "balance": "5000",
+        #         "pending_balance": "0",
+        #         "event_type": "deposit",
+        #         "created_at": 1789199771373
+        #     }
+        #
+        timestamp = self.safe_integer(transaction, 'created_at')
+        types = {
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+        }
+        eventType = self.safe_string(transaction, 'event_type')
+        amount = self.safe_string(transaction, 'amount')
+        return {
+            'info': transaction,
+            'id': None,
+            'txid': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': None,
+            'address': None,
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'type': self.safe_string(types, eventType),
+            'amount': self.parse_number(Precise.string_abs(amount)),
+            'currency': self.safe_currency_code('USDC', currency),
+            'status': None,
+            'updated': None,
+            'comment': None,
+            'internal': None,
+            'fee': None,
+        }
+
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
@@ -3079,8 +3194,8 @@ class pacifica(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from *spot, swap*
-        :param str toAccount: account to transfer to *swap, spot or address*
+        :param str fromAccount: not used, funds are always sent from the account wallet, the origin address
+        :param str toAccount: the address of the subaccount or main account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
@@ -3144,7 +3259,7 @@ class pacifica(Exchange, ImplicitAPI):
 
     def create_sub_account(self, name: str, params: dict = {}):
         """
-        creates a sub-account under the main account
+        creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests(an agent_wallet header with a main-key signature is accepted)
 
         https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
 
@@ -3207,6 +3322,15 @@ class pacifica(Exchange, ImplicitAPI):
         return response
 
     def bind_agent_wallet(self, agentAddress: str, params: dict = {}) -> dict:
+        """
+        binds an agent wallet that can sign trading actions for the account
+
+        https://docs.pacifica.fi/api-documentation/api/signing/api-agent-keys
+
+        :param str agentAddress: the public key of the agent wallet
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'bind_agent_wallet'
         sigPayload = {
             'agent_wallet': agentAddress,
@@ -3215,12 +3339,23 @@ class pacifica(Exchange, ImplicitAPI):
         return self.privatePostAgentBind(self.extend(request, params))
 
     def create_api_key(self, params: dict = {}) -> dict:
+        """
+        creates an api key for the account
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'create_api_key'
         sigPayload = {}
         request = self.post_action_request(operationType, sigPayload, params)
         return self.privatePostAccountApiKeysCreate(self.extend(request, params))
 
     def revoke_api_key(self, apiKey: str, params: dict = {}) -> dict:
+        """
+        revokes an api key of the account
+        :param str apiKey: the api key to revoke
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'revoke_api_key'
         sigPayload = {
             'api_key': apiKey,
@@ -3229,12 +3364,27 @@ class pacifica(Exchange, ImplicitAPI):
         return self.privatePostAccountApiKeysRevoke(self.extend(request, params))
 
     def fetch_api_keys(self, params: dict = {}) -> dict:
+        """
+        fetches the api keys of the account
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'list_api_keys'
         sigPayload = {}
         request = self.post_action_request(operationType, sigPayload, params)
         return self.privatePostAccountApiKeys(self.extend(request, params))
 
     def approve_builder_code(self, builderCode: str, maxFeeRate: str, params: dict = {}) -> dict:
+        """
+        approves a builder code to charge fees on the account orders
+
+        https://docs.pacifica.fi/programs/builder-program
+
+        :param str builderCode: the builder code to approve
+        :param str maxFeeRate: the maximum fee rate the builder may charge
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'approve_builder_code'
         sigPayload = {
             'builder_code': builderCode,
@@ -3244,12 +3394,29 @@ class pacifica(Exchange, ImplicitAPI):
         return self.privatePostAccountBuilderCodesApprove(self.extend(request, params))
 
     def fetch_builder_approvals(self, address: str) -> list[dict]:
+        """
+        fetches the builder codes approved by an account
+
+        https://docs.pacifica.fi/programs/builder-program
+
+        :param str address: the account address
+        :returns dict[]: the api result
+        """
         request = {
             'account': address,
         }
         return self.publicGetAccountBuilderCodesApprovals(self.extend(request))
 
     def revoke_builder_code(self, builderCode: str, params: dict = {}) -> dict:
+        """
+        revokes a previously approved builder code
+
+        https://docs.pacifica.fi/programs/builder-program
+
+        :param str builderCode: the builder code to revoke
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'revoke_builder_code'
         sigPayload = {
             'builder_code': builderCode,

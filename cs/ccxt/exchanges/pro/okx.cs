@@ -52,10 +52,10 @@ public partial class okx : ccxt.okx
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
-                    { "ws", "wss://ws.okx.com:8443/ws/v5" },
+                    { "ws", "wss://ws.okx.com:443/ws/v5" },
                 } },
                 { "test", new Dictionary<string, object>() {
-                    { "ws", "wss://wspap.okx.com:8443/ws/v5" },
+                    { "ws", "wss://wspap.okx.com:443/ws/v5" },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
@@ -1470,6 +1470,28 @@ public partial class okx : ccxt.okx
             { "args", topics },
         };
         string? url = this.getUrl(depth, "public");
+        var client = this.client(url);
+        List<object> resyncTopics = new List<object>() {};
+        List<object> resyncHashes = new List<object>() {};
+        bool resyncNeeded = false;
+        for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
+        {
+            if ((this.safeString(client.subscriptions, messageHashes[i]) == "resync"))
+            {
+                // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+                resyncTopics.Add((topics != null && i < topics.Count ? topics[i] : null));
+                resyncHashes.Add(("unsubscribe:orderbook:" + ((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null))));
+                resyncNeeded = true;
+            }
+        }
+        if (resyncNeeded)
+        {
+            Dictionary<string, object> unsubscribeRequest = new Dictionary<string, object>() {
+                { "op", "unsubscribe" },
+                { "args", resyncTopics },
+            };
+            await this.watchMultiple(url, resyncHashes, unsubscribeRequest, resyncHashes);
+        }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiple(url, messageHashes, request, messageHashes));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -1762,8 +1784,8 @@ public partial class okx : ccxt.okx
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
                     if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                     {
-                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
-                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        ((IDictionary<string,object>)client.subscriptions)[(string)messageHash] = "resync";
                         break;
                     }
                     client.resolve(orderbook, messageHash);

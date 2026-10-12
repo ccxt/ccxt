@@ -7,7 +7,7 @@ import { NotSupported, ArgumentsRequired, ExchangeError } from '../base/errors.j
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate, List, IndexType, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -199,7 +199,7 @@ export default class blofin extends blofinRest {
         if (channelName !== 'books') {
             throw new NotSupported (this.id + ' ' + callerMethodName + '() at this moment ' + channelName + ' is not supported, coming soon');
         }
-        const orderbook: Ob = await this.watchMultipleWrapper (true, channelName, callerMethodName, symbols, paramsChannel);
+        const orderbook: WsOrderBook = await this.watchMultipleWrapper (true, channelName, callerMethodName, symbols, paramsChannel);
         return orderbook.limit ();
     }
 

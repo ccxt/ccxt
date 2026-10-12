@@ -1,7 +1,7 @@
 import bitvavoRest from '../bitvavo.js';
 import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bitvavo extends bitvavoRest {
     describe(): any;
     watchPublic(name: string, symbol: string, params?: Dict): Promise<any>;
@@ -175,7 +175,7 @@ export default class bitvavo extends bitvavoRest {
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;
     handleOrderBook(client: Client, message: Dict): void;
-    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<Ob | undefined>;
+    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<WsOrderBook | undefined>;
     handleOrderBookSnapshot(client: Client, message: Dict): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
     handleOrderBookSubscriptions(client: Client, message: Dict, marketIds: any[]): void;

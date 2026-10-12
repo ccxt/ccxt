@@ -822,9 +822,15 @@ class bitvavo(ccxt.async_support.bitvavo):
     def handle_order_book_subscription(self, client: Client, message: dict, subscription: dict):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
-        if symbol in self.orderbooks:
-            del self.orderbooks[symbol]
-        self.orderbooks[symbol] = self.order_book({}, limit)
+        limits = self.safe_dict(self.options, 'orderBookLimits', {})
+        storedLimit = self.safe_integer(limits, symbol)
+        if not (symbol in self.orderbooks) or (storedLimit != limit):
+            self.orderbooks[symbol] = self.order_book({}, limit)
+            limits[symbol] = limit
+            self.options['orderBookLimits'] = limits
+        orderbook = self.orderbooks[symbol]
+        orderbook['nonce'] = None
+        orderbook.cache = []
 
     def handle_order_book_subscriptions(self, client: Client, message: dict, marketIds: list[object]):
         name = 'book'

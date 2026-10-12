@@ -1407,7 +1407,12 @@ class okx extends Exchange {
                         'trailing' => true,
                         'iceberg' => true, // todo implement
                         'leverage' => false,
-                        'selfTradePrevention' => true, // todo implement
+                        'selfTradePrevention' => array(
+                            'EXPIRE_MAKER' => true,
+                            'EXPIRE_TAKER' => true,
+                            'EXPIRE_BOTH' => true,
+                            'NONE' => false, // okx enforces stp at the account level, it cannot be turned off
+                        ),
                         'marketBuyByCost' => true,
                         'marketBuyRequiresPrice' => false,
                     ),
@@ -3490,6 +3495,30 @@ class okx extends Exchange {
                 $request['slTriggerPxType'] = $slTriggerPxType;
             }
         }
+        // unified stp
+        $selfTradePrevention = null;
+        list($selfTradePrevention, $orderParams) = $this->handle_option_and_params($orderParams, 'createOrder', 'selfTradePrevention');
+        if ($selfTradePrevention !== null) {
+            $stpModes = array(
+                'EXPIRE_MAKER' => 'cancel_maker',
+                'EXPIRE_TAKER' => 'cancel_taker',
+                'EXPIRE_BOTH' => 'cancel_both',
+            );
+            $selfTradePreventionUpper = strtoupper($selfTradePrevention);
+            if ($selfTradePreventionUpper === 'NONE') {
+                throw new NotSupported($this->id . ' createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order');
+            }
+            $stpMode = $this->safe_string($stpModes, $selfTradePreventionUpper, strtolower($selfTradePrevention));
+            $algoOrderTypes = $this->safe_dict($this->options, 'algoOrderTypes', array());
+            $requestOrdType = $this->safe_string($request, 'ordType');
+            if (($requestOrdType !== null) && (is_array($algoOrderTypes) && array_key_exists($requestOrdType ?? '', $algoOrderTypes))) {
+                throw new NotSupported($this->id . ' createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint');
+            }
+            if (($stpMode === 'cancel_both') && ($requestOrdType === 'fok')) {
+                throw new InvalidOrder($this->id . ' createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders');
+            }
+            $request['stpMode'] = $stpMode;
+        }
         if ($clientOrderId === null) {
             $brokerId = $this->safe_string($this->options, 'brokerId');
             if ($brokerId !== null) {
@@ -3534,6 +3563,7 @@ class okx extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated', the default is 'cross'
          * @param {bool} [$params->rpiTakerAccess] true to $a taker $order match against retail $price improvement liquidity
          * @param {bool} [$params->rpiPxRound] *rpi orders only* true to round the $price outward to the nearest placeable non-crossing level
+         * @param {string} [$params->selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {

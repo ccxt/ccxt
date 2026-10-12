@@ -8,7 +8,7 @@ import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, FeeString, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
@@ -116,7 +116,7 @@ export default class woofipro extends woofiproRest {
             'topic': topic,
         };
         const message = this.extend (request, params);
-        const orderbook: Ob = await this.watchPublic (topic, message);
+        const orderbook: WsOrderBook = await this.watchPublic (topic, message);
         return orderbook.limit ();
     }
 

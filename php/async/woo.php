@@ -27,7 +27,7 @@ class woo extends Exchange {
             'countries' => array( 'KY' ), // Cayman Islands
             'rateLimit' => 100,
             'version' => 'v1',
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'hostname' => 'woox.io',
             'has' => array(
@@ -3277,7 +3277,7 @@ class woo extends Exchange {
         $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
         $currency = $this->safe_value($currencyRows, 0);
         $rows = $this->safe_list($currencyRows, 1, array());
-        return $this->parse_transactions($rows, $currency, $since, $limit, $params);
+        return $this->parse_transactions($rows, $currency, $since, $limit, $this->omit($params, 'tokenSide'));
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {

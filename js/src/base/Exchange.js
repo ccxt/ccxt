@@ -23,7 +23,7 @@ import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
-import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+import { WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import { totp } from './functions/totp.js';
 import { abiEncode, TypedDataEncoder } from './functions/ethabi.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
@@ -56,7 +56,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 export class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.84'; }
+    static { this.ccxtVersion = '4.5.85'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -8971,10 +8971,16 @@ export default class Exchange extends BaseExchange {
         // same broken state - previously the catch invoked loadOrderBook again,
         // recursing endlessly when the snapshot request kept failing, see
         // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
-        // instead, reject the watcher and drop the connection and the cached
+        // instead, reject the watcher, close and drop the connection and the cached
         // orderbook, so the next watchOrderBook () call resubscribes cleanly
         client.reject(error, messageHash);
-        delete this.clients[client.url];
+        if (client.error === undefined) {
+            client.error = error; // onClose must not treat this as a server disconnect
+        }
+        client.close();
+        if (this.clients[client.url] === client) {
+            delete this.clients[client.url];
+        }
         this.orderbooks[symbol] = this.orderBook(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {

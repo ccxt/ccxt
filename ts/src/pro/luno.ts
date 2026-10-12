@@ -6,7 +6,7 @@ import { ExchangeError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -184,7 +184,7 @@ export default class luno extends lunoRest {
             'api_key_secret': this.secret,
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook: Ob = await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         return orderbook.limit ();
     }
 
@@ -227,6 +227,7 @@ export default class luno extends lunoRest {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.indexedOrderBook ({});
         }
+        const orderbook = this.orderbooks[symbol];
         const asks = this.safeList (message, 'asks');
         if (asks === undefined) {
             const inSequence = this.isOrderBookDeltaInSequence (client, message, symbol);
@@ -236,14 +237,12 @@ export default class luno extends lunoRest {
         }
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            this.orderbooks[symbol] = this.indexedOrderBook (snapshot);
+            orderbook.reset (snapshot);
         } else {
-            const ob = this.orderbooks[symbol];
-            this.handleBookDelta (ob, message);
-            ob['timestamp'] = timestamp;
-            ob['datetime'] = this.iso8601 (timestamp);
+            this.handleBookDelta (orderbook, message);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger (message, 'sequence');
         orderbook['nonce'] = nonce;
         client.resolve (orderbook, messageHash);
@@ -282,7 +281,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    override handleBookDelta (orderbook: Ob, message: any) {
+    override handleBookDelta (orderbook: WsOrderBook, message: any) {
         //
         //  create
         //     {

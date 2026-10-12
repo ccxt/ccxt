@@ -8,7 +8,7 @@ import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order,
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, BadRequest, ExchangeError } from '../base/errors.js';
 import { jwt } from '../base/functions/rsa.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 //  ---------------------------------------------------------------------------
 
 export default class bithumb extends bithumbRest {
@@ -352,8 +352,9 @@ export default class bithumb extends bithumbRest {
             'close': this.safeString (ticker, 'closePrice'),
             'last': undefined,
             'previousClose': this.safeString (ticker, 'prevClosePrice'),
-            'change': this.safeString (ticker, 'chgAmt'),
-            'percentage': this.safeString (ticker, 'chgRate'),
+            // safeTicker derives change/percentage from open, matching the REST parser
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'value'),
@@ -399,7 +400,7 @@ export default class bithumb extends bithumbRest {
         } else {
             request = this.extend (request, paramsGeneration);
         }
-        const orderbook: Ob = await this.watch (url, messageHash, request, messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }
 
@@ -481,31 +482,13 @@ export default class bithumb extends bithumbRest {
         if (symbol === undefined) {
             return;
         }
-        const streamType = this.safeString (message, 'stream_type');
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const obLimit = this.safeInteger (options, 'limit', 1000);
-        if (!(symbol in this.orderbooks) || (streamType === 'SNAPSHOT')) {
+        if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ({}, obLimit);
         }
         const orderbook = this.orderbooks[symbol];
-        orderbook.reset ({});
-        orderbook['symbol'] = symbol;
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
         const units: Dict[] = this.safeList (message, 'orderbook_units', []);
-        for (let i = 0; i < units.length; i++) {
-            const entry = this.safeDict (units, i);
-            const bidPrice = this.safeNumber (entry, 'bid_price');
-            const bidSize = this.safeNumber (entry, 'bid_size');
-            const askPrice = this.safeNumber (entry, 'ask_price');
-            const askSize = this.safeNumber (entry, 'ask_size');
-            if ((bidPrice !== undefined) && (bidSize !== undefined)) {
-                bids.store (bidPrice, bidSize);
-            }
-            if ((askPrice !== undefined) && (askSize !== undefined)) {
-                asks.store (askPrice, askSize);
-            }
-        }
         const gen2TimestampStr = this.safeString2 (message, 'timestamp', 'datetime') as string;
         let timestamp: Int = undefined;
         if (gen2TimestampStr !== undefined) {
@@ -514,13 +497,28 @@ export default class bithumb extends bithumbRest {
         if (timestamp === undefined) {
             timestamp = this.milliseconds ();
         }
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
+        const bidsSnapshot: any[] = [];
+        const asksSnapshot: any[] = [];
+        for (let i = 0; i < units.length; i++) {
+            const entry = this.safeDict (units, i);
+            const bidPrice = this.safeNumber (entry, 'bid_price');
+            const bidSize = this.safeNumber (entry, 'bid_size');
+            const askPrice = this.safeNumber (entry, 'ask_price');
+            const askSize = this.safeNumber (entry, 'ask_size');
+            if ((bidPrice !== undefined) && (bidSize !== undefined)) {
+                bidsSnapshot.push ([ bidPrice, bidSize ]);
+            }
+            if ((askPrice !== undefined) && (askSize !== undefined)) {
+                asksSnapshot.push ([ askPrice, askSize ]);
+            }
+        }
+        const snapshot = this.parseOrderBook ({ 'bids': bidsSnapshot, 'asks': asksSnapshot }, symbol, timestamp);
+        orderbook.reset (snapshot);
         const messageHash = 'orderbook' + ':' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
-    override handleBookDelta (orderbook: Ob, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         //
         //    {
         //        symbol: "ETH_BTC",
@@ -540,7 +538,7 @@ export default class bithumb extends bithumbRest {
         orderbookSide.storeArray (bidAsk);
     }
 
-    override handleBookDeltas (orderbook: Ob, deltas: any) {
+    override handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleBookDelta (orderbook, deltas[i]);
         }

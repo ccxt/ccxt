@@ -2021,7 +2021,7 @@ class kraken(Exchange, ImplicitAPI):
         for i in range(0, len(rawTrades)):
             rawTrade = rawTrades[i]
             if isinstance(rawTrade, str):
-                trades.append(self.safe_trade({'id': rawTrade, 'orderId': id, 'symbol': symbol, 'info': {}}))
+                trades.append(self.safe_trade({'id': rawTrade, 'order': id, 'symbol': symbol, 'info': {}}))
             else:
                 trades.append(rawTrade)
         # as mentioned in #24192 PR, this field is not something consistent/actual

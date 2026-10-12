@@ -1,7 +1,7 @@
 import onetradingRest from '../onetrading.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class onetrading extends onetradingRest {
     describe(): any;
     /**
@@ -60,8 +60,8 @@ export default class onetrading extends onetradingRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
-    handleBookDelta(orderbook: Ob, delta: any): void;
-    handleBookDeltas(orderbook: Ob, deltas: any): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
+    handleBookDeltas(orderbook: WsOrderBook, deltas: any): void;
     /**
      * @method
      * @name onetrading#watchOrders

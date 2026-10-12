@@ -3505,9 +3505,7 @@ public partial class grvt : Exchange
         }
         Int64? timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        int legsLength = legs.Count;
         return this.safeOrder(new Dictionary<string, object>() {
-            { "isMultiLeg", (legsLength > 1) },
             { "id", this.safeString(order, "order_id") },
             { "clientOrderId", this.safeString(metadata, "client_order_id") },
             { "timestamp", timestamp },

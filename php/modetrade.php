@@ -2937,7 +2937,6 @@ class modetrade extends Exchange {
             'lastPrice' => null,
             'collateral' => null,
             'marginMode' => 'cross',
-            'marginType' => null,
             'side' => $side,
             'percentage' => null,
             'hedged' => null,

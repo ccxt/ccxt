@@ -7,7 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1449,7 +1449,7 @@ export default class kucoin extends kucoinRest {
             const paramsExtended = this.extend (paramsDepth, {
                 'depth': depth,
             });
-            const orderbook: Ob = await this.subscribePublicUta (messageHash, channel, symbolResolved, paramsExtended, subscription);
+            const orderbook: WsOrderBook = await this.subscribePublicUta (messageHash, channel, symbolResolved, paramsExtended, subscription);
             return orderbook.limit ();
         }
         return await this.watchOrderBookForSymbols ([ symbol ], limit, paramsUta);
@@ -1567,7 +1567,7 @@ export default class kucoin extends kucoinRest {
                 'limit': limit,
             };
         }
-        const orderbook: Ob = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, paramsMethod, subscription);
+        const orderbook: WsOrderBook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, paramsMethod, subscription);
         return orderbook.limit ();
     }
 
@@ -1812,7 +1812,7 @@ export default class kucoin extends kucoinRest {
         return cache.length;
     }
 
-    override handleBookDelta (orderbook: Ob, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         let timestamp = this.safeIntegerProduct (delta, 'M', 0.000001);
         if (timestamp === undefined) {
             timestamp = this.safeInteger2 (delta, 'time', 'timestamp');
@@ -1862,16 +1862,25 @@ export default class kucoin extends kucoinRest {
 
     handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict) {
         const limit = this.safeInteger (subscription, 'limit');
-        const symbols = this.safeList (subscription, 'symbols');
+        let symbols = this.safeList (subscription, 'symbols');
         if (symbols === undefined) {
-            const symbol = this.safeString (subscription, 'symbol');
-            this.orderbooks[(symbol as string)] = this.orderBook ({}, limit);
-        } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-            }
+            symbols = [ this.safeString (subscription, 'symbol') ];
         }
+        const limits = this.safeDict (this.options, 'orderBookLimits', {});
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const storedLimit = this.safeInteger (limits, symbol);
+            // reuse the existing book so user-held references keep updating; rebuild only if depth changed
+            if (!(symbol in this.orderbooks) || (storedLimit !== limit)) {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            } else {
+                const orderbook = this.orderbooks[symbol];
+                orderbook['nonce'] = undefined;
+                orderbook.cache = [];
+            }
+            limits[symbol] = limit;
+        }
+        this.options['orderBookLimits'] = limits;
         // moved snapshot initialization to handleOrderBook to fix
         // https://github.com/ccxt/ccxt/issues/6820
         // the general idea is to fetch the snapshot after the first delta

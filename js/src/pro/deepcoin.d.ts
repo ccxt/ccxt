@@ -1,7 +1,7 @@
 import deepcoinRest from '../deepcoin.js';
 import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class deepcoin extends deepcoinRest {
     describe(): any;
     ping(client: Client): Str;
@@ -112,8 +112,8 @@ export default class deepcoin extends deepcoinRest {
     orderBookSuffix(market: Market, methodName: string, params?: Dict): [Str, Dict];
     handleOrderBook(client: Client, message: Dict): void;
     handleOrderBookSnapshot(client: Client, message: Dict): void;
-    handleOrderBookMessage(client: Client, message: Dict, orderbook: Ob): void;
-    handleBookDelta(orderbook: Ob, entry: any): void;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): void;
+    handleBookDelta(orderbook: WsOrderBook, entry: any): void;
     /**
      * @method
      * @name deepcoin#watchMyTrades

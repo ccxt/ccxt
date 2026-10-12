@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.84'
+__version__ = '4.5.85'
 
 # -----------------------------------------------------------------------------
 
@@ -640,10 +640,13 @@ class BaseExchange(SyncExchange):
         # same broken state - previously the except-branch invoked load_order_book
         # again, recursing endlessly when the snapshot request kept failing, see
         # https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
-        # instead, reject the watcher and drop the connection and the cached
+        # instead, reject the watcher, close and drop the connection and the cached
         # orderbook, so the next watch_order_book() call resubscribes cleanly
         client.reject(error, messageHash)
-        if client.url in self.clients:
+        if client.error is None:
+            client.error = error  # on_close must not treat this as a server disconnect
+        asyncio.ensure_future(client.close())
+        if self.clients.get(client.url) is client:
             del self.clients[client.url]
         self.orderbooks[symbol] = self.order_book()  # clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
 

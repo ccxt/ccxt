@@ -8,7 +8,7 @@ import type { Bool, Dict, Fee, Int, Market, OHLCV, Order, OrderBook, Position, S
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -849,7 +849,7 @@ export default class backpack extends backpackRest {
             const topic = 'depth.' + marketId;
             topics.push (topic);
         }
-        const orderbook: Ob = await this.watchPublic (topics, messageHashes, params);
+        const orderbook: WsOrderBook = await this.watchPublic (topics, messageHashes, params);
         return orderbook.limit (); // todo check if limit is needed
     }
 
@@ -938,7 +938,7 @@ export default class backpack extends backpackRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleBookDelta (orderbook: Ob, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         const timestamp = this.parseToInt (this.safeInteger (delta, 'T', 0) / 1000);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);

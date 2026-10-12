@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadReques
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List, Fee, Market } from '../base/types.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
@@ -808,7 +808,7 @@ export default class kraken extends krakenRest {
                 throw new NotSupported (this.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only');
             }
         }
-        const orderbook: Ob = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, this.extend (requiredParams, params));
+        const orderbook: WsOrderBook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, this.extend (requiredParams, params));
         return orderbook.limit ();
     }
 
@@ -967,9 +967,9 @@ export default class kraken extends krakenRest {
         const b = this.safeList (first, 'bids', []);
         const c = this.safeInteger (first, 'checksum');
         const messageHash = this.getMessageHash ('orderbook', undefined, symbol);
-        let orderbook: Ob | undefined = undefined;
+        let orderbook: WsOrderBook | undefined = undefined;
         if (type === 'update') {
-            orderbook = this.orderbooks[symbol] as Ob;
+            orderbook = this.orderbooks[symbol] as WsOrderBook;
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             if (a !== undefined) {
@@ -984,9 +984,26 @@ export default class kraken extends krakenRest {
             orderbook['datetime'] = datetime;
         } else {
             // snapshot
-            const depth = a.length;
-            this.orderbooks[symbol] = this.orderBook ({}, depth);
-            orderbook = this.orderbooks[symbol] as Ob;
+            const subscription = this.safeDict (client.subscriptions, messageHash, {}) as Dict;
+            // size the book from the subscribed depth (10 by default), not from
+            // the level count of this snapshot: a thin market's snapshot can
+            // carry fewer levels than the subscription and must not cap the book
+            const limit = this.safeInteger (subscription, 'limit', 10);
+            const asksLength = a.length;
+            const depth = (asksLength > limit) ? asksLength : limit;
+            const depths = this.safeDict (this.options, 'wsOrderBookDepths', {}) as Dict;
+            const storedDepth = this.safeInteger (depths, symbol);
+            if (!(symbol in this.orderbooks) || (storedDepth !== depth)) {
+                // rebuild only on the first snapshot or when the depth changes,
+                // e.g. a re-subscription with a different limit
+                this.orderbooks[symbol] = this.orderBook ({}, depth);
+                depths[symbol] = depth;
+                this.options['wsOrderBookDepths'] = depths;
+            }
+            // reset in place so that references held by users keep receiving
+            // updates after a reconnect snapshot (a new object would orphan them)
+            orderbook = this.orderbooks[symbol] as WsOrderBook;
+            orderbook.reset ({});
             const keys = [ 'asks', 'bids' ];
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];

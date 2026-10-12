@@ -32,7 +32,7 @@ class onetrading extends Exchange {
                 'spot' => true,
                 'margin' => false,
                 'swap' => true,
-                'future' => false,
+                'future' => true,
                 'option' => false,
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
@@ -556,6 +556,25 @@ class onetrading extends Exchange {
         //      "state": "ACTIVE"
         //  }
         //
+        //  {
+        //      "base": { "code": "BTC", "precision": 8 },
+        //      "quote": { "code": "USD", "precision": 8 },
+        //      "amount_precision": 5,
+        //      "market_precision": 2,
+        //      "min_size": "10.0",
+        //      "min_price": "1000",
+        //      "max_price": "10000000",
+        //      "id": "BTC_USD_P",
+        //      "price_collar_percentage": "10",
+        //      "type": "DATED_FUTURE", // or EQUITY_FUTURE
+        //      "state": "ACTIVE",
+        //      "funding_period": 240,
+        //      "market_offset": 0,
+        //      "funding_schedule": { "type": "FIXED_INTERVAL", "period_minutes": 240 },
+        //      "contract_expiry_date": "2031-04-20",
+        //      "contract_duration": "5Y"
+        //  }
+        //
         $baseAsset = $this->safe_dict($market, 'base', array());
         $quoteAsset = $this->safe_dict($market, 'quote', array());
         $baseId = $this->safe_string($baseAsset, 'code');
@@ -569,32 +588,48 @@ class onetrading extends Exchange {
         $state = $this->safe_string($market, 'state');
         $type = $this->safe_string($market, 'type');
         $isPerp = $type === 'PERP';
+        $isFuture = ($type === 'DATED_FUTURE') || ($type === 'EQUITY_FUTURE');
+        $isContract = $isPerp || $isFuture;
+        $expiry = null;
+        $expiryDate = $this->safe_string($market, 'contract_expiry_date');
+        if ($expiryDate !== null) {
+            $expiry = $this->parse8601($expiryDate . 'T00:00:00Z');
+        }
         $symbol = $base . '/' . $quote;
-        if ($isPerp) {
+        if ($isContract) {
             $symbol = $symbol . ':' . $quote;
+            if ($isFuture && ($expiry !== null)) {
+                $symbol = $symbol . '-' . $this->yymmdd($expiry);
+            }
+        }
+        $marketType = 'spot';
+        if ($isPerp) {
+            $marketType = 'swap';
+        } elseif ($isFuture) {
+            $marketType = 'future';
         }
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
-            'settle' => $isPerp ? $quote : null,
+            'settle' => $isContract ? $quote : null,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'settleId' => $isPerp ? $quoteId : null,
-            'type' => $isPerp ? 'swap' : 'spot',
-            'spot' => !$isPerp,
+            'settleId' => $isContract ? $quoteId : null,
+            'type' => $marketType,
+            'spot' => !$isContract,
             'margin' => false,
             'swap' => $isPerp,
-            'future' => false,
+            'future' => $isFuture,
             'option' => false,
-            'active' => ($state === 'ACTIVE'),
-            'contract' => $isPerp,
-            'linear' => $isPerp ? true : null,
-            'inverse' => $isPerp ? false : null,
-            'contractSize' => $isPerp ? $this->parse_number('1') : null,
-            'expiry' => null,
-            'expiryDatetime' => null,
+            'active' => ($state === 'ACTIVE') || ($state === 'POST_ONLY'), // POST_ONLY markets accept maker orders and reject taker orders — deliberately flagged tradeable rather than hidden, ccxt has no partial-trading flag
+            'contract' => $isContract,
+            'linear' => $isContract ? true : null,
+            'inverse' => $isContract ? false : null,
+            'contractSize' => $isContract ? $this->parse_number('1') : null,
+            'expiry' => $expiry,
+            'expiryDatetime' => $this->iso8601($expiry),
             'strike' => null,
             'optionType' => null,
             'precision' => array(

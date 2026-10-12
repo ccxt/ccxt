@@ -122,35 +122,35 @@ func HelperBatchNetworkTests() {
 	var allNetworkCodes []any = []any{"ETH", "ERC20", "TRON", "TRX", "TRC20", "SOL", "BSC", "BEP20", "ARBITRUM", "AVAXC", "POL", "BASE", "SUI", "OPTIMISM", "OP", "NEAR", "CRO", "CRONOS", "BTC", "APT", "SCR", "KAVA", "TON", "Cardano", "ADA", "HECO", "HT", "MNT", "ALGO", "RUNE", "OSMO", "CELO", "HBAR", "FTM", "zkSync", "EraZK", "KLAY", "ACA", "STX", "XTZ", "NEO", "METIS"}
 	var allCurrencyCodes []any = []any{"Bitcoin", "BTC", "Ethereum", "ETH", "Tether", "USDT", "BNB", "BNB", "XRP", "XRP", "USDC", "USDC", "Solana", "SOL", "TRON", "TRX", "Dogecoin", "DOGE", "Hyperliquid", "HYPE", "Bitcoin Cash", "BCH", "Cardano", "ADA", "LEO", "Chainlink", "LINK", "Ethena", "USDe", "USDe", "Monero", "XMR", "Stellar", "XLM", "Dai", "DAI", "Litecoin", "LTC", "PayPal", "USD", "PYUSD", "Hedera", "HBAR", "Avalanche", "AVAX", "Zcash", "ZEC", "Bittensor", "TAO", "Sui", "SUI", "Shiba Inu", "SHIB", "Cronos", "CRO", "Toncoin", "TON", "WLFI", "Tether", "Gold", "XAUt", "", "PAX", "Gold", "PAXG", "Mantle", "MNT", "Uniswap", "UNI", "Polkadot", "DOT", "USDG", "OKB", "OKB", "Aster", "ASTER", "Aave", "AAVE", "NEAR", "NEAR", "Ripple", "USD", "RLUSD", "Polygon", "POL"}
 	for i := 0; i < len(allNetworkCodes); i++ {
-		var randomNetworkCode any = func() any {
+		var randomNetworkCode *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(allNetworkCodes) {
 				return ccxt.DerefScalar(allNetworkCodes[i])
 			}
 			return nil
-		}()
+		}())
 		for j := 0; j < len(allCurrencyCodes); j++ {
-			var randomCurrencyCode any = func() any {
+			var randomCurrencyCode *string = ccxt.SafeStringPtr(func() any {
 				if j >= 0 && j < len(allCurrencyCodes) {
 					return ccxt.DerefScalar(allCurrencyCodes[j])
 				}
 				return nil
-			}()
-			var result any = exchange.NetworkIdToCode(randomNetworkCode, randomCurrencyCode)
+			}())
+			var result *string = exchange.NetworkIdToCode(randomNetworkCode, randomCurrencyCode)
 			var keys []string = ccxt.ObjectKeys(defaultNetworkCodeReplacements)
 			for k := 0; k < len(keys); k++ {
-				var chainBaseCoin string = ccxt.GetValue(keys, k).(string)
-				var chainMapping any = ccxt.GetValue(defaultNetworkCodeReplacements, chainBaseCoin)
-				var primaryNetworkCode any = ccxt.GetValue(chainMapping, "primary")
-				var secondaryNetworkCode any = ccxt.GetValue(chainMapping, "secondary")
-				var msg any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("network protocol test failed for networkCode:", randomNetworkCode), " & currencyCode: "), randomCurrencyCode), ", result: "), result), ", expected: ")
+				var chainBaseCoin string = keys[k]
+				var chainMapping map[string]any = ccxt.MapTyped(ccxt.GetValue(defaultNetworkCodeReplacements, chainBaseCoin))
+				var primaryNetworkCode any = chainMapping["primary"]
+				var secondaryNetworkCode any = chainMapping["secondary"]
+				var msg any = ccxt.Add(ccxt.Add("network protocol test failed for networkCode:"+*randomNetworkCode+" & currencyCode: "+*randomCurrencyCode+", result: ", result), ", expected: ")
 				if ccxt.IsEqual(randomNetworkCode, primaryNetworkCode) {
-					if randomCurrencyCode == chainBaseCoin {
+					if randomCurrencyCode != nil && *randomCurrencyCode == chainBaseCoin {
 						assert(ccxt.IsEqual(result, primaryNetworkCode), ccxt.Add(msg, primaryNetworkCode))
 					} else {
 						assert(ccxt.IsEqual(result, secondaryNetworkCode), ccxt.Add(msg, secondaryNetworkCode))
 					}
 				} else if ccxt.IsEqual(randomNetworkCode, secondaryNetworkCode) {
-					if randomCurrencyCode == chainBaseCoin {
+					if randomCurrencyCode != nil && *randomCurrencyCode == chainBaseCoin {
 						assert(ccxt.IsEqual(result, primaryNetworkCode), ccxt.Add(msg, primaryNetworkCode))
 					} else {
 						assert(ccxt.IsEqual(result, secondaryNetworkCode), ccxt.Add(msg, secondaryNetworkCode))

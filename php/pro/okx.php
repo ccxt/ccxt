@@ -63,10 +63,10 @@ class okx extends \ccxt\async\okx {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://ws.okx.com:8443/ws/v5',
+                    'ws' => 'wss://ws.okx.com:443/ws/v5',
                 ),
                 'test' => array(
-                    'ws' => 'wss://wspap.okx.com:8443/ws/v5',
+                    'ws' => 'wss://wspap.okx.com:443/ws/v5',
                 ),
             ),
             'options' => array(
@@ -1393,6 +1393,25 @@ class okx extends \ccxt\async\okx {
             'args' => $topics,
         );
         $url = $this->get_url($depth, 'public');
+        $client = $this->client($url);
+        $resyncTopics = array();
+        $resyncHashes = array();
+        $resyncNeeded = false;
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            if ($this->safe_string($client->subscriptions, $messageHashes[$i]) === 'resync') {
+                // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+                $resyncTopics[] = $topics[$i];
+                $resyncHashes[] = 'unsubscribe:orderbook:' . $symbolsNormalized[$i];
+                $resyncNeeded = true;
+            }
+        }
+        if ($resyncNeeded) {
+            $unsubscribeRequest = array(
+                'op' => 'unsubscribe',
+                'args' => $resyncTopics,
+            );
+            Async\await($this->watch_multiple($url, $resyncHashes, $unsubscribeRequest, $resyncHashes));
+        }
         $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
         return $orderbook->limit();
     }
@@ -1661,8 +1680,8 @@ class okx extends \ccxt\async\okx {
                     $update = $data[$i];
                     $this->handle_order_book_message($client, $update, $orderbook, $messageHash, $market);
                     if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
-                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
-                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        $client->subscriptions[$messageHash] = 'resync';
                         break;
                     }
                     $client->resolve($orderbook, $messageHash);

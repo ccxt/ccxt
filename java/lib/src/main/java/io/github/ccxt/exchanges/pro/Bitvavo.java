@@ -1064,11 +1064,17 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     {
         String symbol = this.safeString(subscription, "symbol");
         Long limit = this.safeInteger(subscription, "limit");
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        Map<String, Object> limits = (Map<String, Object>) this.safeDict(this.options, "orderBookLimits", new HashMap<String, Object>() {{}});
+        Long storedLimit = this.safeInteger(limits, symbol);
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || ((storedLimit == null || limit == null || storedLimit != limit)))
         {
-            ((Map<String,Object>)this.orderbooks).remove((String)((String)symbol));
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            Helpers.addElementToObject(limits, symbol, limit);
+            Helpers.addElementToObject(this.options, "orderBookLimits", limits);
         }
-        Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        orderbook.put("nonce", null);
+        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
     }
 
     public void handleOrderBookSubscriptions(Client client, Map<String, Object> message, Object marketIds)
@@ -1830,21 +1836,6 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         });
 
     }
-    //                market: '1INCH-EUR',
-    //                status: 'trading',
-    //                base: '1INCH',
-    //                quote: 'EUR',
-    //                pricePrecision: 5,
-    //                minOrderInBaseAsset: '2',
-    //                minOrderInQuoteAsset: '5',
-    //                maxOrderInBaseAsset: '1000000000',
-    //                maxOrderInQuoteAsset: '1000000000',
-    //                orderTypes: [Array]
-    //            },
-    //            ...
-    //        ]
-    //    }
-    //
     public CompletableFuture<Object> fetchMarketsWs(Map<String, Object> parameters)
     {
         return this.fetchMarketsWs((Object) (parameters));

@@ -8,7 +8,7 @@ import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
 import type { Balances, Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Market, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
@@ -120,7 +120,7 @@ export default class modetrade extends modetradeRest {
             'topic': topic,
         };
         const message = this.extend (request, params);
-        const orderbook: Ob = await this.watchPublic (topic, message);
+        const orderbook: WsOrderBook = await this.watchPublic (topic, message);
         return orderbook.limit ();
     }
 

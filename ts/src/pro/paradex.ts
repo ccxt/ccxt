@@ -5,7 +5,7 @@ import paradexRest from '../paradex.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -184,7 +184,7 @@ export default class paradex extends paradexRest {
                 'channel': messageHash,
             },
         };
-        const orderbook: Ob = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         return orderbook.limit ();
     }
 

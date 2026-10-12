@@ -7,7 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import type { Bool, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -198,7 +198,7 @@ export default class nado extends nadoRest {
             const snapshot = await this.fetchOrderBook (symbol, limit);
             this.orderbooks[market['symbol']] = this.orderBook (snapshot, limit);
         }
-        const orderbook: Ob = await this.watchPublic ('book_depth', market, messageHash, params);
+        const orderbook: WsOrderBook = await this.watchPublic ('book_depth', market, messageHash, params);
         return orderbook.limit ();
     }
 
@@ -246,7 +246,7 @@ export default class nado extends nadoRest {
                 this.orderbooks[market['symbol']] = this.orderBook (snapshot, limit);
             }
         }
-        const orderbook: Ob = await this.watchPublicMultiple ('book_depth', markets, messageHashes, params);
+        const orderbook: WsOrderBook = await this.watchPublicMultiple ('book_depth', markets, messageHashes, params);
         return orderbook.limit ();
     }
 

@@ -653,7 +653,6 @@ class bitfinex(Exchange, ImplicitAPI):
         response = self.publicGetConfConfig(self.extend(request, params))
         spotMarketsInfo = self.safe_list(response, 0, [])
         futuresMarketsInfo = self.safe_list(response, 1, [])
-        securitiesMarketsIds = self.safe_list(response, 2, [])
         marginIds = self.safe_list(response, 3, [])
         markets = self.array_concat(spotMarketsInfo, futuresMarketsInfo)
         result = []
@@ -708,7 +707,6 @@ class bitfinex(Exchange, ImplicitAPI):
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'tradfi': self.in_array(id, securitiesMarketsIds),
                 'margin': (spot and self.in_array(id, marginIds)),
                 'swap': swap,
                 'future': False,
@@ -3270,7 +3268,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def parse_funding_rate_history(self, contract: object, market: Market = None):
+    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
         #
         # [
         #     1691165494000,
@@ -3299,25 +3297,12 @@ class bitfinex(Exchange, ImplicitAPI):
         # ]
         #
         timestamp = self.safe_integer(contract, 0)
-        nextFundingTimestamp = self.safe_integer(contract, 7)
         return {
             'info': contract,
             'symbol': self.safe_symbol(None, market),
-            'markPrice': self.safe_number(contract, 14),
-            'indexPrice': self.safe_number(contract, 2),
-            'interestRate': None,
-            'estimatedSettlePrice': None,
+            'fundingRate': self.safe_number(contract, 11),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': self.safe_number(contract, 11),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
-            'nextFundingRate': self.safe_number(contract, 8),
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
-            'previousFundingRate': None,
-            'previousFundingTimestamp': None,
-            'previousFundingDatetime': None,
         }
 
     def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:

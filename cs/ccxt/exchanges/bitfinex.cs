@@ -872,7 +872,6 @@ public partial class bitfinex : Exchange
         List<object> response = await this.publicGetConfConfig(this.extend(request, parameters));
         List<object> spotMarketsInfo = this.safeList(response, 0, new List<object>() {});
         List<object> futuresMarketsInfo = this.safeList(response, 1, new List<object>() {});
-        List<object> securitiesMarketsIds = this.safeList(response, 2, new List<object>() {});
         List<object> marginIds = this.safeList(response, 3, new List<object>() {});
         List<object> markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
         List<object> result = new List<object>() {};
@@ -938,7 +937,6 @@ public partial class bitfinex : Exchange
                 { "settleId", settleId },
                 { "type", type },
                 { "spot", spot },
-                { "tradfi", this.inArray(id, securitiesMarketsIds) },
                 { "margin", (spot && this.inArray(id, marginIds)) },
                 { "swap", swap },
                 { "future", false },
@@ -4009,25 +4007,12 @@ public partial class bitfinex : Exchange
         // ]
         //
         Int64? timestamp = this.safeInteger(contract, 0);
-        Int64? nextFundingTimestamp = this.safeInteger(contract, 7);
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(null, market) },
-            { "markPrice", this.safeNumber(contract, 14) },
-            { "indexPrice", this.safeNumber(contract, 2) },
-            { "interestRate", null },
-            { "estimatedSettlePrice", null },
+            { "fundingRate", this.safeNumber(contract, 11) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "fundingRate", this.safeNumber(contract, 11) },
-            { "fundingTimestamp", null },
-            { "fundingDatetime", null },
-            { "nextFundingRate", this.safeNumber(contract, 8) },
-            { "nextFundingTimestamp", nextFundingTimestamp },
-            { "nextFundingDatetime", this.iso8601(nextFundingTimestamp) },
-            { "previousFundingRate", null },
-            { "previousFundingTimestamp", null },
-            { "previousFundingDatetime", null },
         };
     }
 

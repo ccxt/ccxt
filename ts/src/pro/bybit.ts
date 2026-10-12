@@ -8,7 +8,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableList, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -673,7 +673,7 @@ export default class bybit extends bybitRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbolsValue);
     }
 
-    parseWsBidAsk (orderbook: Ob, market: Market = undefined): Ticker {
+    parseWsBidAsk (orderbook: WsOrderBook, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (orderbook, 'timestamp');
         const bids = this.sortBy (this.aggregate (orderbook['bids']), 0);
         const asks = this.sortBy (this.aggregate (orderbook['asks']), 0);
@@ -951,7 +951,7 @@ export default class bybit extends bybitRest {
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
         }
-        const orderbook: Ob = await this.watchTopics (url, messageHashes, topics, paramsValue);
+        const orderbook: WsOrderBook = await this.watchTopics (url, messageHashes, topics, paramsValue);
         return orderbook.limit ();
     }
 

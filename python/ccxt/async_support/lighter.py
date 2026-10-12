@@ -2991,6 +2991,9 @@ class lighter(Exchange, ImplicitAPI):
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         }
+        if symbol is not None:
+            market = self.market(symbol)
+            signRaw['cancel_all_market_index'] = self.parse_to_int(market['id'])
         txType, txInfo = self.lighter_sign_cancel_all_orders(signer, self.extend(signRaw, paramsAccountIndex))
         return [txType, txInfo]
 

@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.84';
+$version = '4.5.85';
 
 class BaseExchange extends \ccxt\BaseExchange {
 
-    const VERSION = '4.5.84';
+    const VERSION = '4.5.85';
 
     public $browser;
     public $marketsLoading = null;
@@ -2199,7 +2199,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->extend($cleanStructure);
     }
 
-    public function set_markets(mixed $markets, $currencies = null) {
+    public function set_markets(mixed $markets, mixed $currencies = null) {
         $values = array();
         $this->markets_by_id = $this->create_safe_dictionary();
         // handle marketId conflicts

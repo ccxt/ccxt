@@ -639,7 +639,6 @@ class bitfinex extends Exchange {
         $response = $this->publicGetConfConfig($this->extend($request, $params));
         $spotMarketsInfo = $this->safe_list($response, 0, array());
         $futuresMarketsInfo = $this->safe_list($response, 1, array());
-        $securitiesMarketsIds = $this->safe_list($response, 2, array());
         $marginIds = $this->safe_list($response, 3, array());
         $markets = $this->array_concat($spotMarketsInfo, $futuresMarketsInfo);
         $result = array();
@@ -698,7 +697,6 @@ class bitfinex extends Exchange {
                 'settleId' => $settleId,
                 'type' => $type,
                 'spot' => $spot,
-                'tradfi' => $this->in_array($id, $securitiesMarketsIds),
                 'margin' => ($spot && $this->in_array($id, $marginIds)),
                 'swap' => $swap,
                 'future' => false,
@@ -3450,7 +3448,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
         //
         // [
         //     1691165494000,
@@ -3479,25 +3477,12 @@ class bitfinex extends Exchange {
         // ]
         //
         $timestamp = $this->safe_integer($contract, 0);
-        $nextFundingTimestamp = $this->safe_integer($contract, 7);
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol(null, $market),
-            'markPrice' => $this->safe_number($contract, 14),
-            'indexPrice' => $this->safe_number($contract, 2),
-            'interestRate' => null,
-            'estimatedSettlePrice' => null,
+            'fundingRate' => $this->safe_number($contract, 11),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fundingRate' => $this->safe_number($contract, 11),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
-            'nextFundingRate' => $this->safe_number($contract, 8),
-            'nextFundingTimestamp' => $nextFundingTimestamp,
-            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
-            'previousFundingRate' => null,
-            'previousFundingTimestamp' => null,
-            'previousFundingDatetime' => null,
         );
     }
 

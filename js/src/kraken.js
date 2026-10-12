@@ -2103,7 +2103,7 @@ export default class kraken extends Exchange {
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
             if (typeof rawTrade === 'string') {
-                trades.push(this.safeTrade({ 'id': rawTrade, 'orderId': id, 'symbol': symbol, 'info': {} }));
+                trades.push(this.safeTrade({ 'id': rawTrade, 'order': id, 'symbol': symbol, 'info': {} }));
             }
             else {
                 trades.push(rawTrade);

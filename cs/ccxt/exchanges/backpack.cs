@@ -1144,6 +1144,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        int duration = this.parseTimeframe(timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
@@ -1163,7 +1164,6 @@ public partial class backpack : Exchange
         }
         if ((since == null))
         {
-            int duration = this.parseTimeframe(timeframeVar);
             Int64? endTime = (!(until == null) && !(until == null) && !(until == 0)) ? this.parseToInt(((double?)until / 1000)) : this.seconds();
             Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
             object startTime = subtract(endTime, ((windowLimit * duration)));
@@ -1171,6 +1171,14 @@ public partial class backpack : Exchange
         } else
         {
             request["startTime"] = this.parseToInt(((double?)since / 1000)); // convert milliseconds to seconds
+        }
+        if ((until == null))
+        {
+            Int64 currentMs = this.seconds(); // default to current time in seconds
+            Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
+            object windowEnd = this.sum((request != null && request.ContainsKey("startTime") ? request["startTime"] : null), (windowLimit * duration)); // sum (): `+` on a dict value is string concatenation in php
+            object minTimestamp = mathMin(currentMs, windowEnd);
+            request["endTime"] = this.parseToInt(minTimestamp); // default to current time in seconds if until is not specified
         }
         string? price = this.safeString(paramsUntil, "price");
         object paramsOmitted = ((price != null)) ? this.omit(paramsUntil, "price") : paramsUntil;

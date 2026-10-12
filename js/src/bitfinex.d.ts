@@ -387,25 +387,7 @@ export default class bitfinex extends Exchange {
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
-    parseFundingRateHistory(contract: any, market?: Market): {
-        info: any;
-        symbol: string;
-        markPrice: Num;
-        indexPrice: Num;
-        interestRate: undefined;
-        estimatedSettlePrice: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
-        fundingRate: Num;
-        fundingTimestamp: undefined;
-        fundingDatetime: undefined;
-        nextFundingRate: Num;
-        nextFundingTimestamp: Int;
-        nextFundingDatetime: string | undefined;
-        previousFundingRate: undefined;
-        previousFundingTimestamp: undefined;
-        previousFundingDatetime: undefined;
-    };
+    parseFundingRateHistory(contract: any, market?: Market): FundingRateHistory;
     /**
      * @method
      * @name bitfinex#fetchOpenInterests

@@ -23,7 +23,7 @@ export default class htx extends Exchange {
             'countries': ['CN'],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome100'],
-            'certified': true,
+            'certified': false,
             'version': 'v1',
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
@@ -2020,7 +2020,17 @@ export default class htx extends Exchange {
         const open = this.safeString(ticker, 'open');
         const close = this.safeString(ticker, 'close');
         const baseVolume = this.safeString(ticker, 'amount');
-        const quoteVolume = this.safeString(ticker, 'vol');
+        let quoteVolume = this.safeString(ticker, 'vol');
+        const marketResolved = this.safeDict(this.markets, symbol, market);
+        if (this.safeBool(marketResolved, 'contract') === true) {
+            // contract tickers count 'vol' in contracts
+            if (this.safeBool(marketResolved, 'linear') === true) {
+                quoteVolume = this.safeString(ticker, 'trade_turnover');
+            }
+            else {
+                quoteVolume = Precise.stringMul(quoteVolume, this.safeString(marketResolved, 'contractSize'));
+            }
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -3391,6 +3401,9 @@ export default class htx extends Exchange {
     }
     networkIdToCode(networkId = undefined, currencyCode = undefined) {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if (networkId === undefined) {
+            return undefined;
+        }
         const keys = Object.keys(this.options['networkNamesByChainIds']);
         const keysLength = keys.length;
         if (keysLength === 0) {
@@ -6816,7 +6829,7 @@ export default class htx extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger(transaction, 'created-at');
-        const code = this.safeCurrencyCode(this.safeString(transaction, 'currency'));
+        const code = this.safeCurrencyCode(this.safeString(transaction, 'currency'), currency);
         let type = this.safeString(transaction, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';
@@ -6827,10 +6840,9 @@ export default class htx extends Exchange {
         }
         const networkId = this.safeString(transaction, 'chain');
         let txHash = this.safeString(transaction, 'tx-hash');
-        if (txHash === undefined) {
-            throw new ExchangeError(this.id + ' parseTransaction() missing txHash');
-        }
-        if (networkId === 'ETH' && txHash.indexOf('0x') < 0) {
+        // a freshly created withdrawal has no tx-hash yet, the create
+        // endpoint returns only { "status": "ok", "data": "<id>" }
+        if ((txHash !== undefined) && (networkId === 'ETH') && (txHash.indexOf('0x') < 0)) {
             txHash = '0x' + txHash;
         }
         const subType = this.safeString(transaction, 'sub-type');

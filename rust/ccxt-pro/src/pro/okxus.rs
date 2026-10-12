@@ -202,7 +202,7 @@ impl OkxusCore {
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rest".to_string(), Value::Str("https://{hostname}".into()));
-        m.insert("ws".to_string(), Value::Str("wss://wsus.okx.com:8443/ws/v5".into()));
+        m.insert("ws".to_string(), Value::Str("wss://wsus.okx.com:443/ws/v5".into()));
     m
 }));
         m.insert("www".to_string(), Value::Str("https://app.okx.com".into()));
@@ -216,7 +216,7 @@ impl OkxusCore {
 }));
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://wsuspap.okx.com:8443/ws/v5".into()));
+        m.insert("ws".to_string(), Value::Str("wss://wsuspap.okx.com:443/ws/v5".into()));
     m
 }));
     m

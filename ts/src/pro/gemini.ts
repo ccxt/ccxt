@@ -7,7 +7,7 @@ import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.j
 import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
@@ -416,7 +416,7 @@ export default class gemini extends geminiRest {
             throw new ExchangeError (this.id + ' watchOrderBook() has no websocket url');
         }
         const url = wsUrl + '/v2/marketdata';
-        const orderbook: Ob = await this.watch (url, messageHash, request, subscribeHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, subscribeHash);
         return orderbook.limit ();
     }
 
@@ -427,17 +427,28 @@ export default class gemini extends geminiRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(symbol in this.orderbooks)) {
-            this.orderbooks[symbol] = this.orderBook ();
-        } else if (isInitial) {
-            // handle https://github.com/ccxt/ccxt/issues/29210
-            if (symbol in this.orderbooks) {
-                delete this.orderbooks[symbol];
-            }
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
+        if (isInitial) {
+            // the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+            const bidsSnapshot: any[] = [];
+            const asksSnapshot: any[] = [];
+            for (let i = 0; i < changes.length; i++) {
+                const delta = changes[i];
+                const bidAsk = [ this.safeNumber (delta, 1), this.safeNumber (delta, 2) ];
+                if (this.safeString (delta, 0) === 'buy') {
+                    bidsSnapshot.push (bidAsk);
+                } else {
+                    asksSnapshot.push (bidAsk);
+                }
+            }
+            const snapshot = this.parseOrderBook ({ 'bids': bidsSnapshot, 'asks': asksSnapshot }, symbol);
+            orderbook.reset (snapshot);
+            client.resolve (orderbook, messageHash);
+            return;
+        }
         for (let i = 0; i < changes.length; i++) {
             const delta = changes[i];
             const price = this.safeNumber (delta, 1);
@@ -463,7 +474,7 @@ export default class gemini extends geminiRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        const orderbook: Ob = await this.helperForWatchMultipleConstruct ('orderbook', symbols, params);
+        const orderbook: WsOrderBook = await this.helperForWatchMultipleConstruct ('orderbook', symbols, params);
         return orderbook.limit ();
     }
 

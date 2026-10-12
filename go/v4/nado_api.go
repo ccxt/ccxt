@@ -8,81 +8,81 @@
 package ccxt
 
 // GatewayPublicGetSymbols returns a channel that yields a JSON array.
-func (this *Nado) GatewayPublicGetSymbols(args ...any) <-chan any {
-	return this.Fetch2Async("symbols", []string{"gateway", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Nado) GatewayPublicGetSymbols(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "symbols", []string{"gateway", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // GatewayPublicGetQuery returns a channel that yields a JSON object.
-func (this *Nado) GatewayPublicGetQuery(args ...any) <-chan any {
-	return this.Fetch2Async("query", []string{"gateway", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) GatewayPublicGetQuery(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "query", []string{"gateway", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GatewayPublicGetEdgeQuery returns a channel that yields a JSON object.
-func (this *Nado) GatewayPublicGetEdgeQuery(args ...any) <-chan any {
-	return this.Fetch2Async("edge/query", []string{"gateway", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) GatewayPublicGetEdgeQuery(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "edge/query", []string{"gateway", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GatewayPublicPostQuery returns a channel that yields a JSON object.
-func (this *Nado) GatewayPublicPostQuery(args ...any) <-chan any {
-	return this.Fetch2Async("query", []string{"gateway", "public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) GatewayPublicPostQuery(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "query", []string{"gateway", "public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GatewayPublicPostEdgeQuery returns a channel that yields a JSON object.
-func (this *Nado) GatewayPublicPostEdgeQuery(args ...any) <-chan any {
-	return this.Fetch2Async("edge/query", []string{"gateway", "public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) GatewayPublicPostEdgeQuery(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "edge/query", []string{"gateway", "public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GatewayPrivatePostExecute returns a channel that yields a JSON object.
-func (this *Nado) GatewayPrivatePostExecute(args ...any) <-chan any {
-	return this.Fetch2Async("execute", []string{"gateway", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) GatewayPrivatePostExecute(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "execute", []string{"gateway", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GatewayV2PublicGetAssets returns a channel that yields a JSON array.
-func (this *Nado) GatewayV2PublicGetAssets(args ...any) <-chan any {
-	return this.Fetch2Async("assets", []string{"gatewayV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Nado) GatewayV2PublicGetAssets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "assets", []string{"gatewayV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // GatewayV2PublicGetPairs returns a channel that yields a JSON array.
-func (this *Nado) GatewayV2PublicGetPairs(args ...any) <-chan any {
-	return this.Fetch2Async("pairs", []string{"gatewayV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) GatewayV2PublicGetPairs(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "pairs", []string{"gatewayV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GatewayV2PublicGetOrderbook returns a channel that yields a JSON object.
-func (this *Nado) GatewayV2PublicGetOrderbook(args ...any) <-chan any {
-	return this.Fetch2Async("orderbook", []string{"gatewayV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) GatewayV2PublicGetOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderbook", []string{"gatewayV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ArchivePost returns a channel that yields a JSON object.
-func (this *Nado) ArchivePost(args ...any) <-chan any {
-	return this.Fetch2Async("", "archive", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) ArchivePost(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "", "archive", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ArchiveV2PublicGetTickers returns a channel that yields a JSON object.
-func (this *Nado) ArchiveV2PublicGetTickers(args ...any) <-chan any {
-	return this.Fetch2Async("tickers", []string{"archiveV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) ArchiveV2PublicGetTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tickers", []string{"archiveV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ArchiveV2PublicGetContracts returns a channel that yields a JSON object.
-func (this *Nado) ArchiveV2PublicGetContracts(args ...any) <-chan any {
-	return this.Fetch2Async("contracts", []string{"archiveV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) ArchiveV2PublicGetContracts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "contracts", []string{"archiveV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ArchiveV2PublicGetTrades returns a channel that yields a JSON array.
-func (this *Nado) ArchiveV2PublicGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("trades", []string{"archiveV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) ArchiveV2PublicGetTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "trades", []string{"archiveV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ArchiveV2PublicGetSymbols returns a channel that yields a JSON object.
-func (this *Nado) ArchiveV2PublicGetSymbols(args ...any) <-chan any {
-	return this.Fetch2Async("symbols", []string{"archiveV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) ArchiveV2PublicGetSymbols(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "symbols", []string{"archiveV2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // TriggerPrivatePostExecute returns a channel that yields a JSON object.
-func (this *Nado) TriggerPrivatePostExecute(args ...any) <-chan any {
-	return this.Fetch2Async("execute", []string{"trigger", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) TriggerPrivatePostExecute(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "execute", []string{"trigger", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // TriggerPrivatePostQuery returns a channel that yields a JSON object.
-func (this *Nado) TriggerPrivatePostQuery(args ...any) <-chan any {
-	return this.Fetch2Async("query", []string{"trigger", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Nado) TriggerPrivatePostQuery(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "query", []string{"trigger", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

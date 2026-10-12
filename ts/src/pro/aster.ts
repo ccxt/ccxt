@@ -7,7 +7,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/e
 import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface, FeeString } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1008,7 +1008,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth' + limitResolved.toString ());
             messageHashes.push ('orderbook:' + market['symbol']);
         }
-        const orderbook: Ob = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
+        const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
         return orderbook.limit ();
     }
 

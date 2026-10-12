@@ -727,7 +727,14 @@ public partial class coinbaseinternational : Exchange
 
     public override object parseFundingRateHistory(object info, IDictionary<string, object> market = null)
     {
-        return this.parseFundingRate(info, market);
+        Dictionary<string, object> fundingRate = this.parseFundingRate(info, market);
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", (fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null) },
+            { "fundingRate", (fundingRate != null && fundingRate.ContainsKey("fundingRate") ? fundingRate["fundingRate"] : null) },
+            { "timestamp", (fundingRate != null && fundingRate.ContainsKey("timestamp") ? fundingRate["timestamp"] : null) },
+            { "datetime", (fundingRate != null && fundingRate.ContainsKey("datetime") ? fundingRate["datetime"] : null) },
+        };
     }
 
     public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)

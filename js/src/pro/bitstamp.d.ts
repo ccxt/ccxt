@@ -1,7 +1,7 @@
 import bitstampRest from '../bitstamp.js';
 import type { Int, Str, OrderBook, Order, Trade, Dict, NullableDict, Market, Bool, FundingRate } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bitstamp extends bitstampRest {
     describe(): any;
     /**
@@ -37,7 +37,7 @@ export default class bitstamp extends bitstampRest {
      */
     unWatchChannel(channel: string, subHash: string, topic: string, symbols: string[], params?: Dict): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
-    handleBookDelta(orderbook: Ob, delta: any): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleBidAsks(bookSide: any, bidAsks: any[]): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     /**

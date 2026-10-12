@@ -7,7 +7,7 @@ import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
@@ -87,7 +87,7 @@ export default class bitopro extends bitoproRest {
         } else {
             endPart = market['id'] + ':' + this.numberToString (limit);
         }
-        const orderbook: Ob = await this.watchPublic ('order-books', messageHash, endPart);
+        const orderbook: WsOrderBook = await this.watchPublic ('order-books', messageHash, endPart);
         return orderbook.limit ();
     }
 

@@ -1,7 +1,7 @@
 import bybitRest from '../bybit.js';
 import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bybit extends bybitRest {
     describe(): any;
     describeData(): any;
@@ -135,7 +135,7 @@ export default class bybit extends bybitRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    parseWsBidAsk(orderbook: Ob, market?: Market): Ticker;
+    parseWsBidAsk(orderbook: WsOrderBook, market?: Market): Ticker;
     /**
      * @method
      * @name bybit#watchOHLCV

@@ -382,8 +382,8 @@ public partial class bithumb : ccxt.bithumb
             { "close", this.safeString(ticker, "closePrice") },
             { "last", null },
             { "previousClose", this.safeString(ticker, "prevClosePrice") },
-            { "change", this.safeString(ticker, "chgAmt") },
-            { "percentage", this.safeString(ticker, "chgRate") },
+            { "change", null },
+            { "percentage", null },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", this.safeString(ticker, "value") },
@@ -523,35 +523,14 @@ public partial class bithumb : ccxt.bithumb
         {
             return;
         }
-        string? streamType = this.safeString(message, "stream_type");
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? obLimit = this.safeInteger(options, "limit", 1000);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))) || (streamType == "SNAPSHOT"))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, obLimit);
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
-        orderbook["symbol"] = symbol;
-        ccxt.pro.IBids bids = orderbook?.bids;
-        ccxt.pro.IAsks asks = orderbook?.asks;
         List<object> units = this.safeList(message, "orderbook_units", new List<object>() {});
-        for (int i = 0; i < units.Count; i++)
-        {
-            IDictionary<string, object> entry = this.safeDict(units, i);
-            double? bidPrice = this.safeNumber(entry, "bid_price");
-            double? bidSize = this.safeNumber(entry, "bid_size");
-            double? askPrice = this.safeNumber(entry, "ask_price");
-            double? askSize = this.safeNumber(entry, "ask_size");
-            if (((bidPrice != null)) && ((bidSize != null)))
-            {
-                (bids as IOrderBookSide).store(bidPrice, bidSize);
-            }
-            if (((askPrice != null)) && ((askSize != null)))
-            {
-                (asks as IOrderBookSide).store(askPrice, askSize);
-            }
-        }
         string gen2TimestampStr = this.safeString2(message, "timestamp", "datetime");
         Int64? timestamp = null;
         if ((gen2TimestampStr != null))
@@ -562,8 +541,29 @@ public partial class bithumb : ccxt.bithumb
         {
             timestamp = this.milliseconds();
         }
-        orderbook["timestamp"] = timestamp;
-        orderbook["datetime"] = this.iso8601(timestamp);
+        List<object> bidsSnapshot = new List<object>() {};
+        List<object> asksSnapshot = new List<object>() {};
+        for (int i = 0; i < units.Count; i++)
+        {
+            IDictionary<string, object> entry = this.safeDict(units, i);
+            double? bidPrice = this.safeNumber(entry, "bid_price");
+            double? bidSize = this.safeNumber(entry, "bid_size");
+            double? askPrice = this.safeNumber(entry, "ask_price");
+            double? askSize = this.safeNumber(entry, "ask_size");
+            if (((bidPrice != null)) && ((bidSize != null)))
+            {
+                bidsSnapshot.Add(new List<object>() {bidPrice, bidSize});
+            }
+            if (((askPrice != null)) && ((askSize != null)))
+            {
+                asksSnapshot.Add(new List<object>() {askPrice, askSize});
+            }
+        }
+        ccxt.OrderBook snapshot = this.parseOrderBook(new Dictionary<string, object>() {
+            { "bids", bidsSnapshot },
+            { "asks", asksSnapshot },
+        }, symbol, timestamp);
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         string messageHash = (("orderbook" + ":") + symbol);
         client.resolve(orderbook, messageHash);
     }

@@ -7,7 +7,7 @@ import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/e
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, List, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -645,7 +645,7 @@ export default class bitvavo extends bitvavoRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit ();
     }
 
@@ -691,7 +691,7 @@ export default class bitvavo extends bitvavoRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook: Ob = await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
+        const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
         return orderbook.limit ();
     }
 
@@ -839,7 +839,7 @@ export default class bitvavo extends bitvavoRest {
             'action': name,
             'market': marketId,
         };
-        const orderbook: Ob = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
         return orderbook.limit ();
     }
 
@@ -899,10 +899,16 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
-        if ((symbol as string) in this.orderbooks) {
-            delete this.orderbooks[symbol as string];
+        const limits = this.safeDict (this.options, 'orderBookLimits', {});
+        const storedLimit = this.safeInteger (limits, symbol);
+        if (!((symbol as string) in this.orderbooks) || (storedLimit !== limit)) {
+            this.orderbooks[symbol as string] = this.orderBook ({}, limit);
+            limits[symbol as string] = limit;
+            this.options['orderBookLimits'] = limits;
         }
-        this.orderbooks[symbol as string] = this.orderBook ({}, limit);
+        const orderbook = this.orderbooks[symbol as string];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
     }
 
     handleOrderBookSubscriptions (client: Client, message: Dict, marketIds: any[]) {

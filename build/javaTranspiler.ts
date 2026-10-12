@@ -2026,7 +2026,6 @@ class NewTranspiler {
 
     transpiler!: Transpiler;
     pythonStandardLibraries;
-    piscina: Piscina | undefined;
     oldTranspiler = new OldTranspiler();
     // lazily created in webworkerTranspile and kept alive for the lifetime of the
     // transpiler, so worker threads (and their warm Transpiler + ts.Program batch)
@@ -2036,6 +2035,13 @@ class NewTranspiler {
     // trading methods), reused by both the Exchange.java injection and the
     // PredictionExchange.java convenience-method injection.
     _exchangeTierBody: string | undefined;
+
+    async destroy () {
+        if (this.piscina) {
+            await this.piscina.destroy ();
+            this.piscina = undefined;
+        }
+    }
 
     constructor() {
 
@@ -5826,30 +5832,25 @@ async function runMain() {
     shouldTranspileTests = process.argv.includes('--noTests') ? false : true
     log.bright.green({ force })
     const transpiler = new NewTranspiler();
-    if (baseClassOnly) {
-        transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
-        transpiler.transpilePredictionBaseMethods();
-    } else if (restAndWs) {
-        await transpiler.transpileEverything(force, false, examples)
-        await transpiler.transpileWS(force)
-    } else if (prediction) {
-        await transpiler.transpilePrediction(force)
-    } else if (ws) {
-        await transpiler.transpileWS(force)
-    } else if (test || baseTestsOnly) {
-        await transpiler.transpileTests()
-    } else {
-        await transpiler.transpileEverything(force, false, examples)
+    try {
+        if (baseClassOnly) {
+            transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
+            transpiler.transpilePredictionBaseMethods();
+        } else if (restAndWs) {
+            await transpiler.transpileEverything(force, false, examples)
+            await transpiler.transpileWS(force)
+        } else if (prediction) {
+            await transpiler.transpilePrediction(force)
+        } else if (ws) {
+            await transpiler.transpileWS(force)
+        } else if (test || baseTestsOnly) {
+            await transpiler.transpileTests()
+        } else {
+            await transpiler.transpileEverything(force, false, examples)
+        }
+    } finally {
+        await transpiler.destroy();
     }
-}
-
-if (isMainEntry(metaUrl)) {
-    // Deliberately not `await runMain()`: build/java-worker.ts imports this module
-    // for patchJavaLocalTypes, and piscina loads worker modules through tsx's CJS
-    // require hook, whose esbuild transform rejects top-level await ("not supported
-    // with the cjs output format"). A rejection is still fatal here — an unhandled
-    // rejection exits 1, exactly like the awaited form did.
-    runMain();
 }
 
 // ===== H2K-j01: native top-level newMap (declaration initializer / return value) =====
@@ -6818,4 +6819,14 @@ export function nativeJavaNestedNewMaps (content: string): string {
         content = r.content;
         from = r.next;
     }
+}
+
+// after the pass constants above: they are consts, so the entry must not run before their initialization
+if (isMainEntry(metaUrl)) {
+    // Deliberately not `await runMain()`: build/java-worker.ts imports this module
+    // for patchJavaLocalTypes, and piscina loads worker modules through tsx's CJS
+    // require hook, whose esbuild transform rejects top-level await ("not supported
+    // with the cjs output format"). A rejection is still fatal here — an unhandled
+    // rejection exits 1, exactly like the awaited form did.
+    runMain();
 }
