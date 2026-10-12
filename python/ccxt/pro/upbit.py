@@ -8,6 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class upbit(ccxt.async_support.upbit):
@@ -317,7 +318,7 @@ class upbit(ccxt.async_support.upbit):
         ohlcv = self.parse_ohlcv(message)
         client.resolve(ohlcv, messageHash)
 
-    async def authenticate(self, params: dict = {}):
+    def authenticate(self, params: dict = {}):
         self.check_required_credentials()
         wsOptions = self.safe_dict(self.options, 'ws', {})
         authenticated = self.safe_string(wsOptions, 'token')
@@ -334,12 +335,9 @@ class upbit(ccxt.async_support.upbit):
                 },
             }
             self.options['ws'] = wsOptions
-        url = self.safe_string(self.urls['api'], 'ws') + '/private'
-        client = self.client(url)
-        return client
 
     async def watch_private(self, symbol: Str, channel: str, messageHash: str, params: dict = {}):
-        await self.authenticate()
+        self.authenticate()
         request = {
             'type': channel,
         }
@@ -450,17 +448,26 @@ class upbit(ccxt.async_support.upbit):
         #     "ask_bid": "BID",
         #     "order_type": "limit",
         #     "state": "trade",
-        #     "price": 0.001453,
+        #     "trade_uuid": "68315169-fba4-4175-ade3-aff14a616657",
+        #     "price": 0.001453,                 // order price, or the fill price when state is trade
         #     "avg_price": 0.00145372,
-        #     "volume": 30925891.29839369,
+        #     "volume": 30925891.29839369,       // order volume, or the fill volume when state is trade
         #     "remaining_volume": 29968038.09235948,
         #     "executed_volume": 30925891.29839369,
         #     "trades_count": 1,
         #     "reserved_fee": 44.23943970238218,
         #     "remaining_fee": 21.77177967409916,
-        #     "paid_fee": 22.467660028283017,
+        #     "paid_fee": 22.467660028283017,    // cumulative
         #     "locked": 43565.33112787242,
         #     "executed_funds": 44935.32005656603,
+        #     "time_in_force": null,
+        #     "trade_fee": 22.467660028283017,   // fee of the fill, null unless state is trade
+        #     "is_maker": true,                  // null unless state is trade
+        #     "identifier": "test-1",
+        #     "smp_type": "cancel_maker",
+        #     "prevented_volume": 1.174291929,
+        #     "prevented_locked": 0.001706246173,
+        #     "trade_timestamp": 1710751590421,
         #     "order_timestamp": 1710751590000,
         #     "timestamp": 1710751597500,
         #     "stream_type": "REALTIME"
@@ -470,10 +477,11 @@ class upbit(ccxt.async_support.upbit):
         side = self.safe_string_lower(order, 'ask_bid')
         if side == 'bid':
             side = 'buy'
-        else:
+        elif side == 'ask':
             side = 'sell'
-        timestamp = self.parse8601(self.safe_string(order, 'order_timestamp'))
-        status = self.parse_ws_order_status(self.safe_string(order, 'state'))
+        timestamp = self.safe_integer(order, 'order_timestamp')
+        rawStatus = self.safe_string(order, 'state')
+        status = self.parse_ws_order_status(rawStatus)
         marketId = self.safe_string(order, 'code')
         marketResolved = self.safe_market(marketId, market)
         fee = None
@@ -483,24 +491,30 @@ class upbit(ccxt.async_support.upbit):
                 'currency': marketResolved['quote'],
                 'cost': feeCost,
             }
+        # when state is trade the price and volume fields describe the fill, not the order:
+        # fall back to the average fill price and let the order volume derive from filled + remaining
+        isTrade = (rawStatus == 'trade')
+        price = self.safe_string(order, 'avg_price') if isTrade else self.safe_string(order, 'price')
+        amount = None if isTrade else self.safe_string(order, 'volume')
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': self.safe_string(order, 'identifier'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': self.safe_string(order, 'trade_timestamp'),
+            'lastTradeTimestamp': self.safe_integer(order, 'trade_timestamp'),
+            'lastUpdateTimestamp': self.safe_integer(order, 'timestamp'),
             'symbol': marketResolved['symbol'],
             'type': self.safe_string(order, 'order_type'),
             'timeInForce': self.safe_string(order, 'time_in_force'),
             'postOnly': None,
             'side': side,
-            'price': self.safe_string(order, 'price'),
+            'price': price,
             'stopPrice': None,
             'triggerPrice': None,
             'cost': self.safe_string(order, 'executed_funds'),
             'average': self.safe_string(order, 'avg_price'),
-            'amount': self.safe_string(order, 'volume'),
+            'amount': amount,
             'filled': self.safe_string(order, 'executed_volume'),
             'remaining': self.safe_string(order, 'remaining_volume'),
             'status': status,
@@ -513,13 +527,23 @@ class upbit(ccxt.async_support.upbit):
         side = self.safe_string_lower(trade, 'ask_bid')
         if side == 'bid':
             side = 'buy'
-        else:
+        elif side == 'ask':
             side = 'sell'
-        timestamp = self.parse8601(self.safe_string(trade, 'trade_timestamp'))
+        timestamp = self.safe_integer(trade, 'trade_timestamp')
         marketId = self.safe_string(trade, 'code')
         marketResolved = self.safe_market(marketId, market)
+        # price and volume describe the fill when state is trade
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'volume')
+        cost = None
+        if (price is not None) and (amount is not None):
+            cost = Precise.string_mul(price, amount)
+        takerOrMaker = None
+        isMaker = self.safe_bool(trade, 'is_maker')
+        if isMaker is not None:
+            takerOrMaker = 'maker' if isMaker else 'taker'
         fee = None
-        feeCost = self.safe_string(trade, 'paid_fee')
+        feeCost = self.safe_string(trade, 'trade_fee')
         if feeCost is not None:
             fee = {
                 'currency': marketResolved['quote'],
@@ -531,11 +555,11 @@ class upbit(ccxt.async_support.upbit):
             'datetime': self.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
             'side': side,
-            'price': self.safe_string(trade, 'price'),
-            'amount': self.safe_string(trade, 'volume'),
-            'cost': self.safe_string(trade, 'executed_funds'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'order': self.safe_string(trade, 'uuid'),
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'type': self.safe_string(trade, 'order_type'),
             'fee': fee,
             'info': trade,
@@ -550,10 +574,10 @@ class upbit(ccxt.async_support.upbit):
 
     def handle_my_trade(self, client: Client, message: dict):
         # see: parseWsOrder
-        myTrades = self.myTrades
-        if myTrades is None:
+        if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            myTrades = ArrayCacheBySymbolById(limit)
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        myTrades = self.myTrades
         trade = self.parse_ws_trade(message)
         myTrades.append(trade)
         messageHash = 'myTrades'
@@ -572,15 +596,32 @@ class upbit(ccxt.async_support.upbit):
         orders = {} if (symbol is None) else self.safe_dict(cachedOrders.hashmap, symbol, {})
         order = None if (orderId is None) else self.safe_dict(orders, orderId)
         if order is not None:
-            fee = self.safe_value(order, 'fee')
-            if fee is not None:
-                parsed['fee'] = fee
-            fees = self.safe_list(order, 'fees')
-            if fees is not None:
-                parsed['fees'] = fees
+            # paid_fee is cumulative, so the cached fee is only a fallback
+            parsedFee = self.safe_dict(parsed, 'fee')
+            if parsedFee is None:
+                fee = self.safe_value(order, 'fee')
+                if fee is not None:
+                    parsed['fee'] = fee
+                fees = self.safe_list(order, 'fees')
+                if fees is not None:
+                    parsed['fees'] = fees
             parsed['trades'] = self.safe_value(order, 'trades')
-            parsed['timestamp'] = self.safe_integer(order, 'timestamp')
-            parsed['datetime'] = self.safe_string(order, 'datetime')
+            lastTradeTimestamp = self.safe_integer(parsed, 'lastTradeTimestamp')
+            if lastTradeTimestamp is None:
+                parsed['lastTradeTimestamp'] = self.safe_integer(order, 'lastTradeTimestamp')
+            timestamp = self.safe_integer(parsed, 'timestamp')
+            if timestamp is None:
+                parsed['timestamp'] = self.safe_integer(order, 'timestamp')
+                parsed['datetime'] = self.safe_string(order, 'datetime')
+            # fill updates carry the fill price and volume instead of the order's
+            rawStatus = self.safe_string(message, 'state')
+            if rawStatus == 'trade':
+                cachedPrice = self.safe_number(order, 'price')
+                if cachedPrice is not None:
+                    parsed['price'] = cachedPrice
+                cachedAmount = self.safe_number(order, 'amount')
+                if cachedAmount is not None:
+                    parsed['amount'] = cachedAmount
         cachedOrders.append(parsed)
         messageHash = 'myOrder'
         client.resolve(self.orders, messageHash)
