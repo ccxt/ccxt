@@ -4499,21 +4499,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tagAndParams: Value = self.handle_withdraw_tag_and_params(tag, params);
+        let mut tagAndParams: Value = self.handle_param_string(params, Value::Str("tag".into()), &[]);
+        let mut tagWithdrawTag: Value = tagAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsWithdrawTag: Value = tagAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("key"))) {
             self.load_markets(&[]).await;
-            let mut currency: Value = self.currency(code);
+            let mut currency: Value = self.currency(code.clone());
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -4522,7 +4522,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             if (address != Value::Null) && (address.as_str() != Some("")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("address".into(), address.clone()); }
-                self.check_address(&[address]);
+                self.check_address(&[address, code, tagWithdrawTag]);
             }
             let __ws_arg_26 = self.extend(request, &[paramsWithdrawTag.clone()]);
             let mut response: Value = self.private_post_withdraw(&[__ws_arg_26]).await;

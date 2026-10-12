@@ -7198,23 +7198,22 @@ impl MexcCore {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {object} [params.internal] false by default, set to true for an "internal transfer"
  * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut currency: Value = self.currency(code);
-        let mut tagResolvedparamsWithdrawTagVariable = self.handle_withdraw_tag_and_params(tag, params);
+        let mut currency: Value = self.currency(code.clone());
+        let mut tagResolvedparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
         let mut tagResolved: Value = tagResolvedparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsWithdrawTag: Value = tagResolvedparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut internal: Value = self.safe_bool_k(paramsWithdrawTag.clone(), "internal", &[Value::Bool(false)]);
@@ -7242,7 +7241,7 @@ impl MexcCore {
         let mut network: Value = self.safe_string2(paramsWithdrawTag.clone(), Value::Str("network".into()), Value::Str("netWork".into()), &[]); // this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network.clone(), &[network.clone()]); // handle ETH > ERC-20 alias
         network = self.network_code_to_id(network.clone(), &[self.safe_string_k(currency.clone(), "code", &[])]);
-        self.check_address(&[address.clone()]);
+        self.check_address(&[address.clone(), code, tagResolved.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));

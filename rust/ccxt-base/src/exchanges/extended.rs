@@ -2689,22 +2689,24 @@ impl ExtendedCore {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the Starknet address to withdraw to
- * @param {string} tag unused
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.chainId] only STRK is supported
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let mut tagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
+        let mut tag: Value = tagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         self.check_required_credentials(&[]);
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
-        let mut chainId: Value = self.safe_string_upper2(params.clone(), Value::Str("chainId".into()), Value::Str("network".into()), &[Value::Str("STRK".into())]);
+        let mut chainId: Value = self.safe_string_upper2(paramsWithdrawTag.clone(), Value::Str("chainId".into()), Value::Str("network".into()), &[Value::Str("STRK".into())]);
         if (chainId.as_str() != Some("STRK")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only supports Starknet withdrawals with chainId STRK".into()))));
         }
@@ -2714,7 +2716,7 @@ impl ExtendedCore {
         let mut account: Value = self.fetch_extended_account(&[]).await;
         let mut amountString: Value = self.currency_to_precision(code, amount, &[]);
         let mut accountId: Value = self.safe_string_k(account.clone(), "accountId", &[]);
-        let mut settlement: Value = self.create_withdrawal_settlement_data(address.clone(), amountString.clone(), currency.clone(), account, &[params.clone()]);
+        let mut settlement: Value = self.create_withdrawal_settlement_data(address.clone(), amountString.clone(), currency.clone(), account, &[paramsWithdrawTag.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId);
@@ -2724,7 +2726,7 @@ impl ExtendedCore {
                 m.insert("settlement".to_string(), settlement);
             m
         });
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("settlementExpiration".into()), Value::Str("nonce".into()), Value::Str("recipient".into()), Value::Str("positionId".into()), Value::Str("l2Vault".into()), Value::Str("collateralId".into()), Value::Str("resolution".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("settlementExpiration".into()), Value::Str("nonce".into()), Value::Str("recipient".into()), Value::Str("positionId".into()), Value::Str("l2Vault".into()), Value::Str("collateralId".into()), Value::Str("resolution".into())]), &[]);
         let __ws_arg_13 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.v1_private_post_user_withdrawal(&[__ws_arg_13]).await;
         //
