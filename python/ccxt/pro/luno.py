@@ -216,7 +216,8 @@ class luno(ccxt.async_support.luno):
         asks = self.safe_list(message, 'asks')
         if asks is not None:
             snapshot = self.custom_parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id')
-            self.orderbooks[symbol] = self.indexed_order_book(snapshot)
+            existing = self.orderbooks[symbol]
+            existing.reset(snapshot)
         else:
             ob = self.orderbooks[symbol]
             self.handle_book_delta(ob, message)

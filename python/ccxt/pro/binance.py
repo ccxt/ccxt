@@ -1108,9 +1108,11 @@ class binance(ccxt.async_support.binance):
         # handle list of symbols
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            if symbol in self.orderbooks:
-                del self.orderbooks[symbol]
-            self.orderbooks[symbol] = self.order_book({}, limit)
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({}, limit)
+            orderbook = self.orderbooks[symbol]
+            orderbook['nonce'] = None
+            orderbook.cache = []
             symbolSubscription = self.extend(subscription, {'symbol': symbol})
             # fetch the snapshot in a separate async call
             self.spawn(self.fetch_order_book_snapshot, client, message, symbolSubscription)
