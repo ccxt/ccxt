@@ -3357,6 +3357,7 @@ class bingx extends Exchange {
             $trailingAmount = $this->safe_string($paramsPostOnly, 'trailingAmount');
             $trailingPercent = $this->safe_string_2($paramsPostOnly, 'trailingPercent', 'priceRate');
             $trailingType = $this->safe_string($paramsPostOnly, 'trailingType', 'TRAILING_STOP_MARKET');
+            $trailingTriggerPrice = $this->safe_string_2($paramsPostOnly, 'trailingTriggerPrice', 'activationPrice');
             $isTrailingAmountOrder = $trailingAmount !== null;
             $isTrailingPercentOrder = $trailingPercent !== null;
             $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
@@ -3409,6 +3410,9 @@ class bingx extends Exchange {
                 } elseif ($isTrailingPercentOrder) {
                     $requestTrailingPercent = Precise::string_div($trailingPercent, '100');
                     $request['priceRate'] = $this->parse_to_numeric($requestTrailingPercent);
+                }
+                if ($trailingTriggerPrice !== null) {
+                    $request['activationPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $trailingTriggerPrice));
                 }
             }
             if ($hasStopLoss || $hasTakeProfit) {
@@ -3478,7 +3482,7 @@ class bingx extends Exchange {
                 $request['quantity'] = $amountReq; // precision not available for inverse contracts
             }
         }
-        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId' ));
+        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId' ));
         return $this->extend($request, $paramsRequest);
     }
 
@@ -3512,6 +3516,7 @@ class bingx extends Exchange {
          * @param {float} [$params->quoteOrderQty] *spot only* the quote quantity, an alternative to $params->cost
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
+         * @param {float} [$params->trailingTriggerPrice] *swap only* the $price to activate a trailing order at
          * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
