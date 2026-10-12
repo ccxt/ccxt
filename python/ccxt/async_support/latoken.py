@@ -578,7 +578,10 @@ class latoken(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        response = await self.privateGetAuthAccount(params)
+        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        paramsOmitted = self.omit(params, 'type')
+        response = await self.privateGetAuthAccount(paramsOmitted)
         #
         #     [
         #         {
@@ -607,8 +610,6 @@ class latoken(Exchange, ImplicitAPI):
             'datetime': None,
         }
         maxTimestamp = None
-        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
         types = self.safe_dict(self.options, 'types', {})
         accountType = self.safe_string(types, type, type)
         balancesByType = self.group_by(response, 'type')
@@ -1218,7 +1219,7 @@ class latoken(Exchange, ImplicitAPI):
             await self.load_markets()
         response: dict
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
-        paramsOmitted = self.omit(params, 'stop')
+        paramsOmitted = self.omit(params, ['stop', 'trigger'])
         # privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         market = self.market(symbol)
         request = {

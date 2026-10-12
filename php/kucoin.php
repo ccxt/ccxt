@@ -649,6 +649,7 @@ class kucoin extends Exchange {
                     '405' => '\\ccxt\\NotSupported',
                     '415' => '\\ccxt\\NotSupported',
                     '429' => '\\ccxt\\RateLimitExceeded',
+                    '429000' => '\\ccxt\\RateLimitExceeded', // {"code":"429000","msg":"Too many requests. System-level rate limit exceeded."}
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
                     '503' => '\\ccxt\\ExchangeNotAvailable',
                     '101030' => '\\ccxt\\PermissionDenied', // {"code":"101030","msg":"You haven't yet enabled the margin trading"}

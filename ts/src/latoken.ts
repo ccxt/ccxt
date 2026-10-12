@@ -581,7 +581,10 @@ export default class latoken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const response = await this.privateGetAuthAccount (params);
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const paramsOmitted: Dict = this.omit (params, 'type');
+        const response = await this.privateGetAuthAccount (paramsOmitted);
         //
         //     [
         //         {
@@ -610,8 +613,6 @@ export default class latoken extends Exchange {
             'datetime': undefined,
         };
         let maxTimestamp: Int = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
         const types = this.safeDict (this.options, 'types', {});
         const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
@@ -1270,7 +1271,7 @@ export default class latoken extends Exchange {
         }
         let response: Dict;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
-        const paramsOmitted: Dict = this.omit (params, 'stop');
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market (symbol);
         const request: Dict = {

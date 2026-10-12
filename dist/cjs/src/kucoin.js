@@ -655,6 +655,7 @@ class kucoin extends kucoin$1["default"] {
                     '405': errors.NotSupported,
                     '415': errors.NotSupported,
                     '429': errors.RateLimitExceeded,
+                    '429000': errors.RateLimitExceeded, // {"code":"429000","msg":"Too many requests. System-level rate limit exceeded."}
                     '500': errors.ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': errors.ExchangeNotAvailable,
                     '101030': errors.PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}

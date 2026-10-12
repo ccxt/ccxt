@@ -2433,6 +2433,7 @@ impl KucoinCore {
         m.insert("405".to_string(), Value::Str("NotSupported".into()).clone());
         m.insert("415".to_string(), Value::Str("NotSupported".into()).clone());
         m.insert("429".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("429000".to_string(), Value::Str("RateLimitExceeded".into()).clone());
         m.insert("500".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
         m.insert("503".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
         m.insert("101030".to_string(), Value::Str("PermissionDenied".into()).clone());
