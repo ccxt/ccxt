@@ -2331,8 +2331,8 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
 - `fetchStatus (params = {})`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
 - `fetchOrderBook (symbol, limit = undefined, params = {})`: Fetch L2/L3 order book for a particular market trading symbol.
-- `fetchL2OrderBook (symbol, limit = undefined, params)`: Level 2 (price-aggregated) order book for a particular symbol.
-- `fetchL3OrderBook (symbol, limit = undefined, params)`: Level 3 (non aggregated, id based queue) order book for a particular symbol.
+- `fetchL2OrderBook (symbol, limit = undefined, params = {})`: Level 2 (price-aggregated) order book for a particular symbol.
+- `fetchL3OrderBook (symbol, limit = undefined, params = {})`: Level 3 (non aggregated, id based queue) order book for a particular symbol.
 - `fetchTrades (symbol, since, limit, params)`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
 - `fetchBalance ()`: Fetch Balance.
@@ -3175,11 +3175,11 @@ System.out.println("bids: " + ob.bids.size() + " asks: " + ob.asks.size());
 
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
 
-- **L1**: it consist of the best bid & ask data only and is a very basic information. However, L1 data is typically provided by `fetchBidsAsks` or `fetchTicker`, as in CCXT, all implementation of `fetchOrderBook` return L2 data.
+- **L1**: it consists of the best bid & ask data only and is a very basic information. However, L1 data is typically provided by `fetchBidsAsks` or `fetchTicker`, because in CCXT, most of the `fetchOrderBook` implementations return L2 data.
 - **L2**: most common level of aggregation where order volumes are grouped by price. If two orders have the same price, they appear as one single order for a volume equal to their total sum. This is most likely the level of aggregation you need for the majority of purposes.
 - **L3**: most detailed level with no aggregation where each order is separate from other orders. This LOD naturally contains duplicates in the output. So, if two orders have equal prices they are **not** merged together and it's up to the exchange's matching engine to decide on their priority in the stack. You don't really need L3 detail for successful trading. In fact, you most probably don't need it at all. Therefore some exchanges don't support it and always return aggregated order books.
 
-If you want to get an L2 order book, whatever the exchange returns, use the `fetchL2OrderBook(symbol, limit, params)` or `fetch_l2_order_book(symbol, limit, params)` unified method for that.
+If you want to get an L2 order book, use the `fetchL2OrderBook(symbol, limit, params)` or `fetch_l2_order_book(symbol, limit, params)` unified method for that.
 
 The `limit` argument does not guarantee that the number of bids or asks will always be equal to `limit`. It designates the upper boundary or the maximum, so at some moment in time there may be less than `limit` bids or asks. This is the case when the exchange does not have enough orders on the orderbook. However, if the underlying exchange API does not support a `limit` parameter for the orderbook endpoint at all, then the `limit` argument will be ignored. CCXT does not trim `bids` and `asks` if the exchange returns more than you request.
 
