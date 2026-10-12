@@ -93594,18 +93594,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(ticker, 'market');
         const symbol = this.safeSymbol(marketId, market);
         const close = this.safeString2(ticker, 'closing_price', 'trade_price');
-        let change = this.safeString2(ticker, 'signed_change_price', 'change_price');
-        let percentage = this.safeString2(ticker, 'signed_change_rate', 'change_rate');
         const open = this.safeString(ticker, 'opening_price');
-        const nonZeroOpen = this.omitZero(open);
-        if (marketId !== undefined && nonZeroOpen !== undefined && close !== undefined) {
-            const computedChange = _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(close, open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (change !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(change, '0') && !_base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(computedChange, '0')) {
-                change = computedChange;
-                percentage = undefined;
-            }
-        }
         let high = this.safeString2(ticker, 'max_price', 'high_price');
         let low = this.safeString2(ticker, 'min_price', 'low_price');
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -93630,8 +93619,9 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
             'close': close,
             'last': close,
             'previousClose': this.safeString(ticker, 'prev_closing_price'),
-            'change': change,
-            'percentage': percentage,
+            // Exchange changes use previousClose; safeTicker derives unified changes from open.
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
             'quoteVolume': this.safeString2(ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),
@@ -301448,7 +301438,12 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                         'trailing': true,
                         'iceberg': true,
                         'leverage': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': true,
+                            'EXPIRE_TAKER': true,
+                            'EXPIRE_BOTH': true,
+                            'NONE': false
+                        },
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false
                     },
@@ -303538,6 +303533,30 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 request['slTriggerPxType'] = slTriggerPxType;
             }
         }
+        // unified stp
+        let selfTradePrevention = undefined;
+        [selfTradePrevention, orderParams] = this.handleOptionAndParams(orderParams, 'createOrder', 'selfTradePrevention');
+        if (selfTradePrevention !== undefined) {
+            const stpModes = {
+                'EXPIRE_MAKER': 'cancel_maker',
+                'EXPIRE_TAKER': 'cancel_taker',
+                'EXPIRE_BOTH': 'cancel_both'
+            };
+            const selfTradePreventionUpper = selfTradePrevention.toUpperCase();
+            if (selfTradePreventionUpper === 'NONE') {
+                throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order');
+            }
+            const stpMode = this.safeString(stpModes, selfTradePreventionUpper, selfTradePrevention.toLowerCase());
+            const algoOrderTypes = this.safeDict(this.options, 'algoOrderTypes', {});
+            const requestOrdType = this.safeString(request, 'ordType');
+            if (requestOrdType !== undefined && requestOrdType in algoOrderTypes) {
+                throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint');
+            }
+            if (stpMode === 'cancel_both' && requestOrdType === 'fok') {
+                throw new _base_errors_js__rspack_import_1.InvalidOrder(this.id + ' createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders');
+            }
+            request['stpMode'] = stpMode;
+        }
         if (clientOrderId === undefined) {
             const brokerId = this.safeString(this.options, 'brokerId');
             if (brokerId !== undefined) {
@@ -303583,6 +303602,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
      * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
      * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
+     * @param {string} [params.selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -378135,8 +378155,9 @@ class bithumb extends _bithumb_js__rspack_import_0/* ["default"] */.A {
             'close': this.safeString(ticker, 'closePrice'),
             'last': undefined,
             'previousClose': this.safeString(ticker, 'prevClosePrice'),
-            'change': this.safeString(ticker, 'chgAmt'),
-            'percentage': this.safeString(ticker, 'chgRate'),
+            // safeTicker derives change/percentage from open, matching the REST parser
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volume'),
             'quoteVolume': this.safeString(ticker, 'value'),
@@ -416861,7 +416882,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
      * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] can be either 'futures' or 'flex_futures'
-     * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure} of the account type the message updated ('cash', 'futures' margin, or 'flex_futures')
      */ async watchBalance(params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -416920,11 +416941,14 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
             const market = this.market(marketId);
             const symbol = market['symbol'];
             const messageHash = this.getMessageHash('trade', undefined, symbol);
-            if (this.safeList(this.trades, symbol) === undefined) {
+            // safeValue, not safeList: the values are ArrayCache instances, and
+            // the typed accessor casts them to a plain list in c#, which throws
+            let tradesArray = this.safeValue(this.trades, symbol);
+            if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
-                this.trades[symbol] = new _base_ws_Cache_js__rspack_import_1/* .ArrayCache */.I3(tradesLimit);
+                tradesArray = new _base_ws_Cache_js__rspack_import_1/* .ArrayCache */.I3(tradesLimit);
+                this.trades[symbol] = tradesArray;
             }
-            const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
                 const trades = this.safeList(message, 'trades', []);
                 const length = trades.length;
@@ -417266,8 +417290,12 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         //        ]
         //    }
         const orders = this.safeList(message, 'orders', []);
-        const limit = this.safeInteger(this.options, 'ordersLimit');
-        this.orders = new _base_ws_Cache_js__rspack_import_1/* .ArrayCacheBySymbolById */.Pt(limit);
+        // reuse the existing cache: replacing it would orphan consumers holding
+        // a reference to the old one across a reconnect snapshot
+        if (this.orders === undefined) {
+            const limit = this.safeInteger(this.options, 'ordersLimit');
+            this.orders = new _base_ws_Cache_js__rspack_import_1/* .ArrayCacheBySymbolById */.Pt(limit);
+        }
         const feed = this.safeString(message, 'feed');
         let messageHash = 'orders';
         if (feed === 'open_orders_verbose_snapshot') {
@@ -417275,6 +417303,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         }
         const symbols = {};
         const cachedOrders = this.orders;
+        const snapshotIds = {};
         for(let i = 0; i < orders.length; i++){
             const order = orders[i];
             const parsed = this.parseWsOrder(order);
@@ -417282,7 +417311,39 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
             if (symbol !== undefined) {
                 symbols[symbol] = true;
             }
+            const parsedId = this.safeString(parsed, 'id');
+            if (parsedId !== undefined) {
+                snapshotIds[parsedId] = true;
+            }
             cachedOrders.append(parsed);
+        }
+        // reconcile the reused cache with the snapshot: the snapshot lists every
+        // currently open order, so an order cached as open but missing from it is
+        // no longer open on the venue - it filled or was cancelled while we were
+        // disconnected. the snapshot does not say which, so mark it canceled
+        // instead of leaving it open in the cache forever
+        const cachedSymbols = Object.keys(cachedOrders.hashmap);
+        for(let i = 0; i < cachedSymbols.length; i++){
+            const cachedSymbol = cachedSymbols[i];
+            const ordersById = this.safeDict(cachedOrders.hashmap, cachedSymbol, {});
+            const cachedIds = Object.keys(ordersById);
+            for(let j = 0; j < cachedIds.length; j++){
+                const cachedId = cachedIds[j];
+                if (!(cachedId in snapshotIds)) {
+                    const cachedOrder = this.safeDict(ordersById, cachedId, {});
+                    const cachedStatus = this.safeString(cachedOrder, 'status');
+                    // parseWsOrder leaves status undefined for snapshot and
+                    // non-cancel updates, so undefined means open here
+                    if (cachedStatus === undefined || cachedStatus === 'open') {
+                        cachedOrder['status'] = 'canceled';
+                        // write the updated order back through append: the cache
+                        // rows are copies in the value-type runtimes (php), and
+                        // append also feeds the newUpdates accounting
+                        cachedOrders.append(cachedOrder);
+                        symbols[cachedSymbol] = true;
+                    }
+                }
+            }
         }
         const length = this.orders.length;
         if (length > 0) {
@@ -417769,38 +417830,49 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         //        "seq": 2
         //    }
         //
+        // merge updates into the existing per-account balance objects instead of
+        // building fresh ones: a consumer awakened by an earlier message holds a
+        // reference to this.balance['cash'/'margin'/'flex'], and Client.resolve
+        // is a no-op while nobody is awaiting, so a replaced object would make
+        // updates landing in that window invisible to the consumer forever
+        // (same class of bug as kraken issue #26773)
         const holding = this.safeDict(message, 'holding');
         const futures = this.safeDict(message, 'futures');
         const flexFutures = this.safeDict(message, 'flex_futures');
         const messageHash = 'balances';
         const timestamp = this.safeInteger(message, 'timestamp');
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        let updatedBalance = undefined;
         if (holding !== undefined) {
             const holdingKeys = Object.keys(holding); // cashAccount
-            const holdingResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp)
-            };
+            this.balance['cash'] = this.safeDict(this.balance, 'cash', {});
+            this.balance['cash']['info'] = message;
+            this.balance['cash']['timestamp'] = timestamp;
+            this.balance['cash']['datetime'] = this.iso8601(timestamp);
+            const holdingCodes = {};
             for(let i = 0; i < holdingKeys.length; i++){
                 const key = holdingKeys[i];
                 const code = this.safeCurrencyCode(key);
                 const newAccount = this.account();
                 newAccount['total'] = this.safeString(holding, key);
                 if (code !== undefined) {
-                    holdingResult[code] = newAccount;
+                    holdingCodes[code] = true;
+                    this.balance['cash'][code] = newAccount;
                 }
             }
-            this.balance['cash'] = holdingResult;
+            this.balance['cash'] = this.pruneStaleBalanceKeys(this.balance['cash'], holdingCodes);
             this.balance['cash'] = this.safeBalance(this.balance['cash']);
-            client.resolve(holdingResult, messageHash);
+            updatedBalance = this.balance['cash'];
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys(futures); // marginAccount
-            const futuresResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp)
-            };
+            this.balance['margin'] = this.safeDict(this.balance, 'margin', {});
+            this.balance['margin']['info'] = message;
+            this.balance['margin']['timestamp'] = timestamp;
+            this.balance['margin']['datetime'] = this.iso8601(timestamp);
+            const futuresSymbols = {};
             for(let i = 0; i < futuresKeys.length; i++){
                 const key = futuresKeys[i];
                 const symbol = this.safeSymbol(key);
@@ -417811,23 +417883,27 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
                 newAccount['free'] = this.safeString(future, 'available');
                 newAccount['used'] = this.safeString(future, 'initial_margin');
                 newAccount['total'] = this.safeString(future, 'balance');
-                futuresResult[symbol] = {};
+                this.balance['margin'][symbol] = {};
                 if (symbol !== undefined && code !== undefined) {
-                    futuresResult[symbol][code] = newAccount;
+                    futuresSymbols[symbol] = true;
+                    this.balance['margin'][symbol][code] = newAccount;
                 }
             }
-            this.balance['margin'] = futuresResult;
+            this.balance['margin'] = this.pruneStaleBalanceKeys(this.balance['margin'], futuresSymbols);
             this.balance['margin'] = this.safeBalance(this.balance['margin']);
-            client.resolve(this.balance['margin'], messageHash + 'futures');
+            client.resolve(this.balance['margin'], messageHash + ':futures');
+            if (updatedBalance === undefined) {
+                updatedBalance = this.balance['margin'];
+            }
         }
         if (flexFutures !== undefined) {
             const flexFutureCurrencies = this.safeDict(flexFutures, 'currencies', {});
             const flexFuturesKeys = Object.keys(flexFutureCurrencies); // multi-collateral margin account
-            const flexFuturesResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp)
-            };
+            this.balance['flex'] = this.safeDict(this.balance, 'flex', {});
+            this.balance['flex']['info'] = message;
+            this.balance['flex']['timestamp'] = timestamp;
+            this.balance['flex']['datetime'] = this.iso8601(timestamp);
+            const flexCodes = {};
             for(let i = 0; i < flexFuturesKeys.length; i++){
                 const key = flexFuturesKeys[i];
                 const flexFuture = this.safeDict(flexFutureCurrencies, key);
@@ -417837,14 +417913,50 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
                 newAccount['used'] = this.safeString(flexFuture, 'collateral_value');
                 newAccount['total'] = this.safeString(flexFuture, 'quantity');
                 if (code !== undefined) {
-                    flexFuturesResult[code] = newAccount;
+                    flexCodes[code] = true;
+                    this.balance['flex'][code] = newAccount;
                 }
             }
-            this.balance['flex'] = flexFuturesResult;
+            this.balance['flex'] = this.pruneStaleBalanceKeys(this.balance['flex'], flexCodes);
             this.balance['flex'] = this.safeBalance(this.balance['flex']);
-            client.resolve(this.balance['flex'], messageHash + 'flex_futures');
+            client.resolve(this.balance['flex'], messageHash + ':flex_futures');
+            if (updatedBalance === undefined) {
+                updatedBalance = this.balance['flex'];
+            }
         }
-        client.resolve(this.balance, messageHash);
+        // resolve the plain hash exactly once per message, with the unified
+        // balance of the account the message updated (cash first, matching the
+        // legacy behaviour): a second resolve on the same hash is not portable
+        // (the rust client hands the consumer the LAST resolved value)
+        if (updatedBalance !== undefined) {
+            client.resolve(updatedBalance, messageHash);
+        }
+    }
+    /**
+     * @ignore
+     * @method
+     * @description removes currency/symbol keys that disappeared from a full-state balance message, keeping the cached object itself alive for consumers holding a reference to it
+     * @param {object} balanceObject the cached per-account balance object, mutated in place
+     * @param {object} seenKeys the currency codes / symbols present in the current message
+     * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
+     */ pruneStaleBalanceKeys(balanceObject, seenKeys) {
+        const reserved = [
+            'info',
+            'timestamp',
+            'datetime',
+            'free',
+            'used',
+            'total',
+            'debt'
+        ];
+        const keys = Object.keys(balanceObject);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (!(key in seenKeys) && !this.inArray(key, reserved)) {
+                delete balanceObject[key];
+            }
+        }
+        return balanceObject;
     }
     handleMyTrades(client, message) {
         //

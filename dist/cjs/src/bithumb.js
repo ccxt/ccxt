@@ -926,18 +926,7 @@ class bithumb extends bithumb$1["default"] {
         const marketId = this.safeString(ticker, 'market');
         const symbol = this.safeSymbol(marketId, market);
         const close = this.safeString2(ticker, 'closing_price', 'trade_price');
-        let change = this.safeString2(ticker, 'signed_change_price', 'change_price');
-        let percentage = this.safeString2(ticker, 'signed_change_rate', 'change_rate');
         const open = this.safeString(ticker, 'opening_price');
-        const nonZeroOpen = this.omitZero(open);
-        if ((marketId !== undefined) && (nonZeroOpen !== undefined) && (close !== undefined)) {
-            const computedChange = Precise["default"].stringSub(close, open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if ((change !== undefined) && Precise["default"].stringEq(change, '0') && !Precise["default"].stringEq(computedChange, '0')) {
-                change = computedChange;
-                percentage = undefined;
-            }
-        }
         let high = this.safeString2(ticker, 'max_price', 'high_price');
         let low = this.safeString2(ticker, 'min_price', 'low_price');
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -962,8 +951,9 @@ class bithumb extends bithumb$1["default"] {
             'close': close,
             'last': close,
             'previousClose': this.safeString(ticker, 'prev_closing_price'),
-            'change': change,
-            'percentage': percentage,
+            // Exchange changes use previousClose; safeTicker derives unified changes from open.
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
             'quoteVolume': this.safeString2(ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),
