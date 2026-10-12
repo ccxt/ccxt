@@ -1320,6 +1320,7 @@ export default class okx extends okxRest {
         const url = this.getUrl (depth, 'public');
         const client = this.client (url);
         const resyncTopics: List = [];
+        let resyncNeeded = false;
         for (let i = 0; i < messageHashes.length; i++) {
             const resyncHash = 'resync:' + messageHashes[i];
             if (this.safeBool (client.subscriptions, resyncHash) === true) {
@@ -1327,9 +1328,10 @@ export default class okx extends okxRest {
                 // subscribe, so unsubscribe first; false keeps the marker for the ack but stops a second unsubscribe
                 client.subscriptions[resyncHash] = false;
                 resyncTopics.push (topics[i]);
+                resyncNeeded = true;
             }
         }
-        if (resyncTopics.length > 0) {
+        if (resyncNeeded) {
             const unsubscribeRequest: Dict = {
                 'op': 'unsubscribe',
                 'args': resyncTopics,
