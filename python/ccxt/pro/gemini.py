@@ -396,15 +396,24 @@ class gemini(ccxt.async_support.gemini):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        # let orderbook = this.safeValue (this.orderbooks, symbol);
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
-        elif isInitial:
-            # handle https://github.com/ccxt/ccxt/issues/29210
-            if symbol in self.orderbooks:
-                del self.orderbooks[symbol]
-            self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
+        if isInitial:
+            # the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+            bidsSnapshot = []
+            asksSnapshot = []
+            for i in range(0, len(changes)):
+                delta = changes[i]
+                bidAsk = [self.safe_number(delta, 1), self.safe_number(delta, 2)]
+                if self.safe_string(delta, 0) == 'buy':
+                    bidsSnapshot.append(bidAsk)
+                else:
+                    asksSnapshot.append(bidAsk)
+            snapshot = self.parse_order_book({'bids': bidsSnapshot, 'asks': asksSnapshot}, symbol)
+            orderbook.reset(snapshot)
+            client.resolve(orderbook, messageHash)
+            return
         for i in range(0, len(changes)):
             delta = changes[i]
             price = self.safe_number(delta, 1)

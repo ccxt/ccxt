@@ -765,8 +765,11 @@ func (this *Latoken) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 			panic(r.Err)
 		}
 	}
+	var defaultType *string = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
+	var typeVar *string = this.SafeString(params, "type", defaultType)
+	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 
-	r1 := <-this.PrivateGetAuthAccount(params)
+	r1 := <-this.PrivateGetAuthAccount(paramsOmitted)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -799,8 +802,6 @@ func (this *Latoken) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 		"datetime":  nil,
 	}
 	var maxTimestamp any = nil
-	var defaultType *string = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
-	var typeVar *string = this.SafeString(params, "type", defaultType)
 	var types map[string]any = SafeMapTyped(this.Options, "types")
 	var accountType *string = this.SafeString(types, typeVar, typeVar)
 	var balancesByType map[string]any = this.GroupBy(response, "type")
@@ -1089,11 +1090,11 @@ func (this *Latoken) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 	}
 
-	listEp1053 := <-this.PublicGetTicker(params)
-	if listEp1053.Err != nil {
-		panic(listEp1053.Err)
+	listEp1054 := <-this.PublicGetTicker(params)
+	if listEp1054.Err != nil {
+		panic(listEp1054.Err)
 	}
-	var response []any = listEp1053.Value
+	var response []any = listEp1054.Value
 
 	//
 	//    [
@@ -1264,11 +1265,11 @@ func (this *Latoken) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 		request["limit"] = mathMin(limit, 100) // default 100, limit 100
 	}
 
-	listEp1221 := <-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))
-	if listEp1221.Err != nil {
-		panic(listEp1221.Err)
+	listEp1222 := <-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))
+	if listEp1222.Err != nil {
+		panic(listEp1222.Err)
 	}
-	var response []any = listEp1221.Value
+	var response []any = listEp1222.Value
 
 	//
 	//     [
@@ -1311,11 +1312,11 @@ func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes99719 map[string]any = r.Value
-		if retRes99719 == nil {
+		var retRes99819 map[string]any = r.Value
+		if retRes99819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes99719}
+			ch <- AsyncResult[any]{Value: retRes99819}
 		}
 		return nil
 	} else if method != nil && *method == "fetchPublicTradingFee" {
@@ -1324,11 +1325,11 @@ func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes99919 map[string]any = r1.Value
-		if retRes99919 == nil {
+		var retRes100019 map[string]any = r1.Value
+		if retRes100019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes99919}
+			ch <- AsyncResult[any]{Value: retRes100019}
 		}
 		return nil
 	} else {
@@ -1696,7 +1697,7 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	}
 	var response []any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	var paramsOmitted map[string]any = this.OmitDict(params, "stop")
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	// privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1705,18 +1706,18 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	}
 	if isTrigger != nil && *isTrigger == true {
 
-		listEp1624 := <-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
-		if listEp1624.Err != nil {
-			panic(listEp1624.Err)
+		listEp1625 := <-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
+		if listEp1625.Err != nil {
+			panic(listEp1625.Err)
 		}
-		response = listEp1624.Value
+		response = listEp1625.Value
 	} else {
 
-		listEp1627 := <-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
-		if listEp1627.Err != nil {
-			panic(listEp1627.Err)
+		listEp1628 := <-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
+		if listEp1628.Err != nil {
+			panic(listEp1628.Err)
 		}
-		response = listEp1627.Value
+		response = listEp1628.Value
 	}
 
 	//
@@ -1797,34 +1798,34 @@ func (this *Latoken) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		request["quote"] = market["quoteId"]
 		if isTrigger != nil && *isTrigger == true {
 
-			listEp1705 := <-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
-			if listEp1705.Err != nil {
-				panic(listEp1705.Err)
+			listEp1706 := <-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
+			if listEp1706.Err != nil {
+				panic(listEp1706.Err)
 			}
-			response = listEp1705.Value
+			response = listEp1706.Value
 		} else {
 
-			listEp1708 := <-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
-			if listEp1708.Err != nil {
-				panic(listEp1708.Err)
+			listEp1709 := <-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
+			if listEp1709.Err != nil {
+				panic(listEp1709.Err)
 			}
-			response = listEp1708.Value
+			response = listEp1709.Value
 		}
 	} else {
 		if isTrigger != nil && *isTrigger == true {
 
-			listEp1713 := <-this.PrivateGetAuthStopOrder(this.Extend(request, paramsOmitted))
-			if listEp1713.Err != nil {
-				panic(listEp1713.Err)
+			listEp1714 := <-this.PrivateGetAuthStopOrder(this.Extend(request, paramsOmitted))
+			if listEp1714.Err != nil {
+				panic(listEp1714.Err)
 			}
-			response = listEp1713.Value
+			response = listEp1714.Value
 		} else {
 
-			listEp1716 := <-this.PrivateGetAuthOrder(this.Extend(request, paramsOmitted))
-			if listEp1716.Err != nil {
-				panic(listEp1716.Err)
+			listEp1717 := <-this.PrivateGetAuthOrder(this.Extend(request, paramsOmitted))
+			if listEp1717.Err != nil {
+				panic(listEp1717.Err)
 			}
-			response = listEp1716.Value
+			response = listEp1717.Value
 		}
 	}
 

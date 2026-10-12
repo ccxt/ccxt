@@ -483,10 +483,12 @@ class bittrade extends bittrade$1["default"] {
             return;
         }
         const limit = this.safeInteger(subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        const orderbook = this.orderbooks[symbol];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
         // watch the snapshot in a separate async call
         this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
     }

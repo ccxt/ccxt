@@ -77,7 +77,7 @@ export default class upbit extends upbitRest {
     handleOrderBook(client: Client, message: Dict): void;
     handleTrades(client: Client, message: Dict): void;
     handleOHLCV(client: Client, message: Dict): void;
-    authenticate(params?: Dict): Promise<import("../base/ws/WsClient.js").default>;
+    authenticate(params?: Dict): void;
     watchPrivate(symbol: Str, channel: string, messageHash: string, params?: Dict): Promise<any>;
     /**
      * @method

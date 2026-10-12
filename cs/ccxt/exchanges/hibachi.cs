@@ -123,6 +123,7 @@ public partial class hibachi : Exchange
                     { "private", "https://api.hibachi.xyz" },
                 } },
                 { "www", "https://www.hibachi.xyz/" },
+                { "doc", "https://api-doc.hibachi.xyz/" },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://hibachi.xyz/r/ZBL2YFWIHU" },
                 } },

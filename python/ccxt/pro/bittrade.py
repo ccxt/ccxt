@@ -456,9 +456,11 @@ class bittrade(ccxt.async_support.bittrade):
         if symbol is None:
             return
         limit = self.safe_integer(subscription, 'limit')
-        if symbol in self.orderbooks:
-            del self.orderbooks[symbol]
-        self.orderbooks[symbol] = self.order_book({}, limit)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({}, limit)
+        orderbook = self.orderbooks[symbol]
+        orderbook['nonce'] = None
+        orderbook.cache = []
         # watch the snapshot in a separate async call
         self.spawn(self.watch_order_book_snapshot, client, message, subscription)
 

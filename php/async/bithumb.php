@@ -947,18 +947,7 @@ class bithumb extends Exchange {
         $marketId = $this->safe_string($ticker, 'market');
         $symbol = $this->safe_symbol($marketId, $market);
         $close = $this->safe_string_2($ticker, 'closing_price', 'trade_price');
-        $change = $this->safe_string_2($ticker, 'signed_change_price', 'change_price');
-        $percentage = $this->safe_string_2($ticker, 'signed_change_rate', 'change_rate');
         $open = $this->safe_string($ticker, 'opening_price');
-        $nonZeroOpen = $this->omit_zero($open);
-        if (($marketId !== null) && ($nonZeroOpen !== null) && ($close !== null)) {
-            $computedChange = Precise::string_sub($close, $open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (($change !== null) && Precise::string_eq($change, '0') && !Precise::string_eq($computedChange, '0')) {
-                $change = $computedChange;
-                $percentage = null;
-            }
-        }
         $high = $this->safe_string_2($ticker, 'max_price', 'high_price');
         $low = $this->safe_string_2($ticker, 'min_price', 'low_price');
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -983,8 +972,9 @@ class bithumb extends Exchange {
             'close' => $close,
             'last' => $close,
             'previousClose' => $this->safe_string($ticker, 'prev_closing_price'),
-            'change' => $change,
-            'percentage' => $percentage,
+            // Exchange changes use previousClose; safeTicker derives unified changes from open.
+            'change' => null,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
             'quoteVolume' => $this->safe_string_2($ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),

@@ -346,8 +346,9 @@ export default class toobit extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     fetchDepositsOrWithdrawalsHelper(type: Str, code: Str, since: Int, limit: Int, params?: Dict): Promise<Transaction[]>;
+    parseTransactionWithType(transaction: Dict, currency?: Currency, transactType?: Str): Transaction;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string | undefined;
+    parseTransactionStatus(status: Str, type?: Str): string | undefined;
     /**
      * @method
      * @name toobit#fetchDepositAddress

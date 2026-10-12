@@ -2692,6 +2692,154 @@
                         ]
                     }
                 }
+            },
+            {
+                "description": "linear swap ticker, vol counts contracts",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "ch": "market.BTC-USDT.detail.merged",
+                    "status": "ok",
+                    "tick": {
+                        "amount": "6041.178",
+                        "ask": [
+                            82420,
+                            297
+                        ],
+                        "bid": [
+                            82419.9,
+                            7915
+                        ],
+                        "close": "82403.3",
+                        "count": 65947,
+                        "high": "83622.6",
+                        "id": 1791461606,
+                        "low": "82164.5",
+                        "open": "83412.2",
+                        "trade_turnover": "501448269.116",
+                        "ts": 1791461606047,
+                        "vol": "6041178"
+                    },
+                    "ts": 1791461606047
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1791461606047,
+                    "datetime": "2026-10-08T12:13:26.047Z",
+                    "high": 83622.6,
+                    "low": 82164.5,
+                    "bid": 82419.9,
+                    "bidVolume": 7915,
+                    "ask": 82420,
+                    "askVolume": 297,
+                    "vwap": 83005.04787576199,
+                    "open": 83412.2,
+                    "close": 82403.3,
+                    "last": 82403.3,
+                    "previousClose": null,
+                    "change": -1008.9,
+                    "percentage": -1.2095352957960586,
+                    "average": 82907.7,
+                    "baseVolume": 6041.178,
+                    "quoteVolume": 501448269.116,
+                    "info": {
+                        "amount": "6041.178",
+                        "ask": [
+                            82420,
+                            297
+                        ],
+                        "bid": [
+                            82419.9,
+                            7915
+                        ],
+                        "close": "82403.3",
+                        "count": 65947,
+                        "high": "83622.6",
+                        "id": 1791461606,
+                        "low": "82164.5",
+                        "open": "83412.2",
+                        "trade_turnover": "501448269.116",
+                        "ts": 1791461606047,
+                        "vol": "6041178"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "inverse swap ticker, vol counts contracts",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "ch": "market.BTC-USD.detail.merged",
+                    "status": "ok",
+                    "tick": {
+                        "amount": "125.1753257778647526723598021928350299421",
+                        "ask": [
+                            82482.8,
+                            51
+                        ],
+                        "bid": [
+                            82439.8,
+                            16
+                        ],
+                        "close": "82433.6",
+                        "count": 5006,
+                        "high": "83619.1",
+                        "id": 1791461606,
+                        "low": "82334.2",
+                        "open": "83431.7",
+                        "ts": 1791461606563,
+                        "vol": "103764"
+                    },
+                    "ts": 1791461606563
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": 1791461606563,
+                    "datetime": "2026-10-08T12:13:26.563Z",
+                    "high": 83619.1,
+                    "low": 82334.2,
+                    "bid": 82439.8,
+                    "bidVolume": 16,
+                    "ask": 82482.8,
+                    "askVolume": 51,
+                    "vwap": 82894.9310538555,
+                    "open": 83431.7,
+                    "close": 82433.6,
+                    "last": 82433.6,
+                    "previousClose": null,
+                    "change": -998.1,
+                    "percentage": -1.1963078781805956,
+                    "average": 82932.6,
+                    "baseVolume": 125.17532577786476,
+                    "quoteVolume": 10376400,
+                    "info": {
+                        "amount": "125.1753257778647526723598021928350299421",
+                        "ask": [
+                            82482.8,
+                            51
+                        ],
+                        "bid": [
+                            82439.8,
+                            16
+                        ],
+                        "close": "82433.6",
+                        "count": 5006,
+                        "high": "83619.1",
+                        "id": 1791461606,
+                        "low": "82334.2",
+                        "open": "83431.7",
+                        "ts": 1791461606563,
+                        "vol": "103764"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
             }
         ],
         "fetchOHLCV": [

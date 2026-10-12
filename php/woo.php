@@ -16,7 +16,7 @@ class woo extends Exchange {
             'countries' => array( 'KY' ), // Cayman Islands
             'rateLimit' => 100,
             'version' => 'v1',
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'hostname' => 'woox.io',
             'has' => array(

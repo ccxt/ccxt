@@ -28,6 +28,7 @@ import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.OpenInterests;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
@@ -62,7 +63,7 @@ public class Htx extends HtxApi
             put( "countries", new ArrayList<Object>(Arrays.asList("CN")) );
             put( "rateLimit", 100 );
             put( "userAgent", ((Map<String, Object>)Htx.this.userAgents).get("chrome100") );
-            put( "certified", true );
+            put( "certified", false );
             put( "version", "v1" );
             put( "hostname", "api.huobi.pro" );
             put( "pro", true );
@@ -2199,7 +2200,7 @@ public class Htx extends HtxApi
             // the former statuspage endpoints (status*.huobigroup.com) were
             // decommissioned after the huobi -> htx rebrand and no longer resolve,
             // so this method uses the live native endpoints instead
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchStatus", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchStatus", (Map<String, Object>) null, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             String status = null;
@@ -2225,7 +2226,7 @@ public class Htx extends HtxApi
                 eta = this.safeInteger(data, "haltEndTime");
             } else
             {
-                io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchStatus", (Map<String, Object>) null, paramsMarketType, (Object) null);
+                Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchStatus", (Map<String, Object>) null, paramsMarketType, (Object) null);
                 String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
                 Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
                 response = (this.contractPublicGetHeartbeat(paramsSubType)).join();
@@ -3036,6 +3037,18 @@ public class Htx extends HtxApi
         String close = this.safeString(ticker, "close");
         String baseVolume = this.safeString(ticker, "amount");
         String quoteVolume = this.safeString(ticker, "vol");
+        Object marketResolved = this.safeDict(this.markets, symbol, market);
+        if (java.util.Objects.equals(this.safeBool(marketResolved, "contract", (Object) null), true))
+        {
+            // contract tickers count 'vol' in contracts
+            if (java.util.Objects.equals(this.safeBool(marketResolved, "linear", (Object) null), true))
+            {
+                quoteVolume = this.safeString(ticker, "trade_turnover");
+            } else
+            {
+                quoteVolume = Precise.stringMul(quoteVolume, this.safeString(marketResolved, "contractSize"));
+            }
+        }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("symbol", symbol);
         mapLiteral1.put("timestamp", timestamp);
@@ -3186,10 +3199,10 @@ public class Htx extends HtxApi
                 market = this.market(first);
             }
             Boolean isSubTypeRequested = (parameters.containsKey("subType")) || (parameters.containsKey("business_type"));
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -3314,10 +3327,10 @@ public class Htx extends HtxApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLastPrices", market, parameters, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLastPrices", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, paramsSubType, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, paramsSubType, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Map<String, Object> response = null;
@@ -3671,7 +3684,7 @@ public class Htx extends HtxApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (!java.util.Objects.equals(marketType, "spot"))
@@ -3738,7 +3751,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3750,7 +3763,7 @@ public class Htx extends HtxApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> paramsUntil = null;
@@ -3771,7 +3784,7 @@ public class Htx extends HtxApi
                 {
                     request.put("start-time", since); // a date within 120 days from today
                 }
-                io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end-time", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end-time", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
                 request = requestparamsUntilVariable.first();
                 paramsUntil = requestparamsUntilVariable.second();
                 response = (this.spotPrivateGetV1OrderMatchresults(this.extend(request, paramsUntil))).join();
@@ -3785,7 +3798,7 @@ public class Htx extends HtxApi
                 {
                     request.put("start_time", since);
                 }
-                io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
                 request = requestparamsUntilVariable.first();
                 paramsUntil = requestparamsUntilVariable.second();
                 if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
@@ -4066,7 +4079,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -4187,7 +4200,7 @@ public class Htx extends HtxApi
             } else
             {
                 request.put("symbol", market.get("id"));
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> useHistoricalparamsHistoricalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsUntil), "fetchOHLCV", "useHistoricalEndpointForSpot", true);
+                Pair<Boolean, Map<String, Object>> useHistoricalparamsHistoricalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsUntil), "fetchOHLCV", "useHistoricalEndpointForSpot", true);
                 Boolean useHistorical = useHistoricalparamsHistoricalVariable.first();
                 Map<String, Object> paramsHistorical = useHistoricalparamsHistoricalVariable.second();
                 if (!Boolean.TRUE.equals(useHistorical))
@@ -4565,21 +4578,21 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "fetchBalance", "unified", "uta", false);
+            Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "fetchBalance", "unified", "uta", false);
             Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedVariable.first();
             Map<String, Object> paramsUnified = isUnifiedAccountparamsUnifiedVariable.second();
             if (Boolean.TRUE.equals(isUnifiedAccount))
             {
                 throw new NotSupported((this.id + " fetchBalance() unified account has been deprecated on htx")) ;
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsUnified, (String) null);
+            Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsUnified, (String) null);
             String type = typeparamsTypeVariable.first();
             Map<String, Object> paramsType = typeparamsTypeVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsType), "fetchBalance", "defaultSubType", "subType", (String) null);
+            Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsType), "fetchBalance", "defaultSubType", "subType", (String) null);
             String subTypeOption = subTypeOptionparamsSubTypeVariable.first();
             Map<String, Object> paramsSubType = subTypeOptionparamsSubTypeVariable.second();
             String subType = (((java.util.Objects.equals(subTypeOption, null)))) ? "linear" : subTypeOption;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isMultiAssetModeparamsMultiAssetVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchBalance", "multiAssetMode", false);
+            Pair<Boolean, Map<String, Object>> isMultiAssetModeparamsMultiAssetVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchBalance", "multiAssetMode", false);
             Boolean isMultiAssetMode = isMultiAssetModeparamsMultiAssetVariable.first();
             Map<String, Object> paramsMultiAsset = isMultiAssetModeparamsMultiAssetVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -4588,7 +4601,7 @@ public class Htx extends HtxApi
             Boolean swap = (java.util.Objects.equals(type, "swap"));
             Boolean inverse = (java.util.Objects.equals(subType, "inverse"));
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMultiAsset, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMultiAsset, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             Boolean isolated = (java.util.Objects.equals(marginMode, "isolated"));
@@ -4886,7 +4899,7 @@ public class Htx extends HtxApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -4963,7 +4976,7 @@ public class Htx extends HtxApi
                             throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
                         }
                         request.put("contract_code", this.safeString(market, "id"));
-                        io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrder", paramsClientOrderId, (String) null);
+                        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrder", paramsClientOrderId, (String) null);
                         String marginMode = marginModeparamsMarginModeVariable.first();
                         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
                         request.put("margin_mode", (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode);
@@ -5154,7 +5167,7 @@ public class Htx extends HtxApi
                 request.put("start-time", since); // a window of 48 hours within 180 days
                 request.put("end-time", this.sum(since, (((48L * 60L) * 60L) * 1000L)));
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end-time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end-time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -5249,7 +5262,7 @@ public class Htx extends HtxApi
             {
                 request.put("start_time", since);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
             request = requestparamsUntilVariable.first();
             paramsUntil = requestparamsUntilVariable.second();
             if (java.util.Objects.equals(market.get("linear"), true))
@@ -5258,7 +5271,7 @@ public class Htx extends HtxApi
                 {
                     request.put("limit", limit);
                 }
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchContractOrders", paramsUntil, (String) null);
+                Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchContractOrders", paramsUntil, (String) null);
                 String marginMode = marginModeparamsMarginModeVariable.first();
                 Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
                 request.put("margin_mode", (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode);
@@ -5410,7 +5423,7 @@ public class Htx extends HtxApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Boolean contract = (java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future"));
@@ -5456,7 +5469,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledOrders", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledOrders", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -5468,7 +5481,7 @@ public class Htx extends HtxApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchCanceledOrders", market, paramsPaginate, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchCanceledOrders", market, paramsPaginate, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(marketType, "spot"))
@@ -5533,7 +5546,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -5545,7 +5558,7 @@ public class Htx extends HtxApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(marketType, "spot"))
@@ -5592,10 +5605,10 @@ public class Htx extends HtxApi
                 market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
@@ -6430,7 +6443,7 @@ public class Htx extends HtxApi
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String accountId = (this.fetchAccountIdByType(market.get("type"), marginMode, symbol, new HashMap<String, Object>() {{}})).join();
@@ -6598,7 +6611,7 @@ public class Htx extends HtxApi
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         String orderType = (((java.util.Objects.equals(postOnly, true)))) ? "post_only" : type;
-        io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("createOrder", market, paramsPostOnly, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("createOrder", market, paramsPostOnly, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Object query = paramsSubType;
@@ -6608,7 +6621,7 @@ public class Htx extends HtxApi
         String timeInForce = this.safeStringLower2(query, "timeInForce", "time_in_force", "gtc");
         if (Boolean.TRUE.equals(isLinear))
         {
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(query), "cross");
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(query), "cross");
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             query = paramsMarginMode;
@@ -7255,10 +7268,10 @@ public class Htx extends HtxApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrder", market, paramsMarketType, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrder", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
@@ -7465,7 +7478,7 @@ public class Htx extends HtxApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -7777,7 +7790,7 @@ public class Htx extends HtxApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -8546,7 +8559,7 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("currency", currency.get("id"));
             request.put("amount", Helpers.parseFloat(transferAmount));
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("transfer", (Map<String, Object>) null, parameters, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("transfer", (Map<String, Object>) null, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Object fromAccountId = this.convertTypeToAccount(fromAccount);
@@ -8822,7 +8835,7 @@ public class Htx extends HtxApi
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -9048,7 +9061,7 @@ public class Htx extends HtxApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String defaultSubType = "linear";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchFundingRates", "subType", defaultSubType);
+            Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchFundingRates", "subType", defaultSubType);
             String subTypeOption = subTypeOptionparamsSubTypeVariable.first();
             Map<String, Object> paramsSubType = subTypeOptionparamsSubTypeVariable.second();
             String subType = subTypeOption;
@@ -9117,7 +9130,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, (String) null);
+            Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, (String) null);
             String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
             String marginMode = (((java.util.Objects.equals(marginModeOption, null)))) ? "cross" : marginModeOption;
@@ -9528,13 +9541,13 @@ public class Htx extends HtxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> initialRequest = new HashMap<String, Object>() {{
                 put( "type", "30,31" );
             }};
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (initialRequest), (Map<String, Object>) (paramsMarketType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (initialRequest), (Map<String, Object>) (paramsMarketType), 1);
             Map<String, Object> request = requestparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestparamsUntilVariable.second();
             if (!java.util.Objects.equals(since, null))
@@ -9552,7 +9565,7 @@ public class Htx extends HtxApi
             {
                 if (java.util.Objects.equals(market.get("linear"), true))
                 {
-                    io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchFundingHistory", paramsUntil, (String) null);
+                    Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchFundingHistory", paramsUntil, (String) null);
                     String marginMode = marginModeparamsMarginModeVariable.first();
                     Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
                     ((Map<String, Object>)request).put("margin_mode", (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode);
@@ -9625,7 +9638,7 @@ public class Htx extends HtxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("setLeverage", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("setLeverage", market, parameters, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -9896,10 +9909,10 @@ public class Htx extends HtxApi
                     market = this.market(first);
                 }
             }
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPositions", market, paramsSubType, (String) null);
+            Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPositions", market, paramsSubType, (String) null);
             String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
             String marketType = marketTypeOption;
@@ -9962,11 +9975,11 @@ public class Htx extends HtxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPosition", parameters, (String) null);
+            Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPosition", parameters, (String) null);
             String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
             String marginMode = (((java.util.Objects.equals(marginModeOption, null)))) ? "cross" : marginModeOption;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchPosition", market, paramsMarginMode, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchPosition", market, paramsMarginMode, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -10123,7 +10136,7 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -10148,7 +10161,7 @@ public class Htx extends HtxApi
             {
                 request.put("limit", limit); // max 500
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.spotPrivateGetV2AccountLedger(this.extend(requestUntil, paramsUntil))).join();
@@ -10435,10 +10448,10 @@ public class Htx extends HtxApi
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenInterests", market, paramsSubType, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenInterests", market, paramsSubType, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> response = null;
@@ -10912,7 +10925,7 @@ public class Htx extends HtxApi
             {
                 request.put("start_time", since);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
@@ -11309,7 +11322,7 @@ public class Htx extends HtxApi
             {
                 request.put("start_time", since);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
@@ -11458,7 +11471,7 @@ public class Htx extends HtxApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("linear"), true))
             {
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("closePosition", paramsOmitted, "cross");
+                Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("closePosition", paramsOmitted, "cross");
                 String marginMode = marginModeparamsMarginModeVariable.first();
                 Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
                 request.put("margin_mode", marginMode);
@@ -11579,10 +11592,10 @@ public class Htx extends HtxApi
                     market = this.market(first);
                 }
             }
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPositionsADLRank", market, paramsSubType, (String) null);
+            Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPositionsADLRank", market, paramsSubType, (String) null);
             String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
             String marketType = marketTypeOption;

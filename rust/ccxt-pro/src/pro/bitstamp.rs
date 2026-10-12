@@ -1184,7 +1184,12 @@ impl BitstampCore {
         let mut parts: Value = split(&channel, &Value::Str("_".into()));
         let mut marketId: Value = self.safe_string(parts, Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
-        { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+        if !(in_op(&self.orderbooks, &symbol)) {
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+        }
+        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+        crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {

@@ -226,7 +226,7 @@ impl crate::exchange_generated::ExchangeBase for BingxCore {
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "reduce_margin" => self.reduce_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "set_leverage" => self.set_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -4749,6 +4749,7 @@ impl BingxCore {
             let mut trailingAmount: Value = self.safe_string_k(paramsPostOnly.clone(), "trailingAmount", &[]);
             let mut trailingPercent: Value = self.safe_string2(paramsPostOnly.clone(), Value::Str("trailingPercent".into()), Value::Str("priceRate".into()), &[]);
             let mut trailingType: Value = self.safe_string_k(paramsPostOnly.clone(), "trailingType", &[Value::Str("TRAILING_STOP_MARKET".into())]);
+            let mut trailingTriggerPrice: Value = self.safe_string2(paramsPostOnly.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activationPrice".into()), &[]);
             let mut isTrailingAmountOrder: bool = trailingAmount != Value::Null;
             let mut isTrailingPercentOrder: bool = trailingPercent != Value::Null;
             let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
@@ -4801,6 +4802,9 @@ impl BingxCore {
                 }  else if isTrailingPercentOrder {
                     let mut requestTrailingPercent: Value = crate::precise::Precise::stringDiv(&trailingPercent, &Value::Str("100".into()));
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("priceRate".into(), self.parse_to_numeric(requestTrailingPercent)); }
+                }
+                if (trailingTriggerPrice != Value::Null) {
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("activationPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), trailingTriggerPrice))); }
                 }
             }
             if hasStopLoss || hasTakeProfit {
@@ -4874,7 +4878,7 @@ impl BingxCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".into(), amountReq); }; // precision not available for inverse contracts
             }
         }
-        let mut paramsRequest: Value = self.omit(paramsOrder, Value::from(vec![Value::Str("hedged".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trailingType".into()), Value::Str("clientOrderId".into())]), &[]);
+        let mut paramsRequest: Value = self.omit(paramsOrder, Value::from(vec![Value::Str("hedged".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trailingType".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("activationPrice".into()), Value::Str("clientOrderId".into())]), &[]);
         return self.extend(request, &[paramsRequest]);
 
     Value::Null
@@ -4905,6 +4909,7 @@ impl BingxCore {
  * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+ * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
  * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -7049,8 +7054,8 @@ impl BingxCore {
         let mut timestamp: Value = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("timestamp".into()), &[]);
         let mut datetime: Value = self.iso8601(timestamp.clone());
         if (timestamp == Value::Null) {
-            datetime = self.safe_string_k(transaction.clone(), "applyTime", &[]);
-            timestamp = self.parse8601(datetime.clone());
+            timestamp = self.parse8601(self.safe_string_k(transaction.clone(), "applyTime", &[]));
+            datetime = self.iso8601(timestamp.clone());
         }
         let mut network: Value = self.safe_string_k(transaction.clone(), "network", &[]);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "coin", &[]);
@@ -7060,21 +7065,26 @@ impl BingxCore {
                 code = replace_str(&code, &network, &Value::Str("".into()));
             }
         }
+        // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         let mut rawType: Option<String> = self.safe_string_k(transaction.clone(), "transferType", &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Str("withdrawal".into());
-        if (rawType.as_deref() == Some("0")) {
+        if (rawType.as_deref() == Some("0")) || (matches!(&transaction, Value::Dict(__d) if __d.contains_key("insertTime"))) {
             type_var = Value::Str("deposit".into());
+        }
+        let mut internal: Value = Value::Null;
+        if (rawType.is_some()) {
+            internal = (Value::Bool(rawType.as_deref() == Some("2")));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id);
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txId", &[]));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone());
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), self.network_id_to_code(&[network, code.clone()]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var]));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime);
         m.insert("address".to_string(), address.clone());
@@ -7092,14 +7102,37 @@ impl BingxCore {
         m.insert("rate".to_string(), Value::Null);
     m
 }));
-        m.insert("internal".to_string(), Value::Null);
+        m.insert("internal".to_string(), internal);
     m
 });
 
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value, optional_args: &[Value]) -> Value {
+        let mut type_var = get_arg(optional_args, 0, Value::Null);
+        let mut statusesByType: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("deposit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("0".to_string(), Value::Str("pending".into()));
+        m.insert("6".to_string(), Value::Str("pending".into()));
+        m.insert("1".to_string(), Value::Str("ok".into()));
+    m
+}));
+                m.insert("withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("4".to_string(), Value::Str("pending".into()));
+        m.insert("5".to_string(), Value::Str("failed".into()));
+        m.insert("6".to_string(), Value::Str("ok".into()));
+    m
+}));
+            m
+        });
+        let mut directional: Value = self.safe_dict(statusesByType, type_var, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("pending".into()));
@@ -7118,7 +7151,8 @@ impl BingxCore {
                 m.insert("6".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
+        let mut fallback: Value = self.safe_string(statuses, status.clone(), &[status.clone()]);
+        return self.safe_string(directional, status, &[fallback]);
 
     Value::Null
 }

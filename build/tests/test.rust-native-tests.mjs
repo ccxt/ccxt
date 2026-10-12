@@ -9,8 +9,10 @@ import { needsRustNativeTests } from '../utils/rust-native-tests.mjs';
 
 test('runtime, generator, shared base and dependency changes select native tests', () => {
     for (const file of [
+        'rust/ccxt-core/src/exchange.rs', 'rust/ccxt-core/src/value.rs',
         'rust/ccxt-base/src/exchange.rs', 'rust/ccxt-base/src/value.rs',
         'rust/ccxt-base/tests/regression.rs', 'rust/ccxt-base/Cargo.toml',
+        'rust/ccxt-core/Cargo.toml',
         'rust/Cargo.toml', 'rust/Cargo.lock', 'ts/src/base/ws/Cache.ts',
         'build/rustTranspiler.ts', 'build/generateRustWrappers.ts',
         'build/rustFutureGenerator.ts', 'build/rust/helpers/new-pass.mjs',

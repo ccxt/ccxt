@@ -11791,8 +11791,10 @@ public partial class bitget : Exchange
      * @name bitget#fetchFundingRates
      * @description fetch the current funding rates for all markets
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
@@ -11815,14 +11817,27 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
+        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchFundingRates", false);
+        var uta = ((IList<object>) utaparamsUTAVariable)[0];
+        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
         string method = "publicMixGetV2MixMarketTickers";
-        (string?, object) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(paramsProductType, "fetchFundingRates", "method", method);
+        (string?, object) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(paramsUTA, "fetchFundingRates", "method", method);
         string? methodOption = methodOptionparamsMethodVariable.Item1;
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable.Item2);
         Dictionary<string, object> response = null;
-        request["productType"] = productType;
-        if ((methodOption == "publicMixGetV2MixMarketTickers"))
+        if ((uta is true))
         {
+            request["category"] = productType;
+            if ((methodOption == "publicMixGetV2MixMarketTickers"))
+            {
+                response = await this.publicUtaGetV3MarketTickers(this.extend(request, paramsMethod));
+            } else if ((methodOption == "publicMixGetV2MixMarketCurrentFundRate"))
+            {
+                response = await this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, paramsMethod));
+            }
+        } else if ((methodOption == "publicMixGetV2MixMarketTickers"))
+        {
+            request["productType"] = productType;
             // {
             //     "code": "00000",
             //     "msg": "success",
@@ -11858,6 +11873,7 @@ public partial class bitget : Exchange
             response = await this.publicMixGetV2MixMarketTickers(this.extend(request, paramsMethod));
         } else if ((methodOption == "publicMixGetV2MixMarketCurrentFundRate"))
         {
+            request["productType"] = productType;
             //
             //     {
             //         "code": "00000",
@@ -11887,8 +11903,10 @@ public partial class bitget : Exchange
      * @name bitget#fetchFundingIntervals
      * @description fetch the funding rate interval for multiple markets
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */

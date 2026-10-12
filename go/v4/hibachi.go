@@ -133,6 +133,7 @@ func (this *Hibachi) Describe() any {
 				"private": "https://api.hibachi.xyz",
 			},
 			"www": "https://www.hibachi.xyz/",
+			"doc": "https://api-doc.hibachi.xyz/",
 			"referral": map[string]any{
 				"url": "https://hibachi.xyz/r/ZBL2YFWIHU",
 			},
@@ -1964,11 +1965,11 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		"accountId": this.GetAccountId(),
 	}
 
-	listEp1862 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
-	if listEp1862.Err != nil {
-		panic(listEp1862.Err)
+	listEp1863 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
+	if listEp1863.Err != nil {
+		panic(listEp1863.Err)
 	}
-	var response []any = listEp1862.Value
+	var response []any = listEp1863.Value
 
 	// [
 	//     {

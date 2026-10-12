@@ -638,7 +638,7 @@
             {
                 "description": "Linear swap portfolio margin conditional limit buy order",
                 "method": "createOrder",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/order",
+                "url": "https://papi.binance.com/papi/v1/um/algo/order",
                 "input": [
                     "BTC/USDT:USDT",
                     "limit",
@@ -650,7 +650,7 @@
                         "triggerPrice": 45000
                     }
                 ],
-                "output": "timestamp=1707112624772&symbol=BTCUSDT&newOrderRespType=RESULT&side=BUY&newClientStrategyId=x-xcKtGhcu27f109953d6e4dc0974006&strategyType=STOP&quantity=0.01&price=35000&stopPrice=45000&recvWindow=10000&signature=2cacd678b9199f4f75ed8f7eb48cc35afc648346fc436c3808983baf983323ab"
+                "output": "timestamp=1791214284209&symbol=BTCUSDT&side=BUY&clientAlgoId=x-cvBPrNm9a86f3d1dc89d4e6f89a5a9&newOrderRespType=RESULT&type=STOP&quantity=0.01&price=35000&triggerPrice=45000&algoType=CONDITIONAL&recvWindow=10000&signature=b928c7239d79f0cc18ecfd90266c8e5ec2bbe404b8e013db918a590aa37c7dc2"
             },
             {
                 "description": "Inverse swap portfolio margin conditional limit buy order",
@@ -1245,7 +1245,7 @@
             {
                 "description": "Linear swap portfolio margin conditional cancel order",
                 "method": "cancelOrder",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/order?timestamp=1707269945072&symbol=BTCUSDT&strategyId=3733207&recvWindow=10000&signature=b5ec95255493898e91209894976c9883d22a3de188b62ea177bf1c23efcd0db5",
+                "url": "https://papi.binance.com/papi/v1/um/algo/order?timestamp=1791215725434&symbol=BTCUSDT&algoId=3733207&recvWindow=10000&signature=c1c8f67c0a94c0af9298ee020a4ccba45901e6324358f7d89e157b5a0613989b",
                 "input": [
                     "3733207",
                     "BTC/USDT:USDT",
@@ -1258,7 +1258,7 @@
             {
                 "description": "Linear swap portfolio margin trigger cancel order",
                 "method": "cancelOrder",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/order?timestamp=1707269945072&symbol=BTCUSDT&strategyId=3733207&recvWindow=10000&signature=b5ec95255493898e91209894976c9883d22a3de188b62ea177bf1c23efcd0db5",
+                "url": "https://papi.binance.com/papi/v1/um/algo/order?timestamp=1791215725486&symbol=BTCUSDT&algoId=3733207&recvWindow=10000&signature=fb8bad20469f7e5f877402c3b79e59d2c36b7de0aba2fd4a21a8959fb42ea5db",
                 "input": [
                     "3733207",
                     "BTC/USDT:USDT",
@@ -1426,7 +1426,7 @@
             {
                 "description": "Linear swap conditional portfolio margin cancel all orders",
                 "method": "cancelAllOrders",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/allOpenOrders?timestamp=1707200837231&symbol=BTCUSDT&recvWindow=10000&signature=a2d5b52b27de004012e2505eabd7008521b2755832a94e9c20e6c8b37bd8f44f",
+                "url": "https://papi.binance.com/papi/v1/um/algo/allOpenOrders?timestamp=1791215725536&symbol=BTCUSDT&recvWindow=10000&signature=f1f7c80e4cb928342e8e37446a2691c02a66e623e2febd46b16614731f80ef94",
                 "input": [
                     "BTC/USDT:USDT",
                     {
@@ -1759,7 +1759,7 @@
             {
                 "description": "Linear swap conditional portfolio margin fetch orders",
                 "method": "fetchOrders",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/allOrders?timestamp=1707792805020&symbol=BTCUSDT&recvWindow=10000&signature=fa5930b499e5a683591142f732b96939815fb42fb1d4c9c1caec2e87368bf5a7",
+                "url": "https://papi.binance.com/papi/v1/um/algo/allAlgoOrders?timestamp=1791215725587&symbol=BTCUSDT&recvWindow=10000&signature=7ee1482388663f43b8a30a436a92f0b56b2b4ca1697f361a63ecb20de2e98ea0",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
@@ -2115,7 +2115,7 @@
             {
                 "description": "Linear swap conditional portfolio margin open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/openOrders?timestamp=1707198871950&symbol=BTCUSDT&recvWindow=10000&signature=df05759f3ce7eedef0fc3fca72635deb0379a289365808755f1086c5dd59c980",
+                "url": "https://papi.binance.com/papi/v1/um/algo/openAlgoOrders?timestamp=1791215725839&symbol=BTCUSDT&recvWindow=10000&signature=d38dfdde4aa3f134ee754211ab4c9177e56ab35d11182332e276250a6fecf24b",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
@@ -2238,7 +2238,7 @@
             {
                 "description": "Linear conditional portfolio margin fetch canceled orders",
                 "method": "fetchCanceledOrders",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/allOrders?timestamp=1707798862888&symbol=BTCUSDT&recvWindow=10000&signature=6492a3f7739ac309e269451258f34bbd16f7c6b247b4fc7ac074cccf1acedcdf",
+                "url": "https://papi.binance.com/papi/v1/um/algo/allAlgoOrders?timestamp=1791215725890&symbol=BTCUSDT&recvWindow=10000&signature=56170576c5d15be3936b0eb87f2a31a3cab23bce55a29caaf8a503cc231cf767",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
@@ -2326,7 +2326,7 @@
             {
                 "description": "Linear conditional portfolio margin fetch closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/allOrders?timestamp=1707793503573&symbol=BTCUSDT&recvWindow=10000&signature=3a62b27a95127273f2841ff3800aedc91741b1e9a06913317ec7a09328cf2260",
+                "url": "https://papi.binance.com/papi/v1/um/algo/allAlgoOrders?timestamp=1791215726142&symbol=BTCUSDT&recvWindow=10000&signature=d42f60b4ea6897eedfc4c04bbe6eacd7de77848d6f7dd8a7cb32a8e4d37b907a",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
@@ -3990,7 +3990,7 @@
             {
                 "description": "Linear portfolio margin conditional fetch open order",
                 "method": "fetchOpenOrder",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/openOrder?timestamp=1707894696072&symbol=BTCUSDT&strategyId=4084339&recvWindow=10000&signature=22ae21d4e6cca439461b2deae7750b973f8b307025e2124e779e93eb86bcb1cd",
+                "url": "https://papi.binance.com/papi/v1/um/algo/algoOrder?timestamp=1791215726394&symbol=BTCUSDT&algoId=4084339&recvWindow=10000&signature=1724ec652f9075449aa824f3119edecff20b8bac815cc8c73cacc8826f41b516",
                 "input": [
                     "4084339",
                     "BTC/USDT:USDT",
@@ -4003,7 +4003,7 @@
             {
                 "description": "Linear portfolio margin trigger fetch open order",
                 "method": "fetchOpenOrder",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/openOrder?timestamp=1707894696072&symbol=BTCUSDT&strategyId=4084339&recvWindow=10000&signature=22ae21d4e6cca439461b2deae7750b973f8b307025e2124e779e93eb86bcb1cd",
+                "url": "https://papi.binance.com/papi/v1/um/algo/algoOrder?timestamp=1791215726445&symbol=BTCUSDT&algoId=4084339&recvWindow=10000&signature=22028f85dc10b5f90b390117671a335ab59592a69e046cad6c69243064208f82",
                 "input": [
                     "4084339",
                     "BTC/USDT:USDT",

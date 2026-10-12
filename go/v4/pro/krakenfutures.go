@@ -863,7 +863,7 @@ func (this *Krakenfutures) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], op
  * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.account] can be either 'futures' or 'flex_futures'
- * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure} of the account type the message updated ('cash', 'futures' margin, or 'flex_futures')
  */
 func (this *Krakenfutures) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
@@ -952,11 +952,14 @@ func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 		var market map[string]any = this.Market(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var messageHash string = this.GetMessageHash("trade", nil, symbol)
-		if ccxt.IsEqual(this.SafeList(this.Trades, symbol), nil) {
+		// safeValue, not safeList: the values are ccxt.ArrayCache instances, and
+		// the typed accessor casts them to a plain list in c#, which throws
+		var tradesArray any = this.SafeValue(this.Trades, symbol)
+		if ccxt.IsEqual(tradesArray, nil) {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-			ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(tradesLimit))
+			tradesArray = ccxt.NewArrayCache(tradesLimit)
+			ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
 		}
-		var tradesArray any = ccxt.GetValue(this.Trades, symbol)
 		if channel != nil && *channel == "trade_snapshot" {
 			var trades []any = ccxt.SafeListTyped(message, "trades")
 			var length int = len(trades)
@@ -1178,8 +1181,8 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 			if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 				ccxt.AddElementToObject(previousOrder, "trades", []any{})
 			}
-			retRes80116 := ccxt.GetValue(previousOrder, "trades")
-			ccxt.AppendToArray(&retRes80116, trade)
+			retRes80416 := ccxt.GetValue(previousOrder, "trades")
+			ccxt.AppendToArray(&retRes80416, trade)
 			ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 			var totalCost any = "0"
 			var totalAmount any = "0"
@@ -1303,8 +1306,12 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 	//        ]
 	//    }
 	var orders []any = ccxt.SafeListTyped(message, "orders")
-	var limit *int64 = this.SafeInteger(this.Options, "ordersLimit")
-	this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
+	// reuse the existing cache: replacing it would orphan consumers holding
+	// a reference to the old one across a reconnect snapshot
+	if this.Orders == nil {
+		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit")
+		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
+	}
 	var feed *string = this.SafeString(message, "feed")
 	var messageHash string = "orders"
 	if feed != nil && *feed == "open_orders_verbose_snapshot" {
@@ -1312,6 +1319,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 	}
 	var symbols map[string]any = map[string]any{}
 	var cachedOrders any = this.Orders
+	var snapshotIds map[string]any = map[string]any{}
 	for i := 0; i < len(orders); i++ {
 		var order any = func() any {
 			if i >= 0 && i < len(orders) {
@@ -1324,7 +1332,45 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
+		var parsedId *string = this.SafeString(parsed, "id")
+		if parsedId != nil {
+			snapshotIds[*parsedId] = true
+		}
 		cachedOrders.(ccxt.Appender).Append(parsed)
+	}
+	// reconcile the reused cache with the snapshot: the snapshot lists every
+	// currently open order, so an order cached as open but missing from it is
+	// no longer open on the venue - it filled or was cancelled while we were
+	// disconnected. the snapshot does not say which, so mark it canceled
+	// instead of leaving it open in the cache forever
+	var cachedSymbols []string = ccxt.ObjectKeys(cachedOrders.(*ccxt.ArrayCache).Hashmap)
+	for i := 0; i < len(cachedSymbols); i++ {
+		var cachedSymbol string = cachedSymbols[i]
+		var ordersById map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, cachedSymbol)
+		var cachedIds []string = nil
+		if ordersById != nil {
+			cachedIds = make([]string, 0, len(ordersById))
+			for objectKey := range ordersById {
+				cachedIds = append(cachedIds, objectKey)
+			}
+		}
+		for j := 0; j < len(cachedIds); j++ {
+			var cachedId string = cachedIds[j]
+			if !(func() bool { _, ok := snapshotIds[cachedId]; return ok }()) {
+				var cachedOrder any = this.SafeDict(ordersById, cachedId, map[string]any{})
+				var cachedStatus *string = this.SafeString(cachedOrder, "status")
+				// parseWsOrder leaves status undefined for snapshot and
+				// non-cancel updates, so undefined means open here
+				if (cachedStatus == nil) || (cachedStatus != nil && *cachedStatus == "open") {
+					ccxt.AddElementToObject(cachedOrder, "status", "canceled")
+					// write the updated order back through append: the cache
+					// rows are copies in the value-type runtimes (php), and
+					// append also feeds the newUpdates accounting
+					cachedOrders.(ccxt.Appender).Append(cachedOrder)
+					symbols[cachedSymbol] = true
+				}
+			}
+		}
 	}
 	var length int = ccxt.GetArrayLength(this.Orders)
 	if length > 0 {
@@ -1619,7 +1665,9 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var bids []any = ccxt.SafeListTyped(message, "bids")
 	if bids == nil {
@@ -1629,23 +1677,8 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 	if asks == nil {
 		return
 	}
-	for i := 0; i < len(bids); i++ {
-		var bid map[string]any = ccxt.SafeMapTyped(bids, i)
-		var price *float64 = this.SafeNumber(bid, "price")
-		var qty *float64 = this.SafeNumber(bid, "qty")
-		var bidsSide any = ccxt.GetValue(orderbook, "bids")
-		bidsSide.(ccxt.IOrderBookSide).Store(price, qty)
-	}
-	for i := 0; i < len(asks); i++ {
-		var ask map[string]any = ccxt.SafeMapTyped(asks, i)
-		var price *float64 = this.SafeNumber(ask, "price")
-		var qty *float64 = this.SafeNumber(ask, "qty")
-		var asksSide any = ccxt.GetValue(orderbook, "asks")
-		asksSide.(ccxt.IOrderBookSide).Store(price, qty)
-	}
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
+	var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "qty")
+	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
@@ -1826,38 +1859,49 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 	//        "seq": 2
 	//    }
 	//
+	// merge updates into the existing per-account balance objects instead of
+	// building fresh ones: a consumer awakened by an earlier message holds a
+	// reference to this.balance['cash'/'margin'/'flex'], and ccxt.Client.resolve
+	// is a no-op while nobody is awaiting, so a replaced object would make
+	// updates landing in that window invisible to the consumer forever
+	// (same class of bug as kraken issue #26773)
 	var holding map[string]any = ccxt.SafeMapTyped(message, "holding")
 	var futures map[string]any = ccxt.SafeMapTyped(message, "futures")
 	var flexFutures map[string]any = ccxt.SafeMapTyped(message, "flex_futures")
 	var messageHash string = "balances"
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
+	}
+	var updatedBalance any = nil
 	if holding != nil {
 		var holdingKeys []string = ccxt.ObjectKeys(holding) // cashAccount
-		var holdingResult map[string]any = map[string]any{
-			"info":      message,
-			"timestamp": timestamp,
-			"datetime":  this.Iso8601(timestamp),
-		}
+		ccxt.AddElementToObject(this.Balance, "cash", this.SafeDict(this.Balance, "cash", map[string]any{}))
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "cash"), "info", message)
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "cash"), "timestamp", timestamp)
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "cash"), "datetime", this.Iso8601(timestamp))
+		var holdingCodes map[string]any = map[string]any{}
 		for i := 0; i < len(holdingKeys); i++ {
 			var key string = holdingKeys[i]
 			var code *string = this.SafeCurrencyCode(key)
 			var newAccount map[string]any = this.Account()
 			newAccount["total"] = this.SafeString(holding, key)
 			if code != nil {
-				holdingResult[*code] = newAccount
+				holdingCodes[*code] = true
+				ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "cash"), code, newAccount)
 			}
 		}
-		ccxt.AddElementToObject(this.Balance, "cash", holdingResult)
+		ccxt.AddElementToObject(this.Balance, "cash", this.PruneStaleBalanceKeys(ccxt.GetValue(this.Balance, "cash"), holdingCodes))
 		ccxt.AddElementToObject(this.Balance, "cash", this.SafeBalance(ccxt.GetValue(this.Balance, "cash")))
-		client.(ccxt.ClientInterface).Resolve(holdingResult, messageHash)
+		updatedBalance = ccxt.GetValue(this.Balance, "cash")
 	}
 	if futures != nil {
 		var futuresKeys []string = ccxt.ObjectKeys(futures) // marginAccount
-		var futuresResult map[string]any = map[string]any{
-			"info":      message,
-			"timestamp": timestamp,
-			"datetime":  this.Iso8601(timestamp),
-		}
+		ccxt.AddElementToObject(this.Balance, "margin", this.SafeDict(this.Balance, "margin", map[string]any{}))
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "margin"), "info", message)
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "margin"), "timestamp", timestamp)
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "margin"), "datetime", this.Iso8601(timestamp))
+		var futuresSymbols map[string]any = map[string]any{}
 		for i := 0; i < len(futuresKeys); i++ {
 			var key string = futuresKeys[i]
 			var symbol *string = this.SafeSymbol(key)
@@ -1868,23 +1912,27 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			newAccount["free"] = this.SafeString(future, "available")
 			newAccount["used"] = this.SafeString(future, "initial_margin")
 			newAccount["total"] = this.SafeString(future, "balance")
-			ccxt.AddElementToObject(futuresResult, symbol, map[string]any{})
+			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "margin"), symbol, map[string]any{})
 			if (symbol != nil) && (code != nil) {
-				ccxt.AddElementToObject(ccxt.GetValue(futuresResult, symbol), code, newAccount)
+				futuresSymbols[*symbol] = true
+				ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(this.Balance, "margin"), symbol), code, newAccount)
 			}
 		}
-		ccxt.AddElementToObject(this.Balance, "margin", futuresResult)
+		ccxt.AddElementToObject(this.Balance, "margin", this.PruneStaleBalanceKeys(ccxt.GetValue(this.Balance, "margin"), futuresSymbols))
 		ccxt.AddElementToObject(this.Balance, "margin", this.SafeBalance(ccxt.GetValue(this.Balance, "margin")))
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "margin"), messageHash+"futures")
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "margin"), messageHash+":futures")
+		if ccxt.IsEqual(updatedBalance, nil) {
+			updatedBalance = ccxt.GetValue(this.Balance, "margin")
+		}
 	}
 	if flexFutures != nil {
 		var flexFutureCurrencies map[string]any = ccxt.SafeMapTyped(flexFutures, "currencies")
 		var flexFuturesKeys []string = ccxt.ObjectKeys(flexFutureCurrencies) // multi-collateral margin account
-		var flexFuturesResult map[string]any = map[string]any{
-			"info":      message,
-			"timestamp": timestamp,
-			"datetime":  this.Iso8601(timestamp),
-		}
+		ccxt.AddElementToObject(this.Balance, "flex", this.SafeDict(this.Balance, "flex", map[string]any{}))
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "flex"), "info", message)
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "flex"), "timestamp", timestamp)
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "flex"), "datetime", this.Iso8601(timestamp))
+		var flexCodes map[string]any = map[string]any{}
 		for i := 0; i < len(flexFuturesKeys); i++ {
 			var key string = flexFuturesKeys[i]
 			var flexFuture map[string]any = ccxt.SafeMapTyped(flexFutureCurrencies, key)
@@ -1894,14 +1942,44 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			newAccount["used"] = this.SafeString(flexFuture, "collateral_value")
 			newAccount["total"] = this.SafeString(flexFuture, "quantity")
 			if code != nil {
-				flexFuturesResult[*code] = newAccount
+				flexCodes[*code] = true
+				ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "flex"), code, newAccount)
 			}
 		}
-		ccxt.AddElementToObject(this.Balance, "flex", flexFuturesResult)
+		ccxt.AddElementToObject(this.Balance, "flex", this.PruneStaleBalanceKeys(ccxt.GetValue(this.Balance, "flex"), flexCodes))
 		ccxt.AddElementToObject(this.Balance, "flex", this.SafeBalance(ccxt.GetValue(this.Balance, "flex")))
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "flex"), messageHash+"flex_futures")
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "flex"), messageHash+":flex_futures")
+		if ccxt.IsEqual(updatedBalance, nil) {
+			updatedBalance = ccxt.GetValue(this.Balance, "flex")
+		}
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	// resolve the plain hash exactly once per message, with the unified
+	// balance of the account the message updated (cash first, matching the
+	// legacy behaviour): a second resolve on the same hash is not portable
+	// (the rust client hands the consumer the LAST resolved value)
+	if !ccxt.IsEqual(updatedBalance, nil) {
+		client.(ccxt.ClientInterface).Resolve(updatedBalance, messageHash)
+	}
+}
+
+/**
+ * @ignore
+ * @method
+ * @description removes currency/symbol keys that disappeared from a full-state balance message, keeping the cached object itself alive for consumers holding a reference to it
+ * @param {object} balanceObject the cached per-account balance object, mutated in place
+ * @param {object} seenKeys the currency codes / symbols present in the current message
+ * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
+ */
+func (this *Krakenfutures) PruneStaleBalanceKeys(balanceObject any, seenKeys any) any {
+	var reserved []any = []any{"info", "timestamp", "datetime", "free", "used", "total", "debt"}
+	var keys []string = ccxt.ObjectKeys(balanceObject)
+	for i := 0; i < len(keys); i++ {
+		var key string = keys[i]
+		if !(ccxt.InOp(seenKeys, key)) && !this.InArray(key, reserved) {
+			ccxt.Remove(balanceObject, key)
+		}
+	}
+	return balanceObject
 }
 func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	//
@@ -2481,7 +2559,7 @@ func (this *Krakenfutures) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) (
  * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.account] can be either 'futures' or 'flex_futures'
- * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure} of the account type the message updated ('cash', 'futures' margin, or 'flex_futures')
  */
 func (this *Krakenfutures) WatchBalance(params ...any) (ccxt.Balances, error) {
 	r := <-this.WatchBalanceAsync(params...)

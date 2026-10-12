@@ -864,7 +864,13 @@ public partial class bitstamp : ccxt.bitstamp
         List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 3);
         string? symbol = this.safeSymbol(marketId);
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
+        }
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        orderbook["nonce"] = null;
+        (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
     }
 
     public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)

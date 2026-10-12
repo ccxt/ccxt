@@ -1335,10 +1335,16 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any)
 func (this *Bitvavo) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	if ccxt.InOp(this.Orderbooks, symbol) {
-		ccxt.Remove(this.Orderbooks, symbol)
+	var limits any = this.SafeDict(this.Options, "orderBookLimits", map[string]any{})
+	var storedLimit *int64 = this.SafeInteger(limits, symbol)
+	if !(ccxt.InOp(this.Orderbooks, symbol)) || (storedLimit != limit && (storedLimit == nil || limit == nil || *storedLimit != *limit)) {
+		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		ccxt.AddElementToObject(limits, symbol, limit)
+		this.Options.Store("orderBookLimits", limits)
 	}
-	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	ccxt.AddElementToObject(orderbook, "nonce", nil)
+	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 }
 func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string]any, marketIds []any) {
 	var name string = "book"

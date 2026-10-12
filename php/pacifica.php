@@ -3381,8 +3381,8 @@ class pacifica extends Exchange {
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
-         * @param {string} $fromAccount account to transfer from *spot, swap*
-         * @param {string} $toAccount account to transfer to *swap, spot or address*
+         * @param {string} $fromAccount not used, funds are always sent from the account wallet, the origin address
+         * @param {string} $toAccount the address of the subaccount or main account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
@@ -3450,7 +3450,7 @@ class pacifica extends Exchange {
 
     public function create_sub_account(string $name, $params = array()) {
         /**
-         * creates a sub-account under the main account
+         * creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
          *
@@ -3518,6 +3518,15 @@ class pacifica extends Exchange {
     }
 
     public function bind_agent_wallet(string $agentAddress, $params = array()): array {
+        /**
+         * binds an agent wallet that can sign trading actions for the account
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/signing/api-agent-keys
+         *
+         * @param {string} $agentAddress the public key of the agent wallet
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
         $operationType = 'bind_agent_wallet';
         $sigPayload = array(
             'agent_wallet' => $agentAddress,
@@ -3527,6 +3536,11 @@ class pacifica extends Exchange {
     }
 
     public function create_api_key($params = array()): array {
+        /**
+         * creates an api key for the account
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
         $operationType = 'create_api_key';
         $sigPayload = array();
         $request = $this->post_action_request($operationType, $sigPayload, $params);
@@ -3534,6 +3548,12 @@ class pacifica extends Exchange {
     }
 
     public function revoke_api_key(string $apiKey, $params = array()): array {
+        /**
+         * revokes an api key of the account
+         * @param {string} $apiKey the api key to revoke
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
         $operationType = 'revoke_api_key';
         $sigPayload = array(
             'api_key' => $apiKey,
@@ -3543,6 +3563,11 @@ class pacifica extends Exchange {
     }
 
     public function fetch_api_keys($params = array()): array {
+        /**
+         * fetches the api keys of the account
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
         $operationType = 'list_api_keys';
         $sigPayload = array();
         $request = $this->post_action_request($operationType, $sigPayload, $params);
@@ -3550,6 +3575,16 @@ class pacifica extends Exchange {
     }
 
     public function approve_builder_code(string $builderCode, string $maxFeeRate, $params = array()): array {
+        /**
+         * approves a builder code to charge fees on the account orders
+         *
+         * @see https://docs.pacifica.fi/programs/builder-program
+         *
+         * @param {string} $builderCode the builder code to approve
+         * @param {string} $maxFeeRate the maximum fee rate the builder may charge
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
         $operationType = 'approve_builder_code';
         $sigPayload = array(
             'builder_code' => $builderCode,
@@ -3560,6 +3595,14 @@ class pacifica extends Exchange {
     }
 
     public function fetch_builder_approvals(string $address): array {
+        /**
+         * fetches the builder codes approved by an account
+         *
+         * @see https://docs.pacifica.fi/programs/builder-program
+         *
+         * @param {string} $address the account $address
+         * @return {array[]} the api result
+         */
         $request = array(
             'account' => $address,
         );
@@ -3567,6 +3610,15 @@ class pacifica extends Exchange {
     }
 
     public function revoke_builder_code(string $builderCode, $params = array()): array {
+        /**
+         * revokes a previously approved builder code
+         *
+         * @see https://docs.pacifica.fi/programs/builder-program
+         *
+         * @param {string} $builderCode the builder code to revoke
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
         $operationType = 'revoke_builder_code';
         $sigPayload = array(
             'builder_code' => $builderCode,

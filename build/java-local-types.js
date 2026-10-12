@@ -14849,7 +14849,7 @@ const PAIR_ELEMENT_TYPES = {
 const PAIR_ACCESSORS = [ 'first', 'second' ];
 
 function pairJavaType (types) {
-    return `io.github.ccxt.base.Pair<${types[0]}, ${types[1]}>`;
+    return `io.github.ccxt.types.Pair<${types[0]}, ${types[1]}>`;
 }
 
 function pairDeclarationFile (declaration) {
@@ -15022,7 +15022,7 @@ export function installJavaTuplePairReturns (transpiler) {
         if (at === -1 || close < at) {
             throw new Error (`installJavaTuplePairReturns: unexpected return print in ${method.name.text}`);
         }
-        return printed.slice (0, at) + 'new io.github.ccxt.base.Pair<>(' + printed.slice (at + open.length, close) + ')' + printed.slice (close + 2);
+        return printed.slice (0, at) + 'new io.github.ccxt.types.Pair<>(' + printed.slice (at + open.length, close) + ')' + printed.slice (close + 2);
     };
     const upstreamDeclarations = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {

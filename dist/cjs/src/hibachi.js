@@ -134,6 +134,7 @@ class hibachi extends hibachi$1["default"] {
                     'private': 'https://api.hibachi.xyz',
                 },
                 'www': 'https://www.hibachi.xyz/',
+                'doc': 'https://api-doc.hibachi.xyz/',
                 'referral': {
                     'url': 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 },

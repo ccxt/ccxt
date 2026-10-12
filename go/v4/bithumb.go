@@ -1116,18 +1116,7 @@ func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketId *string = this.SafeString(ticker, "market")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var close *string = this.SafeString2(ticker, "closing_price", "trade_price")
-	var change *string = this.SafeString2(ticker, "signed_change_price", "change_price")
-	var percentage *string = this.SafeString2(ticker, "signed_change_rate", "change_rate")
 	var open *string = this.SafeString(ticker, "opening_price")
-	var nonZeroOpen any = this.OmitZero(open)
-	if (marketId != nil) && (nonZeroOpen != nil) && (close != nil) {
-		var computedChange *string = Precise.StringSub(close, open)
-		// Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-		if (change != nil) && Precise.StringEq(change, "0") && !Precise.StringEq(computedChange, "0") {
-			change = computedChange
-			percentage = nil
-		}
-	}
 	var high *string = this.SafeString2(ticker, "max_price", "high_price")
 	var low *string = this.SafeString2(ticker, "min_price", "low_price")
 	// Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -1152,8 +1141,8 @@ func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"close":         close,
 		"last":          close,
 		"previousClose": this.SafeString(ticker, "prev_closing_price"),
-		"change":        change,
-		"percentage":    percentage,
+		"change":        nil,
+		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeString2(ticker, "units_traded_24H", "acc_trade_volume_24h"),
 		"quoteVolume":   this.SafeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h"),
@@ -2285,11 +2274,11 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes186415 map[string]any = r1.Value
-	if retRes186415 == nil {
+	var retRes185415 map[string]any = r1.Value
+	if retRes185415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes186415}
+		ch <- AsyncResult[any]{Value: retRes185415}
 	}
 	return nil
 }
@@ -3320,11 +3309,11 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[any], order any,
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes266215 map[string]any = r.Value
-	if retRes266215 == nil {
+	var retRes265215 map[string]any = r.Value
+	if retRes265215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes266215}
+		ch <- AsyncResult[any]{Value: retRes265215}
 	}
 	return nil
 }
@@ -3749,22 +3738,22 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3517 := <-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration))
-		if listEp3517.Err != nil {
-			panic(listEp3517.Err)
+		listEp3506 := <-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration))
+		if listEp3506.Err != nil {
+			panic(listEp3506.Err)
 		}
-		response = listEp3517.Value
+		response = listEp3506.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		listEp3524 := <-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration))
-		if listEp3524.Err != nil {
-			panic(listEp3524.Err)
+		listEp3513 := <-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration))
+		if listEp3513.Err != nil {
+			panic(listEp3513.Err)
 		}
-		response = listEp3524.Value
+		response = listEp3513.Value
 	}
 
 	//
@@ -3913,22 +3902,22 @@ func (this *Bithumb) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3663 := <-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration))
-		if listEp3663.Err != nil {
-			panic(listEp3663.Err)
+		listEp3652 := <-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration))
+		if listEp3652.Err != nil {
+			panic(listEp3652.Err)
 		}
-		response = listEp3663.Value
+		response = listEp3652.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		listEp3670 := <-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration))
-		if listEp3670.Err != nil {
-			panic(listEp3670.Err)
+		listEp3659 := <-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration))
+		if listEp3659.Err != nil {
+			panic(listEp3659.Err)
 		}
-		response = listEp3670.Value
+		response = listEp3659.Value
 	}
 
 	//
@@ -4108,11 +4097,11 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan AsyncResult[any], optiona
 		panic(BadRequest(this.Id + " fetchDepositAddresses() is only supported for the generation 2 API"))
 	}
 
-	listEp3833 := <-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration)
-	if listEp3833.Err != nil {
-		panic(listEp3833.Err)
+	listEp3822 := <-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration)
+	if listEp3822.Err != nil {
+		panic(listEp3822.Err)
 	}
-	var response []any = listEp3833.Value
+	var response []any = listEp3822.Value
 
 	//
 	//     [

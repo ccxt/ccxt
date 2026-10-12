@@ -512,10 +512,12 @@ class bittrade extends \ccxt\async\bittrade {
             return;
         }
         $limit = $this->safe_integer($subscription, 'limit');
-        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
-            unset($this->orderbooks[$symbol]);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
-        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook['nonce'] = null;
+        $orderbook->cache = array();
         // watch the snapshot in a separate async call
         $this->spawn(array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
     }

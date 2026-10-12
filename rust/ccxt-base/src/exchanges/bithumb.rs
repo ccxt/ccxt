@@ -1472,20 +1472,9 @@ impl BithumbCore {
         //
         let mut timestamp: Value = self.safe_integer2(ticker.clone(), Value::Str("date".into()), Value::Str("trade_timestamp".into()), &[]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "market", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut close: Value = self.safe_string2(ticker.clone(), Value::Str("closing_price".into()), Value::Str("trade_price".into()), &[]);
-        let mut change: Value = self.safe_string2(ticker.clone(), Value::Str("signed_change_price".into()), Value::Str("change_price".into()), &[]);
-        let mut percentage: Value = self.safe_string2(ticker.clone(), Value::Str("signed_change_rate".into()), Value::Str("change_rate".into()), &[]);
         let mut open: Value = self.safe_string_k(ticker.clone(), "opening_price", &[]);
-        let mut nonZeroOpen: Value = self.omit_zero(open.clone());
-        if (marketId != Value::Null) && (nonZeroOpen != Value::Null) && (close != Value::Null) {
-            let mut computedChange: Value = crate::precise::Precise::stringSub(&close, &open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (change != Value::Null) && is_true(&crate::precise::Precise::stringEq(&change, &Value::Str("0".into()))) && !is_true(&crate::precise::Precise::stringEq(&computedChange, &Value::Str("0".into()))) {
-                change = computedChange.clone();
-                percentage = Value::Null;
-            }
-        }
         let mut high: Value = self.safe_string2(ticker.clone(), Value::Str("max_price".into()), Value::Str("high_price".into()), &[]);
         let mut low: Value = self.safe_string2(ticker.clone(), Value::Str("min_price".into()), Value::Str("low_price".into()), &[]);
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -1511,8 +1500,8 @@ impl BithumbCore {
         m.insert("close".to_string(), close.clone());
         m.insert("last".to_string(), close);
         m.insert("previousClose".to_string(), self.safe_string_k(ticker.clone(), "prev_closing_price", &[]));
-        m.insert("change".to_string(), change);
-        m.insert("percentage".to_string(), percentage);
+        m.insert("change".to_string(), Value::Null);
+        m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("units_traded_24H".into()), Value::Str("acc_trade_volume_24h".into()), &[]));
         m.insert("quoteVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("acc_trade_value_24H".into()), Value::Str("acc_trade_price_24h".into()), &[]));

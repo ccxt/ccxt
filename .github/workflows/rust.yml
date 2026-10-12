@@ -116,11 +116,13 @@ jobs:
       - name: Check ccxt package (isolated feature sets)
         if: env.important_modified == 'true'
         run: |
+          cargo check --manifest-path rust/ccxt-core/Cargo.toml
           cargo check --manifest-path rust/ccxt-base/Cargo.toml --no-default-features
           cargo check --manifest-path rust/ccxt-base/Cargo.toml --all-features
       - name: Clippy (ccxt lib)
         run: |
           rustup component add clippy
+          cargo clippy --manifest-path rust/ccxt-core/Cargo.toml -- -D warnings
           cargo clippy --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base -- -D warnings
       - name: Build Rust examples
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
@@ -135,7 +137,9 @@ jobs:
         # Selecting native tests must not independently force every venue to transpile.
         if: (github.ref == 'refs/heads/master' && (env.important_modified == 'true' || steps.native-tests.outputs.enabled == 'true')) || (github.event_name == 'pull_request' && steps.native-tests.outputs.enabled == 'true')
         timeout-minutes: 15
-        run: cargo test --jobs 2 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base
+        run: |
+          cargo test --jobs 2 --manifest-path rust/ccxt-core/Cargo.toml
+          cargo test --jobs 2 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base
       - name: Cargo test gate
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
         run: |

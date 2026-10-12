@@ -3245,6 +3245,7 @@ class bingx extends Exchange {
             $trailingAmount = $this->safe_string($paramsPostOnly, 'trailingAmount');
             $trailingPercent = $this->safe_string_2($paramsPostOnly, 'trailingPercent', 'priceRate');
             $trailingType = $this->safe_string($paramsPostOnly, 'trailingType', 'TRAILING_STOP_MARKET');
+            $trailingTriggerPrice = $this->safe_string_2($paramsPostOnly, 'trailingTriggerPrice', 'activationPrice');
             $isTrailingAmountOrder = $trailingAmount !== null;
             $isTrailingPercentOrder = $trailingPercent !== null;
             $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
@@ -3297,6 +3298,9 @@ class bingx extends Exchange {
                 } elseif ($isTrailingPercentOrder) {
                     $requestTrailingPercent = Precise::string_div($trailingPercent, '100');
                     $request['priceRate'] = $this->parse_to_numeric($requestTrailingPercent);
+                }
+                if ($trailingTriggerPrice !== null) {
+                    $request['activationPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $trailingTriggerPrice));
                 }
             }
             if ($hasStopLoss || $hasTakeProfit) {
@@ -3366,7 +3370,7 @@ class bingx extends Exchange {
                 $request['quantity'] = $amountReq; // precision not available for inverse contracts
             }
         }
-        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId' ));
+        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId' ));
         return $this->extend($request, $paramsRequest);
     }
 
@@ -3396,6 +3400,7 @@ class bingx extends Exchange {
          * @param {float} [$params->quoteOrderQty] *spot only* the quote quantity, an alternative to $params->cost
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
+         * @param {float} [$params->trailingTriggerPrice] *swap only* the $price to activate a trailing order at
          * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -5700,8 +5705,8 @@ class bingx extends Exchange {
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'timestamp');
         $datetime = $this->iso8601($timestamp);
         if ($timestamp === null) {
-            $datetime = $this->safe_string($transaction, 'applyTime');
-            $timestamp = $this->parse8601($datetime);
+            $timestamp = $this->parse8601($this->safe_string($transaction, 'applyTime'));
+            $datetime = $this->iso8601($timestamp);
         }
         $network = $this->safe_string($transaction, 'network');
         $currencyId = $this->safe_string($transaction, 'coin');
@@ -5711,10 +5716,15 @@ class bingx extends Exchange {
                 $code = str_replace($network, '', $code);
             }
         }
+        // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         $rawType = $this->safe_string($transaction, 'transferType');
         $type = 'withdrawal';
-        if ($rawType === '0') {
+        if (($rawType === '0') || (is_array($transaction) && array_key_exists('insertTime' ?? '', $transaction))) {
             $type = 'deposit';
+        }
+        $internal = null;
+        if ($rawType !== null) {
+            $internal = ($rawType === '2');
         }
         return array(
             'info' => $transaction,
@@ -5724,7 +5734,7 @@ class bingx extends Exchange {
             'currency' => $code,
             'network' => $this->network_id_to_code($network, $code),
             'amount' => $this->safe_number($transaction, 'amount'),
-            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status'), $type),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'address' => $address,
@@ -5740,11 +5750,24 @@ class bingx extends Exchange {
                 'cost' => $this->safe_number($transaction, 'transactionFee'),
                 'rate' => null,
             ),
-            'internal' => null,
+            'internal' => $internal,
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status, ?string $type = null) {
+        $statusesByType = array(
+            'deposit' => array(
+                '0' => 'pending',
+                '6' => 'pending', // chain uploaded, not yet credited
+                '1' => 'ok',
+            ),
+            'withdrawal' => array(
+                '4' => 'pending', // under review
+                '5' => 'failed',
+                '6' => 'ok',
+            ),
+        );
+        $directional = $this->safe_dict($statusesByType, $type, array());
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -5761,7 +5784,8 @@ class bingx extends Exchange {
             '5' => 'rejected',
             '6' => 'ok',
         );
-        return $this->safe_string($statuses, $status, $status);
+        $fallback = $this->safe_string($statuses, $status, $status);
+        return $this->safe_string($directional, $status, $fallback);
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {

@@ -294,6 +294,7 @@ impl HibachiCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.hibachi.xyz/".into()));
+        m.insert("doc".to_string(), Value::Str("https://api-doc.hibachi.xyz/".into()));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::Str("https://hibachi.xyz/r/ZBL2YFWIHU".into()));

@@ -276,7 +276,7 @@ impl HtxCore {
         m.insert("countries".to_string(), Value::from(vec![Value::Str("CN".into())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("userAgent".to_string(), self.userAgents.as_map().and_then(|__m| __m.get("chrome100")).cloned().unwrap_or(Value::Null));
-        m.insert("certified".to_string(), Value::Bool(true));
+        m.insert("certified".to_string(), Value::Bool(false));
         m.insert("version".to_string(), Value::Str("v1".into()));
         m.insert("hostname".to_string(), Value::Str("api.huobi.pro".into()));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -4357,6 +4357,15 @@ impl HtxCore {
         let mut close: Value = self.safe_string_k(ticker.clone(), "close", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "amount", &[]);
         let mut quoteVolume: Value = self.safe_string_k(ticker.clone(), "vol", &[]);
+        let mut marketResolved: Value = self.safe_dict(self.markets.clone(), symbol.clone(), &[market.clone()]);
+        if (self.safe_bool_k(marketResolved.clone(), "contract", &[]).as_bool() == Some(true)) {
+            // contract tickers count 'vol' in contracts
+            if (self.safe_bool_k(marketResolved.clone(), "linear", &[]).as_bool() == Some(true)) {
+                quoteVolume = self.safe_string_k(ticker.clone(), "trade_turnover", &[]);
+            }  else {
+                quoteVolume = crate::precise::Precise::stringMul(&quoteVolume, &self.safe_string_k(marketResolved, "contractSize", &[]));
+            }
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);

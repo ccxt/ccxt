@@ -4209,6 +4209,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var trailingAmount *string = this.SafeString(paramsPostOnly, "trailingAmount")
 		var trailingPercent *string = this.SafeString2(paramsPostOnly, "trailingPercent", "priceRate")
 		var trailingType *string = this.SafeString(paramsPostOnly, "trailingType", "TRAILING_STOP_MARKET")
+		var trailingTriggerPrice *string = this.SafeString2(paramsPostOnly, "trailingTriggerPrice", "activationPrice")
 		var isTrailingAmountOrder bool = (trailingAmount != nil)
 		var isTrailingPercentOrder bool = (trailingPercent != nil)
 		var isTrailing bool = isTrailingAmountOrder || isTrailingPercentOrder
@@ -4261,6 +4262,9 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			} else if isTrailingPercentOrder {
 				var requestTrailingPercent *string = Precise.StringDiv(trailingPercent, "100")
 				request["priceRate"] = this.ParseToNumeric(requestTrailingPercent)
+			}
+			if trailingTriggerPrice != nil {
+				request["activationPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, trailingTriggerPrice))
 			}
 		}
 		if hasStopLoss || hasTakeProfit {
@@ -4345,7 +4349,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			request["quantity"] = amountReq // precision not available for inverse contracts
 		}
 	}
-	var paramsRequest any = this.Omit(paramsOrder, []any{"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "clientOrderId"})
+	var paramsRequest any = this.Omit(paramsOrder, []any{"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId"})
 	return this.Extend(request, paramsRequest)
 }
 
@@ -4374,6 +4378,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
  * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+ * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
  * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -6410,11 +6415,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes540719 []any = ListTyped(r1.Value)
-		if retRes540719 == nil {
+		var retRes541219 []any = ListTyped(r1.Value)
+		if retRes541219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes540719}
+			ch <- AsyncResult[any]{Value: retRes541219}
 		}
 		return nil
 	}
@@ -6687,11 +6692,11 @@ func (this *Bingx) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6233 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
-	if listEp6233.Err != nil {
-		panic(listEp6233.Err)
+	listEp6238 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
+	if listEp6238.Err != nil {
+		panic(listEp6238.Err)
 	}
-	var response []any = listEp6233.Value
+	var response []any = listEp6238.Value
 
 	//
 	//    [
@@ -6763,11 +6768,11 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs .
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6302 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp6302.Err != nil {
-		panic(listEp6302.Err)
+	listEp6307 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp6307.Err != nil {
+		panic(listEp6307.Err)
 	}
-	var response []any = listEp6302.Value
+	var response []any = listEp6307.Value
 
 	//
 	//    [
@@ -6854,8 +6859,8 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 	var timestamp *int64 = this.SafeInteger2(transaction, "insertTime", "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
 	if timestamp == nil {
-		datetime = this.SafeString(transaction, "applyTime")
-		timestamp = this.Parse8601(datetime)
+		timestamp = this.Parse8601(this.SafeString(transaction, "applyTime"))
+		datetime = this.Iso8601(timestamp)
 	}
 	var network *string = this.SafeString(transaction, "network")
 	var currencyId *string = this.SafeString(transaction, "coin")
@@ -6865,10 +6870,15 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 			code = SafeStringPtr(strings.Replace(*code, *network, "", 1))
 		}
 	}
+	// deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
 	var rawType *string = this.SafeString(transaction, "transferType")
 	var typeVar string = "withdrawal"
-	if rawType != nil && *rawType == "0" {
+	if (rawType != nil && *rawType == "0") || (InOp(transaction, "insertTime")) {
 		typeVar = "deposit"
+	}
+	var internal any = nil
+	if rawType != nil {
+		internal = (rawType != nil && *rawType == "2")
 	}
 	return map[string]any{
 		"info":        transaction,
@@ -6878,7 +6888,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 		"currency":    code,
 		"network":     this.NetworkIdToCode(network, code),
 		"amount":      this.SafeNumber(transaction, "amount"),
-		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status")),
+		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status"), typeVar),
 		"timestamp":   timestamp,
 		"datetime":    datetime,
 		"address":     address,
@@ -6894,10 +6904,25 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[st
 			"cost":     this.SafeNumber(transaction, "transactionFee"),
 			"rate":     nil,
 		},
-		"internal": nil,
+		"internal": internal,
 	}
 }
-func (this *Bingx) ParseTransactionStatus(status *string) *string {
+func (this *Bingx) ParseTransactionStatus(status *string, optionalArgs ...any) *string {
+	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = typeVar
+	var statusesByType map[string]any = map[string]any{
+		"deposit": map[string]any{
+			"0": "pending",
+			"6": "pending",
+			"1": "ok",
+		},
+		"withdrawal": map[string]any{
+			"4": "pending",
+			"5": "failed",
+			"6": "ok",
+		},
+	}
+	var directional map[string]any = SafeMapTyped(statusesByType, typeVar)
 	var statuses map[string]any = map[string]any{
 		"0":  "pending",
 		"1":  "ok",
@@ -6914,7 +6939,8 @@ func (this *Bingx) ParseTransactionStatus(status *string) *string {
 		"5":  "rejected",
 		"6":  "ok",
 	}
-	return this.SafeString(statuses, status, status)
+	var fallback *string = this.SafeString(statuses, status, status)
+	return this.SafeString(directional, status, fallback)
 }
 
 /**
@@ -7005,11 +7031,11 @@ func (this *Bingx) addMarginBody(ch chan AsyncResult[map[string]any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes584715 map[string]any = MapTyped(r.Value)
-	if retRes584715 == nil {
+	var retRes587115 map[string]any = MapTyped(r.Value)
+	if retRes587115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes584715}
+		ch <- AsyncResult[map[string]any]{Value: retRes587115}
 	}
 	return nil
 }
@@ -7031,11 +7057,11 @@ func (this *Bingx) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes585415 map[string]any = MapTyped(r.Value)
-	if retRes585415 == nil {
+	var retRes587815 map[string]any = MapTyped(r.Value)
+	if retRes587815 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes585415, Raw: retRes585415}
+		ch <- EndpointResult[map[string]any]{Value: retRes587815, Raw: retRes587815}
 	}
 	return nil
 }
@@ -9216,6 +9242,7 @@ func (this *Bingx) CreateMarketSellOrderWithCost(symbol string, cost float64, op
  * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+ * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
  * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered

@@ -39,7 +39,7 @@ class htx(Exchange, ImplicitAPI):
             'countries': ['CN'],
             'rateLimit': 100,
             'userAgent': self.userAgents['chrome100'],
-            'certified': True,
+            'certified': False,
             'version': 'v1',
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
@@ -1975,6 +1975,13 @@ class htx(Exchange, ImplicitAPI):
         close = self.safe_string(ticker, 'close')
         baseVolume = self.safe_string(ticker, 'amount')
         quoteVolume = self.safe_string(ticker, 'vol')
+        marketResolved = self.safe_dict(self.markets, symbol, market)
+        if self.safe_bool(marketResolved, 'contract') is True:
+            # contract tickers count 'vol' in contracts
+            if self.safe_bool(marketResolved, 'linear') is True:
+                quoteVolume = self.safe_string(ticker, 'trade_turnover')
+            else:
+                quoteVolume = Precise.string_mul(quoteVolume, self.safe_string(marketResolved, 'contractSize'))
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,

@@ -2488,7 +2488,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	this.Symbols = ObjectKeys(marketsSortedBySymbol)
 	this.Ids = ObjectKeys(marketsSortedById)
 	var numCurrencies int = 0
-	if currencies != nil {
+	if !IsEqual(currencies, nil) {
 		var keys []string = ObjectKeys(currencies)
 		numCurrencies = len(keys)
 	}

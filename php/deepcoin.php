@@ -585,7 +585,7 @@ class deepcoin extends Exchange {
         ));
     }
 
-    public function set_markets(mixed $markets, $currencies = null) {
+    public function set_markets(mixed $markets, mixed $currencies = null) {
         $result = parent::set_markets($markets, $currencies);
         $symbols = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($symbols); $i++) {
