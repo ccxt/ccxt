@@ -4297,6 +4297,7 @@ class binance(ccxt.async_support.binance):
         if timeInForce == 'GTX':
             # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO'
+        postOnly = (orderType == 'limit_maker') or (timeInForce == 'PO')
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -4308,7 +4309,7 @@ class binance(ccxt.async_support.binance):
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'type': self.parseOrderTypeByMarket(orderType, marketType),
             'timeInForce': timeInForce,
-            'postOnly': None,
+            'postOnly': postOnly,
             'reduceOnly': self.safe_bool(order, 'R'),
             'side': self.safe_string_lower(order, 'S'),
             'price': self.safe_string(order, 'p'),
