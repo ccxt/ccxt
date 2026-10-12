@@ -2835,7 +2835,7 @@ export class BaseExchange {
                 'createDepositAddress': undefined,
                 'createLimitBuyOrder': undefined,
                 'createLimitBuyOrderWs': undefined,
-                'createLimitOrder': undefined,
+                'createLimitOrder': 'emulated',
                 'createLimitOrderWs': undefined,
                 'createLimitSellOrder': undefined,
                 'createLimitSellOrderWs': undefined,
@@ -2843,8 +2843,8 @@ export class BaseExchange {
                 'createMarketBuyOrderWs': undefined,
                 'createMarketBuyOrderWithCost': undefined,
                 'createMarketBuyOrderWithCostWs': undefined,
-                'createMarketOrder': undefined,
-                'createMarketOrderWs': undefined,
+                'createMarketOrder': 'emulated',
+                'createMarketOrderWs': 'emulated',
                 'createMarketOrderWithCost': undefined,
                 'createMarketOrderWithCostWs': undefined,
                 'createMarketSellOrder': undefined,
@@ -2883,7 +2883,7 @@ export class BaseExchange {
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchADLRank': undefined,
-                'fetchBalance': undefined,
+                'fetchBalance': 'emulated',
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
@@ -2926,7 +2926,7 @@ export class BaseExchange {
                 'fetchIsolatedBorrowRates': undefined,
                 'fetchMarginAdjustmentHistory': undefined,
                 'fetchIsolatedPositions': undefined,
-                'fetchL2OrderBook': undefined,
+                'fetchL2OrderBook': 'emulated',
                 'fetchL3OrderBook': undefined,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
@@ -2940,7 +2940,7 @@ export class BaseExchange {
                 'fetchMarginMode': undefined,
                 'fetchMarginModes': undefined,
                 'fetchMarketLeverageTiers': undefined,
-                'fetchMarkets': undefined,
+                'fetchMarkets': 'emulated',
                 'fetchMarketsWs': undefined,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyLiquidations': undefined,
@@ -2982,7 +2982,7 @@ export class BaseExchange {
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchSettlementHistory': undefined,
                 'fetchStatus': undefined,
-                'fetchTicker': undefined,
+                'fetchTicker': 'emulated',
                 'fetchTickerWs': undefined,
                 'fetchTickers': undefined,
                 'fetchMarkPrices': undefined,
@@ -4114,6 +4114,10 @@ export class BaseExchange {
     hasAutocorrect () {
         if (this.has['fetchOrderBook'] !== undefined) {
             this.has['fetchL2OrderBook'] = this.has['fetchOrderBook'];
+        }
+        if (this.has['createOrder'] !== undefined) {
+            this.has['createLimitOrder'] = this.has['createOrder'];
+            this.has['createMarketOrder'] = this.has['createOrder'];
         }
     }
 
