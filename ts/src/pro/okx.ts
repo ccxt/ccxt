@@ -1320,14 +1320,13 @@ export default class okx extends okxRest {
         const url = this.getUrl (depth, 'public');
         const client = this.client (url);
         const resyncTopics: List = [];
+        const resyncHashes: List = [];
         let resyncNeeded = false;
         for (let i = 0; i < messageHashes.length; i++) {
-            const resyncHash = 'resync:' + messageHashes[i];
-            if (this.safeBool (client.subscriptions, resyncHash) === true) {
-                // a nonce gap left the channel subscribed without a book, okx only sends a snapshot in reply to a
-                // subscribe, so unsubscribe first; false keeps the marker for the ack but stops a second unsubscribe
-                client.subscriptions[resyncHash] = false;
+            if (this.safeString (client.subscriptions, messageHashes[i]) === 'resync') {
+                // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
                 resyncTopics.push (topics[i]);
+                resyncHashes.push ('unsubscribe:orderbook:' + symbolsNormalized[i]);
                 resyncNeeded = true;
             }
         }
@@ -1336,7 +1335,7 @@ export default class okx extends okxRest {
                 'op': 'unsubscribe',
                 'args': resyncTopics,
             };
-            await client.send (unsubscribeRequest);
+            await this.watchMultiple (url, resyncHashes, unsubscribeRequest, resyncHashes);
         }
         const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, request, messageHashes);
         return orderbook.limit ();
@@ -1602,14 +1601,8 @@ export default class okx extends okxRest {
                     const update = data[i];
                     this.handleOrderBookMessage (client, update, orderbook, messageHash, market);
                     if (!(messageHash in client.subscriptions)) {
-                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
-                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
-                        //
-                        // the channel itself is still subscribed on this connection, and okx sends a snapshot only in
-                        // reply to a subscribe - a new subscribe is acknowledged without one, and every update after it
-                        // is dropped for lack of a book, so watchOrderBookForSymbols unsubscribes the channel before the
-                        // caller subscribes again (sent there so it always precedes the new subscribe on the socket)
-                        client.subscriptions['resync:' + messageHash] = true;
+                        // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        client.subscriptions[messageHash] = 'resync';
                         break;
                     }
                     client.resolve (orderbook, messageHash);
@@ -2736,12 +2729,6 @@ export default class okx extends okxRest {
 
     handleUnsubscriptionOrderBook (client: Client, symbol: string, channel: string) {
         const subMessageHash = channel + ':' + symbol;
-        const resyncHash = 'resync:' + subMessageHash;
-        if (resyncHash in client.subscriptions) {
-            // the unsubscribe sent after a nonce gap, a subscription the caller placed in the meantime stays intact
-            delete client.subscriptions[resyncHash];
-            return;
-        }
         const messageHash = 'unsubscribe:orderbook:' + symbol;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (symbol in this.orderbooks) {
