@@ -1777,17 +1777,18 @@ class extended extends extended$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the Starknet address to withdraw to
-     * @param {string} tag unused
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chainId] only STRK is supported
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         this.checkRequiredCredentials();
         await this.loadMarkets();
         const currency = this.currency(code);
-        const chainId = this.safeStringUpper2(params, 'chainId', 'network', 'STRK');
+        const chainId = this.safeStringUpper2(paramsWithdrawTag, 'chainId', 'network', 'STRK');
         if (chainId !== 'STRK') {
             throw new errors.BadRequest(this.id + ' withdraw() only supports Starknet withdrawals with chainId STRK');
         }
@@ -1797,7 +1798,7 @@ class extended extends extended$1["default"] {
         const account = await this.fetchExtendedAccount();
         const amountString = this.currencyToPrecision(code, amount);
         const accountId = this.safeString(account, 'accountId');
-        const settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, params);
+        const settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, paramsWithdrawTag);
         const request = {
             'accountId': accountId,
             'amount': amountString,
@@ -1805,7 +1806,7 @@ class extended extends extended$1["default"] {
             'asset': currency['id'],
             'settlement': settlement,
         };
-        const paramsOmitted = this.omit(params, ['chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution']);
+        const paramsOmitted = this.omit(paramsWithdrawTag, ['chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution']);
         const response = await this.v1PrivatePostUserWithdrawal(this.extend(request, paramsOmitted));
         //
         //     {

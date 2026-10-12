@@ -2985,7 +2985,7 @@ export class BaseExchange {
             throw new InvalidProxySettings(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
     }
-    checkAddress(address = undefined) {
+    checkAddress(address = undefined, code = undefined, tag = undefined) {
         if (address === undefined) {
             throw new InvalidAddress(this.id + ' address is undefined');
         }
@@ -2994,6 +2994,14 @@ export class BaseExchange {
         const length = uniqChars.length; // py transpiler trick
         if (length === 1 || address.length < this.minFundingAddressLength || address.indexOf(' ') > -1) {
             throw new InvalidAddress(this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString() + ' characters: "' + address.toString() + '"');
+        }
+        if (code !== undefined) {
+            const tagRequiredCurrencies = this.safeList(this.options, 'withdrawTagRequiredCurrencies', []);
+            if (this.inArray(code, tagRequiredCurrencies)) {
+                if (tag === undefined) {
+                    throw new ArgumentsRequired(this.id + ' withdraw() requires params["tag"] for ' + code);
+                }
+            }
         }
         return address;
     }
@@ -3338,7 +3346,7 @@ export class BaseExchange {
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         throw new NotSupported(this.id + ' transfer() is not supported yet');
     }
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         throw new NotSupported(this.id + ' withdraw() is not supported yet');
     }
     async createDepositAddress(code, params = {}) {
@@ -3701,6 +3709,8 @@ export class BaseExchange {
                 'ARBONE': 'ARBITRUM',
                 'ARBNOVA': 'ARBITRUM_NOVA',
             },
+            // native-chain withdrawals of these currencies may need a destination tag / memo
+            'withdrawTagRequiredCurrencies': ['XRP', 'XLM', 'EOS', 'ATOM', 'HBAR', 'TON', 'KAVA', 'STX', 'XEM', 'IOST', 'OSMO', 'WAXP'],
         };
     }
     safeLedgerEntry(entry, currency = undefined) {
@@ -6686,21 +6696,6 @@ export class BaseExchange {
         }
         return false;
     }
-    handleWithdrawTagAndParams(tag, params) {
-        let paramsExtended = params;
-        let tagValue = tag;
-        if (this.isDictionary(tag)) {
-            paramsExtended = this.extend(tag, params);
-            tagValue = undefined;
-        }
-        const tagResolved = (tagValue === undefined) ? this.safeString(paramsExtended, 'tag') : tagValue;
-        const tagFromParams = (tagValue === undefined) && (tagResolved !== undefined);
-        let paramsOmitted = paramsExtended;
-        if (tagFromParams) {
-            paramsOmitted = this.omit(paramsExtended, 'tag');
-        }
-        return [tagResolved, paramsOmitted];
-    }
     costToPrecision(symbol, cost) {
         if (cost === undefined) {
             return undefined;
@@ -8295,7 +8290,7 @@ export class BaseExchange {
          */
         throw new NotSupported(this.id + ' unWatchOHLCV () is not supported yet');
     }
-    async withdrawWs(code, amount, address, tag = undefined, params = {}) {
+    async withdrawWs(code, amount, address, params = {}) {
         /**
          * @method
          * @name exchange#withdrawWs
@@ -8303,8 +8298,8 @@ export class BaseExchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         throw new NotSupported(this.id + ' withdrawWs () is not supported yet');

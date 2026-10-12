@@ -2363,12 +2363,12 @@ class upbit extends upbit$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagResolved, paramsTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagResolved, paramsTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2378,7 +2378,7 @@ class upbit extends upbit$1["default"] {
         };
         let response;
         if (code !== 'KRW') {
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagResolved);
             // 2023-05-23 Change to required parameters for digital assets
             const network = this.safeStringUpper2(paramsTag, 'network', 'net_type');
             if (network === undefined) {

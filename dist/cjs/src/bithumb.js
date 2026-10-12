@@ -2683,8 +2683,8 @@ class bithumb extends bithumb$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
      * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
@@ -2699,13 +2699,13 @@ class bithumb extends bithumb$1["default"] {
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'withdraw', 'generation', 2);
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, paramsGeneration);
-        this.checkAddress(address);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(paramsGeneration, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         const network = this.safeString2(paramsWithdrawTag, 'network', 'net_type');
         const paramsNetwork = this.omit(paramsWithdrawTag, 'network');
         const currency = this.currency(code);
@@ -2720,7 +2720,7 @@ class bithumb extends bithumb$1["default"] {
         if (requiresDestination) {
             const destination = this.safeString2(paramsNetwork, 'destination', 'secondary_address');
             if ((tagWithdrawTag === undefined) && (destination === undefined)) {
-                throw new errors.ArgumentsRequired(this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
+                throw new errors.ArgumentsRequired(this.id + ' ' + code + ' withdraw() requires a tag or an extra destination param');
             }
             else if (tagWithdrawTag !== undefined) {
                 destinationRequest = tagWithdrawTag;
