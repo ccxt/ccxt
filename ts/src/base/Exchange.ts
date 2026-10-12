@@ -4581,7 +4581,7 @@ export class BaseExchange {
     setMarkets (markets: any, currencies: any = undefined): Dictionary<Market> {
         const values: Dict[] = [];
         // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
-        const marketsById: Dict = this.createSafeDictionary ();
+        const marketsById: Dict = {};
         // handle marketId conflicts
         // we insert spot markets first
         const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
@@ -4619,7 +4619,7 @@ export class BaseExchange {
             values.push (market);
         }
         this.markets = this.mapToSafeMap (this.indexBy (values, 'symbol'));
-        this.markets_by_id = marketsById;
+        this.markets_by_id = this.mapToSafeMap (marketsById);
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
