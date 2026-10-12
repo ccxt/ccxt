@@ -64978,6 +64978,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             const trailingAmount = this.safeString(paramsPostOnly, 'trailingAmount');
             const trailingPercent = this.safeString2(paramsPostOnly, 'trailingPercent', 'priceRate');
             const trailingType = this.safeString(paramsPostOnly, 'trailingType', 'TRAILING_STOP_MARKET');
+            const trailingTriggerPrice = this.safeString2(paramsPostOnly, 'trailingTriggerPrice', 'activationPrice');
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
@@ -65030,6 +65031,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                 } else if (isTrailingPercentOrder) {
                     const requestTrailingPercent = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(trailingPercent, '100');
                     request['priceRate'] = this.parseToNumeric(requestTrailingPercent);
+                }
+                if (trailingTriggerPrice !== undefined) {
+                    request['activationPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, trailingTriggerPrice));
                 }
             }
             if (hasStopLoss || hasTakeProfit) {
@@ -65107,6 +65111,8 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'trailingAmount',
             'trailingPercent',
             'trailingType',
+            'trailingTriggerPrice',
+            'activationPrice',
             'clientOrderId'
         ]);
         return this.extend(request, paramsRequest);
@@ -65136,6 +65142,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
      * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+     * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -257484,6 +257491,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                     '405': _base_errors_js__rspack_import_2.NotSupported,
                     '415': _base_errors_js__rspack_import_2.NotSupported,
                     '429': _base_errors_js__rspack_import_2.RateLimitExceeded,
+                    '429000': _base_errors_js__rspack_import_2.RateLimitExceeded,
                     '500': _base_errors_js__rspack_import_2.ExchangeNotAvailable,
                     '503': _base_errors_js__rspack_import_2.ExchangeNotAvailable,
                     '101030': _base_errors_js__rspack_import_2.PermissionDenied,
@@ -269786,7 +269794,10 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this.privateGetAuthAccount(params);
+        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString(params, 'type', defaultType);
+        const paramsOmitted = this.omit(params, 'type');
+        const response = await this.privateGetAuthAccount(paramsOmitted);
         //
         //     [
         //         {
@@ -269815,8 +269826,6 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
             'datetime': undefined
         };
         let maxTimestamp = undefined;
-        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString(params, 'type', defaultType);
         const types = this.safeDict(this.options, 'types', {});
         const accountType = this.safeString(types, type, type);
         const balancesByType = this.groupBy(response, 'type');
@@ -270450,7 +270459,10 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
         }
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        const paramsOmitted = this.omit(params, 'stop');
+        const paramsOmitted = this.omit(params, [
+            'stop',
+            'trigger'
+        ]);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market(symbol);
         const request = {
