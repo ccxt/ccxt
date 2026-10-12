@@ -496,18 +496,16 @@ impl LunoCore {
     m
 })]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
+        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut asks: Value = (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
         if (asks != Value::Null) {
-            let mut snapshot: Value = self.custom_parse_order_book(message.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into()), Value::Str("id".into())]);
-            let mut existing: Value = get_value(&self.orderbooks, &symbol);
-            existing.reset(snapshot);
+            let mut snapshot: Value = self.custom_parse_order_book(message.clone(), symbol, &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into()), Value::Str("id".into())]);
+            orderbook.reset(snapshot);
         }  else {
-            let mut ob: Value = get_value(&self.orderbooks, &symbol);
-            self.handle_book_delta(ob.clone(), message);
-            add_element_to_object(&mut ob, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut ob, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            self.handle_book_delta(orderbook.clone(), message);
+            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
+            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut nonce: Value = (match __pro_message.get("sequence").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce);
         client.resolve(&[orderbook, messageHash]);

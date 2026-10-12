@@ -4357,6 +4357,15 @@ impl HtxCore {
         let mut close: Value = self.safe_string_k(ticker.clone(), "close", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "amount", &[]);
         let mut quoteVolume: Value = self.safe_string_k(ticker.clone(), "vol", &[]);
+        let mut marketResolved: Value = self.safe_dict(self.markets.clone(), symbol.clone(), &[market.clone()]);
+        if (self.safe_bool_k(marketResolved.clone(), "contract", &[]).as_bool() == Some(true)) {
+            // contract tickers count 'vol' in contracts
+            if (self.safe_bool_k(marketResolved.clone(), "linear", &[]).as_bool() == Some(true)) {
+                quoteVolume = self.safe_string_k(ticker.clone(), "trade_turnover", &[]);
+            }  else {
+                quoteVolume = crate::precise::Precise::stringMul(&quoteVolume, &self.safe_string_k(marketResolved, "contractSize", &[]));
+            }
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
