@@ -7124,11 +7124,12 @@ export default class binance extends Exchange {
      * @ignore
      * @name binance#generateClientOrderId
      * @description builds a fresh client order id
-     * @param {object} [market] the market of the order, takes precedence over the api argument
+     * @param {object} [market] the market of the order, takes precedence over the other arguments
      * @param {string} [api] the implicit api section the order is sent to (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+     * @param {string} [path] the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
      * @returns {string} the broker prefix followed by 22 random characters
      */
-    generateClientOrderId (market: Market = undefined, api: Str = undefined): string {
+    generateClientOrderId (market: Market = undefined, api: Str = undefined, path: Str = undefined): string {
         let idMarketType: Str = undefined;
         if (market !== undefined) {
             if (market['option'] === true) {
@@ -7140,7 +7141,19 @@ export default class binance extends Exchange {
             } else {
                 idMarketType = 'spot';
             }
-        } else if (api !== undefined) {
+        }
+        if ((idMarketType === undefined) && (path !== undefined)) {
+            if (path.indexOf ('um/') === 0) {
+                idMarketType = 'swap';
+            } else if (path.indexOf ('cm/') === 0) {
+                idMarketType = 'inverse';
+            } else if (path.indexOf ('margin/') === 0) {
+                idMarketType = 'margin';
+            } else if (path.indexOf ('equity/') === 0) {
+                idMarketType = 'spot';
+            }
+        }
+        if ((idMarketType === undefined) && (api !== undefined)) {
             const isSpotOrMargin = (api.indexOf ('sapi') > -1 || api === 'private');
             if (isSpotOrMargin) {
                 idMarketType = 'spot';
@@ -7151,7 +7164,8 @@ export default class binance extends Exchange {
             } else {
                 idMarketType = 'future';
             }
-        } else {
+        }
+        if (idMarketType === undefined) {
             const defaultType = this.safeString (this.options, 'defaultType', 'spot');
             const defaultSubType = this.safeString (this.options, 'defaultSubType');
             idMarketType = defaultType;
@@ -7170,6 +7184,83 @@ export default class binance extends Exchange {
         const broker = this.safeDict (this.options, 'broker', {});
         const brokerId = this.safeString (broker, idMarketType, defaultId);
         return brokerId + this.uuid22 ();
+    }
+
+    /**
+     * @method
+     * @name binance#handleClientOrderId
+     * @ignore
+     * @description injects a broker client order id into the order-creating implicit api calls when the caller did not provide one
+     * @param {object} params request params
+     * @param {string} api the implicit api section the request is sent to
+     * @param {string} path the implicit api path the request is sent to
+     * @param {string} method HTTP method
+     * @returns {object} params with the injected client order id
+     */
+    handleClientOrderId (params: Dict, api: Str, path: Str, method: Str): Dict {
+        if (method !== 'POST') {
+            return params;
+        }
+        if ((path === 'order') || (path === 'sor/order') || (path === 'um/order') || (path === 'cm/order') || (path === 'margin/order')) {
+            // the eapi order endpoint takes clientOrderId instead of newClientOrderId
+            const clientOrderIdKey = (api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
+            const clientOrderId = this.safeString2 (params, 'clientOrderId', 'newClientOrderId');
+            if (clientOrderId === undefined) {
+                params[clientOrderIdKey] = this.generateClientOrderId (undefined, api, path);
+            }
+        } else if ((path === 'algoOrder') || (path === 'um/algo/order')) {
+            // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
+            const clientAlgoId = this.safeString (params, 'clientAlgoId');
+            if (clientAlgoId === undefined) {
+                params['clientAlgoId'] = this.generateClientOrderId (undefined, api, path);
+            }
+        } else if ((path === 'cm/conditional/order') || (path === 'um/conditional/order')) {
+            // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
+            const newClientStrategyId = this.safeString (params, 'newClientStrategyId');
+            if (newClientStrategyId === undefined) {
+                params['newClientStrategyId'] = this.generateClientOrderId (undefined, api, path);
+            }
+        } else if (path === 'equity/order/place') {
+            // the equity order endpoint takes clientOrderId instead of newClientOrderId
+            const equityClientOrderId = this.safeString (params, 'clientOrderId');
+            if (equityClientOrderId === undefined) {
+                params['clientOrderId'] = this.generateClientOrderId (undefined, api, path);
+            }
+        } else if ((path === 'order/oco') || (path === 'margin/order/oco') || (path === 'orderList/oco') || (path === 'orderList/oto') || (path === 'orderList/otoco') || (path === 'orderList/opo') || (path === 'orderList/opoco')) {
+            // the order list endpoints take a listClientOrderId and one client order id per leg
+            let clientOrderIdKeys = [ 'listClientOrderId', 'limitClientOrderId', 'stopClientOrderId' ];
+            if (path === 'orderList/oco') {
+                clientOrderIdKeys = [ 'listClientOrderId', 'aboveClientOrderId', 'belowClientOrderId' ];
+            } else if ((path === 'orderList/oto') || (path === 'orderList/opo')) {
+                clientOrderIdKeys = [ 'listClientOrderId', 'workingClientOrderId', 'pendingClientOrderId' ];
+            } else if ((path === 'orderList/otoco') || (path === 'orderList/opoco')) {
+                clientOrderIdKeys = [ 'listClientOrderId', 'workingClientOrderId', 'pendingAboveClientOrderId', 'pendingBelowClientOrderId' ];
+            }
+            for (let i = 0; i < clientOrderIdKeys.length; i++) {
+                const currentClientOrderIdKey = clientOrderIdKeys[i];
+                const currentClientOrderId = this.safeString (params, currentClientOrderIdKey);
+                if (currentClientOrderId === undefined) {
+                    params[currentClientOrderIdKey] = this.generateClientOrderId (undefined, api, path);
+                }
+            }
+        } else if (path === 'batchOrders') {
+            // the batch legs take the same client order id fields as the single order endpoints
+            if ((api === 'fapiPrivate') || (api === 'dapiPrivate') || (api === 'eapiPrivate')) {
+                const batchClientOrderIdKey = (api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
+                const batchOrders: Dict[] = this.safeList (params, 'batchOrders', []);
+                const checkedBatchOrders = [];
+                for (let i = 0; i < batchOrders.length; i++) {
+                    const batchOrder = batchOrders[i];
+                    const batchClientOrderId = this.safeString (batchOrder, batchClientOrderIdKey);
+                    if (batchClientOrderId === undefined) {
+                        batchOrder[batchClientOrderIdKey] = this.generateClientOrderId (undefined, api, path);
+                    }
+                    checkedBatchOrders.push (batchOrder);
+                }
+                params['batchOrders'] = checkedBatchOrders;
+            }
+        }
+        return params;
     }
 
     /**
@@ -7327,6 +7418,9 @@ export default class binance extends Exchange {
         if (isAlgoOrder) {
             clientOrderIdRequest = 'clientAlgoId';
         } else if (stock === true) {
+            clientOrderIdRequest = 'clientOrderId';
+        } else if (market['option'] === true) {
+            // the option api takes clientOrderId instead of newClientOrderId
             clientOrderIdRequest = 'clientOrderId';
         }
         if (clientOrderId === undefined) {
@@ -13258,47 +13352,22 @@ export default class binance extends Exchange {
             if ((url.indexOf ('testnet.binancefuture.com') > -1) && this.isSandboxModeEnabled && (!this.safeBool (this.options, 'disableFuturesSandboxWarning', false))) {
                 throw new NotSupported (this.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
             }
-            if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
-                // inject in implicit API calls
-                const newClientOrderId = this.safeString (params, 'newClientOrderId');
-                if (newClientOrderId === undefined) {
-                    params['newClientOrderId'] = this.generateClientOrderId (undefined, api);
-                }
-            } else if (method === 'POST' && (path === 'algoOrder')) {
-                // the fapi/dapi algo order endpoints take clientAlgoId instead of newClientOrderId
-                const clientAlgoId = this.safeString (params, 'clientAlgoId');
-                if (clientAlgoId === undefined) {
-                    params['clientAlgoId'] = this.generateClientOrderId (undefined, api);
-                }
-            }
+            const requestParams = this.handleClientOrderId (params, api, path, method);
             let query: Str = undefined;
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
-                const batchOrders: Dict[] = this.safeList (params, 'batchOrders', []);
-                let checkedBatchOrders = batchOrders;
-                if (method === 'POST' && ((api === 'fapiPrivate') || (api === 'dapiPrivate'))) {
-                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders / dapiPrivatePostBatchOrders
-                    checkedBatchOrders = [];
-                    for (let i = 0; i < batchOrders.length; i++) {
-                        const batchOrder = batchOrders[i];
-                        const newClientOrderId = this.safeString (batchOrder, 'newClientOrderId');
-                        if (newClientOrderId === undefined) {
-                            batchOrder['newClientOrderId'] = this.generateClientOrderId (undefined, api);
-                        }
-                        checkedBatchOrders.push (batchOrder);
-                    }
-                }
-                const queryBatch = (this.json (checkedBatchOrders));
-                params['batchOrders'] = queryBatch;
+                const batchOrders: Dict[] = this.safeList (requestParams, 'batchOrders', []);
+                const queryBatch = (this.json (batchOrders));
+                requestParams['batchOrders'] = queryBatch;
             }
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
             let extendedParams = this.extend ({
                 'timestamp': this.nonce (),
-            }, params);
+            }, requestParams);
             if (defaultRecvWindow !== undefined) {
                 extendedParams['recvWindow'] = defaultRecvWindow;
             }
-            const recvWindow = this.safeInteger (params, 'recvWindow');
+            const recvWindow = this.safeInteger (requestParams, 'recvWindow');
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }
