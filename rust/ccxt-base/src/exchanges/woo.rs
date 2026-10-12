@@ -243,7 +243,7 @@ impl WooCore {
         m.insert("countries".to_string(), Value::from(vec![Value::Str("KY".into())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("version".to_string(), Value::Str("v1".into()));
-        m.insert("certified".to_string(), Value::Bool(true));
+        m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("hostname".to_string(), Value::Str("woox.io".into()));
         m.insert("has".to_string(), Value::Map({

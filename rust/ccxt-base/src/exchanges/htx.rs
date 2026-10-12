@@ -276,7 +276,7 @@ impl HtxCore {
         m.insert("countries".to_string(), Value::from(vec![Value::Str("CN".into())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("userAgent".to_string(), self.userAgents.as_map().and_then(|__m| __m.get("chrome100")).cloned().unwrap_or(Value::Null));
-        m.insert("certified".to_string(), Value::Bool(true));
+        m.insert("certified".to_string(), Value::Bool(false));
         m.insert("version".to_string(), Value::Str("v1".into()));
         m.insert("hostname".to_string(), Value::Str("api.huobi.pro".into()));
         m.insert("pro".to_string(), Value::Bool(true));
