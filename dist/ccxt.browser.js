@@ -64978,6 +64978,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             const trailingAmount = this.safeString(paramsPostOnly, 'trailingAmount');
             const trailingPercent = this.safeString2(paramsPostOnly, 'trailingPercent', 'priceRate');
             const trailingType = this.safeString(paramsPostOnly, 'trailingType', 'TRAILING_STOP_MARKET');
+            const trailingTriggerPrice = this.safeString2(paramsPostOnly, 'trailingTriggerPrice', 'activationPrice');
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
@@ -65030,6 +65031,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                 } else if (isTrailingPercentOrder) {
                     const requestTrailingPercent = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(trailingPercent, '100');
                     request['priceRate'] = this.parseToNumeric(requestTrailingPercent);
+                }
+                if (trailingTriggerPrice !== undefined) {
+                    request['activationPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, trailingTriggerPrice));
                 }
             }
             if (hasStopLoss || hasTakeProfit) {
@@ -65107,6 +65111,8 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'trailingAmount',
             'trailingPercent',
             'trailingType',
+            'trailingTriggerPrice',
+            'activationPrice',
             'clientOrderId'
         ]);
         return this.extend(request, paramsRequest);
@@ -65136,6 +65142,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
      * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+     * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -93594,18 +93601,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(ticker, 'market');
         const symbol = this.safeSymbol(marketId, market);
         const close = this.safeString2(ticker, 'closing_price', 'trade_price');
-        let change = this.safeString2(ticker, 'signed_change_price', 'change_price');
-        let percentage = this.safeString2(ticker, 'signed_change_rate', 'change_rate');
         const open = this.safeString(ticker, 'opening_price');
-        const nonZeroOpen = this.omitZero(open);
-        if (marketId !== undefined && nonZeroOpen !== undefined && close !== undefined) {
-            const computedChange = _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(close, open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (change !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(change, '0') && !_base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(computedChange, '0')) {
-                change = computedChange;
-                percentage = undefined;
-            }
-        }
         let high = this.safeString2(ticker, 'max_price', 'high_price');
         let low = this.safeString2(ticker, 'min_price', 'low_price');
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -93630,8 +93626,9 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
             'close': close,
             'last': close,
             'previousClose': this.safeString(ticker, 'prev_closing_price'),
-            'change': change,
-            'percentage': percentage,
+            // Exchange changes use previousClose; safeTicker derives unified changes from open.
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
             'quoteVolume': this.safeString2(ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),
@@ -254099,7 +254096,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
     /**
      * @method
      * @name krakenfutures#fetchCanceledOrders
-     * @see https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-order-events
      * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order.
@@ -254120,7 +254117,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
             request['count'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = since;
+            request['since'] = since;
         }
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
@@ -257494,6 +257491,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                     '405': _base_errors_js__rspack_import_2.NotSupported,
                     '415': _base_errors_js__rspack_import_2.NotSupported,
                     '429': _base_errors_js__rspack_import_2.RateLimitExceeded,
+                    '429000': _base_errors_js__rspack_import_2.RateLimitExceeded,
                     '500': _base_errors_js__rspack_import_2.ExchangeNotAvailable,
                     '503': _base_errors_js__rspack_import_2.ExchangeNotAvailable,
                     '101030': _base_errors_js__rspack_import_2.PermissionDenied,
@@ -269796,7 +269794,10 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this.privateGetAuthAccount(params);
+        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString(params, 'type', defaultType);
+        const paramsOmitted = this.omit(params, 'type');
+        const response = await this.privateGetAuthAccount(paramsOmitted);
         //
         //     [
         //         {
@@ -269825,8 +269826,6 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
             'datetime': undefined
         };
         let maxTimestamp = undefined;
-        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString(params, 'type', defaultType);
         const types = this.safeDict(this.options, 'types', {});
         const accountType = this.safeString(types, type, type);
         const balancesByType = this.groupBy(response, 'type');
@@ -270460,7 +270459,10 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
         }
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        const paramsOmitted = this.omit(params, 'stop');
+        const paramsOmitted = this.omit(params, [
+            'stop',
+            'trigger'
+        ]);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market(symbol);
         const request = {
@@ -283404,7 +283406,11 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             //         ]
             //     }
             //
-            tickers = this.safeList(response, 'data', []);
+            if (isSingularMarket) {
+                tickers = this.safeDict(response, 'data', {}); // when queried with a symbol, "data" holds a single ticker object, like in fetchTicker
+            } else {
+                tickers = this.safeList(response, 'data', []);
+            }
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if (isSingularMarket) {
@@ -283971,7 +283977,11 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             request['triggerType'] = this.safeInteger(paramsOmitted, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger(paramsOmitted, 'executeCycle', 1);
             request['trend'] = this.safeInteger(paramsOmitted, 'trend', 1);
-            request['orderType'] = this.safeInteger(paramsOmitted, 'orderType', 1);
+            let planOrderType = orderType;
+            if (orderType === 6) {
+                planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+            }
+            request['orderType'] = this.safeInteger(paramsOmitted, 'orderType', planOrderType);
             response = await this.contractPrivatePostPlanorderPlace(this.extend(request, paramsOmitted));
         } else {
             response = await this.contractPrivatePostOrderCreate(this.extend(request, paramsOmitted));
@@ -283986,8 +283996,14 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         //
         const data = this.safeDict(response, 'data');
+        let id = undefined;
+        if (data === undefined) {
+            id = this.safeString(response, 'data'); // planorder/place answers with the bare trigger order id
+        } else {
+            id = this.safeString(data, 'orderId');
+        }
         return this.safeOrder({
-            'id': this.safeString(data, 'orderId'),
+            'id': id,
             'timestamp': this.safeInteger(data, 'ts')
         }, market);
     }
@@ -284447,6 +284463,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -284523,12 +284540,24 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             //
             return this.parseOrders(response, market, since, limit);
         } else {
+            const trigger = this.safeBool2(paramsMarketType, 'stop', 'trigger');
+            const swapParams = this.omit(paramsMarketType, [
+                'stop',
+                'trigger'
+            ]);
             if (limit === undefined) {
                 request['page_size'] = 100; // max
             }
-            const swapResponse = await this.contractPrivateGetOrderListOpenOrders(this.extend(request, paramsMarketType));
-            const data = this.safeList(swapResponse, 'data', []);
-            return this.parseOrders(data, market, since, limit, paramsMarketType);
+            let data = [];
+            if (trigger === true) {
+                request['states'] = 1; // untriggered
+                const triggerResponse = await this.contractPrivateGetPlanorderListOrders(this.extend(request, swapParams));
+                data = this.safeList(triggerResponse, 'data', []);
+            } else {
+                const swapResponse = await this.contractPrivateGetOrderListOpenOrders(this.extend(request, swapParams));
+                data = this.safeList(swapResponse, 'data', []);
+            }
+            return this.parseOrders(data, market, since, limit, swapParams);
         }
     }
     /**
@@ -284588,6 +284617,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for canceling trigger orders
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrder(id, symbol = undefined, params = {}) {
@@ -284659,17 +284689,27 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //     ]
         //
         } else {
-            // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
+            const trigger = this.safeBool2(query, 'stop', 'trigger');
             let method = this.safeString(this.options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = this.safeString(query, 'method', method);
+            if (trigger === true) {
+                method = 'contractPrivatePostPlanorderCancel';
+            }
             let response;
             if (method === 'contractPrivatePostOrderCancel') {
                 response = await this.contractPrivatePostOrderCancel([
                     id
                 ]); // the request cannot be changed or extended. This is the only way to send.
             } else if (method === 'contractPrivatePostPlanorderCancel') {
+                if (symbol === undefined) {
+                    throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument for trigger orders');
+                }
+                const cancelRequest = {
+                    'symbol': this.safeString(market, 'id'),
+                    'orderId': id
+                };
                 response = await this.contractPrivatePostPlanorderCancel([
-                    id
+                    cancelRequest
                 ]); // the request cannot be changed or extended. This is the only way to send.
             } else {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' cancelOrder() not support this method');
@@ -284687,6 +284727,13 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             //         ]
             //     }
             //
+            if (method === 'contractPrivatePostPlanorderCancel') {
+                return this.safeOrder({
+                    'id': id,
+                    'symbol': this.safeString(market, 'symbol'),
+                    'info': response
+                }, market); // planorder/cancel answers without data, failures are raised by handleErrors
+            }
             data = this.safeValue(response, 'data');
             const order = this.safeDict(data, 0);
             const errorMsg = this.safeString(order, 'errorMsg', '');
@@ -285067,7 +285114,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             'PARTIALLY_FILLED': 'open',
             'PARTIALLY_CANCELED': 'canceled',
             // contracts v1
-            // '1': 'uninformed', // TODO: wt?
+            '1': 'open',
             '2': 'open',
             '3': 'closed',
             '4': 'canceled'
@@ -286137,7 +286184,8 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //        coin: "USDT",
         //        network: "BNB Smart Chain(BEP20)",
         //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //        memo:  null
+        //        memo:  null,
+        //        netWork: "BSC"
         //    }
         //
         const address = this.safeString(depositAddress, 'address');
@@ -286193,7 +286241,8 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //            coin: "USDT",
         //            network: "BNB Smart Chain(BEP20)",
         //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //            memo:  null
+        //            memo:  null,
+        //            netWork: "BSC"
         //        }
         //        ...
         //    ]
@@ -286334,7 +286383,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //         "memo": "xxyy1122",
         //         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //         "updateTime": "1664805621000",
-        //         "netWork: "TRX"
+        //         "netWork": "TRX"
         //     }
         // ]
         //
@@ -286390,7 +286439,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //       "updateTime": "1664882799000",
-        //       "netWork: "MATIC"
+        //       "netWork": "MATIC"
         //     }
         // ]
         //
@@ -286413,7 +286462,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //     "memo": "xxyy1122",
         //     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //     "updateTime": "1664805621000",
-        //     "netWork: "TRX"
+        //     "netWork": "TRX"
         // }
         //
         // fetchWithdrawals
@@ -286435,7 +286484,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "updateTime": "1664882799000",
-        //     "netWork: "MATIC"
+        //     "netWork": "MATIC"
         //   }
         //
         // withdraw
@@ -301401,7 +301450,12 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                         'trailing': true,
                         'iceberg': true,
                         'leverage': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': true,
+                            'EXPIRE_TAKER': true,
+                            'EXPIRE_BOTH': true,
+                            'NONE': false
+                        },
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false
                     },
@@ -303491,6 +303545,30 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 request['slTriggerPxType'] = slTriggerPxType;
             }
         }
+        // unified stp
+        let selfTradePrevention = undefined;
+        [selfTradePrevention, orderParams] = this.handleOptionAndParams(orderParams, 'createOrder', 'selfTradePrevention');
+        if (selfTradePrevention !== undefined) {
+            const stpModes = {
+                'EXPIRE_MAKER': 'cancel_maker',
+                'EXPIRE_TAKER': 'cancel_taker',
+                'EXPIRE_BOTH': 'cancel_both'
+            };
+            const selfTradePreventionUpper = selfTradePrevention.toUpperCase();
+            if (selfTradePreventionUpper === 'NONE') {
+                throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order');
+            }
+            const stpMode = this.safeString(stpModes, selfTradePreventionUpper, selfTradePrevention.toLowerCase());
+            const algoOrderTypes = this.safeDict(this.options, 'algoOrderTypes', {});
+            const requestOrdType = this.safeString(request, 'ordType');
+            if (requestOrdType !== undefined && requestOrdType in algoOrderTypes) {
+                throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint');
+            }
+            if (stpMode === 'cancel_both' && requestOrdType === 'fok') {
+                throw new _base_errors_js__rspack_import_1.InvalidOrder(this.id + ' createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders');
+            }
+            request['stpMode'] = stpMode;
+        }
         if (clientOrderId === undefined) {
             const brokerId = this.safeString(this.options, 'brokerId');
             if (brokerId !== undefined) {
@@ -303536,6 +303614,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
      * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
      * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
+     * @param {string} [params.selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -378088,8 +378167,9 @@ class bithumb extends _bithumb_js__rspack_import_0/* ["default"] */.A {
             'close': this.safeString(ticker, 'closePrice'),
             'last': undefined,
             'previousClose': this.safeString(ticker, 'prevClosePrice'),
-            'change': this.safeString(ticker, 'chgAmt'),
-            'percentage': this.safeString(ticker, 'chgRate'),
+            // safeTicker derives change/percentage from open, matching the REST parser
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volume'),
             'quoteVolume': this.safeString(ticker, 'value'),
@@ -416814,7 +416894,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
      * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] can be either 'futures' or 'flex_futures'
-     * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure} of the account type the message updated ('cash', 'futures' margin, or 'flex_futures')
      */ async watchBalance(params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -416873,11 +416953,14 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
             const market = this.market(marketId);
             const symbol = market['symbol'];
             const messageHash = this.getMessageHash('trade', undefined, symbol);
-            if (this.safeList(this.trades, symbol) === undefined) {
+            // safeValue, not safeList: the values are ArrayCache instances, and
+            // the typed accessor casts them to a plain list in c#, which throws
+            let tradesArray = this.safeValue(this.trades, symbol);
+            if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
-                this.trades[symbol] = new _base_ws_Cache_js__rspack_import_1/* .ArrayCache */.I3(tradesLimit);
+                tradesArray = new _base_ws_Cache_js__rspack_import_1/* .ArrayCache */.I3(tradesLimit);
+                this.trades[symbol] = tradesArray;
             }
-            const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
                 const trades = this.safeList(message, 'trades', []);
                 const length = trades.length;
@@ -417219,8 +417302,12 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         //        ]
         //    }
         const orders = this.safeList(message, 'orders', []);
-        const limit = this.safeInteger(this.options, 'ordersLimit');
-        this.orders = new _base_ws_Cache_js__rspack_import_1/* .ArrayCacheBySymbolById */.Pt(limit);
+        // reuse the existing cache: replacing it would orphan consumers holding
+        // a reference to the old one across a reconnect snapshot
+        if (this.orders === undefined) {
+            const limit = this.safeInteger(this.options, 'ordersLimit');
+            this.orders = new _base_ws_Cache_js__rspack_import_1/* .ArrayCacheBySymbolById */.Pt(limit);
+        }
         const feed = this.safeString(message, 'feed');
         let messageHash = 'orders';
         if (feed === 'open_orders_verbose_snapshot') {
@@ -417228,6 +417315,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         }
         const symbols = {};
         const cachedOrders = this.orders;
+        const snapshotIds = {};
         for(let i = 0; i < orders.length; i++){
             const order = orders[i];
             const parsed = this.parseWsOrder(order);
@@ -417235,7 +417323,39 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
             if (symbol !== undefined) {
                 symbols[symbol] = true;
             }
+            const parsedId = this.safeString(parsed, 'id');
+            if (parsedId !== undefined) {
+                snapshotIds[parsedId] = true;
+            }
             cachedOrders.append(parsed);
+        }
+        // reconcile the reused cache with the snapshot: the snapshot lists every
+        // currently open order, so an order cached as open but missing from it is
+        // no longer open on the venue - it filled or was cancelled while we were
+        // disconnected. the snapshot does not say which, so mark it canceled
+        // instead of leaving it open in the cache forever
+        const cachedSymbols = Object.keys(cachedOrders.hashmap);
+        for(let i = 0; i < cachedSymbols.length; i++){
+            const cachedSymbol = cachedSymbols[i];
+            const ordersById = this.safeDict(cachedOrders.hashmap, cachedSymbol, {});
+            const cachedIds = Object.keys(ordersById);
+            for(let j = 0; j < cachedIds.length; j++){
+                const cachedId = cachedIds[j];
+                if (!(cachedId in snapshotIds)) {
+                    const cachedOrder = this.safeDict(ordersById, cachedId, {});
+                    const cachedStatus = this.safeString(cachedOrder, 'status');
+                    // parseWsOrder leaves status undefined for snapshot and
+                    // non-cancel updates, so undefined means open here
+                    if (cachedStatus === undefined || cachedStatus === 'open') {
+                        cachedOrder['status'] = 'canceled';
+                        // write the updated order back through append: the cache
+                        // rows are copies in the value-type runtimes (php), and
+                        // append also feeds the newUpdates accounting
+                        cachedOrders.append(cachedOrder);
+                        symbols[cachedSymbol] = true;
+                    }
+                }
+            }
         }
         const length = this.orders.length;
         if (length > 0) {
@@ -417722,38 +417842,49 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         //        "seq": 2
         //    }
         //
+        // merge updates into the existing per-account balance objects instead of
+        // building fresh ones: a consumer awakened by an earlier message holds a
+        // reference to this.balance['cash'/'margin'/'flex'], and Client.resolve
+        // is a no-op while nobody is awaiting, so a replaced object would make
+        // updates landing in that window invisible to the consumer forever
+        // (same class of bug as kraken issue #26773)
         const holding = this.safeDict(message, 'holding');
         const futures = this.safeDict(message, 'futures');
         const flexFutures = this.safeDict(message, 'flex_futures');
         const messageHash = 'balances';
         const timestamp = this.safeInteger(message, 'timestamp');
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        let updatedBalance = undefined;
         if (holding !== undefined) {
             const holdingKeys = Object.keys(holding); // cashAccount
-            const holdingResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp)
-            };
+            this.balance['cash'] = this.safeDict(this.balance, 'cash', {});
+            this.balance['cash']['info'] = message;
+            this.balance['cash']['timestamp'] = timestamp;
+            this.balance['cash']['datetime'] = this.iso8601(timestamp);
+            const holdingCodes = {};
             for(let i = 0; i < holdingKeys.length; i++){
                 const key = holdingKeys[i];
                 const code = this.safeCurrencyCode(key);
                 const newAccount = this.account();
                 newAccount['total'] = this.safeString(holding, key);
                 if (code !== undefined) {
-                    holdingResult[code] = newAccount;
+                    holdingCodes[code] = true;
+                    this.balance['cash'][code] = newAccount;
                 }
             }
-            this.balance['cash'] = holdingResult;
+            this.balance['cash'] = this.pruneStaleBalanceKeys(this.balance['cash'], holdingCodes);
             this.balance['cash'] = this.safeBalance(this.balance['cash']);
-            client.resolve(holdingResult, messageHash);
+            updatedBalance = this.balance['cash'];
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys(futures); // marginAccount
-            const futuresResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp)
-            };
+            this.balance['margin'] = this.safeDict(this.balance, 'margin', {});
+            this.balance['margin']['info'] = message;
+            this.balance['margin']['timestamp'] = timestamp;
+            this.balance['margin']['datetime'] = this.iso8601(timestamp);
+            const futuresSymbols = {};
             for(let i = 0; i < futuresKeys.length; i++){
                 const key = futuresKeys[i];
                 const symbol = this.safeSymbol(key);
@@ -417764,23 +417895,27 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
                 newAccount['free'] = this.safeString(future, 'available');
                 newAccount['used'] = this.safeString(future, 'initial_margin');
                 newAccount['total'] = this.safeString(future, 'balance');
-                futuresResult[symbol] = {};
+                this.balance['margin'][symbol] = {};
                 if (symbol !== undefined && code !== undefined) {
-                    futuresResult[symbol][code] = newAccount;
+                    futuresSymbols[symbol] = true;
+                    this.balance['margin'][symbol][code] = newAccount;
                 }
             }
-            this.balance['margin'] = futuresResult;
+            this.balance['margin'] = this.pruneStaleBalanceKeys(this.balance['margin'], futuresSymbols);
             this.balance['margin'] = this.safeBalance(this.balance['margin']);
-            client.resolve(this.balance['margin'], messageHash + 'futures');
+            client.resolve(this.balance['margin'], messageHash + ':futures');
+            if (updatedBalance === undefined) {
+                updatedBalance = this.balance['margin'];
+            }
         }
         if (flexFutures !== undefined) {
             const flexFutureCurrencies = this.safeDict(flexFutures, 'currencies', {});
             const flexFuturesKeys = Object.keys(flexFutureCurrencies); // multi-collateral margin account
-            const flexFuturesResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp)
-            };
+            this.balance['flex'] = this.safeDict(this.balance, 'flex', {});
+            this.balance['flex']['info'] = message;
+            this.balance['flex']['timestamp'] = timestamp;
+            this.balance['flex']['datetime'] = this.iso8601(timestamp);
+            const flexCodes = {};
             for(let i = 0; i < flexFuturesKeys.length; i++){
                 const key = flexFuturesKeys[i];
                 const flexFuture = this.safeDict(flexFutureCurrencies, key);
@@ -417790,14 +417925,50 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
                 newAccount['used'] = this.safeString(flexFuture, 'collateral_value');
                 newAccount['total'] = this.safeString(flexFuture, 'quantity');
                 if (code !== undefined) {
-                    flexFuturesResult[code] = newAccount;
+                    flexCodes[code] = true;
+                    this.balance['flex'][code] = newAccount;
                 }
             }
-            this.balance['flex'] = flexFuturesResult;
+            this.balance['flex'] = this.pruneStaleBalanceKeys(this.balance['flex'], flexCodes);
             this.balance['flex'] = this.safeBalance(this.balance['flex']);
-            client.resolve(this.balance['flex'], messageHash + 'flex_futures');
+            client.resolve(this.balance['flex'], messageHash + ':flex_futures');
+            if (updatedBalance === undefined) {
+                updatedBalance = this.balance['flex'];
+            }
         }
-        client.resolve(this.balance, messageHash);
+        // resolve the plain hash exactly once per message, with the unified
+        // balance of the account the message updated (cash first, matching the
+        // legacy behaviour): a second resolve on the same hash is not portable
+        // (the rust client hands the consumer the LAST resolved value)
+        if (updatedBalance !== undefined) {
+            client.resolve(updatedBalance, messageHash);
+        }
+    }
+    /**
+     * @ignore
+     * @method
+     * @description removes currency/symbol keys that disappeared from a full-state balance message, keeping the cached object itself alive for consumers holding a reference to it
+     * @param {object} balanceObject the cached per-account balance object, mutated in place
+     * @param {object} seenKeys the currency codes / symbols present in the current message
+     * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
+     */ pruneStaleBalanceKeys(balanceObject, seenKeys) {
+        const reserved = [
+            'info',
+            'timestamp',
+            'datetime',
+            'free',
+            'used',
+            'total',
+            'debt'
+        ];
+        const keys = Object.keys(balanceObject);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (!(key in seenKeys) && !this.inArray(key, reserved)) {
+                delete balanceObject[key];
+            }
+        }
+        return balanceObject;
     }
     handleMyTrades(client, message) {
         //
@@ -425094,10 +425265,10 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
     }
     parseWsTicker(ticker, market = undefined) {
         // protobuf ticker
-        // "bidprice": "93387.28",  // Best bid price
-        // "bidquantity": "3.73485", // Best bid quantity
-        // "askprice": "93387.29", // Best ask price
-        // "askquantity": "7.669875" // Best ask quantity
+        // "bidPrice": "93387.28",  // Best bid price
+        // "bidQuantity": "3.73485", // Best bid quantity
+        // "askPrice": "93387.29", // Best ask price
+        // "askQuantity": "7.669875" // Best ask quantity
         //
         // spot
         //
@@ -425609,12 +425780,13 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         //            ]
         //         ],
         //         "end":4895965272,
-        //         "begin":4895965271
+        //         "begin":4895965271,
+        //         "version":4895965272
         //      },
         //      "symbol":"BTC_USDT",
         //      "ts":1651239652372
         //  }
-        // protofbuf
+        // protobuf
         // {
         //      "channel":"spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT",
         //      "symbol":"BTCUSDT",
@@ -426223,7 +426395,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         //        "s":1,
         //        "i":"e03a5c7441e44ed899466a7140b71391",
         //    }
-        // protofbuf spot order
+        // protobuf spot order
         // {
         //     "id":"C02__583905164440776704043",
         //     "price":"0.001053",

@@ -2464,7 +2464,13 @@ public class Mexc extends MexcApi
                 //         ]
                 //     }
                 //
-                tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                if (Boolean.TRUE.equals(isSingularMarket))
+                {
+                    tickers = this.safeDict(response, "data", new HashMap<String, Object>() {{}}); // when queried with a symbol, "data" holds a single ticker object, like in fetchTicker
+                } else
+                {
+                    tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                }
             }
             // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
             if (Boolean.TRUE.equals(isSingularMarket))
@@ -3112,7 +3118,12 @@ public class Mexc extends MexcApi
                 request.put("triggerType", this.safeInteger(paramsOmitted, "triggerType", 1));
                 request.put("executeCycle", this.safeInteger(paramsOmitted, "executeCycle", 1));
                 request.put("trend", this.safeInteger(paramsOmitted, "trend", 1));
-                request.put("orderType", this.safeInteger(paramsOmitted, "orderType", 1));
+                Object planOrderType = orderType;
+                if (Helpers.isEqual(orderType, 6))
+                {
+                    planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+                }
+                request.put("orderType", this.safeInteger(paramsOmitted, "orderType", planOrderType));
                 response = (this.contractPrivatePostPlanorderPlace(this.extend(request, paramsOmitted))).join();
             } else
             {
@@ -3128,10 +3139,18 @@ public class Mexc extends MexcApi
             // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
-            return this.safeOrder(new HashMap<String, Object>() {{
-                put( "id", Mexc.this.safeString(data, "orderId") );
-                put( "timestamp", Mexc.this.safeInteger(data, "ts") );
-            }}, Helpers.toMapArg(market));
+            String id = null;
+            if (java.util.Objects.equals(data, null))
+            {
+                id = this.safeString(response, "data"); // planorder/place answers with the bare trigger order id
+            } else
+            {
+                id = this.safeString(data, "orderId");
+            }
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("id", id);
+            mapLiteral4.put("timestamp", this.safeInteger(data, "ts"));
+            return this.safeOrder(mapLiteral4, Helpers.toMapArg(market));
         });
 
     }
@@ -3630,6 +3649,7 @@ public class Mexc extends MexcApi
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3723,13 +3743,24 @@ public class Mexc extends MexcApi
                 return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
             } else
             {
+                Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", (Object) null);
+                Map<String, Object> swapParams = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
                 if (java.util.Objects.equals(limit, null))
                 {
                     request.put("page_size", 100); // max
                 }
-                Map<String, Object> swapResponse = (this.contractPrivateGetOrderListOpenOrders(this.extend(request, paramsMarketType))).join();
-                List<Object> data = (List<Object>) this.safeList(swapResponse, "data", new ArrayList<Object>(Arrays.asList()));
-                return this.parseOrders(data, market, since, limit, paramsMarketType);
+                List<Object> data = new ArrayList<Object>(Arrays.asList());
+                if (java.util.Objects.equals(trigger, true))
+                {
+                    request.put("states", 1); // untriggered
+                    Map<String, Object> triggerResponse = (this.contractPrivateGetPlanorderListOrders(this.extend(request, swapParams))).join();
+                    data = (List<Object>) this.safeList(triggerResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                } else
+                {
+                    Map<String, Object> swapResponse = (this.contractPrivateGetOrderListOpenOrders(this.extend(request, swapParams))).join();
+                    data = (List<Object>) this.safeList(swapResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                }
+                return this.parseOrders(data, market, since, limit, swapParams);
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3820,6 +3851,7 @@ public class Mexc extends MexcApi
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for canceling trigger orders
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3875,16 +3907,27 @@ public class Mexc extends MexcApi
                 }
             } else
             {
-                // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
+                Boolean trigger = (Boolean) this.safeBool2(query, "stop", "trigger", (Object) null);
                 String method = this.safeString(this.options, "cancelOrder", "contractPrivatePostOrderCancel"); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
                 method = this.safeString(query, "method", method);
+                if (java.util.Objects.equals(trigger, true))
+                {
+                    method = "contractPrivatePostPlanorderCancel";
+                }
                 Map<String, Object> response = null;
                 if (java.util.Objects.equals(method, "contractPrivatePostOrderCancel"))
                 {
                     response = (this.contractPrivatePostOrderCancel(new ArrayList<Object>(Arrays.asList(id)))).join(); // the request cannot be changed or extended. This is the only way to send.
                 } else if (java.util.Objects.equals(method, "contractPrivatePostPlanorderCancel"))
                 {
-                    response = (this.contractPrivatePostPlanorderCancel(new ArrayList<Object>(Arrays.asList(id)))).join(); // the request cannot be changed or extended. This is the only way to send.
+                    if (java.util.Objects.equals(symbol, null))
+                    {
+                        throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument for trigger orders")) ;
+                    }
+                    Map<String, Object> cancelRequest = new HashMap<String, Object>();
+                    cancelRequest.put("symbol", this.safeString(market, "id"));
+                    cancelRequest.put("orderId", id);
+                    response = (this.contractPrivatePostPlanorderCancel(new ArrayList<Object>(Arrays.asList(cancelRequest)))).join(); // the request cannot be changed or extended. This is the only way to send.
                 } else
                 {
                     throw new NotSupported((this.id + " cancelOrder() not support this method")) ;
@@ -3902,6 +3945,14 @@ public class Mexc extends MexcApi
                 //         ]
                 //     }
                 //
+                if (java.util.Objects.equals(method, "contractPrivatePostPlanorderCancel"))
+                {
+                    HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                    mapLiteral5.put("id", id);
+                    mapLiteral5.put("symbol", this.safeString(market, "symbol"));
+                    mapLiteral5.put("info", response);
+                    return this.safeOrder(mapLiteral5, market);  // planorder/cancel answers without data, failures are raised by handleErrors
+                }
                 data = this.safeValue(response, "data");
                 Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
                 String errorMsg = this.safeString(order, "errorMsg", "");
@@ -4266,29 +4317,29 @@ public class Mexc extends MexcApi
                 "cost", this.parseNumber(feeSum)
             );
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("clientOrderId", this.safeString(order, "clientOrderId"));
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("lastTradeTimestamp", null);
-        mapLiteral4.put("lastUpdateTimestamp", this.safeInteger(order, "updateTime"));
-        mapLiteral4.put("status", this.parseOrderStatus(this.safeString2(order, "status", "state")));
-        mapLiteral4.put("symbol", marketResolved.get("symbol"));
-        mapLiteral4.put("type", this.parseOrderType(typeRaw));
-        mapLiteral4.put("timeInForce", timeInForce);
-        mapLiteral4.put("side", this.parseOrderSide(this.safeString(order, "side")));
-        mapLiteral4.put("price", this.safeNumber(order, "price", (Object) null));
-        mapLiteral4.put("triggerPrice", this.safeNumber2(order, "stopPrice", "triggerPrice", (Object) null));
-        mapLiteral4.put("average", this.safeNumber(order, "dealAvgPrice", (Object) null));
-        mapLiteral4.put("amount", this.safeNumber2(order, "origQty", "vol", (Object) null));
-        mapLiteral4.put("cost", this.safeNumber(order, "cummulativeQuoteQty", (Object) null));
-        mapLiteral4.put("filled", this.safeNumber2(order, "executedQty", "dealVol", (Object) null));
-        mapLiteral4.put("remaining", null);
-        mapLiteral4.put("fee", fee);
-        mapLiteral4.put("trades", null);
-        mapLiteral4.put("info", order);
-        return this.safeOrder(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("lastTradeTimestamp", null);
+        mapLiteral6.put("lastUpdateTimestamp", this.safeInteger(order, "updateTime"));
+        mapLiteral6.put("status", this.parseOrderStatus(this.safeString2(order, "status", "state")));
+        mapLiteral6.put("symbol", marketResolved.get("symbol"));
+        mapLiteral6.put("type", this.parseOrderType(typeRaw));
+        mapLiteral6.put("timeInForce", timeInForce);
+        mapLiteral6.put("side", this.parseOrderSide(this.safeString(order, "side")));
+        mapLiteral6.put("price", this.safeNumber(order, "price", (Object) null));
+        mapLiteral6.put("triggerPrice", this.safeNumber2(order, "stopPrice", "triggerPrice", (Object) null));
+        mapLiteral6.put("average", this.safeNumber(order, "dealAvgPrice", (Object) null));
+        mapLiteral6.put("amount", this.safeNumber2(order, "origQty", "vol", (Object) null));
+        mapLiteral6.put("cost", this.safeNumber(order, "cummulativeQuoteQty", (Object) null));
+        mapLiteral6.put("filled", this.safeNumber2(order, "executedQty", "dealVol", (Object) null));
+        mapLiteral6.put("remaining", null);
+        mapLiteral6.put("fee", fee);
+        mapLiteral6.put("trades", null);
+        mapLiteral6.put("info", order);
+        return this.safeOrder(mapLiteral6, marketResolved);
     }
 
     public String parseOrderSide(String status)
@@ -4322,6 +4373,7 @@ public class Mexc extends MexcApi
             put( "CANCELED", "canceled" );
             put( "PARTIALLY_FILLED", "open" );
             put( "PARTIALLY_CANCELED", "canceled" );
+            put( "1", "open" );
             put( "2", "open" );
             put( "3", "closed" );
             put( "4", "canceled" );
@@ -5138,15 +5190,15 @@ public class Mexc extends MexcApi
             {
                 Object entry = (resultList == null || i < 0 || i >= resultList.size() ? null : resultList.get(i));
                 Long timestamp = this.safeInteger(entry, "settleTime");
-                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-                mapLiteral5.put("info", entry);
-                mapLiteral5.put("symbol", symbol);
-                mapLiteral5.put("code", null);
-                mapLiteral5.put("timestamp", timestamp);
-                mapLiteral5.put("datetime", this.iso8601(timestamp));
-                mapLiteral5.put("id", this.safeNumber(entry, "id", (Object) null));
-                mapLiteral5.put("amount", this.safeNumber(entry, "funding", (Object) null));
-                ((List<Object>)result).add(mapLiteral5);
+                HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+                mapLiteral7.put("info", entry);
+                mapLiteral7.put("symbol", symbol);
+                mapLiteral7.put("code", null);
+                mapLiteral7.put("timestamp", timestamp);
+                mapLiteral7.put("datetime", this.iso8601(timestamp));
+                mapLiteral7.put("id", this.safeNumber(entry, "id", (Object) null));
+                mapLiteral7.put("amount", this.safeNumber(entry, "funding", (Object) null));
+                ((List<Object>)result).add(mapLiteral7);
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
@@ -5516,7 +5568,8 @@ public class Mexc extends MexcApi
         //        coin: "USDT",
         //        network: "BNB Smart Chain(BEP20)",
         //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //        memo:  null
+        //        memo:  null,
+        //        netWork: "BSC"
         //    }
         //
         String address = this.safeString(depositAddress, "address");
@@ -5583,7 +5636,8 @@ public class Mexc extends MexcApi
             //            coin: "USDT",
             //            network: "BNB Smart Chain(BEP20)",
             //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-            //            memo:  null
+            //            memo:  null,
+            //            netWork: "BSC"
             //        }
             //        ...
             //    ]
@@ -5764,7 +5818,7 @@ public class Mexc extends MexcApi
             //         "memo": "xxyy1122",
             //         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
             //         "updateTime": "1664805621000",
-            //         "netWork: "TRX"
+            //         "netWork": "TRX"
             //     }
             // ]
             //
@@ -5832,7 +5886,7 @@ public class Mexc extends MexcApi
             //       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
             //       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
             //       "updateTime": "1664882799000",
-            //       "netWork: "MATIC"
+            //       "netWork": "MATIC"
             //     }
             // ]
             //
@@ -5859,7 +5913,7 @@ public class Mexc extends MexcApi
         //     "memo": "xxyy1122",
         //     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //     "updateTime": "1664805621000",
-        //     "netWork: "TRX"
+        //     "netWork": "TRX"
         // }
         //
         // fetchWithdrawals
@@ -5881,7 +5935,7 @@ public class Mexc extends MexcApi
         //     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "updateTime": "1664882799000",
-        //     "netWork: "MATIC"
+        //     "netWork": "MATIC"
         //   }
         //
         // withdraw

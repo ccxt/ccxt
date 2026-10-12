@@ -80,7 +80,7 @@ dependencies = [
     "aiosignal==1.4.0",
     "attrs==26.1.0",
     "frozenlist==1.8.0",
-    "multidict==6.7.1",
+    "multidict==6.9.1",
     "propcache==0.5.2",
     # "aiodns==4.0.4",
     # # transitive dependencies of aiodns

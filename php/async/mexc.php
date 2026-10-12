@@ -2100,7 +2100,11 @@ class mexc extends Exchange {
             //         ]
             //     }
             //
-            $tickers = $this->safe_list($response, 'data', array());
+            if ($isSingularMarket) {
+                $tickers = $this->safe_dict($response, 'data', array()); // when queried with a symbol, "data" holds a single ticker object, like in fetchTicker
+            } else {
+                $tickers = $this->safe_list($response, 'data', array());
+            }
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if ($isSingularMarket) {
@@ -2606,7 +2610,7 @@ class mexc extends Exchange {
          * @param {long} [$params->positionId] it is recommended to property_exists($this, fill) parameter when closing a position
          * @param {string} [$params->externalOid] external order ID
          * @param {int} [$params->positionMode] 1:hedge, 2:one-way, default => the user's current config
-         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2702,7 +2706,11 @@ class mexc extends Exchange {
             $request['triggerType'] = $this->safe_integer($paramsOmitted, 'triggerType', 1);
             $request['executeCycle'] = $this->safe_integer($paramsOmitted, 'executeCycle', 1);
             $request['trend'] = $this->safe_integer($paramsOmitted, 'trend', 1);
-            $request['orderType'] = $this->safe_integer($paramsOmitted, 'orderType', 1);
+            $planOrderType = $orderType;
+            if ($orderType === 6) {
+                $planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+            }
+            $request['orderType'] = $this->safe_integer($paramsOmitted, 'orderType', $planOrderType);
             $response = Async\await($this->contractPrivatePostPlanorderPlace($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->contractPrivatePostOrderCreate($this->extend($request, $paramsOmitted)));
@@ -2717,7 +2725,13 @@ class mexc extends Exchange {
         // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         //
         $data = $this->safe_dict($response, 'data');
-        return $this->safe_order(array( 'id' => $this->safe_string($data, 'orderId'), 'timestamp' => $this->safe_integer($data, 'ts') ), $market);
+        $id = null;
+        if ($data === null) {
+            $id = $this->safe_string($response, 'data'); // planorder/place answers with the bare trigger order id
+        } else {
+            $id = $this->safe_string($data, 'orderId');
+        }
+        return $this->safe_order(array( 'id' => $id, 'timestamp' => $this->safe_integer($data, 'ts') ), $market);
     }
 
     public function create_orders(array $orders, $params = array()): PromiseInterface {
@@ -3203,6 +3217,7 @@ class mexc extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->trigger] set to true for fetching $trigger orders
          * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -3278,12 +3293,21 @@ class mexc extends Exchange {
             //
             return $this->parse_orders($response, $market, $since, $limit);
         } else {
+            $trigger = $this->safe_bool_2($paramsMarketType, 'stop', 'trigger');
+            $swapParams = $this->omit($paramsMarketType, array( 'stop', 'trigger' ));
             if ($limit === null) {
                 $request['page_size'] = 100; // max
             }
-            $swapResponse = Async\await($this->contractPrivateGetOrderListOpenOrders($this->extend($request, $paramsMarketType)));
-            $data = $this->safe_list($swapResponse, 'data', array());
-            return $this->parse_orders($data, $market, $since, $limit, $paramsMarketType);
+            $data = array();
+            if ($trigger === true) {
+                $request['states'] = 1; // untriggered
+                $triggerResponse = Async\await($this->contractPrivateGetPlanorderListOrders($this->extend($request, $swapParams)));
+                $data = $this->safe_list($triggerResponse, 'data', array());
+            } else {
+                $swapResponse = Async\await($this->contractPrivateGetOrderListOpenOrders($this->extend($request, $swapParams)));
+                $data = $this->safe_list($swapResponse, 'data', array());
+            }
+            return $this->parse_orders($data, $market, $since, $limit, $swapParams);
         }
     }
 
@@ -3366,6 +3390,7 @@ class mexc extends Exchange {
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->trigger] set to true for canceling $trigger orders
          * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
@@ -3436,13 +3461,20 @@ class mexc extends Exchange {
             //     ]
             //
         } else {
-            // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
+            $trigger = $this->safe_bool_2($query, 'stop', 'trigger');
             $method = $this->safe_string($this->options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             $method = $this->safe_string($query, 'method', $method);
+            if ($trigger === true) {
+                $method = 'contractPrivatePostPlanorderCancel';
+            }
             if ($method === 'contractPrivatePostOrderCancel') {
                 $response = Async\await($this->contractPrivatePostOrderCancel(array( $id ))); // the request cannot be changed or extended. This is the only way to send.
             } elseif ($method === 'contractPrivatePostPlanorderCancel') {
-                $response = Async\await($this->contractPrivatePostPlanorderCancel(array( $id ))); // the request cannot be changed or extended. This is the only way to send.
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument for trigger orders');
+                }
+                $cancelRequest = array( 'symbol' => $this->safe_string($market, 'id'), 'orderId' => $id );
+                $response = Async\await($this->contractPrivatePostPlanorderCancel(array( $cancelRequest ))); // the request cannot be changed or extended. This is the only way to send.
             } else {
                 throw new NotSupported($this->id . ' cancelOrder() not support this method');
             }
@@ -3459,6 +3491,9 @@ class mexc extends Exchange {
             //         ]
             //     }
             //
+            if ($method === 'contractPrivatePostPlanorderCancel') {
+                return $this->safe_order(array( 'id' => $id, 'symbol' => $this->safe_string($market, 'symbol'), 'info' => $response ), $market); // planorder/cancel answers without data, failures are raised by handleErrors
+            }
             $data = $this->safe_value($response, 'data');
             $order = $this->safe_dict($data, 0);
             $errorMsg = $this->safe_string($order, 'errorMsg', '');
@@ -3852,7 +3887,7 @@ class mexc extends Exchange {
             'PARTIALLY_FILLED' => 'open',
             'PARTIALLY_CANCELED' => 'canceled',
             // contracts v1
-            // '1': 'uninformed', // TODO: wt?
+            '1' => 'open', // regular: uninformed, trigger: untriggered
             '2' => 'open',
             '3' => 'closed',
             '4' => 'canceled',
@@ -5014,7 +5049,8 @@ class mexc extends Exchange {
         //        coin: "USDT",
         //        network: "BNB Smart Chain(BEP20)",
         //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //        memo:  null
+        //        memo:  null,
+        //        netWork: "BSC"
         //    }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -5076,7 +5112,8 @@ class mexc extends Exchange {
         //            coin: "USDT",
         //            network: "BNB Smart Chain(BEP20)",
         //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //            memo:  null
+        //            memo:  null,
+        //            netWork: "BSC"
         //        }
         //        ...
         //    ]
@@ -5239,7 +5276,7 @@ class mexc extends Exchange {
         //         "memo": "xxyy1122",
         //         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //         "updateTime": "1664805621000",
-        //         "netWork: "TRX"
+        //         "netWork": "TRX"
         //     }
         // ]
         //
@@ -5306,7 +5343,7 @@ class mexc extends Exchange {
         //       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //       "updateTime": "1664882799000",
-        //       "netWork: "MATIC"
+        //       "netWork": "MATIC"
         //     }
         // ]
         //
@@ -5330,7 +5367,7 @@ class mexc extends Exchange {
         //     "memo": "xxyy1122",
         //     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //     "updateTime": "1664805621000",
-        //     "netWork: "TRX"
+        //     "netWork": "TRX"
         // }
         //
         // fetchWithdrawals
@@ -5352,7 +5389,7 @@ class mexc extends Exchange {
         //     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "updateTime": "1664882799000",
-        //     "netWork: "MATIC"
+        //     "netWork": "MATIC"
         //   }
         //
         // withdraw

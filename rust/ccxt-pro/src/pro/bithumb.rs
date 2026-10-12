@@ -643,8 +643,8 @@ impl BithumbCore {
         m.insert("close".to_string(), self.safe_string_k(ticker.clone(), "closePrice", &[]));
         m.insert("last".to_string(), Value::Null);
         m.insert("previousClose".to_string(), self.safe_string_k(ticker.clone(), "prevClosePrice", &[]));
-        m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "chgAmt", &[]));
-        m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "chgRate", &[]));
+        m.insert("change".to_string(), Value::Null);
+        m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "volume", &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "value", &[]));

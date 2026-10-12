@@ -2009,7 +2009,10 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            tickers = self.safe_list(response, 'data', [])
+            if isSingularMarket:
+                tickers = self.safe_dict(response, 'data', {})  # when queried with a symbol, "data" holds a single ticker object, like in fetchTicker
+            else:
+                tickers = self.safe_list(response, 'data', [])
         # when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if isSingularMarket:
             tickers = [tickers]
@@ -2530,7 +2533,10 @@ class mexc(Exchange, ImplicitAPI):
             request['triggerType'] = self.safe_integer(paramsOmitted, 'triggerType', 1)
             request['executeCycle'] = self.safe_integer(paramsOmitted, 'executeCycle', 1)
             request['trend'] = self.safe_integer(paramsOmitted, 'trend', 1)
-            request['orderType'] = self.safe_integer(paramsOmitted, 'orderType', 1)
+            planOrderType = orderType
+            if orderType == 6:
+                planOrderType = 5  # 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+            request['orderType'] = self.safe_integer(paramsOmitted, 'orderType', planOrderType)
             response = await self.contractPrivatePostPlanorderPlace(self.extend(request, paramsOmitted))
         else:
             response = await self.contractPrivatePostOrderCreate(self.extend(request, paramsOmitted))
@@ -2544,7 +2550,12 @@ class mexc(Exchange, ImplicitAPI):
         # {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         #
         data = self.safe_dict(response, 'data')
-        return self.safe_order({'id': self.safe_string(data, 'orderId'), 'timestamp': self.safe_integer(data, 'ts')}, market)
+        id = None
+        if data is None:
+            id = self.safe_string(response, 'data')  # planorder/place answers with the bare trigger order id
+        else:
+            id = self.safe_string(data, 'orderId')
+        return self.safe_order({'id': id, 'timestamp': self.safe_integer(data, 'ts')}, market)
 
     async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
@@ -2976,6 +2987,7 @@ class mexc(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: set to True for fetching trigger orders
         :param str [params.marginMode]: only 'isolated' is supported, for spot-margin trading
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -3047,11 +3059,19 @@ class mexc(Exchange, ImplicitAPI):
             #
             return self.parse_orders(response, market, since, limit)
         else:
+            trigger = self.safe_bool_2(paramsMarketType, 'stop', 'trigger')
+            swapParams = self.omit(paramsMarketType, ['stop', 'trigger'])
             if limit is None:
                 request['page_size'] = 100  # max
-            swapResponse = await self.contractPrivateGetOrderListOpenOrders(self.extend(request, paramsMarketType))
-            data = self.safe_list(swapResponse, 'data', [])
-            return self.parse_orders(data, market, since, limit, paramsMarketType)
+            data = []
+            if trigger is True:
+                request['states'] = 1  # untriggered
+                triggerResponse = await self.contractPrivateGetPlanorderListOrders(self.extend(request, swapParams))
+                data = self.safe_list(triggerResponse, 'data', [])
+            else:
+                swapResponse = await self.contractPrivateGetOrderListOpenOrders(self.extend(request, swapParams))
+                data = self.safe_list(swapResponse, 'data', [])
+            return self.parse_orders(data, market, since, limit, swapParams)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3110,6 +3130,7 @@ class mexc(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: set to True for canceling trigger orders
         :param str [params.marginMode]: only 'isolated' is supported for spot-margin trading
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -3175,14 +3196,19 @@ class mexc(Exchange, ImplicitAPI):
             #     ]
             #
         else:
-            # TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
+            trigger = self.safe_bool_2(query, 'stop', 'trigger')
             method = self.safe_string(self.options, 'cancelOrder', 'contractPrivatePostOrderCancel')  # contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = self.safe_string(query, 'method', method)
+            if trigger is True:
+                method = 'contractPrivatePostPlanorderCancel'
             response: dict
             if method == 'contractPrivatePostOrderCancel':
                 response = await self.contractPrivatePostOrderCancel([id])  # the request cannot be changed or extended. This is the only way to send.
             elif method == 'contractPrivatePostPlanorderCancel':
-                response = await self.contractPrivatePostPlanorderCancel([id])  # the request cannot be changed or extended. This is the only way to send.
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for trigger orders')
+                cancelRequest = {'symbol': self.safe_string(market, 'id'), 'orderId': id}
+                response = await self.contractPrivatePostPlanorderCancel([cancelRequest])  # the request cannot be changed or extended. This is the only way to send.
             else:
                 raise NotSupported(self.id + ' cancelOrder() not support self method')
             #
@@ -3198,6 +3224,8 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
+            if method == 'contractPrivatePostPlanorderCancel':
+                return self.safe_order({'id': id, 'symbol': self.safe_string(market, 'symbol'), 'info': response}, market)  # planorder/cancel answers without data, failures are raised by handleErrors
             data = self.safe_value(response, 'data')
             order = self.safe_dict(data, 0)
             errorMsg = self.safe_string(order, 'errorMsg', '')
@@ -3563,7 +3591,7 @@ class mexc(Exchange, ImplicitAPI):
             'PARTIALLY_FILLED': 'open',
             'PARTIALLY_CANCELED': 'canceled',
             # contracts v1
-            # '1': 'uninformed', // TODO: wt?
+            '1': 'open',  # regular: uninformed, trigger: untriggered
             '2': 'open',
             '3': 'closed',
             '4': 'canceled',
@@ -4595,7 +4623,8 @@ class mexc(Exchange, ImplicitAPI):
         #        coin: "USDT",
         #        network: "BNB Smart Chain(BEP20)",
         #        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        #        memo:  null
+        #        memo:  null,
+        #        netWork: "BSC"
         #    }
         #
         address = self.safe_string(depositAddress, 'address')
@@ -4648,7 +4677,8 @@ class mexc(Exchange, ImplicitAPI):
         #            coin: "USDT",
         #            network: "BNB Smart Chain(BEP20)",
         #            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        #            memo:  null
+        #            memo:  null,
+        #            netWork: "BSC"
         #        }
         #        ...
         #    ]
@@ -4783,7 +4813,7 @@ class mexc(Exchange, ImplicitAPI):
         #         "memo": "xxyy1122",
         #         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         #         "updateTime": "1664805621000",
-        #         "netWork: "TRX"
+        #         "netWork": "TRX"
         #     }
         # ]
         #
@@ -4840,7 +4870,7 @@ class mexc(Exchange, ImplicitAPI):
         #       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #       "updateTime": "1664882799000",
-        #       "netWork: "MATIC"
+        #       "netWork": "MATIC"
         #     }
         # ]
         #
@@ -4863,7 +4893,7 @@ class mexc(Exchange, ImplicitAPI):
         #     "memo": "xxyy1122",
         #     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         #     "updateTime": "1664805621000",
-        #     "netWork: "TRX"
+        #     "netWork": "TRX"
         # }
         #
         # fetchWithdrawals
@@ -4885,7 +4915,7 @@ class mexc(Exchange, ImplicitAPI):
         #     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #     "updateTime": "1664882799000",
-        #     "netWork: "MATIC"
+        #     "netWork": "MATIC"
         #   }
         #
         # withdraw

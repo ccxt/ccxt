@@ -3593,7 +3593,14 @@ impl OkxCore {
         m.insert("trailing".to_string(), Value::Bool(true));
         m.insert("iceberg".to_string(), Value::Bool(true));
         m.insert("leverage".to_string(), Value::Bool(false));
-        m.insert("selfTradePrevention".to_string(), Value::Bool(true));
+        m.insert("selfTradePrevention".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("EXPIRE_MAKER".to_string(), Value::Bool(true));
+        m.insert("EXPIRE_TAKER".to_string(), Value::Bool(true));
+        m.insert("EXPIRE_BOTH".to_string(), Value::Bool(true));
+        m.insert("NONE".to_string(), Value::Bool(false));
+    m
+}));
         m.insert("marketBuyByCost".to_string(), Value::Bool(true));
         m.insert("marketBuyRequiresPrice".to_string(), Value::Bool(false));
     m
@@ -5999,6 +6006,35 @@ impl OkxCore {
                 add_element_to_object(&mut request, &Value::Str("slTriggerPxType".into()), slTriggerPxType);
             }
         }
+        // unified stp
+        let mut selfTradePrevention: Value = Value::Null;
+        { let __destr_tmp = self.handle_option_and_params(orderParams.clone(), Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]); selfTradePrevention = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); orderParams = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        if (selfTradePrevention != Value::Null) {
+            let mut stpModes: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("EXPIRE_MAKER".to_string(), Value::Str("cancel_maker".into()));
+                    m.insert("EXPIRE_TAKER".to_string(), Value::Str("cancel_taker".into()));
+                    m.insert("EXPIRE_BOTH".to_string(), Value::Str("cancel_both".into()));
+                m
+            });
+            let mut selfTradePreventionUpper: Value = to_upper(&selfTradePrevention);
+            if (selfTradePreventionUpper.as_str() == Some("NONE")) {
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order".into()))));
+            }
+            let mut stpMode: Value = self.safe_string(stpModes, selfTradePreventionUpper, &[to_lower(&selfTradePrevention)]);
+            let mut algoOrderTypes: Value = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            let mut requestOrdType: Value = self.safe_string_k(request.clone(), "ordType", &[]);
+            if (requestOrdType != Value::Null) && (in_op(&algoOrderTypes, &requestOrdType)) {
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint".into()))));
+            }
+            if (stpMode.as_str() == Some("cancel_both")) && (requestOrdType.as_str() == Some("fok")) {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders".into()))));
+            }
+            add_element_to_object(&mut request, &Value::Str("stpMode".into()), stpMode);
+        }
         if (clientOrderId == Value::Null) {
             let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[]);
             if (brokerId != Value::Null) {
@@ -6044,6 +6080,7 @@ impl OkxCore {
  * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
  * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
  * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
+ * @param {string} [params.selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {

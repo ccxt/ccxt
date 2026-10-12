@@ -1413,7 +1413,12 @@ export default class okx extends Exchange {
                         'trailing': true,
                         'iceberg': true, // todo implement
                         'leverage': false,
-                        'selfTradePrevention': true, // todo implement
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': true,
+                            'EXPIRE_TAKER': true,
+                            'EXPIRE_BOTH': true,
+                            'NONE': false, // okx enforces stp at the account level, it cannot be turned off
+                        },
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
                     },
@@ -3498,6 +3503,30 @@ export default class okx extends Exchange {
                 request['slTriggerPxType'] = slTriggerPxType;
             }
         }
+        // unified stp
+        let selfTradePrevention: Str = undefined;
+        [ selfTradePrevention, orderParams ] = this.handleOptionAndParams (orderParams, 'createOrder', 'selfTradePrevention');
+        if (selfTradePrevention !== undefined) {
+            const stpModes: Dict = {
+                'EXPIRE_MAKER': 'cancel_maker',
+                'EXPIRE_TAKER': 'cancel_taker',
+                'EXPIRE_BOTH': 'cancel_both',
+            };
+            const selfTradePreventionUpper = selfTradePrevention.toUpperCase ();
+            if (selfTradePreventionUpper === 'NONE') {
+                throw new NotSupported (this.id + ' createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order');
+            }
+            const stpMode = this.safeString (stpModes, selfTradePreventionUpper, selfTradePrevention.toLowerCase ());
+            const algoOrderTypes = this.safeDict (this.options, 'algoOrderTypes', {});
+            const requestOrdType = this.safeString (request, 'ordType');
+            if ((requestOrdType !== undefined) && (requestOrdType in algoOrderTypes)) {
+                throw new NotSupported (this.id + ' createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint');
+            }
+            if ((stpMode === 'cancel_both') && (requestOrdType === 'fok')) {
+                throw new InvalidOrder (this.id + ' createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders');
+            }
+            request['stpMode'] = stpMode;
+        }
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId');
             if (brokerId !== undefined) {
@@ -3541,6 +3570,7 @@ export default class okx extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
      * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
      * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
+     * @param {string} [params.selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
