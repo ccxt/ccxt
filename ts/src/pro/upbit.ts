@@ -273,9 +273,22 @@ export default class upbit extends upbitRest {
         // and reinitialize it again with new bidasks
         const data: Dict[] = this.safeList (message, 'orderbook_units', []);
         const timestamp = this.safeInteger (message, 'timestamp');
-        const snapshot = this.parseOrderBook ({ 'bids': data, 'asks': data }, symbol, timestamp, 'bids', 'asks', 'bid_price', 'bid_size');
-        const asksSnapshot = this.parseOrderBook ({ 'bids': data, 'asks': data }, symbol, timestamp, 'bids', 'asks', 'ask_price', 'ask_size');
-        snapshot['asks'] = asksSnapshot['asks'];
+        const bidsSnapshot: any[] = [];
+        const asksSnapshot: any[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.safeDict (data, i);
+            const bidPrice = this.safeNumber (entry, 'bid_price');
+            const bidSize = this.safeNumber (entry, 'bid_size');
+            const askPrice = this.safeNumber (entry, 'ask_price');
+            const askSize = this.safeNumber (entry, 'ask_size');
+            if ((bidPrice !== undefined) && (bidSize !== undefined)) {
+                bidsSnapshot.push ([ bidPrice, bidSize ]);
+            }
+            if ((askPrice !== undefined) && (askSize !== undefined)) {
+                asksSnapshot.push ([ askPrice, askSize ]);
+            }
+        }
+        const snapshot = this.parseOrderBook ({ 'bids': bidsSnapshot, 'asks': asksSnapshot }, symbol, timestamp);
         orderbook.reset (snapshot);
         const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
