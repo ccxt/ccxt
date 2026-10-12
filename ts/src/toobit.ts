@@ -3036,10 +3036,9 @@ export default class toobit extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
-        let tag: Str = undefined;
-        [ tag, params ] = this.handleParamString (params, 'tag');
+        const [ tag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         this.checkAddress (address);
-        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() : param["network"] is required');
         }

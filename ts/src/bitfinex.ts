@@ -2863,16 +2863,15 @@ export default class bitfinex extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
-        let tag: Str = undefined;
-        [ tag, params ] = this.handleParamString (params, 'tag');
+        const [ tag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
         // if not provided explicitly we will try to match using the currency name
-        const network = this.safeString (params, 'network', code);
-        const paramsOmitted: Dict = this.omit (params, 'network');
+        const network = this.safeString (paramsWithdrawTag, 'network', code);
+        const paramsOmitted: Dict = this.omit (paramsWithdrawTag, 'network');
         const currencyNetworks = this.safeDict (currency, 'networks', {});
         const currencyNetwork = this.safeDict (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');

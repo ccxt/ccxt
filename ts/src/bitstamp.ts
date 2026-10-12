@@ -2655,15 +2655,13 @@ export default class bitstamp extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
-        let tag: Str = undefined;
-        [ tag, params ] = this.handleParamString (params, 'tag');
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        this.checkAddress (address, code, tag);
+        this.checkAddress (address, code, tagWithdrawTag);
         const request: Dict = {
             'amount': amount,
         };

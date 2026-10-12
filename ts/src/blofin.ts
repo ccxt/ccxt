@@ -2385,8 +2385,6 @@ export default class blofin extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
-        let tag: Str = undefined;
-        [ tag, params ] = this.handleParamString (params, 'tag');
         // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
         // - addrType is documented optional but the live venue rejects
         //   on-chain withdrawals without it: 152001 "Parameter addrType
@@ -2411,7 +2409,7 @@ export default class blofin extends Exchange {
         request['dest'] = dest;
         query = this.omit (query, 'dest');
         if (dest === 'onchain') {
-            this.checkAddress (address, code, tag);
+            this.checkAddress (address, code, tagValue);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to

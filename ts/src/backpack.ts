@@ -1543,8 +1543,7 @@ export default class backpack extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
-        let tag: Str = undefined;
-        [ tag, params ] = this.handleParamString (params, 'tag');
+        const [ tag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1557,7 +1556,7 @@ export default class backpack extends Exchange {
         if (tag !== undefined) {
             request['clientId'] = tag; // memo or tag
         }
-        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         const networkId = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
