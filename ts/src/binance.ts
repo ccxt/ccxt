@@ -7201,7 +7201,7 @@ export default class binance extends Exchange {
         if (method !== 'POST') {
             return params;
         }
-        if ((path === 'order') || (path === 'sor/order') || (path === 'um/order') || (path === 'cm/order') || (path === 'margin/order')) {
+        if ((path === 'order') || (path === 'sor/order') || (path === 'order/cancelReplace') || (path === 'um/order') || (path === 'cm/order') || (path === 'margin/order')) {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
             const clientOrderIdKey = (api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
             const clientOrderId = this.safeString2 (params, 'clientOrderId', 'newClientOrderId');

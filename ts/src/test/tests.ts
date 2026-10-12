@@ -3062,6 +3062,16 @@ class testMainClass {
             assert ((opocoWorkingClientOrderId !== undefined) && (opocoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco workingClientOrderId must inject the spot broker id');
             assert ((opocoPendingAboveClientOrderId !== undefined) && (opocoPendingAboveClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id');
             assert ((opocoPendingBelowClientOrderId !== undefined) && (opocoPendingBelowClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id');
+            // the cancel-replace endpoint creates a new order and takes newClientOrderId for it
+            let implicitCancelReplaceRequest: Dict = {};
+            try {
+                await callExchangeMethodDynamically (exchange, 'privatePostOrderCancelReplace', [ { 'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'LIMIT', 'quantity': '0.001', 'price': '20000', 'timeInForce': 'GTC', 'cancelReplaceMode': 'STOP_ON_FAILURE', 'cancelOrderId': '12345' } ]);
+            } catch (e) {
+                implicitCancelReplaceRequest = this.urlencodedToDict (exchange.last_request_body);
+            }
+            const cancelReplaceClientOrderId = exchange.safeString (implicitCancelReplaceRequest, 'newClientOrderId');
+            assert (cancelReplaceClientOrderId !== undefined, 'binance - implicit cancel-replace must inject newClientOrderId');
+            assert (cancelReplaceClientOrderId.startsWith (spotId) === true, 'binance - implicit cancel-replace newClientOrderId: ' + cancelReplaceClientOrderId + ' does not start with spotId' + spotId);
         }
         if (!isSync ()) {
             await close (exchange);
