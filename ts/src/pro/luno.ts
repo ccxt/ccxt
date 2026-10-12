@@ -228,47 +228,17 @@ export default class luno extends lunoRest {
             this.orderbooks[symbol] = this.indexedOrderBook ({});
         }
         const asks = this.safeList (message, 'asks');
+        if (asks === undefined) {
+            const inSequence = this.isOrderBookDeltaInSequence (client, message, symbol);
+            if (!inSequence) {
+                return;
+            }
+        }
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
             this.orderbooks[symbol] = this.indexedOrderBook (snapshot);
         } else {
             const ob = this.orderbooks[symbol];
-            const messageSequence = this.safeInteger (message, 'sequence');
-            const storedNonce = this.safeInteger (ob, 'nonce');
-            if (storedNonce === undefined) {
-                // no snapshot was received yet, deltas cannot be applied to an
-                // empty book: luno sends the snapshot as the first frame after
-                // the handshake, so discard the delta
-                return;
-            }
-            if (messageSequence !== undefined) {
-                if (messageSequence <= storedNonce) {
-                    // an old or replayed frame, discard it
-                    return;
-                }
-                const expectedSequence = storedNonce + 1;
-                if (messageSequence !== expectedSequence) {
-                    // a gap in the sequence means a lost message and the book is
-                    // unrecoverable on a live connection, because luno only sends
-                    // a snapshot as the first frame after a fresh handshake:
-                    // reset the client, which stops its keepalive and rejects
-                    // every pending future on this connection, clear the
-                    // subscription so that frames still arriving on the orphaned
-                    // connection are ignored by handleMessage, and drop both the
-                    // client and the cached book, so that the next watch call
-                    // dials a new connection and rebuilds from a fresh snapshot
-                    const error = new InvalidNonce (this.id + ' watchOrderBook() received an out-of-sequence update for ' + symbol + ', expected ' + expectedSequence.toString () + ' but got ' + messageSequence.toString ());
-                    delete this.orderbooks[symbol];
-                    const market = this.market (symbol);
-                    const subscriptionHash = '/stream/' + market['id'];
-                    if (subscriptionHash in client.subscriptions) {
-                        delete client.subscriptions[subscriptionHash];
-                    }
-                    client.reset (error);
-                    delete this.clients[client.url];
-                    return;
-                }
-            }
             this.handleBookDelta (ob, message);
             ob['timestamp'] = timestamp;
             ob['datetime'] = this.iso8601 (timestamp);
@@ -422,6 +392,60 @@ export default class luno extends lunoRest {
             }
         }
         return false;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name luno#isOrderBookDeltaInSequence
+     * @description checks the sequence number of an orderbook delta frame against the stored book, and on a gap tears the connection down so that the next watch call resubscribes and receives a fresh snapshot
+     * @param {object} client the websocket client the frame arrived on
+     * @param {object} message the delta frame
+     * @param {string} symbol unified market symbol of the book
+     * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
+     */
+    isOrderBookDeltaInSequence (client: Client, message: Dict, symbol: string): boolean {
+        const orderbook = this.orderbooks[symbol];
+        const storedNonce = this.safeInteger (orderbook, 'nonce');
+        if (storedNonce === undefined) {
+            // no snapshot was received yet, deltas cannot be applied to an
+            // empty book: luno sends the snapshot as the first frame after
+            // the handshake, so discard the delta
+            return false;
+        }
+        const messageSequence = this.safeInteger (message, 'sequence');
+        if (messageSequence === undefined) {
+            return true;
+        }
+        if (messageSequence <= storedNonce) {
+            // an old or replayed frame, discard it
+            return false;
+        }
+        const expectedSequence = storedNonce + 1;
+        if (messageSequence !== expectedSequence) {
+            // a gap in the sequence means a lost message and the book is
+            // unrecoverable on a live connection, because luno only sends
+            // a snapshot as the first frame after a fresh handshake:
+            // reset the client, which stops its keepalive and rejects
+            // every pending future on the connection, clear the
+            // subscription so that frames still arriving on the orphaned
+            // connection are ignored by handleMessage, and drop the
+            // client, so that the next watch call dials a new connection;
+            // the cached book is kept so references returned by earlier
+            // watchOrderBook calls stay live: clearing its nonce discards
+            // deltas until the fresh snapshot resets the book in place
+            const error = new InvalidNonce (this.id + ' watchOrderBook() received an out-of-sequence update for ' + symbol + ', expected ' + expectedSequence.toString () + ' but got ' + messageSequence.toString ());
+            orderbook['nonce'] = undefined;
+            const market = this.market (symbol);
+            const subscriptionHash = '/stream/' + market['id'];
+            if (subscriptionHash in client.subscriptions) {
+                delete client.subscriptions[subscriptionHash];
+            }
+            client.reset (error);
+            delete this.clients[client.url];
+            return false;
+        }
+        return true;
     }
 
     override handleMessage (client: Client, message: any) {
