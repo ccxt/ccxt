@@ -1215,7 +1215,8 @@ export default class binance extends binanceRest {
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
             const orderbook = this.orderbooks[symbol];
-            orderbook.reset ({});
+            orderbook['nonce'] = undefined;
+            orderbook.cache = [];
             const symbolSubscription = this.extend (subscription, { 'symbol': symbol });
             // fetch the snapshot in a separate async call
             this.spawn (this.fetchOrderBookSnapshot, client, message, symbolSubscription);

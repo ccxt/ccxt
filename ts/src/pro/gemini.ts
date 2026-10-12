@@ -432,8 +432,22 @@ export default class gemini extends geminiRest {
         }
         const orderbook = this.orderbooks[symbol];
         if (isInitial) {
-            // reset in place on snapshot (https://github.com/ccxt/ccxt/issues/29210)
-            orderbook.reset ({});
+            // the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+            const bidsSnapshot: any[] = [];
+            const asksSnapshot: any[] = [];
+            for (let i = 0; i < changes.length; i++) {
+                const delta = changes[i];
+                const bidAsk = [ this.safeNumber (delta, 1), this.safeNumber (delta, 2) ];
+                if (this.safeString (delta, 0) === 'buy') {
+                    bidsSnapshot.push (bidAsk);
+                } else {
+                    asksSnapshot.push (bidAsk);
+                }
+            }
+            const snapshot = this.parseOrderBook ({ 'bids': bidsSnapshot, 'asks': asksSnapshot }, symbol);
+            orderbook.reset (snapshot);
+            client.resolve (orderbook, messageHash);
+            return;
         }
         for (let i = 0; i < changes.length; i++) {
             const delta = changes[i];

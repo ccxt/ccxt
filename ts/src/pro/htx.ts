@@ -848,7 +848,7 @@ export default class htx extends htxRest {
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
             const orderbook = this.orderbooks[symbol];
-            orderbook.reset ({});
+            orderbook['nonce'] = undefined;
             orderbook.cache = [];
         }
         if (market['spot'] === true) {

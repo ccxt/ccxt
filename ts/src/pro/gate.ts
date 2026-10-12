@@ -551,7 +551,7 @@ export default class gate extends gateRest {
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
             const orderbook = this.orderbooks[symbol];
-            orderbook.reset ({});
+            orderbook['nonce'] = undefined;
             orderbook.cache = [];
         }
     }
@@ -709,7 +709,7 @@ export default class gate extends gateRest {
             this.handleBookDelta (storedOrderBook, delta);
         } else {
             delete client.subscriptions[messageHash];
-            storedOrderBook.reset ({});
+            storedOrderBook['nonce'] = undefined;
             storedOrderBook.cache = [];
             const checksum: Bool = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum === true) {

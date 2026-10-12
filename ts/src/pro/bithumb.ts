@@ -488,24 +488,7 @@ export default class bithumb extends bithumbRest {
             this.orderbooks[symbol] = this.orderBook ({}, obLimit);
         }
         const orderbook = this.orderbooks[symbol];
-        orderbook.reset ({});
-        orderbook['symbol'] = symbol;
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
         const units: Dict[] = this.safeList (message, 'orderbook_units', []);
-        for (let i = 0; i < units.length; i++) {
-            const entry = this.safeDict (units, i);
-            const bidPrice = this.safeNumber (entry, 'bid_price');
-            const bidSize = this.safeNumber (entry, 'bid_size');
-            const askPrice = this.safeNumber (entry, 'ask_price');
-            const askSize = this.safeNumber (entry, 'ask_size');
-            if ((bidPrice !== undefined) && (bidSize !== undefined)) {
-                bids.store (bidPrice, bidSize);
-            }
-            if ((askPrice !== undefined) && (askSize !== undefined)) {
-                asks.store (askPrice, askSize);
-            }
-        }
         const gen2TimestampStr = this.safeString2 (message, 'timestamp', 'datetime') as string;
         let timestamp: Int = undefined;
         if (gen2TimestampStr !== undefined) {
@@ -514,8 +497,10 @@ export default class bithumb extends bithumbRest {
         if (timestamp === undefined) {
             timestamp = this.milliseconds ();
         }
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
+        const snapshot = this.parseOrderBook ({ 'bids': units, 'asks': units }, symbol, timestamp, 'bids', 'asks', 'bid_price', 'bid_size');
+        const asksSnapshot = this.parseOrderBook ({ 'bids': units, 'asks': units }, symbol, timestamp, 'bids', 'asks', 'ask_price', 'ask_size');
+        snapshot['asks'] = asksSnapshot['asks'];
+        orderbook.reset (snapshot);
         const messageHash = 'orderbook' + ':' + symbol;
         client.resolve (orderbook, messageHash);
     }

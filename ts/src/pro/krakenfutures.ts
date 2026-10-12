@@ -1269,7 +1269,6 @@ export default class krakenfutures extends krakenfuturesRest {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        orderbook.reset ({});
         const bids = this.safeList (message, 'bids');
         if (bids === undefined) {
             return;
@@ -1278,23 +1277,8 @@ export default class krakenfutures extends krakenfuturesRest {
         if (asks === undefined) {
             return;
         }
-        for (let i = 0; i < bids.length; i++) {
-            const bid = this.safeDict (bids, i);
-            const price = this.safeNumber (bid, 'price');
-            const qty = this.safeNumber (bid, 'qty');
-            const bidsSide = orderbook['bids'];
-            bidsSide.store (price, qty);
-        }
-        for (let i = 0; i < asks.length; i++) {
-            const ask = this.safeDict (asks, i);
-            const price = this.safeNumber (ask, 'price');
-            const qty = this.safeNumber (ask, 'qty');
-            const asksSide = orderbook['asks'];
-            asksSide.store (price, qty);
-        }
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
-        orderbook['symbol'] = symbol;
+        const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'qty');
+        orderbook.reset (snapshot);
         client.resolve (orderbook, messageHash);
     }
 

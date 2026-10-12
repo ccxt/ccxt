@@ -502,7 +502,8 @@ export default class bittrade extends bittradeRest {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        orderbook.reset ({});
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
         // watch the snapshot in a separate async call
         this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }

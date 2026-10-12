@@ -951,12 +951,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
             const orderbook = this.orderbooks[symbol];
-            orderbook.reset ({});
-            this.handleDeltas (orderbook['asks'], this.safeList (message, 'asks', []));
-            this.handleDeltas (orderbook['bids'], this.safeList (message, 'bids', []));
-            orderbook['timestamp'] = undefined;
-            orderbook['datetime'] = undefined;
-            orderbook['symbol'] = symbol;
+            const snapshot = this.parseOrderBook (message, symbol);
+            orderbook.reset (snapshot);
             client.resolve (orderbook, messageHash);
         } else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];

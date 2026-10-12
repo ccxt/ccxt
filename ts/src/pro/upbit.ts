@@ -271,24 +271,12 @@ export default class upbit extends upbitRest {
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        orderbook.reset ({});
-        orderbook['symbol'] = symbol;
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
         const data: Dict[] = this.safeList (message, 'orderbook_units', []);
-        for (let i = 0; i < data.length; i++) {
-            const entry = this.safeDict (data, i);
-            const ask_price = this.safeFloat (entry, 'ask_price');
-            const ask_size = this.safeFloat (entry, 'ask_size');
-            const bid_price = this.safeFloat (entry, 'bid_price');
-            const bid_size = this.safeFloat (entry, 'bid_size');
-            asks.store (ask_price, ask_size);
-            bids.store (bid_price, bid_size);
-        }
         const timestamp = this.safeInteger (message, 'timestamp');
-        const datetime = this.iso8601 (timestamp);
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = datetime;
+        const snapshot = this.parseOrderBook ({ 'bids': data, 'asks': data }, symbol, timestamp, 'bids', 'asks', 'bid_price', 'bid_size');
+        const asksSnapshot = this.parseOrderBook ({ 'bids': data, 'asks': data }, symbol, timestamp, 'bids', 'asks', 'ask_price', 'ask_size');
+        snapshot['asks'] = asksSnapshot['asks'];
+        orderbook.reset (snapshot);
         const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }

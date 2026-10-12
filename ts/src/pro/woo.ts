@@ -277,7 +277,7 @@ export default class woo extends wooRest {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        orderbook.reset ({});
+        orderbook['nonce'] = undefined;
         orderbook.cache = [];
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }

@@ -907,7 +907,7 @@ export default class bitvavo extends bitvavoRest {
             this.options['orderBookLimits'] = limits;
         }
         const orderbook = this.orderbooks[symbol as string];
-        orderbook.reset ({});
+        orderbook['nonce'] = undefined;
         orderbook.cache = [];
     }
 

@@ -822,7 +822,7 @@ export default class mexc extends mexcRest {
             this.orderbooks[symbol] = this.orderBook ({});
         }
         const orderbook = this.orderbooks[symbol];
-        orderbook.reset ({});
+        orderbook['nonce'] = undefined;
         orderbook.cache = [];
     }
 

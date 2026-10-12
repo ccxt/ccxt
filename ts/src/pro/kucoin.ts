@@ -1875,7 +1875,8 @@ export default class kucoin extends kucoinRest {
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             } else {
                 const orderbook = this.orderbooks[symbol];
-                orderbook.reset ({});
+                orderbook['nonce'] = undefined;
+                orderbook.cache = [];
             }
             limits[symbol] = limit;
         }
