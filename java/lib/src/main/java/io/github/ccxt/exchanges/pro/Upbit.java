@@ -337,7 +337,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String type = this.safeString(message, "stream_type");
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(options, "limit", 15);
-        if (java.util.Objects.equals(type, "SNAPSHOT"))
+        if ((java.util.Objects.equals(type, "SNAPSHOT")) && !(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
@@ -346,25 +346,31 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        orderbook.reset(new HashMap<String, Object>() {{}});
-        orderbook.put("symbol", symbol);
-        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
-        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         List<Object> data = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
+        Long timestamp = this.safeInteger(message, "timestamp");
+        List<Object> bidsSnapshot = new ArrayList<Object>(Arrays.asList());
+        List<Object> asksSnapshot = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
-            Double ask_price = this.safeFloat(entry, "ask_price");
-            Double ask_size = this.safeFloat(entry, "ask_size");
-            Double bid_price = this.safeFloat(entry, "bid_price");
-            Double bid_size = this.safeFloat(entry, "bid_size");
-            asks.store(ask_price, ask_size);
-            bids.store(bid_price, bid_size);
+            Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
+            Double bidSize = this.safeNumber(entry, "bid_size", (Object) null);
+            Double askPrice = this.safeNumber(entry, "ask_price", (Object) null);
+            Double askSize = this.safeNumber(entry, "ask_size", (Object) null);
+            if ((!java.util.Objects.equals(bidPrice, null)) && (!java.util.Objects.equals(bidSize, null)))
+            {
+                ((List<Object>)bidsSnapshot).add(new ArrayList<Object>(Arrays.asList(bidPrice, bidSize)));
+            }
+            if ((!java.util.Objects.equals(askPrice, null)) && (!java.util.Objects.equals(askSize, null)))
+            {
+                ((List<Object>)asksSnapshot).add(new ArrayList<Object>(Arrays.asList(askPrice, askSize)));
+            }
         }
-        Long timestamp = this.safeInteger(message, "timestamp");
-        String datetime = this.iso8601(timestamp);
-        orderbook.put("timestamp", timestamp);
-        orderbook.put("datetime", datetime);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(new HashMap<String, Object>() {{
+            put( "bids", bidsSnapshot );
+            put( "asks", asksSnapshot );
+        }}, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        orderbook.reset(snapshot);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
