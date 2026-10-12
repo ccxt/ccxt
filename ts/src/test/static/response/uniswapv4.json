@@ -1,0 +1,1639 @@
+{
+    "exchange": "uniswapv4",
+    "options": {
+        "graphApiKey": "key"
+    },
+    "skipKeys": [],
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "top 25 pools by volume, with dedupe and a dynamic-fee pool",
+                "method": "fetchMarkets",
+                "input": [
+                    {
+                        "variables": {
+                            "first": 25
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "data": {
+                        "pools": [
+                            {
+                                "id": "0x8aa4e11cbdf30eedc92100f4c8a31ff748e201d44712cc8c90d189edaa8e4e47",
+                                "feeTier": "10",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "505806239209.6608106625964804049746",
+                                "token0": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x395f91b34aa34a477ce3bc6505639a821b286a62b1a164fc1887fa3a5ef713a5",
+                                "feeTier": "8",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "25006596704.4564582197493661152619",
+                                "token0": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x0fb0e40cec3bb23e13abc585958a93c796fbea56955e19a23727a716a0423239",
+                                "feeTier": "7",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "20797038430.95104212447465124051791",
+                                "token0": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x72331fcb696b0151904c03584b66dc8365bc63f8a144d89a773384e3a579ca73",
+                                "feeTier": "500",
+                                "tickSpacing": "10",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "14080425618.31059810851042582185417",
+                                "token0": {
+                                    "id": "0x0000000000000000000000000000000000000000",
+                                    "symbol": "ETH",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x21c67e77068de97969ba93d4aab21826d33ca12bb9f565d8496e8fda8a82ca27",
+                                "feeTier": "500",
+                                "tickSpacing": "10",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "12054033665.69677458954430078441165",
+                                "token0": {
+                                    "id": "0x0000000000000000000000000000000000000000",
+                                    "symbol": "ETH",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x3b1b1f2e775a6db1664f8e7d59ad568605ea2406312c11aef03146c0cf89d5b9",
+                                "feeTier": "5",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "9682737566.131713086897680339303661",
+                                "token0": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                },
+                                "token1": {
+                                    "id": "0xdc035d45d973e3ec169d2276ddab16f1e407384f",
+                                    "symbol": "USDS",
+                                    "decimals": "18"
+                                }
+                            },
+                            {
+                                "id": "0x63bb22f47c7ede6578a25c873e77eb782ec8e4c19778e36ce64d37877b5bd1e7",
+                                "feeTier": "45",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "9519234190.661768190463382691926429",
+                                "token0": {
+                                    "id": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+                                    "symbol": "USDe",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x00b9edc1583bf6ef09ff3a09f6c23ecb57fd7d0bb75625717ec81eed181e22d7",
+                                "feeTier": "100",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "5330761513.213240889929876938995643",
+                                "token0": {
+                                    "id": "0x0000000000000000000000000000000000000000",
+                                    "symbol": "ETH",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x599326d9cd5e1ea0893305c87d5ec3199e7f05e94d72159f35dea381479a615e",
+                                "feeTier": "500",
+                                "tickSpacing": "10",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "3903374018.328627132672429484420884",
+                                "token0": {
+                                    "id": "0x0000000000000000000000000000000000000000",
+                                    "symbol": "ETH",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                                    "symbol": "WBTC",
+                                    "decimals": "8"
+                                }
+                            },
+                            {
+                                "id": "0x2f92b371aef58f0abe9c10c06423de083405991f2839638914a1031e91d9a723",
+                                "feeTier": "100",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "3707784555.901941437114636024902371",
+                                "token0": {
+                                    "id": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                                    "symbol": "WBTC",
+                                    "decimals": "8"
+                                },
+                                "token1": {
+                                    "id": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf",
+                                    "symbol": "cbBTC",
+                                    "decimals": "8"
+                                }
+                            },
+                            {
+                                "id": "0xaae9da4a878406eb1de54efac30e239fd56d54fb8051e59f6fee529bc9609b3b",
+                                "feeTier": "63",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "2927049318.248782568399439654985829",
+                                "token0": {
+                                    "id": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+                                    "symbol": "USDe",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x3ea74c37fbb79dfcd6d760870f0f4e00cf4c3960b3259d0d43f211c0547394c1",
+                                "feeTier": "500",
+                                "tickSpacing": "10",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "2500988500.506166628999037109078977",
+                                "token0": {
+                                    "id": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                                    "symbol": "WBTC",
+                                    "decimals": "8"
+                                },
+                                "token1": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0xdce6394339af00981949f5f3baf27e3610c76326a700af57e4b3e3ae4977f78d",
+                                "feeTier": "3000",
+                                "tickSpacing": "60",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "2369831008.092675452171167354111303",
+                                "token0": {
+                                    "id": "0x0000000000000000000000000000000000000000",
+                                    "symbol": "ETH",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x4f88f7c99022eace4740c6898f59ce6a2e798a1e64ce54589720b7153eb224a7",
+                                "feeTier": "500",
+                                "tickSpacing": "10",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "2108667253.432360156467887351117384",
+                                "token0": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                },
+                                "token1": {
+                                    "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                                    "symbol": "WETH",
+                                    "decimals": "18"
+                                }
+                            },
+                            {
+                                "id": "0xe500210c7ea6bfd9f69dce044b09ef384ec2b34832f132baec3b418208e3a657",
+                                "feeTier": "8388608",
+                                "tickSpacing": "10",
+                                "hooks": "0x0000000aa232009084bd71a5797d089aa4edfad4",
+                                "volumeUSD": "2100716900.403754269205863500215244",
+                                "token0": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                },
+                                "token1": {
+                                    "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                                    "symbol": "WETH",
+                                    "decimals": "18"
+                                }
+                            },
+                            {
+                                "id": "0x2287a9620adcbf6250dc71be9ee9b2d3a1ec85a464fc6f5c06669e8d07b61bba",
+                                "feeTier": "100",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "1911200081.999012544970063879782372",
+                                "token0": {
+                                    "id": "0x0000000000000000000000000000000000000000",
+                                    "symbol": "ETH",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x20c3a15e34e5d88aeba004b0753af69e4f6bea80eae2263f7a92e919cd33cc56",
+                                "feeTier": "3000",
+                                "tickSpacing": "60",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "1806884623.323478318454774096888895",
+                                "token0": {
+                                    "id": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                                    "symbol": "WBTC",
+                                    "decimals": "8"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0xb20351bcf606dcc3525d2ed36760a86a5dec7423b77d41125bd4a416ba93448b",
+                                "feeTier": "80",
+                                "tickSpacing": "2",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "1744367697.785131684757457085501261",
+                                "token0": {
+                                    "id": "0x9d39a5de30e57443bff2a8307a4256c8797a3497",
+                                    "symbol": "sUSDe",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x2b21c65d9a7dc6926ee330a1c6e5a8037fd81774f3dc066536f800128e39f634",
+                                "feeTier": "8388608",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000113dcf4add69999fad8f20f2b63f979bfcc0",
+                                "volumeUSD": "1678529438.586014609350823649991932",
+                                "token0": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0xce93ea3914c62e0008348cf39fd006e130e7c503935fb01d154b971c8663f4fb",
+                                "feeTier": "10",
+                                "tickSpacing": "1",
+                                "hooks": "0x4440854b2d02c57a0dc5c58b7a884562d875c0c4",
+                                "volumeUSD": "1591272829.592646547493599905308836",
+                                "token0": {
+                                    "id": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+                                    "symbol": "USDe",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x72daf39b278fab80f18ad2adf73cc8b1ae63de1e508d36aa033285fff506f169",
+                                "feeTier": "0",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "1425735291.72564",
+                                "token0": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                },
+                                "token1": {
+                                    "id": "0xaca92e438df0b2401ff60da7e4337b687a2435da",
+                                    "symbol": "mUSD",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0xb2b5618903d74bbac9e9049a035c3827afc4487cde3b994a1568b050f4c8e2e4",
+                                "feeTier": "3000",
+                                "tickSpacing": "60",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "1375939647.670383203449490956008779",
+                                "token0": {
+                                    "id": "0x0000000000000000000000000000000000000000",
+                                    "symbol": "ETH",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0x514910771af9ca656af840dff83e8264ecf986ca",
+                                    "symbol": "LINK",
+                                    "decimals": "18"
+                                }
+                            },
+                            {
+                                "id": "0xf6e8088529094bc485561fa2a03e3d19c9a60f5d99a997e8fe16ab4ca2db277a",
+                                "feeTier": "68",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "1252955949.892813547850043756552393",
+                                "token0": {
+                                    "id": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                                    "symbol": "DAI",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x90078845bceb849b171873cfbc92db8540e9c803ff57d9d21b1215ec158e79b3",
+                                "feeTier": "8388608",
+                                "tickSpacing": "10",
+                                "hooks": "0x0000000aa232009084bd71a5797d089aa4edfad4",
+                                "volumeUSD": "1164623119.815100721344772940995852",
+                                "token0": {
+                                    "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                                    "symbol": "WETH",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": "6"
+                                }
+                            },
+                            {
+                                "id": "0x2480aea56b9b5d691713fc84efe6443eadd888773490ef12aed44655d96a63b1",
+                                "feeTier": "100",
+                                "tickSpacing": "1",
+                                "hooks": "0x0000000000000000000000000000000000000000",
+                                "volumeUSD": "1023300895.340697",
+                                "token0": {
+                                    "id": "0x98a878b1cd98131b271883b390f68d2c90674665",
+                                    "symbol": "apxUSD",
+                                    "decimals": "18"
+                                },
+                                "token1": {
+                                    "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                    "symbol": "USDC",
+                                    "decimals": "6"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0x8aa4e11cbdf30eedc92100f4c8a31ff748e201d44712cc8c90d189edaa8e4e47",
+                        "lowercaseId": null,
+                        "symbol": "USDC/USDT",
+                        "base": "USDC",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "quoteId": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 1e-05,
+                        "maker": 1e-05,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-06,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x8aa4e11cbdf30eedc92100f4c8a31ff748e201d44712cc8c90d189edaa8e4e47",
+                            "feeTier": "10",
+                            "tickSpacing": "1",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "505806239209.6608106625964804049746",
+                            "token0": {
+                                "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                "symbol": "USDC",
+                                "decimals": "6"
+                            },
+                            "token1": {
+                                "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                "symbol": "USDT",
+                                "decimals": "6"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x72331fcb696b0151904c03584b66dc8365bc63f8a144d89a773384e3a579ca73",
+                        "lowercaseId": null,
+                        "symbol": "ETH/USDT",
+                        "base": "ETH",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "0x0000000000000000000000000000000000000000",
+                        "quoteId": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.0005,
+                        "maker": 0.0005,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-18,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x72331fcb696b0151904c03584b66dc8365bc63f8a144d89a773384e3a579ca73",
+                            "feeTier": "500",
+                            "tickSpacing": "10",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "14080425618.31059810851042582185417",
+                            "token0": {
+                                "id": "0x0000000000000000000000000000000000000000",
+                                "symbol": "ETH",
+                                "decimals": "18"
+                            },
+                            "token1": {
+                                "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                "symbol": "USDT",
+                                "decimals": "6"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x21c67e77068de97969ba93d4aab21826d33ca12bb9f565d8496e8fda8a82ca27",
+                        "lowercaseId": null,
+                        "symbol": "ETH/USDC",
+                        "base": "ETH",
+                        "quote": "USDC",
+                        "settle": null,
+                        "baseId": "0x0000000000000000000000000000000000000000",
+                        "quoteId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.0005,
+                        "maker": 0.0005,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-18,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x21c67e77068de97969ba93d4aab21826d33ca12bb9f565d8496e8fda8a82ca27",
+                            "feeTier": "500",
+                            "tickSpacing": "10",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "12054033665.69677458954430078441165",
+                            "token0": {
+                                "id": "0x0000000000000000000000000000000000000000",
+                                "symbol": "ETH",
+                                "decimals": "18"
+                            },
+                            "token1": {
+                                "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                "symbol": "USDC",
+                                "decimals": "6"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x3b1b1f2e775a6db1664f8e7d59ad568605ea2406312c11aef03146c0cf89d5b9",
+                        "lowercaseId": null,
+                        "symbol": "USDT/USDS",
+                        "base": "USDT",
+                        "quote": "USDS",
+                        "settle": null,
+                        "baseId": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "quoteId": "0xdc035d45d973e3ec169d2276ddab16f1e407384f",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 5e-06,
+                        "maker": 5e-06,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-06,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x3b1b1f2e775a6db1664f8e7d59ad568605ea2406312c11aef03146c0cf89d5b9",
+                            "feeTier": "5",
+                            "tickSpacing": "1",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "9682737566.131713086897680339303661",
+                            "token0": {
+                                "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                "symbol": "USDT",
+                                "decimals": "6"
+                            },
+                            "token1": {
+                                "id": "0xdc035d45d973e3ec169d2276ddab16f1e407384f",
+                                "symbol": "USDS",
+                                "decimals": "18"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x63bb22f47c7ede6578a25c873e77eb782ec8e4c19778e36ce64d37877b5bd1e7",
+                        "lowercaseId": null,
+                        "symbol": "USDE/USDT",
+                        "base": "USDE",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+                        "quoteId": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 4.5e-05,
+                        "maker": 4.5e-05,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-18,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x63bb22f47c7ede6578a25c873e77eb782ec8e4c19778e36ce64d37877b5bd1e7",
+                            "feeTier": "45",
+                            "tickSpacing": "1",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "9519234190.661768190463382691926429",
+                            "token0": {
+                                "id": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+                                "symbol": "USDe",
+                                "decimals": "18"
+                            },
+                            "token1": {
+                                "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                "symbol": "USDT",
+                                "decimals": "6"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x599326d9cd5e1ea0893305c87d5ec3199e7f05e94d72159f35dea381479a615e",
+                        "lowercaseId": null,
+                        "symbol": "ETH/WBTC",
+                        "base": "ETH",
+                        "quote": "WBTC",
+                        "settle": null,
+                        "baseId": "0x0000000000000000000000000000000000000000",
+                        "quoteId": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.0005,
+                        "maker": 0.0005,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-18,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x599326d9cd5e1ea0893305c87d5ec3199e7f05e94d72159f35dea381479a615e",
+                            "feeTier": "500",
+                            "tickSpacing": "10",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "3903374018.328627132672429484420884",
+                            "token0": {
+                                "id": "0x0000000000000000000000000000000000000000",
+                                "symbol": "ETH",
+                                "decimals": "18"
+                            },
+                            "token1": {
+                                "id": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                                "symbol": "WBTC",
+                                "decimals": "8"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x2f92b371aef58f0abe9c10c06423de083405991f2839638914a1031e91d9a723",
+                        "lowercaseId": null,
+                        "symbol": "WBTC/CBBTC",
+                        "base": "WBTC",
+                        "quote": "CBBTC",
+                        "settle": null,
+                        "baseId": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                        "quoteId": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.0001,
+                        "maker": 0.0001,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-08,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x2f92b371aef58f0abe9c10c06423de083405991f2839638914a1031e91d9a723",
+                            "feeTier": "100",
+                            "tickSpacing": "1",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "3707784555.901941437114636024902371",
+                            "token0": {
+                                "id": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                                "symbol": "WBTC",
+                                "decimals": "8"
+                            },
+                            "token1": {
+                                "id": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf",
+                                "symbol": "cbBTC",
+                                "decimals": "8"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x3ea74c37fbb79dfcd6d760870f0f4e00cf4c3960b3259d0d43f211c0547394c1",
+                        "lowercaseId": null,
+                        "symbol": "WBTC/USDC",
+                        "base": "WBTC",
+                        "quote": "USDC",
+                        "settle": null,
+                        "baseId": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                        "quoteId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.0005,
+                        "maker": 0.0005,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-08,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x3ea74c37fbb79dfcd6d760870f0f4e00cf4c3960b3259d0d43f211c0547394c1",
+                            "feeTier": "500",
+                            "tickSpacing": "10",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "2500988500.506166628999037109078977",
+                            "token0": {
+                                "id": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                                "symbol": "WBTC",
+                                "decimals": "8"
+                            },
+                            "token1": {
+                                "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                "symbol": "USDC",
+                                "decimals": "6"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x4f88f7c99022eace4740c6898f59ce6a2e798a1e64ce54589720b7153eb224a7",
+                        "lowercaseId": null,
+                        "symbol": "USDC/WETH",
+                        "base": "USDC",
+                        "quote": "WETH",
+                        "settle": null,
+                        "baseId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "quoteId": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.0005,
+                        "maker": 0.0005,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-06,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x4f88f7c99022eace4740c6898f59ce6a2e798a1e64ce54589720b7153eb224a7",
+                            "feeTier": "500",
+                            "tickSpacing": "10",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "2108667253.432360156467887351117384",
+                            "token0": {
+                                "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                "symbol": "USDC",
+                                "decimals": "6"
+                            },
+                            "token1": {
+                                "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                                "symbol": "WETH",
+                                "decimals": "18"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x20c3a15e34e5d88aeba004b0753af69e4f6bea80eae2263f7a92e919cd33cc56",
+                        "lowercaseId": null,
+                        "symbol": "WBTC/USDT",
+                        "base": "WBTC",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                        "quoteId": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.003,
+                        "maker": 0.003,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-08,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x20c3a15e34e5d88aeba004b0753af69e4f6bea80eae2263f7a92e919cd33cc56",
+                            "feeTier": "3000",
+                            "tickSpacing": "60",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "1806884623.323478318454774096888895",
+                            "token0": {
+                                "id": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                                "symbol": "WBTC",
+                                "decimals": "8"
+                            },
+                            "token1": {
+                                "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                "symbol": "USDT",
+                                "decimals": "6"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0xb20351bcf606dcc3525d2ed36760a86a5dec7423b77d41125bd4a416ba93448b",
+                        "lowercaseId": null,
+                        "symbol": "SUSDE/USDT",
+                        "base": "SUSDE",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "0x9d39a5de30e57443bff2a8307a4256c8797a3497",
+                        "quoteId": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 8e-05,
+                        "maker": 8e-05,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-18,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0xb20351bcf606dcc3525d2ed36760a86a5dec7423b77d41125bd4a416ba93448b",
+                            "feeTier": "80",
+                            "tickSpacing": "2",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "1744367697.785131684757457085501261",
+                            "token0": {
+                                "id": "0x9d39a5de30e57443bff2a8307a4256c8797a3497",
+                                "symbol": "sUSDe",
+                                "decimals": "18"
+                            },
+                            "token1": {
+                                "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                "symbol": "USDT",
+                                "decimals": "6"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x72daf39b278fab80f18ad2adf73cc8b1ae63de1e508d36aa033285fff506f169",
+                        "lowercaseId": null,
+                        "symbol": "USDC/MUSD",
+                        "base": "USDC",
+                        "quote": "MUSD",
+                        "settle": null,
+                        "baseId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "quoteId": "0xaca92e438df0b2401ff60da7e4337b687a2435da",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0,
+                        "maker": 0,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-06,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x72daf39b278fab80f18ad2adf73cc8b1ae63de1e508d36aa033285fff506f169",
+                            "feeTier": "0",
+                            "tickSpacing": "1",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "1425735291.72564",
+                            "token0": {
+                                "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                "symbol": "USDC",
+                                "decimals": "6"
+                            },
+                            "token1": {
+                                "id": "0xaca92e438df0b2401ff60da7e4337b687a2435da",
+                                "symbol": "mUSD",
+                                "decimals": "6"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0xb2b5618903d74bbac9e9049a035c3827afc4487cde3b994a1568b050f4c8e2e4",
+                        "lowercaseId": null,
+                        "symbol": "ETH/LINK",
+                        "base": "ETH",
+                        "quote": "LINK",
+                        "settle": null,
+                        "baseId": "0x0000000000000000000000000000000000000000",
+                        "quoteId": "0x514910771af9ca656af840dff83e8264ecf986ca",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.003,
+                        "maker": 0.003,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-18,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0xb2b5618903d74bbac9e9049a035c3827afc4487cde3b994a1568b050f4c8e2e4",
+                            "feeTier": "3000",
+                            "tickSpacing": "60",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "1375939647.670383203449490956008779",
+                            "token0": {
+                                "id": "0x0000000000000000000000000000000000000000",
+                                "symbol": "ETH",
+                                "decimals": "18"
+                            },
+                            "token1": {
+                                "id": "0x514910771af9ca656af840dff83e8264ecf986ca",
+                                "symbol": "LINK",
+                                "decimals": "18"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0xf6e8088529094bc485561fa2a03e3d19c9a60f5d99a997e8fe16ab4ca2db277a",
+                        "lowercaseId": null,
+                        "symbol": "DAI/USDT",
+                        "base": "DAI",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                        "quoteId": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 6.8e-05,
+                        "maker": 6.8e-05,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-18,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0xf6e8088529094bc485561fa2a03e3d19c9a60f5d99a997e8fe16ab4ca2db277a",
+                            "feeTier": "68",
+                            "tickSpacing": "1",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "1252955949.892813547850043756552393",
+                            "token0": {
+                                "id": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                                "symbol": "DAI",
+                                "decimals": "18"
+                            },
+                            "token1": {
+                                "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                "symbol": "USDT",
+                                "decimals": "6"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x90078845bceb849b171873cfbc92db8540e9c803ff57d9d21b1215ec158e79b3",
+                        "lowercaseId": null,
+                        "symbol": "WETH/USDT",
+                        "base": "WETH",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                        "quoteId": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-18,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x90078845bceb849b171873cfbc92db8540e9c803ff57d9d21b1215ec158e79b3",
+                            "feeTier": "8388608",
+                            "tickSpacing": "10",
+                            "hooks": "0x0000000aa232009084bd71a5797d089aa4edfad4",
+                            "volumeUSD": "1164623119.815100721344772940995852",
+                            "token0": {
+                                "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                                "symbol": "WETH",
+                                "decimals": "18"
+                            },
+                            "token1": {
+                                "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                "symbol": "USDT",
+                                "decimals": "6"
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x2480aea56b9b5d691713fc84efe6443eadd888773490ef12aed44655d96a63b1",
+                        "lowercaseId": null,
+                        "symbol": "APXUSD/USDC",
+                        "base": "APXUSD",
+                        "quote": "USDC",
+                        "settle": null,
+                        "baseId": "0x98a878b1cd98131b271883b390f68d2c90674665",
+                        "quoteId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.0001,
+                        "maker": 0.0001,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-18,
+                            "price": null
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x2480aea56b9b5d691713fc84efe6443eadd888773490ef12aed44655d96a63b1",
+                            "feeTier": "100",
+                            "tickSpacing": "1",
+                            "hooks": "0x0000000000000000000000000000000000000000",
+                            "volumeUSD": "1023300895.340697",
+                            "token0": {
+                                "id": "0x98a878b1cd98131b271883b390f68d2c90674665",
+                                "symbol": "apxUSD",
+                                "decimals": "18"
+                            },
+                            "token1": {
+                                "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                "symbol": "USDC",
+                                "decimals": "6"
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
