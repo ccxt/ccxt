@@ -1211,10 +1211,12 @@ export default class binance extends binanceRest {
         // handle list of symbols
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            if (symbol in this.orderbooks) {
-                delete this.orderbooks[symbol];
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            const orderbook = this.orderbooks[symbol];
+            orderbook['nonce'] = undefined;
+            orderbook.cache = [];
             const symbolSubscription = this.extend (subscription, { 'symbol': symbol });
             // fetch the snapshot in a separate async call
             this.spawn (this.fetchOrderBookSnapshot, client, message, symbolSubscription);
