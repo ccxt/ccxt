@@ -1946,7 +1946,8 @@ public class Tokocrypto extends TokocryptoApi
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         String cost = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("cummulativeQuoteQty", "cumQuote", "executedQuoteQty", "cumBase")));
         String id = this.safeString(order, "orderId");
-        String type = this.parseOrderType(this.safeStringLower(order, "type"));
+        String rawOrderType = this.safeStringLower(order, "type");
+        String type = this.parseOrderType(rawOrderType);
         String side = this.safeStringLower(order, "side");
         if (java.util.Objects.equals(side, "0"))
         {
@@ -1957,13 +1958,12 @@ public class Tokocrypto extends TokocryptoApi
         }
         List<Object> fills = (List<Object>) this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String clientOrderId = this.safeString2(order, "clientOrderId", "clientId");
-        String timeInForce = this.safeString(order, "timeInForce");
-        if (java.util.Objects.equals(timeInForce, "GTX"))
-        {
-            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-            timeInForce = "PO";
-        }
-        Boolean postOnly = (java.util.Objects.equals(type, "limit_maker")) || (java.util.Objects.equals(timeInForce, "PO"));
+        String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
+        // the order type carries the post only flag on its own, 7 on the open/v1
+        // payloads and LIMIT_MAKER on the binance shaped ones, so the time force
+        // echoed back by the venue is only the third witness
+        Boolean isLimitMaker = (java.util.Objects.equals(rawOrderType, "7")) || (java.util.Objects.equals(rawOrderType, "limit_maker"));
+        Boolean postOnly = Boolean.TRUE.equals(isLimitMaker) || (java.util.Objects.equals(timeInForce, "PO"));
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", order);
         mapLiteral3.put("id", id);
@@ -1990,6 +1990,18 @@ public class Tokocrypto extends TokocryptoApi
         return this.safeOrder(mapLiteral3, market);
     }
 
+    public String parseTimeInForce(String timeInForce)
+    {
+        Map<String, Object> timeInForces = new HashMap<String, Object>() {{
+            put( "1", "GTC" );
+            put( "2", "IOC" );
+            put( "3", "FOK" );
+            put( "4", "PO" );
+            put( "GTX", "PO" );
+        }};
+        return this.safeString(timeInForces, timeInForce, timeInForce);
+    }
+
     public String parseOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
@@ -2014,6 +2026,8 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
      * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.timeInForce] 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest
+     * @param {bool} [params.postOnly] true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2027,16 +2041,29 @@ public class Tokocrypto extends TokocryptoApi
             }
             Map<String, Object> market = this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
-            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+            String requestedType = ((String)type).toUpperCase();
+            String requestedTimeInForce = this.safeStringUpper(parameters, "timeInForce");
+            Boolean isMarketOrder = (java.util.Objects.equals(requestedType, "MARKET"));
+            // GTX is the venue spelling of post only, on top of the two unified spellings
+            Boolean isPostOnlyTimeInForce = (java.util.Objects.equals(requestedTimeInForce, "GTX"));
+            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, parameters);
+            Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
+            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
             // only supported for spot/margin api
             String typeResolved = (((java.util.Objects.equals(postOnly, true)))) ? "LIMIT_MAKER" : type;
+            // post only is expressed by the order type here, not by a time force
+            String timeInForceResolved = (((java.util.Objects.equals(postOnly, true)))) ? null : requestedTimeInForce;
             String initialUppercaseType = typeResolved.toUpperCase();
             String uppercaseType = initialUppercaseType;
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
             List<Object> triggerKeys = (((!java.util.Objects.equals(triggerPrice, null)))) ? new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")) : new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> paramsRequest = this.omit(parameters, this.arrayConcat(new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId")), triggerKeys));
+            Map<String, Object> paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "timeInForce")), triggerKeys));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
+                if (java.util.Objects.equals(postOnly, true))
+                {
+                    throw new InvalidOrder((this.id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type")) ;
+                }
                 if (java.util.Objects.equals(uppercaseType, "MARKET"))
                 {
                     uppercaseType = "STOP_LOSS";
@@ -2094,6 +2121,7 @@ public class Tokocrypto extends TokocryptoApi
             Boolean priceIsRequired = false;
             Boolean triggerPriceIsRequired = false;
             Boolean quantityIsRequired = false;
+            Boolean timeInForceIsRequired = false;
             //
             // spot/margin
             //
@@ -2144,6 +2172,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 priceIsRequired = true;
                 quantityIsRequired = true;
+                timeInForceIsRequired = true;
             } else if ((java.util.Objects.equals(uppercaseType, "STOP_LOSS")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT")))
             {
                 triggerPriceIsRequired = true;
@@ -2157,6 +2186,7 @@ public class Tokocrypto extends TokocryptoApi
                 quantityIsRequired = true;
                 triggerPriceIsRequired = true;
                 priceIsRequired = true;
+                timeInForceIsRequired = true;
             } else if (java.util.Objects.equals(uppercaseType, "LIMIT_MAKER"))
             {
                 priceIsRequired = true;
@@ -2182,6 +2212,34 @@ public class Tokocrypto extends TokocryptoApi
                 } else
                 {
                     request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
+                }
+            }
+            if (Boolean.TRUE.equals(timeInForceIsRequired))
+            {
+                String defaultTimeInForce = this.safeString(this.options, "defaultTimeInForce", "GTC");
+                String timeInForce = (((java.util.Objects.equals(timeInForceResolved, null)))) ? defaultTimeInForce : timeInForceResolved;
+                // the endpoint takes the time force as a numeric code, post only is
+                // placed as a LIMIT_MAKER order rather than as the GTX code
+                Map<String, Object> timeInForceCodes = new HashMap<String, Object>() {{
+                    put( "GTC", "1" );
+                    put( "IOC", "2" );
+                    put( "FOK", "3" );
+                }};
+                String timeInForceCode = this.safeString(timeInForceCodes, timeInForce);
+                if (java.util.Objects.equals(timeInForceCode, null))
+                {
+                    throw new InvalidOrder((((this.id + " createOrder() does not support the ") + timeInForce) + " timeInForce, use GTC, IOC, FOK or the postOnly parameter")) ;
+                }
+                request.put("timeInForce", timeInForceCode);
+            } else if (!java.util.Objects.equals(timeInForceResolved, null))
+            {
+                // a market order fills immediately or not at all, so an IOC asks for
+                // what the order type already does and gets accepted as a no-op, while
+                // any other time force would be a promise the venue cannot keep here
+                Boolean isRedundantImmediateOrCancel = Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(timeInForceResolved, "IOC"));
+                if (!Boolean.TRUE.equals(isRedundantImmediateOrCancel))
+                {
+                    throw new NotSupported((((((this.id + " createOrder() does not support the ") + timeInForceResolved) + " timeInForce for ") + type) + " orders")) ;
                 }
             }
             Map<String, Object> response = (this.privatePostOpenV1Orders(this.extend(request, paramsRequest))).join();

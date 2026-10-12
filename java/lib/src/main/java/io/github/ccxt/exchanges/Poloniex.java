@@ -62,13 +62,13 @@ public class Poloniex extends PoloniexApi
                 put( "addMargin", true );
                 put( "cancelAllOrders", true );
                 put( "cancelOrder", true );
-                put( "cancelOrders", null );
+                put( "cancelOrders", true );
                 put( "createDepositAddress", true );
                 put( "createMarketBuyOrderWithCost", true );
                 put( "createMarketOrderWithCost", false );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
-                put( "createOrders", null );
+                put( "createOrders", true );
                 put( "createStopOrder", true );
                 put( "createTriggerOrder", true );
                 put( "editOrder", true );
@@ -2122,6 +2122,12 @@ public class Poloniex extends PoloniexApi
         String amount = this.safeString2(order, "quantity", "sz");
         String filled = this.safeString2(order, "filledQuantity", "execQty");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
+        Long errorCode = this.safeInteger(order, "code");
+        if ((java.util.Objects.equals(status, null)) && (!java.util.Objects.equals(errorCode, null)) && ((errorCode == null || errorCode != 200)))
+        {
+            // the batch endpoints report per-element failures with an error code instead of throwing
+            status = "rejected";
+        }
         String side = this.safeStringLower(order, "side");
         String rawType = this.safeString(order, "type");
         String type = this.parseOrderType(rawType);
@@ -2477,6 +2483,114 @@ public class Poloniex extends PoloniexApi
 
     }
 
+    /**
+     * @method
+     * @name poloniex#createOrders
+     * @description create a list of trade orders, all orders must be of the same market type, either spot or swap
+     * @see https://api-docs.poloniex.com/spot/api/private/order#create-multiple-orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/place-multiple-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, applied to every order
+     * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', defaults to 'cross'
+     * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> createOrders(Object orders, Object parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
+            List<Object> ordersMarkets = new ArrayList<Object>(Arrays.asList());
+            Map<String, Object> market = null;
+            Boolean isContract = false;
+            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            {
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                String symbol = (String) ((Map<String, Object>)rawOrder).get("symbol");
+                Map<String, Object> marketInner = this.market(symbol);
+                if (java.util.Objects.equals(market, null))
+                {
+                    market = marketInner;
+                    isContract = (java.util.Objects.equals(marketInner.get("contract"), true));
+                } else if (!java.util.Objects.equals(market.get("type"), marketInner.get("type")))
+                {
+                    throw new BadRequest((this.id + " createOrders() requires all orders to be of the same market type, either spot or swap")) ;
+                }
+                Object type = ((Map<String, Object>)rawOrder).get("type");
+                Object side = ((Map<String, Object>)rawOrder).get("side");
+                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+                Double price = this.safeNumber(rawOrder, "price", (Object) null);
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                // the request body is a bare list, so there is no room for common params - extend each order with them instead
+                Object extendedParams = this.extend(orderParams, parameters);
+                Object request = new HashMap<String, Object>() {{
+                    put( "symbol", marketInner.get("id") );
+                    put( "side", Poloniex.this.safeStringUpper(rawOrder, "side") );
+                }};
+                var requestextendedParamsVariable = this.orderRequest(symbol, (String) (type), (String) (side), amount, (Map<String, Object>) (request), price, Helpers.toMapArg(extendedParams));
+                request = ((List<Object>) requestextendedParamsVariable).get(0);
+                extendedParams = ((List<Object>) requestextendedParamsVariable).get(1);
+                Map<String, Object> merged = this.extend(request, extendedParams);
+                if (Boolean.TRUE.equals(isContract))
+                {
+                    // unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
+                    if (!(merged.containsKey("mgnMode")))
+                    {
+                        merged.put("mgnMode", "CROSS");
+                    }
+                    if (!(merged.containsKey("posSide")))
+                    {
+                        merged.put("posSide", "BOTH");
+                    }
+                }
+                ((List<Object>)ordersRequests).add(merged);
+                ((List<Object>)ordersMarkets).add(marketInner);
+            }
+            List<Object> data = new ArrayList<Object>(Arrays.asList());
+            if (Boolean.TRUE.equals(isContract))
+            {
+                Map<String, Object> response = (this.swapPrivatePostV3TradeOrders(ordersRequests)).join();
+                //
+                //     {
+                //         "code": 200,
+                //         "msg": "Success",
+                //         "data": [
+                //             { "code": 200, "msg": "", "ordId": "613155521545418752", "clOrdId": "batch-swap-1" },
+                //             { "code": 10014, "msg": "Order price exceeds the limit", "ordId": "", "clOrdId": "" }
+                //         ]
+                //     }
+                //
+                data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            } else
+            {
+                //
+                //     [
+                //         { "id": "613155521545418752", "clientOrderId": "batch-1" },
+                //         { "code": 21709, "message": "Low available balance", "clientOrderId": "" }
+                //     ]
+                //
+                data = (this.privatePostOrdersBatch(ordersRequests)).join();
+            }
+            // the responses are positional, aligned with the submitted orders
+            List<Object> results = new ArrayList<Object>(Arrays.asList());
+            Integer dataLength = ((List<?>)data).size();
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
+            {
+                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Object entryMarket = (ordersMarkets == null || i < 0 || i >= ordersMarkets.size() ? null : ordersMarkets.get(i));
+                ((List<Object>)results).add(this.parseOrder(entry, Helpers.toMapArg(entryMarket)));
+            }
+            return results;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
+    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    {
+        return this.createOrders(orders, (Object) (parameters));
+    }
+
     public Object orderRequest(Object symbol, String type, String side, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
     {
         Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice", (Object) null);
@@ -2730,6 +2844,88 @@ public class Poloniex extends PoloniexApi
             return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
+    }
+
+    /**
+     * @method
+     * @name poloniex#cancelOrders
+     * @description cancel multiple orders
+     * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-multiple-orders-by-ids
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-multiple-orders
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, required for swap markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Object parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = null;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                market = this.market(symbol);
+            }
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrders", market, Helpers.toMapArg(parameters), (String) null);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            List<Object> clientOrderIds = (List<Object>) this.safeList2(paramsMarketType, "clientOrderIds", "clOrdIds", (Object) null);
+            Map<String, Object> query = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clOrdIds")));
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Integer idsLength = ((List<?>)ids).size();
+            if (!java.util.Objects.equals(marketType, "spot"))
+            {
+                if (java.util.Objects.equals(market, null))
+                {
+                    throw new ArgumentsRequired((((this.id + " cancelOrders() requires a symbol argument for ") + marketType) + " markets")) ;
+                }
+                request.put("symbol", market.get("id"));
+                // the api ignores clOrdIds when ordIds are also present
+                if ((idsLength != null && idsLength > 0))
+                {
+                    request.put("ordIds", ids);
+                } else if (!java.util.Objects.equals(clientOrderIds, null))
+                {
+                    request.put("clOrdIds", clientOrderIds);
+                }
+                Map<String, Object> responseRaw = (this.swapPrivateDeleteV3TradeBatchOrders(this.extend(request, query))).join();
+                //
+                //     {
+                //         "code": 200,
+                //         "msg": "Success",
+                //         "data": [
+                //             { "code": "200", "msg": "Success", "ordId": "613143856837730304", "clOrdId": "" },
+                //             { "code": "11008", "msg": "ORDER_NOT_EXISTS", "ordId": "613144005890699264", "clOrdId": "" }
+                //         ]
+                //     }
+                //
+                List<Object> data = (List<Object>) this.safeList(responseRaw, "data", new ArrayList<Object>(Arrays.asList()));
+                return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            }
+            if ((idsLength != null && idsLength > 0))
+            {
+                request.put("orderIds", ids);
+            }
+            if (!java.util.Objects.equals(clientOrderIds, null))
+            {
+                request.put("clientOrderIds", clientOrderIds);
+            }
+            List<Object> response = (this.privateDeleteOrdersCancelByIds(this.extend(request, query))).join();
+            //
+            //     [
+            //         { "orderId": "123456789", "clientOrderId": "", "state": "PENDING_CANCEL", "code": 200, "message": "" }
+            //     ]
+            //
+            return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    {
+        return this.cancelOrders(ids, symbol, (Object) (parameters));
     }
 
     /**
@@ -4370,6 +4566,7 @@ public class Poloniex extends PoloniexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        Boolean isArray = (parameters instanceof List);
         Object url = ((Map<String, Object>)this.urls.get("api")).get("spot");
         if (this.inArray(java.util.Objects.requireNonNullElse(api, "public"), new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
         {
@@ -4400,7 +4597,7 @@ public class Poloniex extends PoloniexApi
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
             {
                 auth = (auth + "\n"); // eslint-disable-line quotes
-                if (((Map<String, Object>)query).size() > 0)
+                if (Boolean.TRUE.equals(isArray) || ((Map<String, Object>)query).size() > 0)
                 {
                     bodyJson = this.json(query);
                     auth = (auth + (("requestBody=" + bodyJson) + "&"));

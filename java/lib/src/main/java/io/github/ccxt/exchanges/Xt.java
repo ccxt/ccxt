@@ -2537,6 +2537,22 @@ public class Xt extends XtApi
         {
             percentage = Precise.stringMul(percentage, "100");
         }
+        String baseVolume = this.safeString2(ticker, "a", "q");
+        String quoteVolume = this.safeString(ticker, "v");
+        String contractSize = this.safeString(marketResolved, "contractSize");
+        if ((java.util.Objects.equals(marketResolved.get("contract"), true)) && (!java.util.Objects.equals(contractSize, null)))
+        {
+            // 'a' counts contracts, 'v' is in the settle currency
+            String contractVolume = Precise.stringMul(baseVolume, contractSize);
+            if (java.util.Objects.equals(marketResolved.get("inverse"), true))
+            {
+                baseVolume = quoteVolume;
+                quoteVolume = contractVolume;
+            } else
+            {
+                baseVolume = contractVolume;
+            }
+        }
         HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
         mapLiteral9.put("symbol", symbol);
         mapLiteral9.put("timestamp", timestamp);
@@ -2555,8 +2571,8 @@ public class Xt extends XtApi
         mapLiteral9.put("change", this.safeNumber(ticker, "cv", (Object) null));
         mapLiteral9.put("percentage", this.parseNumber(percentage));
         mapLiteral9.put("average", null);
-        mapLiteral9.put("baseVolume", this.safeNumber2(ticker, "a", "q", (Object) null));
-        mapLiteral9.put("quoteVolume", this.safeNumber(ticker, "v", (Object) null));
+        mapLiteral9.put("baseVolume", baseVolume);
+        mapLiteral9.put("quoteVolume", quoteVolume);
         mapLiteral9.put("info", ticker);
         return this.safeTicker(mapLiteral9, marketResolved);
     }
@@ -7126,24 +7142,6 @@ public class Xt extends XtApi
             return h2kMap2;
         }
     }
-    //                     "positionSide": "LONG",
-    //                     "origQty": "1",
-    //                     "triggerPriceType": "LATEST_PRICE",
-    //                     "triggerProfitPrice": null,
-    //                     "triggerStopPrice": "20000",
-    //                     "entryPrice": "0",
-    //                     "positionSize": "0",
-    //                     "isolatedMargin": "0",
-    //                     "executedQty": "0",
-    //                     "avgPrice": null,
-    //                     "positionType": "ISOLATED",
-    //                     "state": "USER_REVOCATION",
-    //                     "createdTime": 1681273420039
-    //                 },
-    //             ]
-    //         }
-    //     }
-    //
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         return this.sign(path, api, method, parameters, headers, (Object) (body));

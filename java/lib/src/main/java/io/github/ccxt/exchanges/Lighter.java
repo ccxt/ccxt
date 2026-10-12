@@ -3974,9 +3974,14 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            if ((Helpers.isLessThan(timeout, 300000)) || (Helpers.isGreaterThan(timeout, 1296000000)))
+            if (java.util.Objects.equals(timeout, null))
             {
-                throw new BadRequest((this.id + " timeout should be between 5 minutes and 15 days.")) ;
+                throw new ArgumentsRequired((this.id + " cancelAllOrdersAfter() requires a timeout argument")) ;
+            }
+            Boolean isScheduled = (!Helpers.isEqual(timeout, 0));
+            if (Boolean.TRUE.equals(isScheduled) && ((Helpers.isLessThan(timeout, 300000)) || (Helpers.isGreaterThan(timeout, 1296000000))))
+            {
+                throw new BadRequest((this.id + " timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.")) ;
             }
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
@@ -3988,13 +3993,19 @@ public class Lighter extends LighterApi
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
             Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsAccountIndex))).join();
-            Map<String, Object> signRaw = new HashMap<String, Object>() {{
-                put( "time_in_force", 1 );
-                put( "time", Helpers.add(Lighter.this.milliseconds(), timeout) );
-                put( "nonce", nonce );
-                put( "api_key_index", apiKeyIndex );
-                put( "account_index", accountIndex );
-            }};
+            Integer timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            Object cancelTime = 0;
+            if (Boolean.TRUE.equals(isScheduled))
+            {
+                timeInForce = 1;
+                cancelTime = this.sum(this.milliseconds(), timeout);
+            }
+            Map<String, Object> signRaw = new HashMap<String, Object>();
+            signRaw.put("time_in_force", timeInForce);
+            signRaw.put("time", cancelTime);
+            signRaw.put("nonce", nonce);
+            signRaw.put("api_key_index", apiKeyIndex);
+            signRaw.put("account_index", accountIndex);
             var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, paramsAccountIndex));
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);

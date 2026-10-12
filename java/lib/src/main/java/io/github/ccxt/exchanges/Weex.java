@@ -5338,6 +5338,10 @@ public class Weex extends WeexApi
         if (!java.util.Objects.equals(message, null))
         {
             String errorCode = this.safeString(response, "code");
+            if (java.util.Objects.equals(errorCode, "200") && java.util.Objects.equals(message.toLowerCase(), "success"))
+            {
+                return null;
+            }
             String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);

@@ -1162,7 +1162,7 @@ public class Bingx extends BingxApi
                         put( "trailing", true );
                         put( "leverage", false );
                         put( "marketBuyRequiresPrice", false );
-                        put( "marketBuyByCost", false );
+                        put( "marketBuyByCost", true );
                         put( "selfTradePrevention", false );
                         put( "iceberg", false );
                     }} );
@@ -1215,6 +1215,9 @@ public class Bingx extends BingxApi
                 put( "defaultForInverse", new HashMap<String, Object>() {{
                     put( "extends", "defaultForLinear" );
                     put( "sandbox", false );
+                    put( "createOrder", new HashMap<String, Object>() {{
+                        put( "marketBuyByCost", false );
+                    }} );
                     put( "createOrders", null );
                     put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 1000 );
@@ -3626,7 +3629,7 @@ public class Bingx extends BingxApi
     /**
      * @method
      * @name bingx#createMarketOrderWithCost
-     * @description create a spot market order by providing the symbol, side and cost
+     * @description create a spot or linear swap market order by providing the symbol, side and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
@@ -3647,7 +3650,7 @@ public class Bingx extends BingxApi
     /**
      * @method
      * @name bingx#createMarketBuyOrderWithCost
-     * @description create a spot market buy order by providing the symbol and cost
+     * @description create a spot or linear swap market buy order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3667,7 +3670,7 @@ public class Bingx extends BingxApi
     /**
      * @method
      * @name bingx#createMarketSellOrderWithCost
-     * @description create a spot market sell order by providing the symbol and cost
+     * @description create a spot or linear swap market sell order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3709,9 +3712,9 @@ public class Bingx extends BingxApi
          */
         Map<String, Object> market = this.market(symbol);
         String cost = this.safeString2(parameters, "cost", "quoteOrderQty");
-        if ((java.util.Objects.equals(market.get("contract"), true)) && (!java.util.Objects.equals(cost, null)))
+        if ((java.util.Objects.equals(market.get("inverse"), true)) && (!java.util.Objects.equals(cost, null)))
         {
-            throw new NotSupported((this.id + " createOrder() with cost or quoteOrderQty is not supported for contract markets")) ;
+            throw new NotSupported((this.id + " createOrder() with cost or quoteOrderQty is not supported for inverse swap markets")) ;
         }
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("createOrder", market, parameters, (String) null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
@@ -3918,6 +3921,10 @@ public class Bingx extends BingxApi
             }
             if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
             {
+                if (!java.util.Objects.equals(cost, null))
+                {
+                    throw new InvalidOrder((this.id + " createOrder() does not support attached stopLoss or takeProfit on a market order by cost")) ;
+                }
                 String stringifiedAmount = this.numberToString(amount);
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
@@ -3986,7 +3993,10 @@ public class Bingx extends BingxApi
             }
             request.put("positionSide", positionSide);
             Boolean closePosition = (Boolean) this.safeBool(paramsOrder, "closePosition", false);
-            if (!java.util.Objects.equals(closePosition, true))
+            if (!java.util.Objects.equals(cost, null))
+            {
+                request.put("quoteOrderQty", this.parseToNumeric(this.costToPrecision(symbol, cost)));
+            } else if (!java.util.Objects.equals(closePosition, true))
             {
                 Object amountReq = amount;
                 if (!java.util.Objects.equals(market.get("inverse"), true))
@@ -3996,7 +4006,7 @@ public class Bingx extends BingxApi
                 request.put("quantity", amountReq); // precision not available for inverse contracts
             }
         }
-        Object paramsRequest = this.omit(paramsOrder, new ArrayList<Object>(Arrays.asList("hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId")));
+        Object paramsRequest = this.omit(paramsOrder, new ArrayList<Object>(Arrays.asList("hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId", "cost", "quoteOrderQty")));
         return (Map<String, Object>) (this.extend(request, paramsRequest));
     }
 
@@ -4021,8 +4031,8 @@ public class Bingx extends BingxApi
      * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
      * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
      * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
-     * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
-     * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
+     * @param {float} [params.cost] *spot and linear swap only* the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.quoteOrderQty] *spot and linear swap only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
      * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
