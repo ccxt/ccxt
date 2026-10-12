@@ -548,11 +548,13 @@ public partial class bittrade : ccxt.bittrade
             return;
         }
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        orderbook["nonce"] = null;
+        (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
         // watch the snapshot in a separate async call
         this.spawn(this.watchOrderBookSnapshot, new object[] { client, message, subscription});
     }

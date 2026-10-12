@@ -1338,11 +1338,13 @@ public partial class binance : ccxt.binance
         for (int i = 0; i < symbols.Count; i++)
         {
             object symbol = symbols[i];
-            if ((this.orderbooks != null && symbol is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0)))
+            if (!((this.orderbooks != null && symbol is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0))))
             {
-                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+            orderbook["nonce"] = null;
+            (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
             Dictionary<string, object> symbolSubscription = this.extend(subscription, new Dictionary<string, object>() {
                 { "symbol", symbol },
             });

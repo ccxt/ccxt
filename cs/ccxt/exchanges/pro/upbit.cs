@@ -285,7 +285,7 @@ public partial class upbit : ccxt.upbit
         string? type = this.safeString(message, "stream_type");
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(options, "limit", 15);
-        if (type == "SNAPSHOT")
+        if ((type == "SNAPSHOT") && !((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
@@ -294,25 +294,31 @@ public partial class upbit : ccxt.upbit
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
-        orderbook["symbol"] = symbol;
-        ccxt.pro.IBids bids = orderbook?.bids;
-        ccxt.pro.IAsks asks = orderbook?.asks;
         List<object> data = this.safeList(message, "orderbook_units", new List<object>() {});
+        Int64? timestamp = this.safeInteger(message, "timestamp");
+        List<object> bidsSnapshot = new List<object>() {};
+        List<object> asksSnapshot = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> entry = this.safeDict(data, i);
-            double? ask_price = this.safeFloat(entry, "ask_price");
-            double? ask_size = this.safeFloat(entry, "ask_size");
-            double? bid_price = this.safeFloat(entry, "bid_price");
-            double? bid_size = this.safeFloat(entry, "bid_size");
-            (asks as IOrderBookSide).store(ask_price, ask_size);
-            (bids as IOrderBookSide).store(bid_price, bid_size);
+            double? bidPrice = this.safeNumber(entry, "bid_price");
+            double? bidSize = this.safeNumber(entry, "bid_size");
+            double? askPrice = this.safeNumber(entry, "ask_price");
+            double? askSize = this.safeNumber(entry, "ask_size");
+            if (((bidPrice != null)) && ((bidSize != null)))
+            {
+                bidsSnapshot.Add(new List<object>() {bidPrice, bidSize});
+            }
+            if (((askPrice != null)) && ((askSize != null)))
+            {
+                asksSnapshot.Add(new List<object>() {askPrice, askSize});
+            }
         }
-        Int64? timestamp = this.safeInteger(message, "timestamp");
-        string? datetime = this.iso8601(timestamp);
-        orderbook["timestamp"] = timestamp;
-        orderbook["datetime"] = datetime;
+        ccxt.OrderBook snapshot = this.parseOrderBook(new Dictionary<string, object>() {
+            { "bids", bidsSnapshot },
+            { "asks", asksSnapshot },
+        }, symbol, timestamp);
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         string messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }

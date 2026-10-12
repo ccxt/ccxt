@@ -1378,7 +1378,10 @@ public partial class krakenfutures : ccxt.krakenfutures
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(subscription, "limit");
         Int64? timestamp = this.safeInteger(message, "timestamp");
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+        }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         List<object> bids = this.safeList(message, "bids");
         if ((bids == null))
@@ -1390,25 +1393,8 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             return;
         }
-        for (int i = 0; i < bids.Count; i++)
-        {
-            IDictionary<string, object> bid = this.safeDict(bids, i);
-            double? price = this.safeNumber(bid, "price");
-            double? qty = this.safeNumber(bid, "qty");
-            ccxt.pro.IBids bidsSide = orderbook?.bids;
-            (bidsSide as IOrderBookSide).store(price, qty);
-        }
-        for (int i = 0; i < asks.Count; i++)
-        {
-            IDictionary<string, object> ask = this.safeDict(asks, i);
-            double? price = this.safeNumber(ask, "price");
-            double? qty = this.safeNumber(ask, "qty");
-            ccxt.pro.IAsks asksSide = orderbook?.asks;
-            (asksSide as IOrderBookSide).store(price, qty);
-        }
-        orderbook["timestamp"] = timestamp;
-        orderbook["datetime"] = this.iso8601(timestamp);
-        orderbook["symbol"] = symbol;
+        ccxt.OrderBook snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "qty");
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         client.resolve(orderbook, messageHash);
     }
 

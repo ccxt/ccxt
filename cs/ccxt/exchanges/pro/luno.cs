@@ -247,7 +247,8 @@ public partial class luno : ccxt.luno
         if ((asks != null))
         {
             Dictionary<string, object> snapshot = this.customParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id");
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(snapshot);
+            ccxt.pro.IOrderBook existing = this.getOrderBook(this.orderbooks, symbol);
+            existing.reset(snapshot);
         } else
         {
             ccxt.pro.IOrderBook ob = this.getOrderBook(this.orderbooks, symbol);

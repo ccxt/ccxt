@@ -974,11 +974,17 @@ public partial class bitvavo : ccxt.bitvavo
     {
         string? symbol = this.safeString(subscription, "symbol");
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
+        IDictionary<string, object> limits = this.safeDict(this.options, "orderBookLimits", new Dictionary<string, object>() {});
+        Int64? storedLimit = this.safeInteger(limits, symbol);
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))) || ((storedLimit != limit)))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            limits[(string)symbol] = limit;
+            this.options["orderBookLimits"] = limits;
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        orderbook["nonce"] = null;
+        (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
     }
 
     public virtual void handleOrderBookSubscriptions(WebSocketClient client, Dictionary<string, object> message, IList<object> marketIds)
