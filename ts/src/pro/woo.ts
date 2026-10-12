@@ -277,7 +277,9 @@ export default class woo extends wooRest {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        orderbook['nonce'] = undefined;
+        // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        orderbook['timestamp'] = undefined;
+        orderbook['datetime'] = undefined;
         orderbook.cache = [];
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
