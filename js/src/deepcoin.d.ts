@@ -19,7 +19,7 @@ export default class deepcoin extends Exchange {
     fetchMarkets(params?: Dict): Promise<Market[]>;
     fetchMarketsByType(type: Str, params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    setMarkets(markets: any, currencies?: undefined): import("./base/types.js").Dictionary<Market>;
+    setMarkets(markets: any, currencies?: any): import("./base/types.js").Dictionary<Market>;
     /**
      * @method
      * @name deepcoin#fetchOrderBook

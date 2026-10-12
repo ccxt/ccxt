@@ -38,6 +38,45 @@ add margin
 
 ---
 
+<a name="approveBuilderCode" id="approvebuildercode"></a>
+
+## approveBuilderCode
+approves a builder code to charge fees on the account orders
+
+**Kind**: instance   
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| builderCode | <code>string</code> | Yes | the builder code to approve |
+| maxFeeRate | <code>string</code> | Yes | the maximum fee rate the builder may charge |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [pacifica](/exchanges/pacifica.md#approvebuildercode)
+
+---
+
+<a name="bindAgentWallet" id="bindagentwallet"></a>
+
+## bindAgentWallet
+binds an agent wallet that can sign trading actions for the account
+
+**Kind**: instance   
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| agentAddress | <code>string</code> | Yes | the public key of the agent wallet |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [pacifica](/exchanges/pacifica.md#bindagentwallet)
+
+---
+
 <a name="borrowCrossMargin" id="borrowcrossmargin"></a>
 
 ## borrowCrossMargin
@@ -767,6 +806,24 @@ creates a sub-account under the main account
 
 ---
 
+<a name="createApiKey" id="createapikey"></a>
+
+## createApiKey
+creates an api key for the account
+
+**Kind**: instance   
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [pacifica](/exchanges/pacifica.md#createapikey)
+
+---
+
 <a name="createContractOrder" id="createcontractorder"></a>
 
 ## createContractOrder
@@ -1331,7 +1388,7 @@ helper method for creating spot orders in batch
 <a name="createSubAccount" id="createsubaccount"></a>
 
 ## createSubAccount
-creates a sub-account under the main account
+creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a response object
@@ -1865,6 +1922,24 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 
 ---
 
+<a name="fetchApiKeys" id="fetchapikeys"></a>
+
+## fetchApiKeys
+fetches the api keys of the account
+
+**Kind**: instance   
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [pacifica](/exchanges/pacifica.md#fetchapikeys)
+
+---
+
 <a name="fetchBalance" id="fetchbalance"></a>
 
 ## fetchBalance
@@ -2106,6 +2181,24 @@ retrieves a history of a currencies borrow interest rate at specific time slots
 * [bybit](/exchanges/bybit.md#fetchborrowratehistory)
 * [kucoin](/exchanges/kucoin.md#fetchborrowratehistory)
 * [okx](/exchanges/okx.md#fetchborrowratehistory)
+
+---
+
+<a name="fetchBuilderApprovals" id="fetchbuilderapprovals"></a>
+
+## fetchBuilderApprovals
+fetches the builder codes approved by an account
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;object&gt;</code> - the api result
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| address | <code>string</code> | the account address |
+
+##### Supported exchanges
+* [pacifica](/exchanges/pacifica.md#fetchbuilderapprovals)
 
 ---
 
@@ -7058,6 +7151,44 @@ Instead of trading to increase the address based rate limits, this action allows
 
 ##### Supported exchanges
 * [hyperliquid](/exchanges/hyperliquid.md#reserverequestweight)
+
+---
+
+<a name="revokeApiKey" id="revokeapikey"></a>
+
+## revokeApiKey
+revokes an api key of the account
+
+**Kind**: instance   
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| apiKey | <code>string</code> | Yes | the api key to revoke |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [pacifica](/exchanges/pacifica.md#revokeapikey)
+
+---
+
+<a name="revokeBuilderCode" id="revokebuildercode"></a>
+
+## revokeBuilderCode
+revokes a previously approved builder code
+
+**Kind**: instance   
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| builderCode | <code>string</code> | Yes | the builder code to revoke |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [pacifica](/exchanges/pacifica.md#revokebuildercode)
 
 ---
 
