@@ -331,8 +331,9 @@ class bithumb(ccxt.async_support.bithumb):
             'close': self.safe_string(ticker, 'closePrice'),
             'last': None,
             'previousClose': self.safe_string(ticker, 'prevClosePrice'),
-            'change': self.safe_string(ticker, 'chgAmt'),
-            'percentage': self.safe_string(ticker, 'chgRate'),
+            # safeTicker derives change/percentage from open, matching the REST parser
+            'change': None,
+            'percentage': None,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': self.safe_string(ticker, 'value'),

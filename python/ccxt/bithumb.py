@@ -907,16 +907,7 @@ class bithumb(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'market')
         symbol = self.safe_symbol(marketId, market)
         close = self.safe_string_2(ticker, 'closing_price', 'trade_price')
-        change = self.safe_string_2(ticker, 'signed_change_price', 'change_price')
-        percentage = self.safe_string_2(ticker, 'signed_change_rate', 'change_rate')
         open = self.safe_string(ticker, 'opening_price')
-        nonZeroOpen = self.omit_zero(open)
-        if (marketId is not None) and (nonZeroOpen is not None) and (close is not None):
-            computedChange = Precise.string_sub(close, open)
-            # Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (change is not None) and Precise.string_eq(change, '0') and not Precise.string_eq(computedChange, '0'):
-                change = computedChange
-                percentage = None
         high = self.safe_string_2(ticker, 'max_price', 'high_price')
         low = self.safe_string_2(ticker, 'min_price', 'low_price')
         # Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -939,8 +930,9 @@ class bithumb(Exchange, ImplicitAPI):
             'close': close,
             'last': close,
             'previousClose': self.safe_string(ticker, 'prev_closing_price'),
-            'change': change,
-            'percentage': percentage,
+            # Exchange changes use previousClose; safeTicker derives unified changes from open.
+            'change': None,
+            'percentage': None,
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
             'quoteVolume': self.safe_string_2(ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),

@@ -1438,7 +1438,12 @@ class okx(Exchange, ImplicitAPI):
                         'trailing': True,
                         'iceberg': True,  # todo implement
                         'leverage': False,
-                        'selfTradePrevention': True,  # todo implement
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': True,
+                            'EXPIRE_TAKER': True,
+                            'EXPIRE_BOTH': True,
+                            'NONE': False,  # okx enforces stp at the account level, it cannot be turned off
+                        },
                         'marketBuyByCost': True,
                         'marketBuyRequiresPrice': False,
                     },
@@ -3357,6 +3362,26 @@ class okx(Exchange, ImplicitAPI):
                     slOrdPxReq = self.price_to_precision(symbol, slOrdPx)
                 request['slOrdPx'] = slOrdPxReq
                 request['slTriggerPxType'] = slTriggerPxType
+        # unified stp
+        selfTradePrevention = None
+        selfTradePrevention, orderParams = self.handle_option_and_params(orderParams, 'createOrder', 'selfTradePrevention')
+        if selfTradePrevention is not None:
+            stpModes = {
+                'EXPIRE_MAKER': 'cancel_maker',
+                'EXPIRE_TAKER': 'cancel_taker',
+                'EXPIRE_BOTH': 'cancel_both',
+            }
+            selfTradePreventionUpper = selfTradePrevention.upper()
+            if selfTradePreventionUpper == 'NONE':
+                raise NotSupported(self.id + ' createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order')
+            stpMode = self.safe_string(stpModes, selfTradePreventionUpper, selfTradePrevention.lower())
+            algoOrderTypes = self.safe_dict(self.options, 'algoOrderTypes', {})
+            requestOrdType = self.safe_string(request, 'ordType')
+            if (requestOrdType is not None) and (requestOrdType in algoOrderTypes):
+                raise NotSupported(self.id + ' createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint')
+            if (stpMode == 'cancel_both') and (requestOrdType == 'fok'):
+                raise InvalidOrder(self.id + ' createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders')
+            request['stpMode'] = stpMode
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
             if brokerId is not None:
@@ -3398,6 +3423,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated', the default is 'cross'
         :param bool [params.rpiTakerAccess]: True to a taker order match against retail price improvement liquidity
         :param bool [params.rpiPxRound]: *rpi orders only* True to round the price outward to the nearest placeable non-crossing level
+        :param str [params.selfTradePrevention]: set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
