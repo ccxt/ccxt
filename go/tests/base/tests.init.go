@@ -56,6 +56,7 @@ func baseTestsInitBody(ch chan ccxt.AsyncResult[any]) any {
 	TestFilterBy()
 	TestHandleMethods()
 	TestHandleHttpStatusCode()
+	TestCheckAddress()
 	TestNetworkMethods()
 	TestRemoveRepeatedElementsFromArray()
 	TestIsEmpty()

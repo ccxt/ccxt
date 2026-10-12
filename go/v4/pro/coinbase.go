@@ -1364,13 +1364,17 @@ func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		var typeVar *string = this.SafeString(event, "type")
 		if typeVar != nil && *typeVar == "snapshot" {
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
-		}
-		// unknown bug, can't reproduce, but sometimes orderbook is undefined
-		if !(ccxt.InOp(this.Orderbooks, symbol)) && ccxt.IsEqual(ccxt.GetValue(this.Orderbooks, symbol), nil) {
+			if !(ccxt.InOp(this.Orderbooks, symbol)) {
+				ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+			}
+		} else if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			continue
 		}
 		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		if typeVar != nil && *typeVar == "snapshot" {
+			// reset in place so consumers holding a reference keep receiving updates after a resync
+			orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
+		}
 		this.HandleOrderBookHelper(orderbook, updates)
 		ccxt.AddElementToObject(orderbook, "timestamp", this.Parse8601(datetime))
 		ccxt.AddElementToObject(orderbook, "datetime", datetime)

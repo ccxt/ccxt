@@ -3095,8 +3095,8 @@ func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optional
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitvavo) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -3107,14 +3107,12 @@ func (this *Bitvavo) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Bitvavo) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
 	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -3206,11 +3204,11 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 		currency = this.Currency(code)
 	}
 
-	listEp3011 := <-this.PrivateGetWithdrawalHistory(request)
-	if listEp3011.Err != nil {
-		panic(listEp3011.Err)
+	listEp3009 := <-this.PrivateGetWithdrawalHistory(request)
+	if listEp3009.Err != nil {
+		panic(listEp3009.Err)
 	}
-	var response []any = listEp3011.Value
+	var response []any = listEp3009.Value
 
 	//
 	//     [
@@ -3295,11 +3293,11 @@ func (this *Bitvavo) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 		currency = this.Currency(code)
 	}
 
-	listEp3093 := <-this.PrivateGetDepositHistory(request)
-	if listEp3093.Err != nil {
-		panic(listEp3093.Err)
+	listEp3091 := <-this.PrivateGetDepositHistory(request)
+	if listEp3091.Err != nil {
+		panic(listEp3091.Err)
 	}
-	var response []any = listEp3093.Value
+	var response []any = listEp3091.Value
 
 	//
 	//     [
@@ -3491,11 +3489,11 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
 		}
 	}
 
-	listEp3282 := <-this.PublicGetAssets(params)
-	if listEp3282.Err != nil {
-		panic(listEp3282.Err)
+	listEp3280 := <-this.PublicGetAssets(params)
+	if listEp3280.Err != nil {
+		panic(listEp3280.Err)
 	}
-	var response []any = listEp3282.Value
+	var response []any = listEp3280.Value
 
 	//
 	//   [
@@ -4265,8 +4263,8 @@ func (this *Bitvavo) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, 
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitvavo) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -4276,7 +4274,7 @@ func (this *Bitvavo) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

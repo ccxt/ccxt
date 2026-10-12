@@ -7497,8 +7497,8 @@ func (this *Mexc) ParseTransferStatus(status *string) *string {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {object} [params.internal] false by default, set to true for an "internal transfer"
  * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
@@ -7511,9 +7511,7 @@ func (this *Mexc) WithdrawAsync(code string, amount any, address any, optionalAr
 func (this *Mexc) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -7523,8 +7521,8 @@ func (this *Mexc) withdrawBody(ch chan EndpointResult[map[string]any], code stri
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var tagResolvedparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagResolved *string = SafeStringPtr(tagResolvedparamsWithdrawTagVariable[0])
+	var tagResolvedparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagResolved := GetValue(tagResolvedparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagResolvedparamsWithdrawTagVariable[1])
 	var internal *bool = this.SafeBool(paramsWithdrawTag, "internal", false)
 	if internal != nil && *internal == true {
@@ -7558,13 +7556,13 @@ func (this *Mexc) withdrawBody(ch chan EndpointResult[map[string]any], code stri
 	var network any = DerefScalar(this.SafeString2(paramsWithdrawTag, "network", "netWork")) // this line allows the user to specify either ERC20 or ETH
 	network = DerefScalar(this.SafeString(networks, network, network))                       // handle ETH > ERC-20 alias
 	network = this.NetworkCodeToId(network, this.SafeString(currency, "code"))
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagResolved)
 	var request map[string]any = map[string]any{
 		"coin":    currency["id"],
 		"address": address,
 		"amount":  amount,
 	}
-	if tagResolved != nil {
+	if !IsEqual(tagResolved, nil) {
 		request["memo"] = tagResolved
 	}
 	if !IsEqual(network, nil) {
@@ -7713,11 +7711,11 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[any], optionalArg
 		}
 	}
 
-	listEp7197 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7197.Err != nil {
-		panic(listEp7197.Err)
+	listEp7195 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7195.Err != nil {
+		panic(listEp7195.Err)
 	}
-	var response []any = listEp7197.Value
+	var response []any = listEp7195.Value
 
 	//
 	//    [
@@ -7840,11 +7838,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], optiona
 		}
 	}
 
-	listEp7317 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7317.Err != nil {
-		panic(listEp7317.Err)
+	listEp7315 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7315.Err != nil {
+		panic(listEp7315.Err)
 	}
-	var response []any = listEp7317.Value
+	var response []any = listEp7315.Value
 
 	//
 	//    [
@@ -9556,8 +9554,8 @@ func (this *Mexc) Transfer(code string, amount float64, fromAccount string, toAc
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {object} [params.internal] false by default, set to true for an "internal transfer"
  * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
@@ -9569,7 +9567,7 @@ func (this *Mexc) Withdraw(code string, amount float64, address string, options 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

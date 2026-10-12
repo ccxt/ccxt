@@ -287,6 +287,12 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var asks []any = ccxt.SafeListTyped(message, "asks")
+	if asks == nil {
+		var inSequence bool = this.IsOrderBookDeltaInSequence(client, message, symbol)
+		if !inSequence {
+			return
+		}
+	}
 	if asks != nil {
 		var snapshot any = this.CustomParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -402,9 +408,31 @@ func (this *Luno) HandleBookDelta(orderbook any, message any) {
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var createUpdate map[string]any = ccxt.SafeMapTyped(message, "create_update")
 	var asksOrderSide any = ccxt.GetValue(orderbook, "asks")
 	var bidsOrderSide any = ccxt.GetValue(orderbook, "bids")
+	// trade updates are applied first, matching the ordering of the
+	// reference luno streaming client
+	var tradeUpdates []any = ccxt.SafeListTyped(message, "trade_updates")
+	for i := 0; i < len(tradeUpdates); i++ {
+		var tradeUpdate map[string]any = ccxt.MapTyped(func() any {
+			if i >= 0 && i < len(tradeUpdates) {
+				return ccxt.DerefScalar(tradeUpdates[i])
+			}
+			return nil
+		}())
+		var makerOrderId *string = this.SafeString(tradeUpdate, "maker_order_id")
+		var tradedAmount *string = this.SafeString(tradeUpdate, "base")
+		if (makerOrderId != nil) && (tradedAmount != nil) {
+			// the message does not carry the side of the maker order and
+			// order ids are unique across the book, so try the bids first
+			// and fall back to the asks only on a miss
+			var reduced bool = this.ReduceOrderVolume(bidsOrderSide, makerOrderId, tradedAmount)
+			if !reduced {
+				this.ReduceOrderVolume(asksOrderSide, makerOrderId, tradedAmount)
+			}
+		}
+	}
+	var createUpdate map[string]any = ccxt.SafeMapTyped(message, "create_update")
 	if createUpdate != nil {
 		var bidAskArray any = this.CustomParseBidAsk(createUpdate, "price", "volume", "order_id")
 		var typeVar *string = this.SafeString(createUpdate, "type")
@@ -421,11 +449,102 @@ func (this *Luno) HandleBookDelta(orderbook any, message any) {
 		bidsOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})
 	}
 }
+
+/**
+ * @ignore
+ * @method
+ * @name luno#reduceOrderVolume
+ * @description reduces the outstanding volume of the order with the given id inside one side of a level-3 orderbook after a trade, deleting the order when it is fully filled
+ * @param {object} orderSide the bids or asks side of an indexed orderbook
+ * @param {string} orderId the exchange-specific id of the maker order that traded
+ * @param {string} tradedAmount the traded amount in base currency, as a string
+ * @returns {boolean} true if the order was found in this side, false otherwise
+ */
+func (this *Luno) ReduceOrderVolume(orderSide any, orderId any, tradedAmount any) bool {
+	var sideLength int = ccxt.GetArrayLength(orderSide)
+	for i := 0; i < sideLength; i++ {
+		var order any = ccxt.GetValue(orderSide, i)
+		var entryId *string = this.SafeString(order, 2)
+		if ccxt.IsEqual(entryId, orderId) {
+			var price *float64 = this.SafeNumber(order, 0)
+			var currentAmount *string = this.SafeString(order, 1)
+			var remainingAmount *string = ccxt.Precise.StringSub(currentAmount, tradedAmount)
+			if ccxt.Precise.StringLe(remainingAmount, "0") {
+				// fully filled, storing a zero amount deletes the order
+				orderSide.(ccxt.IOrderBookSide).StoreArray([]any{price, 0, orderId})
+			} else {
+				orderSide.(ccxt.IOrderBookSide).StoreArray([]any{price, this.ParseNumber(remainingAmount), orderId})
+			}
+			return true
+		}
+	}
+	return false
+}
+
+/**
+ * @ignore
+ * @method
+ * @name luno#isOrderBookDeltaInSequence
+ * @description checks the sequence number of an orderbook delta frame against the stored book, and on a gap tears the connection down so that the next watch call resubscribes and receives a fresh snapshot
+ * @param {object} client the websocket client the frame arrived on
+ * @param {object} message the delta frame
+ * @param {string} symbol unified market symbol of the book
+ * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
+ */
+func (this *Luno) IsOrderBookDeltaInSequence(client any, message any, symbol any) bool {
+	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var storedNonce *int64 = this.SafeInteger(orderbook, "nonce")
+	if storedNonce == nil {
+		// no snapshot was received yet, deltas cannot be applied to an
+		// empty book: luno sends the snapshot as the first frame after
+		// the handshake, so discard the delta
+		return false
+	}
+	var messageSequence *int64 = this.SafeInteger(message, "sequence")
+	if messageSequence == nil {
+		return true
+	}
+	if messageSequence == nil || (storedNonce != nil && *messageSequence <= *storedNonce) {
+		// an old or replayed frame, discard it
+		return false
+	}
+	var expectedSequence any = ccxt.Add(storedNonce, 1)
+	if !ccxt.IsEqual(messageSequence, expectedSequence) {
+		// a gap in the sequence means a lost message and the book is
+		// unrecoverable on a live connection, because luno only sends
+		// a snapshot as the first frame after a fresh handshake:
+		// reset the client, which stops its keepalive and rejects
+		// every pending future on the connection, clear the
+		// subscription so that frames still arriving on the orphaned
+		// connection are ignored by handleMessage, and drop the
+		// client, so that the next watch call dials a new connection
+		// the cached book is kept so references returned by earlier
+		// watchOrderBook calls stay live: clearing its nonce discards
+		// deltas until the fresh snapshot resets the book in place
+		error := ccxt.InvalidNonce(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" watchOrderBook() received an out-of-sequence update for ", symbol), ", expected "), ccxt.ToString(expectedSequence)), " but got "), ccxt.ToString(messageSequence)))
+		ccxt.AddElementToObject(orderbook, "nonce", nil)
+		var market map[string]any = this.Market(symbol)
+		var subscriptionHash any = ccxt.Add("/stream/", market["id"])
+		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash) {
+			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+		}
+		client.(ccxt.ClientInterface).Reset(error)
+		ccxt.Remove(this.Clients, client.(ccxt.ClientInterface).GetUrl())
+		return false
+	}
+	return true
+}
 func (this *Luno) HandleMessage(client any, message any) {
 	if ccxt.IsEqual(message, "") {
 		return
 	}
 	var subscriptions []any = ccxt.ObjectValues(client.(ccxt.ClientInterface).GetSubscriptions())
+	var subscriptionsLength int = len(subscriptions)
+	if subscriptionsLength == 0 {
+		// the subscription was dropped after a sequence gap, ignore the
+		// frames still arriving until the client resubscribes
+		return
+	}
 	var handlers []any = []any{this.HandleOrderBook, this.HandleTrades}
 	for j := 0; j < len(handlers); j++ {
 		var handler any = func() any {

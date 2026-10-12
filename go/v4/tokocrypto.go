@@ -2068,7 +2068,8 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
 	//   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
 	var cost *string = this.SafeStringN(order, []any{"cummulativeQuoteQty", "cumQuote", "executedQuoteQty", "cumBase"})
 	var id *string = this.SafeString(order, "orderId")
-	var typeVar *string = this.ParseOrderType(this.SafeStringLower(order, "type"))
+	var rawOrderType *string = this.SafeStringLower(order, "type")
+	var typeVar *string = this.ParseOrderType(rawOrderType)
 	var side *string = this.SafeStringLower(order, "side")
 	if side != nil && *side == "0" {
 		side = SafeStringPtr("buy")
@@ -2077,12 +2078,12 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var fills []any = SafeListTypedDefault(order, "fills", []any{})
 	var clientOrderId *string = this.SafeString2(order, "clientOrderId", "clientId")
-	var timeInForce *string = this.SafeString(order, "timeInForce")
-	if timeInForce != nil && *timeInForce == "GTX" {
-		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-		timeInForce = SafeStringPtr("PO")
-	}
-	var postOnly bool = (typeVar != nil && *typeVar == "limit_maker") || (timeInForce != nil && *timeInForce == "PO")
+	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
+	// the order type carries the post only flag on its own, 7 on the open/v1
+	// payloads and LIMIT_MAKER on the binance shaped ones, so the time force
+	// echoed back by the venue is only the third witness
+	var isLimitMaker bool = (rawOrderType != nil && *rawOrderType == "7") || (rawOrderType != nil && *rawOrderType == "limit_maker")
+	var postOnly bool = isLimitMaker || (timeInForce != nil && *timeInForce == "PO")
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -2108,6 +2109,16 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":             fills,
 	}, market)
 }
+func (this *Tokocrypto) ParseTimeInForce(timeInForce *string) *string {
+	var timeInForces map[string]any = map[string]any{
+		"1":   "GTC",
+		"2":   "IOC",
+		"3":   "FOK",
+		"4":   "PO",
+		"GTX": "PO",
+	}
+	return this.SafeString(timeInForces, timeInForce, timeInForce)
+}
 func (this *Tokocrypto) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"2": "market",
@@ -2131,6 +2142,8 @@ func (this *Tokocrypto) ParseOrderType(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
  * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.timeInForce] 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest
+ * @param {bool} [params.postOnly] true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Tokocrypto) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
@@ -2154,13 +2167,27 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	}
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientId")
-	var postOnly *bool = this.SafeBool(params, "postOnly", false)
+	var requestedType string = strings.ToUpper(typeVar)
+	var requestedTimeInForce *string = this.SafeStringUpper(params, "timeInForce")
+	var isMarketOrder bool = (requestedType == "MARKET")
+	// GTX is the venue spelling of post only, on top of the two unified spellings
+	var isPostOnlyTimeInForce bool = (requestedTimeInForce != nil && *requestedTimeInForce == "GTX")
+	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, isPostOnlyTimeInForce, params)
+	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	// only supported for spot/margin api
 	var typeResolved any = func() any {
-		if postOnly != nil && *postOnly == true {
+		if postOnly == true {
 			return "LIMIT_MAKER"
 		}
 		return typeVar
+	}()
+	// post only is expressed by the order type here, not by a time force
+	var timeInForceResolved any = func() any {
+		if postOnly == true {
+			return nil
+		}
+		return requestedTimeInForce
 	}()
 	var initialUppercaseType string = ToUpper(typeResolved)
 	var uppercaseType string = initialUppercaseType
@@ -2171,8 +2198,11 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 		}
 		return []any{}
 	}()
-	var paramsRequest any = this.Omit(params, this.ArrayConcat([]any{"clientId", "clientOrderId"}, triggerKeys))
+	var paramsRequest any = this.Omit(paramsPostOnly, this.ArrayConcat([]any{"clientId", "clientOrderId", "timeInForce"}, triggerKeys))
 	if !IsEqual(triggerPrice, nil) {
+		if postOnly == true {
+			panic(InvalidOrder(this.Id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type"))
+		}
 		if uppercaseType == "MARKET" {
 			uppercaseType = "STOP_LOSS"
 		} else if uppercaseType == "LIMIT" {
@@ -2220,6 +2250,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	var priceIsRequired bool = false
 	var triggerPriceIsRequired bool = false
 	var quantityIsRequired bool = false
+	var timeInForceIsRequired bool = false
 	//
 	// spot/margin
 	//
@@ -2259,6 +2290,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	} else if uppercaseType == "LIMIT" {
 		priceIsRequired = true
 		quantityIsRequired = true
+		timeInForceIsRequired = true
 	} else if (uppercaseType == "STOP_LOSS") || (uppercaseType == "TAKE_PROFIT") {
 		triggerPriceIsRequired = true
 		quantityIsRequired = true
@@ -2269,6 +2301,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 		quantityIsRequired = true
 		triggerPriceIsRequired = true
 		priceIsRequired = true
+		timeInForceIsRequired = true
 	} else if uppercaseType == "LIMIT_MAKER" {
 		priceIsRequired = true
 		quantityIsRequired = true
@@ -2287,6 +2320,35 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a triggerPrice extra param for a ", typeResolved), " order")))
 		} else {
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		}
+	}
+	if timeInForceIsRequired {
+		var defaultTimeInForce *string = this.SafeString(this.Options, "defaultTimeInForce", "GTC")
+		var timeInForce any = func() any {
+			if IsEqual(timeInForceResolved, nil) {
+				return defaultTimeInForce
+			}
+			return timeInForceResolved
+		}()
+		// the endpoint takes the time force as a numeric code, post only is
+		// placed as a LIMIT_MAKER order rather than as the GTX code
+		var timeInForceCodes map[string]any = map[string]any{
+			"GTC": "1",
+			"IOC": "2",
+			"FOK": "3",
+		}
+		var timeInForceCode *string = this.SafeString(timeInForceCodes, timeInForce)
+		if timeInForceCode == nil {
+			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support the ", timeInForce), " timeInForce, use GTC, IOC, FOK or the postOnly parameter")))
+		}
+		request["timeInForce"] = timeInForceCode
+	} else if !IsEqual(timeInForceResolved, nil) {
+		// a market order fills immediately or not at all, so an IOC asks for
+		// what the order type already does and gets accepted as a no-op, while
+		// any other time force would be a promise the venue cannot keep here
+		var isRedundantImmediateOrCancel bool = isMarketOrder && (IsEqual(timeInForceResolved, "IOC"))
+		if !isRedundantImmediateOrCancel {
+			panic(NotSupported(Add(Add(Add(Add(this.Id+" createOrder() does not support the ", timeInForceResolved), " timeInForce for "), typeVar), " orders")))
 		}
 	}
 
@@ -2526,11 +2588,11 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes212315 []any = ListTyped(r.Value)
-	if retRes212315 == nil {
+	var retRes217415 []any = ListTyped(r.Value)
+	if retRes217415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes212315}
+		ch <- AsyncResult[any]{Value: retRes217415}
 	}
 	return nil
 }
@@ -2570,11 +2632,11 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan AsyncResult[any], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes213915 []any = ListTyped(r.Value)
-	if retRes213915 == nil {
+	var retRes219015 []any = ListTyped(r.Value)
+	if retRes219015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes213915}
+		ch <- AsyncResult[any]{Value: retRes219015}
 	}
 	return nil
 }
@@ -3154,8 +3216,8 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) m
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Tokocrypto) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -3166,12 +3228,10 @@ func (this *Tokocrypto) WithdrawAsync(code string, amount any, address any, opti
 func (this *Tokocrypto) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
@@ -3180,14 +3240,14 @@ func (this *Tokocrypto) withdrawBody(ch chan EndpointResult[map[string]any], cod
 			panic(r.Err)
 		}
 	}
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"asset":   currency["id"],
 		"address": address,
 		"amount":  this.NumberToString(amount),
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["addressTag"] = tagWithdrawTag
 	}
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -3669,6 +3729,8 @@ func (this *Tokocrypto) FetchBalance(params ...any) (Balances, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
  * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.timeInForce] 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest
+ * @param {bool} [params.postOnly] true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Tokocrypto) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -3925,8 +3987,8 @@ func (this *Tokocrypto) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Tokocrypto) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3936,7 +3998,7 @@ func (this *Tokocrypto) Withdraw(code string, amount float64, address string, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

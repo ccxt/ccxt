@@ -3944,8 +3944,8 @@ func (this *Bitstamp) fetchDepositAddressBody(ch chan AsyncResult[any], code str
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitstamp) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -3958,12 +3958,10 @@ func (this *Bitstamp) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	defer ReturnPanicErrorT(ch)
 	// For fiat withdrawals please provide all required additional parameters in the 'params'
 	// Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
@@ -3972,7 +3970,7 @@ func (this *Bitstamp) withdrawBody(ch chan EndpointResult[map[string]any], code 
 			panic(r.Err)
 		}
 	}
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	var request map[string]any = map[string]any{
 		"amount": amount,
 	}
@@ -3981,11 +3979,11 @@ func (this *Bitstamp) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	if !this.IsFiat(code) {
 		var name string = this.GetCurrencyName(code)
 		if code == "XRP" {
-			if tagWithdrawTag != nil {
+			if !IsEqual(tagWithdrawTag, nil) {
 				request["destination_tag"] = tagWithdrawTag
 			}
 		} else if (code == "XLM") || (code == "HBAR") {
-			if tagWithdrawTag != nil {
+			if !IsEqual(tagWithdrawTag, nil) {
 				request["memo_id"] = tagWithdrawTag
 			}
 		}
@@ -4914,8 +4912,8 @@ func (this *Bitstamp) FetchDepositAddress(code string, options ...FetchDepositAd
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitstamp) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -4925,7 +4923,7 @@ func (this *Bitstamp) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

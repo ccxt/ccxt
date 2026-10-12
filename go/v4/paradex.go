@@ -2829,7 +2829,7 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var response map[string]any = r3.Value
+	var response map[string]any = MapTyped(r3.Raw)
 	//
 	// {
 	//     "errors": [

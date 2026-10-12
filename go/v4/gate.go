@@ -6016,8 +6016,8 @@ func (this *Gate) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Gate) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -6028,14 +6028,12 @@ func (this *Gate) WithdrawAsync(code string, amount any, address any, optionalAr
 func (this *Gate) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -6049,7 +6047,7 @@ func (this *Gate) withdrawBody(ch chan EndpointResult[map[string]any], code stri
 		"address":  address,
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["memo"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -7734,11 +7732,11 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		AddElementToObject(request, "limit", limit)
 	}
 
-	listEp7266 := <-this.PrivateFuturesGetSettleOrdersTimerange(this.Extend(request, this.Omit(paramsRequest, "until")))
-	if listEp7266.Err != nil {
-		panic(listEp7266.Err)
+	listEp7264 := <-this.PrivateFuturesGetSettleOrdersTimerange(this.Extend(request, this.Omit(paramsRequest, "until")))
+	if listEp7264.Err != nil {
+		panic(listEp7264.Err)
 	}
-	var response []any = listEp7266.Value
+	var response []any = listEp7264.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
@@ -9271,18 +9269,18 @@ func (this *Gate) fetchLeverageTiersBody(ch chan AsyncResult[any], optionalArgs 
 	var response []any = nil
 	if typeVar != nil && *typeVar == "swap" {
 
-		listEp8651 := <-this.PublicFuturesGetSettleContracts(this.Extend(request, requestParams))
-		if listEp8651.Err != nil {
-			panic(listEp8651.Err)
+		listEp8649 := <-this.PublicFuturesGetSettleContracts(this.Extend(request, requestParams))
+		if listEp8649.Err != nil {
+			panic(listEp8649.Err)
 		}
-		response = listEp8651.Value
+		response = listEp8649.Value
 	} else if typeVar != nil && *typeVar == "future" {
 
-		listEp8654 := <-this.PublicDeliveryGetSettleContracts(this.Extend(request, requestParams))
-		if listEp8654.Err != nil {
-			panic(listEp8654.Err)
+		listEp8652 := <-this.PublicDeliveryGetSettleContracts(this.Extend(request, requestParams))
+		if listEp8652.Err != nil {
+			panic(listEp8652.Err)
 		}
-		response = listEp8654.Value
+		response = listEp8652.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchLeverageTiers() not support this market type"))
 	}
@@ -9432,18 +9430,18 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan AsyncResult[any], symbol 
 		//     ]
 		//
 
-		listEp8801 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams))
-		if listEp8801.Err != nil {
-			panic(listEp8801.Err)
+		listEp8799 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams))
+		if listEp8799.Err != nil {
+			panic(listEp8799.Err)
 		}
-		response = listEp8801.Value
+		response = listEp8799.Value
 	} else {
 
-		listEp8804 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams))
-		if listEp8804.Err != nil {
-			panic(listEp8804.Err)
+		listEp8802 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams))
+		if listEp8802.Err != nil {
+			panic(listEp8802.Err)
 		}
-		response = listEp8804.Value
+		response = listEp8802.Value
 	}
 
 	ch <- AsyncResult[any]{Value: this.ParseMarketLeverageTiers(response, market)}
@@ -10323,11 +10321,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol 
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	listEp9609 := <-this.PublicFuturesGetSettleContractStats(this.Extend(request, paramsPaginate))
-	if listEp9609.Err != nil {
-		panic(listEp9609.Err)
+	listEp9607 := <-this.PublicFuturesGetSettleContractStats(this.Extend(request, paramsPaginate))
+	if listEp9607.Err != nil {
+		panic(listEp9607.Err)
 	}
-	var response []any = listEp9609.Value
+	var response []any = listEp9607.Value
 
 	//
 	//    [
@@ -10439,11 +10437,11 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan AsyncResult[[]any], optiona
 		request["limit"] = limit
 	}
 
-	listEp9718 := <-this.PublicOptionsGetSettlements(this.Extend(request, paramsMarketType))
-	if listEp9718.Err != nil {
-		panic(listEp9718.Err)
+	listEp9716 := <-this.PublicOptionsGetSettlements(this.Extend(request, paramsMarketType))
+	if listEp9716.Err != nil {
+		panic(listEp9716.Err)
 	}
-	var response []any = listEp9718.Value
+	var response []any = listEp9716.Value
 	//
 	//     [
 	//         {
@@ -11066,11 +11064,11 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan AsyncResult[any], optionalAr
 		panic(NotSupported(this.Id + " fetchUnderlyingAssets() supports option markets only"))
 	}
 
-	listEp10300 := <-this.PublicOptionsGetUnderlyings(paramsMarketType)
-	if listEp10300.Err != nil {
-		panic(listEp10300.Err)
+	listEp10298 := <-this.PublicOptionsGetUnderlyings(paramsMarketType)
+	if listEp10298.Err != nil {
+		panic(listEp10298.Err)
 	}
-	var response []any = listEp10300.Value
+	var response []any = listEp10298.Value
 	//
 	//    [
 	//        {
@@ -11142,11 +11140,11 @@ func (this *Gate) fetchLiquidationsBody(ch chan AsyncResult[any], symbol string,
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params)
 
-	listEp10369 := <-this.PublicFuturesGetSettleLiqOrders(this.Extend(requestUntil, paramsUntil))
-	if listEp10369.Err != nil {
-		panic(listEp10369.Err)
+	listEp10367 := <-this.PublicFuturesGetSettleLiqOrders(this.Extend(requestUntil, paramsUntil))
+	if listEp10367.Err != nil {
+		panic(listEp10367.Err)
 	}
-	var response []any = listEp10369.Value
+	var response []any = listEp10367.Value
 
 	//
 	//     [
@@ -11396,11 +11394,11 @@ func (this *Gate) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol st
 		"underlying": GetValue(market["info"], "underlying"),
 	}
 
-	listEp10604 := <-this.PublicOptionsGetTickers(this.Extend(request, params))
-	if listEp10604.Err != nil {
-		panic(listEp10604.Err)
+	listEp10602 := <-this.PublicOptionsGetTickers(this.Extend(request, params))
+	if listEp10602.Err != nil {
+		panic(listEp10602.Err)
 	}
-	var response []any = listEp10604.Value
+	var response []any = listEp10602.Value
 	//
 	//     [
 	//         {
@@ -11641,18 +11639,18 @@ func (this *Gate) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ...a
 	if isUnified != nil && *isUnified == true {
 		marketIdRequest = "currency_pair"
 
-		listEp10826 := <-this.PublicMarginGetUniCurrencyPairs(paramsOmitted)
-		if listEp10826.Err != nil {
-			panic(listEp10826.Err)
+		listEp10824 := <-this.PublicMarginGetUniCurrencyPairs(paramsOmitted)
+		if listEp10824.Err != nil {
+			panic(listEp10824.Err)
 		}
-		response = listEp10826.Value
+		response = listEp10824.Value
 	} else {
 
-		listEp10829 := <-this.PublicMarginGetCurrencyPairs(paramsOmitted)
-		if listEp10829.Err != nil {
-			panic(listEp10829.Err)
+		listEp10827 := <-this.PublicMarginGetCurrencyPairs(paramsOmitted)
+		if listEp10827.Err != nil {
+			panic(listEp10827.Err)
 		}
-		response = listEp10829.Value // deprecated
+		response = listEp10827.Value // deprecated
 	}
 
 	ch <- AsyncResult[any]{Value: this.ParseLeverages(this.ToArray(response), symbolsNormalized, marketIdRequest, "spot")}
@@ -11786,11 +11784,11 @@ func (this *Gate) fetchOptionChainBody(ch chan AsyncResult[any], code string, op
 		"underlying": Add(currency["code"], "_USDT"),
 	}
 
-	listEp10953 := <-this.PublicOptionsGetContracts(this.Extend(request, params))
-	if listEp10953.Err != nil {
-		panic(listEp10953.Err)
+	listEp10951 := <-this.PublicOptionsGetContracts(this.Extend(request, params))
+	if listEp10951.Err != nil {
+		panic(listEp10951.Err)
 	}
-	var response []any = listEp10953.Value
+	var response []any = listEp10951.Value
 
 	//
 	//     [
@@ -12728,8 +12726,8 @@ func (this *Gate) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transa
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Gate) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -12739,7 +12737,7 @@ func (this *Gate) Withdraw(code string, amount float64, address string, options 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

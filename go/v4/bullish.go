@@ -3004,8 +3004,8 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], opti
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} [tag]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} params.timestamp the timestamp of the withdrawal request (mandatory)
  * @param {string} params.nonce the nonce of the withdrawal request (mandatory)
  * @param {string} params.network network for withdraw (mandatory)
@@ -3019,9 +3019,7 @@ func (this *Bullish) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Bullish) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	r := <-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})
@@ -3176,11 +3174,11 @@ func (this *Bullish) loadAccountBody(ch chan AsyncResult[any], optionalArgs ...a
 	paramsTradingAccountId = GetValue(tradingAccountIdparamsTradingAccountIdVariable, 1)
 	if IsEqual(tradingAccountId, nil) {
 
-		listEp2969 := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
-		if listEp2969.Err != nil {
-			panic(listEp2969.Err)
+		listEp2967 := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
+		if listEp2967.Err != nil {
+			panic(listEp2967.Err)
 		}
-		var response []any = listEp2969.Value
+		var response []any = listEp2967.Value
 		var accounts []any = this.ToArray(response)
 		for i := 0; i < len(accounts); i++ {
 			var account map[string]any = SafeMapTyped(accounts, i)
@@ -3224,11 +3222,11 @@ func (this *Bullish) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ..
 		panic(r.Err)
 	}
 
-	listEp3010 := <-this.PrivateGetV1AccountsTradingAccounts(params)
-	if listEp3010.Err != nil {
-		panic(listEp3010.Err)
+	listEp3008 := <-this.PrivateGetV1AccountsTradingAccounts(params)
+	if listEp3008.Err != nil {
+		panic(listEp3008.Err)
 	}
-	var response []any = listEp3010.Value
+	var response []any = listEp3008.Value
 
 	//
 	//     [
@@ -3351,11 +3349,11 @@ func (this *Bullish) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 		"symbol": currency["id"],
 	}
 
-	listEp3130 := <-this.PrivateGetV1WalletsDepositInstructionsCryptoSymbol(this.Extend(request, params))
-	if listEp3130.Err != nil {
-		panic(listEp3130.Err)
+	listEp3128 := <-this.PrivateGetV1WalletsDepositInstructionsCryptoSymbol(this.Extend(request, params))
+	if listEp3128.Err != nil {
+		panic(listEp3128.Err)
 	}
-	var response []any = listEp3130.Value
+	var response []any = listEp3128.Value
 	//
 	//     [
 	//         {
@@ -3555,11 +3553,11 @@ func (this *Bullish) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 		"tradingAccountId": tradingAccountId,
 	}
 
-	listEp3310 := <-this.PrivateGetV1DerivativesPositions(this.Extend(request, params))
-	if listEp3310.Err != nil {
-		panic(listEp3310.Err)
+	listEp3308 := <-this.PrivateGetV1DerivativesPositions(this.Extend(request, params))
+	if listEp3308.Err != nil {
+		panic(listEp3308.Err)
 	}
-	var response []any = listEp3310.Value
+	var response []any = listEp3308.Value
 	//
 	//     [
 	//         {
@@ -3731,11 +3729,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 
-	listEp3471 := <-this.PrivateGetV1HistoryTransfer(this.Extend(request, paramsSinceAndUntil))
-	if listEp3471.Err != nil {
-		panic(listEp3471.Err)
+	listEp3469 := <-this.PrivateGetV1HistoryTransfer(this.Extend(request, paramsSinceAndUntil))
+	if listEp3469.Err != nil {
+		panic(listEp3469.Err)
 	}
-	var response []any = listEp3471.Value
+	var response []any = listEp3469.Value
 
 	//
 	//     [
@@ -3930,11 +3928,11 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan AsyncResult[any], code a
 	AddElementToObject(requestUntil, "createdAtDatetime[gte]", this.Iso8601(startTimestamp))
 	AddElementToObject(requestUntil, "createdAtDatetime[lte]", this.Iso8601(until))
 
-	listEp3649 := <-this.PrivateGetV1HistoryBorrowInterest(this.Extend(requestUntil, paramsUntil))
-	if listEp3649.Err != nil {
-		panic(listEp3649.Err)
+	listEp3647 := <-this.PrivateGetV1HistoryBorrowInterest(this.Extend(requestUntil, paramsUntil))
+	if listEp3647.Err != nil {
+		panic(listEp3647.Err)
 	}
-	var response []any = listEp3649.Value
+	var response []any = listEp3647.Value
 
 	//
 	//     [
@@ -4874,8 +4872,8 @@ func (this *Bullish) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawal
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} [tag]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} params.timestamp the timestamp of the withdrawal request (mandatory)
  * @param {string} params.nonce the nonce of the withdrawal request (mandatory)
  * @param {string} params.network network for withdraw (mandatory)
@@ -4888,7 +4886,7 @@ func (this *Bullish) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

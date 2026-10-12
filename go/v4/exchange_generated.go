@@ -770,6 +770,10 @@ func (this *BaseExchange) CheckConflictingProxies(proxyAgentSet any, proxyUrlSet
 func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
 	address := GetArg(optionalArgs, 0, nil)
 	_ = address
+	code := GetArg(optionalArgs, 1, nil)
+	_ = code
+	var tag *string = GetArgStringPtr(optionalArgs, 2, nil)
+	_ = tag
 	if address == nil {
 		panic(InvalidAddress(this.Id + " address is undefined"))
 	}
@@ -778,6 +782,14 @@ func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
 	var length int = GetArrayLength(uniqChars) // py transpiler trick
 	if (length == 1) || IsLessThan(GetLength(address), this.MinFundingAddressLength) || (GetIndexOf(address, " ") > -1) {
 		panic(InvalidAddress(this.Id + " address is invalid or has less than " + ToString(this.MinFundingAddressLength) + " characters: \"" + ToString(address) + "\""))
+	}
+	if code != nil {
+		var tagRequiredCurrencies any = this.SafeList(this.Options, "withdrawTagRequiredCurrencies", []any{})
+		if this.InArray(code, tagRequiredCurrencies) {
+			if tag == nil {
+				panic(ArgumentsRequired(Add(this.Id+" withdraw() requires params[\"tag\"] for ", code)))
+			}
+		}
 	}
 	return address
 }
@@ -1573,9 +1585,7 @@ func (this *BaseExchange) WithdrawAsync(code string, amount any, address any, op
 func (this *BaseExchange) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " withdraw() is not supported yet"))
 }
@@ -2185,6 +2195,7 @@ func (this *BaseExchange) GetDefaultOptions() any {
 			"ARBONE":  "ARBITRUM",
 			"ARBNOVA": "ARBITRUM_NOVA",
 		},
+		"withdrawTagRequiredCurrencies": []any{"XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "KAVA", "STX", "XEM", "IOST", "OSMO", "WAXP"},
 	}
 }
 func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) map[string]any {
@@ -5543,11 +5554,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes678415 map[string]any = MapTyped(r.Value)
-	if retRes678415 == nil {
+	var retRes679415 map[string]any = MapTyped(r.Value)
+	if retRes679415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes678415, Raw: retRes678415}
+		ch <- EndpointResult[map[string]any]{Value: retRes679415, Raw: retRes679415}
 	}
 	return nil
 }
@@ -6606,26 +6617,6 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 		}
 	}
 	return false
-}
-func (this *BaseExchange) HandleWithdrawTagAndParams(tag any, params any) []any {
-	var paramsExtended any = params
-	var tagValue any = tag
-	if this.IsDictionary(tag) {
-		paramsExtended = this.Extend(tag, params)
-		tagValue = nil
-	}
-	var tagResolved any = func() any {
-		if IsEqual(tagValue, nil) {
-			return this.SafeString(paramsExtended, "tag")
-		}
-		return tagValue
-	}()
-	var tagFromParams bool = (IsEqual(tagValue, nil)) && (!IsEqual(tagResolved, nil))
-	var paramsOmitted any = paramsExtended
-	if tagFromParams {
-		paramsOmitted = this.Omit(paramsExtended, "tag")
-	}
-	return []any{tagResolved, paramsOmitted}
 }
 func (this *BaseExchange) CostToPrecision(symbol any, cost any) any {
 	if IsEqual(cost, nil) {
@@ -9025,9 +9016,7 @@ func (this *BaseExchange) WithdrawWsAsync(code string, amount any, address strin
 func (this *BaseExchange) withdrawWsBody(ch chan AsyncResult[any], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " withdrawWs () is not supported yet"))
 }
@@ -11594,12 +11583,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11115, _ := r.Value.([]any)
-	var retRes1022715 []any = listRecv11115
-	if retRes1022715 == nil {
+	listRecv11104, _ := r.Value.([]any)
+	var retRes1022115 []any = listRecv11104
+	if retRes1022115 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1022715, Raw: retRes1022715}
+		ch <- EndpointResult[[]any]{Value: retRes1022115, Raw: retRes1022115}
 	}
 	return nil
 }
