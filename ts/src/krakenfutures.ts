@@ -1867,7 +1867,7 @@ export default class krakenfutures extends Exchange {
             request['count'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = since;
+            request['since'] = since;
         }
         let response: Dict;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
