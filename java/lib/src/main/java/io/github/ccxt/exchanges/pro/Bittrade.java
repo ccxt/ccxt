@@ -591,11 +591,13 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             return;
         }
         Long limit = this.safeInteger(subscription, "limit");
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
-        Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        orderbook.put("nonce", null);
+        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
         // watch the snapshot in a separate async call
         this.spawn(() -> { try { this.watchOrderBookSnapshot(client, (Map<String, Object>) (message), (Map<String, Object>) (subscription)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }

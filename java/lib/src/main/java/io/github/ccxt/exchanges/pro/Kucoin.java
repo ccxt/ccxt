@@ -2204,16 +2204,26 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         List<Object> symbols = (List<Object>) this.safeList(subscription, "symbols", (Object) null);
         if (java.util.Objects.equals(symbols, null))
         {
-            String symbol = this.safeString(subscription, "symbol");
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
-        } else
-        {
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
-            {
-                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
-            }
+            symbols = new ArrayList<Object>(Arrays.asList(this.safeString(subscription, "symbol")));
         }
+        Map<String, Object> limits = (Map<String, Object>) this.safeDict(this.options, "orderBookLimits", new HashMap<String, Object>() {{}});
+        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        {
+            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            Long storedLimit = this.safeInteger(limits, symbol);
+            // reuse the existing book so user-held references keep updating; rebuild only if depth changed
+            if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))) || ((storedLimit == null || limit == null || storedLimit != limit)))
+            {
+                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            } else
+            {
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+                orderbook.put("nonce", null);
+                Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
+            }
+            Helpers.addElementToObject(limits, symbol, limit);
+        }
+        Helpers.addElementToObject(this.options, "orderBookLimits", limits);
     }
 
     public void handleSubscriptionStatus(Client client, Map<String, Object> message)

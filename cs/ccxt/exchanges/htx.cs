@@ -13,7 +13,7 @@ public partial class htx : Exchange
             { "countries", new List<object>() {"CN"} },
             { "rateLimit", 100 },
             { "userAgent", getValue(this.userAgents, "chrome100") },
-            { "certified", true },
+            { "certified", false },
             { "version", "v1" },
             { "hostname", "api.huobi.pro" },
             { "pro", true },

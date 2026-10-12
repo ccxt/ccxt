@@ -6082,6 +6082,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = Value::Str("PO".into());
         }
+        let mut postOnly: Value = Value::Bool((orderType.as_str() == Some("limit_maker")) || (timeInForce.as_str() == Some("PO")));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -6094,7 +6095,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
         m.insert("type".to_string(), self.parent.parse_order_type_by_market(orderType, marketType));
         m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("postOnly".to_string(), Value::Null);
+        m.insert("postOnly".to_string(), postOnly);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "R", &[]));
         m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "S", &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "p", &[]));

@@ -370,6 +370,7 @@ retrieves data on all swap markets for hyperliquid
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.dex | <code>string</code> | No | perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided |
 
 
 ```javascript
@@ -1385,6 +1386,7 @@ Retrieves the open interest for a list of symbols
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | Unified CCXT market symbol |
 | params | <code>object</code> | No | exchange specific parameters |
+| params.dex | <code>string</code> | No | perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided |
 
 
 ```javascript

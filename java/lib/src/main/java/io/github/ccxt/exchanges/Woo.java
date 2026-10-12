@@ -60,7 +60,7 @@ public class Woo extends WooApi
             put( "countries", new ArrayList<Object>(Arrays.asList("KY")) );
             put( "rateLimit", 100 );
             put( "version", "v1" );
-            put( "certified", true );
+            put( "certified", false );
             put( "pro", true );
             put( "hostname", "woox.io" );
             put( "has", new HashMap<String, Object>() {{

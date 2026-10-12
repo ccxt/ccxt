@@ -899,10 +899,16 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
-        if ((symbol as string) in this.orderbooks) {
-            delete this.orderbooks[symbol as string];
+        const limits = this.safeDict (this.options, 'orderBookLimits', {});
+        const storedLimit = this.safeInteger (limits, symbol);
+        if (!((symbol as string) in this.orderbooks) || (storedLimit !== limit)) {
+            this.orderbooks[symbol as string] = this.orderBook ({}, limit);
+            limits[symbol as string] = limit;
+            this.options['orderBookLimits'] = limits;
         }
-        this.orderbooks[symbol as string] = this.orderBook ({}, limit);
+        const orderbook = this.orderbooks[symbol as string];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
     }
 
     handleOrderBookSubscriptions (client: Client, message: Dict, marketIds: any[]) {

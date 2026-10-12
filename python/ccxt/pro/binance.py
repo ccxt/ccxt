@@ -1108,9 +1108,11 @@ class binance(ccxt.async_support.binance):
         # handle list of symbols
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            if symbol in self.orderbooks:
-                del self.orderbooks[symbol]
-            self.orderbooks[symbol] = self.order_book({}, limit)
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({}, limit)
+            orderbook = self.orderbooks[symbol]
+            orderbook['nonce'] = None
+            orderbook.cache = []
             symbolSubscription = self.extend(subscription, {'symbol': symbol})
             # fetch the snapshot in a separate async call
             self.spawn(self.fetch_order_book_snapshot, client, message, symbolSubscription)
@@ -4297,6 +4299,7 @@ class binance(ccxt.async_support.binance):
         if timeInForce == 'GTX':
             # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO'
+        postOnly = (orderType == 'limit_maker') or (timeInForce == 'PO')
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -4308,7 +4311,7 @@ class binance(ccxt.async_support.binance):
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'type': self.parseOrderTypeByMarket(orderType, marketType),
             'timeInForce': timeInForce,
-            'postOnly': None,
+            'postOnly': postOnly,
             'reduceOnly': self.safe_bool(order, 'R'),
             'side': self.safe_string_lower(order, 'S'),
             'price': self.safe_string(order, 'p'),

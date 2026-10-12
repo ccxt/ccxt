@@ -2990,9 +2990,11 @@ public partial class paradex : Exchange
         //                 "realized_pnl": "0",
         //                 "unrealized_pnl": "-2.39677214",
         //                 "unrealized_funding_pnl": "-0.11214013",
+        //                 "leverage": "5",
         //                 "cost": "648.39960537",
         //                 "cost_usd": "648.529",
         //                 "cached_funding_index": "35202.1002351",
+        //                 "created_at": 1718947571560,
         //                 "last_updated_at": 1718950074249,
         //                 "last_fill_id": "1718947571560201703986670001",
         //                 "seq_no": 1718950074249176253,
@@ -3019,9 +3021,11 @@ public partial class paradex : Exchange
         //         "realized_pnl": "0",
         //         "unrealized_pnl": "-2.39677214",
         //         "unrealized_funding_pnl": "-0.11214013",
+        //         "leverage": "5",
         //         "cost": "648.39960537",
         //         "cost_usd": "648.529",
         //         "cached_funding_index": "35202.1002351",
+        //         "created_at": 1718947571560,
         //         "last_updated_at": 1718950074249,
         //         "last_fill_id": "1718947571560201703986670001",
         //         "seq_no": 1718950074249176253,
@@ -3032,33 +3036,33 @@ public partial class paradex : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? side = this.safeStringLower(position, "side");
-        string? quantity = this.safeString(position, "size");
-        if (side != "long")
-        {
-            quantity = Precise.stringMul("-1", quantity);
-        }
-        Int64? timestamp = this.safeInteger(position, "time");
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        string? quantity = Precise.stringAbs(this.safeString(position, "size"));
+        Int64? timestamp = this.safeInteger(position, "created_at");
         double? liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
+        // cost_usd is signed by side, the unified notional is a magnitude
+        string? notionalString = Precise.stringAbs(this.safeString(position, "cost_usd"));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
             { "symbol", symbol },
             { "entryPrice", this.safeNumber(position, "average_entry_price") },
             { "markPrice", null },
-            { "notional", null },
-            { "collateral", this.safeNumber(position, "cost") },
+            { "notional", this.parseNumber(notionalString) },
+            { "collateral", null },
             { "unrealizedPnl", this.safeNumber(position, "unrealized_pnl") },
             { "side", side },
             { "contracts", this.parseNumber(quantity) },
             { "contractSize", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
+            { "lastUpdateTimestamp", this.safeInteger(position, "last_updated_at") },
             { "hedged", null },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
             { "initialMargin", null },
             { "initialMarginPercentage", null },
-            { "leverage", null },
+            { "leverage", this.safeNumber(position, "leverage") },
             { "liquidationPrice", liquidationPrice },
             { "marginRatio", null },
             { "marginMode", null },

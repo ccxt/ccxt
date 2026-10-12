@@ -31,7 +31,7 @@ class htx extends Exchange {
             'countries' => array( 'CN' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome100'],
-            'certified' => true,
+            'certified' => false,
             'version' => 'v1',
             'hostname' => 'api.huobi.pro', // api.testnet.huobi.pro
             'pro' => true,

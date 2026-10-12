@@ -242,30 +242,29 @@ class upbit(ccxt.async_support.upbit):
         type = self.safe_string(message, 'stream_type')
         options = self.safe_dict(self.options, 'watchOrderBook', {})
         limit = self.safe_integer(options, 'limit', 15)
-        if type == 'SNAPSHOT':
+        if (type == 'SNAPSHOT') and not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book({}, limit)
         orderbook = self.orderbooks[symbol]
         # upbit always returns a snapshot of 15 topmost entries
         # the "REALTIME" deltas are not incremental
         # therefore we reset the orderbook on each update
         # and reinitialize it again with new bidasks
-        orderbook.reset({})
-        orderbook['symbol'] = symbol
-        bids = orderbook['bids']
-        asks = orderbook['asks']
         data = self.safe_list(message, 'orderbook_units', [])
+        timestamp = self.safe_integer(message, 'timestamp')
+        bidsSnapshot = []
+        asksSnapshot = []
         for i in range(0, len(data)):
             entry = self.safe_dict(data, i)
-            ask_price = self.safe_float(entry, 'ask_price')
-            ask_size = self.safe_float(entry, 'ask_size')
-            bid_price = self.safe_float(entry, 'bid_price')
-            bid_size = self.safe_float(entry, 'bid_size')
-            asks.store(ask_price, ask_size)
-            bids.store(bid_price, bid_size)
-        timestamp = self.safe_integer(message, 'timestamp')
-        datetime = self.iso8601(timestamp)
-        orderbook['timestamp'] = timestamp
-        orderbook['datetime'] = datetime
+            bidPrice = self.safe_number(entry, 'bid_price')
+            bidSize = self.safe_number(entry, 'bid_size')
+            askPrice = self.safe_number(entry, 'ask_price')
+            askSize = self.safe_number(entry, 'ask_size')
+            if (bidPrice is not None) and (bidSize is not None):
+                bidsSnapshot.append([bidPrice, bidSize])
+            if (askPrice is not None) and (askSize is not None):
+                asksSnapshot.append([askPrice, askSize])
+        snapshot = self.parse_order_book({'bids': bidsSnapshot, 'asks': asksSnapshot}, symbol, timestamp)
+        orderbook.reset(snapshot)
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 

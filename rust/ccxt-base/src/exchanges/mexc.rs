@@ -3410,6 +3410,17 @@ impl MexcCore {
             ask = self.safe_string_k(ticker.clone(), "ask1", &[]);
             baseVolume = self.safe_string_k(ticker.clone(), "volume24", &[]);
             quoteVolume = self.safe_string_k(ticker.clone(), "amount24", &[]);
+            let mut contractSize: Value = self.safe_string_k(marketResolved.clone(), "contractSize", &[]);
+            if (isSwap.as_bool() == Some(true)) && (contractSize != Value::Null) {
+                // volume24 counts contracts, amount24 is in the settle currency
+                let mut contractVolume: Value = crate::precise::Precise::stringMul(&baseVolume, &contractSize);
+                if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                    baseVolume = quoteVolume.clone();
+                    quoteVolume = contractVolume.clone();
+                }  else {
+                    baseVolume = contractVolume;
+                }
+            }
             high = self.safe_string_k(ticker.clone(), "high24Price", &[]);
             low = self.safe_string_k(ticker.clone(), "lower24Price", &[]);
             changeValue = self.safe_string_k(ticker.clone(), "riseFallValue", &[]);

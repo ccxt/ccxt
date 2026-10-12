@@ -1412,11 +1412,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            if ((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))))
             {
-                ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+            orderbook.put("nonce", null);
+            Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("symbol", symbol);
             Map<String, Object> symbolSubscription = this.extend(subscription, mapLiteral1);
@@ -2786,8 +2788,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         });
 
     }
-    // client.futures and wakes every waiter
-    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters) // client.futures and wakes every waiter
     {
         return this.unWatchTicker(symbol, (Object) (parameters));
     }
@@ -5647,6 +5648,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
+        Boolean postOnly = (java.util.Objects.equals(orderType, "limit_maker")) || (java.util.Objects.equals(timeInForce, "PO"));
         HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
         mapLiteral11.put("info", order);
         mapLiteral11.put("symbol", symbol);
@@ -5658,7 +5660,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         mapLiteral11.put("lastUpdateTimestamp", lastUpdateTimestamp);
         mapLiteral11.put("type", this.parseOrderTypeByMarket((String) (orderType), marketType));
         mapLiteral11.put("timeInForce", timeInForce);
-        mapLiteral11.put("postOnly", null);
+        mapLiteral11.put("postOnly", postOnly);
         mapLiteral11.put("reduceOnly", this.safeBool(order, "R", (Object) null));
         mapLiteral11.put("side", this.safeStringLower(order, "S"));
         mapLiteral11.put("price", this.safeString(order, "p"));

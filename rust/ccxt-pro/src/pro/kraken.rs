@@ -1496,12 +1496,38 @@ impl KrakenCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), datetime);
         }  else {
             // snapshot
-            let mut depth: Value = Value::Int(a.len() as i64);
-            { let __be_tmp = self.order_book(&[Value::Map({
+            let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
+            // size the book from the subscribed depth (10 by default), not from
+            // the level count of this snapshot: a thin market's snapshot can
+            // carry fewer levels than the subscription and must not cap the book
+            let mut limit: Value = self.safe_integer_k(subscription, "limit", &[Value::Int(10)]);
+            let mut asksLength: Value = Value::Int(a.len() as i64);
+            let mut depth: Value = (if (asksLength.as_f64().unwrap_or(f64::NAN) > limit.as_f64().unwrap_or(f64::NAN)) { asksLength } else { limit.clone() });
+            let mut depths: Value = self.safe_dict_k(self.options.clone(), "wsOrderBookDepths", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
+            let mut storedDepth: Value = self.safe_integer(depths.clone(), symbol.clone(), &[]);
+            if !(in_op(&self.orderbooks, &symbol)) || (storedDepth.as_f64() != depth.as_f64()) {
+                // rebuild only on the first snapshot or when the depth changes,
+                // e.g. a re-subscription with a different limit
+                { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), depth]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+}), depth.clone()]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+                if let Value::Dict(__d) = &mut depths { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), depth); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsOrderBookDepths".into(), depths); }
+            }
+            // reset in place so that references held by users keep receiving
+            // updates after a reconnect snapshot (a new object would orphan them)
             orderbook = get_value(&self.orderbooks, &symbol);
+            orderbook.reset(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            }));
             let mut keys: Value = Value::from(vec![Value::Str("asks".into()), Value::Str("bids".into())]);
             {
                                 let mut i: Value = Value::Int(0);

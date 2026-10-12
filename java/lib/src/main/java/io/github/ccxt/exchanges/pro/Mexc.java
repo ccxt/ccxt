@@ -912,7 +912,13 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)msg).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 2);
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        {
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
+        }
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        orderbook.put("nonce", null);
+        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
     }
 
     public Object getCacheIndex(Object orderbook, Object cache)

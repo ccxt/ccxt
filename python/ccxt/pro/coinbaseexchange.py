@@ -842,13 +842,11 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         subscription = self.safe_dict(client.subscriptions, messageHash, {})
         limit = self.safe_integer(subscription, 'limit')
         if type == 'snapshot':
-            self.orderbooks[symbol] = self.order_book({}, limit)
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({}, limit)
             orderbook = self.orderbooks[symbol]
-            self.handle_deltas(orderbook['asks'], self.safe_list(message, 'asks', []))
-            self.handle_deltas(orderbook['bids'], self.safe_list(message, 'bids', []))
-            orderbook['timestamp'] = None
-            orderbook['datetime'] = None
-            orderbook['symbol'] = symbol
+            snapshot = self.parse_order_book(message, symbol)
+            orderbook.reset(snapshot)
             client.resolve(orderbook, messageHash)
         elif type == 'l2update':
             orderbook = self.orderbooks[symbol]

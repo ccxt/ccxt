@@ -252,7 +252,7 @@ class upbit extends upbit$1["default"] {
         const type = this.safeString(message, 'stream_type');
         const options = this.safeDict(this.options, 'watchOrderBook', {});
         const limit = this.safeInteger(options, 'limit', 15);
-        if (type === 'SNAPSHOT') {
+        if ((type === 'SNAPSHOT') && !(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
@@ -260,24 +260,25 @@ class upbit extends upbit$1["default"] {
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        orderbook.reset({});
-        orderbook['symbol'] = symbol;
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
         const data = this.safeList(message, 'orderbook_units', []);
+        const timestamp = this.safeInteger(message, 'timestamp');
+        const bidsSnapshot = [];
+        const asksSnapshot = [];
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict(data, i);
-            const ask_price = this.safeFloat(entry, 'ask_price');
-            const ask_size = this.safeFloat(entry, 'ask_size');
-            const bid_price = this.safeFloat(entry, 'bid_price');
-            const bid_size = this.safeFloat(entry, 'bid_size');
-            asks.store(ask_price, ask_size);
-            bids.store(bid_price, bid_size);
+            const bidPrice = this.safeNumber(entry, 'bid_price');
+            const bidSize = this.safeNumber(entry, 'bid_size');
+            const askPrice = this.safeNumber(entry, 'ask_price');
+            const askSize = this.safeNumber(entry, 'ask_size');
+            if ((bidPrice !== undefined) && (bidSize !== undefined)) {
+                bidsSnapshot.push([bidPrice, bidSize]);
+            }
+            if ((askPrice !== undefined) && (askSize !== undefined)) {
+                asksSnapshot.push([askPrice, askSize]);
+            }
         }
-        const timestamp = this.safeInteger(message, 'timestamp');
-        const datetime = this.iso8601(timestamp);
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = datetime;
+        const snapshot = this.parseOrderBook({ 'bids': bidsSnapshot, 'asks': asksSnapshot }, symbol, timestamp);
+        orderbook.reset(snapshot);
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }

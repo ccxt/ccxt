@@ -1174,7 +1174,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         subscription = self.safe_dict(client.subscriptions, messageHash, {})
         limit = self.safe_integer(subscription, 'limit')
         timestamp = self.safe_integer(message, 'timestamp')
-        self.orderbooks[symbol] = self.order_book({}, limit)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({}, limit)
         orderbook = self.orderbooks[symbol]
         bids = self.safe_list(message, 'bids')
         if bids is None:
@@ -1182,21 +1183,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         asks = self.safe_list(message, 'asks')
         if asks is None:
             return
-        for i in range(0, len(bids)):
-            bid = self.safe_dict(bids, i)
-            price = self.safe_number(bid, 'price')
-            qty = self.safe_number(bid, 'qty')
-            bidsSide = orderbook['bids']
-            bidsSide.store(price, qty)
-        for i in range(0, len(asks)):
-            ask = self.safe_dict(asks, i)
-            price = self.safe_number(ask, 'price')
-            qty = self.safe_number(ask, 'qty')
-            asksSide = orderbook['asks']
-            asksSide.store(price, qty)
-        orderbook['timestamp'] = timestamp
-        orderbook['datetime'] = self.iso8601(timestamp)
-        orderbook['symbol'] = symbol
+        snapshot = self.parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'qty')
+        orderbook.reset(snapshot)
         client.resolve(orderbook, messageHash)
 
     def handle_order_book(self, client: Client, message: dict):

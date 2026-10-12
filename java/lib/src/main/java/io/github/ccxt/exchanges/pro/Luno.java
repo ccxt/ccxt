@@ -276,7 +276,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         if (!java.util.Objects.equals(asks, null))
         {
             Object snapshot = this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
-            Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(snapshot));
+            io.github.ccxt.ws.WsOrderBook existing = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+            existing.reset(snapshot);
         } else
         {
             io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);

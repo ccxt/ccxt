@@ -347,11 +347,15 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             return;
         }
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
-        Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        orderbook.put("timestamp", null);
+        orderbook.put("datetime", null);
+        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
         this.spawn(() -> { try { this.fetchOrderBookSnapshot(client, (Map<String, Object>) (message), (Map<String, Object>) (subscription)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 

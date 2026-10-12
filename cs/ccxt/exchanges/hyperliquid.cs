@@ -1421,14 +1421,25 @@ public partial class hyperliquid : Exchange
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<ccxt.FundingRates> FetchFundingRates(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "metaAndAssetCtxs" },
         };
+        string? dexName = this.getDexFromSymbols("fetchFundingRates", symbolsNormalized);
+        if ((dexName != null))
+        {
+            request["dex"] = dexName;
+        }
         object response = await this.publicPostInfo(this.extend(request, parameters));
         //
         //     [
@@ -1470,7 +1481,7 @@ public partial class hyperliquid : Exchange
             Dictionary<string, object> data = this.extend(this.safeDict(universe, i, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, i, new Dictionary<string, object>() {}));
             result.Add(data);
         }
-        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(result, symbols));
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(result, symbolsNormalized));
     }
 
     public override Dictionary<string, object> parseFundingRate(object info, IDictionary<string, object> market = null)
@@ -4287,21 +4298,17 @@ public partial class hyperliquid : Exchange
         {
             return null;
         }
-        string? dexName = null;
-        for (int i = 0; i < symbolsLength; i++)
+        // the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
+        // so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
+        Dictionary<string, object> firstMarket = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
+        string? dexName = this.getDexFromHip3Symbol(firstMarket);
+        for (int i = 1; i < symbolsLength; i++)
         {
-            if ((dexName == null))
+            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            string? currentDexName = this.getDexFromHip3Symbol(market);
+            if ((currentDexName != dexName))
             {
-                Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
-                dexName = this.getDexFromHip3Symbol(market);
-            } else
-            {
-                Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
-                string? currentDexName = this.getDexFromHip3Symbol(market);
-                if ((currentDexName != dexName))
-                {
-                    throw new NotSupported ((((this.id + " ") + (methodName)) + " only supports fetching positions for one DEX at a time for HIP3 markets")) ;
-                }
+                throw new NotSupported ((((this.id + " ") + (methodName)) + " only supports symbols from one DEX at a time for HIP3 markets")) ;
             }
         }
         return dexName;
@@ -5404,6 +5411,7 @@ public partial class hyperliquid : Exchange
      * @description Retrieves the open interest for a list of symbols
      * @param {string[]} [symbols] Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
+     * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<ccxt.OpenInterests> FetchOpenInterests(IList<object> symbols = null, object parameters = null)
@@ -5414,7 +5422,13 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        List<object> swapMarkets = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchSwapMarkets());
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        string? dexName = this.getDexFromSymbols("fetchOpenInterests", symbolsNormalized);
+        if ((dexName != null))
+        {
+            request["dex"] = dexName;
+        }
+        List<object> swapMarkets = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchSwapMarkets(this.extend(request, parameters)));
         return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(swapMarkets, symbolsNormalized));
     }
 

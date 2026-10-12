@@ -62,7 +62,7 @@ public class Htx extends HtxApi
             put( "countries", new ArrayList<Object>(Arrays.asList("CN")) );
             put( "rateLimit", 100 );
             put( "userAgent", ((Map<String, Object>)Htx.this.userAgents).get("chrome100") );
-            put( "certified", true );
+            put( "certified", false );
             put( "version", "v1" );
             put( "hostname", "api.huobi.pro" );
             put( "pro", true );

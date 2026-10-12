@@ -689,7 +689,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Long limit = this.safeInteger(subscription, "limit");
         if (!java.util.Objects.equals(symbol, null))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            {
+                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            }
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+            orderbook.put("nonce", null);
+            Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
         }
     }
 
@@ -862,7 +868,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         } else
         {
             ((Map<String,Object>)client.subscriptions).remove(messageHash);
-            ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+            storedOrderBook.put("nonce", null);
+            Helpers.addElementToObject(storedOrderBook, "cache", new ArrayList<Object>(Arrays.asList()));
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (java.util.Objects.equals(checksum, true))
             {

@@ -2136,6 +2136,15 @@ class mexc(Exchange, ImplicitAPI):
             ask = self.safe_string(ticker, 'ask1')
             baseVolume = self.safe_string(ticker, 'volume24')
             quoteVolume = self.safe_string(ticker, 'amount24')
+            contractSize = self.safe_string(marketResolved, 'contractSize')
+            if (isSwap is True) and (contractSize is not None):
+                # volume24 counts contracts, amount24 is in the settle currency
+                contractVolume = Precise.string_mul(baseVolume, contractSize)
+                if marketResolved['inverse'] is True:
+                    baseVolume = quoteVolume
+                    quoteVolume = contractVolume
+                else:
+                    baseVolume = contractVolume
             high = self.safe_string(ticker, 'high24Price')
             low = self.safe_string(ticker, 'lower24Price')
             changeValue = self.safe_string(ticker, 'riseFallValue')
