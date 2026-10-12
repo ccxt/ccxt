@@ -366532,10 +366532,12 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         // handle list of symbols
         for(let i = 0; i < symbols.length; i++){
             const symbol = symbols[i];
-            if (symbol in this.orderbooks) {
-                delete this.orderbooks[symbol];
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
             }
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            const orderbook = this.orderbooks[symbol];
+            orderbook['nonce'] = undefined;
+            orderbook.cache = [];
             const symbolSubscription = this.extend(subscription, {
                 'symbol': symbol
             });
@@ -378330,31 +378332,13 @@ class bithumb extends _bithumb_js__rspack_import_0/* ["default"] */.A {
         if (symbol === undefined) {
             return;
         }
-        const streamType = this.safeString(message, 'stream_type');
         const options = this.safeDict(this.options, 'watchOrderBook', {});
         const obLimit = this.safeInteger(options, 'limit', 1000);
-        if (!(symbol in this.orderbooks) || streamType === 'SNAPSHOT') {
+        if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook({}, obLimit);
         }
         const orderbook = this.orderbooks[symbol];
-        orderbook.reset({});
-        orderbook['symbol'] = symbol;
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
         const units = this.safeList(message, 'orderbook_units', []);
-        for(let i = 0; i < units.length; i++){
-            const entry = this.safeDict(units, i);
-            const bidPrice = this.safeNumber(entry, 'bid_price');
-            const bidSize = this.safeNumber(entry, 'bid_size');
-            const askPrice = this.safeNumber(entry, 'ask_price');
-            const askSize = this.safeNumber(entry, 'ask_size');
-            if (bidPrice !== undefined && bidSize !== undefined) {
-                bids.store(bidPrice, bidSize);
-            }
-            if (askPrice !== undefined && askSize !== undefined) {
-                asks.store(askPrice, askSize);
-            }
-        }
         const gen2TimestampStr = this.safeString2(message, 'timestamp', 'datetime');
         let timestamp = undefined;
         if (gen2TimestampStr !== undefined) {
@@ -378363,8 +378347,32 @@ class bithumb extends _bithumb_js__rspack_import_0/* ["default"] */.A {
         if (timestamp === undefined) {
             timestamp = this.milliseconds();
         }
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601(timestamp);
+        const bidsSnapshot = [];
+        const asksSnapshot = [];
+        for(let i = 0; i < units.length; i++){
+            const entry = this.safeDict(units, i);
+            const bidPrice = this.safeNumber(entry, 'bid_price');
+            const bidSize = this.safeNumber(entry, 'bid_size');
+            const askPrice = this.safeNumber(entry, 'ask_price');
+            const askSize = this.safeNumber(entry, 'ask_size');
+            if (bidPrice !== undefined && bidSize !== undefined) {
+                bidsSnapshot.push([
+                    bidPrice,
+                    bidSize
+                ]);
+            }
+            if (askPrice !== undefined && askSize !== undefined) {
+                asksSnapshot.push([
+                    askPrice,
+                    askSize
+                ]);
+            }
+        }
+        const snapshot = this.parseOrderBook({
+            'bids': bidsSnapshot,
+            'asks': asksSnapshot
+        }, symbol, timestamp);
+        orderbook.reset(snapshot);
         const messageHash = 'orderbook' + ':' + symbol;
         client.resolve(orderbook, messageHash);
     }
@@ -381195,7 +381203,12 @@ class bitstamp extends _bitstamp_js__rspack_import_0/* ["default"] */.A {
         const parts = channel.split('_');
         const marketId = this.safeString(parts, 3);
         const symbol = this.safeSymbol(marketId);
-        this.orderbooks[symbol] = this.orderBook();
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook();
+        }
+        const orderbook = this.orderbooks[symbol];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
     }
     handleSubscriptionStatus(client, message) {
         //
@@ -381967,10 +381980,12 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
             return;
         }
         const limit = this.safeInteger(subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        const orderbook = this.orderbooks[symbol];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
         // watch the snapshot in a separate async call
         this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
     }
@@ -383008,10 +383023,16 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
     handleOrderBookSubscription(client, message, subscription) {
         const symbol = this.safeString(subscription, 'symbol');
         const limit = this.safeInteger(subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        const limits = this.safeDict(this.options, 'orderBookLimits', {});
+        const storedLimit = this.safeInteger(limits, symbol);
+        if (!(symbol in this.orderbooks) || storedLimit !== limit) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
+            limits[symbol] = limit;
+            this.options['orderBookLimits'] = limits;
         }
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        const orderbook = this.orderbooks[symbol];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
     }
     handleOrderBookSubscriptions(client, message, marketIds) {
         const name = 'book';
@@ -394206,13 +394227,12 @@ class coinbaseexchange extends _coinbaseexchange_js__rspack_import_0/* ["default
         const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const limit = this.safeInteger(subscription, 'limit');
         if (type === 'snapshot') {
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
+            }
             const orderbook = this.orderbooks[symbol];
-            this.handleDeltas(orderbook['asks'], this.safeList(message, 'asks', []));
-            this.handleDeltas(orderbook['bids'], this.safeList(message, 'bids', []));
-            orderbook['timestamp'] = undefined;
-            orderbook['datetime'] = undefined;
-            orderbook['symbol'] = symbol;
+            const snapshot = this.parseOrderBook(message, symbol);
+            orderbook.reset(snapshot);
             client.resolve(orderbook, messageHash);
         } else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];
@@ -402450,7 +402470,12 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         const symbol = this.safeString(subscription, 'symbol');
         const limit = this.safeInteger(subscription, 'limit');
         if (symbol !== undefined) {
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook['nonce'] = undefined;
+            orderbook.cache = [];
         }
     }
     handleNewSpotOrderBook(client, message) {
@@ -402605,7 +402630,8 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             this.handleBookDelta(storedOrderBook, delta);
         } else {
             delete client.subscriptions[messageHash];
-            delete this.orderbooks[symbol];
+            storedOrderBook['nonce'] = undefined;
+            storedOrderBook.cache = [];
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             if (checksum === true) {
                 const error = new _base_errors_js__rspack_import_1.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
@@ -404792,17 +404818,34 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(symbol in this.orderbooks)) {
-            this.orderbooks[symbol] = this.orderBook();
-        } else if (isInitial) {
-            // handle https://github.com/ccxt/ccxt/issues/29210
-            if (symbol in this.orderbooks) {
-                delete this.orderbooks[symbol];
-            }
             this.orderbooks[symbol] = this.orderBook();
         }
         const orderbook = this.orderbooks[symbol];
+        if (isInitial) {
+            // the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+            const bidsSnapshot = [];
+            const asksSnapshot = [];
+            for(let i = 0; i < changes.length; i++){
+                const delta = changes[i];
+                const bidAsk = [
+                    this.safeNumber(delta, 1),
+                    this.safeNumber(delta, 2)
+                ];
+                if (this.safeString(delta, 0) === 'buy') {
+                    bidsSnapshot.push(bidAsk);
+                } else {
+                    asksSnapshot.push(bidAsk);
+                }
+            }
+            const snapshot = this.parseOrderBook({
+                'bids': bidsSnapshot,
+                'asks': asksSnapshot
+            }, symbol);
+            orderbook.reset(snapshot);
+            client.resolve(orderbook, messageHash);
+            return;
+        }
         for(let i = 0; i < changes.length; i++){
             const delta = changes[i];
             const price = this.safeNumber(delta, 1);
@@ -410231,7 +410274,12 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const limit = this.safeInteger(subscription, 'limit');
         if (symbol !== undefined) {
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook['nonce'] = undefined;
+            orderbook.cache = [];
         }
         if (market['spot'] === true) {
             this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
@@ -417682,7 +417730,9 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const limit = this.safeInteger(subscription, 'limit');
         const timestamp = this.safeInteger(message, 'timestamp');
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
+        }
         const orderbook = this.orderbooks[symbol];
         const bids = this.safeList(message, 'bids');
         if (bids === undefined) {
@@ -417692,23 +417742,8 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         if (asks === undefined) {
             return;
         }
-        for(let i = 0; i < bids.length; i++){
-            const bid = this.safeDict(bids, i);
-            const price = this.safeNumber(bid, 'price');
-            const qty = this.safeNumber(bid, 'qty');
-            const bidsSide = orderbook['bids'];
-            bidsSide.store(price, qty);
-        }
-        for(let i = 0; i < asks.length; i++){
-            const ask = this.safeDict(asks, i);
-            const price = this.safeNumber(ask, 'price');
-            const qty = this.safeNumber(ask, 'qty');
-            const asksSide = orderbook['asks'];
-            asksSide.store(price, qty);
-        }
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601(timestamp);
-        orderbook['symbol'] = symbol;
+        const snapshot = this.parseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'qty');
+        orderbook.reset(snapshot);
         client.resolve(orderbook, messageHash);
     }
     handleOrderBook(client, message) {
@@ -420141,16 +420176,27 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
     }
     handleOrderBookSubscription(client, message, subscription) {
         const limit = this.safeInteger(subscription, 'limit');
-        const symbols = this.safeList(subscription, 'symbols');
+        let symbols = this.safeList(subscription, 'symbols');
         if (symbols === undefined) {
-            const symbol = this.safeString(subscription, 'symbol');
-            this.orderbooks[symbol] = this.orderBook({}, limit);
-        } else {
-            for(let i = 0; i < symbols.length; i++){
-                const symbol = symbols[i];
-                this.orderbooks[symbol] = this.orderBook({}, limit);
-            }
+            symbols = [
+                this.safeString(subscription, 'symbol')
+            ];
         }
+        const limits = this.safeDict(this.options, 'orderBookLimits', {});
+        for(let i = 0; i < symbols.length; i++){
+            const symbol = symbols[i];
+            const storedLimit = this.safeInteger(limits, symbol);
+            // reuse the existing book so user-held references keep updating; rebuild only if depth changed
+            if (!(symbol in this.orderbooks) || storedLimit !== limit) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
+            } else {
+                const orderbook = this.orderbooks[symbol];
+                orderbook['nonce'] = undefined;
+                orderbook.cache = [];
+            }
+            limits[symbol] = limit;
+        }
+        this.options['orderBookLimits'] = limits;
     // moved snapshot initialization to handleOrderBook to fix
     // https://github.com/ccxt/ccxt/issues/6820
     // the general idea is to fetch the snapshot after the first delta
@@ -424811,7 +424857,8 @@ class luno extends _luno_js__rspack_import_0/* ["default"] */.A {
         const asks = this.safeList(message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            this.orderbooks[symbol] = this.indexedOrderBook(snapshot);
+            const existing = this.orderbooks[symbol];
+            existing.reset(snapshot);
         } else {
             const ob = this.orderbooks[symbol];
             this.handleBookDelta(ob, message);
@@ -425756,7 +425803,12 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const parts = msg.split('@');
         const marketId = this.safeString(parts, 2);
         const symbol = this.safeSymbol(marketId);
-        this.orderbooks[symbol] = this.orderBook({});
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
+        }
+        const orderbook = this.orderbooks[symbol];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
     }
     getCacheIndex(orderbook, cache) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
@@ -442876,7 +442928,7 @@ class upbit extends _upbit_js__rspack_import_0/* ["default"] */.A {
         const type = this.safeString(message, 'stream_type');
         const options = this.safeDict(this.options, 'watchOrderBook', {});
         const limit = this.safeInteger(options, 'limit', 15);
-        if (type === 'SNAPSHOT') {
+        if (type === 'SNAPSHOT' && !(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
@@ -442884,24 +442936,34 @@ class upbit extends _upbit_js__rspack_import_0/* ["default"] */.A {
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        orderbook.reset({});
-        orderbook['symbol'] = symbol;
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
         const data = this.safeList(message, 'orderbook_units', []);
+        const timestamp = this.safeInteger(message, 'timestamp');
+        const bidsSnapshot = [];
+        const asksSnapshot = [];
         for(let i = 0; i < data.length; i++){
             const entry = this.safeDict(data, i);
-            const ask_price = this.safeFloat(entry, 'ask_price');
-            const ask_size = this.safeFloat(entry, 'ask_size');
-            const bid_price = this.safeFloat(entry, 'bid_price');
-            const bid_size = this.safeFloat(entry, 'bid_size');
-            asks.store(ask_price, ask_size);
-            bids.store(bid_price, bid_size);
+            const bidPrice = this.safeNumber(entry, 'bid_price');
+            const bidSize = this.safeNumber(entry, 'bid_size');
+            const askPrice = this.safeNumber(entry, 'ask_price');
+            const askSize = this.safeNumber(entry, 'ask_size');
+            if (bidPrice !== undefined && bidSize !== undefined) {
+                bidsSnapshot.push([
+                    bidPrice,
+                    bidSize
+                ]);
+            }
+            if (askPrice !== undefined && askSize !== undefined) {
+                asksSnapshot.push([
+                    askPrice,
+                    askSize
+                ]);
+            }
         }
-        const timestamp = this.safeInteger(message, 'timestamp');
-        const datetime = this.iso8601(timestamp);
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = datetime;
+        const snapshot = this.parseOrderBook({
+            'bids': bidsSnapshot,
+            'asks': asksSnapshot
+        }, symbol, timestamp);
+        orderbook.reset(snapshot);
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
@@ -446787,10 +446849,14 @@ class woo extends _woo_js__rspack_import_0/* ["default"] */.A {
         if (symbol === undefined) {
             return;
         }
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        const orderbook = this.orderbooks[symbol];
+        // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        orderbook['timestamp'] = undefined;
+        orderbook['datetime'] = undefined;
+        orderbook.cache = [];
         this.spawn(this.fetchOrderBookSnapshot, client, message, subscription);
     }
     async fetchOrderBookSnapshot(client, message, subscription) {

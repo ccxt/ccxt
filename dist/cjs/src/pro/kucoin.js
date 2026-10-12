@@ -1836,17 +1836,26 @@ class kucoin extends kucoin$1["default"] {
     }
     handleOrderBookSubscription(client, message, subscription) {
         const limit = this.safeInteger(subscription, 'limit');
-        const symbols = this.safeList(subscription, 'symbols');
+        let symbols = this.safeList(subscription, 'symbols');
         if (symbols === undefined) {
-            const symbol = this.safeString(subscription, 'symbol');
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            symbols = [this.safeString(subscription, 'symbol')];
         }
-        else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        const limits = this.safeDict(this.options, 'orderBookLimits', {});
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const storedLimit = this.safeInteger(limits, symbol);
+            // reuse the existing book so user-held references keep updating; rebuild only if depth changed
+            if (!(symbol in this.orderbooks) || (storedLimit !== limit)) {
                 this.orderbooks[symbol] = this.orderBook({}, limit);
             }
+            else {
+                const orderbook = this.orderbooks[symbol];
+                orderbook['nonce'] = undefined;
+                orderbook.cache = [];
+            }
+            limits[symbol] = limit;
         }
+        this.options['orderBookLimits'] = limits;
         // moved snapshot initialization to handleOrderBook to fix
         // https://github.com/ccxt/ccxt/issues/6820
         // the general idea is to fetch the snapshot after the first delta

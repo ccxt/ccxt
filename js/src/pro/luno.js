@@ -223,7 +223,8 @@ export default class luno extends lunoRest {
         const asks = this.safeList(message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            this.orderbooks[symbol] = this.indexedOrderBook(snapshot);
+            const existing = this.orderbooks[symbol];
+            existing.reset(snapshot);
         }
         else {
             const ob = this.orderbooks[symbol];
