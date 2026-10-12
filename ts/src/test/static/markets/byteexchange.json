@@ -1,0 +1,202 @@
+{
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 6,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "allowed_buy_order_types": [
+                "limit",
+                "market",
+                "stop_limit",
+                "stop_market"
+            ],
+            "allowed_buy_tifs": [
+                "fok",
+                "gtc",
+                "ioc"
+            ],
+            "allowed_sell_order_types": [
+                "limit",
+                "market",
+                "stop_limit",
+                "stop_market"
+            ],
+            "allowed_sell_tifs": [
+                "fok",
+                "gtc",
+                "ioc"
+            ],
+            "allowed_tifs": [
+                "fok",
+                "gtc",
+                "ioc"
+            ],
+            "base_asset": "BTC",
+            "force_post_only_sell": false,
+            "id": "1",
+            "is_active": true,
+            "maker_fee": "0.001000",
+            "min_quantity": "0.000100000000000000",
+            "price_precision": "2",
+            "protected_pair": false,
+            "quantity_precision": "6",
+            "quote_asset": "USDT",
+            "symbol": "BTC_USDT",
+            "taker_fee": "0.002000"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "lowercaseId": null,
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 5,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.003,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "allowed_buy_order_types": [
+                "limit",
+                "market",
+                "stop_limit",
+                "stop_market"
+            ],
+            "allowed_buy_tifs": [
+                "fok",
+                "gtc",
+                "ioc"
+            ],
+            "allowed_sell_order_types": [
+                "limit",
+                "market",
+                "stop_limit",
+                "stop_market"
+            ],
+            "allowed_sell_tifs": [
+                "fok",
+                "gtc",
+                "ioc"
+            ],
+            "allowed_tifs": [
+                "fok",
+                "gtc",
+                "ioc"
+            ],
+            "base_asset": "ETH",
+            "force_post_only_sell": false,
+            "id": "2",
+            "is_active": true,
+            "maker_fee": "0.001000",
+            "min_quantity": "0.003000000000000000",
+            "price_precision": "2",
+            "protected_pair": false,
+            "quantity_precision": "5",
+            "quote_asset": "USDT",
+            "symbol": "ETH_USDT",
+            "taker_fee": "0.002000"
+        },
+        "tierBased": null,
+        "percentage": null
+    }
+}
