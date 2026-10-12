@@ -1788,13 +1788,15 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut __for_first_61: bool = true;
             while { if !__for_first_61 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_61 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (in_op(&self.orderbooks, &symbol)) {
-                remove(&mut self.orderbooks, &symbol);
-            }
-            { let __be_tmp = self.order_book(&[Value::Map({
+            if !(in_op(&self.orderbooks, &symbol)) {
+                { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), limit.clone()]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+            }
+            let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+            crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
             let mut symbolSubscription: Value = self.extend(subscription.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), symbol.clone());
@@ -6082,6 +6084,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = Value::Str("PO".into());
         }
+        let mut postOnly: Value = Value::Bool((orderType.as_str() == Some("limit_maker")) || (timeInForce.as_str() == Some("PO")));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -6094,7 +6097,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
         m.insert("type".to_string(), self.parent.parse_order_type_by_market(orderType, marketType));
         m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("postOnly".to_string(), Value::Null);
+        m.insert("postOnly".to_string(), postOnly);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "R", &[]));
         m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "S", &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "p", &[]));

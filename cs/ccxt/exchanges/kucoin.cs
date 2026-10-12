@@ -1331,6 +1331,7 @@ public partial class kucoin : Exchange
                     { "405", typeof(NotSupported) },
                     { "415", typeof(NotSupported) },
                     { "429", typeof(RateLimitExceeded) },
+                    { "429000", typeof(RateLimitExceeded) },
                     { "500", typeof(ExchangeNotAvailable) },
                     { "503", typeof(ExchangeNotAvailable) },
                     { "101030", typeof(PermissionDenied) },

@@ -13,7 +13,7 @@ public partial class htx : Exchange
             { "countries", new List<object>() {"CN"} },
             { "rateLimit", 100 },
             { "userAgent", getValue(this.userAgents, "chrome100") },
-            { "certified", true },
+            { "certified", false },
             { "version", "v1" },
             { "hostname", "api.huobi.pro" },
             { "pro", true },
@@ -2952,6 +2952,18 @@ public partial class htx : Exchange
         string? close = this.safeString(ticker, "close");
         string? baseVolume = this.safeString(ticker, "amount");
         string? quoteVolume = this.safeString(ticker, "vol");
+        IDictionary<string, object> marketResolved = this.safeDict(this.markets, symbol, market);
+        if ((this.safeBool(marketResolved, "contract") == true))
+        {
+            // contract tickers count 'vol' in contracts
+            if ((this.safeBool(marketResolved, "linear") == true))
+            {
+                quoteVolume = this.safeString(ticker, "trade_turnover");
+            } else
+            {
+                quoteVolume = Precise.stringMul(quoteVolume, this.safeString(marketResolved, "contractSize"));
+            }
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },

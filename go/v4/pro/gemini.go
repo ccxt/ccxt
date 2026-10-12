@@ -530,17 +530,36 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "orderbook:" + *symbol
-	// let orderbook = this.safeValue (this.orderbooks, symbol)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
-	} else if isInitial {
-		// handle https://github.com/ccxt/ccxt/issues/29210
-		if ccxt.InOp(this.Orderbooks, symbol) {
-			ccxt.Remove(this.Orderbooks, symbol)
-		}
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+	if isInitial {
+		// the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+		var bidsSnapshot []any = []any{}
+		var asksSnapshot []any = []any{}
+		for i := 0; i < len(changes); i++ {
+			var delta any = func() any {
+				if i >= 0 && i < len(changes) {
+					return ccxt.DerefScalar(changes[i])
+				}
+				return nil
+			}()
+			var bidAsk []any = []any{this.SafeNumber(delta, 1), this.SafeNumber(delta, 2)}
+			if this.SafeString(delta, 0) != nil && *this.SafeString(delta, 0) == "buy" {
+				bidsSnapshot = append(bidsSnapshot, bidAsk)
+			} else {
+				asksSnapshot = append(asksSnapshot, bidAsk)
+			}
+		}
+		var snapshot map[string]any = this.ParseOrderBook(map[string]any{
+			"bids": bidsSnapshot,
+			"asks": asksSnapshot,
+		}, symbol)
+		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		return
+	}
 	for i := 0; i < len(changes); i++ {
 		var delta any = func() any {
 			if i >= 0 && i < len(changes) {

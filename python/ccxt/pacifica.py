@@ -3194,8 +3194,8 @@ class pacifica(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from *spot, swap*
-        :param str toAccount: account to transfer to *swap, spot or address*
+        :param str fromAccount: not used, funds are always sent from the account wallet, the origin address
+        :param str toAccount: the address of the subaccount or main account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
@@ -3259,7 +3259,7 @@ class pacifica(Exchange, ImplicitAPI):
 
     def create_sub_account(self, name: str, params: dict = {}):
         """
-        creates a sub-account under the main account
+        creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests(an agent_wallet header with a main-key signature is accepted)
 
         https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
 
@@ -3322,6 +3322,15 @@ class pacifica(Exchange, ImplicitAPI):
         return response
 
     def bind_agent_wallet(self, agentAddress: str, params: dict = {}) -> dict:
+        """
+        binds an agent wallet that can sign trading actions for the account
+
+        https://docs.pacifica.fi/api-documentation/api/signing/api-agent-keys
+
+        :param str agentAddress: the public key of the agent wallet
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'bind_agent_wallet'
         sigPayload = {
             'agent_wallet': agentAddress,
@@ -3330,12 +3339,23 @@ class pacifica(Exchange, ImplicitAPI):
         return self.privatePostAgentBind(self.extend(request, params))
 
     def create_api_key(self, params: dict = {}) -> dict:
+        """
+        creates an api key for the account
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'create_api_key'
         sigPayload = {}
         request = self.post_action_request(operationType, sigPayload, params)
         return self.privatePostAccountApiKeysCreate(self.extend(request, params))
 
     def revoke_api_key(self, apiKey: str, params: dict = {}) -> dict:
+        """
+        revokes an api key of the account
+        :param str apiKey: the api key to revoke
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'revoke_api_key'
         sigPayload = {
             'api_key': apiKey,
@@ -3344,12 +3364,27 @@ class pacifica(Exchange, ImplicitAPI):
         return self.privatePostAccountApiKeysRevoke(self.extend(request, params))
 
     def fetch_api_keys(self, params: dict = {}) -> dict:
+        """
+        fetches the api keys of the account
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'list_api_keys'
         sigPayload = {}
         request = self.post_action_request(operationType, sigPayload, params)
         return self.privatePostAccountApiKeys(self.extend(request, params))
 
     def approve_builder_code(self, builderCode: str, maxFeeRate: str, params: dict = {}) -> dict:
+        """
+        approves a builder code to charge fees on the account orders
+
+        https://docs.pacifica.fi/programs/builder-program
+
+        :param str builderCode: the builder code to approve
+        :param str maxFeeRate: the maximum fee rate the builder may charge
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'approve_builder_code'
         sigPayload = {
             'builder_code': builderCode,
@@ -3359,12 +3394,29 @@ class pacifica(Exchange, ImplicitAPI):
         return self.privatePostAccountBuilderCodesApprove(self.extend(request, params))
 
     def fetch_builder_approvals(self, address: str) -> list[dict]:
+        """
+        fetches the builder codes approved by an account
+
+        https://docs.pacifica.fi/programs/builder-program
+
+        :param str address: the account address
+        :returns dict[]: the api result
+        """
         request = {
             'account': address,
         }
         return self.publicGetAccountBuilderCodesApprovals(self.extend(request))
 
     def revoke_builder_code(self, builderCode: str, params: dict = {}) -> dict:
+        """
+        revokes a previously approved builder code
+
+        https://docs.pacifica.fi/programs/builder-program
+
+        :param str builderCode: the builder code to revoke
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
         operationType = 'revoke_builder_code'
         sigPayload = {
             'builder_code': builderCode,

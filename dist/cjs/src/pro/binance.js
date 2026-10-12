@@ -1190,10 +1190,12 @@ class binance extends binance$1["default"] {
         // handle list of symbols
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            if (symbol in this.orderbooks) {
-                delete this.orderbooks[symbol];
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
             }
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            const orderbook = this.orderbooks[symbol];
+            orderbook['nonce'] = undefined;
+            orderbook.cache = [];
             const symbolSubscription = this.extend(subscription, { 'symbol': symbol });
             // fetch the snapshot in a separate async call
             this.spawn(this.fetchOrderBookSnapshot, client, message, symbolSubscription);
@@ -4713,6 +4715,7 @@ class binance extends binance$1["default"] {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO';
         }
+        const postOnly = (orderType === 'limit_maker') || (timeInForce === 'PO');
         return this.safeOrder({
             'info': order,
             'symbol': symbol,
@@ -4724,7 +4727,7 @@ class binance extends binance$1["default"] {
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'type': this.parseOrderTypeByMarket(orderType, marketType),
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool(order, 'R'),
             'side': this.safeStringLower(order, 'S'),
             'price': this.safeString(order, 'p'),

@@ -14,6 +14,7 @@ import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
 import io.github.ccxt.types.OrderBooks;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -1101,7 +1102,7 @@ public class Hollaex extends HollaexApi
             }};
             Boolean paginate = false;
             Long maxLimit = 500L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateOptionparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", paginate);
+            Pair<Boolean, Map<String, Object>> paginateOptionparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", paginate);
             Boolean paginateOption = paginateOptionparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateOptionparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginateOption))

@@ -1887,12 +1887,45 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 		"args": topics,
 	}
 	var url any = this.GetUrl(depth, "public")
-
-	r2 := <-this.WatchMultiple(url, messageHashes, request, messageHashes)
-	if r2.Err != nil {
-		panic(r2.Err)
+	var client ccxt.ClientInterface = this.Client(url)
+	var resyncTopics []any = []any{}
+	var resyncHashes []any = []any{}
+	var resyncNeeded bool = false
+	for i := 0; i < len(messageHashes); i++ {
+		if ccxt.IsEqual(this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), func() any {
+			if i >= 0 && i < len(messageHashes) {
+				return ccxt.DerefScalar(messageHashes[i])
+			}
+			return nil
+		}()), "resync") {
+			// okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+			resyncTopics = append(resyncTopics, func() any {
+				if i >= 0 && i < len(topics) {
+					return ccxt.DerefScalar(topics[i])
+				}
+				return nil
+			}())
+			resyncHashes = append(resyncHashes, ccxt.Add("unsubscribe:orderbook:", ccxt.GetValue(symbolsNormalized, i)))
+			resyncNeeded = true
+		}
 	}
-	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
+	if resyncNeeded {
+		var unsubscribeRequest map[string]any = map[string]any{
+			"op":   "unsubscribe",
+			"args": resyncTopics,
+		}
+
+		r2 := <-this.WatchMultiple(url, resyncHashes, unsubscribeRequest, resyncHashes)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+	}
+
+	r3 := <-this.WatchMultiple(url, messageHashes, request, messageHashes)
+	if r3.Err != nil {
+		panic(r3.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r3.Value.(ccxt.OrderBookInterface)
 
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
@@ -2202,8 +2235,8 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 				}()
 				this.HandleOrderBookMessage(client, update, orderbook, messageHash, market)
 				if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
-					// a nonce gap rejected the future and always cleared the subscription entry, while the book
-					// removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+					// a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+					ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, "resync")
 					break
 				}
 				client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

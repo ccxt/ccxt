@@ -12,6 +12,7 @@ import io.github.ccxt.Client;
 import io.github.ccxt.types.Account;
 import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.PredictionEvent;
 import io.github.ccxt.types.PredictionOrder;
 import io.github.ccxt.types.PredictionOrderBook;
@@ -2519,7 +2520,7 @@ public class Limitless extends LimitlessApi
             if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")))
             {
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsValue), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsValue), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsValueVariable.first();
                 paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable.second();
                 Double cost = this.safeNumber(paramsValue, "cost", (Object) null);

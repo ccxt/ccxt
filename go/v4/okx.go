@@ -2277,11 +2277,16 @@ func (this *Okx) Describe() any {
 						"PO":  true,
 						"GTD": false,
 					},
-					"hedged":                 true,
-					"trailing":               true,
-					"iceberg":                true,
-					"leverage":               false,
-					"selfTradePrevention":    true,
+					"hedged":   true,
+					"trailing": true,
+					"iceberg":  true,
+					"leverage": false,
+					"selfTradePrevention": map[string]any{
+						"EXPIRE_MAKER": true,
+						"EXPIRE_TAKER": true,
+						"EXPIRE_BOTH":  true,
+						"NONE":         false,
+					},
 					"marketBuyByCost":        true,
 					"marketBuyRequiresPrice": false,
 				},
@@ -3833,11 +3838,11 @@ func (this *Okx) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes260519 []any = ListTyped(r1.Value)
-		if retRes260519 == nil {
+		var retRes261019 []any = ListTyped(r1.Value)
+		if retRes261019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes260519}
+			ch <- AsyncResult[any]{Value: retRes261019}
 		}
 		return nil
 	}
@@ -3992,11 +3997,11 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes271819 []any = ListTyped(r1.Value)
-		if retRes271819 == nil {
+		var retRes272319 []any = ListTyped(r1.Value)
+		if retRes272319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes271819}
+			ch <- AsyncResult[any]{Value: retRes272319}
 		}
 		return nil
 	}
@@ -4179,11 +4184,11 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes283019 []any = ListTyped(r1.Value)
-		if retRes283019 == nil {
+		var retRes283519 []any = ListTyped(r1.Value)
+		if retRes283519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes283019}
+			ch <- AsyncResult[any]{Value: retRes283519}
 		}
 		return nil
 	}
@@ -4592,11 +4597,11 @@ func (this *Okx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], symb
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes316615 map[string]any = r1.Value
-	if retRes316615 == nil {
+	var retRes317115 map[string]any = r1.Value
+	if retRes317115 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes316615}
+		ch <- AsyncResult[any]{Value: retRes317115}
 	}
 	return nil
 }
@@ -4641,11 +4646,11 @@ func (this *Okx) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes319115 map[string]any = r1.Value
-	if retRes319115 == nil {
+	var retRes319615 map[string]any = r1.Value
+	if retRes319615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes319115}
+		ch <- AsyncResult[any]{Value: retRes319615}
 	}
 	return nil
 }
@@ -4989,6 +4994,38 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			AddElementToObject(request, "slTriggerPxType", slTriggerPxType)
 		}
 	}
+	// unified stp
+	var selfTradePrevention any = nil
+	var selfTradePreventionorderParamsVariable []any = this.HandleOptionAndParams(orderParams, "createOrder", "selfTradePrevention")
+	selfTradePrevention = GetValue(selfTradePreventionorderParamsVariable, 0)
+	orderParams = selfTradePreventionorderParamsVariable[1]
+	if selfTradePrevention != nil {
+		var stpModes map[string]any = map[string]any{
+			"EXPIRE_MAKER": "cancel_maker",
+			"EXPIRE_TAKER": "cancel_taker",
+			"EXPIRE_BOTH":  "cancel_both",
+		}
+		var selfTradePreventionUpper string = ToUpper(selfTradePrevention)
+		if selfTradePreventionUpper == "NONE" {
+			panic(NotSupported(this.Id + " createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order"))
+		}
+		var stpMode *string = this.SafeString(stpModes, selfTradePreventionUpper, ToLower(selfTradePrevention))
+		var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
+		var requestOrdType *string = this.SafeString(request, "ordType")
+		if (requestOrdType != nil) && (func() bool {
+			if requestOrdType == nil {
+				return false
+			}
+			_, ok := algoOrderTypes[*requestOrdType]
+			return ok
+		}()) {
+			panic(NotSupported(this.Id + " createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint"))
+		}
+		if (stpMode != nil && *stpMode == "cancel_both") && (requestOrdType != nil && *requestOrdType == "fok") {
+			panic(InvalidOrder(this.Id + " createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders"))
+		}
+		AddElementToObject(request, "stpMode", stpMode)
+	}
 	if clientOrderId == nil {
 		var brokerId *string = this.SafeString(this.Options, "brokerId")
 		if brokerId != nil {
@@ -5032,6 +5069,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
  * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
  * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
  * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
+ * @param {string} [params.selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Okx) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
@@ -6342,11 +6380,11 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes458119 []any = ListTyped(r1.Value)
-		if retRes458119 == nil {
+		var retRes461119 []any = ListTyped(r1.Value)
+		if retRes461119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes458119}
+			ch <- AsyncResult[any]{Value: retRes461119}
 		}
 		return nil
 	}
@@ -6764,11 +6802,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes493719 []any = ListTyped(r1.Value)
-		if retRes493719 == nil {
+		var retRes496719 []any = ListTyped(r1.Value)
+		if retRes496719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes493719}
+			ch <- AsyncResult[any]{Value: retRes496719}
 		}
 		return nil
 	}
@@ -6987,11 +7025,11 @@ func (this *Okx) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes511719 []any = ListTyped(r1.Value)
-		if retRes511719 == nil {
+		var retRes514719 []any = ListTyped(r1.Value)
+		if retRes514719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes511719}
+			ch <- AsyncResult[any]{Value: retRes514719}
 		}
 		return nil
 	}
@@ -7083,11 +7121,11 @@ func (this *Okx) fetchOrderTradesBody(ch chan AsyncResult[any], id string, optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes519215 []any = ListTyped(r.Value)
-	if retRes519215 == nil {
+	var retRes522215 []any = ListTyped(r.Value)
+	if retRes522215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes519215}
+		ch <- AsyncResult[any]{Value: retRes522215}
 	}
 	return nil
 }
@@ -7138,11 +7176,11 @@ func (this *Okx) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes521719 []any = ListTyped(r1.Value)
-		if retRes521719 == nil {
+		var retRes524719 []any = ListTyped(r1.Value)
+		if retRes524719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes521719}
+			ch <- AsyncResult[any]{Value: retRes524719}
 		}
 		return nil
 	}
@@ -7721,11 +7759,11 @@ func (this *Okx) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes567419 []any = ListTyped(r1.Value)
-		if retRes567419 == nil {
+		var retRes570419 []any = ListTyped(r1.Value)
+		if retRes570419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes567419}
+			ch <- AsyncResult[any]{Value: retRes570419}
 		}
 		return nil
 	}
@@ -7885,11 +7923,11 @@ func (this *Okx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes578519 []any = ListTyped(r1.Value)
-		if retRes578519 == nil {
+		var retRes581519 []any = ListTyped(r1.Value)
+		if retRes581519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes578519}
+			ch <- AsyncResult[any]{Value: retRes581519}
 		}
 		return nil
 	}
@@ -8521,11 +8559,11 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[[]any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes630315 []any = ListTyped(r.Value)
-	if retRes630315 == nil {
+	var retRes633315 []any = ListTyped(r.Value)
+	if retRes633315 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes630315}
+		ch <- AsyncResult[[]any]{Value: retRes633315}
 	}
 	return nil
 }
@@ -9259,11 +9297,11 @@ func (this *Okx) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes689915 map[string]any = r.Value
-	if retRes689915 == nil {
+	var retRes692915 map[string]any = r.Value
+	if retRes692915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes689915}
+		ch <- AsyncResult[map[string]any]{Value: retRes692915}
 	}
 	return nil
 }
@@ -10301,11 +10339,11 @@ func (this *Okx) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes769415 map[string]any = MapTyped(r.Value)
-	if retRes769415 == nil {
+	var retRes772415 map[string]any = MapTyped(r.Value)
+	if retRes772415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes769415, Raw: retRes769415}
+		ch <- EndpointResult[map[string]any]{Value: retRes772415, Raw: retRes772415}
 	}
 	return nil
 }
@@ -10335,11 +10373,11 @@ func (this *Okx) addMarginBody(ch chan AsyncResult[map[string]any], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes770815 map[string]any = MapTyped(r.Value)
-	if retRes770815 == nil {
+	var retRes773815 map[string]any = MapTyped(r.Value)
+	if retRes773815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes770815}
+		ch <- AsyncResult[map[string]any]{Value: retRes773815}
 	}
 	return nil
 }
@@ -13424,6 +13462,7 @@ func (this *Okx) CreateMarketSellOrderWithCost(symbol string, cost float64, opti
  * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
  * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
  * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
+ * @param {string} [params.selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Okx) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {

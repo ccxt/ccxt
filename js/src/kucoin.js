@@ -656,6 +656,7 @@ export default class kucoin extends Exchange {
                     '405': NotSupported,
                     '415': NotSupported,
                     '429': RateLimitExceeded,
+                    '429000': RateLimitExceeded, // {"code":"429000","msg":"Too many requests. System-level rate limit exceeded."}
                     '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}

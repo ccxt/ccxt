@@ -3278,6 +3278,7 @@ export default class bingx extends Exchange {
             const trailingAmount = this.safeString (paramsPostOnly, 'trailingAmount');
             const trailingPercent = this.safeString2 (paramsPostOnly, 'trailingPercent', 'priceRate');
             const trailingType = this.safeString (paramsPostOnly, 'trailingType', 'TRAILING_STOP_MARKET');
+            const trailingTriggerPrice = this.safeString2 (paramsPostOnly, 'trailingTriggerPrice', 'activationPrice');
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
@@ -3330,6 +3331,9 @@ export default class bingx extends Exchange {
                 } else if (isTrailingPercentOrder) {
                     const requestTrailingPercent = Precise.stringDiv (trailingPercent, '100');
                     request['priceRate'] = this.parseToNumeric (requestTrailingPercent);
+                }
+                if (trailingTriggerPrice !== undefined) {
+                    request['activationPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, trailingTriggerPrice));
                 }
             }
             if (hasStopLoss || hasTakeProfit) {
@@ -3404,7 +3408,7 @@ export default class bingx extends Exchange {
                 request['quantity'] = amountReq; // precision not available for inverse contracts
             }
         }
-        const paramsRequest = this.omit (paramsOrder, [ 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId', 'cost', 'quoteOrderQty' ]);
+        const paramsRequest = this.omit (paramsOrder, [ 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId', 'cost', 'quoteOrderQty' ]);
         return this.extend (request, paramsRequest);
     }
 
@@ -3433,6 +3437,7 @@ export default class bingx extends Exchange {
      * @param {float} [params.quoteOrderQty] *spot and linear swap only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+     * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered

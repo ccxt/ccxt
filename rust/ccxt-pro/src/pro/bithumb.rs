@@ -794,27 +794,29 @@ impl BithumbCore {
         if (symbol == Value::Null) {
             return;
         }
-        let mut streamType: Option<String> = (match __pro_message.get("stream_type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut obLimit: Value = self.safe_integer_k(options, "limit", &[Value::Int(1000)]);
-        if !(in_op(&self.orderbooks, &symbol)) || (streamType.as_deref() == Some("SNAPSHOT")) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), obLimit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        orderbook.reset(Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        }));
-        add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
-        let mut bids: Value = get_value(&orderbook, &Value::Str("bids".into()));
-        let mut asks: Value = get_value(&orderbook, &Value::Str("asks".into()));
         let mut units: Value = (match __pro_message.get("orderbook_units").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut gen2TimestampStr: Value = self.safe_string2(message, Value::Str("timestamp".into()), Value::Str("datetime".into()), &[]);
+        let mut timestamp: Value = Value::Null;
+        if (gen2TimestampStr != Value::Null) {
+            timestamp = self.parse_to_int(gen2TimestampStr.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        }
+        if (timestamp == Value::Null) {
+            timestamp = self.milliseconds();
+        }
+        let mut bidsSnapshot: Value = Value::from(vec![]);
+        let mut asksSnapshot: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_128: bool = true;
@@ -825,23 +827,20 @@ impl BithumbCore {
             let mut askPrice: Value = self.safe_number_k(entry.clone(), "ask_price", &[]);
             let mut askSize: Value = self.safe_number_k(entry, "ask_size", &[]);
             if (bidPrice != Value::Null) && (bidSize != Value::Null) {
-                bids.store(bidPrice, bidSize);
+                append_to_array(&mut bidsSnapshot, Value::from(vec![bidPrice, bidSize]));
             }
             if (askPrice != Value::Null) && (askSize != Value::Null) {
-                asks.store(askPrice, askSize);
+                append_to_array(&mut asksSnapshot, Value::from(vec![askPrice, askSize]));
             }
         }
         }
-        let mut gen2TimestampStr: Value = self.safe_string2(message, Value::Str("timestamp".into()), Value::Str("datetime".into()), &[]);
-        let mut timestamp: Value = Value::Null;
-        if (gen2TimestampStr != Value::Null) {
-            timestamp = self.parse_to_int(gen2TimestampStr.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
-        }
-        if (timestamp == Value::Null) {
-            timestamp = self.milliseconds();
-        }
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        let mut snapshot: Value = self.parse_order_book(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("bids".to_string(), bidsSnapshot);
+                m.insert("asks".to_string(), asksSnapshot);
+            m
+        }), symbol.clone(), &[timestamp]);
+        orderbook.reset(snapshot);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol).into());
         client.resolve(&[orderbook, messageHash]);
 }

@@ -2181,6 +2181,17 @@ class mexc extends Exchange {
             $ask = $this->safe_string($ticker, 'ask1');
             $baseVolume = $this->safe_string($ticker, 'volume24');
             $quoteVolume = $this->safe_string($ticker, 'amount24');
+            $contractSize = $this->safe_string($marketResolved, 'contractSize');
+            if (($isSwap === true) && ($contractSize !== null)) {
+                // volume24 counts contracts, amount24 is in the settle currency
+                $contractVolume = Precise::string_mul($baseVolume, $contractSize);
+                if ($marketResolved['inverse'] === true) {
+                    $baseVolume = $quoteVolume;
+                    $quoteVolume = $contractVolume;
+                } else {
+                    $baseVolume = $contractVolume;
+                }
+            }
             $high = $this->safe_string($ticker, 'high24Price');
             $low = $this->safe_string($ticker, 'lower24Price');
             $changeValue = $this->safe_string($ticker, 'riseFallValue');

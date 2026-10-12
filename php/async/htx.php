@@ -31,7 +31,7 @@ class htx extends Exchange {
             'countries' => array( 'CN' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome100'],
-            'certified' => true,
+            'certified' => false,
             'version' => 'v1',
             'hostname' => 'api.huobi.pro', // api.testnet.huobi.pro
             'pro' => true,
@@ -2052,6 +2052,15 @@ class htx extends Exchange {
         $close = $this->safe_string($ticker, 'close');
         $baseVolume = $this->safe_string($ticker, 'amount');
         $quoteVolume = $this->safe_string($ticker, 'vol');
+        $marketResolved = $this->safe_dict($this->markets, $symbol, $market);
+        if ($this->safe_bool($marketResolved, 'contract') === true) {
+            // contract tickers count 'vol' in contracts
+            if ($this->safe_bool($marketResolved, 'linear') === true) {
+                $quoteVolume = $this->safe_string($ticker, 'trade_turnover');
+            } else {
+                $quoteVolume = Precise::string_mul($quoteVolume, $this->safe_string($marketResolved, 'contractSize'));
+            }
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,

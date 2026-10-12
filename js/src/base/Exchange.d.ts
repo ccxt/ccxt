@@ -720,7 +720,7 @@ export declare class BaseExchange {
     safeLedgerEntry(entry: object, currency?: Currency): LedgerEntry;
     safeCurrencyStructure(currency: Dict): CurrencyInterface;
     safeMarketStructure(market?: NullableDict): Market;
-    setMarkets(markets: any, currencies?: undefined): Dictionary<Market>;
+    setMarkets(markets: any, currencies?: any): Dictionary<Market>;
     setMarketsFromExchange(sourceExchange: any): this;
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
     safeBalance(balance: Dict): Balances;

@@ -806,7 +806,12 @@ class mexc extends mexc$1["default"] {
         const parts = msg.split('@');
         const marketId = this.safeString(parts, 2);
         const symbol = this.safeSymbol(marketId);
-        this.orderbooks[symbol] = this.orderBook({});
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
+        }
+        const orderbook = this.orderbooks[symbol];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
     }
     getCacheIndex(orderbook, cache) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible

@@ -1490,10 +1490,12 @@ func (this *Binance) HandleOrderBookSubscription(client any, message any, subscr
 			}
 			return nil
 		}()
-		if ccxt.InOp(this.Orderbooks, symbol) {
-			ccxt.Remove(this.Orderbooks, symbol)
+		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		ccxt.AddElementToObject(orderbook, "nonce", nil)
+		orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 		var symbolSubscription map[string]any = this.Extend(subscription, map[string]any{
 			"symbol": symbol,
 		})
@@ -4710,11 +4712,11 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.EndpointResult[[]any], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes346715 []any = r.Value
-	if retRes346715 == nil {
+	var retRes346915 []any = r.Value
+	if retRes346915 == nil {
 		ch <- ccxt.EndpointResult[[]any]{}
 	} else {
-		ch <- ccxt.EndpointResult[[]any]{Value: retRes346715, Raw: retRes346715}
+		ch <- ccxt.EndpointResult[[]any]{Value: retRes346915, Raw: retRes346915}
 	}
 	return nil
 }
@@ -6367,6 +6369,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
 		timeInForce = ccxt.SafeStringPtr("PO")
 	}
+	var postOnly bool = (orderType != nil && *orderType == "limit_maker") || (timeInForce != nil && *timeInForce == "PO")
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":                order,
 		"symbol":              symbol,
@@ -6378,7 +6381,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		"lastUpdateTimestamp": lastUpdateTimestamp,
 		"type":                this.ParseOrderTypeByMarket(orderType, marketType),
 		"timeInForce":         timeInForce,
-		"postOnly":            nil,
+		"postOnly":            postOnly,
 		"reduceOnly":          this.SafeBool(order, "R"),
 		"side":                this.SafeStringLower(order, "S"),
 		"price":               this.SafeString(order, "p"),
@@ -7408,8 +7411,8 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes560832 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes560832, tradeFee)
+							retRes561132 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes561132, tradeFee)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

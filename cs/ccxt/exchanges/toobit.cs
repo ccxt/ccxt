@@ -1569,7 +1569,17 @@ public partial class toobit : Exchange
         //        },
         //        ...
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbolsNormalized, paramsMarketType));
+        List<object> rows = new List<object>() {};
+        for (int i = 0; i < (response?.Count ?? 0); i++)
+        {
+            object ticker = response[i];
+            string? marketId = this.safeString(ticker, "s");
+            if (((marketId != null)) && ((this.markets_by_id != null)) && (((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
+            {
+                rows.Add(ticker);
+            }
+        }
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(rows, symbolsNormalized, paramsMarketType));
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -2990,7 +3000,26 @@ public partial class toobit : Exchange
         {
             response = await this.privateGetApiV1AccountWithdrawOrders(this.extend(requestUntil, paramsUntil));
         }
-        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit, paramsUntil));
+        string transactType = ((type == "deposits")) ? "deposit" : "withdrawal";
+        List<object> results = new List<object>() {};
+        for (int i = 0; i < (response?.Count ?? 0); i++)
+        {
+            results.Add(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
+        }
+        List<object> sorted = this.sortBy(results, "timestamp");
+        object currencyCode = ((currency != null)) ? (currency.ContainsKey("code") ? currency["code"] : null) : null;
+        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(sorted,((string)currencyCode), since, limit));
+    }
+
+    public virtual object parseTransactionWithType(object transaction, object currency = null, object transactType = null)
+    {
+        Dictionary<string, object> result = this.parseTransaction(transaction, currency);
+        if ((transactType != null))
+        {
+            result["type"] = transactType;
+            result["status"] = this.parseTransactionStatus(this.safeString(transaction, "status"), transactType);
+        }
+        return result;
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -3052,7 +3081,7 @@ public partial class toobit : Exchange
         string? tagFrom = this.safeString(transaction, "fromAddressTag");
         string? addressTo = this.safeString(transaction, "address");
         string? addressFrom = this.safeString(transaction, "fromAddress");
-        bool isWithdraw = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("arriveQuantity")));
+        bool isWithdraw = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("arriveQuantity"))) || ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("success")));
         string type = isWithdraw ? "withdrawal" : "deposit";
         return new Dictionary<string, object>() {
             { "info", transaction },
@@ -3070,7 +3099,7 @@ public partial class toobit : Exchange
             { "type", type },
             { "amount", this.safeNumber(transaction, "quantity") },
             { "currency", code },
-            { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
+            { "status", this.parseTransactionStatus(this.safeString(transaction, "status"), type) },
             { "updated", null },
             { "fee", fee },
             { "comment", null },
@@ -3078,18 +3107,31 @@ public partial class toobit : Exchange
         };
     }
 
-    public virtual string? parseTransactionStatus(string? status)
+    public virtual string? parseTransactionStatus(string? status, object type = null)
     {
-        Dictionary<string, object> statuses = new Dictionary<string, object>() {
-            { "2", "pending" },
-            { "12", "pending" },
-            { "11", "failed" },
-            { "3", "ok" },
+        Dictionary<string, object> statusesByType = new Dictionary<string, object>() {
+            { "deposit", new Dictionary<string, object>() {
+                { "2", "ok" },
+                { "11", "failed" },
+                { "12", "pending" },
+            } },
+            { "withdrawal", new Dictionary<string, object>() {
+                { "0", "pending" },
+                { "1", "pending" },
+                { "2", "failed" },
+                { "3", "pending" },
+                { "6", "ok" },
+                { "7", "failed" },
+                { "9", "canceled" },
+                { "10", "pending" },
+                { "11", "pending" },
+            } },
         };
         if ((status == null))
         {
             return null;
         }
+        IDictionary<string, object> statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
         return this.safeString(statuses, status, status);
     }
 

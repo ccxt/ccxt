@@ -637,13 +637,17 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (symbol == Value::Null) {
             return;
         }
-        if (in_op(&self.orderbooks, &symbol)) {
-            remove(&mut self.orderbooks, &symbol);
-        }
-        { let __be_tmp = self.order_book(&[Value::Map({
+        if !(in_op(&self.orderbooks, &symbol)) {
+            { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+        }
+        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), Value::Null);
+        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), Value::Null);
+        crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
         self.spawn(&[Value::Str("fetch_order_book_snapshot".into()).clone(), client.clone(), message.clone(), subscription]);
 }
 

@@ -53,7 +53,7 @@ response := <-hibachi.PublicGetMarketExchangeInfo(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official hibachi API documentation:** [hibachi.xyz](https://www.hibachi.xyz/)
+📚 **Official hibachi API documentation:** [api-doc.hibachi.xyz](https://api-doc.hibachi.xyz/)
 
 > 28 implicit endpoints across 2 access groups.
 

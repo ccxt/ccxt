@@ -296,10 +296,14 @@ class woo extends \ccxt\async\woo {
         if ($symbol === null) {
             return;
         }
-        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
-            unset($this->orderbooks[$symbol]);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
-        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        $orderbook = $this->orderbooks[$symbol];
+        // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        $orderbook['timestamp'] = null;
+        $orderbook['datetime'] = null;
+        $orderbook->cache = array();
         $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
 

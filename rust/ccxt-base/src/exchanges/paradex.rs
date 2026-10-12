@@ -3722,9 +3722,11 @@ impl ParadexCore {
         //                 "realized_pnl": "0",
         //                 "unrealized_pnl": "-2.39677214",
         //                 "unrealized_funding_pnl": "-0.11214013",
+        //                 "leverage": "5",
         //                 "cost": "648.39960537",
         //                 "cost_usd": "648.529",
         //                 "cached_funding_index": "35202.1002351",
+        //                 "created_at": 1718947571560,
         //                 "last_updated_at": 1718950074249,
         //                 "last_fill_id": "1718947571560201703986670001",
         //                 "seq_no": 1718950074249176253,
@@ -3753,9 +3755,11 @@ impl ParadexCore {
         //         "realized_pnl": "0",
         //         "unrealized_pnl": "-2.39677214",
         //         "unrealized_funding_pnl": "-0.11214013",
+        //         "leverage": "5",
         //         "cost": "648.39960537",
         //         "cost_usd": "648.529",
         //         "cached_funding_index": "35202.1002351",
+        //         "created_at": 1718947571560,
         //         "last_updated_at": 1718950074249,
         //         "last_fill_id": "1718947571560201703986670001",
         //         "seq_no": 1718950074249176253,
@@ -3766,12 +3770,12 @@ impl ParadexCore {
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut side: Value = self.safe_string_lower_k(position.clone(), "side", &[]);
-        let mut quantity: Value = self.safe_string_k(position.clone(), "size", &[]);
-        if (side.as_str() != Some("long")) {
-            quantity = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &quantity);
-        }
-        let mut timestamp: Value = self.safe_integer_k(position.clone(), "time", &[]);
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        let mut quantity: Value = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "size", &[]));
+        let mut timestamp: Value = self.safe_integer_k(position.clone(), "created_at", &[]);
         let mut liquidationPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "liquidation_price", &[])), &[]);
+        // cost_usd is signed by side, the unified notional is a magnitude
+        let mut notionalString: Value = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "cost_usd", &[]));
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -3779,20 +3783,21 @@ impl ParadexCore {
         m.insert("symbol".to_string(), symbol);
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "average_entry_price", &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("notional".to_string(), Value::Null);
-        m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "cost", &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "unrealized_pnl", &[]));
+        m.insert("notional".to_string(), self.parse_number(notionalString, &[]));
+        m.insert("collateral".to_string(), Value::Null);
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealized_pnl", &[]));
         m.insert("side".to_string(), side);
         m.insert("contracts".to_string(), self.parse_number(quantity, &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position.clone(), "last_updated_at", &[]));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), Value::Null);
+        m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
         m.insert("liquidationPrice".to_string(), liquidationPrice);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);

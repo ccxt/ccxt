@@ -852,7 +852,13 @@ public partial class mexc : ccxt.mexc
         List<object> parts = msg.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
         string? symbol = this.safeSymbol(marketId);
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
+        }
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        orderbook["nonce"] = null;
+        (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
     }
 
     public override object getCacheIndex(object orderbook, IList<object> cache)

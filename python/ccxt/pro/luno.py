@@ -213,16 +213,15 @@ class luno(ccxt.async_support.luno):
         timestamp = self.safe_integer(message, 'timestamp')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.indexed_order_book({})
+        orderbook = self.orderbooks[symbol]
         asks = self.safe_list(message, 'asks')
         if asks is not None:
             snapshot = self.custom_parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id')
-            self.orderbooks[symbol] = self.indexed_order_book(snapshot)
+            orderbook.reset(snapshot)
         else:
-            ob = self.orderbooks[symbol]
-            self.handle_book_delta(ob, message)
-            ob['timestamp'] = timestamp
-            ob['datetime'] = self.iso8601(timestamp)
-        orderbook = self.orderbooks[symbol]
+            self.handle_book_delta(orderbook, message)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
         nonce = self.safe_integer(message, 'sequence')
         orderbook['nonce'] = nonce
         client.resolve(orderbook, messageHash)

@@ -42,6 +42,10 @@ public partial class poloniex : ccxt.poloniex
             } },
             { "options", new Dictionary<string, object>() {
                 { "createMarketBuyOrderRequiresPrice", true },
+                { "watchBalance", new Dictionary<string, object>() {
+                    { "fetchBalanceSnapshot", true },
+                    { "awaitBalanceSnapshot", true },
+                } },
                 { "tradesLimit", 1000 },
                 { "ordersLimit", 1000 },
                 { "OHLCVLimit", 1000 },
@@ -650,7 +654,77 @@ public partial class poloniex : ccxt.poloniex
         }
         string name = "balances";
         await this.authenticate();
+        // the balances channel only streams per-event deltas, so seed the
+        // balance from a rest snapshot once per subscription - otherwise the
+        // first resolves would only list the currencies that changed since
+        // subscribing
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
+        var client = this.client(url);
+        this.setBalanceCache(client, name);
+        IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+        if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot == true)))
+        {
+            await client.future((name + ":fetchBalanceSnapshot"));
+        }
         return ccxt.BaseExchange.ToBalances(await this.subscribe(name, name, true, null, parameters));
+    }
+
+    public virtual void setBalanceCache(WebSocketClient client, object type)
+    {
+        if ((client.subscriptions != null && type is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        {
+            return;
+        }
+        IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        if ((fetchBalanceSnapshot == true))
+        {
+            object messageHash = add(type, ":fetchBalanceSnapshot");
+            if (!(inOp(client.futures, messageHash)))
+            {
+                client.future(messageHash);
+                this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});
+            }
+        }
+    }
+
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    {
+        object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance());
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        List<object> reserved = new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"};
+        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            string? key = ((string)keys[i]);
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            if (!((this.balance != null && key != null && this.balance.ContainsKey(key))))
+            {
+                this.balance[(string)key] = getValue(response, key);
+            }
+        }
+        if (!((this.balance != null && this.balance.ContainsKey("info"))))
+        {
+            this.balance["info"] = getValue(response, "info");
+            this.balance["timestamp"] = getValue(response, "timestamp");
+            this.balance["datetime"] = getValue(response, "datetime");
+        }
+        this.balance = this.safeBalance(this.balance);
+        // don't remove the future from the .futures cache
+        if (inOp(client.futures, messageHash))
+        {
+            Future future = ((Future)getValue(client.futures, messageHash));
+            (future as Future).resolve();
+            client.resolve(this.balance, type);
+        }
     }
 
     public override List<object> parseWsOHLCV(object ohlcv, object market = null)
@@ -1254,7 +1328,7 @@ public partial class poloniex : ccxt.poloniex
             List<object> bids = this.safeList(item, "bids");
             if (snapshot || update)
             {
-                if (snapshot)
+                if (snapshot && !((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }
@@ -1263,6 +1337,14 @@ public partial class poloniex : ccxt.poloniex
                     continue;
                 }
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+                if (snapshot)
+                {
+                    // reset the existing orderbook in place instead of
+                    // replacing it: a consumer awakened earlier keeps a
+                    // reference to the old object and would be orphaned
+                    // from later updates on a resync/reconnect otherwise
+                    (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
+                }
                 if ((bids != null))
                 {
                     for (int j = 0; j < bids.Count; j++)
@@ -1314,40 +1396,27 @@ public partial class poloniex : ccxt.poloniex
         //        ]
         //    }
         //
+        // the balances channel only sends per-event deltas for the currencies
+        // that changed, so merge them into the existing balance object instead
+        // of rebuilding it from the current message: a rebuilt object would
+        // drop every other currency, and a consumer awakened by an earlier
+        // message keeps a reference to the old object while Client.resolve is
+        // a no-op with no waiter, so updates landing in that window would
+        // never reach that consumer (same class as kraken issue #26773)
         List<object> data = this.safeList(message, "data", new List<object>() {});
         string messageHash = "balances";
-        this.balance = this.parseWsBalance(data);
-        client.resolve(this.balance, messageHash);
-    }
-
-    public virtual Dictionary<string, object> parseWsBalance(object response)
-    {
-        //
-        //    [
-        //        {
-        //            "changeTime": 1657312008411,
-        //            "accountId": "1234",
-        //            "accountType": "SPOT",
-        //            "eventType": "place_order",
-        //            "available": "9999999983.668",
-        //            "currency": "BTC",
-        //            "id": 60018450912695040,
-        //            "userId": 12345,
-        //            "hold": "16.332",
-        //            "ts": 1657312008443
-        //        }
-        //    ]
-        //
-        IDictionary<string, object> firstBalance = this.safeDict(response, 0, new Dictionary<string, object>() {});
-        Int64? timestamp = this.safeInteger(firstBalance, "ts");
-        Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", response },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-        };
-        for (int i = 0; i < getArrayLength(response); i++)
+        if ((this.balance == null))
         {
-            IDictionary<string, object> balance = this.safeDict(response, i);
+            this.balance = new Dictionary<string, object>() {};
+        }
+        this.balance["info"] = data;
+        IDictionary<string, object> firstBalance = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        Int64? timestamp = this.safeInteger(firstBalance, "ts");
+        this.balance["timestamp"] = timestamp;
+        this.balance["datetime"] = this.iso8601(timestamp);
+        for (int i = 0; i < data.Count; i++)
+        {
+            IDictionary<string, object> balance = this.safeDict(data, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> newAccount = this.account();
@@ -1355,10 +1424,11 @@ public partial class poloniex : ccxt.poloniex
             newAccount["used"] = this.safeString(balance, "hold");
             if ((code != null))
             {
-                result[(string)code] = newAccount;
+                this.balance[(string)code] = newAccount;
             }
         }
-        return this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
+        client.resolve(this.balance, messageHash);
     }
 
     public virtual void handleMyTrades(WebSocketClient client, IDictionary<string, object> parsedTrade)

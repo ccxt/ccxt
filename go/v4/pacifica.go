@@ -4730,8 +4730,8 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
- * @param {string} fromAccount account to transfer from *spot, swap*
- * @param {string} toAccount account to transfer to *swap, spot or address*
+ * @param {string} fromAccount not used, funds are always sent from the account wallet, the origin address
+ * @param {string} toAccount the address of the subaccount or main account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -4827,7 +4827,7 @@ func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) map[strin
 /**
  * @method
  * @name pacifica#createSubAccount
- * @description creates a sub-account under the main account
+ * @description creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
  * @param {string} name unused argument
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4912,6 +4912,16 @@ func (this *Pacifica) createSubAccountBody(ch chan AsyncResult[any], name string
 	ch <- AsyncResult[any]{Value: response}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#bindAgentWallet
+ * @description binds an agent wallet that can sign trading actions for the account
+ * @see https://docs.pacifica.fi/api-documentation/api/signing/api-agent-keys
+ * @param {string} agentAddress the public key of the agent wallet
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) BindAgentWalletAsync(agentAddress any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.bindAgentWalletBody(ch, agentAddress, optionalArgs...)
@@ -4935,6 +4945,14 @@ func (this *Pacifica) bindAgentWalletBody(ch chan AsyncResult[any], agentAddress
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#createApiKey
+ * @description creates an api key for the account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) CreateApiKeyAsync(optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.createApiKeyBody(ch, optionalArgs...)
@@ -4956,6 +4974,15 @@ func (this *Pacifica) createApiKeyBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#revokeApiKey
+ * @description revokes an api key of the account
+ * @param {string} apiKey the api key to revoke
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) RevokeApiKeyAsync(apiKey any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.revokeApiKeyBody(ch, apiKey, optionalArgs...)
@@ -4979,6 +5006,14 @@ func (this *Pacifica) revokeApiKeyBody(ch chan AsyncResult[any], apiKey any, opt
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#fetchApiKeys
+ * @description fetches the api keys of the account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) FetchApiKeysAsync(optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.fetchApiKeysBody(ch, optionalArgs...)
@@ -5000,6 +5035,17 @@ func (this *Pacifica) fetchApiKeysBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#approveBuilderCode
+ * @description approves a builder code to charge fees on the account orders
+ * @see https://docs.pacifica.fi/programs/builder-program
+ * @param {string} builderCode the builder code to approve
+ * @param {string} maxFeeRate the maximum fee rate the builder may charge
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) ApproveBuilderCodeAsync(builderCode any, maxFeeRate any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.approveBuilderCodeBody(ch, builderCode, maxFeeRate, optionalArgs...)
@@ -5024,6 +5070,15 @@ func (this *Pacifica) approveBuilderCodeBody(ch chan AsyncResult[any], builderCo
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#fetchBuilderApprovals
+ * @description fetches the builder codes approved by an account
+ * @see https://docs.pacifica.fi/programs/builder-program
+ * @param {string} address the account address
+ * @returns {object[]} the api result
+ */
 func (this *Pacifica) FetchBuilderApprovalsAsync(address any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.fetchBuilderApprovalsBody(ch, address)
@@ -5043,6 +5098,16 @@ func (this *Pacifica) fetchBuilderApprovalsBody(ch chan AsyncResult[any], addres
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
+
+/**
+ * @method
+ * @name pacifica#revokeBuilderCode
+ * @description revokes a previously approved builder code
+ * @see https://docs.pacifica.fi/programs/builder-program
+ * @param {string} builderCode the builder code to revoke
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) RevokeBuilderCodeAsync(builderCode any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.revokeBuilderCodeBody(ch, builderCode, optionalArgs...)
@@ -6265,8 +6330,8 @@ func (this *Pacifica) FetchFundingHistory(options ...FetchFundingHistoryOptions)
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
- * @param {string} fromAccount account to transfer from *spot, swap*
- * @param {string} toAccount account to transfer to *swap, spot or address*
+ * @param {string} fromAccount not used, funds are always sent from the account wallet, the origin address
+ * @param {string} toAccount the address of the subaccount or main account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -6289,7 +6354,7 @@ func (this *Pacifica) Transfer(code string, amount float64, fromAccount string, 
 /**
  * @method
  * @name pacifica#createSubAccount
- * @description creates a sub-account under the main account
+ * @description creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
  * @param {string} name unused argument
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6312,6 +6377,14 @@ func (this *Pacifica) CreateSubAccount(name string, options ...CreateSubAccountO
 	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
+
+/**
+ * @method
+ * @name pacifica#createApiKey
+ * @description creates an api key for the account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) CreateApiKey(params ...any) (map[string]any, error) {
 	r := <-this.CreateApiKeyAsync(params...)
 	if r.Err != nil {
@@ -6320,6 +6393,14 @@ func (this *Pacifica) CreateApiKey(params ...any) (map[string]any, error) {
 	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
+
+/**
+ * @method
+ * @name pacifica#fetchApiKeys
+ * @description fetches the api keys of the account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
 func (this *Pacifica) FetchApiKeys(params ...any) (map[string]any, error) {
 	r := <-this.FetchApiKeysAsync(params...)
 	if r.Err != nil {
@@ -6328,6 +6409,15 @@ func (this *Pacifica) FetchApiKeys(params ...any) (map[string]any, error) {
 	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
+
+/**
+ * @method
+ * @name pacifica#fetchBuilderApprovals
+ * @description fetches the builder codes approved by an account
+ * @see https://docs.pacifica.fi/programs/builder-program
+ * @param {string} address the account address
+ * @returns {object[]} the api result
+ */
 func (this *Pacifica) FetchBuilderApprovals(address string) ([]map[string]any, error) {
 	r := <-this.FetchBuilderApprovalsAsync(address)
 	if r.Err != nil {

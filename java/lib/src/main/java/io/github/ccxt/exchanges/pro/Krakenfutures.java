@@ -11,6 +11,7 @@ import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -568,7 +569,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> verboseparamsVerboseVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrders", "verbose", false);
+            Pair<Boolean, Map<String, Object>> verboseparamsVerboseVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrders", "verbose", false);
             Boolean verbose = verboseparamsVerboseVariable.first();
             Map<String, Object> paramsVerbose = verboseparamsVerboseVariable.second();
             Object name = "open_orders";
@@ -662,7 +663,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             String name = "balances";
             String messageHash = name;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> accountparamsAccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchBalance", "account", (String) null);
+            Pair<String, Map<String, Object>> accountparamsAccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchBalance", "account", (String) null);
             String account = accountparamsAccountVariable.first();
             Map<String, Object> paramsAccount = accountparamsAccountVariable.second();
             if (!java.util.Objects.equals(account, null))
@@ -1460,7 +1461,10 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(subscription, "limit");
         Long timestamp = this.safeInteger(message, "timestamp");
-        Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        {
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+        }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> bids = (List<Object>) this.safeList(message, "bids", (Object) null);
         if (java.util.Objects.equals(bids, null))
@@ -1472,25 +1476,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         {
             return;
         }
-        for (var i = 0; i < ((List<?>)bids).size(); i++)
-        {
-            Map<String, Object> bid = (Map<String, Object>) this.safeDict(bids, i, (Object) null);
-            Double price = this.safeNumber(bid, "price", (Object) null);
-            Double qty = this.safeNumber(bid, "qty", (Object) null);
-            io.github.ccxt.ws.OrderBookSide bidsSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
-            bidsSide.store(price, qty);
-        }
-        for (var i = 0; i < ((List<?>)asks).size(); i++)
-        {
-            Map<String, Object> ask = (Map<String, Object>) this.safeDict(asks, i, (Object) null);
-            Double price = this.safeNumber(ask, "price", (Object) null);
-            Double qty = this.safeNumber(ask, "qty", (Object) null);
-            io.github.ccxt.ws.OrderBookSide asksSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
-            asksSide.store(price, qty);
-        }
-        orderbook.put("timestamp", timestamp);
-        orderbook.put("datetime", this.iso8601(timestamp));
-        orderbook.put("symbol", symbol);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "qty", 2);
+        orderbook.reset(snapshot);
         client.resolve(orderbook, messageHash);
     }
 

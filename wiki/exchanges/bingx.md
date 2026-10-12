@@ -655,6 +655,7 @@ create a trade order
 | params.quoteOrderQty | <code>float</code> | No | *spot only* the quote quantity, an alternative to params.cost |
 | params.trailingAmount | <code>float</code> | No | *swap only* the quote amount to trail away from the current market price |
 | params.trailingPercent | <code>float</code> | No | *swap only* the percent to trail away from the current market price |
+| params.trailingTriggerPrice | <code>float</code> | No | *swap only* the price to activate a trailing order at |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered |
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |

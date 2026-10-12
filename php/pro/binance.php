@@ -1242,10 +1242,12 @@ class binance extends \ccxt\async\binance {
         // handle list of symbols
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
-                unset($this->orderbooks[$symbol]);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
-            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            $orderbook = $this->orderbooks[$symbol];
+            $orderbook['nonce'] = null;
+            $orderbook->cache = array();
             $symbolSubscription = $this->extend($subscription, array( 'symbol' => $symbol ));
             // fetch the snapshot in a separate async call
             $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $symbolSubscription);
@@ -4908,6 +4910,7 @@ class binance extends \ccxt\async\binance {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             $timeInForce = 'PO';
         }
+        $postOnly = ($orderType === 'limit_maker') || ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
@@ -4919,7 +4922,7 @@ class binance extends \ccxt\async\binance {
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'type' => $this->parseOrderTypeByMarket($orderType, $marketType),
             'timeInForce' => $timeInForce,
-            'postOnly' => null,
+            'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($order, 'R'),
             'side' => $this->safe_string_lower($order, 'S'),
             'price' => $this->safe_string($order, 'p'),

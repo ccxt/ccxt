@@ -1317,7 +1317,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $limit = $this->safe_integer($subscription, 'limit');
         $timestamp = $this->safe_integer($message, 'timestamp');
-        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        }
         $orderbook = $this->orderbooks[$symbol];
         $bids = $this->safe_list($message, 'bids');
         if ($bids === null) {
@@ -1327,23 +1329,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($asks === null) {
             return;
         }
-        for ($i = 0; $i < count($bids); $i++) {
-            $bid = $this->safe_dict($bids, $i);
-            $price = $this->safe_number($bid, 'price');
-            $qty = $this->safe_number($bid, 'qty');
-            $bidsSide = $orderbook['bids'];
-            $bidsSide->store($price, $qty);
-        }
-        for ($i = 0; $i < count($asks); $i++) {
-            $ask = $this->safe_dict($asks, $i);
-            $price = $this->safe_number($ask, 'price');
-            $qty = $this->safe_number($ask, 'qty');
-            $asksSide = $orderbook['asks'];
-            $asksSide->store($price, $qty);
-        }
-        $orderbook['timestamp'] = $timestamp;
-        $orderbook['datetime'] = $this->iso8601($timestamp);
-        $orderbook['symbol'] = $symbol;
+        $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'qty');
+        $orderbook->reset($snapshot);
         $client->resolve($orderbook, $messageHash);
     }
 

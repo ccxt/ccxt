@@ -285,17 +285,16 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(map[string]any{}))
 	}
+	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var asks []any = ccxt.SafeListTyped(message, "asks")
 	if asks != nil {
 		var snapshot any = this.CustomParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id")
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(snapshot))
+		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
-		var ob any = ccxt.GetValue(this.Orderbooks, symbol)
-		this.HandleBookDelta(ob, message)
-		ccxt.AddElementToObject(ob, "timestamp", timestamp)
-		ccxt.AddElementToObject(ob, "datetime", this.Iso8601(timestamp))
+		this.HandleBookDelta(orderbook, message)
+		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
+		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var nonce *int64 = this.SafeInteger(message, "sequence")
 	ccxt.AddElementToObject(orderbook, "nonce", nonce)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

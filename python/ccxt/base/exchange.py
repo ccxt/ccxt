@@ -4235,7 +4235,7 @@ class BaseExchange(object):
             return result
         return self.extend(cleanStructure)
 
-    def set_markets(self, markets: object, currencies=None):
+    def set_markets(self, markets: object, currencies: object = None):
         values = []
         self.markets_by_id = self.create_safe_dictionary()
         # handle marketId conflicts

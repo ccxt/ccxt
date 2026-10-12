@@ -856,7 +856,12 @@ class mexc extends \ccxt\async\mexc {
         $parts = explode('@', $msg);
         $marketId = $this->safe_string($parts, 2);
         $symbol = $this->safe_symbol($marketId);
-        $this->orderbooks[$symbol] = $this->order_book(array());
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
+        }
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook['nonce'] = null;
+        $orderbook->cache = array();
     }
 
     public function get_cache_index(mixed $orderbook, mixed $cache): float {
