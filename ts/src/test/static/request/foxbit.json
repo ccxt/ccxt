@@ -710,7 +710,6 @@
                   "USDT",
                   5,
                   "address_here",
-                  null,
                   {
                     "network": "TRC20"
                   }
@@ -725,7 +724,6 @@
                   "USDT",
                   5,
                   "address_here",
-                  null,
                   {
                     "network": "ton"
                   }
@@ -740,8 +738,8 @@
                   "USDT",
                   5,
                   "address_here",
-                  "tag_here",
                   {
+                    "tag": "tag_here",
                     "network": "ton"
                   }
                 ],

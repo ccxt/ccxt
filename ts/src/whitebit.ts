@@ -3128,11 +3128,12 @@ export default class whitebit extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3142,7 +3143,7 @@ export default class whitebit extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
         };
-        let uniqueId = this.safeValue (params, 'uniqueId');
+        let uniqueId = this.safeValue (paramsWithdrawTag, 'uniqueId');
         if (uniqueId === undefined) {
             uniqueId = this.uuid22 ();
         }
@@ -3151,13 +3152,13 @@ export default class whitebit extends Exchange {
             request['memo'] = tag;
         }
         if (this.isFiat (code)) {
-            const provider = this.safeValue (params, 'provider');
+            const provider = this.safeValue (paramsWithdrawTag, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a provider when the ticker is fiat');
             }
             request['provider'] = provider;
         }
-        const response = await this.v4PrivatePostMainAccountWithdraw (this.extend (request, params));
+        const response = await this.v4PrivatePostMainAccountWithdraw (this.extend (request, paramsWithdrawTag));
         //
         // empty array with a success status
         // go to deposit/withdraw history and check you request status by uniqueId

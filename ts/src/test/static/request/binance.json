@@ -4409,7 +4409,6 @@
                   "USDT",
                   10.34332,
                   "TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N",
-                  null,
                   {
                     "network": "TRC20"
                   }
@@ -4424,7 +4423,6 @@
                   "ASR",
                   10.34,
                   "xyz",
-                  null,
                   {
                     "network": "BSC"
                   }
@@ -4439,7 +4437,6 @@
                   "USDT",
                   10.34,
                   "xyz",
-                  null,
                   {
                     "network": "TRX"
                   }

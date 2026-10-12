@@ -1740,7 +1740,6 @@
                     "USDT",
                     0.1,
                     "to_someone@gmail.com",
-                    null,
                     {
                         "internal": true,
                         "toAccountType": "EMAIL"

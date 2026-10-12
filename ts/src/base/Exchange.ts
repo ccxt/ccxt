@@ -3541,7 +3541,7 @@ export class BaseExchange {
         }
     }
 
-    checkAddress (address: Str = undefined): Str {
+    checkAddress (address: Str = undefined, code: Str = undefined, tag: Str = undefined): Str {
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' address is undefined');
         }
@@ -3550,6 +3550,14 @@ export class BaseExchange {
         const length = uniqChars.length; // py transpiler trick
         if (length === 1 || address.length < this.minFundingAddressLength || address.indexOf (' ') > -1) {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + address.toString () + '"');
+        }
+        if (code !== undefined) {
+            const tagRequiredCurrencies = this.safeList (this.options, 'withdrawTagRequiredCurrencies', []);
+            if (this.inArray (code, tagRequiredCurrencies)) {
+                if (tag === undefined) {
+                    throw new ArgumentsRequired (this.id + ' withdraw() requires params["tag"] for ' + code);
+                }
+            }
         }
         return address;
     }
@@ -3948,7 +3956,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' transfer() is not supported yet');
     }
 
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 
@@ -4338,6 +4346,8 @@ export class BaseExchange {
                 'ARBONE': 'ARBITRUM',
                 'ARBNOVA': 'ARBITRUM_NOVA',
             },
+            // native-chain withdrawals of these currencies may need a destination tag / memo
+            'withdrawTagRequiredCurrencies': [ 'XRP', 'XLM', 'EOS', 'ATOM', 'HBAR', 'TON', 'KAVA', 'STX', 'XEM', 'IOST', 'OSMO', 'WAXP' ],
         };
     }
 
@@ -7476,22 +7486,6 @@ export class BaseExchange {
         return false;
     }
 
-    handleWithdrawTagAndParams (tag: any, params: Dict): [Str, Dict] {
-        let paramsExtended = params;
-        let tagValue = tag;
-        if (this.isDictionary (tag)) {
-            paramsExtended = this.extend (tag, params);
-            tagValue = undefined;
-        }
-        const tagResolved = (tagValue === undefined) ? this.safeString (paramsExtended, 'tag') : tagValue;
-        const tagFromParams = (tagValue === undefined) && (tagResolved !== undefined);
-        let paramsOmitted = paramsExtended;
-        if (tagFromParams) {
-            paramsOmitted = this.omit (paramsExtended, 'tag');
-        }
-        return [ tagResolved, paramsOmitted ];
-    }
-
     costToPrecision (symbol: Str, cost: any): Str {
         if (cost === undefined) {
             return undefined;
@@ -9143,7 +9137,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' unWatchOHLCV () is not supported yet');
     }
 
-    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    async withdrawWs (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         /**
          * @method
          * @name exchange#withdrawWs
@@ -9151,8 +9145,8 @@ export class BaseExchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         throw new NotSupported (this.id + ' withdrawWs () is not supported yet');
