@@ -3116,6 +3116,7 @@ class bingx(Exchange, ImplicitAPI):
             trailingAmount = self.safe_string(paramsPostOnly, 'trailingAmount')
             trailingPercent = self.safe_string_2(paramsPostOnly, 'trailingPercent', 'priceRate')
             trailingType = self.safe_string(paramsPostOnly, 'trailingType', 'TRAILING_STOP_MARKET')
+            trailingTriggerPrice = self.safe_string_2(paramsPostOnly, 'trailingTriggerPrice', 'activationPrice')
             isTrailingAmountOrder = trailingAmount is not None
             isTrailingPercentOrder = trailingPercent is not None
             isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
@@ -3161,6 +3162,8 @@ class bingx(Exchange, ImplicitAPI):
                 elif isTrailingPercentOrder:
                     requestTrailingPercent = Precise.string_div(trailingPercent, '100')
                     request['priceRate'] = self.parse_to_numeric(requestTrailingPercent)
+                if trailingTriggerPrice is not None:
+                    request['activationPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, trailingTriggerPrice))
             if hasStopLoss or hasTakeProfit:
                 stringifiedAmount = self.number_to_string(amount)
                 if hasStopLoss:
@@ -3216,7 +3219,7 @@ class bingx(Exchange, ImplicitAPI):
                 if market['inverse'] is not True:
                     amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
                 request['quantity'] = amountReq  # precision not available for inverse contracts
-        paramsRequest = self.omit(paramsOrder, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId'])
+        paramsRequest = self.omit(paramsOrder, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId'])
         return self.extend(request, paramsRequest)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
@@ -3245,6 +3248,7 @@ class bingx(Exchange, ImplicitAPI):
         :param float [params.quoteOrderQty]: *spot only* the quote quantity, an alternative to params.cost
         :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
         :param float [params.trailingPercent]: *swap only* the percent to trail away from the current market price
+        :param float [params.trailingTriggerPrice]: *swap only* the price to activate a trailing order at
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
