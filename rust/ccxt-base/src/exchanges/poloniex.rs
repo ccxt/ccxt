@@ -116,8 +116,10 @@ impl crate::exchange_generated::ExchangeBase for PoloniexCore {
                 "add_margin" => self.add_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "cancel_all_orders" => self.cancel_all_orders(&args[..]).await,
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_deposit_address" => self.create_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "edit_order" => self.edit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "fetch_balance" => self.fetch_balance(&args[..]).await,
                 "fetch_closed_orders" => self.fetch_closed_orders(&args[..]).await,
@@ -215,13 +217,13 @@ impl PoloniexCore {
         m.insert("addMargin".to_string(), Value::Bool(true));
         m.insert("cancelAllOrders".to_string(), Value::Bool(true));
         m.insert("cancelOrder".to_string(), Value::Bool(true));
-        m.insert("cancelOrders".to_string(), Value::Null);
+        m.insert("cancelOrders".to_string(), Value::Bool(true));
         m.insert("createDepositAddress".to_string(), Value::Bool(true));
         m.insert("createMarketBuyOrderWithCost".to_string(), Value::Bool(true));
         m.insert("createMarketOrderWithCost".to_string(), Value::Bool(false));
         m.insert("createMarketSellOrderWithCost".to_string(), Value::Bool(false));
         m.insert("createOrder".to_string(), Value::Bool(true));
-        m.insert("createOrders".to_string(), Value::Null);
+        m.insert("createOrders".to_string(), Value::Bool(true));
         m.insert("createStopOrder".to_string(), Value::Bool(true));
         m.insert("createTriggerOrder".to_string(), Value::Bool(true));
         m.insert("editOrder".to_string(), Value::Bool(true));
@@ -1991,8 +1993,8 @@ impl PoloniexCore {
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1045 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
+            let mut __for_first_1046: bool = true;
+            while { if !__for_first_1046 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1046 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             let mut chainId: Value = self.safe_string_k(chain.clone(), "blockchain", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[chainId.clone(), code.clone()]);
@@ -2542,6 +2544,11 @@ impl PoloniexCore {
         let mut amount: Value = self.safe_string2(order.clone(), Value::Str("quantity".into()), Value::Str("sz".into()), &[]);
         let mut filled: Value = self.safe_string2(order.clone(), Value::Str("filledQuantity".into()), Value::Str("execQty".into()), &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
+        let mut errorCode: Option<i64> = self.safe_integer_k(order.clone(), "code", &[]).as_i64();
+        if (status == Value::Null) && (errorCode.is_some()) && (errorCode != Some(200)) {
+            // the batch endpoints report per-element failures with an error code instead of throwing
+            status = Value::Str("rejected".into());
+        }
         let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut rawType: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut type_var: Value = self.parse_order_type(rawType.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
@@ -2621,8 +2628,8 @@ impl PoloniexCore {
     pub fn parse_open_orders(&self, mut orders: Value, mut market: Value, mut result: Value) -> Value {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1046: bool = true;
-            while { if !__for_first_1046 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1046 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_1047: bool = true;
+            while { if !__for_first_1047 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1047 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut order: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut extended: Value = self.extend(order.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2919,6 +2926,112 @@ impl PoloniexCore {
     Value::Null
 }
 
+/*
+ * @method
+ * @name poloniex#createOrders
+ * @description create a list of trade orders, all orders must be of the same market type, either spot or swap
+ * @see https://api-docs.poloniex.com/spot/api/private/order#create-multiple-orders
+ * @see https://api-docs.poloniex.com/v3/futures/api/trade/place-multiple-orders
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint, applied to every order
+ * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', defaults to 'cross'
+ * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut ordersRequests: Value = Value::from(vec![]);
+        let mut ordersMarkets: Value = Value::from(vec![]);
+        let mut market: Value = Value::Null;
+        let mut isContract: bool = false;
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1048: bool = true;
+            while { if !__for_first_1048 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1048 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut rawOrder: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = rawOrder.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut marketInner: Value = self.market(symbol.clone());
+            if (market == Value::Null) {
+                market = marketInner.clone();
+                isContract = marketInner.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true);
+            }  else if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != marketInner.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str()) {
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to be of the same market type, either spot or swap".into()))));
+            }
+            let mut type_var: Value = rawOrder.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            let mut side: Value = rawOrder.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null);
+            let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            // the request body is a bare list, so there is no room for common params - extend each order with them instead
+            let mut extendedParams: Value = self.extend(orderParams, &[params.clone()]);
+            let mut request: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("symbol".to_string(), marketInner.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                    m.insert("side".to_string(), self.safe_string_upper_k(rawOrder, "side", &[]));
+                m
+            });
+            { let __destr_tmp = self.order_request(symbol, type_var, side, amount, request.clone(), &[price, extendedParams.clone()]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); extendedParams = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+            let mut merged: Value = self.extend(request, &[extendedParams]);
+            if isContract {
+                // unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
+                if !(in_op(&merged, &Value::Str("mgnMode".into()))) {
+                    add_element_to_object(&mut merged, &Value::Str("mgnMode".into()), Value::Str("CROSS".into()));
+                }
+                if !(in_op(&merged, &Value::Str("posSide".into()))) {
+                    add_element_to_object(&mut merged, &Value::Str("posSide".into()), Value::Str("BOTH".into()));
+                }
+            }
+            append_to_array(&mut ordersRequests, merged);
+            append_to_array(&mut ordersMarkets, marketInner);
+        }
+        }
+        let mut data: Value = Value::from(vec![]);
+        if isContract {
+            let mut response: Value = self.swap_private_post_v3_trade_orders(&[ordersRequests.clone()]).await;
+            //
+            //     {
+            //         "code": 200,
+            //         "msg": "Success",
+            //         "data": [
+            //             { "code": 200, "msg": "", "ordId": "613155521545418752", "clOrdId": "batch-swap-1" },
+            //             { "code": 10014, "msg": "Order price exceeds the limit", "ordId": "", "clOrdId": "" }
+            //         ]
+            //     }
+            //
+            data = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        }  else {
+            //
+            //     [
+            //         { "id": "613155521545418752", "clientOrderId": "batch-1" },
+            //         { "code": 21709, "message": "Low available balance", "clientOrderId": "" }
+            //     ]
+            //
+            data = self.private_post_orders_batch(&[ordersRequests]).await;
+        }
+        // the responses are positional, aligned with the submitted orders
+        let mut results: Value = Value::from(vec![]);
+        let mut dataLength: f64 = ((data.len() as i64) as f64);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1049: bool = true;
+            while { if !__for_first_1049 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1049 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
+            let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entryMarket: Value = ordersMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            append_to_array(&mut results, self.parse_order(entry, &[entryMarket]));
+        }
+        }
+        return results;
+
+    Value::Null
+}
+
     pub fn order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, mut request: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
@@ -3153,6 +3266,78 @@ impl PoloniexCore {
 
 /*
  * @method
+ * @name poloniex#cancelOrders
+ * @description cancel multiple orders
+ * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-multiple-orders-by-ids
+ * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-multiple-orders
+ * @param {string[]} ids order ids
+ * @param {string} [symbol] unified market symbol, required for swap markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut market: Value = Value::Null;
+        if (symbol != Value::Null) {
+            market = self.market(symbol);
+        }
+        let mut marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), &[market.clone(), params]);
+        let mut marketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut clientOrderIds: Value = self.safe_list2(paramsMarketType.clone(), Value::Str("clientOrderIds".into()), Value::Str("clOrdIds".into()), &[]);
+        let mut query: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clOrdIds".into())]), &[]);
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut idsLength: f64 = ((ids.len() as i64) as f64);
+        if (marketType.as_str() != Some("spot")) {
+            if (market == Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument for ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
+            }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            // the api ignores clOrdIds when ordIds are also present
+            if idsLength > ((0i64) as f64) {
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordIds".into(), ids.clone()); }
+            }  else if (clientOrderIds != Value::Null) {
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clOrdIds".into(), clientOrderIds.clone()); }
+            }
+            let __ws_arg_20 = self.extend(request.clone(), &[query.clone()]);
+            let mut responseRaw: Value = self.swap_private_delete_v3_trade_batch_orders(&[__ws_arg_20]).await;
+            //
+            //     {
+            //         "code": 200,
+            //         "msg": "Success",
+            //         "data": [
+            //             { "code": "200", "msg": "Success", "ordId": "613143856837730304", "clOrdId": "" },
+            //             { "code": "11008", "msg": "ORDER_NOT_EXISTS", "ordId": "613144005890699264", "clOrdId": "" }
+            //         ]
+            //     }
+            //
+            let mut data: Value = self.safe_list_k(responseRaw, "data", &[Value::from(vec![])]);
+            return self.parse_orders(data, &[market.clone()]);
+        }
+        if idsLength > ((0i64) as f64) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderIds".into(), ids); }
+        }
+        if (clientOrderIds != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOrderIds".into(), clientOrderIds); }
+        }
+        let __ws_arg_21 = self.extend(request, &[query]);
+        let mut response: Value = self.private_delete_orders_cancel_by_ids(&[__ws_arg_21]).await;
+        return self.parse_orders(response, &[market]);
+
+    Value::Null
+}
+
+/*
+ * @method
  * @name poloniex#cancelAllOrders
  * @description cancel all open orders
  * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
@@ -3185,8 +3370,8 @@ impl PoloniexCore {
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (marketType.as_str() == Some("swap")) || (marketType.as_str() == Some("future")) {
-            let __ws_arg_20 = self.extend(request.clone(), &[paramsMarketType.clone()]);
-            let mut raw: Value = self.swap_private_delete_v3_trade_all_orders(&[__ws_arg_20]).await;
+            let __ws_arg_22 = self.extend(request.clone(), &[paramsMarketType.clone()]);
+            let mut raw: Value = self.swap_private_delete_v3_trade_all_orders(&[__ws_arg_22]).await;
             //
             //    {
             //        "code": "200",
@@ -3207,11 +3392,11 @@ impl PoloniexCore {
         let mut isTrigger: Value = self.safe_bool2(paramsMarketType.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
         if (isTrigger.as_bool() == Some(true)) {
-            let __ws_arg_21 = self.extend(request.clone(), &[paramsOmitted.clone()]);
-            response = self.private_delete_smartorders(&[__ws_arg_21]).await;
+            let __ws_arg_23 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+            response = self.private_delete_smartorders(&[__ws_arg_23]).await;
         }  else {
-            let __ws_arg_22 = self.extend(request, &[paramsOmitted]);
-            response = self.private_delete_orders(&[__ws_arg_22]).await;
+            let __ws_arg_24 = self.extend(request, &[paramsOmitted]);
+            response = self.private_delete_orders(&[__ws_arg_24]).await;
         }
         return self.parse_orders(response, &[market]);
 
@@ -3261,12 +3446,12 @@ impl PoloniexCore {
             m
         });
         if (isTrigger.as_bool() == Some(true)) {
-            let __ws_arg_23 = self.extend(request.clone(), &[paramsOmitted.clone()]);
-            response = self.private_get_smartorders_id(&[__ws_arg_23]).await;
+            let __ws_arg_25 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+            response = self.private_get_smartorders_id(&[__ws_arg_25]).await;
             response = self.safe_value(response.clone(), Value::Int(0), &[]);
         }  else {
-            let __ws_arg_24 = self.extend(request, &[paramsOmitted]);
-            response = self.private_get_orders_id(&[__ws_arg_24]).await;
+            let __ws_arg_26 = self.extend(request, &[paramsOmitted]);
+            response = self.private_get_orders_id(&[__ws_arg_26]).await;
         }
         //
         //     {
@@ -3336,8 +3521,8 @@ impl PoloniexCore {
                 m.insert("id".to_string(), id);
             m
         });
-        let __ws_arg_25 = self.extend(request, &[params]);
-        let mut trades: Value = self.private_get_orders_id_trades(&[__ws_arg_25]).await;
+        let __ws_arg_27 = self.extend(request, &[params]);
+        let mut trades: Value = self.private_get_orders_id_trades(&[__ws_arg_27]).await;
         return self.parse_trades(trades, &[]);
 
     Value::Null
@@ -3359,8 +3544,8 @@ impl PoloniexCore {
             let mut details: Value = self.safe_list_k(response.clone(), "details", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1047: bool = true;
-                while { if !__for_first_1047 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1047 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
+                let mut __for_first_1050: bool = true;
+                while { if !__for_first_1050 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1050 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
                 let mut balance: Value = self.safe_dict(details.clone(), i.clone(), &[]);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -3376,8 +3561,8 @@ impl PoloniexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1049: bool = true;
-            while { if !__for_first_1049 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1049 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_1052: bool = true;
+            while { if !__for_first_1052 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1052 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut account: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3385,8 +3570,8 @@ impl PoloniexCore {
             let mut balances: Value = self.safe_value_k(account.clone(), "balances", &[]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1048: bool = true;
-                while { if !__for_first_1048 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1048 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&balances).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1051: bool = true;
+                while { if !__for_first_1051 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1051 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&balances).as_f64().unwrap_or(f64::NAN) } {
                 let mut balance: Value = self.safe_dict(balances.clone(), j.clone(), &[]);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -3473,8 +3658,8 @@ impl PoloniexCore {
                 m.insert("accountType".to_string(), Value::Str("SPOT".into()));
             m
         });
-        let __ws_arg_26 = self.extend(request, &[paramsMarketType]);
-        let mut response: Value = self.private_get_accounts_balances(&[__ws_arg_26]).await;
+        let __ws_arg_28 = self.extend(request, &[paramsMarketType]);
+        let mut response: Value = self.private_get_accounts_balances(&[__ws_arg_28]).await;
         return self.parse_balance(response);
 
     Value::Null
@@ -3510,8 +3695,8 @@ impl PoloniexCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1050: bool = true;
-            while { if !__for_first_1050 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1050 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_1053: bool = true;
+            while { if !__for_first_1053 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1053 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3561,8 +3746,8 @@ impl PoloniexCore {
             }
         }
         if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
-            let mut responseRaw: Value = self.swap_public_get_v3_market_order_book(&[__ws_arg_27]).await;
+            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+            let mut responseRaw: Value = self.swap_public_get_v3_market_order_book(&[__ws_arg_29]).await;
             //
             //    {
             //       "code": 200,
@@ -3582,8 +3767,8 @@ impl PoloniexCore {
             let mut ts: Value = self.safe_integer_k(data.clone(), "ts", &[]);
             return self.parse_order_book(data, symbol, &[ts]);
         }
-        let __ws_arg_28 = self.extend(request, &[params]);
-        let mut response: Value = self.public_get_markets_symbol_order_book(&[__ws_arg_28]).await;
+        let __ws_arg_30 = self.extend(request, &[params]);
+        let mut response: Value = self.public_get_markets_symbol_order_book(&[__ws_arg_30]).await;
         //
         //     {
         //         "time" : 1659695219507,
@@ -3600,8 +3785,8 @@ impl PoloniexCore {
         let mut bidsResult: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1051: bool = true;
-            while { if !__for_first_1051 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1051 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&asks).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1054: bool = true;
+            while { if !__for_first_1054 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1054 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&asks).as_f64().unwrap_or(f64::NAN) } {
             if (mod_val(&i, &Value::Int(2))).as_f64().unwrap_or(f64::NAN) < ((1i64) as f64) {
                 let mut price: Value = self.safe_number(asks.clone(), i.clone(), &[]);
                 let mut amount: Value = self.safe_number(asks.clone(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
@@ -3611,8 +3796,8 @@ impl PoloniexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1052: bool = true;
-            while { if !__for_first_1052 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1052 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&bids).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1055: bool = true;
+            while { if !__for_first_1055 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1055 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&bids).as_f64().unwrap_or(f64::NAN) } {
             if (mod_val(&i, &Value::Int(2))).as_f64().unwrap_or(f64::NAN) < ((1i64) as f64) {
                 let mut price: Value = self.safe_number(bids.clone(), i.clone(), &[]);
                 let mut amount: Value = self.safe_number(bids.clone(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
@@ -3655,8 +3840,8 @@ impl PoloniexCore {
         let mut currency: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
         let mut networkEntry: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = extraParams;
-        let __ws_arg_29 = self.extend(request, &[paramsValue]);
-        let mut response: Value = self.private_post_wallets_address(&[__ws_arg_29]).await;
+        let __ws_arg_31 = self.extend(request, &[paramsValue]);
+        let mut response: Value = self.private_post_wallets_address(&[__ws_arg_31]).await;
         return self.parse_deposit_address_special(response, currency, networkEntry);
 
     Value::Null
@@ -3683,8 +3868,8 @@ impl PoloniexCore {
         let mut currency: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
         let mut networkEntry: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = extraParams;
-        let __ws_arg_30 = self.extend(request, &[paramsValue]);
-        let mut response: Value = self.private_get_wallets_addresses(&[__ws_arg_30]).await;
+        let __ws_arg_32 = self.extend(request, &[paramsValue]);
+        let mut response: Value = self.private_get_wallets_addresses(&[__ws_arg_32]).await;
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
@@ -3793,8 +3978,8 @@ impl PoloniexCore {
                 m.insert("toAccount".to_string(), toId);
             m
         });
-        let __ws_arg_31 = self.extend(request, &[params]);
-        let mut response: Value = self.private_post_accounts_transfer(&[__ws_arg_31]).await;
+        let __ws_arg_33 = self.extend(request, &[params]);
+        let mut response: Value = self.private_post_accounts_transfer(&[__ws_arg_33]).await;
         return self.parse_transfer(response, &[currency]);
 
     Value::Null
@@ -3861,8 +4046,8 @@ impl PoloniexCore {
         if (tagWithdrawTag != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("paymentId".into(), tagWithdrawTag); }
         }
-        let __ws_arg_32 = self.extend(request, &[paramsNetworkCode]);
-        let mut response: Value = self.private_post_v2_wallets_withdraw(&[__ws_arg_32]).await;
+        let __ws_arg_34 = self.extend(request, &[paramsNetworkCode]);
+        let mut response: Value = self.private_post_v2_wallets_withdraw(&[__ws_arg_34]).await;
         return self.parse_transaction(response, &[currency]);
 
     Value::Null
@@ -3886,8 +4071,8 @@ impl PoloniexCore {
                 m.insert("end".to_string(), now);
             m
         });
-        let __ws_arg_33 = self.extend(request, &[params]);
-        let mut response: Value = self.private_get_wallets_activity(&[__ws_arg_33]).await;
+        let __ws_arg_35 = self.extend(request, &[params]);
+        let mut response: Value = self.private_get_wallets_activity(&[__ws_arg_35]).await;
         return response;
 
     Value::Null
@@ -3975,12 +4160,12 @@ impl PoloniexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let __ws_arg_34 = self.extend(params, &[Value::Map({
+        let __ws_arg_36 = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("includeMultiChainCurrencies".to_string(), Value::Bool(true));
             m
         })]);
-        let mut response: Value = self.public_get_currencies(&[__ws_arg_34]).await;
+        let mut response: Value = self.public_get_currencies(&[__ws_arg_36]).await;
         //
         //     [
         //         {
@@ -4014,8 +4199,8 @@ impl PoloniexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1053: bool = true;
-            while { if !__for_first_1053 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1053 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
+            let mut __for_first_1056: bool = true;
+            while { if !__for_first_1056 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1056 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
             let mut entry: Value = entries.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currencies: Value = object_keys(&entry);
             let mut currencyId: Value = self.safe_string(currencies, Value::Int(0), &[]);
@@ -4059,8 +4244,8 @@ impl PoloniexCore {
         let mut responseKeys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1055: bool = true;
-            while { if !__for_first_1055 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1055 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseKeys.len() as i64) as f64) } {
+            let mut __for_first_1058: bool = true;
+            while { if !__for_first_1058 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1058 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseKeys.len() as i64) as f64) } {
             let mut currencyId: Value = responseKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut feeInfo: Value = get_value(&response, &currencyId);
@@ -4073,8 +4258,8 @@ impl PoloniexCore {
                 if chainsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_1054: bool = true;
-                        while { if !__for_first_1054 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1054 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&childChains).as_f64().unwrap_or(f64::NAN) } {
+                        let mut __for_first_1057: bool = true;
+                        while { if !__for_first_1057 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1057 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&childChains).as_f64().unwrap_or(f64::NAN) } {
                         let mut networkId: Value = get_value(&childChains, &j);
                         let mut networkId: Value = get_value(&childChains, &j);
                         networkId = replace_str(&networkId, &code, &Value::Str("".into()));
@@ -4341,8 +4526,8 @@ impl PoloniexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_35 = self.extend(request, &[paramsHedged]);
-        let mut response: Value = self.swap_private_post_v3_position_leverage(&[__ws_arg_35]).await;
+        let __ws_arg_37 = self.extend(request, &[paramsHedged]);
+        let mut response: Value = self.swap_private_post_v3_position_leverage(&[__ws_arg_37]).await;
         return response;
 
     Value::Null
@@ -4376,8 +4561,8 @@ impl PoloniexCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"".into()))));
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("mgnMode".into(), to_upper(&marginMode)); }
-        let __ws_arg_36 = self.extend(request, &[paramsMarginMode]);
-        let mut response: Value = self.swap_private_get_v3_position_leverages(&[__ws_arg_36]).await;
+        let __ws_arg_38 = self.extend(request, &[paramsMarginMode]);
+        let mut response: Value = self.swap_private_get_v3_position_leverages(&[__ws_arg_38]).await;
         return self.parse_leverage(response, &[market]);
 
     Value::Null
@@ -4392,8 +4577,8 @@ impl PoloniexCore {
         let mut data: Value = self.safe_list_k(leverage.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1056: bool = true;
-            while { if !__for_first_1056 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1056 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1059: bool = true;
+            while { if !__for_first_1059 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1059 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             marketId = self.safe_string_k(entry.clone(), "symbol", &[]);
             // mgnMode arrives upper case; parseOrder and parsePosition read the
@@ -4490,8 +4675,8 @@ impl PoloniexCore {
                 m.insert("posMode".to_string(), mode);
             m
         });
-        let __ws_arg_37 = self.extend(request, &[params]);
-        let mut response: Value = self.swap_private_post_v3_position_mode(&[__ws_arg_37]).await;
+        let __ws_arg_39 = self.extend(request, &[params]);
+        let mut response: Value = self.swap_private_post_v3_position_mode(&[__ws_arg_39]).await;
         return response;
 
     Value::Null
@@ -4652,8 +4837,8 @@ impl PoloniexCore {
         if !(matches!(&params, Value::Dict(__d) if __d.contains_key("posMode"))) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("posMode".into(), Value::Str("BOTH".into())); }
         }
-        let __ws_arg_38 = self.extend(request, &[params]);
-        let mut response: Value = self.swap_private_post_v3_trade_position_margin(&[__ws_arg_38]).await;
+        let __ws_arg_40 = self.extend(request, &[params]);
+        let mut response: Value = self.swap_private_post_v3_trade_position_margin(&[__ws_arg_40]).await;
         //
         // {
         //     "code": 200,
@@ -4753,6 +4938,7 @@ impl PoloniexCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
+        let mut isArray: bool = matches!(&params, Value::Arr(_));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null);
         if self.in_array(api.clone(), Value::from(vec![Value::Str("swapPublic".into()), Value::Str("swapPrivate".into())])).as_bool() == Some(true) {
             url = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
@@ -4777,7 +4963,7 @@ impl PoloniexCore {
             auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("/".into()), implodedPath).into())).into());
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE")) {
                 auth = Value::Str(format!("{}{}", auth, Value::Str("\n".into())).into()); // eslint-disable-line quotes
-                if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
+                if isArray || ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     bodyJson = json_stringify(&query);
                     auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("requestBody=".into()), bodyJson).into()), Value::Str("&".into())).into())).into());
                 }

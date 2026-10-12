@@ -1407,16 +1407,23 @@ impl CoinbaseCore {
             let mut limit: Value = self.safe_integer_k(subscription, "limit", &[]);
             let mut type_var: Option<String> = self.safe_string_k(event, "type", &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("snapshot")) {
-                { let __be_tmp = self.order_book(&[Value::Map({
+                if !(in_op(&self.orderbooks, &symbol)) {
+                    { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-            }
-            // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if !(in_op(&self.orderbooks, &symbol)) && is_equal(&get_value(&self.orderbooks, &symbol), &Value::Null) {
+                }
+            }  else if !(in_op(&self.orderbooks, &symbol)) {
                 continue;
             }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+            if (type_var.as_deref() == Some("snapshot")) {
+                // reset in place so consumers holding a reference keep receiving updates after a resync
+                orderbook.reset(Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                }));
+            }
             self.handle_order_book_helper(orderbook.clone(), updates);
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), self.parse8601(datetime.clone()));
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), datetime.clone());
