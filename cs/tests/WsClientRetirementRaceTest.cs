@@ -105,11 +105,24 @@ public partial class BaseTest
         }
     }
 
+    async public Task testWsRetirementRejectsLateFutures()
+    {
+        // a watch that took the client before onError creates its future after reset ran
+        var client = makeRetirementClient();
+        var failure = new NetworkError("connection closed by remote server");
+        client.onError(failure);
+        var late = client.future("orderbook:BTC/USDT");
+        Assert(late.task.IsFaulted, "a future created on a retired client must be rejected");
+        Assert(ReferenceEquals(late.task.Exception?.InnerException, failure), "the late future must carry the client's error");
+        await Task.CompletedTask;
+    }
+
     async public Task testWsClientRetirementRace()
     {
         await testWsRetirementReplacementSurvivesRace();
         await testWsRetirementSameReferenceLeavesNothingBehind();
         await testWsRetirementIsIdempotent();
         await testWsRetirementConcurrentClosersElectOneWinner();
+        await testWsRetirementRejectsLateFutures();
     }
 }
