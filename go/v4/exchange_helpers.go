@@ -1128,6 +1128,9 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 					} else if valueVal.Type().ConvertibleTo(fieldType) {
 						field.Set(valueVal.Convert(fieldType))
 					}
+				} else {
+					// assigning undefined clears the field, as in JS
+					field.Set(reflect.Zero(field.Type()))
 				}
 			}
 		}
