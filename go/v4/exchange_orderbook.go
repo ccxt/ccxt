@@ -3,6 +3,7 @@ package ccxt
 import (
 	"fmt"
 	"math"
+	"reflect"
 	"strings"
 )
 
@@ -163,7 +164,7 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 	if snapshot == nil {
 		snapshot = make(map[string]any)
 	}
-	asks, bids := getAsksBids(snapshot)
+	asks, bids := resetRows(this.Asks, snapshot)
 	snapshotMap := snapshot.(map[string]any)
 
 	for i := range *this.Asks.GetIndex() {
@@ -284,6 +285,40 @@ func getAsksBids(snapshot any) ([][]float64, [][]float64) {
 	asks := normalizeToFloat64SliceSlice(SafeValue(snapshot, "asks", nil))
 	bids := normalizeToFloat64SliceSlice(SafeValue(snapshot, "bids", nil))
 	return asks, bids
+}
+
+// resetRows shapes snapshot rows for the side's StoreArray: plain sides take
+// []float64, indexed/counted sides take []any so the id or count survives.
+func resetRows(side IOrderBookSide, snapshot any) ([]any, []any) {
+	toAny := func(rows any) []any {
+		v := reflect.ValueOf(rows)
+		out := make([]any, v.Len())
+		for i := range out {
+			out[i] = v.Index(i).Interface()
+		}
+		return out
+	}
+	switch side.(type) {
+	case *IndexedOrderBookSide:
+		asks, bids := getIndexedAsksBids(snapshot)
+		return toAny(asks), toAny(bids)
+	case *CountedOrderBookSide:
+		asks, bids := getAsksBids(snapshot)
+		conv := func(rows [][]float64) []any {
+			out := make([]any, len(rows))
+			for i, row := range rows {
+				r := make([]any, len(row))
+				for j, x := range row {
+					r[j] = x
+				}
+				out[i] = r
+			}
+			return out
+		}
+		return conv(asks), conv(bids)
+	}
+	asks, bids := getAsksBids(snapshot)
+	return toAny(asks), toAny(bids)
 }
 
 func getIndexedAsksBids(snapshot any) ([][]any, [][]any) {
