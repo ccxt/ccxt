@@ -1318,6 +1318,24 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (depth, 'public');
+        const client = this.client (url);
+        const resyncTopics: List = [];
+        for (let i = 0; i < messageHashes.length; i++) {
+            const resyncHash = 'resync:' + messageHashes[i];
+            if (this.safeBool (client.subscriptions, resyncHash) === true) {
+                // a nonce gap left the channel subscribed without a book, okx only sends a snapshot in reply to a
+                // subscribe, so unsubscribe first; false keeps the marker for the ack but stops a second unsubscribe
+                client.subscriptions[resyncHash] = false;
+                resyncTopics.push (topics[i]);
+            }
+        }
+        if (resyncTopics.length > 0) {
+            const unsubscribeRequest: Dict = {
+                'op': 'unsubscribe',
+                'args': resyncTopics,
+            };
+            await client.send (unsubscribeRequest);
+        }
         const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, request, messageHashes);
         return orderbook.limit ();
     }
@@ -1587,9 +1605,9 @@ export default class okx extends okxRest {
                         //
                         // the channel itself is still subscribed on this connection, and okx sends a snapshot only in
                         // reply to a subscribe - a new subscribe is acknowledged without one, and every update after it
-                        // is dropped for lack of a book, so the channel is unsubscribed before the caller subscribes again
+                        // is dropped for lack of a book, so watchOrderBookForSymbols unsubscribes the channel before the
+                        // caller subscribes again (sent there so it always precedes the new subscribe on the socket)
                         client.subscriptions['resync:' + messageHash] = true;
-                        this.spawn (this.unsubscribeAfterNonceGap, client, channel, marketId);
                         break;
                     }
                     client.resolve (orderbook, messageHash);
@@ -2712,14 +2730,6 @@ export default class okx extends okxRest {
         if (symbol in this.trades) {
             delete this.trades[symbol];
         }
-    }
-
-    async unsubscribeAfterNonceGap (client: Client, channel: string, marketId: string) {
-        const request: Dict = {
-            'op': 'unsubscribe',
-            'args': [ { 'channel': channel, 'instId': marketId } ],
-        };
-        await client.send (request);
     }
 
     handleUnsubscriptionOrderBook (client: Client, symbol: string, channel: string) {
