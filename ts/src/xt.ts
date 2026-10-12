@@ -2035,7 +2035,7 @@ export default class xt extends Exchange {
         const contractSize = this.safeString (marketResolved, 'contractSize');
         if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
             // 'a' counts contracts, 'v' is in the settle currency
-            const contractVolume = Precise.stringMul (this.safeString (ticker, 'a'), contractSize);
+            const contractVolume = Precise.stringMul (baseVolume, contractSize);
             if (marketResolved['inverse'] === true) {
                 baseVolume = quoteVolume;
                 quoteVolume = contractVolume;
