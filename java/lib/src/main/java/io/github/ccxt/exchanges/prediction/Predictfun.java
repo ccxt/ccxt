@@ -9,6 +9,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.PredictionEvent;
 import io.github.ccxt.types.PredictionOrder;
 import io.github.ccxt.types.PredictionOrderBook;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import io.github.ccxt.types.Pair;
 
 public class Predictfun extends PredictfunApi
 {

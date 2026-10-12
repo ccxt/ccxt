@@ -12,6 +12,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import io.github.ccxt.types.Pair;
 
 public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinternational
 {

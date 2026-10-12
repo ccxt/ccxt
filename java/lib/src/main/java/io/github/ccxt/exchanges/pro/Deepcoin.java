@@ -11,6 +11,7 @@ import io.github.ccxt.Client;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Trade;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import io.github.ccxt.types.Pair;
 
 public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 {
