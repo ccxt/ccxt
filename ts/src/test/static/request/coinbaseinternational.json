@@ -1,274 +1,365 @@
 {
-    "exchange": "coinbase",
-    "skipKeys": ["client_order_id"],
-    "outputType": "both",
-    "options": {
-      "portfolio": "1wp37qsc-1-0"
-    },
-    "methods": {
-       "transfer": [
-        {
-          "description": "transfer an asset between portfolios",
-          "method": "transfer",
-          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/transfer",
-          "input": [
-            "USDC",
-            100.5,
-            "portfolio-a",
-            "portfolio-b"
-          ],
-          "output": "{\"asset\":\"USDC\",\"amount\":100.5,\"from\":\"portfolio-a\",\"to\":\"portfolio-b\"}"
-        }
-       ],
-       "fetchAccounts": [
-        {
-          "description": "fetchAccounts",
-          "method": "fetchAccounts",
-          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios",
-          "input": []
-        }
-       ],
-       "fetchFundingRateHistory": [
-        {
-          "description": "fetch funding rate history",
-          "method": "fetchFundingRateHistory",
-          "url": "https://api.international.coinbase.com/api/v1/instruments/BTC-PERP/funding?result_offset=0",
-          "input": [
-            "BTC/USDC:USDC"
-          ]
-        }
-       ],
-       "fetchPosition": [
-        {
-          "description": "fetchPosition",
-          "method": "fetchPosition",
-          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/positions/BTC-PERP",
-          "input": [
-            "BTC/USDC:USDC"
-          ]
-        }
-       ],
-       "fetchPositions": [
-        {
-          "description": "fetchPositions with symbols undefined",
-          "method": "fetchPositions",
-          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/positions",
-          "input": []
-        },
-        {
-          "description": "fetchPositions with symbol",
-          "method": "fetchPositions",
-          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/positions",
-          "input": [
-            ["BTC/USDC:USDC"]
-          ]
-        }
-       ],
-       "fetchTicker": [
-        {
-          "description": "Fill this with a description of the method call",
-          "method": "fetchTicker",
-          "url": "https://api-n5e1.coinbase.com/api/v1/instruments/BTC-PERP/quote",
-          "input": [
-            "BTC/USDC:USDC"
-          ]
-        }
-       ],
-       "fetchTickers": [
-        {
-          "description": "fetchTickers with one symbol",
-          "method": "fetchTickers",
-          "url": "https://api-n5e1.coinbase.com/api/v1/instruments",
-          "input": [
-            [
-              "BTC/USDC:USDC"
-            ]
-          ]
-        }
-       ],
-       "fetchBalance": [
-        {
-          "description": "fetchBalance",
-          "method": "fetchBalance",
-          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/balances",
-          "input": []
-        }
-       ],
-       "createOrder": [
-        {
-          "description": "createOrder market buy",
-          "method": "createOrder",
-          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
-          "input": [
-            "BTC/USDC:USDC",
-            "market",
-            "buy",
-            0.01,
-            54000
-          ],
-          "output": "{\"client_order_id\":\"ccxt3523937d-859d-\",\"side\":\"BUY\",\"instrument\":\"BTC-PERP\",\"size\":\"0.01\",\"type\":\"MARKET\",\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"IOC\"}"
-        },
-        {
-          "description": "createOrder limit sell",
-          "method": "createOrder",
-          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
-          "input": [
-            "BTC/USDC:USDC",
-            "limit",
-            "sell",
-            0.01,
-            54000
-          ],
-          "output": "{\"client_order_id\":\"ccxtd0dd4b5d-8e5f-\",\"side\":\"SELL\",\"instrument\":\"BTC-PERP\",\"size\":\"0.01\",\"type\":\"LIMIT\",\"price\":54000,\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"GTC\"}"
-        },
-        {
-          "description": "stop limit order",
-          "method": "createOrder",
-          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
-          "input": [
-            "ETH/USDC:USDC",
-            "limit",
-            "buy",
-            0.1,
-            5001,
-            {
-              "triggerPrice": 5000
-            }
-          ],
-          "output": "{\"client_order_id\":\"ccxt3dc5d350-1921-\",\"side\":\"BUY\",\"instrument\":\"ETH-PERP\",\"size\":\"0.1\",\"stop_price\":5000,\"type\":\"STOP_LIMIT\",\"price\":5001,\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"GTC\",\"triggerPrice\":5000}"
-        },
-        {
-          "description": "spot market order",
-          "method": "createOrder",
-          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
-          "input": [
-            "ETH/USDC",
-            "market",
-            "buy",
-            0.1
-          ],
-          "output": "{\"client_order_id\":\"nfqkvdjp-4b03ab8a\",\"side\":\"BUY\",\"instrument\":\"ETH-USDC\",\"size\":\"0.1\",\"type\":\"MARKET\",\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"IOC\"}"
-        },
-        {
-          "description": "spot postOnly limit order",
-          "method": "createOrder",
-          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
-          "input": [
-            "ETH/USDC",
-            "limit",
-            "buy",
-            0.1,
-            3500,
-            {
-              "postOnly": true
-            }
-          ],
-          "output": "{\"client_order_id\":\"nfqkvdjp-5f13356c\",\"side\":\"BUY\",\"instrument\":\"ETH-USDC\",\"size\":\"0.1\",\"type\":\"LIMIT\",\"price\":3500,\"portfolio\":\"1wp37qsc-1-0\",\"post_only\":true,\"tif\":\"GTC\"}"
-        }
-       ],
-       "fetchOpenOrders": [
-        {
-          "description": "fetchOpenOrders",
-          "method": "fetchOpenOrders",
-          "url": "https://api-n5e1.coinbase.com/api/v1/orders?portfolio=1wp37qsc-1-0&result_offset=0",
-          "input": []
-        }
-       ],
-       "fetchMyTrades": [
-        {
-          "description": "fetchMyTrades",
-          "method": "fetchMyTrades",
-          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/fills?result_offset=0",
-          "input": []
-        }
-       ],
-       "cancelOrder": [
-        {
-          "description": "cancel stop limit order",
-          "method": "cancelOrder",
-          "url": "https://api-n5e1.coinbase.com/api/v1/orders/1yuhgvhn-1-0?portfolio=1wp37qsc-1-0",
-          "input": [
-            "1yuhgvhn-1-0"
-          ],
-          "output": "{\"portfolio\":\"1wp37qsc-1-0\"}"
-        }
-       ],
-       "cancelAllOrders": [
-        {
-          "description": "cancel all orders",
-          "method": "cancelAllOrders",
-          "url": "https://api-n5e1.coinbase.com/api/v1/orders?portfolio=1wp37qsc-1-0",
-          "input": [],
-          "output": "{\"portfolio\":\"1wp37qsc-1-0\"}"
-        }
-       ],
-       "editOrder": [
-        {
-          "description": "editOrder",
-          "method": "editOrder",
-          "url": "https://api-n5e1.coinbase.com/api/v1/orders/1yujb23q-1-0",
-          "input": [
-            "1yujb23q-1-0",
-            "ADA/USDC:USDC",
-            "limit",
-            "buy",
-            101,
-            0.35,
-            {
-              "clientOrderId": "ccxtaf8edcec-ce94-"
-            }
-          ],
-          "output": "{\"portfolio\":\"1wp37qsc-1-0\",\"size\":\"101\",\"price\":\"0.35\",\"client_order_id\":\"ccxtaf8edcec-ce94-\",\"clientOrderId\":\"ccxtaf8edcec-ce94-\"}"
-        }
-       ],
-       "fetchDepositsWithdrawals": [
-          {
-            "description": "fetch deposit withdrawals",
-            "method": "fetchDepositsWithdrawals",
-            "url": "https://api.international.coinbase.com/api/v1/transfers?result_offset=0",
-            "input": []
-          }
-       ]
-    },
-    "withdraw": [
-      {
-        "description": "withdraw USDC",
-        "method": "withdraw",
-        "url": "https://api.international.coinbase.com/api/v1/transfers/withdraw",
-        "input": [
-          "USDC",
-          5,
-          "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
-          null,
-          {
-            "network": "ARBITRUM"
-          }
-        ],
-        "output": "{\"portfolio\":\"1yun54bb-1-6\",\"type\":\"send\",\"asset\":\"USDC\",\"address\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"amount\":5,\"currency\":\"USDC\",\"network_arn_id\":\"networks/arbitrum-mainnet/assets/5f9ba01c-4cfe-5519-977e-21af64a3a2a8\",\"nonce\":1710440664,\"network\":\"ARBITRUM\"}"
-      }
+    "exchange": "coinbaseinternational",
+    "skipKeys": [
+        "id",
+        "start_timestamp",
+        "end_timestamp"
     ],
-    "fetchOHLCV": [
+    "outputType": "json",
+    "methods": {
+        "fetchOHLCV": [
             {
-                "disabled": true,
-                "reason": "without since it uses dynamic ts value, which can't be fixtured",
-                "description": "without since",
+                "description": "spot fetchOHLCV",
+                "options": { "route": "coinbase", "routeBackend": false },
                 "method": "fetchOHLCV",
-                "url": "https://api.international.coinbase.com/api/v1/instruments/BTC-PERP/candles?granularity=ONE_MINUTE&start=2026-09-22T17%3A39%3A23.381Z",
+                "url": "https://drb.coinbase.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC_USDC&resolution=1&start_timestamp=1788853380574&end_timestamp=1788853500574",
                 "input": [
-                    "BTC/USDC:USDC",
-                    "1m"
+                    "BTC/USDC",
+                    "1m",
+                    null,
+                    3
                 ],
                 "output": null
             },
-      {
-        "description": "fetchOHLCV",
-        "method": "fetchOHLCV",
-        "url": "https://api.international.coinbase.com/api/v1/instruments/BTC-PERP/candles?granularity=ONE_HOUR&start=2024-06-30T14%3A05%3A17.000Z",
-        "input": [
-          "BTC/USDC:USDC",
-          "1h",
-          1719756317000
+            {
+                "description": "future fetchOHLCV",
+                "options": { "route": "coinbase", "routeBackend": false },
+                "method": "fetchOHLCV",
+                "url": "https://drb.coinbase.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC-25JUN27&resolution=1&start_timestamp=1788856811139&end_timestamp=1788856931139",
+                "input": [
+                    "BTC/USD:BTC-270625",
+                    "1m",
+                    null,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "option fetchOHLCV",
+                "options": { "route": "coinbase", "routeBackend": false },
+                "method": "fetchOHLCV",
+                "url": "https://drb.coinbase.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC-25JUN27-30000-C&resolution=1&start_timestamp=1788856906550&end_timestamp=1788857026550",
+                "input": [
+                    "BTC/USD:BTC-270625-30000-C",
+                    "1m",
+                    null,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "inverse swap fetchOHLCV",
+                "options": { "route": "coinbase", "routeBackend": false },
+                "method": "fetchOHLCV",
+                "url": "https://drb.coinbase.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC-PERPETUAL&resolution=1&start_timestamp=1788856956802&end_timestamp=1788857076802",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1m",
+                    null,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "swap fetchFundingRateHistory",
+                "options": { "route": "coinbase", "routeBackend": false },
+                "method": "fetchFundingRateHistory",
+                "url": "https://drb.coinbase.com/api/v2/public/get_funding_rate_history?instrument_name=BTC_USDC-PERPETUAL&start_timestamp=1786266184878&end_timestamp=1786276984878",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "coinbase international fetchCurrencies",
+                "options": { "route": "coinbase", "routeBackend": false },
+                "method": "fetchCurrencies",
+                "url": "https://drb.coinbase.com/api/v2/public/get_currencies",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot fetchTicker",
+                "options": { "route": "coinbase", "routeBackend": false },
+                "method": "fetchTicker",
+                "url": "https://drb.coinbase.com/api/v2/public/ticker?instrument_name=BTC_USDC",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap fetchTicker",
+                "options": { "route": "coinbase", "routeBackend": false },
+                "method": "fetchTicker",
+                "url": "https://drb.coinbase.com/api/v2/public/ticker?instrument_name=BTC_USDC-PERPETUAL",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "future fetchTicker",
+                "options": { "route": "coinbase", "routeBackend": false },
+                "method": "fetchTicker",
+                "url": "https://drb.coinbase.com/api/v2/public/ticker?instrument_name=BTC-25JUN27",
+                "input": [
+                    "BTC/USD:BTC-270625"
+                ],
+                "output": null
+            },
+            {
+                "description": "option fetchTicker",
+                "options": { "route": "coinbase", "routeBackend": false },
+                "method": "fetchTicker",
+                "url": "https://drb.coinbase.com/api/v2/public/ticker?instrument_name=BTC-25JUN27-30000-C",
+                "input": [
+                    "BTC/USD:BTC-270625-30000-C"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot fetchTicker",
+                "options": { "route": "coinbase", "routeBackend": false },
+                "method": "fetchTicker",
+                "url": "https://drb.coinbase.com/api/v2/public/ticker?instrument_name=BTC_USDC",
+                "input": [
+                    [
+                        "BTC/USDC"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot fetchOrderBook",
+                "options": { "route": "coinbase", "routeBackend": false },
+                "method": "fetchOrderBook",
+                "url": "https://drb.coinbase.com/api/v2/public/get_order_book?instrument_name=BTC_USDC&depth=3",
+                "input": [
+                    "BTC/USDC",
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "swap fetchLeverage",
+                "method": "fetchLeverage",
+                "url": "https://drb.coinbase.com/api/v2/private/get_leverage?instrument_name=BTC_USDC-PERPETUAL",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "swap setLeverage",
+                "method": "setLeverage",
+                "url": "https://drb.coinbase.com/api/v2/private/set_leverage?instrument_name=BTC_USDC-PERPETUAL&leverage=10",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
+                "input": [
+                    10,
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "deribit swap fetchPosition",
+                "options": { "route": "deribit", "routeBackend": true },
+                "method": "fetchPosition",
+                "url": "https://www.deribit.com/api/v2/private/get_position?instrument_name=BTC_USDC-PERPETUAL",
+                "input": [
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "deribit"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "deribit swap fetchPositions",
+                "options": { "route": "deribit", "routeBackend": true },
+                "method": "fetchPositions",
+                "url": "https://www.deribit.com/api/v2/private/get_positions",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ],
+                    {
+                        "route": "deribit"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "deribit swap market sell createOrder",
+                "options": { "route": "deribit", "routeBackend": true },
+                "method": "createOrder",
+                "url": "https://www.deribit.com/api/v2/private/sell?instrument_name=BTC_USDC-PERPETUAL&amount=1&type=market&reduce_only=true&label=nfqkvdjp-0a2855ad914c4143b26f44",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    10000,
+                    null,
+                    {
+                        "route": "deribit",
+                        "clientOrderId": "nfqkvdjp-0a2855ad914c4143b26f44",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "deribit limit buy createOrder",
+                "options": { "route": "deribit", "routeBackend": true },
+                "method": "createOrder",
+                "url": "https://www.deribit.com/api/v2/private/buy?instrument_name=BTC_USDC-PERPETUAL&amount=0.0001&type=limit&price=75000&label=nfqkvdjp-c8b0419cce1c4bbeb95ec2",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    1,
+                    75000,
+                    {
+                        "route": "deribit",
+                        "clientOrderId": "nfqkvdjp-c8b0419cce1c4bbeb95ec2"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "deribit swap editOrder",
+                "options": { "route": "deribit", "routeBackend": true },
+                "method": "editOrder",
+                "url": "https://www.deribit.com/api/v2/private/edit?order_id=USDC-200285613317&amount=0.0002&price=74000",
+                "input": [
+                    "USDC-200285613317",
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    2,
+                    74000,
+                    {
+                        "route": "deribit"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "deribit swap fetchOrder",
+                "options": { "route": "deribit", "routeBackend": true },
+                "method": "fetchOrder",
+                "url": "https://www.deribit.com/api/v2/private/get_order_state?order_id=USDC-200285613317",
+                "input": [
+                    "USDC-200285613317",
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "deribit"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "deribit swap fetchOpenOrders",
+                "options": { "route": "deribit", "routeBackend": true },
+                "method": "fetchOpenOrders",
+                "url": "https://www.deribit.com/api/v2/private/get_open_orders_by_instrument?instrument_name=BTC_USDC-PERPETUAL",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "route": "deribit"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "deribit swap cancelOrder",
+                "options": { "route": "deribit", "routeBackend": true },
+                "method": "cancelOrder",
+                "url": "https://www.deribit.com/api/v2/private/cancel?order_id=USDC-200285613317",
+                "input": [
+                    "USDC-200285613317",
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "deribit"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "deribit swap cancelAllOrders",
+                "options": { "route": "deribit", "routeBackend": true },
+                "method": "cancelAllOrders",
+                "url": "https://www.deribit.com/api/v2/private/cancel_all_by_instrument?instrument_name=BTC_USDC-PERPETUAL",
+                "input": [
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "deribit"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "deribit swap fetchMyTrades",
+                "options": { "route": "deribit", "routeBackend": true },
+                "method": "fetchMyTrades",
+                "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_instrument?instrument_name=BTC_USDC-PERPETUAL&include_old=true&count=3",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    3,
+                    {
+                        "route": "deribit"
+                    }
+                ],
+                "output": null
+            }
         ]
-      }
-    ]
+    }
 }
