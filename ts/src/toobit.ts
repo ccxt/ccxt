@@ -2855,11 +2855,16 @@ export default class toobit extends Exchange {
         return this.filterByCurrencySinceLimit (sorted, currencyCode, since, limit);
     }
 
-    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
-        return this.parseTransactionWithType (transaction, currency, undefined);
+    parseTransactionWithType (transaction: Dict, currency: Currency = undefined, transactType: Str = undefined) {
+        const result = this.parseTransaction (transaction, currency);
+        if (transactType !== undefined) {
+            result['type'] = transactType;
+            result['status'] = this.parseTransactionStatus (this.safeString (transaction, 'status'), transactType);
+        }
+        return result;
     }
 
-    parseTransactionWithType (transaction: Dict, currency: Currency = undefined, transactType: Str = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits & fetchWithdrawals
         //
@@ -2916,12 +2921,7 @@ export default class toobit extends Exchange {
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
         const addressTo = this.safeString (transaction, 'address');
         const addressFrom = this.safeString (transaction, 'fromAddress');
-        let isWithdraw = false;
-        if (transactType !== undefined) {
-            isWithdraw = (transactType === 'withdrawal');
-        } else {
-            isWithdraw = ('arriveQuantity' in transaction) || ('success' in transaction);
-        }
+        const isWithdraw = ('arriveQuantity' in transaction) || ('success' in transaction);
         const type = isWithdraw ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
