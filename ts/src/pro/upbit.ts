@@ -35,6 +35,11 @@ export default class upbit extends upbitRest {
             },
             'options': {
                 'tradesLimit': 1000,
+                'ws': {
+                    // upbit allows 5 messages per second and 100 per minute per websocket connection, cost 13 * rateLimit 50ms spaces sends 650ms apart (92 per minute)
+                    // https://global-docs.upbit.com/reference/rate-limits
+                    'cost': 13,
+                },
             },
         });
     }
@@ -770,4 +775,4 @@ export default class upbit extends upbitRest {
             method.call (this, client, message);
         }
     }
-}
+                }
