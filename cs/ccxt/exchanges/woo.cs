@@ -13,7 +13,7 @@ public partial class woo : Exchange
             { "countries", new List<object>() {"KY"} },
             { "rateLimit", 100 },
             { "version", "v1" },
-            { "certified", true },
+            { "certified", false },
             { "pro", true },
             { "hostname", "woox.io" },
             { "has", new Dictionary<string, object>() {
