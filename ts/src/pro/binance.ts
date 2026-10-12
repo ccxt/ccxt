@@ -4736,6 +4736,7 @@ export default class binance extends binanceRest {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO';
         }
+        const postOnly = (orderType === 'limit_maker') || (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -4747,7 +4748,7 @@ export default class binance extends binanceRest {
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'type': this.parseOrderTypeByMarket (orderType, marketType),
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool (order, 'R'),
             'side': this.safeStringLower (order, 'S'),
             'price': this.safeString (order, 'p'),
