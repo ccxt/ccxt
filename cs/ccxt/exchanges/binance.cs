@@ -9021,11 +9021,12 @@ public partial class binance : Exchange
      * @ignore
      * @name binance#generateClientOrderId
      * @description builds a fresh client order id
-     * @param {object} [market] the market of the order, takes precedence over the api argument
+     * @param {object} [market] the market of the order, takes precedence over the other arguments
      * @param {string} [api] the implicit api section the order is sent to (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+     * @param {string} [path] the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
      * @returns {string} the broker prefix followed by 22 random characters
      */
-    public virtual string? generateClientOrderId(object market = null, object api = null)
+    public virtual string? generateClientOrderId(object market = null, object api = null, object path = null)
     {
         string? idMarketType = null;
         if ((market != null))
@@ -9043,7 +9044,24 @@ public partial class binance : Exchange
             {
                 idMarketType = "spot";
             }
-        } else if ((api != null))
+        }
+        if (((idMarketType == null)) && ((path != null)))
+        {
+            if ((((string)path).IndexOf("um/", StringComparison.Ordinal) == 0))
+            {
+                idMarketType = "swap";
+            } else if ((((string)path).IndexOf("cm/", StringComparison.Ordinal) == 0))
+            {
+                idMarketType = "inverse";
+            } else if ((((string)path).IndexOf("margin/", StringComparison.Ordinal) == 0))
+            {
+                idMarketType = "margin";
+            } else if ((((string)path).IndexOf("equity/", StringComparison.Ordinal) == 0))
+            {
+                idMarketType = "spot";
+            }
+        }
+        if (((idMarketType == null)) && ((api != null)))
         {
             bool isSpotOrMargin = (((string)api).IndexOf("sapi", StringComparison.Ordinal) > -1 || (api is "private"));
             if (isSpotOrMargin)
@@ -9059,7 +9077,8 @@ public partial class binance : Exchange
             {
                 idMarketType = "future";
             }
-        } else
+        }
+        if ((idMarketType == null))
         {
             string? defaultType = this.safeString(this.options, "defaultType", "spot");
             string? defaultSubType = this.safeString(this.options, "defaultSubType");
@@ -9083,6 +9102,102 @@ public partial class binance : Exchange
         IDictionary<string, object> broker = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
         string brokerId = this.safeString(broker, idMarketType, defaultId);
         return (brokerId + this.uuid22());
+    }
+
+    /**
+     * @method
+     * @name binance#handleClientOrderId
+     * @ignore
+     * @param {object} params request params
+     * @param {string} api the implicit api section the request is sent to
+     * @param {string} path the implicit api path the request is sent to
+     * @param {string} method HTTP method
+     * @returns {object} params with the injected client order id
+     */
+    public virtual object handleClientOrderId(object parameters, object api, object path, object method)
+    {
+        if (!(method is "POST"))
+        {
+            return parameters;
+        }
+        if (((path is "order")) || ((path is "sor/order")) || ((path is "order/cancelReplace")) || ((path is "um/order")) || ((path is "cm/order")) || ((path is "margin/order")))
+        {
+            // the eapi order endpoint takes clientOrderId instead of newClientOrderId
+            string clientOrderIdKey = ((api is "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
+            string? clientOrderId = this.safeString2(parameters, "clientOrderId", "newClientOrderId");
+            if ((clientOrderId == null))
+            {
+                ((IDictionary<string,object>)parameters)[clientOrderIdKey] = this.generateClientOrderId(null, api, path);
+            }
+        } else if (((path is "algoOrder")) || ((path is "um/algo/order")))
+        {
+            // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
+            string? clientAlgoId = this.safeString(parameters, "clientAlgoId");
+            if ((clientAlgoId == null))
+            {
+                ((IDictionary<string,object>)parameters)["clientAlgoId"] = this.generateClientOrderId(null, api, path);
+            }
+        } else if (((path is "cm/conditional/order")) || ((path is "um/conditional/order")))
+        {
+            // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
+            string? newClientStrategyId = this.safeString(parameters, "newClientStrategyId");
+            if ((newClientStrategyId == null))
+            {
+                ((IDictionary<string,object>)parameters)["newClientStrategyId"] = this.generateClientOrderId(null, api, path);
+            }
+        } else if ((path is "equity/order/place"))
+        {
+            // the equity order endpoint takes clientOrderId instead of newClientOrderId
+            string? equityClientOrderId = this.safeString(parameters, "clientOrderId");
+            if ((equityClientOrderId == null))
+            {
+                ((IDictionary<string,object>)parameters)["clientOrderId"] = this.generateClientOrderId(null, api, path);
+            }
+        } else if (((path is "order/oco")) || ((path is "margin/order/oco")) || ((path is "orderList/oco")) || ((path is "orderList/oto")) || ((path is "orderList/otoco")) || ((path is "orderList/opo")) || ((path is "orderList/opoco")))
+        {
+            // the order list endpoints take a listClientOrderId and one client order id per leg
+            List<object> clientOrderIdKeys = new List<object>() {"listClientOrderId", "limitClientOrderId", "stopClientOrderId"};
+            if ((path is "orderList/oco"))
+            {
+                clientOrderIdKeys = new List<object>() {"listClientOrderId", "aboveClientOrderId", "belowClientOrderId"};
+            } else if (((path is "orderList/oto")) || ((path is "orderList/opo")))
+            {
+                clientOrderIdKeys = new List<object>() {"listClientOrderId", "workingClientOrderId", "pendingClientOrderId"};
+            } else if (((path is "orderList/otoco")) || ((path is "orderList/opoco")))
+            {
+                clientOrderIdKeys = new List<object>() {"listClientOrderId", "workingClientOrderId", "pendingAboveClientOrderId", "pendingBelowClientOrderId"};
+            }
+            for (int i = 0; i < (clientOrderIdKeys?.Count ?? 0); i++)
+            {
+                object currentClientOrderIdKey = clientOrderIdKeys[i];
+                string? currentClientOrderId = this.safeString(parameters, currentClientOrderIdKey);
+                if ((currentClientOrderId == null))
+                {
+                    ((IDictionary<string,object>)parameters)[(string)currentClientOrderIdKey] = this.generateClientOrderId(null, api, path);
+                }
+            }
+        } else if ((path is "batchOrders"))
+        {
+            // the batch legs take the same client order id fields as the single order endpoints
+            if (((api is "fapiPrivate")) || ((api is "dapiPrivate")) || ((api is "eapiPrivate")))
+            {
+                string batchClientOrderIdKey = ((api is "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
+                List<object> batchOrders = this.safeList(parameters, "batchOrders", new List<object>() {});
+                List<object> checkedBatchOrders = new List<object>() {};
+                for (int i = 0; i < batchOrders.Count; i++)
+                {
+                    object batchOrder = batchOrders[i];
+                    string? batchClientOrderId = this.safeString(batchOrder, batchClientOrderIdKey);
+                    if ((batchClientOrderId == null))
+                    {
+                        ((IDictionary<string,object>)batchOrder)[batchClientOrderIdKey] = this.generateClientOrderId(null, api, path);
+                    }
+                    checkedBatchOrders.Add(batchOrder);
+                }
+                ((IDictionary<string,object>)parameters)["batchOrders"] = checkedBatchOrders;
+            }
+        }
+        return parameters;
     }
 
     /**
@@ -9282,6 +9397,10 @@ public partial class binance : Exchange
             clientOrderIdRequest = "clientAlgoId";
         } else if ((stock == true))
         {
+            clientOrderIdRequest = "clientOrderId";
+        } else if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
+        {
+            // the option api takes clientOrderId instead of newClientOrderId
             clientOrderIdRequest = "clientOrderId";
         }
         if ((clientOrderId == null))
@@ -15770,56 +15889,24 @@ public partial class binance : Exchange
             {
                 throw new NotSupported ((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
-            if ((method == "POST") && (((path == "order")) || ((path == "sor/order"))))
-            {
-                // inject in implicit API calls
-                string? newClientOrderId = this.safeString(parameters, "newClientOrderId");
-                if ((newClientOrderId == null))
-                {
-                    ((IDictionary<string,object>)parameters)["newClientOrderId"] = this.generateClientOrderId(null, api);
-                }
-            } else if ((method == "POST") && ((path == "algoOrder")))
-            {
-                // the fapi/dapi algo order endpoints take clientAlgoId instead of newClientOrderId
-                string? clientAlgoId = this.safeString(parameters, "clientAlgoId");
-                if ((clientAlgoId == null))
-                {
-                    ((IDictionary<string,object>)parameters)["clientAlgoId"] = this.generateClientOrderId(null, api);
-                }
-            }
+            object requestParams = this.handleClientOrderId(parameters, api, path, method);
             object query = null;
             // handle batchOrders
             if (((path == "batchOrders")) && (((method == "POST")) || ((method == "PUT"))))
             {
-                List<object> batchOrders = this.safeList(parameters, "batchOrders", new List<object>() {});
-                List<object> checkedBatchOrders = batchOrders;
-                if ((method == "POST") && (((api is "fapiPrivate")) || ((api is "dapiPrivate"))))
-                {
-                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders / dapiPrivatePostBatchOrders
-                    checkedBatchOrders = new List<object>() {};
-                    for (int i = 0; i < batchOrders.Count; i++)
-                    {
-                        object batchOrder = batchOrders[i];
-                        string? newClientOrderId = this.safeString(batchOrder, "newClientOrderId");
-                        if ((newClientOrderId == null))
-                        {
-                            ((IDictionary<string,object>)batchOrder)["newClientOrderId"] = this.generateClientOrderId(null, api);
-                        }
-                        checkedBatchOrders.Add(batchOrder);
-                    }
-                }
-                string queryBatch = (this.json(checkedBatchOrders));
-                ((IDictionary<string,object>)parameters)["batchOrders"] = queryBatch;
+                List<object> batchOrders = this.safeList(requestParams, "batchOrders", new List<object>() {});
+                string queryBatch = (this.json(batchOrders));
+                ((IDictionary<string,object>)requestParams)["batchOrders"] = queryBatch;
             }
             Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
                 { "timestamp", this.nonce() },
-            }, parameters);
+            }, requestParams);
             if ((defaultRecvWindow != null))
             {
                 extendedParams["recvWindow"] = defaultRecvWindow;
             }
-            Int64? recvWindow = this.safeInteger(parameters, "recvWindow");
+            Int64? recvWindow = this.safeInteger(requestParams, "recvWindow");
             if ((recvWindow != null))
             {
                 extendedParams["recvWindow"] = recvWindow;

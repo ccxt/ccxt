@@ -3768,9 +3768,14 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        if ((((timeout == null || timeout < 300000))) || ((timeout > 1296000000)))
+        if ((timeout == null))
         {
-            throw new BadRequest ((this.id + " timeout should be between 5 minutes and 15 days.")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrdersAfter() requires a timeout argument")) ;
+        }
+        bool isScheduled = ((timeout != 0));
+        if (isScheduled && (((timeout < 300000)) || ((timeout > 1296000000))))
+        {
+            throw new BadRequest ((this.id + " timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.")) ;
         }
         IList<object> apiKeyIndexparamsApiKeyIndexVariable = (IList<object>)this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index");
         Int64? apiKeyIndex = (Int64?)apiKeyIndexparamsApiKeyIndexVariable[0];
@@ -3782,9 +3787,16 @@ public partial class lighter : Exchange
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        int timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+        object cancelTime = 0;
+        if (isScheduled)
+        {
+            timeInForce = 1;
+            cancelTime = this.sum(this.milliseconds(), timeout);
+        }
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
-            { "time_in_force", 1 },
-            { "time", add(this.milliseconds(), timeout) },
+            { "time_in_force", timeInForce },
+            { "time", cancelTime },
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },

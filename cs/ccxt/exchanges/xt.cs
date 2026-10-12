@@ -2456,6 +2456,22 @@ public partial class xt : Exchange
         {
             percentage = Precise.stringMul(percentage, "100");
         }
+        string? baseVolume = this.safeString2(ticker, "a", "q");
+        string? quoteVolume = this.safeString(ticker, "v");
+        string? contractSize = this.safeString(marketResolved, "contractSize");
+        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && ((contractSize != null)))
+        {
+            // 'a' counts contracts, 'v' is in the settle currency
+            string? contractVolume = Precise.stringMul(baseVolume, contractSize);
+            if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
+            {
+                baseVolume = quoteVolume;
+                quoteVolume = contractVolume;
+            } else
+            {
+                baseVolume = contractVolume;
+            }
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -2474,8 +2490,8 @@ public partial class xt : Exchange
             { "change", this.safeNumber(ticker, "cv") },
             { "percentage", this.parseNumber(percentage) },
             { "average", null },
-            { "baseVolume", this.safeNumber2(ticker, "a", "q") },
-            { "quoteVolume", this.safeNumber(ticker, "v") },
+            { "baseVolume", baseVolume },
+            { "quoteVolume", quoteVolume },
             { "info", ticker },
         }, marketResolved);
     }
