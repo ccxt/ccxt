@@ -533,7 +533,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         'bitget',
         'hyperliquid',
         'bingx',
-        'htx',
         'mexc',
         'cryptocom',
         'hashkey',
