@@ -527,8 +527,8 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     const certifiedExchangesSortingOrder = [
         'binance',
         'bybit',
-        'okx',
         'gate',
+        'okx',
         'kucoin',
         'bitget',
         'hyperliquid',
@@ -537,7 +537,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         'mexc',
         'cryptocom',
         'hashkey',
-        'woo',
         'woofipro',
     ]
 
