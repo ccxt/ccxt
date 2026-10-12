@@ -775,4 +775,4 @@ export default class upbit extends upbitRest {
             method.call (this, client, message);
         }
     }
-                }
+}
