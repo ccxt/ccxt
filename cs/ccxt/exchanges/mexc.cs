@@ -2506,6 +2506,20 @@ public partial class mexc : Exchange
             ask = this.safeString(ticker, "ask1");
             baseVolume = this.safeString(ticker, "volume24");
             quoteVolume = this.safeString(ticker, "amount24");
+            string? contractSize = this.safeString(marketResolved, "contractSize");
+            if (((isSwap == true)) && ((contractSize != null)))
+            {
+                // volume24 counts contracts, amount24 is in the settle currency
+                string? contractVolume = Precise.stringMul(baseVolume, contractSize);
+                if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
+                {
+                    baseVolume = quoteVolume;
+                    quoteVolume = contractVolume;
+                } else
+                {
+                    baseVolume = contractVolume;
+                }
+            }
             high = this.safeString(ticker, "high24Price");
             low = this.safeString(ticker, "lower24Price");
             changeValue = this.safeString(ticker, "riseFallValue");

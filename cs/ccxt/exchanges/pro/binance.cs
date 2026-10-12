@@ -5412,6 +5412,7 @@ public partial class binance : ccxt.binance
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
+        bool postOnly = (orderType == "limit_maker") || (timeInForce == "PO");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },
@@ -5423,7 +5424,7 @@ public partial class binance : ccxt.binance
             { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "type", this.parseOrderTypeByMarket(orderType, marketType) },
             { "timeInForce", timeInForce },
-            { "postOnly", null },
+            { "postOnly", postOnly },
             { "reduceOnly", this.safeBool(order, "R") },
             { "side", this.safeStringLower(order, "S") },
             { "price", this.safeString(order, "p") },
