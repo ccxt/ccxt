@@ -2009,7 +2009,10 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            tickers = self.safe_list(response, 'data', [])
+            if isSingularMarket:
+                tickers = self.safe_dict(response, 'data', {})  # when queried with a symbol, "data" holds a single ticker object, like in fetchTicker
+            else:
+                tickers = self.safe_list(response, 'data', [])
         # when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if isSingularMarket:
             tickers = [tickers]
@@ -4620,7 +4623,8 @@ class mexc(Exchange, ImplicitAPI):
         #        coin: "USDT",
         #        network: "BNB Smart Chain(BEP20)",
         #        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        #        memo:  null
+        #        memo:  null,
+        #        netWork: "BSC"
         #    }
         #
         address = self.safe_string(depositAddress, 'address')
@@ -4673,7 +4677,8 @@ class mexc(Exchange, ImplicitAPI):
         #            coin: "USDT",
         #            network: "BNB Smart Chain(BEP20)",
         #            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        #            memo:  null
+        #            memo:  null,
+        #            netWork: "BSC"
         #        }
         #        ...
         #    ]
@@ -4808,7 +4813,7 @@ class mexc(Exchange, ImplicitAPI):
         #         "memo": "xxyy1122",
         #         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         #         "updateTime": "1664805621000",
-        #         "netWork: "TRX"
+        #         "netWork": "TRX"
         #     }
         # ]
         #
@@ -4865,7 +4870,7 @@ class mexc(Exchange, ImplicitAPI):
         #       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #       "updateTime": "1664882799000",
-        #       "netWork: "MATIC"
+        #       "netWork": "MATIC"
         #     }
         # ]
         #
@@ -4888,7 +4893,7 @@ class mexc(Exchange, ImplicitAPI):
         #     "memo": "xxyy1122",
         #     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         #     "updateTime": "1664805621000",
-        #     "netWork: "TRX"
+        #     "netWork": "TRX"
         # }
         #
         # fetchWithdrawals
@@ -4910,7 +4915,7 @@ class mexc(Exchange, ImplicitAPI):
         #     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #     "updateTime": "1664882799000",
-        #     "netWork: "MATIC"
+        #     "netWork": "MATIC"
         #   }
         #
         # withdraw
