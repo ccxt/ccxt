@@ -38,7 +38,7 @@ class htx(Exchange, ImplicitAPI):
             'countries': ['CN'],
             'rateLimit': 100,
             'userAgent': self.userAgents['chrome100'],
-            'certified': True,
+            'certified': False,
             'version': 'v1',
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
