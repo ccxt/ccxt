@@ -5429,7 +5429,7 @@ function collectionWriteIsSameBox (printer, node, javaType) {
 
 // reject the narrowing when any use needs the local to stay `Object` (or a receiver cast
 // the narrowed type cannot satisfy).
-function collectionIsSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) {
+function collectionIsSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, info = undefined) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
         return false;
@@ -5556,7 +5556,7 @@ function collectionLocalDeclaration (printer, declaration) {
     const sourceName = declaration.name.text;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
-    if (!collectionIsSafeToNarrow (printer, declaration, sourceName, info.type, isProFile)) {
+    if (!collectionIsSafeToNarrow (printer, declaration, sourceName, info.type, isProFile, info)) {
         if (COLLECTION_DEBUG) {
             console.error (`[collection] declined ${fileName}:${declaration.name.text}`);
         }
@@ -12750,7 +12750,7 @@ function listHelperLocalInfo (printer, declaration) {
         return undefined;
     }
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
-    return collectionIsSafeToNarrow (printer, declaration, declaration.name.text, info.type, isProFile) ? info : undefined;
+    return collectionIsSafeToNarrow (printer, declaration, declaration.name.text, info.type, isProFile, info) ? info : undefined;
 }
 
 export function patchJavaListHelperLocalTypes (transpiler) {
