@@ -1928,6 +1928,7 @@ impl HyperliquidCore {
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
@@ -1936,11 +1937,19 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".into()));
             m
         });
+        let mut dexName: Value = self.get_dex_from_symbols(Value::Str("fetchFundingRates".into()), &[symbolsNormalized.clone()]);
+        if (dexName != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName); }
+        }
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.public_post_info(&[__ws_arg_12]).await;
         //
@@ -1997,7 +2006,7 @@ impl HyperliquidCore {
             append_to_array(&mut result, data);
         }
         }
-        return self.parse_funding_rates(result, &[symbols]);
+        return self.parse_funding_rates(result, &[symbolsNormalized]);
 
     Value::Null
 }
@@ -5126,20 +5135,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbolsLength == 0.0) {
             return Value::Null;
         }
-        let mut dexName: Value = Value::Null;
+        // the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
+        // so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
+        let mut firstMarket: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
+        let mut dexName: Value = self.get_dex_from_hip3_symbol(firstMarket);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: Value = Value::Int(1);
             let mut __for_first_800: bool = true;
             while { if !__for_first_800 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_800 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            if (dexName == Value::Null) {
-                let mut market: Value = self.market(symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-                dexName = self.get_dex_from_hip3_symbol(market.clone());
-            }  else {
-                let mut market: Value = self.market(symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-                let mut currentDexName: Value = self.get_dex_from_hip3_symbol(market);
-                if (currentDexName.as_str() != dexName.as_str()) {
-                    panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str(" only supports fetching positions for one DEX at a time for HIP3 markets".into()))));
-                }
+            let mut market: Value = self.market(symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            let mut currentDexName: Value = self.get_dex_from_hip3_symbol(market);
+            if (currentDexName.as_str() != dexName.as_str()) {
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str(" only supports symbols from one DEX at a time for HIP3 markets".into()))));
             }
         }
         }
@@ -6306,6 +6313,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @description Retrieves the open interest for a list of symbols
  * @param {string[]} [symbols] Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
+ * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interests(&mut self, optional_args: &[Value]) -> Value {
@@ -6318,7 +6326,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut swapMarkets: Value = self.fetch_swap_markets(&[]).await;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut dexName: Value = self.get_dex_from_symbols(Value::Str("fetchOpenInterests".into()), &[symbolsNormalized.clone()]);
+        if (dexName != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName); }
+        }
+        let __ws_arg_35 = self.extend(request, &[params]);
+        let mut swapMarkets: Value = self.fetch_swap_markets(&[__ws_arg_35]).await;
         return self.parse_open_interests(swapMarkets, &[symbolsNormalized]);
 
     Value::Null
@@ -6434,8 +6451,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (until != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
         }
-        let __ws_arg_35 = self.extend(request, &[paramsOmitted]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_35]).await;
+        let __ws_arg_36 = self.extend(request, &[paramsOmitted]);
+        let mut response: Value = self.public_post_info(&[__ws_arg_36]).await;
         return self.parse_incomes(response, &[market, since, limit]);
 
     Value::Null
@@ -6513,8 +6530,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce, &[]);
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
-        let __ws_arg_36 = self.extend(request, &[params]);
-        let mut response: Value = self.private_post_exchange(&[__ws_arg_36]).await;
+        let __ws_arg_37 = self.extend(request, &[params]);
+        let mut response: Value = self.private_post_exchange(&[__ws_arg_37]).await;
         return response;
 
     Value::Null
@@ -6553,8 +6570,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce, &[Value::Null, expiresAfter]);
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
-        let __ws_arg_37 = self.extend(request, &[self.omit(params, Value::Str("expiresAfter".into()), &[])]);
-        let mut response: Value = self.private_post_exchange(&[__ws_arg_37]).await;
+        let __ws_arg_38 = self.extend(request, &[self.omit(params, Value::Str("expiresAfter".into()), &[])]);
+        let mut response: Value = self.private_post_exchange(&[__ws_arg_38]).await;
         return response;
 
     Value::Null
