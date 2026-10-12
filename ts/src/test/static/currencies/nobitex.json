@@ -1,0 +1,46 @@
+{
+    "BTC": {
+        "id": "btc",
+        "code": "BTC",
+        "precision": 1e-06,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "ETH": {
+        "id": "eth",
+        "code": "ETH",
+        "precision": 1e-05,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "IRR": {
+        "id": "rls",
+        "code": "IRR",
+        "precision": 0.001,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "USDT": {
+        "id": "usdt",
+        "code": "USDT",
+        "precision": 1e-08,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}
