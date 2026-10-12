@@ -729,7 +729,7 @@ class bingx extends Exchange {
                         'trailing' => true,
                         'leverage' => false,
                         'marketBuyRequiresPrice' => false,
-                        'marketBuyByCost' => false,
+                        'marketBuyByCost' => true,
                         'selfTradePrevention' => false,
                         'iceberg' => false,
                     ),
@@ -782,6 +782,9 @@ class bingx extends Exchange {
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
                     'sandbox' => false,
+                    'createOrder' => array(
+                        'marketBuyByCost' => false,
+                    ),
                     'createOrders' => null,
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -3188,7 +3191,7 @@ class bingx extends Exchange {
 
     private function do_create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
         /**
-         * create a spot market order by providing the $symbol, $side and $cost
+         * create a spot or linear swap market order by providing the $symbol, $side and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $cost how much you want to trade in units of the quote currency
@@ -3205,7 +3208,7 @@ class bingx extends Exchange {
 
     private function do_create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
-         * create a spot market buy order by providing the $symbol and $cost
+         * create a spot or linear swap market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3221,7 +3224,7 @@ class bingx extends Exchange {
 
     private function do_create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
-         * create a spot market sell order by providing the $symbol and $cost
+         * create a spot or linear swap market sell order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3251,8 +3254,8 @@ class bingx extends Exchange {
          */
         $market = $this->market($symbol);
         $cost = $this->safe_string_2($params, 'cost', 'quoteOrderQty');
-        if (($market['contract'] === true) && ($cost !== null)) {
-            throw new NotSupported($this->id . ' createOrder() with cost or quoteOrderQty is not supported for contract markets');
+        if (($market['inverse'] === true) && ($cost !== null)) {
+            throw new NotSupported($this->id . ' createOrder() with cost or quoteOrderQty is not supported for inverse swap markets');
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $typeValue = strtoupper($type);
@@ -3416,6 +3419,9 @@ class bingx extends Exchange {
                 }
             }
             if ($hasStopLoss || $hasTakeProfit) {
+                if ($cost !== null) {
+                    throw new InvalidOrder($this->id . ' createOrder() does not support attached stopLoss or takeProfit on a market order by cost');
+                }
                 $stringifiedAmount = $this->number_to_string($amount);
                 if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_string_2($stopLossDict, 'triggerPrice', 'stopPrice');
@@ -3474,7 +3480,9 @@ class bingx extends Exchange {
             }
             $request['positionSide'] = $positionSide;
             $closePosition = $this->safe_bool($paramsOrder, 'closePosition', false);
-            if ($closePosition !== true) {
+            if ($cost !== null) {
+                $request['quoteOrderQty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
+            } elseif ($closePosition !== true) {
                 $amountReq = $amount;
                 if ($market['inverse'] !== true) {
                     $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
@@ -3482,7 +3490,7 @@ class bingx extends Exchange {
                 $request['quantity'] = $amountReq; // precision not available for inverse contracts
             }
         }
-        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId' ));
+        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId', 'cost', 'quoteOrderQty' ));
         return $this->extend($request, $paramsRequest);
     }
 
@@ -3512,8 +3520,8 @@ class bingx extends Exchange {
          * @param {float} [$params->triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [$params->stopLossPrice] stop loss trigger $price, a spot order is placed and parsed back with triggerPrice
          * @param {float} [$params->takeProfitPrice] take profit trigger $price, a spot order is placed and parsed back with triggerPrice
-         * @param {float} [$params->cost] *spot only* the quote quantity that can be used as an alternative for the $amount
-         * @param {float} [$params->quoteOrderQty] *spot only* the quote quantity, an alternative to $params->cost
+         * @param {float} [$params->cost] *spot and linear swap only* the quote quantity that can be used as an alternative for the $amount
+         * @param {float} [$params->quoteOrderQty] *spot and linear swap only* the quote quantity, an alternative to $params->cost
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
          * @param {float} [$params->trailingTriggerPrice] *swap only* the $price to activate a trailing order at

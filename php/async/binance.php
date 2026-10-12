@@ -7207,12 +7207,13 @@ class binance extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function generate_client_order_id(?array $market = null, ?string $api = null): string {
+    public function generate_client_order_id(?array $market = null, ?string $api = null, ?string $path = null): string {
         /**
          * @ignore
          * builds a fresh client order id
-         * @param {array} [$market] the $market of the order, takes precedence over the $api argument
+         * @param {array} [$market] the $market of the order, takes precedence over the other arguments
          * @param {string} [$api] the implicit $api section the order is sent to (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+         * @param {string} [$path] the implicit $api $path the order is sent to, resolves the $market type from the um/, cm/, margin/ and equity/ $path prefixes whose $api section is ambiguous, takes precedence over the $api argument
          * @return {string} the $broker prefix followed by 22 random characters
          */
         $idMarketType = null;
@@ -7226,7 +7227,19 @@ class binance extends Exchange {
             } else {
                 $idMarketType = 'spot';
             }
-        } elseif ($api !== null) {
+        }
+        if (($idMarketType === null) && ($path !== null)) {
+            if (mb_strpos($path, 'um/') === 0) {
+                $idMarketType = 'swap';
+            } elseif (mb_strpos($path, 'cm/') === 0) {
+                $idMarketType = 'inverse';
+            } elseif (mb_strpos($path, 'margin/') === 0) {
+                $idMarketType = 'margin';
+            } elseif (mb_strpos($path, 'equity/') === 0) {
+                $idMarketType = 'spot';
+            }
+        }
+        if (($idMarketType === null) && ($api !== null)) {
             $isSpotOrMargin = (mb_strpos($api, 'sapi') > -1 || $api === 'private');
             if ($isSpotOrMargin) {
                 $idMarketType = 'spot';
@@ -7237,7 +7250,8 @@ class binance extends Exchange {
             } else {
                 $idMarketType = 'future';
             }
-        } else {
+        }
+        if ($idMarketType === null) {
             $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
             $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
             $idMarketType = $defaultType;
@@ -7256,6 +7270,80 @@ class binance extends Exchange {
         $broker = $this->safe_dict($this->options, 'broker', array());
         $brokerId = $this->safe_string($broker, $idMarketType, $defaultId);
         return $brokerId . $this->uuid22();
+    }
+
+    public function handle_client_order_id(array $params, ?string $api, ?string $path, ?string $method): array {
+        /**
+         * @ignore
+         * @param {array} $params request $params
+         * @param {string} $api the implicit $api section the request is sent to
+         * @param {string} $path the implicit $api $path the request is sent to
+         * @param {string} $method HTTP $method
+         * @return {array} $params with the injected client order id
+         */
+        if ($method !== 'POST') {
+            return $params;
+        }
+        if (($path === 'order') || ($path === 'sor/order') || ($path === 'order/cancelReplace') || ($path === 'um/order') || ($path === 'cm/order') || ($path === 'margin/order')) {
+            // the eapi order endpoint takes clientOrderId instead of newClientOrderId
+            $clientOrderIdKey = ($api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
+            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'newClientOrderId');
+            if ($clientOrderId === null) {
+                $params[$clientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
+            }
+        } elseif (($path === 'algoOrder') || ($path === 'um/algo/order')) {
+            // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
+            $clientAlgoId = $this->safe_string($params, 'clientAlgoId');
+            if ($clientAlgoId === null) {
+                $params['clientAlgoId'] = $this->generate_client_order_id(null, $api, $path);
+            }
+        } elseif (($path === 'cm/conditional/order') || ($path === 'um/conditional/order')) {
+            // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
+            $newClientStrategyId = $this->safe_string($params, 'newClientStrategyId');
+            if ($newClientStrategyId === null) {
+                $params['newClientStrategyId'] = $this->generate_client_order_id(null, $api, $path);
+            }
+        } elseif ($path === 'equity/order/place') {
+            // the equity order endpoint takes clientOrderId instead of newClientOrderId
+            $equityClientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($equityClientOrderId === null) {
+                $params['clientOrderId'] = $this->generate_client_order_id(null, $api, $path);
+            }
+        } elseif (($path === 'order/oco') || ($path === 'margin/order/oco') || ($path === 'orderList/oco') || ($path === 'orderList/oto') || ($path === 'orderList/otoco') || ($path === 'orderList/opo') || ($path === 'orderList/opoco')) {
+            // the order list endpoints take a listClientOrderId and one client order id per leg
+            $clientOrderIdKeys = array( 'listClientOrderId', 'limitClientOrderId', 'stopClientOrderId' );
+            if ($path === 'orderList/oco') {
+                $clientOrderIdKeys = array( 'listClientOrderId', 'aboveClientOrderId', 'belowClientOrderId' );
+            } elseif (($path === 'orderList/oto') || ($path === 'orderList/opo')) {
+                $clientOrderIdKeys = array( 'listClientOrderId', 'workingClientOrderId', 'pendingClientOrderId' );
+            } elseif (($path === 'orderList/otoco') || ($path === 'orderList/opoco')) {
+                $clientOrderIdKeys = array( 'listClientOrderId', 'workingClientOrderId', 'pendingAboveClientOrderId', 'pendingBelowClientOrderId' );
+            }
+            for ($i = 0; $i < count($clientOrderIdKeys); $i++) {
+                $currentClientOrderIdKey = $clientOrderIdKeys[$i];
+                $currentClientOrderId = $this->safe_string($params, $currentClientOrderIdKey);
+                if ($currentClientOrderId === null) {
+                    $params[$currentClientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
+                }
+            }
+        } elseif ($path === 'batchOrders') {
+            // the batch legs take the same client order id fields as the single order endpoints
+            if (($api === 'fapiPrivate') || ($api === 'dapiPrivate') || ($api === 'eapiPrivate')) {
+                $batchClientOrderIdKey = ($api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
+                $batchOrders = $this->safe_list($params, 'batchOrders', array());
+                $checkedBatchOrders = array();
+                for ($i = 0; $i < count($batchOrders); $i++) {
+                    $batchOrder = $batchOrders[$i];
+                    $batchClientOrderId = $this->safe_string($batchOrder, $batchClientOrderIdKey);
+                    if ($batchClientOrderId === null) {
+                        $batchOrder[$batchClientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
+                    }
+                    $checkedBatchOrders[] = $batchOrder;
+                }
+                $params['batchOrders'] = $checkedBatchOrders;
+            }
+        }
+        return $params;
     }
 
     public function is_conditional_order($params = array()): bool {
@@ -7409,6 +7497,9 @@ class binance extends Exchange {
         if ($isAlgoOrder) {
             $clientOrderIdRequest = 'clientAlgoId';
         } elseif ($stock === true) {
+            $clientOrderIdRequest = 'clientOrderId';
+        } elseif ($market['option'] === true) {
+            // the option api takes clientOrderId instead of newClientOrderId
             $clientOrderIdRequest = 'clientOrderId';
         }
         if ($clientOrderId === null) {
@@ -13521,47 +13612,22 @@ class binance extends Exchange {
             if ((mb_strpos($url, 'testnet.binancefuture.com') > -1) && $this->isSandboxModeEnabled && (!$this->safe_bool($this->options, 'disableFuturesSandboxWarning', false))) {
                 throw new NotSupported($this->id . ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
             }
-            if ($method === 'POST' && (($path === 'order') || ($path === 'sor/order'))) {
-                // inject in implicit API calls
-                $newClientOrderId = $this->safe_string($params, 'newClientOrderId');
-                if ($newClientOrderId === null) {
-                    $params['newClientOrderId'] = $this->generate_client_order_id(null, $api);
-                }
-            } elseif ($method === 'POST' && ($path === 'algoOrder')) {
-                // the fapi/dapi algo order endpoints take clientAlgoId instead of newClientOrderId
-                $clientAlgoId = $this->safe_string($params, 'clientAlgoId');
-                if ($clientAlgoId === null) {
-                    $params['clientAlgoId'] = $this->generate_client_order_id(null, $api);
-                }
-            }
+            $requestParams = $this->handle_client_order_id($params, $api, $path, $method);
             $query = null;
             // handle batchOrders
             if (($path === 'batchOrders') && (($method === 'POST') || ($method === 'PUT'))) {
-                $batchOrders = $this->safe_list($params, 'batchOrders', array());
-                $checkedBatchOrders = $batchOrders;
-                if ($method === 'POST' && (($api === 'fapiPrivate') || ($api === 'dapiPrivate'))) {
-                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders / dapiPrivatePostBatchOrders
-                    $checkedBatchOrders = array();
-                    for ($i = 0; $i < count($batchOrders); $i++) {
-                        $batchOrder = $batchOrders[$i];
-                        $newClientOrderId = $this->safe_string($batchOrder, 'newClientOrderId');
-                        if ($newClientOrderId === null) {
-                            $batchOrder['newClientOrderId'] = $this->generate_client_order_id(null, $api);
-                        }
-                        $checkedBatchOrders[] = $batchOrder;
-                    }
-                }
-                $queryBatch = ($this->json($checkedBatchOrders));
-                $params['batchOrders'] = $queryBatch;
+                $batchOrders = $this->safe_list($requestParams, 'batchOrders', array());
+                $queryBatch = ($this->json($batchOrders));
+                $requestParams['batchOrders'] = $queryBatch;
             }
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
             $extendedParams = $this->extend(array(
                 'timestamp' => $this->nonce(),
-            ), $params);
+            ), $requestParams);
             if ($defaultRecvWindow !== null) {
                 $extendedParams['recvWindow'] = $defaultRecvWindow;
             }
-            $recvWindow = $this->safe_integer($params, 'recvWindow');
+            $recvWindow = $this->safe_integer($requestParams, 'recvWindow');
             if ($recvWindow !== null) {
                 $extendedParams['recvWindow'] = $recvWindow;
             }

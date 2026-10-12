@@ -3237,8 +3237,12 @@ class lighter extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        if (($timeout < 300000) || ($timeout > 1296000000)) {
-            throw new BadRequest($this->id . ' timeout should be between 5 minutes and 15 days.');
+        if ($timeout === null) {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrdersAfter() requires a timeout argument');
+        }
+        $isScheduled = ($timeout !== 0);
+        if ($isScheduled && (($timeout < 300000) || ($timeout > 1296000000))) {
+            throw new BadRequest($this->id . ' timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.');
         }
         list($apiKeyIndex, $paramsApiKeyIndex) = $this->handle_api_key_index($params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         list($accountIndex, $paramsAccountIndex) = $this->handle_account_index($paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index');
@@ -3246,9 +3250,15 @@ class lighter extends Exchange {
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $paramsAccountIndex);
+        $timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+        $cancelTime = 0;
+        if ($isScheduled) {
+            $timeInForce = 1;
+            $cancelTime = $this->sum($this->milliseconds(), $timeout);
+        }
         $signRaw = array(
-            'time_in_force' => 1, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
-            'time' => $this->milliseconds() . $timeout, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'time_in_force' => $timeInForce,
+            'time' => $cancelTime,
             'nonce' => $nonce,
             'api_key_index' => $apiKeyIndex,
             'account_index' => $accountIndex,

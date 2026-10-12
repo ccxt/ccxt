@@ -2024,6 +2024,19 @@ class xt extends Exchange {
         if ($percentage !== null) {
             $percentage = Precise::string_mul($percentage, '100');
         }
+        $baseVolume = $this->safe_string_2($ticker, 'a', 'q');
+        $quoteVolume = $this->safe_string($ticker, 'v');
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
+        if (($marketResolved['contract'] === true) && ($contractSize !== null)) {
+            // 'a' counts contracts, 'v' is in the settle currency
+            $contractVolume = Precise::string_mul($baseVolume, $contractSize);
+            if ($marketResolved['inverse'] === true) {
+                $baseVolume = $quoteVolume;
+                $quoteVolume = $contractVolume;
+            } else {
+                $baseVolume = $contractVolume;
+            }
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -2042,8 +2055,8 @@ class xt extends Exchange {
             'change' => $this->safe_number($ticker, 'cv'),
             'percentage' => $this->parse_number($percentage),
             'average' => null,
-            'baseVolume' => $this->safe_number_2($ticker, 'a', 'q'),
-            'quoteVolume' => $this->safe_number($ticker, 'v'),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $marketResolved);
     }
