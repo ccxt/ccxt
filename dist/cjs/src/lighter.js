@@ -3223,8 +3223,12 @@ class lighter extends lighter$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        if ((timeout < 300000) || (timeout > 1296000000)) {
-            throw new errors.BadRequest(this.id + ' timeout should be between 5 minutes and 15 days.');
+        if (timeout === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelAllOrdersAfter() requires a timeout argument');
+        }
+        const isScheduled = (timeout !== 0);
+        if (isScheduled && ((timeout < 300000) || (timeout > 1296000000))) {
+            throw new errors.BadRequest(this.id + ' timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.');
         }
         const [apiKeyIndex, paramsApiKeyIndex] = this.handleApiKeyIndex(params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index');
@@ -3232,9 +3236,15 @@ class lighter extends lighter$1["default"] {
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
         const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
+        let timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+        let cancelTime = 0;
+        if (isScheduled) {
+            timeInForce = 1;
+            cancelTime = this.sum(this.milliseconds(), timeout);
+        }
         const signRaw = {
-            'time_in_force': 1, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
-            'time': this.milliseconds() + timeout, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'time_in_force': timeInForce,
+            'time': cancelTime,
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,

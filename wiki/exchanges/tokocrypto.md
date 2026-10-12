@@ -247,6 +247,8 @@ create a trade order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | the price at which a trigger order would be triggered |
 | params.cost | <code>float</code> | No | for spot market buy orders, the quote quantity that can be used as an alternative for the amount |
+| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest |
+| params.postOnly | <code>bool</code> | No | true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same |
 
 
 ```javascript

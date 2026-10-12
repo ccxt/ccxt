@@ -2032,6 +2032,20 @@ export default class xt extends Exchange {
         if (percentage !== undefined) {
             percentage = Precise.stringMul(percentage, '100');
         }
+        let baseVolume = this.safeString2(ticker, 'a', 'q');
+        let quoteVolume = this.safeString(ticker, 'v');
+        const contractSize = this.safeString(marketResolved, 'contractSize');
+        if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
+            // 'a' counts contracts, 'v' is in the settle currency
+            const contractVolume = Precise.stringMul(baseVolume, contractSize);
+            if (marketResolved['inverse'] === true) {
+                baseVolume = quoteVolume;
+                quoteVolume = contractVolume;
+            }
+            else {
+                baseVolume = contractVolume;
+            }
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -2050,8 +2064,8 @@ export default class xt extends Exchange {
             'change': this.safeNumber(ticker, 'cv'),
             'percentage': this.parseNumber(percentage),
             'average': undefined,
-            'baseVolume': this.safeNumber2(ticker, 'a', 'q'),
-            'quoteVolume': this.safeNumber(ticker, 'v'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, marketResolved);
     }

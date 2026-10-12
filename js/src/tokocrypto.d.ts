@@ -130,6 +130,7 @@ export default class tokocrypto extends Exchange {
     parseBalanceCustom(response: Dict, type?: Str, marginMode?: Str): Balances;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
+    parseTimeInForce(timeInForce: Str): Str;
     parseOrderType(status: Str): Str;
     /**
      * @method
@@ -144,6 +145,8 @@ export default class tokocrypto extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
      * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.timeInForce] 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest
+     * @param {bool} [params.postOnly] true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;

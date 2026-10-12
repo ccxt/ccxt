@@ -55,7 +55,7 @@ interface Exchange {
     privatePostWalletsWithdraw(params?: {}): Promise<Dict>;
     privatePostV2WalletsWithdraw(params?: {}): Promise<Dict>;
     privatePostOrders(params?: {}): Promise<Dict>;
-    privatePostOrdersBatch(params?: {}): Promise<Dict>;
+    privatePostOrdersBatch(params?: {}): Promise<List>;
     privatePostOrdersKillSwitch(params?: {}): Promise<Dict>;
     privatePostSmartorders(params?: {}): Promise<Dict>;
     privateDeleteOrdersId(params?: {}): Promise<Dict>;

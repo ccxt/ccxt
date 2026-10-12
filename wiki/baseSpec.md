@@ -565,6 +565,7 @@ cancel multiple orders
 * [onetrading](/exchanges/onetrading.md#cancelorders)
 * [pacifica](/exchanges/pacifica.md#cancelorders)
 * [paradex](/exchanges/paradex.md#cancelorders)
+* [poloniex](/exchanges/poloniex.md#cancelorders)
 * [toobit](/exchanges/toobit.md#cancelorders)
 * [weex](/exchanges/weex.md#cancelorders)
 * [woofipro](/exchanges/woofipro.md#cancelorders)
@@ -1283,6 +1284,7 @@ create a list of trade orders
 * [okx](/exchanges/okx.md#createorders)
 * [pacifica](/exchanges/pacifica.md#createorders)
 * [paradex](/exchanges/paradex.md#createorders)
+* [poloniex](/exchanges/poloniex.md#createorders)
 * [woofipro](/exchanges/woofipro.md#createorders)
 
 ---

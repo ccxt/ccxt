@@ -52000,10 +52000,11 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
      * @ignore
      * @name binance#generateClientOrderId
      * @description builds a fresh client order id
-     * @param {object} [market] the market of the order, takes precedence over the api argument
+     * @param {object} [market] the market of the order, takes precedence over the other arguments
      * @param {string} [api] the implicit api section the order is sent to (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+     * @param {string} [path] the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
      * @returns {string} the broker prefix followed by 22 random characters
-     */ generateClientOrderId(market = undefined, api = undefined) {
+     */ generateClientOrderId(market = undefined, api = undefined, path = undefined) {
         let idMarketType = undefined;
         if (market !== undefined) {
             if (market['option'] === true) {
@@ -52015,7 +52016,19 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             } else {
                 idMarketType = 'spot';
             }
-        } else if (api !== undefined) {
+        }
+        if (idMarketType === undefined && path !== undefined) {
+            if (path.indexOf('um/') === 0) {
+                idMarketType = 'swap';
+            } else if (path.indexOf('cm/') === 0) {
+                idMarketType = 'inverse';
+            } else if (path.indexOf('margin/') === 0) {
+                idMarketType = 'margin';
+            } else if (path.indexOf('equity/') === 0) {
+                idMarketType = 'spot';
+            }
+        }
+        if (idMarketType === undefined && api !== undefined) {
             const isSpotOrMargin = api.indexOf('sapi') > -1 || api === 'private';
             if (isSpotOrMargin) {
                 idMarketType = 'spot';
@@ -52026,7 +52039,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             } else {
                 idMarketType = 'future';
             }
-        } else {
+        }
+        if (idMarketType === undefined) {
             const defaultType = this.safeString(this.options, 'defaultType', 'spot');
             const defaultSubType = this.safeString(this.options, 'defaultSubType');
             idMarketType = defaultType;
@@ -52045,6 +52059,97 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         const broker = this.safeDict(this.options, 'broker', {});
         const brokerId = this.safeString(broker, idMarketType, defaultId);
         return brokerId + this.uuid22();
+    }
+    /**
+     * @method
+     * @name binance#handleClientOrderId
+     * @ignore
+     * @param {object} params request params
+     * @param {string} api the implicit api section the request is sent to
+     * @param {string} path the implicit api path the request is sent to
+     * @param {string} method HTTP method
+     * @returns {object} params with the injected client order id
+     */ handleClientOrderId(params, api, path, method) {
+        if (method !== 'POST') {
+            return params;
+        }
+        if (path === 'order' || path === 'sor/order' || path === 'order/cancelReplace' || path === 'um/order' || path === 'cm/order' || path === 'margin/order') {
+            // the eapi order endpoint takes clientOrderId instead of newClientOrderId
+            const clientOrderIdKey = api === 'eapiPrivate' ? 'clientOrderId' : 'newClientOrderId';
+            const clientOrderId = this.safeString2(params, 'clientOrderId', 'newClientOrderId');
+            if (clientOrderId === undefined) {
+                params[clientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+            }
+        } else if (path === 'algoOrder' || path === 'um/algo/order') {
+            // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
+            const clientAlgoId = this.safeString(params, 'clientAlgoId');
+            if (clientAlgoId === undefined) {
+                params['clientAlgoId'] = this.generateClientOrderId(undefined, api, path);
+            }
+        } else if (path === 'cm/conditional/order' || path === 'um/conditional/order') {
+            // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
+            const newClientStrategyId = this.safeString(params, 'newClientStrategyId');
+            if (newClientStrategyId === undefined) {
+                params['newClientStrategyId'] = this.generateClientOrderId(undefined, api, path);
+            }
+        } else if (path === 'equity/order/place') {
+            // the equity order endpoint takes clientOrderId instead of newClientOrderId
+            const equityClientOrderId = this.safeString(params, 'clientOrderId');
+            if (equityClientOrderId === undefined) {
+                params['clientOrderId'] = this.generateClientOrderId(undefined, api, path);
+            }
+        } else if (path === 'order/oco' || path === 'margin/order/oco' || path === 'orderList/oco' || path === 'orderList/oto' || path === 'orderList/otoco' || path === 'orderList/opo' || path === 'orderList/opoco') {
+            // the order list endpoints take a listClientOrderId and one client order id per leg
+            let clientOrderIdKeys = [
+                'listClientOrderId',
+                'limitClientOrderId',
+                'stopClientOrderId'
+            ];
+            if (path === 'orderList/oco') {
+                clientOrderIdKeys = [
+                    'listClientOrderId',
+                    'aboveClientOrderId',
+                    'belowClientOrderId'
+                ];
+            } else if (path === 'orderList/oto' || path === 'orderList/opo') {
+                clientOrderIdKeys = [
+                    'listClientOrderId',
+                    'workingClientOrderId',
+                    'pendingClientOrderId'
+                ];
+            } else if (path === 'orderList/otoco' || path === 'orderList/opoco') {
+                clientOrderIdKeys = [
+                    'listClientOrderId',
+                    'workingClientOrderId',
+                    'pendingAboveClientOrderId',
+                    'pendingBelowClientOrderId'
+                ];
+            }
+            for(let i = 0; i < clientOrderIdKeys.length; i++){
+                const currentClientOrderIdKey = clientOrderIdKeys[i];
+                const currentClientOrderId = this.safeString(params, currentClientOrderIdKey);
+                if (currentClientOrderId === undefined) {
+                    params[currentClientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+                }
+            }
+        } else if (path === 'batchOrders') {
+            // the batch legs take the same client order id fields as the single order endpoints
+            if (api === 'fapiPrivate' || api === 'dapiPrivate' || api === 'eapiPrivate') {
+                const batchClientOrderIdKey = api === 'eapiPrivate' ? 'clientOrderId' : 'newClientOrderId';
+                const batchOrders = this.safeList(params, 'batchOrders', []);
+                const checkedBatchOrders = [];
+                for(let i = 0; i < batchOrders.length; i++){
+                    const batchOrder = batchOrders[i];
+                    const batchClientOrderId = this.safeString(batchOrder, batchClientOrderIdKey);
+                    if (batchClientOrderId === undefined) {
+                        batchOrder[batchClientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+                    }
+                    checkedBatchOrders.push(batchOrder);
+                }
+                params['batchOrders'] = checkedBatchOrders;
+            }
+        }
+        return params;
     }
     /**
      * @method
@@ -52234,6 +52339,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (isAlgoOrder) {
             clientOrderIdRequest = 'clientAlgoId';
         } else if (stock === true) {
+            clientOrderIdRequest = 'clientOrderId';
+        } else if (market['option'] === true) {
+            // the option api takes clientOrderId instead of newClientOrderId
             clientOrderIdRequest = 'clientOrderId';
         }
         if (clientOrderId === undefined) {
@@ -58135,47 +58243,22 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             if (url.indexOf('testnet.binancefuture.com') > -1 && this.isSandboxModeEnabled && !this.safeBool(this.options, 'disableFuturesSandboxWarning', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
             }
-            if (method === 'POST' && (path === 'order' || path === 'sor/order')) {
-                // inject in implicit API calls
-                const newClientOrderId = this.safeString(params, 'newClientOrderId');
-                if (newClientOrderId === undefined) {
-                    params['newClientOrderId'] = this.generateClientOrderId(undefined, api);
-                }
-            } else if (method === 'POST' && path === 'algoOrder') {
-                // the fapi/dapi algo order endpoints take clientAlgoId instead of newClientOrderId
-                const clientAlgoId = this.safeString(params, 'clientAlgoId');
-                if (clientAlgoId === undefined) {
-                    params['clientAlgoId'] = this.generateClientOrderId(undefined, api);
-                }
-            }
+            const requestParams = this.handleClientOrderId(params, api, path, method);
             let query = undefined;
             // handle batchOrders
             if (path === 'batchOrders' && (method === 'POST' || method === 'PUT')) {
-                const batchOrders = this.safeList(params, 'batchOrders', []);
-                let checkedBatchOrders = batchOrders;
-                if (method === 'POST' && (api === 'fapiPrivate' || api === 'dapiPrivate')) {
-                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders / dapiPrivatePostBatchOrders
-                    checkedBatchOrders = [];
-                    for(let i = 0; i < batchOrders.length; i++){
-                        const batchOrder = batchOrders[i];
-                        const newClientOrderId = this.safeString(batchOrder, 'newClientOrderId');
-                        if (newClientOrderId === undefined) {
-                            batchOrder['newClientOrderId'] = this.generateClientOrderId(undefined, api);
-                        }
-                        checkedBatchOrders.push(batchOrder);
-                    }
-                }
-                const queryBatch = this.json(checkedBatchOrders);
-                params['batchOrders'] = queryBatch;
+                const batchOrders = this.safeList(requestParams, 'batchOrders', []);
+                const queryBatch = this.json(batchOrders);
+                requestParams['batchOrders'] = queryBatch;
             }
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
             let extendedParams = this.extend({
                 'timestamp': this.nonce()
-            }, params);
+            }, requestParams);
             if (defaultRecvWindow !== undefined) {
                 extendedParams['recvWindow'] = defaultRecvWindow;
             }
-            const recvWindow = this.safeInteger(params, 'recvWindow');
+            const recvWindow = this.safeInteger(requestParams, 'recvWindow');
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }
@@ -62436,7 +62519,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                         'trailing': true,
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': false,
+                        'marketBuyByCost': true,
                         'selfTradePrevention': false,
                         'iceberg': false
                     },
@@ -62489,6 +62572,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
                     'sandbox': false,
+                    'createOrder': {
+                        'marketBuyByCost': false
+                    },
                     'createOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 1000
@@ -64814,7 +64900,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name bingx#createMarketOrderWithCost
-     * @description create a spot market order by providing the symbol, side and cost
+     * @description create a spot or linear swap market order by providing the symbol, side and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
@@ -64827,7 +64913,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name bingx#createMarketBuyOrderWithCost
-     * @description create a spot market buy order by providing the symbol and cost
+     * @description create a spot or linear swap market buy order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -64839,7 +64925,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name bingx#createMarketSellOrderWithCost
-     * @description create a spot market sell order by providing the symbol and cost
+     * @description create a spot or linear swap market sell order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -64869,8 +64955,8 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
          * @returns {object} request to be sent to the exchange
          */ const market = this.market(symbol);
         const cost = this.safeString2(params, 'cost', 'quoteOrderQty');
-        if (market['contract'] === true && cost !== undefined) {
-            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() with cost or quoteOrderQty is not supported for contract markets');
+        if (market['inverse'] === true && cost !== undefined) {
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() with cost or quoteOrderQty is not supported for inverse swap markets');
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('createOrder', market, params);
         const typeValue = type.toUpperCase();
@@ -65037,6 +65123,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                 }
             }
             if (hasStopLoss || hasTakeProfit) {
+                if (cost !== undefined) {
+                    throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() does not support attached stopLoss or takeProfit on a market order by cost');
+                }
                 const stringifiedAmount = this.numberToString(amount);
                 if (hasStopLoss) {
                     const slTriggerPrice = this.safeString2(stopLossDict, 'triggerPrice', 'stopPrice');
@@ -65095,7 +65184,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             }
             request['positionSide'] = positionSide;
             const closePosition = this.safeBool(paramsOrder, 'closePosition', false);
-            if (closePosition !== true) {
+            if (cost !== undefined) {
+                request['quoteOrderQty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
+            } else if (closePosition !== true) {
                 let amountReq = amount;
                 if (market['inverse'] !== true) {
                     amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
@@ -65113,7 +65204,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'trailingType',
             'trailingTriggerPrice',
             'activationPrice',
-            'clientOrderId'
+            'clientOrderId',
+            'cost',
+            'quoteOrderQty'
         ]);
         return this.extend(request, paramsRequest);
     }
@@ -65138,8 +65231,8 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
      * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
      * @param {float} [params.stopLossPrice] stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
      * @param {float} [params.takeProfitPrice] take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice
-     * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
-     * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
+     * @param {float} [params.cost] *spot and linear swap only* the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.quoteOrderQty] *spot and linear swap only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
      * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
@@ -277849,8 +277942,12 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        if (timeout < 300000 || timeout > 1296000000) {
-            throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' timeout should be between 5 minutes and 15 days.');
+        if (timeout === undefined) {
+            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' cancelAllOrdersAfter() requires a timeout argument');
+        }
+        const isScheduled = timeout !== 0;
+        if (isScheduled && (timeout < 300000 || timeout > 1296000000)) {
+            throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.');
         }
         const [apiKeyIndex, paramsApiKeyIndex] = this.handleApiKeyIndex(params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index');
@@ -277858,9 +277955,15 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
         const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
+        let timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+        let cancelTime = 0;
+        if (isScheduled) {
+            timeInForce = 1;
+            cancelTime = this.sum(this.milliseconds(), timeout);
+        }
         const signRaw = {
-            'time_in_force': 1,
-            'time': this.milliseconds() + timeout,
+            'time_in_force': timeInForce,
+            'time': cancelTime,
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex
@@ -327822,13 +327925,13 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': undefined,
+                'cancelOrders': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': undefined,
+                'createOrders': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
@@ -329786,7 +329889,12 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         ]);
         const amount = this.safeString2(order, 'quantity', 'sz');
         const filled = this.safeString2(order, 'filledQuantity', 'execQty');
-        const status = this.parseOrderStatus(this.safeString(order, 'state'));
+        let status = this.parseOrderStatus(this.safeString(order, 'state'));
+        const errorCode = this.safeInteger(order, 'code');
+        if (status === undefined && errorCode !== undefined && errorCode !== 200) {
+            // the batch endpoints report per-element failures with an error code instead of throwing
+            status = 'rejected';
+        }
         const side = this.safeStringLower(order, 'side');
         const rawType = this.safeString(order, 'type');
         const type = this.parseOrderType(rawType);
@@ -330097,6 +330205,91 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         //
         return this.parseOrder(response, market);
     }
+    /**
+     * @method
+     * @name poloniex#createOrders
+     * @description create a list of trade orders, all orders must be of the same market type, either spot or swap
+     * @see https://api-docs.poloniex.com/spot/api/private/order#create-multiple-orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/place-multiple-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, applied to every order
+     * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', defaults to 'cross'
+     * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */ async createOrders(orders, params = {}) {
+        await this.loadMarkets();
+        const ordersRequests = [];
+        const ordersMarkets = [];
+        let market = undefined;
+        let isContract = false;
+        for(let i = 0; i < orders.length; i++){
+            const rawOrder = orders[i];
+            const symbol = rawOrder['symbol'];
+            const marketInner = this.market(symbol);
+            if (market === undefined) {
+                market = marketInner;
+                isContract = marketInner['contract'] === true;
+            } else if (market['type'] !== marketInner['type']) {
+                throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' createOrders() requires all orders to be of the same market type, either spot or swap');
+            }
+            const type = rawOrder['type'];
+            const side = rawOrder['side'];
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
+            const orderParams = this.safeDict(rawOrder, 'params', {});
+            // the request body is a bare list, so there is no room for common params - extend each order with them instead
+            let extendedParams = this.extend(orderParams, params);
+            let request = {
+                'symbol': marketInner['id'],
+                'side': this.safeStringUpper(rawOrder, 'side')
+            };
+            [request, extendedParams] = this.orderRequest(symbol, type, side, amount, request, price, extendedParams);
+            const merged = this.extend(request, extendedParams);
+            if (isContract) {
+                // unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
+                if (!('mgnMode' in merged)) {
+                    merged['mgnMode'] = 'CROSS';
+                }
+                if (!('posSide' in merged)) {
+                    merged['posSide'] = 'BOTH';
+                }
+            }
+            ordersRequests.push(merged);
+            ordersMarkets.push(marketInner);
+        }
+        let data = [];
+        if (isContract) {
+            const response = await this.swapPrivatePostV3TradeOrders(ordersRequests);
+            //
+            //     {
+            //         "code": 200,
+            //         "msg": "Success",
+            //         "data": [
+            //             { "code": 200, "msg": "", "ordId": "613155521545418752", "clOrdId": "batch-swap-1" },
+            //             { "code": 10014, "msg": "Order price exceeds the limit", "ordId": "", "clOrdId": "" }
+            //         ]
+            //     }
+            //
+            data = this.safeList(response, 'data', []);
+        } else {
+            //
+            //     [
+            //         { "id": "613155521545418752", "clientOrderId": "batch-1" },
+            //         { "code": 21709, "message": "Low available balance", "clientOrderId": "" }
+            //     ]
+            //
+            data = await this.privatePostOrdersBatch(ordersRequests);
+        }
+        // the responses are positional, aligned with the submitted orders
+        const results = [];
+        const dataLength = data.length;
+        for(let i = 0; i < dataLength; i++){
+            const entry = data[i];
+            const entryMarket = ordersMarkets[i];
+            results.push(this.parseOrder(entry, entryMarket));
+        }
+        return results;
+    }
     orderRequest(symbol, type, side, amount, request, price = undefined, params = {}) {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         const market = this.market(symbol);
@@ -330312,6 +330505,70 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         //   }
         //
         return this.parseOrder(response);
+    }
+    /**
+     * @method
+     * @name poloniex#cancelOrders
+     * @description cancel multiple orders
+     * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-multiple-orders-by-ids
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-multiple-orders
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, required for swap markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */ async cancelOrders(ids, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrders', market, params);
+        const clientOrderIds = this.safeList2(paramsMarketType, 'clientOrderIds', 'clOrdIds');
+        const query = this.omit(paramsMarketType, [
+            'clientOrderIds',
+            'clOrdIds'
+        ]);
+        const request = {};
+        const idsLength = ids.length;
+        if (marketType !== 'spot') {
+            if (market === undefined) {
+                throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument for ' + marketType + ' markets');
+            }
+            request['symbol'] = market['id'];
+            // the api ignores clOrdIds when ordIds are also present
+            if (idsLength > 0) {
+                request['ordIds'] = ids;
+            } else if (clientOrderIds !== undefined) {
+                request['clOrdIds'] = clientOrderIds;
+            }
+            const responseRaw = await this.swapPrivateDeleteV3TradeBatchOrders(this.extend(request, query));
+            //
+            //     {
+            //         "code": 200,
+            //         "msg": "Success",
+            //         "data": [
+            //             { "code": "200", "msg": "Success", "ordId": "613143856837730304", "clOrdId": "" },
+            //             { "code": "11008", "msg": "ORDER_NOT_EXISTS", "ordId": "613144005890699264", "clOrdId": "" }
+            //         ]
+            //     }
+            //
+            const data = this.safeList(responseRaw, 'data', []);
+            return this.parseOrders(data, market);
+        }
+        if (idsLength > 0) {
+            request['orderIds'] = ids;
+        }
+        if (clientOrderIds !== undefined) {
+            request['clientOrderIds'] = clientOrderIds;
+        }
+        const response = await this.privateDeleteOrdersCancelByIds(this.extend(request, query));
+        //
+        //     [
+        //         { "orderId": "123456789", "clientOrderId": "", "state": "PENDING_CANCEL", "code": 200, "message": "" }
+        //     ]
+        //
+        return this.parseOrders(response, market);
     }
     /**
      * @method
@@ -331680,6 +331937,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const isArray = Array.isArray(params);
         let url = this.urls['api']['spot'];
         if (this.inArray(api, [
             'swapPublic',
@@ -331707,7 +331965,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             auth += '/' + implodedPath;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                 auth += "\n"; // eslint-disable-line quotes
-                if (Object.keys(query).length > 0) {
+                if (isArray || Object.keys(query).length > 0) {
                     bodyJson = this.json(query);
                     auth += 'requestBody=' + bodyJson + '&';
                 }
@@ -393292,13 +393550,17 @@ class coinbase extends _coinbase_js__rspack_import_0/* ["default"] */.A {
             const limit = this.safeInteger(subscription, 'limit');
             const type = this.safeString(event, 'type');
             if (type === 'snapshot') {
-                this.orderbooks[symbol] = this.orderBook({}, limit);
-            }
-            // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if (!(symbol in this.orderbooks) && this.orderbooks[symbol] === undefined) {
+                if (!(symbol in this.orderbooks)) {
+                    this.orderbooks[symbol] = this.orderBook({}, limit);
+                }
+            } else if (!(symbol in this.orderbooks)) {
                 continue;
             }
             const orderbook = this.orderbooks[symbol];
+            if (type === 'snapshot') {
+                // reset in place so consumers holding a reference keep receiving updates after a resync
+                orderbook.reset({});
+            }
             this.handleOrderBookHelper(orderbook, updates);
             orderbook['timestamp'] = this.parse8601(datetime);
             orderbook['datetime'] = datetime;
@@ -424732,9 +424994,11 @@ __webpack_require__.d(__webpack_exports__, {
 2678(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
 /* import */ var _luno_js__rspack_import_0 = __webpack_require__(5642);
+/* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
 //  ---------------------------------------------------------------------------
+
 
 
 
@@ -424952,6 +425216,12 @@ class luno extends _luno_js__rspack_import_0/* ["default"] */.A {
         }
         const orderbook = this.orderbooks[symbol];
         const asks = this.safeList(message, 'asks');
+        if (asks === undefined) {
+            const inSequence = this.isOrderBookDeltaInSequence(client, message, symbol);
+            if (!inSequence) {
+                return;
+            }
+        }
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
             orderbook.reset(snapshot);
@@ -425041,9 +425311,26 @@ class luno extends _luno_js__rspack_import_0/* ["default"] */.A {
         //         "timestamp": 1660598775360
         //     }
         //
-        const createUpdate = this.safeDict(message, 'create_update');
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
+        // trade updates are applied first, matching the ordering of the
+        // reference luno streaming client
+        const tradeUpdates = this.safeList(message, 'trade_updates', []);
+        for(let i = 0; i < tradeUpdates.length; i++){
+            const tradeUpdate = tradeUpdates[i];
+            const makerOrderId = this.safeString(tradeUpdate, 'maker_order_id');
+            const tradedAmount = this.safeString(tradeUpdate, 'base');
+            if (makerOrderId !== undefined && tradedAmount !== undefined) {
+                // the message does not carry the side of the maker order and
+                // order ids are unique across the book, so try the bids first
+                // and fall back to the asks only on a miss
+                const reduced = this.reduceOrderVolume(bidsOrderSide, makerOrderId, tradedAmount);
+                if (!reduced) {
+                    this.reduceOrderVolume(asksOrderSide, makerOrderId, tradedAmount);
+                }
+            }
+        }
+        const createUpdate = this.safeDict(message, 'create_update');
         if (createUpdate !== undefined) {
             const bidAskArray = this.customParseBidAsk(createUpdate, 'price', 'volume', 'order_id');
             const type = this.safeString(createUpdate, 'type');
@@ -425068,11 +425355,106 @@ class luno extends _luno_js__rspack_import_0/* ["default"] */.A {
             ]);
         }
     }
+    /**
+     * @ignore
+     * @method
+     * @name luno#reduceOrderVolume
+     * @description reduces the outstanding volume of the order with the given id inside one side of a level-3 orderbook after a trade, deleting the order when it is fully filled
+     * @param {object} orderSide the bids or asks side of an indexed orderbook
+     * @param {string} orderId the exchange-specific id of the maker order that traded
+     * @param {string} tradedAmount the traded amount in base currency, as a string
+     * @returns {boolean} true if the order was found in this side, false otherwise
+     */ reduceOrderVolume(orderSide, orderId, tradedAmount) {
+        const sideLength = orderSide.length;
+        for(let i = 0; i < sideLength; i++){
+            const order = orderSide[i];
+            const entryId = this.safeString(order, 2);
+            if (entryId === orderId) {
+                const price = this.safeNumber(order, 0);
+                const currentAmount = this.safeString(order, 1);
+                const remainingAmount = _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(currentAmount, tradedAmount);
+                if (_base_Precise_js__rspack_import_3/* .Precise.stringLe */.Y.stringLe(remainingAmount, '0')) {
+                    // fully filled, storing a zero amount deletes the order
+                    orderSide.storeArray([
+                        price,
+                        0,
+                        orderId
+                    ]);
+                } else {
+                    orderSide.storeArray([
+                        price,
+                        this.parseNumber(remainingAmount),
+                        orderId
+                    ]);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name luno#isOrderBookDeltaInSequence
+     * @description checks the sequence number of an orderbook delta frame against the stored book, and on a gap tears the connection down so that the next watch call resubscribes and receives a fresh snapshot
+     * @param {object} client the websocket client the frame arrived on
+     * @param {object} message the delta frame
+     * @param {string} symbol unified market symbol of the book
+     * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
+     */ isOrderBookDeltaInSequence(client, message, symbol) {
+        const orderbook = this.orderbooks[symbol];
+        const storedNonce = this.safeInteger(orderbook, 'nonce');
+        if (storedNonce === undefined) {
+            // no snapshot was received yet, deltas cannot be applied to an
+            // empty book: luno sends the snapshot as the first frame after
+            // the handshake, so discard the delta
+            return false;
+        }
+        const messageSequence = this.safeInteger(message, 'sequence');
+        if (messageSequence === undefined) {
+            return true;
+        }
+        if (messageSequence <= storedNonce) {
+            // an old or replayed frame, discard it
+            return false;
+        }
+        const expectedSequence = storedNonce + 1;
+        if (messageSequence !== expectedSequence) {
+            // a gap in the sequence means a lost message and the book is
+            // unrecoverable on a live connection, because luno only sends
+            // a snapshot as the first frame after a fresh handshake:
+            // reset the client, which stops its keepalive and rejects
+            // every pending future on the connection, clear the
+            // subscription so that frames still arriving on the orphaned
+            // connection are ignored by handleMessage, and drop the
+            // client, so that the next watch call dials a new connection;
+            // the cached book is kept so references returned by earlier
+            // watchOrderBook calls stay live: clearing its nonce discards
+            // deltas until the fresh snapshot resets the book in place
+            const error = new _base_errors_js__rspack_import_1.InvalidNonce(this.id + ' watchOrderBook() received an out-of-sequence update for ' + symbol + ', expected ' + expectedSequence.toString() + ' but got ' + messageSequence.toString());
+            orderbook['nonce'] = undefined;
+            const market = this.market(symbol);
+            const subscriptionHash = '/stream/' + market['id'];
+            if (subscriptionHash in client.subscriptions) {
+                delete client.subscriptions[subscriptionHash];
+            }
+            client.reset(error);
+            delete this.clients[client.url];
+            return false;
+        }
+        return true;
+    }
     handleMessage(client, message) {
         if (message === '') {
             return;
         }
         const subscriptions = Object.values(client.subscriptions);
+        const subscriptionsLength = subscriptions.length;
+        if (subscriptionsLength === 0) {
+            // the subscription was dropped after a sequence gap, ignore the
+            // frames still arriving until the client resubscribes
+            return;
+        }
         const handlers = [
             this.handleOrderBook,
             this.handleTrades
@@ -458858,7 +459240,8 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
             'cumBase'
         ]);
         const id = this.safeString(order, 'orderId');
-        const type = this.parseOrderType(this.safeStringLower(order, 'type'));
+        const rawOrderType = this.safeStringLower(order, 'type');
+        const type = this.parseOrderType(rawOrderType);
         let side = this.safeStringLower(order, 'side');
         if (side === '0') {
             side = 'buy';
@@ -458867,12 +459250,12 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         }
         const fills = this.safeList(order, 'fills', []);
         const clientOrderId = this.safeString2(order, 'clientOrderId', 'clientId');
-        let timeInForce = this.safeString(order, 'timeInForce');
-        if (timeInForce === 'GTX') {
-            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-            timeInForce = 'PO';
-        }
-        const postOnly = type === 'limit_maker' || timeInForce === 'PO';
+        const timeInForce = this.parseTimeInForce(this.safeString(order, 'timeInForce'));
+        // the order type carries the post only flag on its own, 7 on the open/v1
+        // payloads and LIMIT_MAKER on the binance shaped ones, so the time force
+        // echoed back by the venue is only the third witness
+        const isLimitMaker = rawOrderType === '7' || rawOrderType === 'limit_maker';
+        const postOnly = isLimitMaker || timeInForce === 'PO';
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -458898,6 +459281,16 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
             'trades': fills
         }, market);
     }
+    parseTimeInForce(timeInForce) {
+        const timeInForces = {
+            '1': 'GTC',
+            '2': 'IOC',
+            '3': 'FOK',
+            '4': 'PO',
+            'GTX': 'PO'
+        };
+        return this.safeString(timeInForces, timeInForce, timeInForce);
+    }
     parseOrderType(status) {
         const statuses = {
             '2': 'market',
@@ -458920,6 +459313,8 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
      * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.timeInForce] 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest
+     * @param {bool} [params.postOnly] true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -458927,9 +459322,16 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         }
         const market = this.market(symbol);
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId');
-        const postOnly = this.safeBool(params, 'postOnly', false);
+        const requestedType = type.toUpperCase();
+        const requestedTimeInForce = this.safeStringUpper(params, 'timeInForce');
+        const isMarketOrder = requestedType === 'MARKET';
+        // GTX is the venue spelling of post only, on top of the two unified spellings
+        const isPostOnlyTimeInForce = requestedTimeInForce === 'GTX';
+        const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, params);
         // only supported for spot/margin api
         const typeResolved = postOnly === true ? 'LIMIT_MAKER' : type;
+        // post only is expressed by the order type here, not by a time force
+        const timeInForceResolved = postOnly === true ? undefined : requestedTimeInForce;
         const initialUppercaseType = typeResolved.toUpperCase();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
@@ -458937,11 +459339,15 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
             'triggerPrice',
             'stopPrice'
         ] : [];
-        let paramsRequest = this.omit(params, this.arrayConcat([
+        let paramsRequest = this.omit(paramsPostOnly, this.arrayConcat([
             'clientId',
-            'clientOrderId'
+            'clientOrderId',
+            'timeInForce'
         ], triggerKeys));
         if (triggerPrice !== undefined) {
+            if (postOnly === true) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
+            }
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
             } else if (uppercaseType === 'LIMIT') {
@@ -458989,6 +459395,7 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         let priceIsRequired = false;
         let triggerPriceIsRequired = false;
         let quantityIsRequired = false;
+        let timeInForceIsRequired = false;
         //
         // spot/margin
         //
@@ -459031,6 +459438,7 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         } else if (uppercaseType === 'LIMIT') {
             priceIsRequired = true;
             quantityIsRequired = true;
+            timeInForceIsRequired = true;
         } else if (uppercaseType === 'STOP_LOSS' || uppercaseType === 'TAKE_PROFIT') {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
@@ -459041,6 +459449,7 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
             quantityIsRequired = true;
             triggerPriceIsRequired = true;
             priceIsRequired = true;
+            timeInForceIsRequired = true;
         } else if (uppercaseType === 'LIMIT_MAKER') {
             priceIsRequired = true;
             quantityIsRequired = true;
@@ -459059,6 +459468,30 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
                 throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() requires a triggerPrice extra param for a ' + typeResolved + ' order');
             } else {
                 request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            }
+        }
+        if (timeInForceIsRequired) {
+            const defaultTimeInForce = this.safeString(this.options, 'defaultTimeInForce', 'GTC');
+            const timeInForce = timeInForceResolved === undefined ? defaultTimeInForce : timeInForceResolved;
+            // the endpoint takes the time force as a numeric code, post only is
+            // placed as a LIMIT_MAKER order rather than as the GTX code
+            const timeInForceCodes = {
+                'GTC': '1',
+                'IOC': '2',
+                'FOK': '3'
+            };
+            const timeInForceCode = this.safeString(timeInForceCodes, timeInForce);
+            if (timeInForceCode === undefined) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() does not support the ' + timeInForce + ' timeInForce, use GTC, IOC, FOK or the postOnly parameter');
+            }
+            request['timeInForce'] = timeInForceCode;
+        } else if (timeInForceResolved !== undefined) {
+            // a market order fills immediately or not at all, so an IOC asks for
+            // what the order type already does and gets accepted as a no-op, while
+            // any other time force would be a promise the venue cannot keep here
+            const isRedundantImmediateOrCancel = isMarketOrder && timeInForceResolved === 'IOC';
+            if (!isRedundantImmediateOrCancel) {
+                throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() does not support the ' + timeInForceResolved + ' timeInForce for ' + type + ' orders');
             }
         }
         const response = await this.privatePostOpenV1Orders(this.extend(request, paramsRequest));
@@ -470712,6 +471145,9 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
         const message = this.safeString(response, 'msg');
         if (message !== undefined) {
             const errorCode = this.safeString(response, 'code');
+            if (errorCode === '200' && message.toLowerCase() === 'success') {
+                return undefined;
+            }
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
@@ -486887,6 +487323,19 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         if (percentage !== undefined) {
             percentage = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(percentage, '100');
         }
+        let baseVolume = this.safeString2(ticker, 'a', 'q');
+        let quoteVolume = this.safeString(ticker, 'v');
+        const contractSize = this.safeString(marketResolved, 'contractSize');
+        if (marketResolved['contract'] === true && contractSize !== undefined) {
+            // 'a' counts contracts, 'v' is in the settle currency
+            const contractVolume = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(baseVolume, contractSize);
+            if (marketResolved['inverse'] === true) {
+                baseVolume = quoteVolume;
+                quoteVolume = contractVolume;
+            } else {
+                baseVolume = contractVolume;
+            }
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -486905,8 +487354,8 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             'change': this.safeNumber(ticker, 'cv'),
             'percentage': this.parseNumber(percentage),
             'average': undefined,
-            'baseVolume': this.safeNumber2(ticker, 'a', 'q'),
-            'quoteVolume': this.safeNumber(ticker, 'v'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker
         }, marketResolved);
     }
