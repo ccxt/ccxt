@@ -6341,13 +6341,13 @@ public partial class mexc : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {object} [params.internal] false by default, set to true for an "internal transfer"
      * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6355,8 +6355,8 @@ public partial class mexc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        IList<object> tagResolvedparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagResolved = tagResolvedparamsWithdrawTagVariable[0];
+        IList<object> tagResolvedparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagResolved = (string)tagResolvedparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagResolvedparamsWithdrawTagVariable[1]);
         bool? intern = this.safeBool(paramsWithdrawTag, "internal", false);
         if ((intern == true))
@@ -6384,7 +6384,7 @@ public partial class mexc : Exchange
         string? network = this.safeString2(paramsWithdrawTag, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
         network = this.networkCodeToId(network, this.safeString(currency, "code"));
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagResolved);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "address", address },

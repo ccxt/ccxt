@@ -2066,19 +2066,22 @@ public partial class extended : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the Starknet address to withdraw to
-     * @param {string} tag unused
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chainId] only STRK is supported
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        IList<object> tagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tag = (string)tagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagparamsWithdrawTagVariable[1]);
         this.checkRequiredCredentials();
         await this.loadMarkets();
         Dictionary<string, object> currency = this.currency(code);
-        string? chainId = this.safeStringUpper2(parameters, "chainId", "network", "STRK");
+        string? chainId = this.safeStringUpper2(paramsWithdrawTag, "chainId", "network", "STRK");
         if (chainId != "STRK")
         {
             throw new BadRequest ((this.id + " withdraw() only supports Starknet withdrawals with chainId STRK")) ;
@@ -2090,7 +2093,7 @@ public partial class extended : Exchange
         Dictionary<string, object> account = ccxt.BaseExchange.FromDict(await this.FetchExtendedAccount());
         string? amountString = this.currencyToPrecision(code, amount);
         string? accountId = this.safeString(account, "accountId");
-        Dictionary<string, object> settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, parameters);
+        Dictionary<string, object> settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, paramsWithdrawTag);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", accountId },
             { "amount", amountString },
@@ -2098,7 +2101,7 @@ public partial class extended : Exchange
             { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "settlement", settlement },
         };
-        object paramsOmitted = this.omit(parameters, new List<object>() {"chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, new List<object>() {"chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"});
         Dictionary<string, object> response = await this.v1PrivatePostUserWithdrawal(this.extend(request, paramsOmitted));
         //
         //     {

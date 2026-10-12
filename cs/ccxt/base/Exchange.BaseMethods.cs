@@ -819,7 +819,7 @@ public partial class BaseExchange
         }
     }
 
-    public virtual string? checkAddress(object address = null)
+    public virtual string? checkAddress(object address = null, object code = null, object tag = null)
     {
         if ((address == null))
         {
@@ -831,6 +831,17 @@ public partial class BaseExchange
         if ((length == 1) || isLessThan(((string)address).Length, this.minFundingAddressLength) || ((string)address).IndexOf(" ", StringComparison.Ordinal) > -1)
         {
             throw new InvalidAddress ((((((this.id + " address is invalid or has less than ") + ((object)this.minFundingAddressLength).ToString()) + " characters: \"") + ((object)address).ToString()) + "\"")) ;
+        }
+        if ((code != null))
+        {
+            List<object> tagRequiredCurrencies = this.safeList(this.options, "withdrawTagRequiredCurrencies", new List<object>() {});
+            if (this.inArray(code, tagRequiredCurrencies))
+            {
+                if ((tag == null))
+                {
+                    throw new ArgumentsRequired ((string)((this.id + " withdraw() requires params[\"tag\"] for ") + (code))) ;
+                }
+            }
         }
         return ((string?)((object)(address)));
     }
@@ -1371,7 +1382,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " transfer() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " withdraw() is not supported yet")) ;
@@ -1862,6 +1873,7 @@ public partial class BaseExchange
                 { "ARBONE", "ARBITRUM" },
                 { "ARBNOVA", "ARBITRUM_NOVA" },
             } },
+            { "withdrawTagRequiredCurrencies", new List<object>() {"XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "KAVA", "STX", "XEM", "IOST", "OSMO", "WAXP"} },
         };
     }
 
@@ -5755,25 +5767,6 @@ public partial class BaseExchange
         return false;
     }
 
-    public virtual List<object> handleWithdrawTagAndParams(object tag, object parameters)
-    {
-        object paramsExtended = parameters;
-        object tagValue = tag;
-        if (isTrue(this.isDictionary(tag)))
-        {
-            paramsExtended = this.extend(tag, parameters);
-            tagValue = null;
-        }
-        object tagResolved = ((tagValue == null)) ? this.safeString(paramsExtended, "tag") : tagValue;
-        bool tagFromParams = ((tagValue == null)) && ((tagResolved != null));
-        object paramsOmitted = paramsExtended;
-        if (tagFromParams)
-        {
-            paramsOmitted = this.omit(paramsExtended, "tag");
-        }
-        return new List<object>() {tagResolved, paramsOmitted};
-    }
-
     public virtual string? costToPrecision(object symbol, object cost)
     {
         if ((cost == null))
@@ -7809,7 +7802,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " unWatchOHLCV () is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Transaction> WithdrawWs(string code, object amount, string address, string tag = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> WithdrawWs(string code, object amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " withdrawWs () is not supported yet")) ;

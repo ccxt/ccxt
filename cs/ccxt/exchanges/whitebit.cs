@@ -3647,13 +3647,16 @@ public partial class whitebit : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        IList<object> tagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tag = (string)tagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagparamsWithdrawTagVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -3664,7 +3667,7 @@ public partial class whitebit : Exchange
             { "amount", this.currencyToPrecision(code, amount) },
             { "address", address },
         };
-        object uniqueId = this.safeValue(parameters, "uniqueId");
+        object uniqueId = this.safeValue(paramsWithdrawTag, "uniqueId");
         if ((uniqueId == null))
         {
             uniqueId = this.uuid22();
@@ -3676,14 +3679,14 @@ public partial class whitebit : Exchange
         }
         if (this.isFiat(code))
         {
-            object provider = this.safeValue(parameters, "provider");
+            object provider = this.safeValue(paramsWithdrawTag, "provider");
             if ((provider == null))
             {
                 throw new ArgumentsRequired ((this.id + " withdraw() requires a provider when the ticker is fiat")) ;
             }
             request["provider"] = provider;
         }
-        Dictionary<string, object> response = await this.v4PrivatePostMainAccountWithdraw(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v4PrivatePostMainAccountWithdraw(this.extend(request, paramsWithdrawTag));
         //
         // empty array with a success status
         // go to deposit/withdraw history and check you request status by uniqueId
