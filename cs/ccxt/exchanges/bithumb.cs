@@ -1040,20 +1040,7 @@ public partial class bithumb : Exchange
         string? marketId = this.safeString(ticker, "market");
         string? symbol = this.safeSymbol(marketId, market);
         string? close = this.safeString2(ticker, "closing_price", "trade_price");
-        string? change = this.safeString2(ticker, "signed_change_price", "change_price");
-        string? percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
         string? open = this.safeString(ticker, "opening_price");
-        string? nonZeroOpen = ((string)this.omitZero(open));
-        if (((marketId != null)) && ((nonZeroOpen != null)) && ((close != null)))
-        {
-            string? computedChange = Precise.stringSub(close, open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (((change != null)) && Precise.stringEq(change, "0") && !Precise.stringEq(computedChange, "0"))
-            {
-                change = computedChange;
-                percentage = null;
-            }
-        }
         string? high = this.safeString2(ticker, "max_price", "high_price");
         string? low = this.safeString2(ticker, "min_price", "low_price");
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -1080,8 +1067,8 @@ public partial class bithumb : Exchange
             { "close", close },
             { "last", close },
             { "previousClose", this.safeString(ticker, "prev_closing_price") },
-            { "change", change },
-            { "percentage", percentage },
+            { "change", null },
+            { "percentage", null },
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h") },
             { "quoteVolume", this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h") },

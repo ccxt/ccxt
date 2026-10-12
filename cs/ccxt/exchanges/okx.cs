@@ -2271,7 +2271,12 @@ public partial class okx : Exchange
                         { "trailing", true },
                         { "iceberg", true },
                         { "leverage", false },
-                        { "selfTradePrevention", true },
+                        { "selfTradePrevention", new Dictionary<string, object>() {
+                            { "EXPIRE_MAKER", true },
+                            { "EXPIRE_TAKER", true },
+                            { "EXPIRE_BOTH", true },
+                            { "NONE", false },
+                        } },
                         { "marketBuyByCost", true },
                         { "marketBuyRequiresPrice", false },
                     } },
@@ -4604,6 +4609,36 @@ public partial class okx : Exchange
                 request["slTriggerPxType"] = slTriggerPxType;
             }
         }
+        // unified stp
+        object selfTradePrevention = null;
+        IList<object> selfTradePreventionorderParamsVariable = (IList<object>)this.handleOptionAndParams(orderParams, "createOrder", "selfTradePrevention");
+        selfTradePrevention = selfTradePreventionorderParamsVariable[0];
+        orderParams = selfTradePreventionorderParamsVariable[1];
+        if ((selfTradePrevention != null))
+        {
+            Dictionary<string, object> stpModes = new Dictionary<string, object>() {
+                { "EXPIRE_MAKER", "cancel_maker" },
+                { "EXPIRE_TAKER", "cancel_taker" },
+                { "EXPIRE_BOTH", "cancel_both" },
+            };
+            string selfTradePreventionUpper = ((string)selfTradePrevention).ToUpper();
+            if (selfTradePreventionUpper == "NONE")
+            {
+                throw new NotSupported ((this.id + " createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order")) ;
+            }
+            string? stpMode = this.safeString(stpModes, selfTradePreventionUpper, ((string)selfTradePrevention).ToLower());
+            IDictionary<string, object> algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new Dictionary<string, object>() {});
+            string? requestOrdType = this.safeString(request, "ordType");
+            if (((requestOrdType != null)) && (((requestOrdType != null) && algoOrderTypes.ContainsKey(requestOrdType))))
+            {
+                throw new NotSupported ((this.id + " createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint")) ;
+            }
+            if ((stpMode == "cancel_both") && (requestOrdType == "fok"))
+            {
+                throw new InvalidOrder ((this.id + " createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders")) ;
+            }
+            request["stpMode"] = stpMode;
+        }
         if ((clientOrderId == null))
         {
             string? brokerId = this.safeString(this.options, "brokerId");
@@ -4650,6 +4685,7 @@ public partial class okx : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
      * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
      * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
+     * @param {string} [params.selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
