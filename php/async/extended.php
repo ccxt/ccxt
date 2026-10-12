@@ -1883,11 +1883,11 @@ class extended extends Exchange {
         return Async\await($this->fetch_transactions($code, $since, $limit, $this->extend(array( 'type' => 'WITHDRAWAL' ), $params)));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a Starknet withdrawal
          *
@@ -1896,16 +1896,17 @@ class extended extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the Starknet $address to withdraw to
-         * @param {string} $tag unused
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination $tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->chainId] only STRK is supported
          * @param {int} [$params->settlementExpiration] $settlement expiration timestamp in seconds, defaults to $now + 14 days + 60 seconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
+        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $this->check_required_credentials();
         Async\await($this->load_markets());
         $currency = $this->currency($code);
-        $chainId = $this->safe_string_upper_2($params, 'chainId', 'network', 'STRK');
+        $chainId = $this->safe_string_upper_2($paramsWithdrawTag, 'chainId', 'network', 'STRK');
         if ($chainId !== 'STRK') {
             throw new BadRequest($this->id . ' withdraw() only supports Starknet withdrawals with chainId STRK');
         }
@@ -1915,7 +1916,7 @@ class extended extends Exchange {
         $account = Async\await($this->fetch_extended_account());
         $amountString = $this->currency_to_precision($code, $amount);
         $accountId = $this->safe_string($account, 'accountId');
-        $settlement = $this->create_withdrawal_settlement_data($address, $amountString, $currency, $account, $params);
+        $settlement = $this->create_withdrawal_settlement_data($address, $amountString, $currency, $account, $paramsWithdrawTag);
         $request = array(
             'accountId' => $accountId,
             'amount' => $amountString,
@@ -1923,7 +1924,7 @@ class extended extends Exchange {
             'asset' => $currency['id'],
             'settlement' => $settlement,
         );
-        $paramsOmitted = $this->omit($params, array( 'chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution' ));
+        $paramsOmitted = $this->omit($paramsWithdrawTag, array( 'chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution' ));
         $response = Async\await($this->v1PrivatePostUserWithdrawal($this->extend($request, $paramsOmitted)));
         //
         //     {

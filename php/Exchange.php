@@ -3838,7 +3838,7 @@ class BaseExchange {
         }
     }
 
-    public function check_address(?string $address = null) {
+    public function check_address(?string $address = null, ?string $code = null, ?string $tag = null) {
         if ($address === null) {
             throw new InvalidAddress($this->id . ' address is null');
         }
@@ -3847,6 +3847,14 @@ class BaseExchange {
         $length = count($uniqChars); // py transpiler trick
         if ($length === 1 || strlen($address) < $this->minFundingAddressLength || mb_strpos($address, ' ') > -1) {
             throw new InvalidAddress($this->id . ' address is invalid or has less than ' . (string) $this->minFundingAddressLength . ' characters => "' . (string) $address . '"');
+        }
+        if ($code !== null) {
+            $tagRequiredCurrencies = $this->safe_list($this->options, 'withdrawTagRequiredCurrencies', array());
+            if ($this->in_array($code, $tagRequiredCurrencies)) {
+                if ($tag === null) {
+                    throw new ArgumentsRequired($this->id . ' withdraw() requires params["tag"] for ' . $code);
+                }
+            }
         }
         return $address;
     }
@@ -4241,7 +4249,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' transfer() is not supported yet');
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    public function withdraw(string $code, float $amount, string $address, $params = array()) {
         throw new NotSupported($this->id . ' withdraw() is not supported yet');
     }
 
@@ -4625,6 +4633,8 @@ class BaseExchange {
                 'ARBONE' => 'ARBITRUM',
                 'ARBNOVA' => 'ARBITRUM_NOVA',
             ),
+            // native-chain withdrawals of these currencies may need a destination tag / memo
+            'withdrawTagRequiredCurrencies' => array( 'XRP', 'XLM', 'EOS', 'ATOM', 'HBAR', 'TON', 'KAVA', 'STX', 'XEM', 'IOST', 'OSMO', 'WAXP' ),
         );
     }
 
@@ -7696,22 +7706,6 @@ class BaseExchange {
         return false;
     }
 
-    public function handle_withdraw_tag_and_params(mixed $tag, array $params) {
-        $paramsExtended = $params;
-        $tagValue = $tag;
-        if ($this->is_dictionary($tag)) {
-            $paramsExtended = $this->extend($tag, $params);
-            $tagValue = null;
-        }
-        $tagResolved = ($tagValue === null) ? $this->safe_string($paramsExtended, 'tag') : $tagValue;
-        $tagFromParams = ($tagValue === null) && ($tagResolved !== null);
-        $paramsOmitted = $paramsExtended;
-        if ($tagFromParams) {
-            $paramsOmitted = $this->omit($paramsExtended, 'tag');
-        }
-        return array( $tagResolved, $paramsOmitted );
-    }
-
     public function cost_to_precision(?string $symbol, mixed $cost) {
         if ($cost === null) {
             return null;
@@ -9329,14 +9323,14 @@ class BaseExchange {
         throw new NotSupported($this->id . ' unWatchOHLCV () is not supported yet');
     }
 
-    public function withdraw_ws(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    public function withdraw_ws(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          * @param {string} $code unified currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         throw new NotSupported($this->id . ' withdrawWs () is not supported yet');

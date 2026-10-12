@@ -292,7 +292,7 @@ class poloniex extends Exchange {
                 'XAP' => 'API Coin',
                 // this is not documented in the API docs for Poloniex
                 // https://github.com/ccxt/ccxt/issues/7084
-                // when the user calls withdraw ('USDT', amount, address, tag, params)
+                // when the user calls withdraw ('USDT', amount, address, params)
                 // with params = { 'currencyToWithdrawAs': 'USDTTRON' }
                 // or params = { 'currencyToWithdrawAs': 'USDTETH' }
                 // fetchWithdrawals ('USDT') returns the corresponding withdrawals
@@ -3030,7 +3030,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -3039,12 +3039,12 @@ class poloniex extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],

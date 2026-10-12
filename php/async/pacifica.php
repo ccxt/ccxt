@@ -3010,11 +3010,11 @@ class pacifica extends Exchange {
         return $response;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal (only support native USDC)
          *
@@ -3023,8 +3023,8 @@ class pacifica extends Exchange {
          * @param {string} $code unified currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address validated but not sent, funds go to the account wallet
-         * @param {string} $tag not used by withdraw ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */

@@ -1382,7 +1382,7 @@ class btcmarkets extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1391,11 +1391,11 @@ class btcmarkets extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1405,7 +1405,7 @@ class btcmarkets extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         if ($code !== 'AUD') {
-            $this->check_address($address);
+            $this->check_address($address, $code, $tagWithdrawTag);
             $request['toAddress'] = $address;
         }
         if ($tagWithdrawTag !== null) {

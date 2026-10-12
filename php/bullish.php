@@ -2118,7 +2118,7 @@ class bullish extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2127,8 +2127,8 @@ class bullish extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} [$tag]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} $params->timestamp the timestamp of the withdrawal $request (mandatory)
          * @param {string} $params->nonce the nonce of the withdrawal $request (mandatory)
          * @param {string} $params->network network for withdraw (mandatory)

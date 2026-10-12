@@ -6029,11 +6029,11 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -6043,8 +6043,8 @@ class mexc extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {array} [$params->internal] false by default, set to true for an "internal transfer"
          * @param {array} [$params->toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
@@ -6053,7 +6053,7 @@ class mexc extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        list($tagResolved, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagResolved, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $internal = $this->safe_bool($paramsWithdrawTag, 'internal', false);
         if ($internal === true) {
             $paramsInternal = $this->omit($paramsWithdrawTag, 'internal');
@@ -6078,7 +6078,7 @@ class mexc extends Exchange {
         $network = $this->safe_string_2($paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
         $network = $this->network_code_to_id($network, $this->safe_string($currency, 'code'));
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagResolved);
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,
