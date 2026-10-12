@@ -2824,7 +2824,7 @@ export class BaseExchange {
                 'borrowMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
-                'cancelOrder': true,
+                'cancelOrder': undefined,
                 'cancelOrderWithClientOrderId': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
@@ -2835,7 +2835,7 @@ export class BaseExchange {
                 'createDepositAddress': undefined,
                 'createLimitBuyOrder': undefined,
                 'createLimitBuyOrderWs': undefined,
-                'createLimitOrder': true,
+                'createLimitOrder': undefined,
                 'createLimitOrderWs': undefined,
                 'createLimitSellOrder': undefined,
                 'createLimitSellOrderWs': undefined,
@@ -2843,15 +2843,15 @@ export class BaseExchange {
                 'createMarketBuyOrderWs': undefined,
                 'createMarketBuyOrderWithCost': undefined,
                 'createMarketBuyOrderWithCostWs': undefined,
-                'createMarketOrder': true,
-                'createMarketOrderWs': true,
+                'createMarketOrder': undefined,
+                'createMarketOrderWs': undefined,
                 'createMarketOrderWithCost': undefined,
                 'createMarketOrderWithCostWs': undefined,
                 'createMarketSellOrder': undefined,
                 'createMarketSellOrderWs': undefined,
                 'createMarketSellOrderWithCost': undefined,
                 'createMarketSellOrderWithCostWs': undefined,
-                'createOrder': true,
+                'createOrder': undefined,
                 'createOrderWs': undefined,
                 'createOrders': undefined,
                 'createOrderWithTakeProfitAndStopLoss': undefined,
@@ -2883,7 +2883,7 @@ export class BaseExchange {
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchADLRank': undefined,
-                'fetchBalance': true,
+                'fetchBalance': undefined,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
@@ -2926,7 +2926,7 @@ export class BaseExchange {
                 'fetchIsolatedBorrowRates': undefined,
                 'fetchMarginAdjustmentHistory': undefined,
                 'fetchIsolatedPositions': undefined,
-                'fetchL2OrderBook': true,
+                'fetchL2OrderBook': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
@@ -2940,7 +2940,7 @@ export class BaseExchange {
                 'fetchMarginMode': undefined,
                 'fetchMarginModes': undefined,
                 'fetchMarketLeverageTiers': undefined,
-                'fetchMarkets': true,
+                'fetchMarkets': undefined,
                 'fetchMarketsWs': undefined,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyLiquidations': undefined,
@@ -2959,7 +2959,7 @@ export class BaseExchange {
                 'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderWithClientOrderId': undefined,
-                'fetchOrderBook': true,
+                'fetchOrderBook': undefined,
                 'fetchOrderBooks': undefined,
                 'fetchOrderBookWs': undefined,
                 'fetchOrders': undefined,
@@ -2982,13 +2982,13 @@ export class BaseExchange {
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchSettlementHistory': undefined,
                 'fetchStatus': undefined,
-                'fetchTicker': true,
+                'fetchTicker': undefined,
                 'fetchTickerWs': undefined,
                 'fetchTickers': undefined,
                 'fetchMarkPrices': undefined,
                 'fetchTickersWs': undefined,
                 'fetchTime': undefined,
-                'fetchTrades': true,
+                'fetchTrades': undefined,
                 'fetchTradesWs': undefined,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
@@ -4097,6 +4097,7 @@ export class BaseExchange {
         // networks
         this.createNetworksByIdObject ();
         this.featuresGenerator ();
+        this.hasAutocorrect ();
         // init predefined markets if any
         if (this.markets !== undefined) {
             this.setMarkets (this.markets);
@@ -4107,6 +4108,12 @@ export class BaseExchange {
         const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
         if (isSandbox === true) {
             this.setSandboxMode (isSandbox);
+        }
+    }
+
+    hasAutocorrect () {
+        if (this.has['fetchOrderBook'] !== undefined) {
+            this.has['fetchL2OrderBook'] = this.has['fetchOrderBook'];
         }
     }
 
