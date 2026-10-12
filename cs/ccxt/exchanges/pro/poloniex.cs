@@ -692,13 +692,13 @@ public partial class poloniex : ccxt.poloniex
 
     public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
     {
-        object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance());
+        Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance());
         // merge the snapshot into the existing balance object per currency so
         // the object keeps its identity and deltas that arrived while the
         // snapshot was in flight are not overwritten; the free/used/total
         // aggregates are rebuilt from the merged currencies by safeBalance
         List<object> reserved = new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"};
-        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(response.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
@@ -708,14 +708,14 @@ public partial class poloniex : ccxt.poloniex
             }
             if (!((this.balance != null && key != null && this.balance.ContainsKey(key))))
             {
-                this.balance[(string)key] = getValue(response, key);
+                this.balance[(string)key] = (response != null && key != null && response.ContainsKey(key) ? response[key] : null);
             }
         }
         if (!((this.balance != null && this.balance.ContainsKey("info"))))
         {
-            this.balance["info"] = getValue(response, "info");
-            this.balance["timestamp"] = getValue(response, "timestamp");
-            this.balance["datetime"] = getValue(response, "datetime");
+            this.balance["info"] = (response != null && response.ContainsKey("info") ? response["info"] : null);
+            this.balance["timestamp"] = (response != null && response.ContainsKey("timestamp") ? response["timestamp"] : null);
+            this.balance["datetime"] = (response != null && response.ContainsKey("datetime") ? response["datetime"] : null);
         }
         this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
