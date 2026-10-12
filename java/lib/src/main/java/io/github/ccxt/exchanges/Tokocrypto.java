@@ -12,6 +12,7 @@ import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -2111,7 +2112,7 @@ public class Tokocrypto extends TokocryptoApi
                     Object precision = ((Map<String, Object>)market.get("precision")).get("price");
                     Object quoteAmount = null;
                     Boolean createMarketBuyOrderRequiresPrice = true;
-                    io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.first();
                     paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.second();
                     Double cost = this.safeNumber2(paramsRequest, "cost", "quoteOrderQty", (Object) null);

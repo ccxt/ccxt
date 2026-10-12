@@ -11,6 +11,7 @@ import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -568,7 +569,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> verboseparamsVerboseVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrders", "verbose", false);
+            Pair<Boolean, Map<String, Object>> verboseparamsVerboseVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrders", "verbose", false);
             Boolean verbose = verboseparamsVerboseVariable.first();
             Map<String, Object> paramsVerbose = verboseparamsVerboseVariable.second();
             Object name = "open_orders";
@@ -662,7 +663,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             String name = "balances";
             String messageHash = name;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> accountparamsAccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchBalance", "account", (String) null);
+            Pair<String, Map<String, Object>> accountparamsAccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchBalance", "account", (String) null);
             String account = accountparamsAccountVariable.first();
             Map<String, Object> paramsAccount = accountparamsAccountVariable.second();
             if (!java.util.Objects.equals(account, null))

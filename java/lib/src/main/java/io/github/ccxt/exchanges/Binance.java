@@ -38,6 +38,7 @@ import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Option;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.PositionModeInfo;
 import io.github.ccxt.types.Status;
@@ -4648,7 +4649,7 @@ public class Binance extends BinanceApi
         {
             request.put("size", limit);
         }
-        io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Object response = this.sapiGetEquityTokenizedHistory(this.extend(requestUntil, paramsUntil));
@@ -5832,16 +5833,16 @@ public class Binance extends BinanceApi
             String type = this.safeString(parameters, "type", defaultType);
             String subType = null;
             Map<String, Object> paramsSubType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (Object) null);
             subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             paramsSubType = subTypeparamsSubTypeVariable.second();
             Boolean isPortfolioMargin = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchBalance", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchBalance", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsSubTypeVariable.first();
             paramsSubType = isPortfolioMarginparamsSubTypeVariable.second();
             String marginMode = null;
             Map<String, Object> query = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType, (String) null);
+            Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType, (String) null);
             marginMode = marginModequeryVariable.first();
             query = marginModequeryVariable.second();
             query = this.omit(query, "type");
@@ -5862,7 +5863,7 @@ public class Binance extends BinanceApi
             {
                 type = "linear";
                 Boolean useV2 = null;
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> useV2paramsSubTypeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchBalance", "useV2", false);
+                Pair<Boolean, Map<String, Object>> useV2paramsSubTypeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchBalance", "useV2", false);
                 useV2 = useV2paramsSubTypeVariable.first();
                 paramsSubType = useV2paramsSubTypeVariable.second();
                 paramsSubType = this.extend(request, query);
@@ -6556,10 +6557,10 @@ public class Binance extends BinanceApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             this.checkNoStockSymbols(symbolsNormalized, "fetchBidsAsks");
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, paramsMarketType, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -6624,10 +6625,10 @@ public class Binance extends BinanceApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLastPrices", market, paramsMarketType, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLastPrices", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Object response = null;
@@ -6725,11 +6726,11 @@ public class Binance extends BinanceApi
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             String type = null;
             Map<String, Object> paramsMarketType = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
             type = typeparamsMarketTypeVariable.first();
             paramsMarketType = typeparamsMarketTypeVariable.second();
             String subType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsMarketTypeVariable = this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsMarketTypeVariable = this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, (Object) null);
             subType = (String) ((List<Object>) subTypeparamsMarketTypeVariable).get(0);
             paramsMarketType = subTypeparamsMarketTypeVariable.second();
             Object response = null;
@@ -6808,10 +6809,10 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMarkPrice", market, parameters, "swap");
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMarkPrice", market, parameters, "swap");
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMarkPrice", market, paramsMarketType, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMarkPrice", market, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -6867,10 +6868,10 @@ public class Binance extends BinanceApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMarkPrices", market, paramsMarketType, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMarkPrices", market, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             List<Object> response = null;
@@ -6983,7 +6984,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -7462,7 +7463,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -7932,7 +7933,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "editContractOrder", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "editContractOrder", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             Object request = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsPapi);
@@ -8066,7 +8067,7 @@ public class Binance extends BinanceApi
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Boolean isPortfolioMargin = null;
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginorderParamsVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (orderParams), "editOrders", "papi", "portfolioMargin", false);
+                Pair<Boolean, Map<String, Object>> isPortfolioMarginorderParamsVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (orderParams), "editOrders", "papi", "portfolioMargin", false);
                 isPortfolioMargin = isPortfolioMarginorderParamsVariable.first();
                 orderParams = isPortfolioMarginorderParamsVariable.second();
                 if (Boolean.TRUE.equals(isPortfolioMargin))
@@ -9274,10 +9275,10 @@ public class Binance extends BinanceApi
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));
         request.put("side", upperCaseSide);
-        io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsAlgo), "createOrder", "papi", "portfolioMargin", false);
+        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsAlgo), "createOrder", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.first();
         Map<String, Object> paramsPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.second();
-        io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsPapiVariable = this.handleMarginModeAndParams("createOrder", paramsPortfolioMargin, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsPapiVariable = this.handleMarginModeAndParams("createOrder", paramsPortfolioMargin, (String) null);
         String marginMode = marginModeparamsPapiVariable.first();
         Map<String, Object> paramsPapi = marginModeparamsPapiVariable.second();
         // keys dropped from the request params, extended below as the order shape is resolved
@@ -9702,7 +9703,7 @@ public class Binance extends BinanceApi
             request.put("positionSide", (((java.util.Objects.equals(positionSide, "buy")))) ? "LONG" : "SHORT");
         }
         // unified stp
-        io.github.ccxt.base.Pair<String, Map<String, Object>> selfTradePreventionparamsStpVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPapi), "createOrder", "selfTradePrevention", (String) null);
+        Pair<String, Map<String, Object>> selfTradePreventionparamsStpVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPapi), "createOrder", "selfTradePrevention", (String) null);
         String selfTradePrevention = selfTradePreventionparamsStpVariable.first();
         Map<String, Object> paramsStp = selfTradePreventionparamsStpVariable.second();
         if (!java.util.Objects.equals(selfTradePrevention, null))
@@ -9857,7 +9858,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = null;
             Object stock = null;
             Map<String, Object> paramsStock = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrder", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrder", "stock", false);
             stock = stockparamsStockVariable.first();
             paramsStock = stockparamsStockVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -9873,19 +9874,19 @@ public class Binance extends BinanceApi
                 throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
             }
             String type = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsStockVariable = this.handleMarketTypeAndParams("fetchOrder", market, paramsStock, "spot");
+            Pair<String, Map<String, Object>> typeparamsStockVariable = this.handleMarketTypeAndParams("fetchOrder", market, paramsStock, "spot");
             type = typeparamsStockVariable.first();
             paramsStock = typeparamsStockVariable.second();
             String subType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsStockVariable = this.handleSubTypeAndParams("fetchOrder", market, paramsStock, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsStockVariable = this.handleSubTypeAndParams("fetchOrder", market, paramsStock, (Object) null);
             subType = (String) ((List<Object>) subTypeparamsStockVariable).get(0);
             paramsStock = subTypeparamsStockVariable.second();
             String marginMode = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("fetchOrder", paramsStock, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("fetchOrder", paramsStock, (String) null);
             marginMode = marginModeparamsStockVariable.first();
             paramsStock = marginModeparamsStockVariable.second();
             Boolean isPortfolioMargin = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsStock), "fetchOrder", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsStock), "fetchOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsStockVariable.first();
             paramsStock = isPortfolioMarginparamsStockVariable.second();
             Boolean isConditional = (Boolean) this.safeBoolN(paramsStock, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
@@ -10015,7 +10016,7 @@ public class Binance extends BinanceApi
             }
             Boolean paginate = false;
             Map<String, Object> paramsPaginate = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -10025,7 +10026,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
             Object stock = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchOrders", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchOrders", "stock", false);
             stock = stockparamsPaginateVariable.first();
             paramsPaginate = stockparamsPaginateVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -10035,19 +10036,19 @@ public class Binance extends BinanceApi
                 request.put("symbol", market.get("id"));
             }
             String type = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsPaginateVariable = this.handleMarketTypeAndParams("fetchOrders", market, paramsPaginate, "spot");
+            Pair<String, Map<String, Object>> typeparamsPaginateVariable = this.handleMarketTypeAndParams("fetchOrders", market, paramsPaginate, "spot");
             type = typeparamsPaginateVariable.first();
             paramsPaginate = typeparamsPaginateVariable.second();
             String subType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsPaginateVariable = this.handleSubTypeAndParams("fetchOrders", market, paramsPaginate, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsPaginateVariable = this.handleSubTypeAndParams("fetchOrders", market, paramsPaginate, (Object) null);
             subType = (String) ((List<Object>) subTypeparamsPaginateVariable).get(0);
             paramsPaginate = subTypeparamsPaginateVariable.second();
             String marginMode = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchOrders", paramsPaginate, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchOrders", paramsPaginate, (String) null);
             marginMode = marginModeparamsPaginateVariable.first();
             paramsPaginate = marginModeparamsPaginateVariable.second();
             Boolean isPortfolioMargin = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsPaginate), "fetchOrders", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsPaginate), "fetchOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsPaginateVariable.first();
             paramsPaginate = isPortfolioMarginparamsPaginateVariable.second();
             Boolean isConditional = (Boolean) this.safeBoolN(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
@@ -10424,16 +10425,16 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String marginMode = null;
             Map<String, Object> paramsMarginMode = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters, (String) null);
             marginMode = marginModeparamsMarginModeVariable.first();
             paramsMarginMode = marginModeparamsMarginModeVariable.second();
             Boolean isPortfolioMargin = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsMarginModeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarginMode), "fetchOpenOrders", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsMarginModeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarginMode), "fetchOpenOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsMarginModeVariable.first();
             paramsMarginMode = isPortfolioMarginparamsMarginModeVariable.second();
             Boolean isConditional = (Boolean) this.safeBoolN(paramsMarginMode, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
             Object stock = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsMarginModeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarginMode), "fetchOpenOrders", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsMarginModeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarginMode), "fetchOpenOrders", "stock", false);
             stock = stockparamsMarginModeVariable.first();
             paramsMarginMode = stockparamsMarginModeVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -10453,11 +10454,11 @@ public class Binance extends BinanceApi
                     throw new ExchangeError((((this.id + " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnWithoutSymbol\"] = false to suppress this warning message.")) ;
                 }
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarginModeVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, paramsMarginMode, "spot");
+            Pair<String, Map<String, Object>> typeparamsMarginModeVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, paramsMarginMode, "spot");
             type = typeparamsMarginModeVariable.first();
             paramsMarginMode = typeparamsMarginModeVariable.second();
             String subType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsMarginModeVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, paramsMarginMode, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsMarginModeVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, paramsMarginMode, (Object) null);
             subType = (String) ((List<Object>) subTypeparamsMarginModeVariable).get(0);
             paramsMarginMode = subTypeparamsMarginModeVariable.second();
             paramsMarginMode = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
@@ -10578,7 +10579,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "fetchOpenOrder", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "fetchOpenOrder", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             Boolean isConditional = (Boolean) this.safeBoolN(paramsPapi, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
@@ -10824,7 +10825,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = null;
             Object stock = null;
             Map<String, Object> paramsStock = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "stock", false);
             stock = stockparamsStockVariable.first();
             paramsStock = stockparamsStockVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -10879,7 +10880,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = null;
             Object stock = null;
             Map<String, Object> paramsStock = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledOrders", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledOrders", "stock", false);
             stock = stockparamsStockVariable.first();
             paramsStock = stockparamsStockVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -10934,7 +10935,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = null;
             Object stock = null;
             Map<String, Object> paramsStock = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledAndClosedOrders", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledAndClosedOrders", "stock", false);
             stock = stockparamsStockVariable.first();
             paramsStock = stockparamsStockVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -10997,7 +10998,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = null;
             Object stock = null;
             Map<String, Object> paramsStock = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "cancelOrder", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "cancelOrder", "stock", false);
             stock = stockparamsStockVariable.first();
             paramsStock = stockparamsStockVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -11013,19 +11014,19 @@ public class Binance extends BinanceApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             String type = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsStockVariable = this.handleMarketTypeAndParams("cancelOrder", market, paramsStock, "spot");
+            Pair<String, Map<String, Object>> typeparamsStockVariable = this.handleMarketTypeAndParams("cancelOrder", market, paramsStock, "spot");
             type = typeparamsStockVariable.first();
             paramsStock = typeparamsStockVariable.second();
             String subType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsStockVariable = this.handleSubTypeAndParams("cancelOrder", market, paramsStock, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsStockVariable = this.handleSubTypeAndParams("cancelOrder", market, paramsStock, (Object) null);
             subType = (String) ((List<Object>) subTypeparamsStockVariable).get(0);
             paramsStock = subTypeparamsStockVariable.second();
             String marginMode = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelOrder", paramsStock, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelOrder", paramsStock, (String) null);
             marginMode = marginModeparamsStockVariable.first();
             paramsStock = marginModeparamsStockVariable.second();
             Boolean isPortfolioMargin = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsStock), "cancelOrder", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsStock), "cancelOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsStockVariable.first();
             paramsStock = isPortfolioMarginparamsStockVariable.second();
             Boolean isConditional = (Boolean) this.safeBoolN(paramsStock, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
@@ -11183,7 +11184,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = null;
             Object stock = null;
             Map<String, Object> paramsStock = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "cancelAllOrders", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "cancelAllOrders", "stock", false);
             stock = stockparamsStockVariable.first();
             paramsStock = stockparamsStockVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -11199,16 +11200,16 @@ public class Binance extends BinanceApi
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
             Boolean isPortfolioMargin = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsStock), "cancelAllOrders", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsStock), "cancelAllOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsStockVariable.first();
             paramsStock = isPortfolioMarginparamsStockVariable.second();
             Boolean isConditional = (Boolean) this.safeBoolN(paramsStock, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
             String type = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsStockVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, paramsStock, "spot");
+            Pair<String, Map<String, Object>> typeparamsStockVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, paramsStock, "spot");
             type = typeparamsStockVariable.first();
             paramsStock = typeparamsStockVariable.second();
             String subType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsStockVariable = this.handleSubTypeAndParams("cancelAllOrders", market, paramsStock, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsStockVariable = this.handleSubTypeAndParams("cancelAllOrders", market, paramsStock, (Object) null);
             subType = (String) ((List<Object>) subTypeparamsStockVariable).get(0);
             paramsStock = subTypeparamsStockVariable.second();
             Boolean isOptionType = java.util.Objects.equals(type, "option");
@@ -11216,7 +11217,7 @@ public class Binance extends BinanceApi
             Boolean isInverseType = this.isInverse(type, subType);
             paramsStock = this.omit(paramsStock, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             String marginMode = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsStock, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsStock, (String) null);
             marginMode = marginModeparamsStockVariable.first();
             paramsStock = marginModeparamsStockVariable.second();
             Object response = null;
@@ -11470,7 +11471,7 @@ public class Binance extends BinanceApi
             }
             Boolean paginate = false;
             Map<String, Object> paramsPaginate = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -11482,7 +11483,7 @@ public class Binance extends BinanceApi
             String type = null;
             String marginMode = null;
             Object stock = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchMyTrades", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchMyTrades", "stock", false);
             stock = stockparamsPaginateVariable.first();
             paramsPaginate = stockparamsPaginateVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -11491,7 +11492,7 @@ public class Binance extends BinanceApi
                 stock = this.safeBool(market, "stock", false);
                 request.put("symbol", market.get("id"));
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsPaginateVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, (String) null);
+            Pair<String, Map<String, Object>> typeparamsPaginateVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, (String) null);
             type = typeparamsPaginateVariable.first();
             paramsPaginate = typeparamsPaginateVariable.second();
             if ((!java.util.Objects.equals(stock, true)) && (!java.util.Objects.equals(type, "option")) && (java.util.Objects.equals(symbol, null)))
@@ -11551,11 +11552,11 @@ public class Binance extends BinanceApi
                 response = (this.eapiPrivateGetUserTrades(this.extend(request, paramsPaginate))).join();
             } else
             {
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsPaginate, (String) null);
+                Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsPaginate, (String) null);
                 marginMode = marginModeparamsPaginateVariable.first();
                 paramsPaginate = marginModeparamsPaginateVariable.second();
                 Boolean isPortfolioMargin = null;
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsPaginate), "fetchMyTrades", "papi", "portfolioMargin", false);
+                Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsPaginate), "fetchMyTrades", "papi", "portfolioMargin", false);
                 isPortfolioMargin = isPortfolioMarginparamsPaginateVariable.first();
                 paramsPaginate = isPortfolioMarginparamsPaginateVariable.second();
                 if (java.util.Objects.equals(stock, true))
@@ -11963,7 +11964,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -12063,7 +12064,7 @@ public class Binance extends BinanceApi
             }
             Boolean paginate = false;
             Map<String, Object> paramsPaginate = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -12622,7 +12623,7 @@ public class Binance extends BinanceApi
             Boolean intern = (Boolean) this.safeBool(parameters, "internal", (Object) null);
             Map<String, Object> paramsOmitted = this.omit(parameters, "internal");
             Boolean paginate = false;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsOmittedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "fetchTransfers", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsOmittedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "fetchTransfers", "paginate", false);
             paginate = paginateparamsOmittedVariable.first();
             paramsOmitted = paginateparamsOmittedVariable.second();
             if (Boolean.TRUE.equals(paginate) && (!java.util.Objects.equals(intern, true)))
@@ -13162,10 +13163,10 @@ public class Binance extends BinanceApi
             }
             Map<String, Object> market = this.market(symbol);
             String type = (String) market.get("type");
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTradingFee", market, parameters, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTradingFee", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchTradingFee", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchTradingFee", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             Boolean isLinear = this.isLinear(type, subType);
@@ -13249,10 +13250,10 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTradingFees", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTradingFees", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTradingFees", (Map<String, Object>) null, paramsMarketType, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTradingFees", (Map<String, Object>) null, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Boolean isSpotOrMargin = (java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin"));
@@ -13570,7 +13571,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -13585,7 +13586,7 @@ public class Binance extends BinanceApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRateHistory", market, paramsPaginate, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRateHistory", market, paramsPaginate, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> paramsOmitted = this.omit(paramsSubType, "type");
@@ -13669,7 +13670,7 @@ public class Binance extends BinanceApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "future");
             String type = this.safeString(parameters, "type", defaultType);
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRates", (Map<String, Object>) null, parameters, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRates", (Map<String, Object>) null, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> query = this.omit(paramsSubType, "type");
@@ -14350,11 +14351,11 @@ public class Binance extends BinanceApi
                 Map<String, Object> query = this.omit(parameters, "type");
                 String subType = null;
                 Map<String, Object> paramsSubType = null;
-                io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("loadLeverageBrackets", (Map<String, Object>) null, parameters, "linear");
+                Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("loadLeverageBrackets", (Map<String, Object>) null, parameters, "linear");
                 subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
                 paramsSubType = subTypeparamsSubTypeVariable.second();
                 Boolean isPortfolioMargin = null;
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "loadLeverageBrackets", "papi", "portfolioMargin", false);
+                Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "loadLeverageBrackets", "papi", "portfolioMargin", false);
                 isPortfolioMargin = isPortfolioMarginparamsSubTypeVariable.first();
                 paramsSubType = isPortfolioMarginparamsSubTypeVariable.second();
                 List<Object> response = null;
@@ -14431,13 +14432,13 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLeverageTiers", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLeverageTiers", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLeverageTiers", (Map<String, Object>) null, paramsMarketType, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLeverageTiers", (Map<String, Object>) null, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchLeverageTiers", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchLeverageTiers", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             List<Object> response = null;
@@ -14763,7 +14764,7 @@ public class Binance extends BinanceApi
 
             String defaultMethod = null;
             Map<String, Object> paramsMethod = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> defaultMethodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "method", (String) null);
+            Pair<String, Map<String, Object>> defaultMethodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "method", (String) null);
             defaultMethod = defaultMethodparamsMethodVariable.first();
             paramsMethod = defaultMethodparamsMethodVariable.second(); // check if there is a key in options|params
             if (java.util.Objects.equals(defaultMethod, null))
@@ -14835,10 +14836,10 @@ public class Binance extends BinanceApi
             String defaultType = this.safeString(this.options, "defaultType", "future");
             String type = this.safeString(parameters, "type", defaultType);
             Map<String, Object> paramsOmitted = this.omit(parameters, "type");
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchAccountPositions", (Map<String, Object>) null, paramsOmitted, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchAccountPositions", (Map<String, Object>) null, paramsOmitted, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchAccountPositions", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchAccountPositions", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             Map<String, Object> response = null;
@@ -14849,7 +14850,7 @@ public class Binance extends BinanceApi
                     response = (this.papiV2GetUmAccount(paramsPapi)).join();
                 } else
                 {
-                    io.github.ccxt.base.Pair<Boolean, Map<String, Object>> useV2paramsUseV2Variable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPapi), "fetchAccountPositions", "useV2", false);
+                    Pair<Boolean, Map<String, Object>> useV2paramsUseV2Variable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPapi), "fetchAccountPositions", "useV2", false);
                     Boolean useV2 = useV2paramsUseV2Variable.first();
                     Map<String, Object> paramsUseV2 = useV2paramsUseV2Variable.second();
                     if (!Boolean.TRUE.equals(useV2))
@@ -14921,11 +14922,11 @@ public class Binance extends BinanceApi
             String type = this.safeString(parameters, "type", defaultType);
             String subType = null;
             Map<String, Object> paramsSubType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsRisk", (Map<String, Object>) null, parameters, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsRisk", (Map<String, Object>) null, parameters, "linear");
             subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             paramsSubType = subTypeparamsSubTypeVariable.second();
             Boolean isPortfolioMargin = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchPositionsRisk", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchPositionsRisk", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsSubTypeVariable.first();
             paramsSubType = isPortfolioMarginparamsSubTypeVariable.second();
             paramsSubType = this.omit(paramsSubType, "type");
@@ -14938,7 +14939,7 @@ public class Binance extends BinanceApi
                 } else
                 {
                     Boolean useV2 = null;
-                    io.github.ccxt.base.Pair<Boolean, Map<String, Object>> useV2paramsSubTypeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchPositionsRisk", "useV2", false);
+                    Pair<Boolean, Map<String, Object>> useV2paramsSubTypeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchPositionsRisk", "useV2", false);
                     useV2 = useV2paramsSubTypeVariable.first();
                     paramsSubType = useV2paramsSubTypeVariable.second();
                     paramsSubType = this.extend(request, paramsSubType);
@@ -15105,13 +15106,13 @@ public class Binance extends BinanceApi
                     throw new NotSupported((this.id + " fetchFundingHistory() supports swap contracts only")) ;
                 }
             }
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchFundingHistory", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchFundingHistory", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPapi), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPapi), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(since, null))
@@ -15190,7 +15191,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("symbol", market.get("id"));
             request.put("leverage", leverage);
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "setLeverage", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "setLeverage", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             Object response = null;
@@ -15341,13 +15342,13 @@ public class Binance extends BinanceApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("setPositionMode", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("setPositionMode", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("setPositionMode", market, paramsMarketType, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("setPositionMode", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "setPositionMode", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "setPositionMode", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             String dualSidePosition = null;
@@ -15421,13 +15422,13 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadLeverageBrackets(false, parameters)).join();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLeverages", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLeverages", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLeverages", (Map<String, Object>) null, paramsMarketType, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLeverages", (Map<String, Object>) null, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchLeverages", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchLeverages", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             Object response = null;
@@ -15524,7 +15525,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             if (!java.util.Objects.equals(type, "option"))
@@ -15585,7 +15586,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             if (!java.util.Objects.equals(type, "option"))
@@ -15740,7 +15741,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLedgerEntry", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLedgerEntry", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             if (!java.util.Objects.equals(type, "option"))
@@ -15801,7 +15802,7 @@ public class Binance extends BinanceApi
             }
             Boolean paginate = false;
             Map<String, Object> paramsPaginate = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -15816,10 +15817,10 @@ public class Binance extends BinanceApi
                 currency = this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsPaginateVariable = this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsPaginate, (String) null);
+            Pair<String, Map<String, Object>> typeparamsPaginateVariable = this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsPaginate, (String) null);
             type = typeparamsPaginateVariable.first();
             paramsPaginate = typeparamsPaginateVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsPaginateVariable = this.handleSubTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsPaginate, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsPaginateVariable = this.handleSubTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsPaginate, (Object) null);
             subType = (String) ((List<Object>) subTypeparamsPaginateVariable).get(0);
             paramsPaginate = subTypeparamsPaginateVariable.second();
             if (!java.util.Objects.equals(since, null))
@@ -15837,7 +15838,7 @@ public class Binance extends BinanceApi
                 request.put("endTime", until);
             }
             Boolean isPortfolioMargin = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsPaginate), "fetchLedger", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsPaginate), "fetchLedger", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsPaginateVariable.first();
             paramsPaginate = isPortfolioMarginparamsPaginateVariable.second();
             List<Object> response = null;
@@ -16931,7 +16932,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "fetchBorrowInterest", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "fetchBorrowInterest", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -16949,7 +16950,7 @@ public class Binance extends BinanceApi
             {
                 request.put("size", limit);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPapi), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPapi), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
@@ -17064,13 +17065,13 @@ public class Binance extends BinanceApi
             Map<String, Object> response = null;
             Boolean isPortfolioMargin = null;
             Map<String, Object> paramsPapi = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "repayCrossMargin", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "repayCrossMargin", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             if (Boolean.TRUE.equals(isPortfolioMargin))
             {
                 String method = null;
-                io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsPapiVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsPapi), "repayCrossMargin", "repayCrossMarginMethod", "method", (String) null);
+                Pair<String, Map<String, Object>> methodparamsPapiVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsPapi), "repayCrossMargin", "repayCrossMarginMethod", "method", (String) null);
                 method = methodparamsPapiVariable.first();
                 paramsPapi = methodparamsPapiVariable.second();
                 if (java.util.Objects.equals(method, "papiPostMarginRepayDebt"))
@@ -17159,7 +17160,7 @@ public class Binance extends BinanceApi
                 put( "amount", Binance.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};
             Map<String, Object> response = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "borrowCrossMargin", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "borrowCrossMargin", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             if (Boolean.TRUE.equals(isPortfolioMargin))
@@ -17282,7 +17283,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenInterestHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenInterestHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -17495,7 +17496,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyLiquidations", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyLiquidations", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -17507,13 +17508,13 @@ public class Binance extends BinanceApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyLiquidations", market, paramsPaginate, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyLiquidations", market, paramsPaginate, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMyLiquidations", market, paramsMarketType, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMyLiquidations", market, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchMyLiquidations", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchMyLiquidations", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -17547,7 +17548,7 @@ public class Binance extends BinanceApi
                     request.put("limit", limit);
                 }
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPapi), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPapi), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
@@ -17950,7 +17951,7 @@ public class Binance extends BinanceApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionMode", market, parameters, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionMode", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> response = null;
@@ -18005,7 +18006,7 @@ public class Binance extends BinanceApi
             {
                 market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             }
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMarginMode", market, parameters, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMarginMode", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Object response = null;
@@ -18050,7 +18051,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMarginMode", market, parameters, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMarginMode", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             List<Object> response = null;
@@ -18719,7 +18720,7 @@ public class Binance extends BinanceApi
                 market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             }
             String type = "swap";
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingIntervals", market, parameters, "linear");
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingIntervals", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             List<Object> response = null;
@@ -18777,7 +18778,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "period", period );
             }};
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(since, null))
@@ -18788,7 +18789,7 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)requestUntil).put("limit", limit);
             }
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLongShortRatioHistory", market, paramsUntil, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLongShortRatioHistory", market, paramsUntil, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             List<Object> response = null;
@@ -18866,7 +18867,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchADLRank", market, parameters, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchADLRank", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> response = null;
@@ -18910,10 +18911,10 @@ public class Binance extends BinanceApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchPositionsADLRank", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchPositionsADLRank", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             List<Object> response = null;

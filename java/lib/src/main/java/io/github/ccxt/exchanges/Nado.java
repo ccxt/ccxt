@@ -16,6 +16,7 @@ import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.OpenInterests;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
@@ -482,10 +483,10 @@ public class Nado extends NadoApi
             {
                 amountX18 = Precise.stringMul(amountX18, "-1");
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> expirationparamsExpirationVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubaccount), "createOrder", "expiration", "4294967295");
+            Pair<String, Map<String, Object>> expirationparamsExpirationVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubaccount), "createOrder", "expiration", "4294967295");
             String expiration = expirationparamsExpirationVariable.first();
             Map<String, Object> paramsExpiration = expirationparamsExpirationVariable.second();
             List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsExpiration, "createOrder", "recvWindow", 5000L);
@@ -686,10 +687,10 @@ public class Nado extends NadoApi
                 amountX18 = Precise.stringMul(amountX18, "-1");
             }
             Map<String, Object> editOrderOptions = (Map<String, Object>) this.safeDict(this.options, "editOrder", new HashMap<String, Object>() {{}});
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrder", "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrder", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> expirationparamsExpirationVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubaccount), "editOrder", "expiration", "4294967295");
+            Pair<String, Map<String, Object>> expirationparamsExpirationVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubaccount), "editOrder", "expiration", "4294967295");
             String expiration = expirationparamsExpirationVariable.first();
             Map<String, Object> paramsExpiration = expirationparamsExpirationVariable.second();
             List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsExpiration, "editOrder", "recvWindow", 5000L);
@@ -850,7 +851,7 @@ public class Nado extends NadoApi
                 Map<String, Object> market = this.market(symbol);
                 ((List<Object>)productIds).add(this.parseToInt(market.get("id")));
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "cancelAllOrders", "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "cancelAllOrders", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -957,7 +958,7 @@ public class Nado extends NadoApi
 
             Map<String, Object> market = this.market(symbol);
             Long productId = this.parseToInt(market.get("id"));
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "cancelOrders", "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "cancelOrders", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -1089,7 +1090,7 @@ public class Nado extends NadoApi
                 market = this.market(symbol);
                 ((List<Object>)productIds).add(this.parseToInt(market.get("id")));
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOrders", "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOrders", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -1181,7 +1182,7 @@ public class Nado extends NadoApi
                 throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires walletAddress")) ;
             }
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -1269,7 +1270,7 @@ public class Nado extends NadoApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -1287,7 +1288,7 @@ public class Nado extends NadoApi
             {
                 ordersRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(market.get("id")))));
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> ordersRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", (Map<String, Object>) (ordersRequest), (Map<String, Object>) (paramsSubaccount), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> ordersRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", (Map<String, Object>) (ordersRequest), (Map<String, Object>) (paramsSubaccount), 0.001);
             Map<String, Object> ordersRequestUntil = ordersRequestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = ordersRequestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -1410,7 +1411,7 @@ public class Nado extends NadoApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
             Map<String, Object> matchesRequest = new HashMap<String, Object>() {{
@@ -1420,7 +1421,7 @@ public class Nado extends NadoApi
             {
                 matchesRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(market.get("id")))));
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> matchesRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", (Map<String, Object>) (matchesRequest), (Map<String, Object>) (paramsSubaccount), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> matchesRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", (Map<String, Object>) (matchesRequest), (Map<String, Object>) (paramsSubaccount), 0.001);
             Map<String, Object> matchesRequestUntil = matchesRequestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = matchesRequestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -1494,7 +1495,7 @@ public class Nado extends NadoApi
                 throw new ArgumentsRequired((this.id + " fetchBalance() requires walletAddress")) ;
             }
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchBalance", "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchBalance", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1588,7 +1589,7 @@ public class Nado extends NadoApi
             {
                 currency = this.currency((String) (code));
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
             Map<String, Object> eventsRequest = new HashMap<String, Object>();
@@ -1601,7 +1602,7 @@ public class Nado extends NadoApi
             {
                 eventsRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(currency.get("id")))));
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> eventsRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", (Map<String, Object>) (eventsRequest), (Map<String, Object>) (paramsSubaccount), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> eventsRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", (Map<String, Object>) (eventsRequest), (Map<String, Object>) (paramsSubaccount), 0.001);
             Map<String, Object> eventsRequestUntil = eventsRequestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = eventsRequestUntilparamsUntilVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1689,7 +1690,7 @@ public class Nado extends NadoApi
             }
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2196,7 +2197,7 @@ public class Nado extends NadoApi
             {
                 throw new BadSymbol((this.id + " fetchFundingHistory() supports swap contracts only")) ;
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "subaccount", "default");
+            Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
             Map<String, Object> request = new HashMap<String, Object>();

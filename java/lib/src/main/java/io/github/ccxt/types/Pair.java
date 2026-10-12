@@ -1,4 +1,4 @@
-package io.github.ccxt.base;
+package io.github.ccxt.types;
 
 import java.util.AbstractList;
 import java.util.RandomAccess;

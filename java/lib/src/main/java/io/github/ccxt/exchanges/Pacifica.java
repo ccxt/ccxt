@@ -20,6 +20,7 @@ import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.OpenInterests;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -1561,7 +1562,7 @@ public class Pacifica extends PacificaApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1573,7 +1574,7 @@ public class Pacifica extends PacificaApi
             request.put("symbol", market.get("id"));
             request.put("interval", tf);
             request.put("start_time", since);
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Long nowMillis = this.milliseconds();
@@ -1719,7 +1720,7 @@ public class Pacifica extends PacificaApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchMyTrades", (Map<String, Object>) (paramsPaginate));
@@ -1731,7 +1732,7 @@ public class Pacifica extends PacificaApi
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", (Long) null, defaultLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOriginAndSingleAddress), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOriginAndSingleAddress), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             requestUntil.put("account", userAddress);
@@ -2581,7 +2582,7 @@ public class Pacifica extends PacificaApi
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             Long defaultLimit = 100L; // Default max limit
@@ -2898,7 +2899,7 @@ public class Pacifica extends PacificaApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             Long defaultLimit = 100L; // max default 100
@@ -3747,7 +3748,7 @@ public class Pacifica extends PacificaApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchLedger", (Map<String, Object>) (paramsPaginate));
@@ -3985,7 +3986,7 @@ public class Pacifica extends PacificaApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchFundingHistory", (Map<String, Object>) (paramsPaginate));
@@ -4164,7 +4165,7 @@ public class Pacifica extends PacificaApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> finalHeaders = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<String, Map<String, Object>> agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createSubAccount", "agentAddress", (String) null);
+            Pair<String, Map<String, Object>> agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createSubAccount", "agentAddress", (String) null);
             String agentAddress = agentAddressparamsAgentAddressVariable.first();
             Map<String, Object> paramsAgentAddress = agentAddressparamsAgentAddressVariable.second();
             List<Object> originAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("createSubAccount", (Map<String, Object>) (paramsAgentAddress));
@@ -4178,10 +4179,10 @@ public class Pacifica extends PacificaApi
             {
                 finalHeaders.put("agent_wallet", agentAddress);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subAccountAddressparamsSubAccountAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOriginAndSingleAddress), "createSubAccount", "subAccountAddress", (String) null);
+            Pair<String, Map<String, Object>> subAccountAddressparamsSubAccountAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOriginAndSingleAddress), "createSubAccount", "subAccountAddress", (String) null);
             String subAccountAddress = subAccountAddressparamsSubAccountAddressVariable.first();
             Map<String, Object> paramsSubAccountAddress = subAccountAddressparamsSubAccountAddressVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> subAccountPrivateKeyparamsSubAccountPrivateKeyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubAccountAddress), "createSubAccount", "subAccountPrivateKey", (String) null);
+            Pair<String, Map<String, Object>> subAccountPrivateKeyparamsSubAccountPrivateKeyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubAccountAddress), "createSubAccount", "subAccountPrivateKey", (String) null);
             String subAccountPrivateKey = subAccountPrivateKeyparamsSubAccountPrivateKeyVariable.first();
             Map<String, Object> paramsSubAccountPrivateKey = subAccountPrivateKeyparamsSubAccountPrivateKeyVariable.second();
             if (java.util.Objects.equals(subAccountAddress, null))
@@ -4542,7 +4543,7 @@ public class Pacifica extends PacificaApi
         signatureHeader.put("type", operationType);
         Object signature = this.signMessage((Map<String, Object>) (signatureHeader), (Map<String, Object>) (sigPayload), this.privateKey);
         Map<String, Object> finalHeaders = new HashMap<String, Object>() {{}};
-        io.github.ccxt.base.Pair<String, Map<String, Object>> agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsExpiryWindow), "postActionRequest", "agentAddress", (String) null);
+        Pair<String, Map<String, Object>> agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsExpiryWindow), "postActionRequest", "agentAddress", (String) null);
         String agentAddress = agentAddressparamsAgentAddressVariable.first();
         Map<String, Object> paramsAgentAddress = agentAddressparamsAgentAddressVariable.second();
         String originAddress = (String) ((List<Object>)this.handleOriginAndSingleAddress("postActionRequest", (Map<String, Object>) (paramsAgentAddress))).get(0);

@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -302,7 +303,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             if (Boolean.TRUE.equals(isMarketBuy))
             {
                 String quoteAmount = null;
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                 Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                 Double cost = this.safeNumber(paramsRequiresPrice, "cost", (Object) null);
@@ -634,7 +635,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             Map<String, Object> watchOrderBookOptions = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", (Object) null);
             String name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
-            io.github.ccxt.base.Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "name", name);
+            Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "name", name);
             var nameOption = ((List<Object>) nameOptionparamsNameVariable).get(0);
             Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe(nameOption, nameOption, false, new ArrayList<String>(Arrays.asList(symbol)), paramsName)).join();

@@ -13,6 +13,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.Order;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Trade;
@@ -2220,7 +2221,7 @@ public class Derive extends DeriveApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2669,7 +2670,7 @@ public class Derive extends DeriveApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2923,7 +2924,7 @@ public class Derive extends DeriveApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3327,7 +3328,7 @@ public class Derive extends DeriveApi
 
     public Object handleDeriveWalletAddress(Object methodName, Map<String, Object> parameters)
     {
-        io.github.ccxt.base.Pair<String, Map<String, Object>> deriveWalletAddressparamsDeriveWalletAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "deriveWalletAddress", (String) null);
+        Pair<String, Map<String, Object>> deriveWalletAddressparamsDeriveWalletAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "deriveWalletAddress", (String) null);
         String deriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable.first();
         Map<String, Object> paramsDeriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable.second();
         if ((!java.util.Objects.equals(deriveWalletAddress, null)) && (!java.util.Objects.equals(deriveWalletAddress, "")))

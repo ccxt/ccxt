@@ -20,6 +20,7 @@ import io.github.ccxt.types.MarginModification;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.PositionModeInfo;
 import io.github.ccxt.types.Status;
@@ -1400,7 +1401,7 @@ public class Mexc extends MexcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchStatus", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchStatus", (Map<String, Object>) null, parameters, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             Map<String, Object> response = new HashMap<String, Object>() {{}};
@@ -1452,7 +1453,7 @@ public class Mexc extends MexcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTime", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTime", (Map<String, Object>) null, parameters, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             Map<String, Object> response = null;
@@ -2270,7 +2271,7 @@ public class Mexc extends MexcApi
             }
             Map<String, Object> market = this.market(symbol);
             Object maxLimit = (((java.util.Objects.equals(market.get("spot"), true)))) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2423,7 +2424,7 @@ public class Mexc extends MexcApi
                 String firstSymbol = this.safeString(symbols, 0);
                 market = this.market(firstSymbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             Object tickers = null;
@@ -2502,7 +2503,7 @@ public class Mexc extends MexcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTicker", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTicker", market, parameters, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             Object ticker = null;
@@ -2710,7 +2711,7 @@ public class Mexc extends MexcApi
                 isSingularMarket = java.util.Objects.equals(length, 1);
                 market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             List<Object> tickers = null;
@@ -2832,7 +2833,7 @@ public class Mexc extends MexcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
+            Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
             String marginMode = marginModequeryVariable.first();
             Map<String, Object> query = marginModequeryVariable.second();
             if (java.util.Objects.equals(market.get("spot"), true))
@@ -3215,7 +3216,7 @@ public class Mexc extends MexcApi
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginMode = null;
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsLoopVariable = this.handleMarginModeAndParams("createOrder", paramsLoop, (String) null);
+                Pair<String, Map<String, Object>> marginModeparamsLoopVariable = this.handleMarginModeAndParams("createOrder", paramsLoop, (String) null);
                 marginMode = marginModeparamsLoopVariable.first();
                 paramsLoop = marginModeparamsLoopVariable.second();
                 Object orderRequest = this.createSpotOrderRequest(market, type, side, amount, price, Helpers.toStringArg(marginMode), orderParams);
@@ -3291,7 +3292,7 @@ public class Mexc extends MexcApi
                     request.put("orderId", id);
                 }
                 Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchOrder", paramsOmitted, (String) null);
+                Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchOrder", paramsOmitted, (String) null);
                 String marginMode = marginModequeryVariable.first();
                 Map<String, Object> query = marginModequeryVariable.second();
                 if (!java.util.Objects.equals(marginMode, null))
@@ -3381,7 +3382,7 @@ public class Mexc extends MexcApi
             }
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrders", market, paramsOmitted, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrders", market, paramsOmitted, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             if (java.util.Objects.equals(marketType, "spot"))
@@ -3390,7 +3391,7 @@ public class Mexc extends MexcApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument for spot market")) ;
                 }
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryInnerVariable = this.handleMarginModeAndParams("fetchOrders", paramsOmitted, (String) null);
+                Pair<String, Map<String, Object>> marginModequeryInnerVariable = this.handleMarginModeAndParams("fetchOrders", paramsOmitted, (String) null);
                 String marginMode = marginModequeryInnerVariable.first();
                 Map<String, Object> queryInner = marginModequeryInnerVariable.second();
                 if (!java.util.Objects.equals(since, null))
@@ -3601,7 +3602,7 @@ public class Mexc extends MexcApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrdersByIds", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrdersByIds", market, parameters, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             if (java.util.Objects.equals(marketType, "spot"))
@@ -3682,7 +3683,7 @@ public class Mexc extends MexcApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(marketType, "spot"))
@@ -3691,7 +3692,7 @@ public class Mexc extends MexcApi
                 {
                     request.put("symbol", this.safeString(market, "id"));
                 }
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType, (String) null);
+                Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType, (String) null);
                 String marginMode = marginModequeryVariable.first();
                 Map<String, Object> query = marginModequeryVariable.second();
                 List<Object> response = null;
@@ -3841,7 +3842,7 @@ public class Mexc extends MexcApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeVariable = this.handleMarketTypeAndParams("fetchOrdersByState", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeVariable = this.handleMarketTypeAndParams("fetchOrdersByState", market, parameters, (String) null);
             String marketType = marketTypeVariable.first();
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3885,10 +3886,10 @@ public class Mexc extends MexcApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("cancelOrder", paramsMarketType, (String) null);
+            Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("cancelOrder", paramsMarketType, (String) null);
             String marginMode = marginModequeryVariable.first();
             Map<String, Object> query = marginModequeryVariable.second();
             Object data = null;
@@ -4000,7 +4001,7 @@ public class Mexc extends MexcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters, (String) null);
             String marketType = marketTypeVariable.first();
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -4055,7 +4056,7 @@ public class Mexc extends MexcApi
                 market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(marketType, "spot"))
@@ -4472,7 +4473,7 @@ public class Mexc extends MexcApi
         return BaseExchange.supplyAsync(() -> {
 
             // TODO: is the below endpoints suitable for fetchAccounts?
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchAccounts", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchAccounts", (Map<String, Object>) null, parameters, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             if (java.util.Objects.equals(this.markets, null))
@@ -4715,7 +4716,7 @@ public class Mexc extends MexcApi
             String marketType = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> paramsMarketType = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
             marketType = marketTypeparamsMarketTypeVariable.first();
             paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             String marginMode = this.safeString(paramsMarketType, "marginMode");
@@ -4873,7 +4874,7 @@ public class Mexc extends MexcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4971,7 +4972,7 @@ public class Mexc extends MexcApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
@@ -6288,7 +6289,7 @@ public class Mexc extends MexcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTransfer", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTransfer", (Map<String, Object>) null, parameters, (String) null);
             String marketType = marketTypequeryVariable.first();
             Map<String, Object> query = marketTypequeryVariable.second();
             if (java.util.Objects.equals(this.markets, null))
@@ -6344,7 +6345,7 @@ public class Mexc extends MexcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTransfers", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTransfers", (Map<String, Object>) null, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(this.markets, null))
@@ -6357,7 +6358,7 @@ public class Mexc extends MexcApi
             {
                 currency = this.currency((String) (code));
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> fromAccountTypeparamsFromAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchTransfers", "fromAccountType", (String) null);
+            Pair<String, Map<String, Object>> fromAccountTypeparamsFromAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchTransfers", "fromAccountType", (String) null);
             String fromAccountType = fromAccountTypeparamsFromAccountTypeVariable.first();
             Map<String, Object> paramsFromAccountType = fromAccountTypeparamsFromAccountTypeVariable.second();
             Map<String, Object> accountTypes = new HashMap<String, Object>() {{
@@ -6374,7 +6375,7 @@ public class Mexc extends MexcApi
             {
                 throw new ArgumentsRequired((this.id + " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> toAccountTypeparamsToAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsFromAccountType), "fetchTransfers", "toAccountType", (String) null);
+            Pair<String, Map<String, Object>> toAccountTypeparamsToAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsFromAccountType), "fetchTransfers", "toAccountType", (String) null);
             String toAccountType = toAccountTypeparamsToAccountTypeVariable.first();
             Map<String, Object> paramsToAccountType = toAccountTypeparamsToAccountTypeVariable.second();
             if (!java.util.Objects.equals(toAccountType, null))
@@ -7065,7 +7066,7 @@ public class Mexc extends MexcApi
         }
     }
 
-    public io.github.ccxt.base.Pair<String, Map<String, Object>> handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
+    public Pair<String, Map<String, Object>> handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
     {
         /**
          * @ignore
@@ -7077,14 +7078,14 @@ public class Mexc extends MexcApi
          */
         String defaultType = this.safeString(this.options, "defaultType");
         Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
-        io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if ((java.util.Objects.equals(defaultType, "margin")) || (java.util.Objects.equals(isMargin, true)))
         {
-            return new io.github.ccxt.base.Pair<>("isolated", paramsMarginMode);
+            return new Pair<>("isolated", paramsMarginMode);
         }
-        return new io.github.ccxt.base.Pair<>(marginMode, paramsMarginMode);
+        return new Pair<>(marginMode, paramsMarginMode);
     }
 
     /**
