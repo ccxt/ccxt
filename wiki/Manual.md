@@ -1512,9 +1512,9 @@ System.out.println(kraken.id + " " + markets.size() + " markets");
 
 <!-- tabs:end -->
 
-### Reloading Markets 
+### Reloading Markets
 
-To refresh the cached data and force re-fetching or reloading of the latest markets and currencies info, call `loadMarkets(true)` to pass it a true value in the `reload` argument. 
+To refresh the cached data and force re-fetching or reloading of the latest markets and currencies info, call `loadMarkets(true)` / `load_markets(True)` to pass a true value in the `reload` argument. See [Market Cache Force Reload](#market-cache-force-reload) for per-language examples.
 
 ### Sharing Markets Between Exchange Instances
 
