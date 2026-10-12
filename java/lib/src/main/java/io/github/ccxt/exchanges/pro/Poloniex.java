@@ -69,6 +69,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }} );
             put( "options", new HashMap<String, Object>() {{
                 put( "createMarketBuyOrderRequiresPrice", true );
+                put( "watchBalance", new HashMap<String, Object>() {{
+                    put( "fetchBalanceSnapshot", true );
+                    put( "awaitBalanceSnapshot", true );
+                }} );
                 put( "tradesLimit", 1000 );
                 put( "ordersLimit", 1000 );
                 put( "OHLCVLimit", 1000 );
@@ -734,8 +738,84 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             String name = "balances";
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            // the balances channel only streams per-event deltas, so seed the
+            // balance from a rest snapshot once per subscription - otherwise the
+            // first resolves would only list the currencies that changed since
+            // subscribing
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            Client client = this.client(url);
+            this.setBalanceCache(client, name);
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
+            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+            Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
+            if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
+            {
+                client.future((name + ":fetchBalanceSnapshot")).getFuture().join();
+            }
             return (this.subscribe(name, name, true, (List<String>) null, parameters)).join();
         }).thenApply(Balances::new);
+
+    }
+
+    public void setBalanceCache(Client client, Object type)
+    {
+        if (((Map<?, ?>)client.subscriptions).containsKey(type))
+        {
+            return;
+        }
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
+        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+        if (java.util.Objects.equals(fetchBalanceSnapshot, true))
+        {
+            String messageHash = (type + ":fetchBalanceSnapshot");
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            {
+                client.future(messageHash);
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            }
+        }
+    }
+
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, Object type)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Balances response = (this.fetchBalance(new HashMap<String, Object>() {{}})).join();
+            // merge the snapshot into the existing balance object per currency so
+            // the object keeps its identity and deltas that arrived while the
+            // snapshot was in flight are not overwritten; the free/used/total
+            // aggregates are rebuilt from the merged currencies by safeBalance
+            List<String> reserved = new ArrayList<String>(Arrays.asList("info", "timestamp", "datetime", "free", "used", "total"));
+            List<String> keys = new ArrayList<String>(((Map<String, Object>)response).keySet());
+            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            {
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                if (this.inArray(key, reserved))
+                {
+                    continue;
+                }
+                if (!(((Map<?, ?>)this.balance).containsKey(key)))
+                {
+                    Helpers.addElementToObject(this.balance, key, (response == null || key == null ? null : response.get(key)));
+                }
+            }
+            if (!(((Map<?, ?>)this.balance).containsKey("info")))
+            {
+                Helpers.addElementToObject(this.balance, "info", ((Map<String, Object>)response).get("info"));
+                Helpers.addElementToObject(this.balance, "timestamp", ((Map<String, Object>)response).get("timestamp"));
+                Helpers.addElementToObject(this.balance, "datetime", ((Map<String, Object>)response).get("datetime"));
+            }
+            this.balance = this.safeBalance(this.balance);
+            // don't remove the future from the .futures cache
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            {
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                future.resolve();
+                client.resolve(this.balance, type);
+            }
+            return null;
+        });
 
     }
 
@@ -1340,7 +1420,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             List<Object> bids = (List<Object>) this.safeList(item, "bids", (Object) null);
             if (Boolean.TRUE.equals(snapshot) || Boolean.TRUE.equals(update))
             {
-                if (Boolean.TRUE.equals(snapshot))
+                if (Boolean.TRUE.equals(snapshot) && !(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
                 {
                     Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
                 }
@@ -1349,6 +1429,14 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     continue;
                 }
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+                if (Boolean.TRUE.equals(snapshot))
+                {
+                    // reset the existing orderbook in place instead of
+                    // replacing it: a consumer awakened earlier keeps a
+                    // reference to the old object and would be orphaned
+                    // from later updates on a resync/reconnect otherwise
+                    orderbook.reset(new HashMap<String, Object>() {{}});
+                }
                 if (!java.util.Objects.equals(bids, null))
                 {
                     for (var j = 0; j < ((List<?>)bids).size(); j++)
@@ -1400,40 +1488,27 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
+        // the balances channel only sends per-event deltas for the currencies
+        // that changed, so merge them into the existing balance object instead
+        // of rebuilding it from the current message: a rebuilt object would
+        // drop every other currency, and a consumer awakened by an earlier
+        // message keeps a reference to the old object while Client.resolve is
+        // a no-op with no waiter, so updates landing in that window would
+        // never reach that consumer (same class as kraken issue #26773)
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String messageHash = "balances";
-        this.balance = this.parseWsBalance(data);
-        client.resolve(this.balance, messageHash);
-    }
-
-    public Object parseWsBalance(Object response)
-    {
-        //
-        //    [
-        //        {
-        //            "changeTime": 1657312008411,
-        //            "accountId": "1234",
-        //            "accountType": "SPOT",
-        //            "eventType": "place_order",
-        //            "available": "9999999983.668",
-        //            "currency": "BTC",
-        //            "id": 60018450912695040,
-        //            "userId": 12345,
-        //            "hold": "16.332",
-        //            "ts": 1657312008443
-        //        }
-        //    ]
-        //
-        Map<String, Object> firstBalance = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-        Long timestamp = this.safeInteger(firstBalance, "ts");
-        Map<String, Object> result = new HashMap<String, Object>() {{
-            put( "info", response );
-            put( "timestamp", timestamp );
-            put( "datetime", Poloniex.this.iso8601(timestamp) );
-        }};
-        for (var i = 0; i < ((List<?>)response).size(); i++)
+        if (java.util.Objects.equals(this.balance, null))
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+            this.balance = new HashMap<String, Object>() {{}};
+        }
+        Helpers.addElementToObject(this.balance, "info", data);
+        Map<String, Object> firstBalance = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+        Long timestamp = this.safeInteger(firstBalance, "ts");
+        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
+        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
+        for (var i = 0; i < ((List<?>)data).size(); i++)
+        {
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> newAccount = this.account();
@@ -1441,10 +1516,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             newAccount.put("used", this.safeString(balance, "hold"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put(code, newAccount);
+                Helpers.addElementToObject(this.balance, code, newAccount);
             }
         }
-        return this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
+        client.resolve(this.balance, messageHash);
     }
 
     public void handleMyTrades(Client client, Object parsedTrade)

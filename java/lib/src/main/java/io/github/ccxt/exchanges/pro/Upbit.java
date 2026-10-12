@@ -432,34 +432,26 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         client.resolve(ohlcv, messageHash);
     }
 
-    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
+    public void authenticate(Map<String, Object> parameters)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            this.checkRequiredCredentials(true);
-            Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
-            String authenticated = this.safeString(wsOptions, "token");
-            if (java.util.Objects.equals(authenticated, null))
-            {
-                Map<String, Object> auth = new HashMap<String, Object>() {{
-                    put( "access_key", Upbit.this.apiKey );
-                    put( "nonce", Upbit.this.uuid() );
-                }};
-                String token = jwt(auth, this.encode(this.secret), sha256(), false);
-                wsOptions.put("token", token);
-                wsOptions.put("options", new HashMap<String, Object>() {{
-        put( "headers", new HashMap<String, Object>() {{
-            put( "authorization", ("Bearer " + token) );
-        }} );
-    }});
-                Helpers.addElementToObject(this.options, "ws", wsOptions);
-            }
-            String url = (this.safeString(this.urls.get("api"), "ws") + "/private");
-            Client client = this.client(url);
-            return client;
-        });
-
+        this.checkRequiredCredentials(true);
+        Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        String authenticated = this.safeString(wsOptions, "token");
+        if (java.util.Objects.equals(authenticated, null))
+        {
+            Map<String, Object> auth = new HashMap<String, Object>() {{
+                put( "access_key", Upbit.this.apiKey );
+                put( "nonce", Upbit.this.uuid() );
+            }};
+            String token = jwt(auth, this.encode(this.secret), sha256(), false);
+            wsOptions.put("token", token);
+            wsOptions.put("options", new HashMap<String, Object>() {{
+    put( "headers", new HashMap<String, Object>() {{
+        put( "authorization", ("Bearer " + token) );
+    }} );
+}});
+            Helpers.addElementToObject(this.options, "ws", wsOptions);
+        }
     }
 
     public CompletableFuture<Object> watchPrivate(String symbol, Object channel, Object messageHash, Map<String, Object> parameters)
@@ -467,7 +459,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            this.authenticate(new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("type", channel);
             Object symbolResolved = null;
@@ -619,17 +611,26 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //     "ask_bid": "BID",
         //     "order_type": "limit",
         //     "state": "trade",
-        //     "price": 0.001453,
+        //     "trade_uuid": "68315169-fba4-4175-ade3-aff14a616657",
+        //     "price": 0.001453,                 // order price, or the fill price when state is trade
         //     "avg_price": 0.00145372,
-        //     "volume": 30925891.29839369,
+        //     "volume": 30925891.29839369,       // order volume, or the fill volume when state is trade
         //     "remaining_volume": 29968038.09235948,
         //     "executed_volume": 30925891.29839369,
         //     "trades_count": 1,
         //     "reserved_fee": 44.23943970238218,
         //     "remaining_fee": 21.77177967409916,
-        //     "paid_fee": 22.467660028283017,
+        //     "paid_fee": 22.467660028283017,    // cumulative
         //     "locked": 43565.33112787242,
         //     "executed_funds": 44935.32005656603,
+        //     "time_in_force": null,
+        //     "trade_fee": 22.467660028283017,   // fee of the fill, null unless state is trade
+        //     "is_maker": true,                  // null unless state is trade
+        //     "identifier": "test-1",
+        //     "smp_type": "cancel_maker",
+        //     "prevented_volume": 1.174291929,
+        //     "prevented_locked": 0.001706246173,
+        //     "trade_timestamp": 1710751590421,
         //     "order_timestamp": 1710751590000,
         //     "timestamp": 1710751597500,
         //     "stream_type": "REALTIME"
@@ -640,12 +641,13 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         if (java.util.Objects.equals(side, "bid"))
         {
             side = "buy";
-        } else
+        } else if (java.util.Objects.equals(side, "ask"))
         {
             side = "sell";
         }
-        Long timestamp = this.parse8601(this.safeString(order, "order_timestamp"));
-        String status = this.parseWsOrderStatus(this.safeString(order, "state"));
+        Long timestamp = this.safeInteger(order, "order_timestamp");
+        String rawStatus = this.safeString(order, "state");
+        String status = this.parseWsOrderStatus((String) (rawStatus));
         String marketId = this.safeString(order, "code");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Map<String, Object> fee = null;
@@ -657,24 +659,30 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 "cost", feeCost
             );
         }
+        // when state is trade the price and volume fields describe the fill, not the order:
+        // fall back to the average fill price and let the order volume derive from filled + remaining
+        Boolean isTrade = (java.util.Objects.equals(rawStatus, "trade"));
+        String price = ((Boolean.TRUE.equals(isTrade))) ? this.safeString(order, "avg_price") : this.safeString(order, "price");
+        String amount = ((Boolean.TRUE.equals(isTrade))) ? null : this.safeString(order, "volume");
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("info", order);
         mapLiteral2.put("id", id);
-        mapLiteral2.put("clientOrderId", null);
+        mapLiteral2.put("clientOrderId", this.safeString(order, "identifier"));
         mapLiteral2.put("timestamp", timestamp);
         mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("lastTradeTimestamp", this.safeString(order, "trade_timestamp"));
+        mapLiteral2.put("lastTradeTimestamp", this.safeInteger(order, "trade_timestamp"));
+        mapLiteral2.put("lastUpdateTimestamp", this.safeInteger(order, "timestamp"));
         mapLiteral2.put("symbol", marketResolved.get("symbol"));
         mapLiteral2.put("type", this.safeString(order, "order_type"));
         mapLiteral2.put("timeInForce", this.safeString(order, "time_in_force"));
         mapLiteral2.put("postOnly", null);
         mapLiteral2.put("side", side);
-        mapLiteral2.put("price", this.safeString(order, "price"));
+        mapLiteral2.put("price", price);
         mapLiteral2.put("stopPrice", null);
         mapLiteral2.put("triggerPrice", null);
         mapLiteral2.put("cost", this.safeString(order, "executed_funds"));
         mapLiteral2.put("average", this.safeString(order, "avg_price"));
-        mapLiteral2.put("amount", this.safeString(order, "volume"));
+        mapLiteral2.put("amount", amount);
         mapLiteral2.put("filled", this.safeString(order, "executed_volume"));
         mapLiteral2.put("remaining", this.safeString(order, "remaining_volume"));
         mapLiteral2.put("status", status);
@@ -690,15 +698,29 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         if (java.util.Objects.equals(side, "bid"))
         {
             side = "buy";
-        } else
+        } else if (java.util.Objects.equals(side, "ask"))
         {
             side = "sell";
         }
-        Long timestamp = this.parse8601(this.safeString(trade, "trade_timestamp"));
+        Long timestamp = this.safeInteger(trade, "trade_timestamp");
         String marketId = this.safeString(trade, "code");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        // price and volume describe the fill when state is trade
+        String price = this.safeString(trade, "price");
+        String amount = this.safeString(trade, "volume");
+        String cost = null;
+        if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(amount, null)))
+        {
+            cost = Precise.stringMul(price, amount);
+        }
+        String takerOrMaker = null;
+        Boolean isMaker = (Boolean) this.safeBool(trade, "is_maker", (Object) null);
+        if (!java.util.Objects.equals(isMaker, null))
+        {
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
+        }
         Map<String, Object> fee = null;
-        String feeCost = this.safeString(trade, "paid_fee");
+        String feeCost = this.safeString(trade, "trade_fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
             fee = Helpers.newMap(
@@ -712,11 +734,11 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         mapLiteral3.put("datetime", this.iso8601(timestamp));
         mapLiteral3.put("symbol", marketResolved.get("symbol"));
         mapLiteral3.put("side", side);
-        mapLiteral3.put("price", this.safeString(trade, "price"));
-        mapLiteral3.put("amount", this.safeString(trade, "volume"));
-        mapLiteral3.put("cost", this.safeString(trade, "executed_funds"));
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("cost", cost);
         mapLiteral3.put("order", this.safeString(trade, "uuid"));
-        mapLiteral3.put("takerOrMaker", null);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
         mapLiteral3.put("type", this.safeString(trade, "order_type"));
         mapLiteral3.put("fee", fee);
         mapLiteral3.put("info", trade);
@@ -737,12 +759,12 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
     public void handleMyTrade(Client client, Map<String, Object> message)
     {
         // see: parseWsOrder
-        io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        if (java.util.Objects.equals(myTrades, null))
+        if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+            this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
+        io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), (Map<String, Object>) null);
         myTrades.append(trade);
         String messageHash = "myTrades";
@@ -766,19 +788,48 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         Map<String, Object> order = (Map<String, Object>) ((((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId, (Object) null));
         if (!java.util.Objects.equals(order, null))
         {
-            Object fee = this.safeValue(order, "fee");
-            if (!java.util.Objects.equals(fee, null))
+            // paid_fee is cumulative, so the cached fee is only a fallback
+            Map<String, Object> parsedFee = (Map<String, Object>) this.safeDict(parsed, "fee", (Object) null);
+            if (java.util.Objects.equals(parsedFee, null))
             {
-                ((Map<String, Object>)parsed).put("fee", fee);
-            }
-            List<Object> fees = (List<Object>) this.safeList(order, "fees", (Object) null);
-            if (!java.util.Objects.equals(fees, null))
-            {
-                ((Map<String, Object>)parsed).put("fees", fees);
+                Object fee = this.safeValue(order, "fee");
+                if (!java.util.Objects.equals(fee, null))
+                {
+                    ((Map<String, Object>)parsed).put("fee", fee);
+                }
+                List<Object> fees = (List<Object>) this.safeList(order, "fees", (Object) null);
+                if (!java.util.Objects.equals(fees, null))
+                {
+                    ((Map<String, Object>)parsed).put("fees", fees);
+                }
             }
             ((Map<String, Object>)parsed).put("trades", this.safeValue(order, "trades"));
-            ((Map<String, Object>)parsed).put("timestamp", this.safeInteger(order, "timestamp"));
-            ((Map<String, Object>)parsed).put("datetime", this.safeString(order, "datetime"));
+            Long lastTradeTimestamp = this.safeInteger(parsed, "lastTradeTimestamp");
+            if (java.util.Objects.equals(lastTradeTimestamp, null))
+            {
+                ((Map<String, Object>)parsed).put("lastTradeTimestamp", this.safeInteger(order, "lastTradeTimestamp"));
+            }
+            Long timestamp = this.safeInteger(parsed, "timestamp");
+            if (java.util.Objects.equals(timestamp, null))
+            {
+                ((Map<String, Object>)parsed).put("timestamp", this.safeInteger(order, "timestamp"));
+                ((Map<String, Object>)parsed).put("datetime", this.safeString(order, "datetime"));
+            }
+            // fill updates carry the fill price and volume instead of the order's
+            String rawStatus = this.safeString(message, "state");
+            if (java.util.Objects.equals(rawStatus, "trade"))
+            {
+                Double cachedPrice = this.safeNumber(order, "price", (Object) null);
+                if (!java.util.Objects.equals(cachedPrice, null))
+                {
+                    ((Map<String, Object>)parsed).put("price", cachedPrice);
+                }
+                Double cachedAmount = this.safeNumber(order, "amount", (Object) null);
+                if (!java.util.Objects.equals(cachedAmount, null))
+                {
+                    ((Map<String, Object>)parsed).put("amount", cachedAmount);
+                }
+            }
         }
         cachedOrders.append(parsed);
         String messageHash = "myOrder";

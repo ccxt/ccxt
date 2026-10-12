@@ -1058,7 +1058,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         });
 
     }
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    // always on binanceusdm, common on mixed instances - isLinear keys off
+    // subType alone and would flip 'stock' to 'future' - the stock branch
+    // below would never run, and the bucket lookup would renew the
+    // FUTURES listen key while the stock key silently expires
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters) // subType alone and would flip 'stock' to 'future' - the stock branch
     {
         return this.unWatchOrderBook(symbol, (Object) (parameters));
     }
@@ -1702,6 +1706,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         });
 
     }
+    // otherwise caches an empty credential AND stamps
+    // lastAuthenticatedTime, parking every caller on
+    // .../ws/undefined with no retry until the staleness
+    // window reopens - the catch below rejects the flight so
+    // waiters retry and the next caller re-leads
     public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
         return this.unWatchTrades(symbol, (Object) (parameters));
@@ -2789,7 +2798,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         });
 
     }
-    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters) // client.futures and wakes every waiter
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
     {
         return this.unWatchTicker(symbol, (Object) (parameters));
     }

@@ -7126,6 +7126,24 @@ public class Xt extends XtApi
             return h2kMap2;
         }
     }
+    //                     "positionSide": "LONG",
+    //                     "origQty": "1",
+    //                     "triggerPriceType": "LATEST_PRICE",
+    //                     "triggerProfitPrice": null,
+    //                     "triggerStopPrice": "20000",
+    //                     "entryPrice": "0",
+    //                     "positionSize": "0",
+    //                     "isolatedMargin": "0",
+    //                     "executedQty": "0",
+    //                     "avgPrice": null,
+    //                     "positionType": "ISOLATED",
+    //                     "state": "USER_REVOCATION",
+    //                     "createdTime": 1681273420039
+    //                 },
+    //             ]
+    //         }
+    //     }
+    //
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         return this.sign(path, api, method, parameters, headers, (Object) (body));

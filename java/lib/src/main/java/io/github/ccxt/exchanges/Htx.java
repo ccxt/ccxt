@@ -3037,6 +3037,18 @@ public class Htx extends HtxApi
         String close = this.safeString(ticker, "close");
         String baseVolume = this.safeString(ticker, "amount");
         String quoteVolume = this.safeString(ticker, "vol");
+        Object marketResolved = this.safeDict(this.markets, symbol, market);
+        if (java.util.Objects.equals(this.safeBool(marketResolved, "contract", (Object) null), true))
+        {
+            // contract tickers count 'vol' in contracts
+            if (java.util.Objects.equals(this.safeBool(marketResolved, "linear", (Object) null), true))
+            {
+                quoteVolume = this.safeString(ticker, "trade_turnover");
+            } else
+            {
+                quoteVolume = Precise.stringMul(quoteVolume, this.safeString(marketResolved, "contractSize"));
+            }
+        }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("symbol", symbol);
         mapLiteral1.put("timestamp", timestamp);

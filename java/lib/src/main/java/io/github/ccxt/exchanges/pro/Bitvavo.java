@@ -1836,7 +1836,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         });
 
     }
-    public CompletableFuture<Object> fetchMarketsWs(Map<String, Object> parameters) //                base: '1INCH',
+    public CompletableFuture<Object> fetchMarketsWs(Map<String, Object> parameters)
     {
         return this.fetchMarketsWs((Object) (parameters));
     }

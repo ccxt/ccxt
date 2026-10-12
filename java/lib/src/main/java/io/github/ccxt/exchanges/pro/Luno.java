@@ -272,20 +272,18 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}));
         }
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> asks = (List<Object>) this.safeList(message, "asks", (Object) null);
         if (!java.util.Objects.equals(asks, null))
         {
             Object snapshot = this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
-            io.github.ccxt.ws.WsOrderBook existing = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-            existing.reset(snapshot);
+            orderbook.reset(snapshot);
         } else
         {
-            io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-            this.handleBookDelta(ob, message);
-            ob.put("timestamp", timestamp);
-            ob.put("datetime", this.iso8601(timestamp));
+            this.handleBookDelta(orderbook, message);
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", this.iso8601(timestamp));
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long nonce = this.safeInteger(message, "sequence");
         orderbook.put("nonce", nonce);
         client.resolve(orderbook, messageHash);
