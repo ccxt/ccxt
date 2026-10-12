@@ -3175,7 +3175,7 @@ System.out.println("bids: " + ob.bids.size() + " asks: " + ob.asks.size());
 
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
 
-- **L1**: it consists of the best bid & ask data only and is a very basic information. However, L1 data is typically provided by `fetchBidsAsks` or `fetchTicker`, because in CCXT, most of the `fetchOrderBook` implementations return L2 data.
+- **L1**: it consists only of the best bid and ask data and provides very basic information. However, L1 data is typically provided by `fetchBidsAsks` or `fetchTicker`, because in CCXT, most of the `fetchOrderBook` implementations return L2 data.
 - **L2**: most common level of aggregation where order volumes are grouped by price. If two orders have the same price, they appear as one single order for a volume equal to their total sum. This is most likely the level of aggregation you need for the majority of purposes.
 - **L3**: most detailed level with no aggregation where each order is separate from other orders. This LOD naturally contains duplicates in the output. So, if two orders have equal prices they are **not** merged together and it's up to the exchange's matching engine to decide on their priority in the stack. You don't really need L3 detail for successful trading. In fact, you most probably don't need it at all. Therefore some exchanges don't support it and always return aggregated order books.
 
