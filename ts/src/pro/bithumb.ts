@@ -352,8 +352,9 @@ export default class bithumb extends bithumbRest {
             'close': this.safeString (ticker, 'closePrice'),
             'last': undefined,
             'previousClose': this.safeString (ticker, 'prevClosePrice'),
-            'change': this.safeString (ticker, 'chgAmt'),
-            'percentage': this.safeString (ticker, 'chgRate'),
+            // safeTicker derives change/percentage from open, matching the REST parser
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'value'),

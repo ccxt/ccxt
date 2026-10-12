@@ -1,0 +1,192 @@
+{
+    "exchange": "krakenfutures",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchBalance": [
+            {
+                "description": "cash balance snapshot followed by rapid updates (live capture, trimmed to nonzero entries) - updates arriving while no consumer is awaiting must still reach the object handed to the consumer (same class of bug as kraken issue 26773); the cash frame is replayed last so every plain-hash resolve hands out the same object in first-resolve-wins and last-resolve-wins runtimes alike",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "input": [],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "challenge",
+                        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
+                    },
+                    {
+                        "feed": "balances_snapshot",
+                        "account": "0f9c23b8-63e2-40e4-9592-6d5aa57c12ba",
+                        "holding": {
+                            "USDT": 5
+                        },
+                        "futures": {
+                            "F-XBT:USD": {
+                                "name": "F-XBT:USD",
+                                "pair": "XBT/USD",
+                                "unit": "XBT",
+                                "portfolio_value": 0,
+                                "balance": 0,
+                                "maintenance_margin": 0,
+                                "initial_margin": 0,
+                                "available": 0,
+                                "unrealized_funding": 0,
+                                "pnl": 0,
+                                "cash_value": 0
+                            }
+                        },
+                        "flex_futures": {
+                            "balance_value": 13.28,
+                            "portfolio_value": 13.28,
+                            "collateral_value": 13.21,
+                            "initial_margin": 0,
+                            "initial_margin_without_orders": 0,
+                            "maintenance_margin": 0,
+                            "pnl": 0,
+                            "unrealized_funding": 0,
+                            "total_unrealized": 0,
+                            "total_unrealized_as_margin": 0,
+                            "total_position_size": 0,
+                            "margin_equity": 13.21,
+                            "available_margin": 13.21,
+                            "unified_balances": false,
+                            "isolated_list": [],
+                            "currencies": {
+                                "USDT": {
+                                    "quantity": 13.03934576,
+                                    "value": 13.03608592356,
+                                    "collateral_value": 12.9709054939422,
+                                    "available": 13.03934576,
+                                    "conversion_spread": 0,
+                                    "haircut": 0.005
+                                }
+                            }
+                        },
+                        "futures_cash_value": 0,
+                        "futures_upnl_cash_value": 0,
+                        "timestamp": 1790604073728,
+                        "seq": 0
+                    },
+                    {
+                        "feed": "balances",
+                        "account": "0f9c23b8-63e2-40e4-9592-6d5aa57c12ba",
+                        "flex_futures": {
+                            "balance_value": 13.28,
+                            "portfolio_value": 13.28,
+                            "collateral_value": 13.21,
+                            "initial_margin": 0,
+                            "initial_margin_without_orders": 0,
+                            "maintenance_margin": 0,
+                            "pnl": 0,
+                            "unrealized_funding": 0,
+                            "total_unrealized": 0,
+                            "total_unrealized_as_margin": 0,
+                            "total_position_size": 0,
+                            "margin_equity": 13.21,
+                            "available_margin": 13.21,
+                            "unified_balances": false,
+                            "isolated_list": [],
+                            "currencies": {
+                                "USDT": {
+                                    "quantity": 13.03934576,
+                                    "value": 13.03608592356,
+                                    "collateral_value": 12.9709054939422,
+                                    "available": 13.03934576,
+                                    "conversion_spread": 0,
+                                    "haircut": 0.005
+                                }
+                            }
+                        },
+                        "timestamp": 1790604075431,
+                        "seq": 4
+                    },
+                    {
+                        "feed": "balances",
+                        "account": "0f9c23b8-63e2-40e4-9592-6d5aa57c12ba",
+                        "holding": {
+                            "USDT": 6
+                        },
+                        "futures": {
+                            "F-XBT:USD": {
+                                "name": "F-XBT:USD",
+                                "pair": "XBT/USD",
+                                "unit": "XBT",
+                                "portfolio_value": 0,
+                                "balance": 0,
+                                "maintenance_margin": 0,
+                                "initial_margin": 0,
+                                "available": 0,
+                                "unrealized_funding": 0,
+                                "pnl": 0,
+                                "cash_value": 0
+                            }
+                        },
+                        "futures_cash_value": 0,
+                        "futures_upnl_cash_value": 0,
+                        "timestamp": 1790604075001,
+                        "seq": 2
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "challenge",
+                        "api_key": "key"
+                    },
+                    {
+                        "event": "subscribe",
+                        "feed": "balances",
+                        "api_key": "key",
+                        "original_challenge": "226aee50-88fc-4618-a42a-34f7709570b2",
+                        "signed_challenge": "EQuFZE67S4IJGDEmqGCRzp031dbNHUGW+68sYyNilFyLVbf+iJi9kee+0BvKAfFENIeG6sTyrcJI8fAVPBn1yA=="
+                    }
+                ],
+                "sentSkipKeys": [],
+                "parsedResponse": {
+                    "info": {
+                        "feed": "balances",
+                        "account": "0f9c23b8-63e2-40e4-9592-6d5aa57c12ba",
+                        "holding": {
+                            "USDT": 6
+                        },
+                        "futures": {
+                            "F-XBT:USD": {
+                                "name": "F-XBT:USD",
+                                "pair": "XBT/USD",
+                                "unit": "XBT",
+                                "portfolio_value": 0,
+                                "balance": 0,
+                                "maintenance_margin": 0,
+                                "initial_margin": 0,
+                                "available": 0,
+                                "unrealized_funding": 0,
+                                "pnl": 0,
+                                "cash_value": 0
+                            }
+                        },
+                        "futures_cash_value": 0,
+                        "futures_upnl_cash_value": 0,
+                        "timestamp": 1790604075001,
+                        "seq": 2
+                    },
+                    "timestamp": 1790604075001,
+                    "datetime": "2026-09-28T14:01:15.001Z",
+                    "USDT": {
+                        "free": null,
+                        "used": null,
+                        "total": 6
+                    },
+                    "free": {
+                        "USDT": null
+                    },
+                    "used": {
+                        "USDT": null
+                    },
+                    "total": {
+                        "USDT": 6
+                    }
+                }
+            }
+        ]
+    }
+}

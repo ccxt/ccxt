@@ -548,6 +548,22 @@
                     }
                 ],
                 "output": { "instId": "BTC-USDT-SWAP", "side": "sell", "ordType": "move_order_stop", "sz": "1", "tdMode": "cross", "callbackSpread": "100", "clOrdId": "6b9ad766b55dBCDE7633f9e8e410983c", "tag": "6b9ad766b55dBCDE", "trailingPrice": "100", "reduceOnly": true, "posSide": "long" }
+            },
+            {
+                "description": "spot limit sell with selfTradePrevention",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "sell",
+                    10,
+                    0.19418,
+                    {
+                        "selfTradePrevention": "expire_taker"
+                    }
+                ],
+                "output": [{"instId": "DOGE-USDT", "side": "sell", "ordType": "limit", "sz": "10", "tdMode": "cash", "tgtCcy": "base_ccy", "px": "0.19418", "stpMode": "cancel_taker", "clOrdId": "6b9ad766b55dBCDE09e6cba604a9a977", "tag": "6b9ad766b55dBCDE"}]
             }
         ],
         "createMarketBuyOrderWithCost": [
