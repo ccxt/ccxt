@@ -516,15 +516,22 @@ export default class indodax extends Exchange {
         if ((increment !== undefined) && (increment !== '')) {
             return increment;
         }
-        const pricescale = this.safeString (market, 'pricescale');
-        if (pricescale !== undefined) {
-            return pricescale;
+        const quoteId = this.safeString (market, 'base_currency');
+        if (quoteId === 'idr') {
+            const pricescale = this.safeString (market, 'pricescale');
+            if (pricescale !== undefined) {
+                return pricescale;
+            }
+        }
+        const priceRound = this.parsePrecision (this.safeString (market, 'price_round'));
+        if (priceRound !== undefined) {
+            return priceRound;
         }
         const pricePrecision = this.safeString (market, 'price_precision');
         if (pricePrecision !== undefined) {
             return pricePrecision;
         }
-        return this.parsePrecision (this.safeString (market, 'price_round'));
+        return this.safeString (market, 'pricescale');
     }
 
     /**
@@ -1978,7 +1985,7 @@ export default class indodax extends Exchange {
             'address': this.safeString (transaction, 'withdraw_address'),
             'addressTo': undefined,
             'amount': this.safeNumberN (transaction, [ 'amount', 'withdraw_amount', 'deposit_amount' ]),
-            'type': (depositId === undefined) ? 'withdraw' : 'deposit',
+            'type': (depositId === undefined) ? 'withdrawal' : 'deposit',
             'currency': this.safeCurrencyCode (undefined, currency),
             'status': this.parseTransactionStatus (status),
             'updated': undefined,
@@ -2844,6 +2851,10 @@ export default class indodax extends Exchange {
             };
         }
         const networkId = this.safeString (transaction, 'network');
+        let transactionType: Str = undefined;
+        if (txKind !== undefined) {
+            transactionType = (txKind === 'withdraw') ? 'withdrawal' : txKind;
+        }
         return {
             'id': this.safeString2 (transaction, 'id', 'orderNo'),
             'txid': this.safeString (transaction, 'txId'),
@@ -2854,7 +2865,7 @@ export default class indodax extends Exchange {
             'address': this.safeString (transaction, 'address'),
             'addressTo': undefined,
             'amount': this.safeNumber (transaction, 'amount'),
-            'type': (txKind === undefined) ? undefined : txKind,
+            'type': transactionType,
             'currency': code,
             'status': this.parseTransactionStatus (status),
             'updated': updated,
