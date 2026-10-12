@@ -698,7 +698,10 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        List<object> response = await this.privateGetAuthAccount(parameters);
+        string? defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
+        string? type = this.safeString(parameters, "type", defaultType);
+        object paramsOmitted = this.omit(parameters, "type");
+        List<object> response = await this.privateGetAuthAccount(paramsOmitted);
         //
         //     [
         //         {
@@ -727,8 +730,6 @@ public partial class latoken : Exchange
             { "datetime", null },
         };
         object maxTimestamp = null;
-        string? defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
-        string? type = this.safeString(parameters, "type", defaultType);
         IDictionary<string, object> types = this.safeDict(this.options, "types", new Dictionary<string, object>() {});
         string? accountType = this.safeString(types, type, type);
         Dictionary<string, object> balancesByType = this.groupBy(response, "type");
@@ -1434,7 +1435,7 @@ public partial class latoken : Exchange
         }
         List<object> response = null;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, "stop");
+        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
