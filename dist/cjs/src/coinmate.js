@@ -392,6 +392,9 @@ class coinmate extends coinmate$1["default"] {
             const quoteId = this.safeString(market, 'secondCurrency');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const symbol = base + '/' + quote;
             result.push({
                 'id': id,
@@ -551,7 +554,7 @@ class coinmate extends coinmate$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.publicGetTickerAll(params);
         //
         //     {
@@ -580,7 +583,7 @@ class coinmate extends coinmate$1["default"] {
             const ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
             result[market['symbol']] = ticker;
         }
-        return this.filterByArrayTickers(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -754,7 +757,7 @@ class coinmate extends coinmate$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -771,10 +774,10 @@ class coinmate extends coinmate$1["default"] {
             'amount': this.currencyToPrecision(code, amount),
             'address': address,
         };
-        if (tag !== undefined) {
-            request['destinationTag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destinationTag'] = tagWithdrawTag;
         }
-        const requestParams = this.extend(request, params);
+        const requestParams = this.extend(request, paramsWithdrawTag);
         let response = undefined;
         if (method === 'privatePostBitcoinWithdrawal') {
             response = await this.privatePostBitcoinWithdrawal(requestParams);
@@ -822,7 +825,7 @@ class coinmate extends coinmate$1["default"] {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
-            transaction['tag'] = tag;
+            transaction['tag'] = tagWithdrawTag;
             transaction['type'] = 'withdrawal';
             transaction['status'] = 'pending';
         }
@@ -843,11 +846,9 @@ class coinmate extends coinmate$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        if (limit === undefined) {
-            limit = 1000;
-        }
+        const limitResolved = (limit === undefined) ? 1000 : limit;
         const request = {
-            'limit': limit,
+            'limit': limitResolved,
         };
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -858,7 +859,7 @@ class coinmate extends coinmate$1["default"] {
         }
         const response = await this.privatePostTradeHistory(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
-        return this.parseTrades(data, undefined, since, limit);
+        return this.parseTrades(data, undefined, since, limitResolved);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -889,7 +890,7 @@ class coinmate extends coinmate$1["default"] {
         //     }
         //
         const marketId = this.safeString(trade, 'currencyPair');
-        market = this.safeMarket(marketId, market, '_');
+        const marketResolved = this.safeMarket(marketId, market, '_');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'amount');
         const side = this.safeStringLower2(trade, 'type', 'tradeType');
@@ -902,7 +903,7 @@ class coinmate extends coinmate$1["default"] {
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         let takerOrMaker = this.safeString(trade, 'feeType');
@@ -912,7 +913,7 @@ class coinmate extends coinmate$1["default"] {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'side': side,
             'order': orderId,
@@ -921,7 +922,7 @@ class coinmate extends coinmate$1["default"] {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1270,7 +1271,13 @@ class coinmate extends coinmate$1["default"] {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/' + path;
+        let bodySigned = undefined;
+        let headersSigned = undefined;
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + path;
         if (api === 'public') {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
@@ -1282,17 +1289,19 @@ class coinmate extends coinmate$1["default"] {
             const nonce = this.incrementingNonce().toString();
             const auth = nonce + this.uid + this.apiKey;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
-            body = this.urlencode(this.extend({
+            bodySigned = this.urlencode(this.extend({
                 'clientId': this.uid,
                 'nonce': nonce,
                 'publicKey': this.apiKey,
                 'signature': signature.toUpperCase(),
             }, params));
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

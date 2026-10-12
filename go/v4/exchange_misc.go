@@ -13,14 +13,16 @@ import (
 // 	ROUND_UP   = 1
 // )
 
-// Function to replace parameters in the path
-func (this *BaseExchange) ImplodeParams(path any, parameter any) any {
-	// a pointer-carried path must still be interpolated and returned as a plain
-	// string, so message hashes and urls never carry the pointer on
+// Function to replace parameters in the path; an absent path is "" (ts implodeParams),
+// any other non-string path panics
+func (this *BaseExchange) ImplodeParams(path any, parameter any) string {
 	path = derefScalar(path)
+	if path == nil {
+		return ""
+	}
 	pathStr, ok := path.(string)
 	if !ok {
-		return path
+		panic(ArgumentsRequired(fmt.Sprintf("implodeParams() expects a string path, got %T", path)))
 	}
 
 	paramValue := reflect.ValueOf(derefScalar(parameter))
@@ -53,6 +55,12 @@ func (this *BaseExchange) ImplodeParams(path any, parameter any) any {
 		}
 	}
 	return pathStr
+}
+
+func (this *BaseExchange) ImplodeHostname(url any) string {
+	return this.ImplodeParams(url, map[string]any{
+		"hostname": this.Hostname,
+	})
 }
 
 func ParseTimeframe(timeframe2 any) int64 {

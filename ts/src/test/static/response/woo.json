@@ -1702,7 +1702,7 @@
                 "description": "fetch spot order with correct timestamp",
                 "method": "fetchOrder",
                 "input": [
-                    65902163453,
+                    "65902163453",
                     "LTC/USDT"
                 ],
                 "httpResponse": {
@@ -2820,8 +2820,7 @@
                             "cost": "0",
                             "currency": null
                         },
-                        "network": null,
-                        "tokenSide": "DEPOSIT"
+                        "network": null
                     }
                 ]
             }
@@ -2907,8 +2906,7 @@
                             "cost": "2",
                             "currency": "USDC"
                         },
-                        "network": null,
-                        "tokenSide": "WITHDRAW"
+                        "network": null
                     }
                 ]
             }

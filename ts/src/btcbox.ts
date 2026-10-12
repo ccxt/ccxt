@@ -323,6 +323,9 @@ export default class btcbox extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quoteId = this.safeString (market, 'quote');
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         return this.safeMarketStructure ({
             'id': this.safeString (market, 'symbol'),
@@ -514,7 +517,7 @@ export default class btcbox extends Exchange {
         //      }
         //
         const timestamp = this.safeTimestamp (trade, 'date');
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const id = this.safeString (trade, 'tid');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
@@ -526,7 +529,7 @@ export default class btcbox extends Exchange {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
@@ -534,7 +537,7 @@ export default class btcbox extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -622,10 +625,8 @@ export default class btcbox extends Exchange {
             await this.loadMarkets ();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market (symbol);
+        const symbolResolved: string = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market (symbolResolved);
         const request: Dict = {
             'id': id,
             'coin': market['baseId'],
@@ -669,7 +670,7 @@ export default class btcbox extends Exchange {
         const datetimeString = this.safeString (order, 'datetime');
         let timestamp: Int = undefined;
         if (datetimeString !== undefined) {
-            timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
+            timestamp = this.parse8601 (datetimeString + '+09:00'); // Tokyo time
         }
         const amount = this.safeString (order, 'amount_original');
         const remaining = this.safeString (order, 'amount_outstanding');
@@ -683,7 +684,7 @@ export default class btcbox extends Exchange {
             }
         }
         const trades = undefined; // todo: this.parseTrades (order['trades']);
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const side = this.safeString (order, 'type');
         return this.safeOrder ({
             'id': id,
@@ -699,7 +700,7 @@ export default class btcbox extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'price': price,
             'triggerPrice': undefined,
             'cost': undefined,
@@ -707,7 +708,7 @@ export default class btcbox extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -725,10 +726,8 @@ export default class btcbox extends Exchange {
             await this.loadMarkets ();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market (symbol);
+        const symbolResolved: string = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market (symbolResolved);
         const request = this.extend ({
             'id': id,
             'coin': market['baseId'],
@@ -754,10 +753,8 @@ export default class btcbox extends Exchange {
             await this.loadMarkets ();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market (symbol);
+        const symbolResolved: string = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market (symbolResolved);
         const request: Dict = {
             'type': type, // 'open' or 'all'
             'coin': market['baseId'],
@@ -820,8 +817,12 @@ export default class btcbox extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api']['rest'] + '/' + this.version + '/' + path;
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.version + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
@@ -838,10 +839,11 @@ export default class btcbox extends Exchange {
             const request = this.urlencode (query);
             const secret = this.hash (this.encode (this.secret), md5);
             query['signature'] = this.hmac (this.encode (request), this.encode (secret), sha256);
-            body = this.urlencode (query);
-            headers = {
+            const signedBody: Str = this.urlencode (query);
+            const signedHeaders: Dict = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -864,7 +866,7 @@ export default class btcbox extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    override async request (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: any = {}) {
+    override async request (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}) {
         let response = await this.fetch2 (path, api, method, params, headers, body, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json

@@ -8,25 +8,25 @@ namespace ccxt\abstract\prediction;
 
 abstract class opinion extends \ccxt\prediction\PredictionExchange {
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_public_get_market($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_public_get_market_marketid($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/{marketId}', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_public_get_market_categorical_marketid($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/categorical/{marketId}', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_public_get_market_slug_slug($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/slug/{slug}', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -38,115 +38,115 @@ abstract class opinion extends \ccxt\prediction\PredictionExchange {
         return $this->request('label', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_public_get_token_latest_price($params = array()): \React\Promise\PromiseInterface {
         return $this->request('token/latest-price', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_public_get_token_orderbook($params = array()): \React\Promise\PromiseInterface {
         return $this->request('token/orderbook', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_public_get_token_price_history($params = array()): \React\Promise\PromiseInterface {
         return $this->request('token/price-history', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_public_get_quotetoken($params = array()): \React\Promise\PromiseInterface {
         return $this->request('quoteToken', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_private_get_order($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_private_get_order_orderid($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order/{orderId}', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_private_get_positions_user_walletaddress($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/user/{walletAddress}', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_private_get_trade_user_walletaddress($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trade/user/{walletAddress}', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_private_get_auth_api_key($params = array()): \React\Promise\PromiseInterface {
         return $this->request('auth/api-key', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_private_get_user_auth($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/auth', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_private_get_user_balance($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/balance', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_private_post_auth_api_key($params = array()): \React\Promise\PromiseInterface {
         return $this->request('auth/api-key', array('opinion', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_private_post_order($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order', array('opinion', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_private_post_order_cancel($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order/cancel', array('opinion', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinion_private_delete_auth_api_key($params = array()): \React\Promise\PromiseInterface {
         return $this->request('auth/api-key', array('opinion', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPublicGetMarket($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPublicGetMarketMarketId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/{marketId}', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPublicGetMarketCategoricalMarketId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/categorical/{marketId}', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPublicGetMarketSlugSlug($params = array()): \React\Promise\PromiseInterface {
         return $this->request('market/slug/{slug}', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -158,91 +158,91 @@ abstract class opinion extends \ccxt\prediction\PredictionExchange {
         return $this->request('label', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPublicGetTokenLatestPrice($params = array()): \React\Promise\PromiseInterface {
         return $this->request('token/latest-price', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPublicGetTokenOrderbook($params = array()): \React\Promise\PromiseInterface {
         return $this->request('token/orderbook', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPublicGetTokenPriceHistory($params = array()): \React\Promise\PromiseInterface {
         return $this->request('token/price-history', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPublicGetQuoteToken($params = array()): \React\Promise\PromiseInterface {
         return $this->request('quoteToken', array('opinion', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPrivateGetOrder($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPrivateGetOrderOrderId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order/{orderId}', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPrivateGetPositionsUserWalletAddress($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions/user/{walletAddress}', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPrivateGetTradeUserWalletAddress($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trade/user/{walletAddress}', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPrivateGetAuthApiKey($params = array()): \React\Promise\PromiseInterface {
         return $this->request('auth/api-key', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPrivateGetUserAuth($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/auth', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPrivateGetUserBalance($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/balance', array('opinion', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPrivatePostAuthApiKey($params = array()): \React\Promise\PromiseInterface {
         return $this->request('auth/api-key', array('opinion', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPrivatePostOrder($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order', array('opinion', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPrivatePostOrderCancel($params = array()): \React\Promise\PromiseInterface {
         return $this->request('order/cancel', array('opinion', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function opinionPrivateDeleteAuthApiKey($params = array()): \React\Promise\PromiseInterface {
         return $this->request('auth/api-key', array('opinion', 'private'), 'DELETE', $params, null, null, array("cost" => 1));

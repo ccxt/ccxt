@@ -54,6 +54,22 @@
         ],
         "createOrder": [
             {
+                "description": "swap market buy trigger order",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/planorder/place",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": 0.4
+                    }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":6,\"openType\":2,\"side\":1,\"triggerPrice\":\"0.4\",\"triggerType\":1,\"executeCycle\":1,\"trend\":1,\"orderType\":5}"
+            },
+            {
                 "description": "place swap order",
                 "method": "createOrder",
                 "url": "https://api.mexc.com/api/v1/private/order/create",
@@ -387,6 +403,20 @@
             }
         ],
         "fetchOpenOrders": [
+            {
+                "description": "swap open trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.mexc.com/api/v1/private/planorder/list/orders?page_size=100&states=1",
+                "input": [
+                    "ADA/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "swap open orders",
                 "options": {
@@ -768,6 +798,19 @@
             }
         ],
         "cancelOrder": [
+            {
+                "description": "cancel swap trigger order",
+                "method": "cancelOrder",
+                "url": "https://api.mexc.com/api/v1/private/planorder/cancel",
+                "input": [
+                    "864240665238925824",
+                    "ADA/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "[{\"symbol\":\"ADA_USDT\",\"orderId\":\"864240665238925824\"}]"
+            },
             {
                 "description": "Cancel spot orders",
                 "method": "cancelOrder",

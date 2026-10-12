@@ -1,3 +1,5 @@
+// AUTO_TRANSPILE_ENABLED
+
 
 
 import assert from 'assert';

@@ -49,7 +49,7 @@ public class TestWatchTickers extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTickers", new Object[]{argSymbols, argParams})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTickers", new Object[]{Helpers.toStringListArg(argSymbols), Helpers.toMapArg(argParams)})).join();
             } catch(Exception e)
             {
                 // for some exchanges, specifically watchTickers method not subscribe
@@ -92,10 +92,10 @@ public class TestWatchTickers extends BaseTest {
                     } catch(Exception ex)
                     {
                         Object ohlcv = null;
-                        Object tickerSymbol = ((Map<String, Object>)ticker).get("symbol");
+                        String tickerSymbol = (String) ((Map<String, Object>)ticker).get("symbol");
                         if ((!java.util.Objects.equals(tickerSymbol, null)) && Helpers.isTrue(TestSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)))
                         {
-                            ohlcv = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{tickerSymbol, "1d", null, 5})).join();
+                            ohlcv = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{tickerSymbol, "1d", (Long) null, 5L, new HashMap<String, Object>() {{}}})).join();
                         }
                         TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }

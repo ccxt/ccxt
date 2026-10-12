@@ -240,8 +240,9 @@ jobs:
           # dirty after the rebase/push, which would otherwise abort the
           # publish outright.
           #
-          # ccxt-base first — the other three depend on it, and crates.io will
-          # reject them until its version is live in the index. `cargo publish`
+          # ccxt-core first, then ccxt-base — ccxt-base depends on ccxt-core,
+          # and the other three depend on ccxt-base. crates.io will reject
+          # them until their dependencies are live in the index. `cargo publish`
           # waits for the index by default; the retry loop covers the window
           # where propagation is slower than that wait.
           #
@@ -266,6 +267,7 @@ jobs:
             echo "could not publish $crate"
             return 1
           }
+          publish ccxt-core
           publish ccxt-base
           publish ccxt
           publish ccxt-pro

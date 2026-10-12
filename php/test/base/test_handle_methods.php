@@ -85,7 +85,34 @@ function helper_test_handle_network_request() {
 }
 
 
+function helper_test_handle_typed_options() {
+    $exchange = new \ccxt\async\Exchange(array(
+        'id' => 'sampleexchange',
+        'options' => array(
+            'marginMode' => 'isolated',
+            'fetchX' => array(
+                'uta' => true,
+            ),
+        ),
+    ));
+    [$margin_mode, $params1] = $exchange->handle_margin_mode_and_params('fetchX', array(), 'cross');
+    assert($margin_mode === 'isolated');
+    [$uta, $params2] = $exchange->handle_option_bool_and_params(array(), 'fetchX', 'uta', false);
+    assert($uta === true);
+    [$absent, $params3] = $exchange->handle_option_string_and_params(array(), 'fetchX', 'absentKey', 'fallback');
+    assert($absent === 'fallback');
+    [$from_params, $params4] = $exchange->handle_option_string_and_params(array(
+        'absentKey' => 'p',
+    ), 'fetchX', 'absentKey', 'fallback');
+    assert($from_params === 'p');
+    assert(!(is_array($params4) && array_key_exists('absentKey', $params4)));
+    // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+    assert($params1 !== null || $params2 !== null || $params3 !== null);
+}
+
+
 function test_handle_methods() {
     helper_test_handle_market_type_and_params();
     helper_test_handle_network_request();
+    helper_test_handle_typed_options();
 }

@@ -511,6 +511,7 @@ fetch all unfilled currently open orders
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
 | limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | set to true for fetching trigger orders |
 | params.marginMode | <code>string</code> | No | only 'isolated' is supported, for spot-margin trading |
 
 
@@ -595,6 +596,7 @@ cancels an open order
 | id | <code>string</code> | Yes | order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | set to true for canceling trigger orders |
 | params.marginMode | <code>string</code> | No | only 'isolated' is supported for spot-margin trading |
 
 

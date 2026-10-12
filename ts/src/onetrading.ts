@@ -28,7 +28,7 @@ export default class onetrading extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,
@@ -540,6 +540,25 @@ export default class onetrading extends Exchange {
         //      "state": "ACTIVE"
         //  }
         //
+        //  {
+        //      "base": { "code": "BTC", "precision": 8 },
+        //      "quote": { "code": "USD", "precision": 8 },
+        //      "amount_precision": 5,
+        //      "market_precision": 2,
+        //      "min_size": "10.0",
+        //      "min_price": "1000",
+        //      "max_price": "10000000",
+        //      "id": "BTC_USD_P",
+        //      "price_collar_percentage": "10",
+        //      "type": "DATED_FUTURE", // or EQUITY_FUTURE
+        //      "state": "ACTIVE",
+        //      "funding_period": 240,
+        //      "market_offset": 0,
+        //      "funding_schedule": { "type": "FIXED_INTERVAL", "period_minutes": 240 },
+        //      "contract_expiry_date": "2031-04-20",
+        //      "contract_duration": "5Y"
+        //  }
+        //
         const baseAsset = this.safeDict (market, 'base', {});
         const quoteAsset = this.safeDict (market, 'quote', {});
         const baseId = this.safeString (baseAsset, 'code');
@@ -547,35 +566,54 @@ export default class onetrading extends Exchange {
         const id = this.safeString (market, 'id');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const state = this.safeString (market, 'state');
         const type = this.safeString (market, 'type');
         const isPerp = type === 'PERP';
+        const isFuture = (type === 'DATED_FUTURE') || (type === 'EQUITY_FUTURE');
+        const isContract = isPerp || isFuture;
+        let expiry: Int = undefined;
+        const expiryDate = this.safeString (market, 'contract_expiry_date');
+        if (expiryDate !== undefined) {
+            expiry = this.parse8601 (expiryDate + 'T00:00:00Z');
+        }
         let symbol = base + '/' + quote;
-        if (isPerp) {
+        if (isContract) {
             symbol = symbol + ':' + quote;
+            if (isFuture && (expiry !== undefined)) {
+                symbol = symbol + '-' + this.yymmdd (expiry);
+            }
+        }
+        let marketType = 'spot';
+        if (isPerp) {
+            marketType = 'swap';
+        } else if (isFuture) {
+            marketType = 'future';
         }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': isPerp ? quote : undefined,
+            'settle': isContract ? quote : undefined,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': isPerp ? quoteId : undefined,
-            'type': isPerp ? 'swap' : 'spot',
-            'spot': !isPerp,
+            'settleId': isContract ? quoteId : undefined,
+            'type': marketType,
+            'spot': !isContract,
             'margin': false,
             'swap': isPerp,
-            'future': false,
+            'future': isFuture,
             'option': false,
-            'active': (state === 'ACTIVE'),
-            'contract': isPerp,
-            'linear': isPerp ? true : undefined,
-            'inverse': isPerp ? false : undefined,
-            'contractSize': isPerp ? this.parseNumber ('1') : undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
+            'active': (state === 'ACTIVE') || (state === 'POST_ONLY'), // POST_ONLY markets accept maker orders and reject taker orders — deliberately flagged tradeable rather than hidden, ccxt has no partial-trading flag
+            'contract': isContract,
+            'linear': isContract ? true : undefined,
+            'inverse': isContract ? false : undefined,
+            'contractSize': isContract ? this.parseNumber ('1') : undefined,
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
             'strike': undefined,
             'optionType': undefined,
             'precision': {
@@ -617,15 +655,15 @@ export default class onetrading extends Exchange {
      */
     override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         let method = this.safeString (params, 'method');
-        params = this.omit (params, 'method');
+        const paramsOmitted: Dict = this.omit (params, 'method');
         if (method === undefined) {
             const options = this.safeDict (this.options, 'fetchTradingFees', {});
             method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
         }
         if (method === 'fetchPrivateTradingFees') {
-            return await this.fetchPrivateTradingFees (params);
+            return await this.fetchPrivateTradingFees (paramsOmitted);
         } else if (method === 'fetchPublicTradingFees') {
-            return await this.fetchPublicTradingFees (params);
+            return await this.fetchPublicTradingFees (paramsOmitted);
         } else {
             throw new NotSupported (this.id + ' fetchTradingFees() does not support ' + method + ', fetchPrivateTradingFees and fetchPublicTradingFees are supported');
         }
@@ -774,11 +812,11 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    parseFeeTiers (feeTiers: any[], market: Market = undefined): Dict {
+    parseFeeTiers (feeTiers: Dict[], market: Market = undefined): Dict {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
-            const tier = feeTiers[i];
+            const tier = this.safeDict (feeTiers, i);
             const volume = this.safeNumber (tier, 'volume');
             let taker = this.safeString (tier, 'taker_fee');
             let maker = this.safeString (tier, 'maker_fee');
@@ -898,7 +936,7 @@ export default class onetrading extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetMarketTicker (params);
         //
         //     [
@@ -929,7 +967,7 @@ export default class onetrading extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -1092,9 +1130,7 @@ export default class onetrading extends Exchange {
         const [ period, unit ] = periodUnit.split ('/');
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
-        if (limit === undefined) {
-            limit = 1500;
-        }
+        const limitResolved = (limit === undefined) ? 1500 : limit;
         const request: Dict = {
             'instrument_code': market['id'],
             // 'from': this.iso8601 (since),
@@ -1105,10 +1141,10 @@ export default class onetrading extends Exchange {
         if (since === undefined) {
             const now = this.milliseconds ();
             request['to'] = this.iso8601 (now);
-            request['from'] = this.iso8601 (now - limit * duration);
+            request['from'] = this.iso8601 (now - limitResolved * duration);
         } else {
             request['from'] = this.iso8601 (since);
-            request['to'] = this.iso8601 (this.sum (since, limit * duration));
+            request['to'] = this.iso8601 (this.sum (since, limitResolved * duration));
         }
         const response = await this.publicGetCandlesticksInstrumentCode (this.extend (request, params));
         //
@@ -1119,7 +1155,7 @@ export default class onetrading extends Exchange {
         //     ]
         //
         const ohlcv = this.safeList (response, 'candlesticks') as List;
-        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcv, market, timeframe, since, limitResolved);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1162,16 +1198,16 @@ export default class onetrading extends Exchange {
         //     }
         //
         const feeInfo = this.safeDict (trade, 'fee', {});
-        trade = this.safeValue (trade, 'trade', trade);
-        let timestamp = this.safeInteger (trade, 'trade_timestamp');
+        const tradeValue: Dict = this.safeDict (trade, 'trade', trade);
+        let timestamp = this.safeInteger (tradeValue, 'trade_timestamp');
         if (timestamp === undefined) {
-            timestamp = this.parse8601 (this.safeString (trade, 'time'));
+            timestamp = this.parse8601 (this.safeString (tradeValue, 'time'));
         }
-        const side = this.safeStringLower2 (trade, 'side', 'taker_side');
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
-        const costString = this.safeString (trade, 'volume');
-        const marketId = this.safeString (trade, 'instrument_code');
+        const side = this.safeStringLower2 (tradeValue, 'side', 'taker_side');
+        const priceString = this.safeString (tradeValue, 'price');
+        const amountString = this.safeString (tradeValue, 'amount');
+        const costString = this.safeString (tradeValue, 'volume');
+        const marketId = this.safeString (tradeValue, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
         const feeCostString = this.safeString (feeInfo, 'fee_amount');
         let takerOrMaker: Str = undefined;
@@ -1188,8 +1224,8 @@ export default class onetrading extends Exchange {
             takerOrMaker = this.safeStringLower (feeInfo, 'fee_type');
         }
         return this.safeTrade ({
-            'id': this.safeString2 (trade, 'trade_id', 'sequence'),
-            'order': this.safeString (trade, 'order_id'),
+            'id': this.safeString2 (tradeValue, 'trade_id', 'sequence'),
+            'order': this.safeString (tradeValue, 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -1200,15 +1236,15 @@ export default class onetrading extends Exchange {
             'cost': costString,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-            'info': trade,
+            'info': tradeValue,
         }, market);
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeList (response, 'balances', []);
+        const balances: Dict[] = this.safeList (response, 'balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1337,7 +1373,7 @@ export default class onetrading extends Exchange {
         //         ]
         //     }
         //
-        const rawOrder = this.safeValue (order, 'order', order);
+        const rawOrder = this.safeDict (order, 'order', order);
         const id = this.safeString (rawOrder, 'order_id');
         const clientOrderId = this.safeString (rawOrder, 'client_id');
         const timestamp = this.parse8601 (this.safeString (rawOrder, 'time'));
@@ -1408,9 +1444,7 @@ export default class onetrading extends Exchange {
         }
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             'instrument_code': market['id'],
             'type': uppercaseType, // LIMIT, MARKET, STOP
@@ -1434,7 +1468,6 @@ export default class onetrading extends Exchange {
             }
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['type'] = 'STOP';
-            params = this.omit (params, [ 'triggerPrice', 'trigger_price', 'stopPrice' ]);
         } else if (uppercaseType === 'STOP') {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice param for ' + type + ' orders');
         }
@@ -1444,12 +1477,13 @@ export default class onetrading extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         }
+        const triggerKeys: string[] = (triggerPrice !== undefined) ? [ 'triggerPrice', 'trigger_price', 'stopPrice' ] : [];
+        const clientOrderIdKeys: string[] = (clientOrderId !== undefined) ? [ 'clientOrderId', 'client_id' ] : [];
+        const paramsOmitted: Dict = this.omit (params, this.arrayConcat (this.arrayConcat (triggerKeys, clientOrderIdKeys), [ 'timeInForce' ]));
         const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
-        params = this.omit (params, 'timeInForce');
         request['time_in_force'] = timeInForce;
-        const response = await this.privatePostAccountOrders (this.extend (request, params));
+        const response = await this.privatePostAccountOrders (this.extend (request, paramsOmitted));
         //
         //     {
         //         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1484,7 +1518,7 @@ export default class onetrading extends Exchange {
             await this.loadMarkets ();
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
-        params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         let method = 'privateDeleteAccountOrdersOrderId';
         const request: Dict = {};
         if (clientOrderId !== undefined) {
@@ -1495,9 +1529,9 @@ export default class onetrading extends Exchange {
         }
         let response: NullableDict = undefined;
         if (method === 'privateDeleteAccountOrdersOrderId') {
-            response = await this.privateDeleteAccountOrdersOrderId (this.extend (request, params));
+            response = await this.privateDeleteAccountOrdersOrderId (this.extend (request, paramsOmitted));
         } else {
-            response = await this.privateDeleteAccountOrdersClientClientId (this.extend (request, params));
+            response = await this.privateDeleteAccountOrdersClientClientId (this.extend (request, paramsOmitted));
         }
         //
         // responds with an empty body
@@ -1656,14 +1690,14 @@ export default class onetrading extends Exchange {
             request['from'] = this.iso8601 (since);
         }
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['to'] = this.iso8601 (until);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await this.privateGetAccountOrders (this.extend (request, params));
+        const response = await this.privateGetAccountOrders (this.extend (request, paramsOmitted));
         //
         //     {
         //         "order_history": [
@@ -1821,7 +1855,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory = this.safeList (response, 'trade_history', []);
+        const tradeHistory: Dict[] = this.safeList (response, 'trade_history', []);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1861,14 +1895,14 @@ export default class onetrading extends Exchange {
             request['from'] = this.iso8601 (since);
         }
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['to'] = this.iso8601 (until);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await this.privateGetAccountTrades (this.extend (request, params));
+        const response = await this.privateGetAccountTrades (this.extend (request, paramsOmitted));
         //
         //     {
         //         "trade_history": [
@@ -1903,8 +1937,12 @@ export default class onetrading extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
@@ -1912,18 +1950,19 @@ export default class onetrading extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            headers = {
+            const headersSigned: NullableDict = {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + this.apiKey,
             };
+            const bodyJson = (method === 'POST') ? this.json (query) : body;
             if (method === 'POST') {
-                body = this.json (query);
-                headers['Content-Type'] = 'application/json';
+                headersSigned['Content-Type'] = 'application/json';
             } else {
                 if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             }
+            return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

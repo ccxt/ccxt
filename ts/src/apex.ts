@@ -504,7 +504,7 @@ export default class apex extends Exchange {
         //     ]
         // }
         const rows = this.safeList (spotConfig, 'assets', []);
-        const chains = this.safeList (multiChain, 'chains', []);
+        const chains: Dict[] = this.safeList (multiChain, 'chains', []);
         this.options['_temp_currencies_chains'] = chains;
         const result = this.parseCurrencies (rows);
         delete this.options['_temp_currencies_chains'];
@@ -518,10 +518,10 @@ export default class apex extends Exchange {
         const networks: Dict = {};
         const chains = this.options['_temp_currencies_chains'];
         for (let j = 0; j < chains.length; j++) {
-            const chain = chains[j];
-            const tokens = this.safeList (chain, 'tokens', []);
+            const chain = this.safeDict (chains, j);
+            const tokens: Dict[] = this.safeList (chain, 'tokens', []);
             for (let f = 0; f < tokens.length; f++) {
-                const token = tokens[f];
+                const token = this.safeDict (tokens, f);
                 const tokenName = this.safeString (token, 'token');
                 if (tokenName === currencyId) {
                     const networkId = this.safeString (chain, 'chainId');
@@ -532,7 +532,7 @@ export default class apex extends Exchange {
                             'id': networkId,
                             'network': networkCode,
                             'active': undefined,
-                            'deposit': (this.safeBool (chain, 'depositDisable') !== true),
+                            'deposit': (!this.safeBool (chain, 'depositDisable', false)),
                             'withdraw': this.safeBool (token, 'withdrawEnable'),
                             'fee': this.safeNumber (token, 'minFee'),
                             'precision': this.parseNumber (this.parsePrecision (this.safeString (token, 'decimals'))),
@@ -663,6 +663,9 @@ export default class apex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const settleId = this.safeString (market, 'settleAssetId');
         const settle = this.safeCurrencyCode (settleId);
+        if ((baseId === undefined) || (quote === undefined) || (settle === undefined)) {
+            return undefined;
+        }
         const symbol = baseId + '/' + quote + ':' + settle;
         const expiry = 0;
         const takerFee = this.parseNumber ('0.0002');
@@ -741,8 +744,8 @@ export default class apex extends Exchange {
         // }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         const last = this.safeString (ticker, 'lastPrice');
         const percentage = this.safeString (ticker, 'price24hPcnt');
         const quoteVolume = this.safeString (ticker, 'turnover24h');
@@ -772,7 +775,7 @@ export default class apex extends Exchange {
             'markPrice': this.safeString (ticker, 'markPrice'),
             'indexPrice': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -812,7 +815,7 @@ export default class apex extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.publicGetV3DataAllTickerInfo (params);
-        const tickers = this.safeList (response, 'data', []);
+        const tickers: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (tickers, symbols);
     }
 
@@ -834,23 +837,21 @@ export default class apex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'symbol': this.safeString (market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 200; // default is 200 when requested with `since`
-        }
-        limit = Math.min (limit, 200); // fix maxcap
-        request['limit'] = limit; // max 200, default 200
-        [ request, params ] = this.handleUntilOption ('end', request, params, 0.001);
+        // default is 200 when requested with `since`, max 200
+        const limitResolved = (limit === undefined) ? 200 : Math.min (limit, 200);
+        request['limit'] = limitResolved;
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params, 0.001);
         if (since !== undefined) {
-            request['start'] = Math.floor (since / 1000);
+            requestUntil['start'] = Math.floor (since / 1000);
         }
-        const response = await this.publicGetV3Klines (this.extend (request, params));
+        const response = await this.publicGetV3Klines (this.extend (requestUntil, paramsUntil));
         const data = this.safeDict (response, 'data', {});
         const OHLCVs = this.safeList (data, this.safeString (market, 'id2'), []);
-        return this.parseOHLCVs (OHLCVs, market, timeframe, since, limit);
+        return this.parseOHLCVs (OHLCVs, market, timeframe, since, limitResolved);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -895,10 +896,7 @@ export default class apex extends Exchange {
         const request: Dict = {
             'symbol': this.safeString (market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 100; // default is 200 when requested with `since`
-        }
-        request['limit'] = limit; // max 100, default 100
+        request['limit'] = (limit === undefined) ? 100 : limit; // max 100, default 100
         const response = await this.publicGetV3Depth (this.extend (request, params));
         //
         // {
@@ -954,10 +952,8 @@ export default class apex extends Exchange {
         const request: Dict = {
             'symbol': this.safeString (market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 500; // default is 50
-        }
-        request['limit'] = limit;
+        const limitResolved = (limit === undefined) ? 500 : limit; // default is 50
+        request['limit'] = limitResolved;
         const response = await this.publicGetV3Trades (this.extend (request, params));
         //
         // [
@@ -979,8 +975,8 @@ export default class apex extends Exchange {
         //  }
         //  ]
         //
-        const trades = this.safeList (response, 'data', []);
-        return this.parseTrades (trades, market, since, limit);
+        const trades: Dict[] = this.safeList (response, 'data', []);
+        return this.parseTrades (trades, market, since, limitResolved);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -997,7 +993,7 @@ export default class apex extends Exchange {
         //  ]
         //
         const marketId = this.safeString2 (trade, 's', 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const id = this.safeString2 (trade, 'i', 'id');
         const timestamp = this.safeIntegerN (trade, [ 't', 'T', 'createdAt' ]);
         const priceString = this.safeString2 (trade, 'p', 'price');
@@ -1011,7 +1007,7 @@ export default class apex extends Exchange {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'takerOrMaker': undefined,
             'side': side,
@@ -1019,7 +1015,7 @@ export default class apex extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1065,8 +1061,8 @@ export default class apex extends Exchange {
         // }
         //
         const marketId = this.safeString (interest, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         return this.safeOpenInterest ({
             'symbol': symbol,
             'openInterestAmount': this.safeString (interest, 'openInterest'),
@@ -1074,7 +1070,7 @@ export default class apex extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'info': interest,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1131,7 +1127,7 @@ export default class apex extends Exchange {
         //
         const rates: FundingRateHistory[] = [];
         const data = this.safeDict (response, 'data', {});
-        const resultList = this.safeList (data, 'historyFunds', []);
+        const resultList: Dict[] = this.safeList (data, 'historyFunds', []);
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger (entry, 'fundingTimestamp');
@@ -1207,8 +1203,8 @@ export default class apex extends Exchange {
         const orderId = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'clientId');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'size');
         const orderType = this.safeString (order, 'type');
@@ -1243,10 +1239,10 @@ export default class apex extends Exchange {
             'trades': undefined,
             'fee': {
                 'cost': this.safeString (order, 'fee'),
-                'currency': market['settleId'],
+                'currency': marketResolved['settleId'],
             },
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1287,13 +1283,14 @@ export default class apex extends Exchange {
     }
 
     override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+        let marketResolved: Market = undefined;
         if (market === undefined && marketId !== undefined) {
             const marketsMap = this.markets;
             const marketsById = this.markets_by_id;
             if ((marketsMap !== undefined) && (marketId in marketsMap)) {
-                market = marketsMap[marketId];
+                marketResolved = marketsMap[marketId];
             } else if ((marketsById !== undefined) && (marketId in marketsById)) {
-                market = marketsById[marketId];
+                marketResolved = marketsById[marketId];
             } else {
                 const newMarketId = this.addHyphenBeforeUsdt (marketId);
                 if ((marketsById !== undefined) && (newMarketId in marketsById)) {
@@ -1301,18 +1298,24 @@ export default class apex extends Exchange {
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
                         if (marketsById[newMarketId][0]['id2'] === marketId) {
-                            market = marketsById[newMarketId][0];
+                            marketResolved = marketsById[newMarketId][0];
                         }
                     }
                 }
             }
         }
-        return super.safeMarket (marketId, market, delimiter, marketType);
+        const marketValue = (marketResolved === undefined) ? market : marketResolved;
+        return super.safeMarket (marketId, marketValue, delimiter, marketType);
     }
 
     generateRandomClientIdOmni (_accountId: Str) {
         const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
-        const accountId = hasAccountId ? _accountId : this.randNumber (12).toString ();
+        let accountId: Str = undefined;
+        if (hasAccountId) {
+            accountId = _accountId;
+        } else {
+            accountId = this.randNumber (12).toString ();
+        }
         return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
     }
 
@@ -1369,9 +1372,7 @@ export default class apex extends Exchange {
         }
         const market = this.market (symbol);
         let orderType = type.toUpperCase ();
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const orderSide = side.toUpperCase ();
         const orderSize = this.amountToPrecision (symbol, amount);
         let orderPrice: Str = '0';
@@ -1409,15 +1410,15 @@ export default class apex extends Exchange {
                 timeInForce = 'IMMEDIATE_OR_CANCEL';
             }
         }
-        params = this.omit (params, 'timeInForce');
-        params = this.omit (params, 'postOnly');
-        let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
+        const paramsOmitted: Dict = this.omit (params, 'timeInForce');
+        const paramsOmitted2: Dict = this.omit (paramsOmitted, 'postOnly');
+        let clientOrderId = this.safeStringN (paramsOmitted2, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
         const accountId = await this.getAccountId ();
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni (accountId);
         }
         const finalClientOrderId = clientOrderId; // java req
-        params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
+        const paramsOmitted3: Dict = this.omit (paramsOmitted2, [ 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
         const finalOrderPrice = orderPrice; // java req
         const orderToSign: Dict = {
             'accountId': accountId,
@@ -1450,7 +1451,7 @@ export default class apex extends Exchange {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         request['signature'] = signature;
-        const response = await this.privatePostV3Order (this.extend (request, params));
+        const response = await this.privatePostV3Order (this.extend (request, paramsOmitted3));
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
@@ -1474,9 +1475,9 @@ export default class apex extends Exchange {
         const configResponse = await this.publicGetV3Symbols (params);
         const configData = this.safeDict (configResponse, 'data', {});
         const contractConfig = this.safeDict (configData, 'contractConfig', {});
-        const contractAssets = this.safeList (contractConfig, 'assets', []);
+        const contractAssets: Dict[] = this.safeList (contractConfig, 'assets', []);
         const spotConfig = this.safeDict (configData, 'spotConfig', {});
-        const spotAssets = this.safeList (spotConfig, 'assets', []);
+        const spotAssets: Dict[] = this.safeList (spotConfig, 'assets', []);
         const globalConfig = this.safeDict (spotConfig, 'global', {});
         const receiverAddress = this.safeString (globalConfig, 'contractAssetPoolEthAddress', '');
         const receiverZkAccountId = this.safeString (globalConfig, 'contractAssetPoolZkAccountId', '');
@@ -1487,7 +1488,7 @@ export default class apex extends Exchange {
         const spotAccount = this.safeDict (accountData, 'spotAccount', {});
         const zkAccountId = this.safeString (spotAccount, 'zkAccountId', '');
         const subAccountId = this.safeString (spotAccount, 'defaultSubAccountId', '0');
-        const subAccounts = this.safeList (spotAccount, 'subAccounts', []);
+        const subAccounts: Dict[] = this.safeList (spotAccount, 'subAccounts', []);
         let nonce = '0';
         if (subAccounts.length > 0) {
             nonce = this.safeString (subAccounts[0], 'nonce', '0');
@@ -1497,7 +1498,7 @@ export default class apex extends Exchange {
         const accountId = this.safeString (accountData, 'id', '');
         let currency = {};
         let assets: Dict[] = [];
-        if (fromAccount !== undefined && fromAccount.toLowerCase () === 'contract') {
+        if (fromAccount.toLowerCase () === 'contract') {
             assets = contractAssets;
         } else {
             assets = spotAssets;
@@ -1518,8 +1519,8 @@ export default class apex extends Exchange {
             clientOrderId = this.generateRandomClientIdOmni (this.safeString (this.options, 'accountId'));
         }
         const finalClientOrderId = clientOrderId; // java req
-        params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-        if (fromAccount !== undefined && fromAccount.toLowerCase () === 'contract') {
+        const paramsOmitted: Dict = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
+        if (fromAccount.toLowerCase () === 'contract') {
             const formattedUint32 = '4294967295';
             const zkSignAccountId = Precise.stringMod (accountId, formattedUint32);
             const expireTime = timestampSeconds + 3600 * 24 * 28;
@@ -1544,7 +1545,7 @@ export default class apex extends Exchange {
                 'token': code,
                 'ethAddress': ethAddress,
             };
-            const response = await this.privatePostV3ContractTransferOut (this.extend (request, params));
+            const response = await this.privatePostV3ContractTransferOut (this.extend (request, paramsOmitted));
             const data = this.safeDict (response, 'data', {});
             const currentTime = this.milliseconds ();
             const parsedAmount = this.parseNumber (amount);
@@ -1586,7 +1587,7 @@ export default class apex extends Exchange {
                 'receiverAddress': receiverAddress,
                 'nonce': finalNonce,
             };
-            const response = await this.privatePostV3TransferOut (this.extend (request, params));
+            const response = await this.privatePostV3TransferOut (this.extend (request, paramsOmitted));
             const data = this.safeDict (response, 'data', {});
             const currentTime = this.milliseconds ();
             return this.extend (this.parseTransfer (data, this.currency (code)), {
@@ -1657,8 +1658,7 @@ export default class apex extends Exchange {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
-            params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-            response = await this.privatePostV3DeleteClientOrderId (this.extend (request, params));
+            response = await this.privatePostV3DeleteClientOrderId (this.extend (request, this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ])));
         } else {
             request['id'] = id;
             response = await this.privatePostV3DeleteOrder (this.extend (request, params));
@@ -1688,8 +1688,7 @@ export default class apex extends Exchange {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
-            params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-            response = await this.privateGetV3OrderByClientOrderId (this.extend (request, params));
+            response = await this.privateGetV3OrderByClientOrderId (this.extend (request, this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ])));
         } else {
             request['id'] = id;
             response = await this.privateGetV3Order (this.extend (request, params));
@@ -1714,7 +1713,7 @@ export default class apex extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.privateGetV3OpenOrders (params);
-        const orders = this.safeList (response, 'data', []);
+        const orders: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (orders, undefined, since, limit);
     }
 
@@ -1754,11 +1753,11 @@ export default class apex extends Exchange {
         const endTimeExclusive = this.safeIntegerN (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
-            params = this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         }
-        const response = await this.privateGetV3HistoryOrders (this.extend (request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]) : params;
+        const response = await this.privateGetV3HistoryOrders (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1785,10 +1784,10 @@ export default class apex extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOrderId', 'clientId' ]);
-        const response = await this.privateGetV3OrderFills (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'clientId' ]);
+        const response = await this.privateGetV3OrderFills (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseTrades (orders, undefined, since, limit);
     }
 
@@ -1826,11 +1825,11 @@ export default class apex extends Exchange {
         const endTimeExclusive = this.safeIntegerN (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
-            params = this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         }
-        const response = await this.privateGetV3Fills (this.extend (request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]) : params;
+        const response = await this.privateGetV3Fills (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseTrades (orders, market, since, limit);
     }
 
@@ -1866,16 +1865,16 @@ export default class apex extends Exchange {
         }
         const endTimeExclusive = this.safeIntegerN (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         if (endTimeExclusive !== undefined) {
-            params = this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
             request['endTimeExclusive'] = endTimeExclusive;
         }
-        const response = await this.privateGetV3Funding (this.extend (request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]) : params;
+        const response = await this.privateGetV3Funding (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
-        const fundingValues = this.safeList (data, 'fundingValues', []);
+        const fundingValues: Dict[] = this.safeList (data, 'fundingValues', []);
         return this.parseIncomes (fundingValues, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         // {
         //     "id": "1234",
@@ -1891,12 +1890,12 @@ export default class apex extends Exchange {
         // }
         //
         const marketId = this.safeString (income, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'contract');
         const code = 'USDT';
         const timestamp = this.safeInteger (income, 'fundingTime');
         return {
             'info': income,
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (marketId, marketResolved),
             'code': code,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1950,7 +1949,7 @@ export default class apex extends Exchange {
         }
         const response = await this.privateGetV3Account (params);
         const data = this.safeDict (response, 'data', {});
-        const positions = this.safeList (data, 'positions', []);
+        const positions: Dict[] = this.safeList (data, 'positions', []);
         return this.parsePositions (positions, symbols);
     }
 
@@ -1971,8 +1970,8 @@ export default class apex extends Exchange {
         //     "customInitialMarginRate": "0"
         // }
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower (position, 'side');
         const quantity = this.safeString (position, 'size');
         const timestamp = this.safeInteger (position, 'updatedTime');
@@ -2008,9 +2007,13 @@ export default class apex extends Exchange {
         });
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
-        headers = {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (baseApiUrl) + '/' + path;
+        const headersValue: NullableDict = {
             'User-Agent': 'apex-CCXT',
             'Accept': 'application/json',
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -2034,12 +2037,12 @@ export default class apex extends Exchange {
                 messageString = messageString + signBody;
             }
             const signature = this.hmac (this.encode (messageString), this.encode (this.stringToBase64 (this.secret)), sha256, 'base64');
-            headers['APEX-SIGNATURE'] = signature;
-            headers['APEX-API-KEY'] = this.apiKey;
-            headers['APEX-TIMESTAMP'] = timestamp;
-            headers['APEX-PASSPHRASE'] = this.password;
+            headersValue['APEX-SIGNATURE'] = signature;
+            headersValue['APEX-API-KEY'] = this.apiKey;
+            headersValue['APEX-TIMESTAMP'] = timestamp;
+            headersValue['APEX-PASSPHRASE'] = this.password;
         }
-        return { 'url': url, 'method': method, 'body': signBody, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': signBody, 'headers': headersValue };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

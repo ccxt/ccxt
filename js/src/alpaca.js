@@ -478,25 +478,11 @@ export default class alpaca extends Exchange {
         //         next_close: '2023-11-22T16:00:00-05:00'
         //     }
         //
-        const timestamp = this.safeString(response, 'timestamp');
+        const timestamp = this.parse8601(this.safeString(response, 'timestamp'));
         if (timestamp === undefined) {
             throw new ExchangeError(this.id + ' fetchTime() missing timestamp');
         }
-        const localTime = timestamp.slice(0, 23);
-        if (timestamp === undefined) {
-            throw new ExchangeError(this.id + ' fetchTime() missing timestamp');
-        }
-        const jetlagStrStart = timestamp.length - 6;
-        if (timestamp === undefined) {
-            throw new ExchangeError(this.id + ' fetchTime() missing timestamp');
-        }
-        const jetlagStrEnd = timestamp.length - 3;
-        if (timestamp === undefined) {
-            throw new ExchangeError(this.id + ' fetchTime() missing timestamp');
-        }
-        const jetlag = timestamp.slice(jetlagStrStart, jetlagStrEnd);
-        const iso = this.parseToInt(this.parse8601(localTime)) - this.parseToNumeric(jetlag) * 3600 * 1000;
-        return iso;
+        return timestamp;
     }
     /**
      * @method
@@ -571,6 +557,9 @@ export default class alpaca extends Exchange {
         // We can safely coerce us_equity quote to USD
         if (quote === undefined && assetClass === 'us_equity') {
             quote = 'USD';
+        }
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
         }
         const symbol = base + '/' + quote;
         const status = this.safeString(asset, 'status');
@@ -660,7 +649,7 @@ export default class alpaca extends Exchange {
             'symbols': marketId,
             'loc': loc,
         };
-        params = this.omit(params, ['loc', 'method']);
+        const paramsOmitted = this.omit(params, ['loc', 'method']);
         let symbolTrades = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
             if (since !== undefined) {
@@ -669,7 +658,7 @@ export default class alpaca extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, paramsOmitted));
             //
             //    {
             //        "next_page_token": null,
@@ -690,7 +679,7 @@ export default class alpaca extends Exchange {
             symbolTrades = this.safeList(trades, marketId, []);
         }
         else if (method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
-            const response = await this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, paramsOmitted));
             //
             //    {
             //       "trades": {
@@ -809,14 +798,15 @@ export default class alpaca extends Exchange {
         const loc = this.safeString(params, 'loc', 'us');
         const method = this.safeString(params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        let query = undefined;
+        [paginate, query] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         let paginationCalls = 10;
-        [paginationCalls, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginationCalls', 10);
+        [paginationCalls, query] = this.handleOptionIntegerAndParams(query, 'fetchOHLCV', 'paginationCalls', 10);
         const request = {
             'symbols': marketId,
             'loc': loc,
         };
-        params = this.omit(params, ['loc', 'method']);
+        query = this.omit(query, ['loc', 'method']);
         let ohlcvs = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocBars') {
             if (limit !== undefined) {
@@ -825,13 +815,13 @@ export default class alpaca extends Exchange {
             if (since !== undefined) {
                 request['start'] = this.iso8601(since);
             }
-            const until = this.safeInteger(params, 'until');
+            const until = this.safeInteger(query, 'until');
             if (until !== undefined) {
-                params = this.omit(params, 'until');
+                query = this.omit(query, 'until');
                 request['end'] = this.iso8601(until);
             }
             request['timeframe'] = this.safeString(this.timeframes, timeframe, timeframe);
-            let response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, params));
+            let response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, query));
             //
             //    {
             //        "bars": {
@@ -872,7 +862,7 @@ export default class alpaca extends Exchange {
                         break;
                     }
                     request['page_token'] = pageToken;
-                    response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, params));
+                    response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, query));
                     bars = this.safeDict(response, 'bars', {});
                     const page = this.safeList(bars, marketId, []);
                     const pageLength = page.length;
@@ -885,7 +875,7 @@ export default class alpaca extends Exchange {
             }
         }
         else if (method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
-            const response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, query));
             //
             //    {
             //        "bars": {
@@ -949,9 +939,10 @@ export default class alpaca extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbol = this.symbol(symbol);
-        const tickers = await this.fetchTickers([symbol], params);
-        return this.safeDict(tickers, symbol);
+        const symbolValue = this.symbol(symbol);
+        const tickers = await this.fetchTickers([symbolValue], params);
+        const ticker = this.safeDict(tickers, symbolValue);
+        return ticker;
     }
     /**
      * @method
@@ -967,20 +958,18 @@ export default class alpaca extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        if (symbols === undefined) {
-            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
-            const allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
-            symbols = allSymbols;
-        }
-        symbols = this.marketSymbols(symbols);
+        // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+        // symbol iteration order differs per language
+        const symbolsSorted = (symbols === undefined) ? this.sort(this.symbols) : symbols;
+        const symbolsNormalized = this.marketSymbols(symbolsSorted);
         const loc = this.safeString(params, 'loc', 'us');
-        const ids = this.marketIds(symbols);
+        const ids = this.marketIds(symbolsNormalized);
         const request = {
             'symbols': ids.join(','),
             'loc': loc,
         };
-        params = this.omit(params, 'loc');
-        const response = await this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, params));
+        const paramsOmitted = this.omit(params, 'loc');
+        const response = await this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, paramsOmitted));
         //
         //     {
         //         "snapshots": {
@@ -1070,7 +1059,7 @@ export default class alpaca extends Exchange {
             }, market);
             results.push(ticker);
         }
-        return this.filterByArray(results, 'symbol', symbols);
+        return this.filterByArray(results, 'symbol', symbolsNormalized);
     }
     generateClientOrderId(params) {
         const clientOrderIdprefix = this.safeString(this.options, 'clientOrderId');
@@ -1168,7 +1157,7 @@ export default class alpaca extends Exchange {
         };
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
-            let newType;
+            let newType = undefined;
             if (type.indexOf('limit') >= 0) {
                 newType = 'stop_limit';
             }
@@ -1183,23 +1172,18 @@ export default class alpaca extends Exchange {
         }
         const cost = this.safeString(params, 'cost');
         if (cost !== undefined) {
-            params = this.omit(params, 'cost');
             request['notional'] = this.costToPrecision(symbol, cost);
         }
         else {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        let defaultTIF = undefined;
-        [defaultTIF, params] = this.handleOptionAndParams(params, 'createOrder', 'timeInForce');
-        if (defaultTIF !== undefined) {
-            // the venue only accepts lowercase values, normalize the unified uppercase spellings
-            defaultTIF = defaultTIF.toLowerCase();
-        }
-        request['time_in_force'] = defaultTIF;
-        params = this.omit(params, ['timeInForce', 'triggerPrice']);
-        request['client_order_id'] = this.generateClientOrderId(params);
-        params = this.omit(params, ['clientOrderId']);
-        const order = await this.traderPrivatePostV2Orders(this.extend(request, params));
+        const paramsCost = (cost !== undefined) ? this.omit(params, 'cost') : params;
+        const [defaultTIF, paramsTimeInForce] = this.handleOptionStringAndParams(paramsCost, 'createOrder', 'timeInForce');
+        // the venue only accepts lowercase values, normalize the unified uppercase spellings
+        request['time_in_force'] = (defaultTIF !== undefined) ? defaultTIF.toLowerCase() : defaultTIF;
+        const paramsOmitted = this.omit(paramsTimeInForce, ['timeInForce', 'triggerPrice']);
+        request['client_order_id'] = this.generateClientOrderId(paramsOmitted);
+        const order = await this.traderPrivatePostV2Orders(this.extend(request, this.omit(paramsOmitted, ['clientOrderId'])));
         //
         //   {
         //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -1335,12 +1319,12 @@ export default class alpaca extends Exchange {
         }
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, 'until');
             request['until'] = this.iso8601(until);
         }
+        const paramsOmitted = (until !== undefined) ? this.omit(params, 'until') : params;
         if (since !== undefined) {
             request['after'] = this.iso8601(since);
-            const direction = this.safeString(params, 'direction');
+            const direction = this.safeString(paramsOmitted, 'direction');
             if (direction === undefined) {
                 // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
                 request['direction'] = 'asc';
@@ -1349,7 +1333,7 @@ export default class alpaca extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.traderPrivateGetV2Orders(this.extend(request, params));
+        const response = await this.traderPrivateGetV2Orders(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -1464,20 +1448,18 @@ export default class alpaca extends Exchange {
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
-            params = this.omit(params, 'triggerPrice');
         }
+        const paramsTrigger = (triggerPrice !== undefined) ? this.omit(params, 'triggerPrice') : params;
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision(symbol, price);
         }
-        let timeInForce = undefined;
-        [timeInForce, params] = this.handleOptionAndParams(params, 'editOrder', 'timeInForce', 'gtc');
+        const [timeInForce, paramsTimeInForce] = this.handleOptionStringAndParams(paramsTrigger, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             request['time_in_force'] = timeInForce.toLowerCase();
         }
-        request['client_order_id'] = this.generateClientOrderId(params);
-        params = this.omit(params, ['clientOrderId']);
-        const response = await this.traderPrivatePatchV2OrdersOrderId(this.extend(request, params));
+        request['client_order_id'] = this.generateClientOrderId(paramsTimeInForce);
+        const response = await this.traderPrivatePatchV2OrdersOrderId(this.extend(request, this.omit(paramsTimeInForce, ['clientOrderId'])));
         return this.parseOrder(response, market);
     }
     parseOrder(order, market = undefined) {
@@ -1520,8 +1502,8 @@ export default class alpaca extends Exchange {
         //    }
         //
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const alpacaStatus = this.safeString(order, 'status');
         const status = this.parseOrderStatus(alpacaStatus);
         const feeValue = this.safeString(order, 'commission');
@@ -1563,7 +1545,7 @@ export default class alpaca extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1615,7 +1597,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets();
         }
         let market = undefined;
-        let request = {
+        const request = {
             'activity_type': 'FILL',
         };
         if (symbol !== undefined) {
@@ -1623,17 +1605,17 @@ export default class alpaca extends Exchange {
         }
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, 'until');
             request['until'] = this.iso8601(until);
         }
+        const paramsOmitted = (until !== undefined) ? this.omit(params, 'until') : params;
         if (since !== undefined) {
             request['after'] = this.iso8601(since);
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        [request, params] = this.handleUntilOption('until', request, params);
-        const response = await this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('until', request, paramsOmitted);
+        const response = await this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -1753,7 +1735,7 @@ export default class alpaca extends Exchange {
         //
         let parsedCurrency = undefined;
         if (currency !== undefined) {
-            parsedCurrency = currency['id'];
+            parsedCurrency = this.safeString(currency, 'id');
         }
         return {
             'info': depositAddress,
@@ -1776,21 +1758,22 @@ export default class alpaca extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        if ((tag !== undefined) && (tag !== '')) {
-            address = address + ':' + tag;
+        let addressValue = address;
+        if ((tagWithdrawTag !== undefined) && (tagWithdrawTag !== '')) {
+            addressValue = address + ':' + tagWithdrawTag;
         }
         const request = {
             'asset': currency['id'],
-            'address': address,
+            'address': addressValue,
             'amount': this.numberToString(amount),
         };
-        const response = await this.traderPrivatePostV2WalletsTransfers(this.extend(request, params));
+        const response = await this.traderPrivatePostV2WalletsTransfers(this.extend(request, paramsWithdrawTag));
         //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -1852,7 +1835,10 @@ export default class alpaca extends Exchange {
                 const activityType = this.safeString(entry, 'activity_type');
                 const amount = this.safeString(entry, 'net_amount');
                 const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt(amount, '0'));
-                const entryDirection = isIncoming ? 'INCOMING' : 'OUTGOING';
+                let entryDirection = 'OUTGOING';
+                if (isIncoming) {
+                    entryDirection = 'INCOMING';
+                }
                 if ((type === 'BOTH') || (entryDirection === type)) {
                     filtered.push(entry);
                 }
@@ -2179,7 +2165,7 @@ export default class alpaca extends Exchange {
             result[code] = cashAccount;
         }
         for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
+            const position = this.safeDict(positions, i);
             const positionSymbol = this.safeString(position, 'symbol');
             if (positionSymbol === undefined) {
                 continue;
@@ -2211,25 +2197,33 @@ export default class alpaca extends Exchange {
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.implodeParams(path, params);
-        let url = this.implodeHostname(this.urls['api'][api[0]]);
-        headers = (headers !== undefined) ? headers : {};
+        const baseApiUrl = this.safeString(this.urls['api'], api[0]);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let headersValue = {};
+        if (headers !== undefined) {
+            headersValue = headers;
+        }
         if (api[1] === 'private') {
             this.checkRequiredCredentials();
-            headers['APCA-API-KEY-ID'] = this.apiKey;
-            headers['APCA-API-SECRET-KEY'] = this.secret;
+            headersValue['APCA-API-KEY-ID'] = this.apiKey;
+            headersValue['APCA-API-SECRET-KEY'] = this.secret;
         }
         const query = this.omit(params, this.extractParams(path));
+        let bodyJson = undefined;
         if (Object.keys(query).length > 0) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.urlencode(query);
             }
             else {
-                body = this.json(query);
-                headers['Content-Type'] = 'application/json';
+                bodyJson = this.json(query);
+                headersValue['Content-Type'] = 'application/json';
             }
         }
-        url = url + endpoint;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const url = this.implodeHostname(baseApiUrl) + endpoint;
+        const bodyResolved = (bodyJson === undefined) ? body : bodyJson;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

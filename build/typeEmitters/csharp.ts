@@ -110,12 +110,6 @@ export interface StructSpec {
     o?: Record<string, FieldOverride>;
     /** TS fields deliberately not surfaced in C# */
     skip?: string[];
-    /**
-     * capture source keys that map to no struct field into an `extra` bag, so the
-     * struct round-trips venue-only keys (market['baseName'], market['priceScale'], …)
-     * instead of silently dropping them. Reverse helpers write the bag back out.
-     */
-    extra?: boolean;
     w?: WrapperSpec;
 }
 
@@ -390,6 +384,9 @@ export function csExprOf (idiom: string, recv: string, key: string, elem: string
     if (idiom === 'containsSelectToList') {
         return recv + '.ContainsKey(' + k + ') && ' + recv + '[' + k + '] != null ? ((IEnumerable<object>)' + recv + '[' + k + ']).Select(x => new ' + elem + '(x)).ToList() : null';
     }
+    if (idiom === 'safeValueSelectToList') {
+        return 'Exchange.SafeValue(' + recv + ', ' + k + ') != null ? ((IEnumerable<object>)Exchange.SafeValue(' + recv + ', ' + k + ')).Select(x => new ' + elem + '(x)).ToList() : null';
+    }
     if (idiom === 'stringList') {
         return recv + '.ContainsKey(' + k + ') && ' + recv + '[' + k + '] != null ? ((IEnumerable<object>)' + recv + '[' + k + ']).Select(x => (string)x).ToList() : null';
     }
@@ -638,30 +635,6 @@ function renderStruct (ir: TypesIR, spec: StructSpec): string {
         }
         lines.push (INDENT + 'public ' + field.type + ' ' + field.cs + ';');
     }
-    if (spec.extra === true) {
-        lines.push ('');
-        lines.push (INDENT + '// venue-only source keys with no struct field; kept so the struct round-trips losslessly');
-        lines.push (INDENT + 'public Dictionary<string, object>? extra;');
-        lines.push ('');
-        lines.push (INDENT + 'private static readonly HashSet<string> ' + spec.n + 'Keys = new HashSet<string> {');
-        const keyTokens: string[] = [];
-        // only keys a real struct field stores. A TS field in `skip` is carried nowhere,
-        // so it has to fall into the bag rather than be treated as already-covered.
-        const declared = spec.d === undefined ? [] : spec.d;
-        for (let i = 0; i < declared.length; i++) {
-            const token = declared[i];
-            if (token === '' || literal (token) !== undefined) {
-                continue;
-            }
-            const declaredField = fields[token];
-            if (declaredField !== undefined) {
-                keyTokens.push ('"' + declaredField.key + '"');
-            }
-        }
-        lines.push (INDENT.repeat (2) + keyTokens.join (', ') + ',');
-        lines.push (INDENT + '};');
-        lines.push ('');
-    }
     lines.push (INDENT + 'public ' + spec.n + '(object ' + spec.p + ')');
     lines.push (INDENT + '{');
     if (spec.b !== undefined) {
@@ -684,10 +657,8 @@ function renderStruct (ir: TypesIR, spec: StructSpec): string {
             throw new Error ('csharp emitter: ' + spec.n + ' assigns unknown field ' + body[i]);
         }
         const lhs = (field.cs === spec.p || field.cs === spec.b) ? 'this.' + field.cs : field.cs;
-        lines.push (INDENT.repeat (2) + lhs + ' = ' + csExprOf (field.idiom, recv, field.key, field.elem) + ';');
-    }
-    if (spec.extra === true) {
-        lines.push (INDENT.repeat (2) + 'extra = Helper.GetExtra(' + recv + ', ' + spec.n + 'Keys);');
+        const rhs = csExprOf (field.idiom, recv, field.key, field.elem);
+        lines.push (INDENT.repeat (2) + lhs + ' = ' + rhs + ';');
     }
     lines.push (INDENT + '}');
     const tail = spec.t === undefined ? [] : spec.t;

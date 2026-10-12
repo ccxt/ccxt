@@ -251,6 +251,12 @@ impl std::ops::Deref for Blofin {
 }
 
 impl Blofin {
+    /// Typed wrapper around `fetchCurrencies`.
+    pub async fn fetch_currencies(&mut self, params: impl Into<Params>) -> crate::Result<Currencies> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_currencies(&[params.into().into_value()])).await?;
+        Ok(dict_from_value(&v, Currency::from_value))
+    }
+
     /// Typed wrapper around `fetchMarkets`.
     pub async fn fetch_markets(&mut self, params: impl Into<Params>) -> crate::Result<Vec<Market>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_markets(&[params.into().into_value()])).await?;

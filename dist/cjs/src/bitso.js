@@ -407,7 +407,7 @@ class bitso extends bitso$1["default"] {
         const amount = this.safeString(firstBalance, 'amount');
         const currencyId = this.safeString(firstBalance, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
+        const currencyResolved = this.safeCurrency(currencyId, currency);
         const details = this.safeDict(item, 'details', {});
         let referenceId = this.safeString2(details, 'fid', 'wid');
         if (referenceId === undefined) {
@@ -427,7 +427,7 @@ class bitso extends bitso$1["default"] {
             const cost = Precise["default"].stringAbs(amount);
             fee = {
                 'cost': cost,
-                'currency': currency,
+                'currency': currencyResolved,
             };
         }
         const timestamp = this.parse8601(this.safeString(item, 'created_at'));
@@ -447,7 +447,7 @@ class bitso extends bitso$1["default"] {
             'after': undefined,
             'status': 'ok',
             'fee': fee,
-        }, currency);
+        }, currencyResolved);
     }
     /**
      * @method
@@ -502,6 +502,9 @@ class bitso extends bitso$1["default"] {
             let quote = quoteId.toUpperCase();
             base = this.safeCurrencyCode(base);
             quote = this.safeCurrencyCode(quote);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const fees = this.safeDict(market, 'fees', {});
             const flatRate = this.safeDict(fees, 'flat_rate', {});
             const takerString = this.safeString(flatRate, 'taker');
@@ -518,7 +521,7 @@ class bitso extends bitso$1["default"] {
             const takerFees = [];
             const makerFees = [];
             for (let j = 0; j < feeTiers.length; j++) {
-                const tier = feeTiers[j];
+                const tier = this.safeDict(feeTiers, j);
                 const volume = this.safeNumber(tier, 'volume');
                 const takerFee = this.safeNumber(tier, 'taker');
                 const makerFee = this.safeNumber(tier, 'maker');
@@ -659,7 +662,7 @@ class bitso extends bitso$1["default"] {
         });
     }
     parseBalance(response) {
-        const payload = this.safeValue(response, 'payload', {});
+        const payload = this.safeDict(response, 'payload', {});
         const balances = this.safeList(payload, 'balances', []);
         const result = {
             'info': response,
@@ -667,7 +670,7 @@ class bitso extends bitso$1["default"] {
             'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -805,7 +808,7 @@ class bitso extends bitso$1["default"] {
             'book': market['id'],
         };
         const response = await this.publicGetTicker(this.extend(request, params));
-        const ticker = this.safeValue(response, 'payload');
+        const ticker = this.safeDict(response, 'payload');
         //
         //     {
         //         "success":true,
@@ -1135,11 +1138,9 @@ class bitso extends bitso$1["default"] {
             throw new errors.ExchangeError(this.id + ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
+        let paramsMarker = params;
         if (markerInParams) {
-            const marker = parseInt(params['marker']);
-            params = this.extend(params, {
-                'marker': marker,
-            });
+            paramsMarker = this.extend(params, { 'marker': parseInt(params['marker']) });
         }
         const request = {
             'book': market['id'],
@@ -1147,7 +1148,7 @@ class bitso extends bitso$1["default"] {
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetUserTrades(this.extend(request, params));
+        const response = await this.privateGetUserTrades(this.extend(request, paramsMarker));
         const payload = this.safeList(response, 'payload', []);
         return this.parseTrades(payload, market, since, limit);
     }
@@ -1364,11 +1365,9 @@ class bitso extends bitso$1["default"] {
             throw new errors.ExchangeError(this.id + ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
+        let paramsMarker = params;
         if (markerInParams) {
-            const marker = parseInt(params['marker']);
-            params = this.extend(params, {
-                'marker': marker,
-            });
+            paramsMarker = this.extend(params, { 'marker': parseInt(params['marker']) });
         }
         const request = {
             'book': market['id'],
@@ -1376,7 +1375,7 @@ class bitso extends bitso$1["default"] {
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetOpenOrders(this.extend(request, params));
+        const response = await this.privateGetOpenOrders(this.extend(request, paramsMarker));
         const payload = this.safeList(response, 'payload', []);
         const orders = this.parseOrders(payload, market, since, limit);
         return orders;
@@ -1635,7 +1634,7 @@ class bitso extends bitso$1["default"] {
                 };
             }
         }
-        const withdrawalFees = this.safeValue(payload, 'withdrawal_fees', []);
+        const withdrawalFees = this.safeDict(payload, 'withdrawal_fees', {});
         const currencyIds = Object.keys(withdrawalFees);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -1759,7 +1758,7 @@ class bitso extends bitso$1["default"] {
         //
         const result = {};
         const depositResponse = this.safeList(response, 'deposit_fees', []);
-        const withdrawalResponse = this.safeValue(response, 'withdrawal_fees', []);
+        const withdrawalResponse = this.safeDict(response, 'withdrawal_fees', {});
         for (let i = 0; i < depositResponse.length; i++) {
             const entry = depositResponse[i];
             const currencyId = this.safeString(entry, 'currency');
@@ -1769,7 +1768,7 @@ class bitso extends bitso$1["default"] {
                     result[code] = {
                         'deposit': {
                             'fee': this.safeNumber(entry, 'fee'),
-                            'percentage': (this.safeBool(entry, 'is_fixed') !== true),
+                            'percentage': (!this.safeBool(entry, 'is_fixed', false)),
                         },
                         'withdraw': {
                             'fee': undefined,
@@ -1809,7 +1808,7 @@ class bitso extends bitso$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1829,10 +1828,10 @@ class bitso extends bitso$1["default"] {
         const request = {
             'amount': amount,
             'address': address,
-            'destination_tag': tag,
+            'destination_tag': tagWithdrawTag,
         };
         const classMethod = 'privatePost' + method + 'Withdrawal';
-        const response = await this[classMethod](this.extend(request, params));
+        const response = await this[classMethod](this.extend(request, paramsWithdrawTag));
         //
         //     {
         //         "success": true,
@@ -1894,7 +1893,7 @@ class bitso extends bitso$1["default"] {
         //     }
         //
         const currencyId = this.safeString2(transaction, 'currency', 'asset');
-        currency = this.safeCurrency(currencyId, currency);
+        const currencyResolved = this.safeCurrency(currencyId, currency);
         const details = this.safeDict(transaction, 'details', {});
         const datetime = this.safeString(transaction, 'created_at');
         const withdrawalAddress = this.safeString(details, 'withdrawal_address');
@@ -1902,7 +1901,7 @@ class bitso extends bitso$1["default"] {
         const networkId = this.safeString2(transaction, 'network', 'method');
         const status = this.safeString(transaction, 'status');
         const withdrawId = this.safeString(transaction, 'wid');
-        const networkCode = this.networkIdToCode(networkId, currency['code']);
+        const networkCode = this.networkIdToCode(networkId, this.safeString(currencyResolved, 'code'));
         const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
         return {
             'id': this.safeString2(transaction, 'wid', 'fid'),
@@ -1915,7 +1914,7 @@ class bitso extends bitso$1["default"] {
             'addressTo': withdrawalAddress,
             'amount': this.safeNumber(transaction, 'amount'),
             'type': (withdrawId === undefined) ? 'deposit' : 'withdrawal',
-            'currency': this.safeCurrencyCode(currencyId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currencyResolved),
             'status': this.parseTransactionStatus(status),
             'updated': undefined,
             'tagFrom': undefined,
@@ -1940,6 +1939,8 @@ class bitso extends bitso$1["default"] {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let requestHeaders = headers;
+        let requestBody = body;
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET' || method === 'DELETE') {
@@ -1947,7 +1948,11 @@ class bitso extends bitso$1["default"] {
                 endpoint += '?' + this.urlencode(query);
             }
         }
-        const url = this.urls['api']['rest'] + endpoint;
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials();
             // bitso rejects a nonce that is not higher than the previous one (error 104)
@@ -1957,18 +1962,18 @@ class bitso extends bitso$1["default"] {
             let request = content.join('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys(query).length > 0) {
-                    body = this.json(query);
-                    request += body;
+                    requestBody = this.json(query);
+                    request += requestBody;
                 }
             }
             const signature = this.hmac(this.encode(request), this.encode(this.secret), sha2_js.sha256);
             const auth = this.apiKey + ':' + nonce + ':' + signature;
-            headers = {
+            requestHeaders = {
                 'Authorization': 'Bitso ' + auth,
                 // 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

@@ -526,6 +526,13 @@ public class BaseTest {
         if (value instanceof Number && target == String.class) {
             return (value instanceof Long || value instanceof Integer) ? String.valueOf(value) : java.math.BigDecimal.valueOf(((Number) value).doubleValue()).toPlainString();
         }
+        // JSON numbers parse as Integer/Double; typed Long/Double slots take the widened value
+        if (value instanceof Number n && target == Long.class) {
+            return n.longValue();
+        }
+        if (value instanceof Number n && target == Double.class) {
+            return n.doubleValue();
+        }
         return value;
     }
 
@@ -554,19 +561,19 @@ public class BaseTest {
 
         Class<?> clazz = exchange.getClass();
 
-        // Prefer varargs methods (the untyped transpiled methods returning
-        // CompletableFuture<Object>) over typed overloads (String/Long/Map params
-        // returning sync typed objects). The test harness passes JSON-parsed args
-        // which have Integer (not Long) for numbers, causing "argument type mismatch"
-        // with typed overloads. Varargs methods accept Object and work with any type.
+        // Every exchange method has ONE typed signature returning a CompletableFuture; the
+        // typed-surface defaults of the same name return sync values. Take the future-returning
+        // method with the fewest parameters that still takes every argument.
         Method fallback = null;
         for (Method m : clazz.getMethods()) {
-            if (!m.getName().equals(methodName)) continue;
-            if (m.isVarArgs()) {
-                method = m;
-                break;
+            if (!m.getName().equals(methodName) || m.isBridge()) continue;
+            int n = m.getParameterCount();
+            if (!(m.isVarArgs() ? realArgs.size() >= n - 1 : n >= realArgs.size())) continue;
+            if (!CompletableFuture.class.isAssignableFrom(m.getReturnType())) {
+                if (fallback == null) fallback = m;
+                continue;
             }
-            if (fallback == null) fallback = m;
+            if (method == null || n < method.getParameterCount()) method = m;
         }
         if (method == null) method = fallback;
 
@@ -602,10 +609,14 @@ public class BaseTest {
             invokeArgs[parameterTypes.length - 1] = varArgArray;
 
         } else {
-            // non-varargs: your old approach is fine
+            // omitted trailing arguments: null (TS undefined), a params bag gets the TS default {}
             invokeArgs = new Object[parameterTypes.length];
             for (int i = 0; i < parameterTypes.length; i++) {
-                invokeArgs[i] = coerceArg(parameterTypes[i], (i < realArgs.size()) ? realArgs.get(i) : null);
+                if (i >= realArgs.size() && parameterTypes[i] == Map.class) {
+                    invokeArgs[i] = new java.util.HashMap<String, Object>();
+                } else {
+                    invokeArgs[i] = coerceArg(parameterTypes[i], (i < realArgs.size()) ? realArgs.get(i) : null);
+                }
             }
         }
 

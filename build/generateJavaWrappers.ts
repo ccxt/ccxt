@@ -3,11 +3,10 @@
  * Java Typed Surface Generator for CCXT
  *
  * Emits ONE interface per tier (TypedSurface for Exchange, PredictionTypedSurface
- * for PredictionExchange). The abstract `CompletableFuture<T> m(Object..., Object...
- * optionalArgs)` signatures mirror the transpiled cores, which build/javaTypedCore.ts
- * types in place; the `default` methods are the typed-parameter sync (blocking) and
- * async overloads, dispatching with explicit (Object) casts so the call always
- * reaches the transpiled per-exchange override virtually.
+ * for PredictionExchange). The abstract `CompletableFuture<T> m(...)` signatures are the
+ * typed cores' own signatures, read from the generated tier files (return family from
+ * build/javaTypedCore.ts); the `default` methods are the typed sync (blocking) truncations
+ * and async overloads, each calling the core at full arity with the TS defaults.
  *
  * Usage: tsx build/generateJavaWrappers.ts
  */
@@ -16,7 +15,6 @@ import Transpiler from "ast-transpiler";
 import * as fs from 'fs';
 import { fileURLToPath } from 'node:url';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
-import { JAVA_STRING_PARAM_POSITIONS } from './java-local-types.js';
 import { typedReturnTable } from './javaTypedCore.js';
 import type { JavaTier } from './javaTypedCore.js';
 import { applyJavaImports, nativeTypedList } from './javaUtilImports.js';
@@ -140,7 +138,7 @@ function tsReturnTypeToJava(methodName: string, tsReturnType: string): { javaTyp
 // are deliberately narrow so the sync helpers (addFetchCache, addKeyInArrayItems,
 // reduceFeesByCurrency) and other load* internals (loadMarkets, loadTimeDifference,
 // loadOrderBook) stay out. loadAccounts is NOT on ZERO_REQUIRED_TYPED_WHITELIST —
-// REST/WS cores still call `this.loadAccounts()` against the Object... varargs.
+// its internal callers print the full-arity core call.
 const ALLOWED_PREFIXES = ['fetch', 'create', 'edit', 'cancel', 'close', 'setP', 'setM', 'setL', 'transfer', 'withdraw', 'watch', 'unWatch', 'addMargin', 'reduceMargin', 'borrow', 'repay', 'loadAccounts'];
 const BLACKLIST = new Set([
     'fetch', 'fetchCurrenciesWs', 'fetchMarketsWs', 'setSandBoxMode', 'loadOrderBook',
@@ -181,9 +179,8 @@ export interface MethodInfo {
     isWatch: boolean;
 }
 
-// Zero-required-param methods that get typed zero-arg + truncation defaults.
-// javaTranspiler routes internal `this.<m>()` / `this.<m>(null)` calls on these
-// names to the varargs core (`new Object[0]`) so the typed default never binds.
+// Zero-required-param methods that get typed zero-arg + truncation defaults
+// (internal calls print full arity, so a truncation never binds them).
 export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     // REST
     'fetchBalance',
@@ -318,100 +315,79 @@ function genAsyncReturnExpr(m: MethodInfo): string {
     return `${m.javaReturnType}::new`;
 }
 
-/**
- * Generate the delegation call to the untyped `Object...` core method.
- * Every argument is cast to (Object) so the typed default never re-binds to
- * itself and always reaches the `CompletableFuture<Object>` varargs signature.
- */
-function genDelegateCall(methodName: string, allParams: ParamInfo[], castToObject = false): string {
-    if (castToObject) {
-        // Cast all args to (Object) and coalesce null params to empty map: Helpers.getArg
-        // returns null for explicit null args instead of the default, which NPEs in extend().
-        //
-        // SS-05 exception: arguments at parameter positions the transpiler retyped to
-        // `String` (JAVA_STRING_PARAM_POSITIONS) must NOT be cast — an `(Object)` cast
-        // would no longer bind the instrumented String-parameter method (and keeping the
-        // cast while the parameter moved would silently fall through to the BaseExchange
-        // NotImplemented override).  The uncast String argument still binds the venue's
-        // WS implementation: it is the most specific applicable overload for that
-        // position.
-        const retyped = JAVA_STRING_PARAM_POSITIONS[methodName] ?? [];
-        const args = allParams.map((p, k) => {
-            const cast = retyped.includes(k) ? '' : '(Object) ';
-            if (p.name === 'params') return `${cast}(${p.name} != null ? ${p.name} : new java.util.HashMap<String, Object>())`;
-            return `${cast}${p.name}`;
-        }).join(', ');
-        return `this.${methodName}(${args})`;
+// The typed core's parameter types, name -> printed Java types, read from the generated tier
+// files (the transpiler owns them); set by generateTypedSurfaceInterface for the tier it prints.
+let coreParamTypes: Map<string, string[]> = new Map();
+
+// Surface parameter types: the core's type where the core is typed, else the surface's own type.
+function surfaceParams(m: MethodInfo): ParamInfo[] {
+    const all = [...m.requiredParams, ...m.optionalParams];
+    const core = coreParamTypes.get(m.name);
+    if (core === undefined) return all;
+    if (core.length !== all.length) {
+        throw new Error(`${m.name}: typed core takes ${core.length} parameters, Exchange.ts declares ${all.length}`);
     }
-    const args = allParams.map(p => p.name).join(', ');
+    return all.map((p, k) => (core[k] === 'Object' ? p : { ...p, javaType: core[k] }));
+}
+
+// TS default of an omitted trailing parameter: the literal initializer, `{}` for params, else a typed null.
+function defaultArg(p: ParamInfo): string {
+    if (p.name === 'params') return 'new java.util.HashMap<String, Object>()';
+    const v = p.defaultValue;
+    if (!v || v === 'null' || v === 'undefined') return `(${p.javaType}) null`;
+    if (p.javaType === 'Long' && /^-?\d+$/.test(v)) return `${v}L`;
+    if (p.javaType === 'Double' && /^-?\d+(\.\d+)?$/.test(v)) return `${v}d`;
+    return v;
+}
+
+// Full-arity call of the typed core. A null params bag is the TS default `{}`.
+function genDelegateCall(methodName: string, allParams: ParamInfo[]): string {
+    const args = allParams.map((p) => (p.name === 'params'
+        ? `(params != null ? params : new java.util.HashMap<String, Object>())`
+        : p.name)).join(', ');
     return `this.${methodName}(${args})`;
 }
 
-function genMethod(m: MethodInfo, coreType: string, castToObject = false): string {
+function genMethod(m: MethodInfo, coreType: string): string {
     const methodName = camelCase(m.name);
     const typedCore = coreType === m.javaReturnType;
-    const allParams = [...m.requiredParams, ...m.optionalParams];
+    const allParams = surfaceParams(m);
+    const required = allParams.slice(0, m.requiredParams.length);
+    const optional = allParams.slice(m.requiredParams.length);
     const fullParamDecl = allParams.map(p => `${p.javaType} ${p.name}`).join(', ');
-    const delegateCall = genDelegateCall(methodName, allParams, castToObject);
+    const delegateCall = genDelegateCall(methodName, allParams);
 
     const lines: string[] = [];
 
-    // Full sync method with all params.
-    //
-    // Uses Helpers.joinUnwrapped() instead of raw .join() so that ccxt errors
-    // surface as their idiomatic typed exception (AuthenticationError,
-    // NetworkError, InsufficientFunds, …) rather than wrapped in a
-    // CompletionException. Users can write:
-    //
-    //     try { Order o = binance.createOrder(...); }
-    //     catch (InsufficientFunds e) { ... }
-    //     catch (AuthenticationError e) { ... }
-    //     catch (NetworkError e) { ... }
-    //
-    // — same shape as JDK exceptions, no .getCause() unwrap needed.
-    if (typedCore) {
-        lines.push(`    default ${m.javaReturnType} ${methodName}(${fullParamDecl}) { return Helpers.joinUnwrapped(${delegateCall}); }`);
-    } else {
-        lines.push(`    @SuppressWarnings("unchecked")`);
-        lines.push(`    default ${m.javaReturnType} ${methodName}(${fullParamDecl}) {`);
-        lines.push(`        Object res = Helpers.joinUnwrapped(${delegateCall});`);
-        lines.push(`        return ${genReturnExpr(m)};`);
-        lines.push(`    }`);
-    }
+    // Sync methods block with Helpers.joinUnwrapped so ccxt errors surface as their own
+    // exception type (InsufficientFunds, NetworkError, ...) instead of a CompletionException.
+    // The full arity belongs to the typed core (it returns the future): no sync overload there.
+    suppressedSyncDefaults.push(m.name);
 
-    // Truncation overloads: required + first k optionals, for k = 0 .. N-1.
-    // Each truncation has a unique arity, so Java's overload resolution is
-    // unambiguous at every call site (no `null`-trap from sibling overloads
-    // at the same arity).
-    //
-    // For methods with zero required params we only emit these overloads
-    // when the method is on the ZERO_REQUIRED_TYPED_WHITELIST. The default
-    // rule skips them because the resulting zero-arg / single-null overloads
-    // can collide with internal `this.method()` / `this.method(null)` calls
-    // in transpiled WS code that expect the core `Object... varargs`
-    // signature (e.g. `this.loadMarkets()` zero-arg, called from 3000+ sites).
-    // Whitelisted methods have had their internal zero-arg call sites
-    // audited and fixed in TS source — see the whitelist comment above.
+    // Truncation overloads: required + first k optionals, k = 0 .. N-1, each a unique arity
+    // below the core's, calling the core with the TS defaults of the omitted parameters.
+    // Zero-required methods only get them when whitelisted (a zero-arg typed overload
+    // shadows nothing now, but the list keeps the public surface unchanged).
     const emitTruncations = m.requiredParams.length > 0
         || ZERO_REQUIRED_TYPED_WHITELIST.has(m.name)
         || WATCH_ZERO_ARG_WHITELIST.has(m.name);
     if (emitTruncations) {
-        const defaultExpr = (p: ParamInfo) =>
-            p.defaultValue && p.defaultValue !== 'null'
-                ? p.defaultValue
-                : `(${p.javaType}) null`;
-        for (let k = 0; k < m.optionalParams.length; k++) {
-            const presentParams = [...m.requiredParams, ...m.optionalParams.slice(0, k)];
+        for (let k = 0; k < optional.length; k++) {
+            const presentParams = [...required, ...optional.slice(0, k)];
             const presentDecl = presentParams.map(p => `${p.javaType} ${p.name}`).join(', ');
-            const presentArgs = presentParams.map(p => p.name).join(', ');
-            const trailingDefaults = m.optionalParams.slice(k).map(defaultExpr).join(', ');
-            const allArgs = presentArgs ? `${presentArgs}, ${trailingDefaults}` : trailingDefaults;
-            lines.push(`    default ${m.javaReturnType} ${methodName}(${presentDecl}) { return ${methodName}(${allArgs}); }`);
+            const allArgs = [...presentParams.map(p => p.name), ...optional.slice(k).map(defaultArg)].join(', ');
+            const call = `Helpers.joinUnwrapped(this.${methodName}(${allArgs}))`;
+            if (typedCore) {
+                lines.push(`    default ${m.javaReturnType} ${methodName}(${presentDecl}) { return ${call}; }`);
+            } else {
+                lines.push(`    @SuppressWarnings("unchecked")`);
+                lines.push(`    default ${m.javaReturnType} ${methodName}(${presentDecl}) { Object res = ${call}; return ${genReturnExpr(m)}; }`);
+            }
         }
     }
 
-    // Async method (full params), for fetch* (REST) and watch* (WS) alike. The core
-    // future is already typed, so this is the typed-parameter spelling of the same call.
+    // Async method (full params): the typed-parameter spelling of the core call, for a caller
+    // that wants the surface name; the core itself is the same call.
     if (typedCore) {
         lines.push(`    default CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) { return ${delegateCall}; }`);
     } else {
@@ -421,38 +397,18 @@ function genMethod(m: MethodInfo, coreType: string, castToObject = false): strin
         lines.push(`    }`);
     }
 
-    // Async truncation overloads — symmetric with the sync truncations above.
-    // Without these, `binance.fetchOrdersAsync()` would fall through to the
-    // base `Object...` method and return `CompletableFuture<Object>` instead
-    // of `CompletableFuture<List<Order>>`. Gated on the same `emitTruncations`
-    // flag so the whitelist applies symmetrically.
+    // Async truncation overloads, symmetric with the sync truncations above.
     if (emitTruncations) {
-        const defaultExpr = (p: ParamInfo) =>
-            p.defaultValue && p.defaultValue !== 'null'
-                ? p.defaultValue
-                : `(${p.javaType}) null`;
-        for (let k = 0; k < m.optionalParams.length; k++) {
-            const presentParams = [...m.requiredParams, ...m.optionalParams.slice(0, k)];
+        for (let k = 0; k < optional.length; k++) {
+            const presentParams = [...required, ...optional.slice(0, k)];
             const presentDecl = presentParams.map(p => `${p.javaType} ${p.name}`).join(', ');
-            const presentArgs = presentParams.map(p => p.name).join(', ');
-            const trailingDefaults = m.optionalParams.slice(k).map(defaultExpr).join(', ');
-            const allArgs = presentArgs ? `${presentArgs}, ${trailingDefaults}` : trailingDefaults;
+            const allArgs = [...presentParams.map(p => p.name), ...optional.slice(k).map(defaultArg)].join(', ');
             lines.push(`    default CompletableFuture<${m.javaReturnType}> ${methodName}Async(${presentDecl}) { return ${methodName}Async(${allArgs}); }`);
         }
     }
 
-    // String[] ergonomic overload at FULL ARITY for any List<String> param.
-    //
-    // Without this, callers that pass `new String[]{...}` hit Java's varargs
-    // gotcha: String[] is-a Object[], so an `Object...` core method unpacks
-    // each element into a separate slot — second symbol overwrites the params
-    // slot, producing `ClassCastException: String cannot be cast to Map`.
-    //
-    // Only the full-arity variant is generated. Adding the same overload at
-    // truncated arities would collide with the existing `List<String>`
-    // truncations on `f(null,...)` calls — Java can't pick between
-    // `List<String>` and `String[]` for a literal null. The full-arity slot
-    // is uniquely sized so no resolution clash.
+    // String[] overload at FULL arity for a List<String> parameter (arrays are the common
+    // caller spelling). Only full arity: a truncated one would make `f(null)` ambiguous.
     const hasListString = allParams.some(p => p.javaType === 'List<String>');
     if (hasListString) {
         const stringArrDecl = allParams.map(p =>
@@ -463,7 +419,7 @@ function genMethod(m: MethodInfo, coreType: string, castToObject = false): strin
                 ? `${p.name} == null ? null : java.util.Arrays.asList(${p.name})`
                 : p.name
         ).join(', ');
-        lines.push(`    default ${m.javaReturnType} ${methodName}(${stringArrDecl}) { return ${methodName}(${delegateArgs}); }`);
+        lines.push(`    default ${m.javaReturnType} ${methodName}(${stringArrDecl}) { return Helpers.joinUnwrapped(${methodName}Async(${delegateArgs})); }`);
         lines.push(`    default CompletableFuture<${m.javaReturnType}> ${methodName}Async(${stringArrDecl}) { return ${methodName}Async(${delegateArgs}); }`);
     }
 
@@ -472,53 +428,105 @@ function genMethod(m: MethodInfo, coreType: string, castToObject = false): strin
 
 // --- Hoisted typed surface ---
 // Every typed overload is a `default` method on ONE generated interface per tier that the
-// tier base class implements. The default dispatches to the abstract core signature with
-// explicit (Object) casts, so it always reaches the transpiled override. The abstract
-// signature must match the transpiled override exactly: return family (javaTypedCore.ts)
-// and the SS-05 `String` positions (JAVA_STRING_PARAM_POSITIONS); Java overrides are invariant.
-function genAbstractDecl(m: MethodInfo, coreType: string): string {
-    const name = camelCase(m.name);
-    const retyped = JAVA_STRING_PARAM_POSITIONS[m.name] ?? [];
-    for (const k of retyped) {
-        if (k >= m.requiredParams.length) throw new Error(`${m.name}: String position ${k} falls into the Object... tail`);
-    }
-    const req = m.requiredParams.map((p, k) => `${retyped.includes(k) ? 'String' : 'Object'} ${p.name}`).join(', ');
-    return `    CompletableFuture<${coreType}> ${name}(${req ? req + ', ' : ''}Object... optionalArgs);`;
-}
-// Erased parameter list (types only, `Object...` == `Object[]`) of a core declaration.
-function eraseParams(paramList: string): string {
-    return paramList.split(',').map(p => p.trim().replace(/\.\.\./, '[]').replace(/\s+\w+$/, '')).filter(Boolean).join(', ');
-}
-// Cores spell the return in simple names once written (build/javaUtilImports.ts); the qualified
-// java.util / io.github.ccxt.types spelling is accepted too so the check does not depend on the collapse.
-function eraseReturn(t: string): string {
-    return t.replace(/\bjava\.util\./g, '').replace(/\bio\.github\.ccxt\.types\./g, '');
-}
-// A per-tier override whose signature differs from the abstract decl is a silent OVERLOAD (the
-// base tier's body runs) or a compile error. Returns `file:line: m expected ... actual ...`.
-let erasureChecked = 0;
-function assertErasureMatches(methods: MethodInfo[], table: Map<string, MethodInfo>, files: string[]): string[] {
-    const expected = new Map<string, string>();
-    for (const m of methods) {
-        const d = genAbstractDecl(m, coreReturnType(m, table)).match(/CompletableFuture<(.+)> (\w+)\((.*)\);$/)!;
-        expected.set(d[2], `<${d[1]}> (${eraseParams(d[3])})`);
-    }
-    const declRe = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+)> (\w+)\((.*)\)\s*\{?\s*$/;
+// tier base class implements. The abstract declaration is the typed core's own signature
+// (read from the generated tier files), so every default calls the core at full arity.
+
+// Split a printed Java parameter list on top-level commas.
+function splitParams(list: string): string[] {
     const out: string[] = [];
+    let depth = 0, cur = '';
+    for (const ch of list) {
+        if (ch === '<') depth++;
+        if (ch === '>') depth--;
+        if (ch === ',' && depth === 0) { out.push(cur.trim()); cur = ''; } else cur += ch;
+    }
+    if (cur.trim()) out.push(cur.trim());
+    return out;
+}
+function simpleJavaType(t: string): string {
+    return t.replace(/\bjava\.util\./g, '').replace(/\bio\.github\.ccxt\.types\./g, '').replace(/\s+/g, ' ').replace(/, */g, ', ');
+}
+const CORE_DECL_RE = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+)> (\w+)\((.*)\)\s*\{?\s*$/;
+// name -> parameter types of the first typed declaration found (files in priority order)
+export function readCoreParamTypes(files: string[]): Map<string, string[]> {
+    const out = new Map<string, string[]>();
     for (const file of files) {
-        const lines = fs.readFileSync(file, 'utf-8').split('\n');
-        for (let i = 0; i < lines.length; i++) {
-            const d = lines[i].match(declRe);
-            if (!d || !expected.has(d[2])) continue;
-            erasureChecked++;
-            const actual = `<${eraseReturn(d[1])}> (${eraseParams(d[3])})`;
-            if (actual !== expected.get(d[2])) out.push(`${file}:${i + 1}: ${d[2]} expected ${expected.get(d[2])} actual ${actual}`);
+        if (!fs.existsSync(file)) continue;
+        for (const line of fs.readFileSync(file, 'utf-8').split('\n')) {
+            const d = line.match(CORE_DECL_RE);
+            if (!d || out.has(d[2]) || d[3].includes('...')) continue;
+            out.set(d[2], splitParams(d[3]).map((p) => simpleJavaType(p.replace(/\s+\w+$/, ''))));
         }
     }
     return out;
 }
-export function generateTypedSurfaceInterface(ifaceName: string, methods: MethodInfo[], tier: JavaTier): string {
+function genAbstractDecl(m: MethodInfo, coreType: string): string {
+    const name = camelCase(m.name);
+    const all = [...m.requiredParams, ...m.optionalParams];
+    const core = coreParamTypes.get(m.name);
+    if (core === undefined) throw new Error(`${m.name}: no typed core declaration in the tier files`);
+    if (core.length !== all.length) throw new Error(`${m.name}: typed core takes ${core.length} parameters, Exchange.ts declares ${all.length}`);
+    return `    CompletableFuture<${coreType}> ${name}(${all.map((p, k) => `${core[k]} ${p.name}`).join(', ')});`;
+}
+// Erased parameter list (types only, generics dropped) of a core declaration.
+function eraseParams(paramList: string): string {
+    return splitParams(paramList).map((p) => simpleJavaType(p.replace(/\s+\w+$/, '')).replace(/<.*>$/, '')).join(', ');
+}
+// Cores spell the return in simple names once written (build/javaUtilImports.ts); the qualified
+// java.util / io.github.ccxt.types spelling is accepted too so the check does not depend on the collapse.
+function eraseReturn(t: string): string {
+    return simpleJavaType(t);
+}
+// names whose full-arity sync overload is not generated (the typed core owns that arity)
+const suppressedSyncDefaults: string[] = [];
+export function suppressedSyncDefaultNames(): string[] {
+    return Array.from(new Set(suppressedSyncDefaults)).sort();
+}
+// Every file that declares a surface name must declare the abstract signature itself (a typed
+// override bridge counts); anything else is a silent OVERLOAD, so the base tier's body runs.
+let erasureChecked = 0;
+function assertErasureMatches(methods: MethodInfo[], table: Map<string, MethodInfo>, files: string[], extra: string[] = []): string[] {
+    const expected = new Map<string, string>();
+    for (const d0 of methods.map((m) => genAbstractDecl(m, coreReturnType(m, table))).concat(extra)) {
+        const d = d0.match(/CompletableFuture<(.+)> (\w+)\((.*)\);$/)!;
+        expected.set(d[2], `${simpleJavaType(d[1])} (${eraseParams(d[3])})`);
+    }
+    const out: string[] = [];
+    const seen = new Map<string, Map<string, string[]>>();
+    for (const file of files) {
+        const lines = fs.readFileSync(file, 'utf-8').split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const d = lines[i].match(CORE_DECL_RE);
+            if (!d || !expected.has(d[2])) continue;
+            const actual = `${eraseReturn(d[1])} (${d[3].includes('...') ? d[3] : eraseParams(d[3])})`;
+            if (!seen.has(d[2])) seen.set(d[2], new Map());
+            const perFile = seen.get(d[2])!;
+            if (!perFile.has(file)) perFile.set(file, []);
+            perFile.get(file)!.push(`${actual}  [${file}:${i + 1}]`);
+        }
+    }
+    for (const [name, want] of expected) {
+        const perFile = seen.get(name);
+        if (perFile === undefined) continue;
+        for (const actuals of perFile.values()) {
+            erasureChecked++;
+            if (!actuals.some((a) => a.startsWith(`${want}  [`))) {
+                out.push(`${name}: expected ${want}, found ${actuals.join(' | ')}`);
+            }
+        }
+    }
+    return out;
+}
+// hand-written base cores the surface also dispatches to; loadMarkets keeps its own specials
+const LOAD_MARKETS_DECL_FALLBACK = '    CompletableFuture<Object> loadMarkets(Object reload, Object params);';
+function loadMarketsDecl(): string {
+    const core = coreParamTypes.get('loadMarkets');
+    return core === undefined ? LOAD_MARKETS_DECL_FALLBACK
+        : `    CompletableFuture<Object> loadMarkets(${core[0]} reload, ${core[1]} params);`;
+}
+export function generateTypedSurfaceInterface(ifaceName: string, methods: MethodInfo[], tier: JavaTier, coreFiles: string[]): string {
     const table = typedReturnTable(tier);
+    coreParamTypes = readCoreParamTypes(coreFiles);
     // one name, one return family on every tier: the surface spells what the core declares
     methods = methods.map(m => table.get(m.name) ?? m);
     const lines: string[] = [];
@@ -530,12 +538,12 @@ export function generateTypedSurfaceInterface(ifaceName: string, methods: Method
     lines.push(``);
     lines.push(`/**`);
     lines.push(` * Typed sync + async surface shared by every exchange. Declared ONCE; each default`);
-    lines.push(` * method dispatches to the typed \`Object...\` core method (overridden per exchange).`);
+    lines.push(` * method calls the typed core (overridden per exchange) at full arity.`);
     lines.push(` */`);
     lines.push(`public interface ${ifaceName} {`);
     lines.push(``);
     lines.push(`    // --- abstract core signatures (implemented by the transpiled tiers) ---`);
-    lines.push(`    CompletableFuture<Object> loadMarkets(Object... optionalArgs);`);
+    lines.push(loadMarketsDecl());
     const seen = new Set<string>();
     for (const m of methods) {
         const d = genAbstractDecl(m, coreReturnType(m, table));
@@ -543,18 +551,12 @@ export function generateTypedSurfaceInterface(ifaceName: string, methods: Method
     }
     lines.push(``);
     lines.push(`    // --- loadMarkets (special: first arg is boolean reload) ---`);
-    lines.push(`    @SuppressWarnings("unchecked")`);
     lines.push(`    default Map<String, MarketInterface> loadMarkets(boolean reload) {`);
-    lines.push(`        Object res = Helpers.joinUnwrapped(this.loadMarkets((Object) reload));`);
-    lines.push(`        java.util.LinkedHashMap<String, MarketInterface> result = new java.util.LinkedHashMap<>();`);
-    lines.push(`        for (Map.Entry<String, Object> entry : ((Map<String, Object>) res).entrySet()) {`);
-    lines.push(`            result.put(entry.getKey(), new MarketInterface(entry.getValue()));`);
-    lines.push(`        }`);
-    lines.push(`        return result;`);
+    lines.push(`        return Helpers.joinUnwrapped(this.loadMarketsAsync(reload));`);
     lines.push(`    }`);
     lines.push(`    @SuppressWarnings("unchecked")`);
     lines.push(`    default CompletableFuture<Map<String, MarketInterface>> loadMarketsAsync(boolean reload) {`);
-    lines.push(`        return this.loadMarkets((Object) reload).thenApply(res -> {`);
+    lines.push(`        return this.loadMarkets(reload, new java.util.HashMap<String, Object>()).thenApply(res -> {`);
     lines.push(`            java.util.LinkedHashMap<String, MarketInterface> result = new java.util.LinkedHashMap<>();`);
     lines.push(`            for (Map.Entry<String, Object> entry : ((Map<String, Object>) res).entrySet()) {`);
     lines.push(`                result.put(entry.getKey(), new MarketInterface(entry.getValue()));`);
@@ -564,7 +566,7 @@ export function generateTypedSurfaceInterface(ifaceName: string, methods: Method
     lines.push(`    }`);
     lines.push(``);
     for (const m of methods) {
-        lines.push(genMethod(m, coreReturnType(m, table), true));
+        lines.push(genMethod(m, coreReturnType(m, table)));
         lines.push('');
     }
     lines.push(`}`);
@@ -698,18 +700,28 @@ function main() {
     const predictionExclude = predictionTierExcludeNames();
     const predictionRestMethods = toPredictionMethods(restMethods.filter(m => !predictionExclude.has(m.name))).concat(predictionBaseOnlyMethods);
     const wsMethods = methods.filter(m => m.isWatch || isWsApi(m));
-    fs.writeFileSync(BASE_PKG + 'TypedSurface.java', applyJavaImports(generateTypedSurfaceInterface('TypedSurface', restMethods.concat(wsMethods), 'rest'), true), 'utf-8');
-    const predictionExtra = Object.values(PREDICTION_EXCHANGE_METHODS).flat();
-    const predictionMethods = predictionRestMethods.concat(predictionExtra);
-    fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', applyJavaImports(generateTypedSurfaceInterface('PredictionTypedSurface', predictionMethods, 'prediction'), true), 'utf-8');
-    console.log(`Generated TypedSurface (${restMethods.length} REST + ${wsMethods.length} WS methods) and PredictionTypedSurface (${predictionMethods.length} methods)`);
-
     const exchangesDir = BASE_PKG + 'exchanges/';
     const javaFiles = (dir: string) => fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.java')).map(f => dir + f) : [];
+    // core signatures: the tier base first, then the venues (loadMarkets is only typed on a venue)
+    const mainCoreFiles = [ BASE_PKG + 'Exchange.java', BASE_PKG + 'BaseExchange.java' ].concat(javaFiles(exchangesDir), javaFiles(exchangesDir + 'pro/'));
+    const predictionCoreFiles = [ BASE_PKG + 'PredictionExchange.java', BASE_PKG + 'BaseExchange.java' ].concat(javaFiles(exchangesDir + 'prediction/'));
+    const restSurface = generateTypedSurfaceInterface('TypedSurface', restMethods.concat(wsMethods), 'rest', mainCoreFiles);
+    const mainLoadMarkets = loadMarketsDecl();
+    fs.writeFileSync(BASE_PKG + 'TypedSurface.java', applyJavaImports(restSurface, true), 'utf-8');
+    const predictionExtra = Object.values(PREDICTION_EXCHANGE_METHODS).flat();
+    const predictionMethods = predictionRestMethods.concat(predictionExtra);
+    const predictionSurface = generateTypedSurfaceInterface('PredictionTypedSurface', predictionMethods, 'prediction', predictionCoreFiles);
+    const predictionLoadMarkets = loadMarketsDecl();
+    fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', applyJavaImports(predictionSurface, true), 'utf-8');
+    console.log(`Generated TypedSurface (${restMethods.length} REST + ${wsMethods.length} WS methods) and PredictionTypedSurface (${predictionMethods.length} methods)`);
+    console.log(`Full-arity sync overloads not generated: ${suppressedSyncDefaultNames().length} names`);
+
     const mainTierFiles = [ BASE_PKG + 'BaseExchange.java', BASE_PKG + 'Exchange.java' ].concat(javaFiles(exchangesDir), javaFiles(exchangesDir + 'pro/'));
     const predictionTierFiles = [ BASE_PKG + 'PredictionExchange.java' ].concat(javaFiles(exchangesDir + 'prediction/'));
-    const mismatches = assertErasureMatches(restMethods.concat(wsMethods), typedReturnTable('rest'), mainTierFiles)
-        .concat(assertErasureMatches(predictionMethods, typedReturnTable('prediction'), predictionTierFiles));
+    coreParamTypes = readCoreParamTypes(mainCoreFiles);
+    const mismatches = assertErasureMatches(restMethods.concat(wsMethods), typedReturnTable('rest'), mainTierFiles, [ mainLoadMarkets ]);
+    coreParamTypes = readCoreParamTypes(predictionCoreFiles);
+    mismatches.push(...assertErasureMatches(predictionMethods, typedReturnTable('prediction'), predictionTierFiles, [ predictionLoadMarkets ]));
     if (mismatches.length > 0) {
         console.error(`\nERROR: ${mismatches.length} core override(s) do not erase to the abstract interface signature:`);
         for (const x of mismatches) console.error(`  ${x}`);

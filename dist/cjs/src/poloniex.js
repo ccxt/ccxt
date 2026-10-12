@@ -684,18 +684,23 @@ class poloniex extends poloniex$1["default"] {
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 500);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 500);
         }
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'symbol': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const keyStart = (market['spot'] === true) ? 'startTime' : 'sTime';
-        const keyEnd = (market['spot'] === true) ? 'endTime' : 'eTime';
+        let keyStart = 'sTime';
+        if (market['spot'] === true) {
+            keyStart = 'startTime';
+        }
+        let keyEnd = 'eTime';
+        if (market['spot'] === true) {
+            keyEnd = 'endTime';
+        }
         if (since !== undefined) {
             request[keyStart] = since;
         }
@@ -703,9 +708,9 @@ class poloniex extends poloniex$1["default"] {
             // limit should in between 100 and 500
             request['limit'] = limit;
         }
-        [request, params] = this.handleUntilOption(keyEnd, request, params);
+        const [requestUntil, paramsUntil] = this.handleUntilOption(keyEnd, request, paramsPaginate);
         if (market['contract'] === true) {
-            const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(request, params));
+            const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(requestUntil, paramsUntil));
             //
             //     {
             //         code: "200",
@@ -726,7 +731,7 @@ class poloniex extends poloniex$1["default"] {
             const data = this.safeList(responseRaw, 'data');
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }
-        const response = await this.publicGetMarketsSymbolCandles(this.extend(request, params));
+        const response = await this.publicGetMarketsSymbolCandles(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         [
@@ -860,6 +865,9 @@ class poloniex extends poloniex$1["default"] {
         const quoteId = this.safeString(market, 'quoteCurrencyName');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const state = this.safeString(market, 'state');
         const active = state === 'NORMAL';
         const symbolTradeLimit = this.safeDict(market, 'symbolTradeLimit');
@@ -951,10 +959,13 @@ class poloniex extends poloniex$1["default"] {
         const settleId = this.safeString(market, 'sCcy');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode(settleId);
         const status = this.safeString(market, 'status');
         const active = status === 'OPEN';
-        const linear = market['ctType'] === 'LINEAR';
+        const linear = this.safeString(market, 'ctType') === 'LINEAR';
         let symbol = base + '/' + quote;
         if (linear) {
             symbol += ':' + settle;
@@ -968,7 +979,10 @@ class poloniex extends poloniex$1["default"] {
         if (alias !== undefined) {
             type = 'future';
         }
-        const marketType = (type === 'future') ? 'future' : 'swap';
+        let marketType = 'swap';
+        if (type === 'future') {
+            marketType = 'future';
+        }
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -1083,17 +1097,16 @@ class poloniex extends poloniex$1["default"] {
         //
         const timestamp = this.safeInteger2(ticker, 'ts', 'cT');
         const marketId = this.safeString2(ticker, 'symbol', 's');
-        market = this.safeMarket(marketId);
+        const marketResolved = this.safeMarket(marketId);
         let baseVolume = this.safeString2(ticker, 'quantity', 'qty');
-        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
+        if ((marketResolved['contract'] === true) && (marketResolved['contractSize'] !== undefined)) {
             // 'quantity' counts contracts, and a ticker reports base volume
-            baseVolume = Precise["default"].stringMul(baseVolume, this.numberToString(market['contractSize']));
+            baseVolume = Precise["default"].stringMul(baseVolume, this.numberToString(marketResolved['contractSize']));
         }
         const relativeChange = this.safeString2(ticker, 'dailyChange', 'dc');
         const percentage = Precise["default"].stringMul(relativeChange, '100');
         return this.safeTicker({
-            'id': marketId,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeString2(ticker, 'high', 'h'),
@@ -1114,7 +1127,7 @@ class poloniex extends poloniex$1["default"] {
             'markPrice': this.safeString2(ticker, 'markPrice', 'mPx'),
             'indexPrice': this.safeString(ticker, 'iPx'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1130,20 +1143,19 @@ class poloniex extends poloniex$1["default"] {
         await this.loadMarkets();
         let market = undefined;
         const request = {};
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols(symbols, undefined, true, true, false);
-            const symbolsLength = symbols.length;
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true, false);
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 0) {
-                market = this.market(symbols[0]);
+                market = this.market(symbolsNormalized[0]);
                 if (symbolsLength === 1) {
                     request['symbol'] = market['id'];
                 }
             }
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         if (marketType === 'swap') {
-            const responseRaw = await this.swapPublicGetV3MarketTickers(this.extend(request, params));
+            const responseRaw = await this.swapPublicGetV3MarketTickers(this.extend(request, paramsMarketType));
             //
             //    {
             //        "code": "200",
@@ -1171,9 +1183,9 @@ class poloniex extends poloniex$1["default"] {
             //            },
             //
             const data = this.safeList(responseRaw, 'data');
-            return this.parseTickers(data, symbols);
+            return this.parseTickers(data, symbolsNormalized);
         }
-        const response = await this.publicGetMarketsTicker24h(params);
+        const response = await this.publicGetMarketsTicker24h(paramsMarketType);
         //
         //     [
         //         {
@@ -1198,7 +1210,7 @@ class poloniex extends poloniex$1["default"] {
         //         }
         //     ]
         //
-        return this.parseTickers(response, symbols);
+        return this.parseTickers(response, symbolsNormalized);
     }
     /**
      * @method
@@ -1249,7 +1261,7 @@ class poloniex extends poloniex$1["default"] {
         const chains = this.safeList(entry, 'networkList', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict(chains, j);
             const chainId = this.safeString(chain, 'blockchain');
             const networkCode = this.networkIdToCode(chainId, code);
             if (networkCode !== undefined) {
@@ -1310,7 +1322,8 @@ class poloniex extends poloniex$1["default"] {
         };
         if (market['contract'] === true) {
             const tickers = await this.fetchTickers([market['symbol']], params);
-            return this.safeDict(tickers, symbol);
+            const contractTicker = this.safeDict(tickers, symbol);
+            return contractTicker;
         }
         const response = await this.publicGetMarketsSymbolTicker24h(this.extend(request, params));
         //
@@ -1438,8 +1451,8 @@ class poloniex extends poloniex$1["default"] {
         const orderId = this.safeString2(trade, 'orderId', 'ordId');
         const timestamp = this.safeIntegerN(trade, ['ts', 'createTime', 'cT', 'cTime']);
         const marketId = this.safeString(trade, 'symbol');
-        market = this.safeMarket(marketId, market, '_');
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, '_');
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower2(trade, 'side', 'takerSide');
         let fee = undefined;
         const priceString = this.safeString2(trade, 'price', 'px');
@@ -1468,7 +1481,7 @@ class poloniex extends poloniex$1["default"] {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1542,24 +1555,28 @@ class poloniex extends poloniex$1["default"] {
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, paramsPaginate);
         }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchMyTrades', market, paramsPaginate);
         const isContract = this.inArray(marketType, ['swap', 'future']);
-        let request = {
+        const request = {
         // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
         // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         };
-        const startKey = isContract ? 'sTime' : 'startTime';
-        const endKey = isContract ? 'eTime' : 'endTime';
+        let startKey = 'startTime';
+        if (isContract) {
+            startKey = 'sTime';
+        }
+        let endKey = 'endTime';
+        if (isContract) {
+            endKey = 'eTime';
+        }
         if (since !== undefined) {
             request[startKey] = since;
         }
@@ -1569,9 +1586,9 @@ class poloniex extends poloniex$1["default"] {
         if (isContract && symbol !== undefined) {
             request['symbol'] = this.safeString(market, 'id');
         }
-        [request, params] = this.handleUntilOption(endKey, request, params);
+        const [requestUntil, paramsUntil] = this.handleUntilOption(endKey, request, paramsMarketType);
         if (isContract) {
-            const raw = await this.swapPrivateGetV3TradeOrderTrades(this.extend(request, params));
+            const raw = await this.swapPrivateGetV3TradeOrderTrades(this.extend(requestUntil, paramsUntil));
             //
             //    {
             //        "code": "200",
@@ -1606,7 +1623,7 @@ class poloniex extends poloniex$1["default"] {
             const data = this.safeList(raw, 'data', []);
             return this.parseTrades(data, market, since, limit);
         }
-        const response = await this.privateGetTrades(this.extend(request, params));
+        const response = await this.privateGetTrades(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -1747,12 +1764,12 @@ class poloniex extends poloniex$1["default"] {
             timestamp = this.parse8601(this.safeString(order, 'date'));
         }
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market, '_');
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, '_');
+        const symbol = marketResolved['symbol'];
         let resultingTrades = this.safeValue(order, 'resultingTrades');
         if (resultingTrades !== undefined) {
             if (!Array.isArray(resultingTrades)) {
-                resultingTrades = this.safeValue(resultingTrades, this.safeString(market, 'id', marketId));
+                resultingTrades = this.safeValue(resultingTrades, this.safeString(marketResolved, 'id', marketId));
             }
         }
         const price = this.safeStringN(order, ['price', 'rate', 'px']);
@@ -1769,7 +1786,7 @@ class poloniex extends poloniex$1["default"] {
         let feeCurrencyCode = undefined;
         const rate = this.safeString(order, 'fee');
         if (feeCurrency === undefined) {
-            feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+            feeCurrencyCode = (side === 'buy') ? marketResolved['base'] : marketResolved['quote'];
         }
         else {
             // poloniex accepts a 30% discount to pay fees in TRX
@@ -1814,7 +1831,7 @@ class poloniex extends poloniex$1["default"] {
             'reduceOnly': reduceOnly,
             'leverage': leverage,
             'hedged': hedged,
-        }, market);
+        }, marketResolved);
     }
     parseOrderType(status) {
         const statuses = {
@@ -1861,17 +1878,16 @@ class poloniex extends poloniex$1["default"] {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         if (limit !== undefined) {
             const max = (marketType === 'spot') ? 2000 : 100;
             request['limit'] = Math.max(limit, max);
         }
-        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        params = this.omit(params, ['trigger', 'stop']);
+        const isTrigger = this.safeBool2(paramsMarketType, 'trigger', 'stop');
+        const paramsOmitted = this.omit(paramsMarketType, ['trigger', 'stop']);
         let response = [];
         if (marketType !== 'spot') {
-            const raw = await this.swapPrivateGetV3TradeOrderOpens(this.extend(request, params));
+            const raw = await this.swapPrivateGetV3TradeOrderOpens(this.extend(request, paramsOmitted));
             //
             //    {
             //        "code": "200",
@@ -1914,10 +1930,10 @@ class poloniex extends poloniex$1["default"] {
             response = this.safeList(raw, 'data', []);
         }
         else if (isTrigger === true) {
-            response = await this.privateGetSmartorders(this.extend(request, params));
+            response = await this.privateGetSmartorders(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privateGetOrders(this.extend(request, params));
+            response = await this.privateGetOrders(this.extend(request, paramsOmitted));
         }
         //
         //     [
@@ -1960,13 +1976,12 @@ class poloniex extends poloniex$1["default"] {
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         let market = undefined;
-        let request = {};
+        const request = {};
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params, 'swap');
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params, 'swap');
         if (marketType === 'spot') {
             throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported for spot markets yet');
         }
@@ -1976,8 +1991,8 @@ class poloniex extends poloniex$1["default"] {
         if (since !== undefined) {
             request['sTime'] = since;
         }
-        [request, params] = this.handleUntilOption('eTime', request, params);
-        const response = await this.swapPrivateGetV3TradeOrderHistory(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('eTime', request, paramsMarketType);
+        const response = await this.swapPrivateGetV3TradeOrderHistory(this.extend(requestUntil, paramsUntil));
         //
         //    {
         //        "code": "200",
@@ -2041,7 +2056,7 @@ class poloniex extends poloniex$1["default"] {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'symbol': market['id'],
             'side': side.toUpperCase(), // uppercase, both for spot & swap
             // 'timeInForce': timeInForce, // matches unified values
@@ -2049,20 +2064,20 @@ class poloniex extends poloniex$1["default"] {
             // 'amount': amount,
         };
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
-        [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
+        const [requestValue, paramsValue] = this.orderRequest(symbol, type, side, amount, request, price, params);
         let response = {};
         if ((market['swap'] === true) || (market['future'] === true)) {
-            const responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(request, params));
+            const responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(requestValue, paramsValue));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             //
             response = this.safeDict(responseInitial, 'data', {});
         }
         else if (triggerPrice !== undefined) {
-            response = await this.privatePostSmartorders(this.extend(request, params));
+            response = await this.privatePostSmartorders(this.extend(requestValue, paramsValue));
         }
         else {
-            response = await this.privatePostOrders(this.extend(request, params));
+            response = await this.privatePostOrders(this.extend(requestValue, paramsValue));
         }
         //
         //     {
@@ -2075,28 +2090,32 @@ class poloniex extends poloniex$1["default"] {
     orderRequest(symbol, type, side, amount, request, price = undefined, params = {}) {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         const market = this.market(symbol);
-        if (market['contract'] === true) {
-            let marginMode = undefined;
-            [marginMode, params] = this.handleParamString(params, 'marginMode');
+        const isContract = (market['contract'] === true);
+        const [marginMode, paramsMarginMode] = this.handleParamString(params, 'marginMode');
+        const [hedged, paramsHedged] = this.handleParamString(paramsMarginMode, 'hedged');
+        // marginMode and hedged are consumed for contract markets only
+        let query = params;
+        if (isContract) {
+            query = paramsHedged;
+        }
+        if (isContract) {
             if (marginMode !== undefined) {
                 this.checkRequiredArgument('createOrder', marginMode, 'marginMode', ['cross', 'isolated']);
                 request['mgnMode'] = marginMode.toUpperCase();
             }
-            let hedged = undefined;
-            [hedged, params] = this.handleParamString(params, 'hedged');
             if ((hedged !== undefined) && (hedged !== '')) {
                 if (marginMode === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }
-                if (!('posSide' in params)) {
+                if (!('posSide' in query)) {
                     throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a posSide parameter "LONG" or "SHORT" for hedged orders');
                 }
             }
         }
         let upperCaseType = type.toUpperCase();
         const isMarket = upperCaseType === 'MARKET';
-        const isPostOnly = this.isPostOnly(isMarket, upperCaseType === 'LIMIT_MAKER', params);
-        params = this.omit(params, ['postOnly', 'triggerPrice', 'stopPrice']);
+        const isPostOnly = this.isPostOnly(isMarket, upperCaseType === 'LIMIT_MAKER', query);
+        let queryOmitted = this.omit(query, ['postOnly', 'triggerPrice', 'stopPrice']);
         if (triggerPrice !== undefined) {
             if (market['spot'] !== true) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() does not support trigger orders for ' + market['type'] + ' markets');
@@ -2112,9 +2131,9 @@ class poloniex extends poloniex$1["default"] {
             if (side === 'buy') {
                 let quoteAmount = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
-                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber(params, 'cost');
-                params = this.omit(params, 'cost');
+                [createMarketBuyOrderRequiresPrice, queryOmitted] = this.handleOptionBoolAndParams(queryOmitted, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber(queryOmitted, 'cost');
+                queryOmitted = this.omit(queryOmitted, 'cost');
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 }
@@ -2132,29 +2151,44 @@ class poloniex extends poloniex$1["default"] {
                 else {
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
-                const amountKey = (market['spot'] === true) ? 'amount' : 'sz';
+                let amountKey = 'sz';
+                if (market['spot'] === true) {
+                    amountKey = 'amount';
+                }
                 request[amountKey] = quoteAmount;
             }
             else {
-                const amountKey = (market['spot'] === true) ? 'quantity' : 'sz';
+                let amountKey = 'sz';
+                if (market['spot'] === true) {
+                    amountKey = 'quantity';
+                }
                 request[amountKey] = this.amountToPrecision(symbol, amount);
             }
         }
         else {
-            const amountKey = (market['spot'] === true) ? 'quantity' : 'sz';
+            let amountKey = 'sz';
+            if (market['spot'] === true) {
+                amountKey = 'quantity';
+            }
             request[amountKey] = this.amountToPrecision(symbol, amount);
-            const priceKey = (market['spot'] === true) ? 'price' : 'px';
+            let priceKey = 'px';
+            if (market['spot'] === true) {
+                priceKey = 'price';
+            }
             request[priceKey] = this.priceToPrecision(symbol, price);
         }
-        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clOrdId');
+        const clientOrderId = this.safeString2(queryOmitted, 'clientOrderId', 'clOrdId');
         if (clientOrderId !== undefined) {
             // the futures v3 api silently ignores the spot key and generates its own id
-            const clientOrderIdKey = (market['spot'] === true) ? 'clientOrderId' : 'clOrdId';
+            let clientOrderIdKey = 'clOrdId';
+            if (market['spot'] === true) {
+                clientOrderIdKey = 'clientOrderId';
+            }
             request[clientOrderIdKey] = clientOrderId;
-            params = this.omit(params, ['clientOrderId', 'clOrdId']);
+            queryOmitted = this.omit(queryOmitted, ['clientOrderId', 'clOrdId']);
         }
         // remember the timestamp before issuing the request
-        return [request, params];
+        return [request, queryOmitted];
     }
     /**
      * @method
@@ -2179,18 +2213,18 @@ class poloniex extends poloniex$1["default"] {
         if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        let request = {
+        const request = {
             'id': id,
             // 'timeInForce': timeInForce,
         };
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
-        [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
+        const [requestValue, paramsValue] = this.orderRequest(symbol, type, side, amount, request, price, params);
         let response = {};
         if (triggerPrice !== undefined) {
-            response = await this.privatePutSmartordersId(this.extend(request, params));
+            response = await this.privatePutSmartordersId(this.extend(requestValue, paramsValue));
         }
         else {
-            response = await this.privatePutOrdersId(this.extend(request, params));
+            response = await this.privatePutOrdersId(this.extend(requestValue, paramsValue));
         }
         //
         //     {
@@ -2240,18 +2274,16 @@ class poloniex extends poloniex$1["default"] {
             return this.parseOrder(this.safeDict(raw, 'data', {}));
         }
         const clientOrderId = this.safeValue(params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            id = clientOrderId;
-        }
-        request['id'] = id;
+        const idValue = (clientOrderId !== undefined) ? clientOrderId : id;
+        request['id'] = idValue;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        params = this.omit(params, ['clientOrderId', 'trigger', 'stop']);
+        const paramsOmitted = this.omit(params, ['clientOrderId', 'trigger', 'stop']);
         let response = {};
         if (isTrigger === true) {
-            response = await this.privateDeleteSmartordersId(this.extend(request, params));
+            response = await this.privateDeleteSmartordersId(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privateDeleteOrdersId(this.extend(request, params));
+            response = await this.privateDeleteOrdersId(this.extend(request, paramsOmitted));
         }
         //
         //   {
@@ -2290,10 +2322,9 @@ class poloniex extends poloniex$1["default"] {
             ];
         }
         let response = [];
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         if (marketType === 'swap' || marketType === 'future') {
-            const raw = await this.swapPrivateDeleteV3TradeAllOrders(this.extend(request, params));
+            const raw = await this.swapPrivateDeleteV3TradeAllOrders(this.extend(request, paramsMarketType));
             //
             //    {
             //        "code": "200",
@@ -2311,13 +2342,13 @@ class poloniex extends poloniex$1["default"] {
             response = this.safeList(raw, 'data', []);
             return this.parseOrders(response, market);
         }
-        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        params = this.omit(params, ['trigger', 'stop']);
+        const isTrigger = this.safeBool2(paramsMarketType, 'trigger', 'stop');
+        const paramsOmitted = this.omit(paramsMarketType, ['trigger', 'stop']);
         if (isTrigger === true) {
-            response = await this.privateDeleteSmartorders(this.extend(request, params));
+            response = await this.privateDeleteSmartorders(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privateDeleteOrders(this.extend(request, params));
+            response = await this.privateDeleteOrders(this.extend(request, paramsOmitted));
         }
         //
         //     [
@@ -2352,29 +2383,28 @@ class poloniex extends poloniex$1["default"] {
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
-        id = id.toString();
+        const idValue = id.toString();
         const request = {
-            'id': id,
+            'id': idValue,
         };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, params);
         if (marketType !== 'spot') {
             throw new errors.NotSupported(this.id + ' fetchOrder() is not supported for ' + marketType + ' markets yet');
         }
-        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        params = this.omit(params, ['trigger', 'stop']);
+        const isTrigger = this.safeBool2(paramsMarketType, 'trigger', 'stop');
+        const paramsOmitted = this.omit(paramsMarketType, ['trigger', 'stop']);
         let response = {};
         if (isTrigger === true) {
-            response = await this.privateGetSmartordersId(this.extend(request, params));
+            response = await this.privateGetSmartordersId(this.extend(request, paramsOmitted));
             response = this.safeValue(response, 0);
         }
         else {
-            response = await this.privateGetOrdersId(this.extend(request, params));
+            response = await this.privateGetOrdersId(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -2398,7 +2428,7 @@ class poloniex extends poloniex$1["default"] {
         //     }
         //
         const order = this.parseOrder(response);
-        order['id'] = id;
+        order['id'] = idValue;
         return order;
     }
     async fetchOrderStatus(id, symbol = undefined, params = {}) {
@@ -2461,7 +2491,7 @@ class poloniex extends poloniex$1["default"] {
             result['datetime'] = this.iso8601(ts);
             const details = this.safeList(response, 'details', []);
             for (let i = 0; i < details.length; i++) {
-                const balance = details[i];
+                const balance = this.safeDict(details, i);
                 const currencyId = this.safeString(balance, 'ccy');
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
@@ -2502,10 +2532,9 @@ class poloniex extends poloniex$1["default"] {
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         if (marketType !== 'spot') {
-            const responseRaw = await this.swapPrivateGetV3AccountBalance(params);
+            const responseRaw = await this.swapPrivateGetV3AccountBalance(paramsMarketType);
             //
             //    {
             //        "code": "200",
@@ -2549,7 +2578,7 @@ class poloniex extends poloniex$1["default"] {
         const request = {
             'accountType': 'SPOT',
         };
-        const response = await this.privateGetAccountsBalances(this.extend(request, params));
+        const response = await this.privateGetAccountsBalances(this.extend(request, paramsMarketType));
         //
         //     [
         //         {
@@ -2693,8 +2722,8 @@ class poloniex extends poloniex$1["default"] {
     async createDepositAddress(code, params = {}) {
         await this.loadMarkets();
         const [request, extraParams, currency, networkEntry] = this.prepareRequestForDepositAddress(code, params);
-        params = extraParams;
-        const response = await this.privatePostWalletsAddress(this.extend(request, params));
+        const paramsValue = extraParams;
+        const response = await this.privatePostWalletsAddress(this.extend(request, paramsValue));
         //
         //     {
         //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
@@ -2714,8 +2743,8 @@ class poloniex extends poloniex$1["default"] {
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
         const [request, extraParams, currency, networkEntry] = this.prepareRequestForDepositAddress(code, params);
-        params = extraParams;
-        const response = await this.privateGetWalletsAddresses(this.extend(request, params));
+        const paramsValue = extraParams;
+        const response = await this.privateGetWalletsAddresses(this.extend(request, paramsValue));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
@@ -2734,7 +2763,8 @@ class poloniex extends poloniex$1["default"] {
         }
         const currency = this.currency(code);
         let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        let query = undefined;
+        [networkCode, query] = this.handleNetworkCodeAndParams(params);
         if (networkCode === undefined) {
             // we need to know the network to find out the currency-junction
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
@@ -2751,7 +2781,7 @@ class poloniex extends poloniex$1["default"] {
         const request = {
             'currency': exchangeNetworkId,
         };
-        return [request, params, currency, networkEntry];
+        return [request, query, currency, networkEntry];
     }
     parseDepositAddressSpecial(response, currency, networkEntry) {
         let address = this.safeString(response, 'address');
@@ -2838,7 +2868,7 @@ class poloniex extends poloniex$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         const currency = this.currency(code);
         const request = {
@@ -2846,17 +2876,16 @@ class poloniex extends poloniex$1["default"] {
             'amount': this.currencyToPrecision(code, amount),
             'address': address,
         };
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         if (networkCode === undefined) {
             // we need to know the network to find out the currency-junction
             throw new errors.ArgumentsRequired(this.id + ' withdraw requires a network parameter for ' + code + '.');
         }
         request['network'] = this.networkCodeToId(networkCode, code);
-        if (tag !== undefined) {
-            request['paymentId'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['paymentId'] = tagWithdrawTag;
         }
-        const response = await this.privatePostV2WalletsWithdraw(this.extend(request, params));
+        const response = await this.privatePostV2WalletsWithdraw(this.extend(request, paramsNetworkCode));
         //
         //     {
         //         "response": "Withdrew 1.00000000 USDT.",
@@ -3066,13 +3095,13 @@ class poloniex extends poloniex$1["default"] {
         //         }
         //
         const depositWithdrawFees = {};
-        codes = this.marketCodes(codes);
+        const codesValue = this.marketCodes(codes);
         const responseKeys = Object.keys(response);
         for (let i = 0; i < responseKeys.length; i++) {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode(currencyId);
             const feeInfo = response[currencyId];
-            if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
+            if ((code !== undefined) && ((codesValue === undefined) || (this.inArray(code, codesValue)))) {
                 const currency = this.currency(code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee(feeInfo, currency);
                 const childChains = this.safeValue(feeInfo, 'childChains');
@@ -3081,7 +3110,7 @@ class poloniex extends poloniex$1["default"] {
                     for (let j = 0; j < childChains.length; j++) {
                         let networkId = childChains[j];
                         networkId = networkId.replace(code, '');
-                        const networkCode = this.networkIdToCode(networkId, currency['code']);
+                        const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
                         const networkInfo = this.safeDict(response, networkId);
                         const networkObject = {};
                         const withdrawFee = this.safeNumber(networkInfo, 'withdrawalFee');
@@ -3200,26 +3229,30 @@ class poloniex extends poloniex$1["default"] {
         //     }
         //
         // if it's being parsed from "withdraw()" method, get the original response
+        let transactionValue = transaction;
         if ('withdrawNetworkEntry' in transaction) {
-            transaction = transaction['response'];
+            transactionValue = transaction['response'];
         }
-        const timestamp = this.safeTimestamp(transaction, 'timestamp');
-        const currencyId = this.safeString(transaction, 'currency');
+        const timestamp = this.safeTimestamp(transactionValue, 'timestamp');
+        const currencyId = this.safeString(transactionValue, 'currency');
         const code = this.safeCurrencyCode(currencyId);
-        let status = this.safeString(transaction, 'status', 'pending');
+        let status = this.safeString(transactionValue, 'status', 'pending');
         status = this.parseTransactionStatus(status);
-        const txid = this.safeString(transaction, 'txid');
-        const type = ('withdrawalRequestsId' in transaction) ? 'withdrawal' : 'deposit';
-        const id = this.safeString2(transaction, 'withdrawalRequestsId', 'depositNumber');
-        const address = this.safeString(transaction, 'address');
-        const tag = this.safeString(transaction, 'paymentID');
-        let amountString = this.safeString(transaction, 'amount');
-        const feeCostString = this.safeString(transaction, 'fee');
+        const txid = this.safeString(transactionValue, 'txid');
+        let type = 'deposit';
+        if ('withdrawalRequestsId' in transactionValue) {
+            type = 'withdrawal';
+        }
+        const id = this.safeString2(transactionValue, 'withdrawalRequestsId', 'depositNumber');
+        const address = this.safeString(transactionValue, 'address');
+        const tag = this.safeString(transactionValue, 'paymentID');
+        let amountString = this.safeString(transactionValue, 'amount');
+        const feeCostString = this.safeString(transactionValue, 'fee');
         if (type === 'withdrawal') {
             amountString = Precise["default"].stringSub(amountString, feeCostString);
         }
         return {
-            'info': transaction,
+            'info': transactionValue,
             'id': id,
             'currency': code,
             'amount': this.parseNumber(amountString),
@@ -3262,15 +3295,13 @@ class poloniex extends poloniex$1["default"] {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
+        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('setLeverage', params);
         if (marginMode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a marginMode parameter "cross" or "isolated"');
         }
-        let hedged = undefined;
-        [hedged, params] = this.handleParamBool(params, 'hedged', false);
+        const [hedged, paramsHedged] = this.handleParamBool(paramsMarginMode, 'hedged', false);
         if (hedged === true) {
-            if (!('posSide' in params)) {
+            if (!('posSide' in paramsHedged)) {
                 throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a posSide parameter for hedged mode: "LONG" or "SHORT"');
             }
         }
@@ -3279,7 +3310,7 @@ class poloniex extends poloniex$1["default"] {
             'mgnMode': marginMode.toUpperCase(),
             'symbol': market['id'],
         };
-        const response = await this.swapPrivatePostV3PositionLeverage(this.extend(request, params));
+        const response = await this.swapPrivatePostV3PositionLeverage(this.extend(request, paramsHedged));
         return response;
     }
     /**
@@ -3297,13 +3328,12 @@ class poloniex extends poloniex$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params);
+        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchLeverage', params);
         if (marginMode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchLeverage() requires a marginMode parameter "cross" or "isolated"');
         }
         request['mgnMode'] = marginMode.toUpperCase();
-        const response = await this.swapPrivateGetV3PositionLeverages(this.extend(request, params));
+        const response = await this.swapPrivateGetV3PositionLeverages(this.extend(request, paramsMarginMode));
         //
         //  for one-way mode:
         //
@@ -3350,7 +3380,7 @@ class poloniex extends poloniex$1["default"] {
         let marginMode = undefined;
         const data = this.safeList(leverage, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict(data, i);
             marketId = this.safeString(entry, 'symbol');
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower
@@ -3415,7 +3445,10 @@ class poloniex extends poloniex$1["default"] {
      * @returns {object} response from the exchange
      */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
-        const mode = hedged ? 'HEDGE' : 'ONE_WAY';
+        let mode = 'ONE_WAY';
+        if (hedged) {
+            mode = 'HEDGE';
+        }
         const request = {
             'posMode': mode,
         };
@@ -3441,7 +3474,7 @@ class poloniex extends poloniex$1["default"] {
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.swapPrivateGetV3TradePositionOpens(params);
         //
         //    {
@@ -3479,7 +3512,7 @@ class poloniex extends poloniex$1["default"] {
         //    }
         //
         const positions = this.safeList(response, 'data', []);
-        return this.parsePositions(positions, symbols);
+        return this.parsePositions(positions, symbolsNormalized);
     }
     parsePosition(position, market = undefined) {
         //
@@ -3512,7 +3545,7 @@ class poloniex extends poloniex$1["default"] {
         //            }
         //
         const marketId = this.safeString(position, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(position, 'cTime');
         const marginMode = this.safeStringLower(position, 'mgnMode');
         const leverage = this.safeString(position, 'lever');
@@ -3525,7 +3558,7 @@ class poloniex extends poloniex$1["default"] {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'notional': notional,
             'marginMode': marginMode,
             'liquidationPrice': this.safeNumber(position, 'liqPx'),
@@ -3555,10 +3588,10 @@ class poloniex extends poloniex$1["default"] {
     async modifyMarginHelper(symbol, amount, type, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        amount = this.amountToPrecision(symbol, amount);
+        let amountResolved = this.amountToPrecision(symbol, amount);
         const request = {
             'symbol': market['id'],
-            'amt': Precise["default"].stringAbs(amount),
+            'amt': Precise["default"].stringAbs(amountResolved),
             'type': type.toUpperCase(), // 'ADD' or 'REDUCE'
         };
         // todo: hedged handling, tricky
@@ -3580,19 +3613,19 @@ class poloniex extends poloniex$1["default"] {
         // }
         //
         if (type === 'reduce') {
-            amount = Precise["default"].stringAbs(amount);
+            amountResolved = Precise["default"].stringAbs(amountResolved);
         }
         const data = this.safeDict(response, 'data');
         return this.parseMarginModification(data, market);
     }
     parseMarginModification(data, market = undefined) {
         const marketId = this.safeString(data, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const rawType = this.safeString(data, 'type');
         const type = (rawType === 'ADD') ? 'add' : 'reduce';
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'marginMode': undefined,
             'amount': this.safeNumber(data, 'amt'),
@@ -3640,6 +3673,8 @@ class poloniex extends poloniex$1["default"] {
         }
         const query = this.omit(params, this.extractParams(path));
         const implodedPath = this.implodeParams(path, params);
+        let bodyJson = undefined;
+        let signedHeaders = undefined;
         if (api === 'public' || api === 'swapPublic') {
             url += '/' + implodedPath;
             if (Object.keys(query).length > 0) {
@@ -3655,8 +3690,8 @@ class poloniex extends poloniex$1["default"] {
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 auth += "\n"; // eslint-disable-line quotes
                 if (Object.keys(query).length > 0) {
-                    body = this.json(query);
-                    auth += 'requestBody=' + body + '&';
+                    bodyJson = this.json(query);
+                    auth += 'requestBody=' + bodyJson + '&';
                 }
                 auth += 'signTimestamp=' + timestamp;
             }
@@ -3669,14 +3704,16 @@ class poloniex extends poloniex$1["default"] {
                 }
             }
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256, 'base64');
-            headers = {
+            signedHeaders = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
                 'signTimestamp': timestamp,
                 'signature': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = (bodyJson === undefined) ? body : bodyJson;
+        const headersResolved = (signedHeaders === undefined) ? headers : signedHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

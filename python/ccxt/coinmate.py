@@ -397,6 +397,8 @@ class coinmate(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'secondCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -538,7 +540,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_ticker(data, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -550,7 +552,7 @@ class coinmate(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = self.publicGetTickerAll(params)
         #
         #     {
@@ -578,7 +580,7 @@ class coinmate(Exchange, ImplicitAPI):
             market = self.market(keys[i])
             ticker = self.parse_ticker(self.safe_value(data, keys[i]), market)
             result[market['symbol']] = ticker
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -730,7 +732,7 @@ class coinmate(Exchange, ImplicitAPI):
             },
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -748,7 +750,7 @@ class coinmate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         if self.markets is None:
             self.load_markets()
@@ -763,9 +765,9 @@ class coinmate(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
             'address': address,
         }
-        if tag is not None:
-            request['destinationTag'] = tag
-        requestParams = self.extend(request, params)
+        if tagWithdrawTag is not None:
+            request['destinationTag'] = tagWithdrawTag
+        requestParams = self.extend(request, paramsWithdrawTag)
         response = None
         if method == 'privatePostBitcoinWithdrawal':
             response = self.privatePostBitcoinWithdrawal(requestParams)
@@ -803,7 +805,7 @@ class coinmate(Exchange, ImplicitAPI):
             transaction['amount'] = amount
             transaction['currency'] = code
             transaction['address'] = address
-            transaction['tag'] = tag
+            transaction['tag'] = tagWithdrawTag
             transaction['type'] = 'withdrawal'
             transaction['status'] = 'pending'
         return transaction
@@ -822,10 +824,9 @@ class coinmate(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        if limit is None:
-            limit = 1000
+        limitResolved = 1000 if (limit is None) else limit
         request = {
-            'limit': limit,
+            'limit': limitResolved,
         }
         if symbol is not None:
             market = self.market(symbol)
@@ -834,7 +835,7 @@ class coinmate(Exchange, ImplicitAPI):
             request['timestampFrom'] = since
         response = self.privatePostTradeHistory(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
-        return self.parse_trades(data, None, since, limit)
+        return self.parse_trades(data, None, since, limitResolved)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -865,7 +866,7 @@ class coinmate(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(trade, 'currencyPair')
-        market = self.safe_market(marketId, market, '_')
+        marketResolved = self.safe_market(marketId, market, '_')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         side = self.safe_string_lower_2(trade, 'type', 'tradeType')
@@ -878,7 +879,7 @@ class coinmate(Exchange, ImplicitAPI):
         if feeCostString is not None:
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             }
         takerOrMaker = self.safe_string(trade, 'feeType')
         takerOrMaker = 'maker' if (takerOrMaker == 'MAKER') else 'taker'
@@ -887,7 +888,7 @@ class coinmate(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'side': side,
             'order': orderId,
@@ -896,7 +897,7 @@ class coinmate(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': None,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1227,8 +1228,13 @@ class coinmate(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = (self.urls['api'])['rest'] + '/' + path
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        bodySigned = None
+        headersSigned = None
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + path
         if api == 'public':
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
@@ -1238,16 +1244,18 @@ class coinmate(Exchange, ImplicitAPI):
             nonce = str(self.incrementing_nonce())
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            body = self.urlencode(self.extend({
+            bodySigned = self.urlencode(self.extend({
                 'clientId': self.uid,
                 'nonce': nonce,
                 'publicKey': self.apiKey,
                 'signature': signature.upper(),
             }, params))
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        headersResolved = headers if (headersSigned is None) else headersSigned
+        bodyResolved = body if (bodySigned is None) else bodySigned
+        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

@@ -8,6 +8,24 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchTradingFees": [
+            {
+                "description": "fetch trading fees for all markets",
+                "method": "fetchTradingFees",
+                "url": "https://test-api.pacifica.fi/api/v1/account?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch USDC deposits from balance history",
+                "method": "fetchDeposits",
+                "url": "https://test-api.pacifica.fi/api/v1/account/balance/history?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOpenInterests": [
             {
                 "description": "open interest for all markets",
@@ -91,8 +109,8 @@
                 "url": "https://test-api.pacifica.fi/api/v1/orders/batch",
                 "input": [
                     [
-                        241524077,
-                        241567560
+                        "241524077",
+                        "241567560"
                     ],
                     "BTC/USDC:USDC",
                     {}
@@ -133,7 +151,7 @@
                 "method": "editOrder",
                 "url": "https://test-api.pacifica.fi/api/v1/orders/edit",
                 "input": [
-                    241146145,
+                    "241146145",
                     "BTC/USDC:USDC",
                     "null",
                     "null",

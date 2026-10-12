@@ -313,7 +313,7 @@ export default class coincheck extends Exchange {
         let status = 'ok';
         let updated = undefined;
         for (let i = 0; i < exchangeStatuses.length; i++) {
-            const exchangeStatus = exchangeStatuses[i];
+            const exchangeStatus = this.safeDict(exchangeStatuses, i);
             const rawStatus = this.safeString(exchangeStatus, 'status');
             if (updated === undefined) {
                 updated = this.safeTimestamp(exchangeStatus, 'timestamp');
@@ -550,10 +550,10 @@ export default class coincheck extends Exchange {
         const id = this.safeString(trade, 'id');
         const priceString = this.safeString(trade, 'rate');
         const marketId = this.safeString(trade, 'pair');
-        market = this.safeMarket(marketId, market, '_');
-        const baseId = market['baseId'];
-        const quoteId = market['quoteId'];
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, '_');
+        const baseId = marketResolved['baseId'];
+        const quoteId = marketResolved['quoteId'];
+        const symbol = marketResolved['symbol'];
         let takerOrMaker = undefined;
         let amountString = undefined;
         let costString = undefined;
@@ -595,7 +595,7 @@ export default class coincheck extends Exchange {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -760,7 +760,6 @@ export default class coincheck extends Exchange {
             }
             else {
                 const cost = this.safeNumber(params, 'cost');
-                params = this.omit(params, 'cost');
                 if (cost !== undefined) {
                     throw new ArgumentsRequired(this.id + ' createOrder() : you should use "cost" parameter instead of "amount" argument to create market buy orders');
                 }
@@ -772,7 +771,7 @@ export default class coincheck extends Exchange {
             request['rate'] = price;
             request['amount'] = amount;
         }
-        const response = await this.privatePostExchangeOrders(this.extend(request, params));
+        const response = await this.privatePostExchangeOrders(this.extend(request, this.omit(params, 'cost')));
         const id = this.safeString(response, 'id');
         return this.safeOrder({
             'id': id,
@@ -984,7 +983,13 @@ export default class coincheck extends Exchange {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/' + this.implodeParams(path, params);
+        let bodySigned = undefined;
+        let headersSigned = undefined;
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
             if (Object.keys(query).length > 0) {
@@ -1002,19 +1007,21 @@ export default class coincheck extends Exchange {
             }
             else {
                 if (Object.keys(query).length > 0) {
-                    body = this.urlencode(this.keysort(query));
-                    queryString = body;
+                    bodySigned = this.urlencode(this.keysort(query));
+                    queryString = bodySigned;
                 }
             }
             const auth = nonce + url + queryString;
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha256),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
