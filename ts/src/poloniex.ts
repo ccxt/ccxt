@@ -6,7 +6,7 @@ import Exchange from './abstract/poloniex.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, RateLimitExceeded, MarketClosed, OperationRejected, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2129,14 +2129,14 @@ export default class poloniex extends Exchange {
         const ordersRequests = [];
         const ordersMarkets = [];
         let market = undefined;
-        let isContract: Bool = false;
+        let isContract = false;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol: string = rawOrder['symbol'];
             const marketInner = this.market (symbol);
             if (market === undefined) {
                 market = marketInner;
-                isContract = marketInner['contract'];
+                isContract = (marketInner['contract'] === true);
             } else if (market['type'] !== marketInner['type']) {
                 throw new BadRequest (this.id + ' createOrders() requires all orders to be of the same market type, either spot or swap');
             }
@@ -2421,10 +2421,9 @@ export default class poloniex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
-        const clientOrderIds = this.safeList2 (params, 'clientOrderIds', 'clOrdIds');
-        params = this.omit (params, [ 'clientOrderIds', 'clOrdIds' ]);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
+        const clientOrderIds = this.safeList2 (paramsMarketType, 'clientOrderIds', 'clOrdIds');
+        const query = this.omit (paramsMarketType, [ 'clientOrderIds', 'clOrdIds' ]);
         const request: Dict = {};
         const idsLength = ids.length;
         if (marketType !== 'spot') {
@@ -2438,7 +2437,7 @@ export default class poloniex extends Exchange {
             } else if (clientOrderIds !== undefined) {
                 request['clOrdIds'] = clientOrderIds;
             }
-            const responseRaw = await this.swapPrivateDeleteV3TradeBatchOrders (this.extend (request, params));
+            const responseRaw = await this.swapPrivateDeleteV3TradeBatchOrders (this.extend (request, query));
             //
             //     {
             //         "code": 200,
@@ -2458,7 +2457,7 @@ export default class poloniex extends Exchange {
         if (clientOrderIds !== undefined) {
             request['clientOrderIds'] = clientOrderIds;
         }
-        const response = await this.privateDeleteOrdersCancelByIds (this.extend (request, params));
+        const response = await this.privateDeleteOrdersCancelByIds (this.extend (request, query));
         //
         //     [
         //         { "orderId": "123456789", "clientOrderId": "", "state": "PENDING_CANCEL", "code": 200, "message": "" }
