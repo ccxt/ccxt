@@ -956,6 +956,7 @@ func AppendToArray(slicePtr *any, element any) {
 // without reflection
 func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 	stringOrInt = derefScalar(stringOrInt)
+	isUndefined := value == nil
 	value = derefScalar(value)
 
 	switch obj := arrayOrDict.(type) {
@@ -1128,8 +1129,8 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 					} else if valueVal.Type().ConvertibleTo(fieldType) {
 						field.Set(valueVal.Convert(fieldType))
 					}
-				} else {
-					// assigning undefined clears the field, as in JS
+				} else if isUndefined {
+					// a literal undefined clears the field; a typed-nil Safe* result stays a no-op
 					field.Set(reflect.Zero(field.Type()))
 				}
 			}
