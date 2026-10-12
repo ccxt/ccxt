@@ -2464,7 +2464,13 @@ public class Mexc extends MexcApi
                 //         ]
                 //     }
                 //
-                tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                if (Boolean.TRUE.equals(isSingularMarket))
+                {
+                    tickers = this.safeDict(response, "data", new HashMap<String, Object>() {{}}); // when queried with a symbol, "data" holds a single ticker object, like in fetchTicker
+                } else
+                {
+                    tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                }
             }
             // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
             if (Boolean.TRUE.equals(isSingularMarket))
@@ -5562,7 +5568,8 @@ public class Mexc extends MexcApi
         //        coin: "USDT",
         //        network: "BNB Smart Chain(BEP20)",
         //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //        memo:  null
+        //        memo:  null,
+        //        netWork: "BSC"
         //    }
         //
         String address = this.safeString(depositAddress, "address");
@@ -5629,7 +5636,8 @@ public class Mexc extends MexcApi
             //            coin: "USDT",
             //            network: "BNB Smart Chain(BEP20)",
             //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-            //            memo:  null
+            //            memo:  null,
+            //            netWork: "BSC"
             //        }
             //        ...
             //    ]
@@ -5810,7 +5818,7 @@ public class Mexc extends MexcApi
             //         "memo": "xxyy1122",
             //         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
             //         "updateTime": "1664805621000",
-            //         "netWork: "TRX"
+            //         "netWork": "TRX"
             //     }
             // ]
             //
@@ -5878,7 +5886,7 @@ public class Mexc extends MexcApi
             //       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
             //       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
             //       "updateTime": "1664882799000",
-            //       "netWork: "MATIC"
+            //       "netWork": "MATIC"
             //     }
             // ]
             //
@@ -5905,7 +5913,7 @@ public class Mexc extends MexcApi
         //     "memo": "xxyy1122",
         //     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //     "updateTime": "1664805621000",
-        //     "netWork: "TRX"
+        //     "netWork": "TRX"
         // }
         //
         // fetchWithdrawals
@@ -5927,7 +5935,7 @@ public class Mexc extends MexcApi
         //     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "updateTime": "1664882799000",
-        //     "netWork: "MATIC"
+        //     "netWork": "MATIC"
         //   }
         //
         // withdraw
