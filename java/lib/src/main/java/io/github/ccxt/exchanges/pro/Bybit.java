@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import io.github.ccxt.types.Pair;
 
 public class Bybit extends io.github.ccxt.exchanges.Bybit
 {
@@ -229,7 +230,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 type = this.safeString(market, "type");
             } else
             {
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodValue, (Map<String, Object>) null, parameters, (String) null);
+                Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodValue, (Map<String, Object>) null, parameters, (String) null);
                 String marketType = marketTypeparamsMarketTypeVariable.first();
                 Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
                 type = marketType;
@@ -1598,7 +1599,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 put( "usdc", "user.openapi.perp.trade" );
             }};
             String topic = this.safeString(topicByMarket, this.getPrivateType(url));
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
+            Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
             Boolean executionFast = executionFastparamsExecutionFastVariable.first();
             Map<String, Object> paramsExecutionFast = executionFastparamsExecutionFastVariable.second();
             if (Boolean.TRUE.equals(executionFast))
@@ -1652,7 +1653,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 put( "usdc", "user.openapi.perp.trade" );
             }};
             String topic = this.safeString(topicByMarket, this.getPrivateType(url));
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
+            Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
             Boolean executionFast = executionFastparamsExecutionFastVariable.first();
             Map<String, Object> paramsExecutionFast = executionFastparamsExecutionFastVariable.second();
             if (Boolean.TRUE.equals(executionFast))
@@ -2082,7 +2083,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String url = (this.getUrlByMarketType(symbolValue, false, "watchLiquidations", parameters)).join();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.cleanParams((Map<String, Object>) (parameters))), "watchLiquidations", "method", "allLiquidation");
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.cleanParams((Map<String, Object>) (parameters))), "watchLiquidations", "method", "allLiquidation");
             String method = methodparamsMethodVariable.first();
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             String messageHash = ("liquidations::" + symbolValue);
@@ -2461,10 +2462,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             String method = "watchBalance";
             String messageHash = "balances";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Object unified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();

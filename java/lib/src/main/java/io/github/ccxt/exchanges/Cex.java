@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import io.github.ccxt.types.Pair;
 
 public class Cex extends CexApi
 {
@@ -926,7 +927,7 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> dataTypeparamsDataTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "dataType", (String) null);
+            Pair<String, Map<String, Object>> dataTypeparamsDataTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "dataType", (String) null);
             String dataType = dataTypeparamsDataTypeVariable.first();
             Map<String, Object> paramsDataType = dataTypeparamsDataTypeVariable.second();
             if (java.util.Objects.equals(dataType, null))
@@ -1527,7 +1528,7 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "accountId", (String) null);
+            Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "accountId", (String) null);
             String accountId = accountIdparamsAccountIdVariable.first();
             Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
             if (java.util.Objects.equals(accountId, null))
@@ -1549,7 +1550,7 @@ public class Cex extends CexApi
             request.put("side", ((String)side).toUpperCase());
             request.put("timestamp", this.milliseconds());
             request.put("amountCcy1", this.amountToPrecision(symbol, amount));
-            io.github.ccxt.base.Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsAccountId), "createOrder", "timeInForce", "GTC");
+            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsAccountId), "createOrder", "timeInForce", "GTC");
             String timeInForce = timeInForceparamsTimeInForceVariable.first();
             Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
             if (java.util.Objects.equals(type, "limit"))
@@ -2098,7 +2099,7 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "accountId", (String) null);
+            Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "accountId", (String) null);
             String accountId = accountIdparamsAccountIdVariable.first();
             Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
             if (java.util.Objects.equals(accountId, null))
