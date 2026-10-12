@@ -2328,7 +2328,12 @@ public class Okx extends OkxApi
                         put( "trailing", true );
                         put( "iceberg", true );
                         put( "leverage", false );
-                        put( "selfTradePrevention", true );
+                        put( "selfTradePrevention", new HashMap<String, Object>() {{
+                            put( "EXPIRE_MAKER", true );
+                            put( "EXPIRE_TAKER", true );
+                            put( "EXPIRE_BOTH", true );
+                            put( "NONE", false );
+                        }} );
                         put( "marketBuyByCost", true );
                         put( "marketBuyRequiresPrice", false );
                     }} );
@@ -4723,6 +4728,36 @@ public class Okx extends OkxApi
                 request.put("slTriggerPxType", slTriggerPxType);
             }
         }
+        // unified stp
+        Object selfTradePrevention = null;
+        List<Object> selfTradePreventionorderParamsVariable = (List<Object>) this.handleOptionAndParams(orderParams, "createOrder", "selfTradePrevention", (Object) null);
+        selfTradePrevention = ((List<Object>) selfTradePreventionorderParamsVariable).get(0);
+        orderParams = ((List<Object>) selfTradePreventionorderParamsVariable).get(1);
+        if (!java.util.Objects.equals(selfTradePrevention, null))
+        {
+            Map<String, Object> stpModes = new HashMap<String, Object>() {{
+                put( "EXPIRE_MAKER", "cancel_maker" );
+                put( "EXPIRE_TAKER", "cancel_taker" );
+                put( "EXPIRE_BOTH", "cancel_both" );
+            }};
+            String selfTradePreventionUpper = ((String)selfTradePrevention).toUpperCase();
+            if (java.util.Objects.equals(selfTradePreventionUpper, "NONE"))
+            {
+                throw new NotSupported((this.id + " createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order")) ;
+            }
+            String stpMode = this.safeString(stpModes, selfTradePreventionUpper, ((String)selfTradePrevention).toLowerCase());
+            Map<String, Object> algoOrderTypes = (Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
+            String requestOrdType = this.safeString(request, "ordType");
+            if ((!java.util.Objects.equals(requestOrdType, null)) && (algoOrderTypes.containsKey(requestOrdType)))
+            {
+                throw new NotSupported((this.id + " createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint")) ;
+            }
+            if ((java.util.Objects.equals(stpMode, "cancel_both")) && (java.util.Objects.equals(requestOrdType, "fok")))
+            {
+                throw new InvalidOrder((this.id + " createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders")) ;
+            }
+            request.put("stpMode", stpMode);
+        }
         if (java.util.Objects.equals(clientOrderId, null))
         {
             String brokerId = this.safeString(this.options, "brokerId");
@@ -4769,6 +4804,7 @@ public class Okx extends OkxApi
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
      * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
      * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
+     * @param {string} [params.selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)

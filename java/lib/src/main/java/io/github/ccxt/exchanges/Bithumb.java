@@ -1081,20 +1081,7 @@ public class Bithumb extends BithumbApi
         String marketId = this.safeString(ticker, "market");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String close = this.safeString2(ticker, "closing_price", "trade_price");
-        String change = this.safeString2(ticker, "signed_change_price", "change_price");
-        String percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
         String open = this.safeString(ticker, "opening_price");
-        Object nonZeroOpen = this.omitZero(open);
-        if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(nonZeroOpen, null)) && (!java.util.Objects.equals(close, null)))
-        {
-            String computedChange = Precise.stringSub(close, open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if ((!java.util.Objects.equals(change, null)) && Precise.stringEq(change, "0") && !Precise.stringEq(computedChange, "0"))
-            {
-                change = computedChange;
-                percentage = null;
-            }
-        }
         String high = this.safeString2(ticker, "max_price", "high_price");
         String low = this.safeString2(ticker, "min_price", "low_price");
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -1121,8 +1108,8 @@ public class Bithumb extends BithumbApi
         mapLiteral2.put("close", close);
         mapLiteral2.put("last", close);
         mapLiteral2.put("previousClose", this.safeString(ticker, "prev_closing_price"));
-        mapLiteral2.put("change", change);
-        mapLiteral2.put("percentage", percentage);
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", null);
         mapLiteral2.put("average", null);
         mapLiteral2.put("baseVolume", this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h"));
         mapLiteral2.put("quoteVolume", this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h"));

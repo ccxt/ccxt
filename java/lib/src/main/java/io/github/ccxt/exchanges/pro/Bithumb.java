@@ -421,8 +421,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         mapLiteral2.put("close", this.safeString(ticker, "closePrice"));
         mapLiteral2.put("last", null);
         mapLiteral2.put("previousClose", this.safeString(ticker, "prevClosePrice"));
-        mapLiteral2.put("change", this.safeString(ticker, "chgAmt"));
-        mapLiteral2.put("percentage", this.safeString(ticker, "chgRate"));
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", null);
         mapLiteral2.put("average", null);
         mapLiteral2.put("baseVolume", this.safeString(ticker, "volume"));
         mapLiteral2.put("quoteVolume", this.safeString(ticker, "value"));
