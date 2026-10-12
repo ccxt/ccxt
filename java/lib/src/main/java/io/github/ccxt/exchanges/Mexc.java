@@ -2595,6 +2595,20 @@ public class Mexc extends MexcApi
             ask = this.safeString(ticker, "ask1");
             baseVolume = this.safeString(ticker, "volume24");
             quoteVolume = this.safeString(ticker, "amount24");
+            String contractSize = this.safeString(marketResolved, "contractSize");
+            if ((java.util.Objects.equals(isSwap, true)) && (!java.util.Objects.equals(contractSize, null)))
+            {
+                // volume24 counts contracts, amount24 is in the settle currency
+                String contractVolume = Precise.stringMul(baseVolume, contractSize);
+                if (java.util.Objects.equals(marketResolved.get("inverse"), true))
+                {
+                    baseVolume = quoteVolume;
+                    quoteVolume = contractVolume;
+                } else
+                {
+                    baseVolume = contractVolume;
+                }
+            }
             high = this.safeString(ticker, "high24Price");
             low = this.safeString(ticker, "lower24Price");
             changeValue = this.safeString(ticker, "riseFallValue");

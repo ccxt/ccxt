@@ -1512,6 +1512,7 @@ public class Hyperliquid extends HyperliquidApi
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object[]} an array of objects representing market data
      */
     public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
@@ -1519,9 +1520,19 @@ public class Hyperliquid extends HyperliquidApi
 
         return BaseExchange.supplyAsync(() -> {
 
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "metaAndAssetCtxs" );
             }};
+            String dexName = this.getDexFromSymbols("fetchFundingRates", symbolsNormalized);
+            if (!java.util.Objects.equals(dexName, null))
+            {
+                request.put("dex", dexName);
+            }
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             //
             //     [
@@ -1563,7 +1574,7 @@ public class Hyperliquid extends HyperliquidApi
                 Map<String, Object> data = this.extend(this.safeDict(universe, i, new HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, i, new HashMap<String, Object>() {{}}));
                 ((List<Object>)result).add(data);
             }
-            return this.parseFundingRates(result, symbols);
+            return this.parseFundingRates(result, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -4500,21 +4511,17 @@ public class Hyperliquid extends HyperliquidApi
         {
             return null;
         }
-        String dexName = null;
-        for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+        // the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
+        // so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
+        Map<String, Object> firstMarket = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
+        String dexName = this.getDexFromHip3Symbol((Map<String, Object>) (firstMarket));
+        for (var i = 1; (symbolsLength != null && i < symbolsLength); i++)
         {
-            if (java.util.Objects.equals(dexName, null))
+            Map<String, Object> market = this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
+            String currentDexName = this.getDexFromHip3Symbol((Map<String, Object>) (market));
+            if (!java.util.Objects.equals(currentDexName, dexName))
             {
-                Map<String, Object> market = this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
-                dexName = this.getDexFromHip3Symbol((Map<String, Object>) (market));
-            } else
-            {
-                Map<String, Object> market = this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
-                String currentDexName = this.getDexFromHip3Symbol((Map<String, Object>) (market));
-                if (!java.util.Objects.equals(currentDexName, dexName))
-                {
-                    throw new NotSupported((((this.id + " ") + methodName) + " only supports fetching positions for one DEX at a time for HIP3 markets")) ;
-                }
+                throw new NotSupported((((this.id + " ") + methodName) + " only supports symbols from one DEX at a time for HIP3 markets")) ;
             }
         }
         return dexName;
@@ -5657,6 +5664,7 @@ public class Hyperliquid extends HyperliquidApi
      * @description Retrieves the open interest for a list of symbols
      * @param {string[]} [symbols] Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
+     * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> parameters)
@@ -5669,7 +5677,13 @@ public class Hyperliquid extends HyperliquidApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Object swapMarkets = (this.fetchSwapMarkets(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            String dexName = this.getDexFromSymbols("fetchOpenInterests", symbolsNormalized);
+            if (!java.util.Objects.equals(dexName, null))
+            {
+                request.put("dex", dexName);
+            }
+            Object swapMarkets = (this.fetchSwapMarkets(this.extend(request, parameters))).join();
             return this.parseOpenInterests(swapMarkets, symbolsNormalized);
         }).thenApply(OpenInterests::new);
 

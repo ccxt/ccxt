@@ -1592,6 +1592,28 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             String url = this.getUrl(depth, "public");
+            Client client = this.client(url);
+            List<Object> resyncTopics = new ArrayList<Object>(Arrays.asList());
+            List<String> resyncHashes = new ArrayList<String>(Arrays.asList());
+            Boolean resyncNeeded = false;
+            for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+            {
+                if (java.util.Objects.equals(this.safeString(client.subscriptions, (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))), "resync"))
+                {
+                    // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+                    ((List<Object>)resyncTopics).add((topics == null || i < 0 || i >= topics.size() ? null : topics.get(i)));
+                    resyncHashes.add(("unsubscribe:orderbook:" + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
+                    resyncNeeded = true;
+                }
+            }
+            if (Boolean.TRUE.equals(resyncNeeded))
+            {
+                Map<String, Object> unsubscribeRequest = new HashMap<String, Object>() {{
+                    put( "op", "unsubscribe" );
+                    put( "args", resyncTopics );
+                }};
+                (this.watchMultiple((String) (url), resyncHashes, unsubscribeRequest, resyncHashes, null)).join();
+            }
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
@@ -1897,8 +1919,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     this.handleOrderBookMessage(client, (Map<String, Object>) (update), orderbook, messageHash, market);
                     if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                     {
-                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
-                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        ((Map)client.subscriptions).put(messageHash, "resync");
                         break;
                     }
                     client.resolve(orderbook, messageHash);

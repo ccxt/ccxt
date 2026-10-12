@@ -5647,6 +5647,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
+        Boolean postOnly = (java.util.Objects.equals(orderType, "limit_maker")) || (java.util.Objects.equals(timeInForce, "PO"));
         HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
         mapLiteral11.put("info", order);
         mapLiteral11.put("symbol", symbol);
@@ -5658,7 +5659,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         mapLiteral11.put("lastUpdateTimestamp", lastUpdateTimestamp);
         mapLiteral11.put("type", this.parseOrderTypeByMarket((String) (orderType), marketType));
         mapLiteral11.put("timeInForce", timeInForce);
-        mapLiteral11.put("postOnly", null);
+        mapLiteral11.put("postOnly", postOnly);
         mapLiteral11.put("reduceOnly", this.safeBool(order, "R", (Object) null));
         mapLiteral11.put("side", this.safeStringLower(order, "S"));
         mapLiteral11.put("price", this.safeString(order, "p"));

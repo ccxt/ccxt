@@ -3166,9 +3166,11 @@ public class Paradex extends ParadexApi
             //                 "realized_pnl": "0",
             //                 "unrealized_pnl": "-2.39677214",
             //                 "unrealized_funding_pnl": "-0.11214013",
+            //                 "leverage": "5",
             //                 "cost": "648.39960537",
             //                 "cost_usd": "648.529",
             //                 "cached_funding_index": "35202.1002351",
+            //                 "created_at": 1718947571560,
             //                 "last_updated_at": 1718950074249,
             //                 "last_fill_id": "1718947571560201703986670001",
             //                 "seq_no": 1718950074249176253,
@@ -3197,9 +3199,11 @@ public class Paradex extends ParadexApi
         //         "realized_pnl": "0",
         //         "unrealized_pnl": "-2.39677214",
         //         "unrealized_funding_pnl": "-0.11214013",
+        //         "leverage": "5",
         //         "cost": "648.39960537",
         //         "cost_usd": "648.529",
         //         "cached_funding_index": "35202.1002351",
+        //         "created_at": 1718947571560,
         //         "last_updated_at": 1718950074249,
         //         "last_fill_id": "1718947571560201703986670001",
         //         "seq_no": 1718950074249176253,
@@ -3210,38 +3214,38 @@ public class Paradex extends ParadexApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
         String side = this.safeStringLower(position, "side");
-        String quantity = this.safeString(position, "size");
-        if (!java.util.Objects.equals(side, "long"))
-        {
-            quantity = Precise.stringMul("-1", quantity);
-        }
-        Long timestamp = this.safeInteger(position, "time");
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        String quantity = Precise.stringAbs(this.safeString(position, "size"));
+        Long timestamp = this.safeInteger(position, "created_at");
         Double liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("info", position);
-        mapLiteral5.put("id", this.safeString(position, "id"));
-        mapLiteral5.put("symbol", symbol);
-        mapLiteral5.put("entryPrice", this.safeNumber(position, "average_entry_price", (Object) null));
-        mapLiteral5.put("markPrice", null);
-        mapLiteral5.put("notional", null);
-        mapLiteral5.put("collateral", this.safeNumber(position, "cost", (Object) null));
-        mapLiteral5.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("contracts", this.parseNumber(quantity));
-        mapLiteral5.put("contractSize", null);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("hedged", null);
-        mapLiteral5.put("maintenanceMargin", null);
-        mapLiteral5.put("maintenanceMarginPercentage", null);
-        mapLiteral5.put("initialMargin", null);
-        mapLiteral5.put("initialMarginPercentage", null);
-        mapLiteral5.put("leverage", null);
-        mapLiteral5.put("liquidationPrice", liquidationPrice);
-        mapLiteral5.put("marginRatio", null);
-        mapLiteral5.put("marginMode", null);
-        mapLiteral5.put("percentage", null);
-        return this.safePosition(mapLiteral5);
+        // cost_usd is signed by side, the unified notional is a magnitude
+        String notionalString = Precise.stringAbs(this.safeString(position, "cost_usd"));
+        return this.safePosition(new HashMap<String, Object>() {{
+            put( "info", position );
+            put( "id", Paradex.this.safeString(position, "id") );
+            put( "symbol", symbol );
+            put( "entryPrice", Paradex.this.safeNumber(position, "average_entry_price", (Object) null) );
+            put( "markPrice", null );
+            put( "notional", Paradex.this.parseNumber(notionalString) );
+            put( "collateral", null );
+            put( "unrealizedPnl", Paradex.this.safeNumber(position, "unrealized_pnl", (Object) null) );
+            put( "side", side );
+            put( "contracts", Paradex.this.parseNumber(quantity) );
+            put( "contractSize", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Paradex.this.iso8601(timestamp) );
+            put( "lastUpdateTimestamp", Paradex.this.safeInteger(position, "last_updated_at") );
+            put( "hedged", null );
+            put( "maintenanceMargin", null );
+            put( "maintenanceMarginPercentage", null );
+            put( "initialMargin", null );
+            put( "initialMarginPercentage", null );
+            put( "leverage", Paradex.this.safeNumber(position, "leverage", (Object) null) );
+            put( "liquidationPrice", liquidationPrice );
+            put( "marginRatio", null );
+            put( "marginMode", null );
+            put( "percentage", null );
+        }});
     }
 
     /**
