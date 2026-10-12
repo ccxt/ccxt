@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.poloniex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -50,13 +50,13 @@ class poloniex(Exchange, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': None,  # not yet implemented, because RL is worse than cancelOrder
+                'cancelOrders': True,
                 'createDepositAddress': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
-                'createOrders': None,  # not yet implemented, because RL is worse than createOrder
+                'createOrders': True,
                 'createStopOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
@@ -1754,6 +1754,10 @@ class poloniex(Exchange, ImplicitAPI):
         amount = self.safe_string_2(order, 'quantity', 'sz')
         filled = self.safe_string_2(order, 'filledQuantity', 'execQty')
         status = self.parse_order_status(self.safe_string(order, 'state'))
+        errorCode = self.safe_integer(order, 'code')
+        if (status is None) and (errorCode is not None) and (errorCode != 200):
+            # the batch endpoints report per-element failures with an error code instead of throwing
+            status = 'rejected'
         side = self.safe_string_lower(order, 'side')
         rawType = self.safe_string(order, 'type')
         type = self.parse_order_type(rawType)
@@ -2049,6 +2053,85 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
+    def create_orders(self, orders: list[OrderRequest], params={}):
+        """
+        create a list of trade orders, all orders must be of the same market type, either spot or swap
+
+        https://api-docs.poloniex.com/spot/api/private/order#create-multiple-orders
+        https://api-docs.poloniex.com/v3/futures/api/trade/place-multiple-orders
+
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint, applied to every order
+        :param str [params.marginMode]: *swap only* 'cross' or 'isolated', defaults to 'cross'
+        :param str [params.posSide]: *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        ordersMarkets = []
+        market = None
+        isContract = False
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            symbol = rawOrder['symbol']
+            marketInner = self.market(symbol)
+            if market is None:
+                market = marketInner
+                isContract = (marketInner['contract'] is True)
+            elif market['type'] != marketInner['type']:
+                raise BadRequest(self.id + ' createOrders() requires all orders to be of the same market type, either spot or swap')
+            type = rawOrder['type']
+            side = rawOrder['side']
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            # the request body is a bare list, so there is no room for common params - extend each order with them instead
+            extendedParams = self.extend(orderParams, params)
+            request = {
+                'symbol': marketInner['id'],
+                'side': self.safe_string_upper(rawOrder, 'side'),
+            }
+            request, extendedParams = self.order_request(symbol, type, side, amount, request, price, extendedParams)
+            merged = self.extend(request, extendedParams)
+            if isContract:
+                # unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
+                if not ('mgnMode' in merged):
+                    merged['mgnMode'] = 'CROSS'
+                if not ('posSide' in merged):
+                    merged['posSide'] = 'BOTH'
+            ordersRequests.append(merged)
+            ordersMarkets.append(marketInner)
+        data = []
+        if isContract:
+            response = self.swapPrivatePostV3TradeOrders(ordersRequests)
+            #
+            #     {
+            #         "code": 200,
+            #         "msg": "Success",
+            #         "data": [
+            #             { "code": 200, "msg": "", "ordId": "613155521545418752", "clOrdId": "batch-swap-1" },
+            #             { "code": 10014, "msg": "Order price exceeds the limit", "ordId": "", "clOrdId": "" }
+            #         ]
+            #     }
+            #
+            data = self.safe_list(response, 'data', [])
+        else:
+            #
+            #     [
+            #         { "id": "613155521545418752", "clientOrderId": "batch-1" },
+            #         { "code": 21709, "message": "Low available balance", "clientOrderId": "" }
+            #     ]
+            #
+            data = self.privatePostOrdersBatch(ordersRequests)
+        # the responses are positional, aligned with the submitted orders
+        results = []
+        dataLength = len(data)
+        for i in range(0, dataLength):
+            entry = data[i]
+            entryMarket = ordersMarkets[i]
+            results.append(self.parse_order(entry, entryMarket))
+        return results
+
     def order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: Num, request: dict, price: Num = None, params: dict = {}) -> list:
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
         market = self.market(symbol)
@@ -2226,6 +2309,62 @@ class poloniex(Exchange, ImplicitAPI):
         #   }
         #
         return self.parse_order(response)
+
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+        """
+        cancel multiple orders
+
+        https://api-docs.poloniex.com/spot/api/private/order#cancel-multiple-orders-by-ids
+        https://api-docs.poloniex.com/v3/futures/api/trade/cancel-multiple-orders
+
+        :param str[] ids: order ids
+        :param str [symbol]: unified market symbol, required for swap markets
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: alternative to ids, cancel by client order ids
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType, paramsMarketType = self.handle_market_type_and_params('cancelOrders', market, params)
+        clientOrderIds = self.safe_list_2(paramsMarketType, 'clientOrderIds', 'clOrdIds')
+        query = self.omit(paramsMarketType, ['clientOrderIds', 'clOrdIds'])
+        request = {}
+        idsLength = len(ids)
+        if marketType != 'spot':
+            if market is None:
+                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument for ' + marketType + ' markets')
+            request['symbol'] = market['id']
+            # the api ignores clOrdIds when ordIds are also present
+            if idsLength > 0:
+                request['ordIds'] = ids
+            elif clientOrderIds is not None:
+                request['clOrdIds'] = clientOrderIds
+            responseRaw = self.swapPrivateDeleteV3TradeBatchOrders(self.extend(request, query))
+            #
+            #     {
+            #         "code": 200,
+            #         "msg": "Success",
+            #         "data": [
+            #             { "code": "200", "msg": "Success", "ordId": "613143856837730304", "clOrdId": "" },
+            #             { "code": "11008", "msg": "ORDER_NOT_EXISTS", "ordId": "613144005890699264", "clOrdId": "" }
+            #         ]
+            #     }
+            #
+            data = self.safe_list(responseRaw, 'data', [])
+            return self.parse_orders(data, market)
+        if idsLength > 0:
+            request['orderIds'] = ids
+        if clientOrderIds is not None:
+            request['clientOrderIds'] = clientOrderIds
+        response = self.privateDeleteOrdersCancelByIds(self.extend(request, query))
+        #
+        #     [
+        #         { "orderId": "123456789", "clientOrderId": "", "state": "PENDING_CANCEL", "code": 200, "message": "" }
+        #     ]
+        #
+        return self.parse_orders(response, market)
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -3532,6 +3671,7 @@ class poloniex(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        isArray = isinstance(params, list)
         url = self.urls['api']['spot']
         if self.in_array(api, ['swapPublic', 'swapPrivate']):
             url = self.urls['api']['swap']
@@ -3553,7 +3693,7 @@ class poloniex(Exchange, ImplicitAPI):
             auth += '/' + implodedPath
             if (method == 'POST') or (method == 'PUT') or (method == 'DELETE'):
                 auth += "\n"  # eslint-disable-line quotes
-                if len(query) > 0:
+                if isArray or len(query) > 0:
                     bodyJson = self.json(query)
                     auth += 'requestBody=' + bodyJson + '&'
                 auth += 'signTimestamp=' + timestamp

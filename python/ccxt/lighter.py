@@ -3023,17 +3023,25 @@ class lighter(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        if (timeout < 300000) or (timeout > 1296000000):
-            raise BadRequest(self.id + ' timeout should be between 5 minutes and 15 days.')
+        if timeout is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrdersAfter() requires a timeout argument')
+        isScheduled = (timeout != 0)
+        if isScheduled and ((timeout < 300000) or (timeout > 1296000000)):
+            raise BadRequest(self.id + ' timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.')
         apiKeyIndex, paramsApiKeyIndex = self.handle_api_key_index(params, 'cancelOrder', 'apiKeyIndex', 'api_key_index')
         accountIndex, paramsAccountIndex = self.handle_account_index(paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         nonce = self.fetch_nonce(accountIndex, apiKeyIndex, paramsAccountIndex)
+        timeInForce = 2  # 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+        cancelTime = 0
+        if isScheduled:
+            timeInForce = 1
+            cancelTime = self.sum(self.milliseconds(), timeout)
         signRaw = {
-            'time_in_force': 1,  # 0: IMMEDIATE 1: SCHEDULED 2: ABORT
-            'time': self.milliseconds() + timeout,  # if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'time_in_force': timeInForce,
+            'time': cancelTime,
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,

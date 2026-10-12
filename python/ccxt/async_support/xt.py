@@ -1981,6 +1981,17 @@ class xt(Exchange, ImplicitAPI):
         percentage = self.safe_string_2(ticker, 'cr', 'r')
         if percentage is not None:
             percentage = Precise.string_mul(percentage, '100')
+        baseVolume = self.safe_string_2(ticker, 'a', 'q')
+        quoteVolume = self.safe_string(ticker, 'v')
+        contractSize = self.safe_string(marketResolved, 'contractSize')
+        if (marketResolved['contract'] is True) and (contractSize is not None):
+            # 'a' counts contracts, 'v' is in the settle currency
+            contractVolume = Precise.string_mul(baseVolume, contractSize)
+            if marketResolved['inverse'] is True:
+                baseVolume = quoteVolume
+                quoteVolume = contractVolume
+            else:
+                baseVolume = contractVolume
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1999,8 +2010,8 @@ class xt(Exchange, ImplicitAPI):
             'change': self.safe_number(ticker, 'cv'),
             'percentage': self.parse_number(percentage),
             'average': None,
-            'baseVolume': self.safe_number_2(ticker, 'a', 'q'),
-            'quoteVolume': self.safe_number(ticker, 'v'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, marketResolved)
 

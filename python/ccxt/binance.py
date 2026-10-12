@@ -6848,12 +6848,13 @@ class binance(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' parseOrder() returned empty response')
         return self.parse_order(response, market)
 
-    def generate_client_order_id(self, market: Market = None, api: Str = None) -> str:
+    def generate_client_order_id(self, market: Market = None, api: Str = None, path: Str = None) -> str:
         """
  @ignore
         builds a fresh client order id
-        :param dict [market]: the market of the order, takes precedence over the api argument
+        :param dict [market]: the market of the order, takes precedence over the other arguments
         :param str [api]: the implicit api section the order is sent to(private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+        :param str [path]: the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
         :returns str: the broker prefix followed by 22 random characters
         """
         idMarketType = None
@@ -6866,7 +6867,16 @@ class binance(Exchange, ImplicitAPI):
                 idMarketType = 'inverse'
             else:
                 idMarketType = 'spot'
-        elif api is not None:
+        if (idMarketType is None) and (path is not None):
+            if path.find('um/') == 0:
+                idMarketType = 'swap'
+            elif path.find('cm/') == 0:
+                idMarketType = 'inverse'
+            elif path.find('margin/') == 0:
+                idMarketType = 'margin'
+            elif path.find('equity/') == 0:
+                idMarketType = 'spot'
+        if (idMarketType is None) and (api is not None):
             isSpotOrMargin = (api.find('sapi') > -1 or api == 'private')
             if isSpotOrMargin:
                 idMarketType = 'spot'
@@ -6876,7 +6886,7 @@ class binance(Exchange, ImplicitAPI):
                 idMarketType = 'option'
             else:
                 idMarketType = 'future'
-        else:
+        if idMarketType is None:
             defaultType = self.safe_string(self.options, 'defaultType', 'spot')
             defaultSubType = self.safe_string(self.options, 'defaultSubType')
             idMarketType = defaultType
@@ -6892,6 +6902,67 @@ class binance(Exchange, ImplicitAPI):
         broker = self.safe_dict(self.options, 'broker', {})
         brokerId = self.safe_string(broker, idMarketType, defaultId)
         return brokerId + self.uuid22()
+
+    def handle_client_order_id(self, params: dict, api: Str, path: Str, method: Str) -> dict:
+        """
+ @ignore
+        :param dict params: request params
+        :param str api: the implicit api section the request is sent to
+        :param str path: the implicit api path the request is sent to
+        :param str method: HTTP method
+        :returns dict: params with the injected client order id
+        """
+        if method != 'POST':
+            return params
+        if (path == 'order') or (path == 'sor/order') or (path == 'order/cancelReplace') or (path == 'um/order') or (path == 'cm/order') or (path == 'margin/order'):
+            # the eapi order endpoint takes clientOrderId instead of newClientOrderId
+            clientOrderIdKey = 'clientOrderId' if (api == 'eapiPrivate') else 'newClientOrderId'
+            clientOrderId = self.safe_string_2(params, 'clientOrderId', 'newClientOrderId')
+            if clientOrderId is None:
+                params[clientOrderIdKey] = self.generate_client_order_id(None, api, path)
+        elif (path == 'algoOrder') or (path == 'um/algo/order'):
+            # the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
+            clientAlgoId = self.safe_string(params, 'clientAlgoId')
+            if clientAlgoId is None:
+                params['clientAlgoId'] = self.generate_client_order_id(None, api, path)
+        elif (path == 'cm/conditional/order') or (path == 'um/conditional/order'):
+            # the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
+            newClientStrategyId = self.safe_string(params, 'newClientStrategyId')
+            if newClientStrategyId is None:
+                params['newClientStrategyId'] = self.generate_client_order_id(None, api, path)
+        elif path == 'equity/order/place':
+            # the equity order endpoint takes clientOrderId instead of newClientOrderId
+            equityClientOrderId = self.safe_string(params, 'clientOrderId')
+            if equityClientOrderId is None:
+                params['clientOrderId'] = self.generate_client_order_id(None, api, path)
+        elif (path == 'order/oco') or (path == 'margin/order/oco') or (path == 'orderList/oco') or (path == 'orderList/oto') or (path == 'orderList/otoco') or (path == 'orderList/opo') or (path == 'orderList/opoco'):
+            # the order list endpoints take a listClientOrderId and one client order id per leg
+            clientOrderIdKeys = ['listClientOrderId', 'limitClientOrderId', 'stopClientOrderId']
+            if path == 'orderList/oco':
+                clientOrderIdKeys = ['listClientOrderId', 'aboveClientOrderId', 'belowClientOrderId']
+            elif (path == 'orderList/oto') or (path == 'orderList/opo'):
+                clientOrderIdKeys = ['listClientOrderId', 'workingClientOrderId', 'pendingClientOrderId']
+            elif (path == 'orderList/otoco') or (path == 'orderList/opoco'):
+                clientOrderIdKeys = ['listClientOrderId', 'workingClientOrderId', 'pendingAboveClientOrderId', 'pendingBelowClientOrderId']
+            for i in range(0, len(clientOrderIdKeys)):
+                currentClientOrderIdKey = clientOrderIdKeys[i]
+                currentClientOrderId = self.safe_string(params, currentClientOrderIdKey)
+                if currentClientOrderId is None:
+                    params[currentClientOrderIdKey] = self.generate_client_order_id(None, api, path)
+        elif path == 'batchOrders':
+            # the batch legs take the same client order id fields as the single order endpoints
+            if (api == 'fapiPrivate') or (api == 'dapiPrivate') or (api == 'eapiPrivate'):
+                batchClientOrderIdKey = 'clientOrderId' if (api == 'eapiPrivate') else 'newClientOrderId'
+                batchOrders = self.safe_list(params, 'batchOrders', [])
+                checkedBatchOrders = []
+                for i in range(0, len(batchOrders)):
+                    batchOrder = batchOrders[i]
+                    batchClientOrderId = self.safe_string(batchOrder, batchClientOrderIdKey)
+                    if batchClientOrderId is None:
+                        batchOrder[batchClientOrderIdKey] = self.generate_client_order_id(None, api, path)
+                    checkedBatchOrders.append(batchOrder)
+                params['batchOrders'] = checkedBatchOrders
+        return params
 
     def is_conditional_order(self, params: dict = {}) -> bool:
         """
@@ -7021,6 +7092,9 @@ class binance(Exchange, ImplicitAPI):
         if isAlgoOrder:
             clientOrderIdRequest = 'clientAlgoId'
         elif stock is True:
+            clientOrderIdRequest = 'clientOrderId'
+        elif market['option'] is True:
+            # the option api takes clientOrderId instead of newClientOrderId
             clientOrderIdRequest = 'clientOrderId'
         if clientOrderId is None:
             request[clientOrderIdRequest] = self.generate_client_order_id(market)
@@ -12429,39 +12503,20 @@ class binance(Exchange, ImplicitAPI):
             self.check_required_credentials()
             if (url.find('testnet.binancefuture.com') > -1) and self.isSandboxModeEnabled and (not self.safe_bool(self.options, 'disableFuturesSandboxWarning', False)):
                 raise NotSupported(self.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.')
-            if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
-                # inject in implicit API calls
-                newClientOrderId = self.safe_string(params, 'newClientOrderId')
-                if newClientOrderId is None:
-                    params['newClientOrderId'] = self.generate_client_order_id(None, api)
-            elif method == 'POST' and (path == 'algoOrder'):
-                # the fapi/dapi algo order endpoints take clientAlgoId instead of newClientOrderId
-                clientAlgoId = self.safe_string(params, 'clientAlgoId')
-                if clientAlgoId is None:
-                    params['clientAlgoId'] = self.generate_client_order_id(None, api)
+            requestParams = self.handle_client_order_id(params, api, path, method)
             query = None
             # handle batchOrders
             if (path == 'batchOrders') and ((method == 'POST') or (method == 'PUT')):
-                batchOrders = self.safe_list(params, 'batchOrders', [])
-                checkedBatchOrders = batchOrders
-                if method == 'POST' and ((api == 'fapiPrivate') or (api == 'dapiPrivate')):
-                    # check broker id if batchOrders are called with fapiPrivatePostBatchOrders / dapiPrivatePostBatchOrders
-                    checkedBatchOrders = []
-                    for i in range(0, len(batchOrders)):
-                        batchOrder = batchOrders[i]
-                        newClientOrderId = self.safe_string(batchOrder, 'newClientOrderId')
-                        if newClientOrderId is None:
-                            batchOrder['newClientOrderId'] = self.generate_client_order_id(None, api)
-                        checkedBatchOrders.append(batchOrder)
-                queryBatch = (self.json(checkedBatchOrders))
-                params['batchOrders'] = queryBatch
+                batchOrders = self.safe_list(requestParams, 'batchOrders', [])
+                queryBatch = (self.json(batchOrders))
+                requestParams['batchOrders'] = queryBatch
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
                 'timestamp': self.nonce(),
-            }, params)
+            }, requestParams)
             if defaultRecvWindow is not None:
                 extendedParams['recvWindow'] = defaultRecvWindow
-            recvWindow = self.safe_integer(params, 'recvWindow')
+            recvWindow = self.safe_integer(requestParams, 'recvWindow')
             if recvWindow is not None:
                 extendedParams['recvWindow'] = recvWindow
             if (api == 'sapi') and (path == 'asset/dust'):

@@ -736,7 +736,7 @@ class bingx(Exchange, ImplicitAPI):
                         'trailing': True,
                         'leverage': False,
                         'marketBuyRequiresPrice': False,
-                        'marketBuyByCost': False,
+                        'marketBuyByCost': True,
                         'selfTradePrevention': False,
                         'iceberg': False,
                     },
@@ -789,6 +789,9 @@ class bingx(Exchange, ImplicitAPI):
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
                     'sandbox': False,
+                    'createOrder': {
+                        'marketBuyByCost': False,
+                    },
                     'createOrders': None,
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -2975,7 +2978,7 @@ class bingx(Exchange, ImplicitAPI):
 
     def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}) -> Order:
         """
-        create a spot market order by providing the symbol, side and cost
+        create a spot or linear swap market order by providing the symbol, side and cost
         :param str symbol: unified symbol of the market to create an order in
         :param str side: 'buy' or 'sell'
         :param float cost: how much you want to trade in units of the quote currency
@@ -2987,7 +2990,7 @@ class bingx(Exchange, ImplicitAPI):
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
-        create a spot market buy order by providing the symbol and cost
+        create a spot or linear swap market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2998,7 +3001,7 @@ class bingx(Exchange, ImplicitAPI):
 
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
-        create a spot market sell order by providing the symbol and cost
+        create a spot or linear swap market sell order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3025,8 +3028,8 @@ class bingx(Exchange, ImplicitAPI):
         """
         market = self.market(symbol)
         cost = self.safe_string_2(params, 'cost', 'quoteOrderQty')
-        if (market['contract'] is True) and (cost is not None):
-            raise NotSupported(self.id + ' createOrder() with cost or quoteOrderQty is not supported for contract markets')
+        if (market['inverse'] is True) and (cost is not None):
+            raise NotSupported(self.id + ' createOrder() with cost or quoteOrderQty is not supported for inverse swap markets')
         marketType, paramsMarketType = self.handle_market_type_and_params('createOrder', market, params)
         typeValue = type.upper()
         request = {
@@ -3165,6 +3168,8 @@ class bingx(Exchange, ImplicitAPI):
                 if trailingTriggerPrice is not None:
                     request['activationPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, trailingTriggerPrice))
             if hasStopLoss or hasTakeProfit:
+                if cost is not None:
+                    raise InvalidOrder(self.id + ' createOrder() does not support attached stopLoss or takeProfit on a market order by cost')
                 stringifiedAmount = self.number_to_string(amount)
                 if hasStopLoss:
                     slTriggerPrice = self.safe_string_2(stopLossDict, 'triggerPrice', 'stopPrice')
@@ -3214,12 +3219,14 @@ class bingx(Exchange, ImplicitAPI):
                 positionSide = 'BOTH'
             request['positionSide'] = positionSide
             closePosition = self.safe_bool(paramsOrder, 'closePosition', False)
-            if closePosition is not True:
+            if cost is not None:
+                request['quoteOrderQty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
+            elif closePosition is not True:
                 amountReq = amount
                 if market['inverse'] is not True:
                     amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
                 request['quantity'] = amountReq  # precision not available for inverse contracts
-        paramsRequest = self.omit(paramsOrder, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId'])
+        paramsRequest = self.omit(paramsOrder, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId', 'cost', 'quoteOrderQty'])
         return self.extend(request, paramsRequest)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
@@ -3244,8 +3251,8 @@ class bingx(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: triggerPrice at which the attached take profit / stop loss order will be triggered
         :param float [params.stopLossPrice]: stop loss trigger price, a spot order is placed and parsed back with triggerPrice
         :param float [params.takeProfitPrice]: take profit trigger price, a spot order is placed and parsed back with triggerPrice
-        :param float [params.cost]: *spot only* the quote quantity that can be used as an alternative for the amount
-        :param float [params.quoteOrderQty]: *spot only* the quote quantity, an alternative to params.cost
+        :param float [params.cost]: *spot and linear swap only* the quote quantity that can be used as an alternative for the amount
+        :param float [params.quoteOrderQty]: *spot and linear swap only* the quote quantity, an alternative to params.cost
         :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
         :param float [params.trailingPercent]: *swap only* the percent to trail away from the current market price
         :param float [params.trailingTriggerPrice]: *swap only* the price to activate a trailing order at
