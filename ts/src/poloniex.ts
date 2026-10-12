@@ -2132,7 +2132,7 @@ export default class poloniex extends Exchange {
         let isContract: Bool = false;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const symbol = this.safeString (rawOrder, 'symbol');
+            const symbol: string = rawOrder['symbol'];
             const marketInner = this.market (symbol);
             if (market === undefined) {
                 market = marketInner;
@@ -2140,10 +2140,10 @@ export default class poloniex extends Exchange {
             } else if (market['type'] !== marketInner['type']) {
                 throw new BadRequest (this.id + ' createOrders() requires all orders to be of the same market type, either spot or swap');
             }
-            const type = this.safeString (rawOrder, 'type');
-            const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeString (rawOrder, 'amount');
-            const price = this.safeString (rawOrder, 'price');
+            const type: OrderType = rawOrder['type'];
+            const side: OrderSide = rawOrder['side'];
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             // the request body is a bare list, so there is no room for common params - extend each order with them instead
             let extendedParams = this.extend (orderParams, params);
