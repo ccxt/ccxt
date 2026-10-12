@@ -2924,7 +2924,7 @@ class whitebit(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2933,10 +2933,11 @@ class whitebit(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)  # check if it has canDeposit
@@ -2945,18 +2946,18 @@ class whitebit(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
             'address': address,
         }
-        uniqueId = self.safe_value(params, 'uniqueId')
+        uniqueId = self.safe_value(paramsWithdrawTag, 'uniqueId')
         if uniqueId is None:
             uniqueId = self.uuid22()
         request['uniqueId'] = uniqueId
         if tag is not None:
             request['memo'] = tag
         if self.is_fiat(code):
-            provider = self.safe_value(params, 'provider')
+            provider = self.safe_value(paramsWithdrawTag, 'provider')
             if provider is None:
                 raise ArgumentsRequired(self.id + ' withdraw() requires a provider when the ticker is fiat')
             request['provider'] = provider
-        response = await self.v4PrivatePostMainAccountWithdraw(self.extend(request, params))
+        response = await self.v4PrivatePostMainAccountWithdraw(self.extend(request, paramsWithdrawTag))
         #
         # empty array with a success status
         # go to deposit/withdraw history and check you request status by uniqueId

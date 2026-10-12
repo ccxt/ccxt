@@ -3403,7 +3403,7 @@ class BaseExchange(object):
         if proxyAgentIsSet and proxyUrlIsSet:
             raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
 
-    def check_address(self, address: Str = None):
+    def check_address(self, address: Str = None, code: Str = None, tag: Str = None):
         if address is None:
             raise InvalidAddress(self.id + ' address is None')
         # check the address is not the same letter like 'aaaaa' nor too short nor has a space
@@ -3411,6 +3411,11 @@ class BaseExchange(object):
         length = len(uniqChars)  # py transpiler trick
         if length == 1 or len(address) < self.minFundingAddressLength or address.find(' ') > -1:
             raise InvalidAddress(self.id + ' address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
+        if code is not None:
+            tagRequiredCurrencies = self.safe_list(self.options, 'withdrawTagRequiredCurrencies', [])
+            if self.in_array(code, tagRequiredCurrencies):
+                if tag is None:
+                    raise ArgumentsRequired(self.id + ' withdraw() requires params["tag"] for ' + code)
         return address
 
     def find_message_hashes(self, client: object, element: str):
@@ -3712,7 +3717,7 @@ class BaseExchange(object):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}):
         raise NotSupported(self.id + ' transfer() is not supported yet')
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}):
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
     def create_deposit_address(self, code: str, params: dict = {}):
@@ -4026,6 +4031,8 @@ class BaseExchange(object):
                 'ARBONE': 'ARBITRUM',
                 'ARBNOVA': 'ARBITRUM_NOVA',
             },
+            # native-chain withdrawals of these currencies may need a destination tag / memo
+            'withdrawTagRequiredCurrencies': ['XRP', 'XLM', 'EOS', 'ATOM', 'HBAR', 'TON', 'KAVA', 'STX', 'XEM', 'IOST', 'OSMO', 'WAXP'],
         }
 
     def safe_ledger_entry(self, entry: object, currency: Currency = None):
@@ -6530,19 +6537,6 @@ class BaseExchange(object):
                         return True
         return False
 
-    def handle_withdraw_tag_and_params(self, tag: object, params: dict):
-        paramsExtended = params
-        tagValue = tag
-        if self.is_dictionary(tag):
-            paramsExtended = self.extend(tag, params)
-            tagValue = None
-        tagResolved = self.safe_string(paramsExtended, 'tag') if (tagValue is None) else tagValue
-        tagFromParams = (tagValue is None) and (tagResolved is not None)
-        paramsOmitted = paramsExtended
-        if tagFromParams:
-            paramsOmitted = self.omit(paramsExtended, 'tag')
-        return [tagResolved, paramsOmitted]
-
     def cost_to_precision(self, symbol: Str, cost: object):
         if cost is None:
             return None
@@ -7874,14 +7868,14 @@ class BaseExchange(object):
         """
         raise NotSupported(self.id + ' unWatchOHLCV () is not supported yet')
 
-    def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}):
+    def withdraw_ws(self, code: str, amount: float, address: str, params: dict = {}):
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         raise NotSupported(self.id + ' withdrawWs () is not supported yet')

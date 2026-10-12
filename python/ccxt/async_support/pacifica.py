@@ -2719,7 +2719,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         return response
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal(only support native USDC)
 
@@ -2728,8 +2728,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: validated but not sent, funds go to the account wallet
-        :param str tag: not used by withdraw()
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """

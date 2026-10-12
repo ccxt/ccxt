@@ -2220,7 +2220,7 @@ class upbit(Exchange, ImplicitAPI):
             raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
 
         https://docs.upbit.com/kr/reference/withdraw
@@ -2230,11 +2230,11 @@ class upbit(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagResolved, paramsTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagResolved, paramsTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -2243,7 +2243,7 @@ class upbit(Exchange, ImplicitAPI):
         }
         response: dict
         if code != 'KRW':
-            self.check_address(address)
+            self.check_address(address, code, tagResolved)
             # 2023-05-23 Change to required parameters for digital assets
             network = self.safe_string_upper_2(paramsTag, 'network', 'net_type')
             if network is None:

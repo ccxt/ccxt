@@ -2487,7 +2487,7 @@ class bithumb(Exchange, ImplicitAPI):
         }
         return await self.cancel_order((order['id']), order['symbol'], self.extend(request, params))
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2498,8 +2498,8 @@ class bithumb(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag: the secondary withdrawal destination address
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :param str [params.network]: the blockchain network to withdraw on, for example BTC or DASH
         :param str [params.destination]: secondary address destination for specific currencies, can alternatively use the tag argument
@@ -2517,8 +2517,8 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'withdraw', 'generation', 2)
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, paramsGeneration)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(paramsGeneration, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         network = self.safe_string_2(paramsWithdrawTag, 'network', 'net_type')
         paramsNetwork = self.omit(paramsWithdrawTag, 'network')
         currency = self.currency(code)
@@ -2532,7 +2532,7 @@ class bithumb(Exchange, ImplicitAPI):
         if requiresDestination:
             destination = self.safe_string_2(paramsNetwork, 'destination', 'secondary_address')
             if (tagWithdrawTag is None) and (destination is None):
-                raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
+                raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag or an extra destination param')
             elif tagWithdrawTag is not None:
                 destinationRequest = tagWithdrawTag
             else:

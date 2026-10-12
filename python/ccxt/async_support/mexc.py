@@ -5492,7 +5492,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -5502,8 +5502,8 @@ class mexc(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param dict [params.internal]: False by default, set to True for an "internal transfer"
         :param dict [params.toAccountType]: skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
@@ -5511,7 +5511,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        tagResolved, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagResolved, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         internal = self.safe_bool(paramsWithdrawTag, 'internal', False)
         if internal is True:
             paramsInternal = self.omit(paramsWithdrawTag, 'internal')
@@ -5534,7 +5534,7 @@ class mexc(Exchange, ImplicitAPI):
         network = self.safe_string_2(paramsWithdrawTag, 'network', 'netWork')  # this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
         network = self.network_code_to_id(network, self.safe_string(currency, 'code'))
-        self.check_address(address)
+        self.check_address(address, code, tagResolved)
         request = {
             'coin': currency['id'],
             'address': address,
