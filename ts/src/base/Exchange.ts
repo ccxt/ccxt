@@ -4115,9 +4115,15 @@ export class BaseExchange {
         if (this.has['fetchOrderBook'] !== undefined) {
             this.has['fetchL2OrderBook'] = this.has['fetchOrderBook'];
         }
-        if (this.has['createOrder'] !== undefined) {
-            this.has['createLimitOrder'] = this.has['createOrder'];
-            this.has['createMarketOrder'] = this.has['createOrder'];
+        if (this.has['createLimitOrder'] === undefined) {
+            if (this.has['createOrder'] !== undefined) {
+                this.has['createLimitOrder'] = this.has['createOrder'];
+            }
+        }
+        if (this.has['createMarketOrder'] === undefined) {
+            if (this.has['createOrder'] !== undefined) {
+                this.has['createMarketOrder'] = this.has['createOrder'];
+            }
         }
     }
 
