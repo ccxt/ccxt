@@ -2332,7 +2332,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchStatus (params = {})`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
 - `fetchOrderBook (symbol, limit = undefined, params = {})`: Fetch L2/L3 order book for a particular market trading symbol.
 - `fetchL2OrderBook (symbol, limit = undefined, params = {})`: Level 2 (price-aggregated) order book for a particular symbol.
-- `fetchL3OrderBook (symbol, limit = undefined, params = {})`: Level 3 (non aggregated, id based queue) order book for a particular symbol.
+- `fetchL3OrderBook (symbol, limit = undefined, params = {})`: Level 3 (not price-aggregated) order book for a particular symbol.
 - `fetchTrades (symbol, since, limit, params)`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
 - `fetchBalance ()`: Fetch Balance.
