@@ -31,11 +31,6 @@ public partial class BaseExchange
         this.initHttpClient();
 
         this.afterConstruct();
-
-        if (isTrue(isTrue(this.safeBool(userConfig, "sandbox")) || isTrue(this.safeBool(userConfig, "testnet"))))
-        {
-            this.setSandboxMode(true);
-        }
     }
 
     private void initHttpClient()

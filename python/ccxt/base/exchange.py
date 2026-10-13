@@ -394,9 +394,6 @@ class BaseExchange(object):
 
         self.after_construct()
 
-        if self.safe_bool(config, 'sandbox') or self.safe_bool(config, 'testnet'):
-            self.set_sandbox_mode(True)
-
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
         camelcase_cache = self._camelcase_cache
