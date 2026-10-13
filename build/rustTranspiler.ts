@@ -2849,8 +2849,8 @@ export class RustTranspilerBuilder {
         const abstractPath = `./ts/src/abstract/${className}.ts`;
         if (!fs.existsSync(abstractPath)) return content;
         const abstractSrc = fs.readFileSync(abstractPath, 'utf8');
-        // Interface method decls look like:
-        //   traderPrivateGetV2Clock (params?: {}): Promise<implicitReturnType>;
+        // Generated method heads look like:
+        //   traderPrivateGetV2Clock (params = {}): Promise<Dict> {
         // The name class must allow `_`: versioned endpoints carry an
         // underscore in the identifier (coinone's `v2_1PrivatePostOrderLimit`).
         // Without it the capture stops at `v2`, the full snake name never
@@ -2858,7 +2858,7 @@ export class RustTranspilerBuilder {
         // bare arg never gets folded into the `&[Value]` slice the generated
         // `<id>_api.rs` method expects (E0308: expected `&[Value]`, found `Value`).
         const names = new Set<string>();
-        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise/gm;
+        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise<[^>]*>\s*\{/gm;
         let m: RegExpExecArray | null;
         while ((m = re.exec(abstractSrc)) !== null) {
             names.add(toSnakeCase(m[1]));

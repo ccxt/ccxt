@@ -180,6 +180,50 @@ let SignMode: any = undefined;
 // onJsonResponse regex, hoisted to module scope (shared safely: String.replace resets
 // lastIndex on the global regex) - profiled neutral vs a function-local literal
 // (<2%, within noise, V8 caches the compiled literal anyway), kept hoisted for tidiness
+// snake_case aliases of prototype members, computed once per class as flat [ camel, snake, ... ]
+const aliasPairsCache = new WeakMap<object, string[]> ();
+const unCamelCaseCache = new Map<string, string> ();
+const unCamelCaseCached = (k: string): string => {
+    let snake = unCamelCaseCache.get (k);
+    if (snake === undefined) {
+        snake = unCamelCase (k);
+        unCamelCaseCache.set (k, snake);
+    }
+    return snake;
+};
+const ownerOf = (proto: object, k: string): object | undefined => {
+    for (let o = proto; o !== null; o = Object.getPrototypeOf (o)) {
+        if (Object.prototype.hasOwnProperty.call (o, k)) {
+            return o;
+        }
+    }
+    return undefined;
+};
+const prototypeAliasPairs = (proto: object): string[] => {
+    let pairs = aliasPairsCache.get (proto);
+    if (pairs !== undefined) {
+        return pairs;
+    }
+    pairs = [];
+    for (let o = proto; o !== null; o = Object.getPrototypeOf (o)) {
+        const names = Object.getOwnPropertyNames (o);
+        for (let i = 0; i < names.length; i++) {
+            const k = names[i];
+            const snake = unCamelCaseCached (k);
+            if (snake === k) {
+                continue;
+            }
+            // a class defining both names itself needs no alias
+            const owner = ownerOf (proto, k);
+            if ((owner !== undefined) && (owner === ownerOf (proto, snake))) {
+                continue;
+            }
+            pairs.push (k, snake);
+        }
+    }
+    aliasPairsCache.set (proto, pairs);
+    return pairs;
+};
 const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
 
 // -----------------------------------------------------------------------------
@@ -187,8 +231,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  * @class Exchange
  */
 export class BaseExchange {
-    // implicit api methods (defineRestApi) and unCamelCase aliases are attached
-    // dynamically at construction time, so the class is indexable by string
+    // unCamelCase aliases are attached at construction time, so the class is indexable by string
     [key: string]: any;
 
     // this is updated by vss.js when building
@@ -596,17 +639,18 @@ export class BaseExchange {
         this.last_json_response = undefined;
         this.last_request_body = undefined;
         // camelCase and snake_notation support
-        const unCamelCaseProperties = (obj = this) => {
-            if (obj !== null) {
-                const ownPropertyNames = Object.getOwnPropertyNames (obj);
-                for (let i = 0; i < ownPropertyNames.length; i++) {
-                    const k = ownPropertyNames[i];
-                    this[unCamelCase (k)] = this[k];
-                }
-                unCamelCaseProperties (Object.getPrototypeOf (obj));
+        const instanceNames = Object.getOwnPropertyNames (this);
+        for (let i = 0; i < instanceNames.length; i++) {
+            const k = instanceNames[i];
+            const snake = unCamelCaseCached (k);
+            if (snake !== k) {
+                this[snake] = this[k];
             }
-        };
-        unCamelCaseProperties ();
+        }
+        const pairs = prototypeAliasPairs (Object.getPrototypeOf (this));
+        for (let i = 0; i < pairs.length; i += 2) {
+            this[pairs[i + 1]] = this[pairs[i]];
+        }
         // merge constructor overrides to this instance
         const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig));
         for (let i = 0; i < configEntries.length; i++) {
@@ -622,10 +666,6 @@ export class BaseExchange {
         for (let i = 0; i < hasKeys.length; i++) {
             const k = hasKeys[i];
             this['has' + this.capitalize (k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
-        }
-        // generate implicit api
-        if (this.api !== undefined) {
-            this.defineRestApi (this.api, 'request');
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
         this.afterConstruct ();
@@ -690,57 +730,6 @@ export class BaseExchange {
 
     initThrottler () {
         this.throttler = new Throttler (this.tokenBucket);
-    }
-
-    defineRestApiEndpoint (methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config = {}) {
-        const splitPath = path.split (/[^a-zA-Z0-9]/);
-        const camelcaseSuffix = splitPath.map (this.capitalize).join ('');
-        const underscoreSuffix = splitPath.map ((x: string) => x.trim ().toLowerCase ()).filter ((x: string) => x.length > 0).join ('_');
-        const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('');
-        const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x: string) => x.trim ()).filter ((x: string) => x.length > 0)).join ('_');
-        const camelcase = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix);
-        const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix;
-        const typeArgument = (paths.length > 1) ? paths : paths[0];
-        // handle call costs here
-        const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context);
-        // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
-        this[camelcase] = partial;
-        this[underscore] = partial;
-    }
-
-    defineRestApi (api: any, methodName: any, paths: string[] = []) {
-        const keys = Object.keys (api);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = api[key];
-            const uppercaseMethod = key.toUpperCase ();
-            const lowercaseMethod = key.toLowerCase ();
-            const camelcaseMethod = this.capitalize (lowercaseMethod);
-            if (Array.isArray (value)) {
-                for (let k = 0; k < value.length; k++) {
-                    const path = value[k].trim ();
-                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths);
-                }
-            // the options HTTP method conflicts with the 'options' API url path
-            // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
-            } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i) !== null) {
-                const endpoints = Object.keys (value);
-                for (let j = 0; j < endpoints.length; j++) {
-                    const endpoint = endpoints[j];
-                    const path = endpoint.trim ();
-                    const config = value[endpoint];
-                    if (typeof config === 'object') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config);
-                    } else if (typeof config === 'number') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { 'cost': config });
-                    } else {
-                        throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
-                    }
-                }
-            } else {
-                this.defineRestApi (value, methodName, paths.concat ([ key ]));
-            }
-        }
     }
 
     log (...args: any[]) {

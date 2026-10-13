@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import binance from './binance.js';
+import binance from './abstract/binanceusdm.js';
 import { InvalidOrder } from './base/errors.js';
 import type { Dict, TransferEntry } from './base/types.js';
 
