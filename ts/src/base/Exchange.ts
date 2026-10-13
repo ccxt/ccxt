@@ -187,8 +187,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  * @class Exchange
  */
 export class BaseExchange {
-    // implicit api methods (defineRestApi) and unCamelCase aliases are attached
-    // dynamically at construction time, so the class is indexable by string
+    // unCamelCase aliases are attached at construction time, so the class is indexable by string
     [key: string]: any;
 
     // this is updated by vss.js when building
@@ -623,10 +622,6 @@ export class BaseExchange {
             const k = hasKeys[i];
             this['has' + this.capitalize (k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
         }
-        // generate implicit api
-        if (this.api !== undefined) {
-            this.defineRestApi (this.api, 'request');
-        }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
         this.afterConstruct ();
         if ((this.safeBool (userConfig, 'sandbox', false)) || (this.safeBool (userConfig, 'testnet', false))) {
@@ -690,57 +685,6 @@ export class BaseExchange {
 
     initThrottler () {
         this.throttler = new Throttler (this.tokenBucket);
-    }
-
-    defineRestApiEndpoint (methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config = {}) {
-        const splitPath = path.split (/[^a-zA-Z0-9]/);
-        const camelcaseSuffix = splitPath.map (this.capitalize).join ('');
-        const underscoreSuffix = splitPath.map ((x: string) => x.trim ().toLowerCase ()).filter ((x: string) => x.length > 0).join ('_');
-        const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('');
-        const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x: string) => x.trim ()).filter ((x: string) => x.length > 0)).join ('_');
-        const camelcase = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix);
-        const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix;
-        const typeArgument = (paths.length > 1) ? paths : paths[0];
-        // handle call costs here
-        const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context);
-        // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
-        this[camelcase] = partial;
-        this[underscore] = partial;
-    }
-
-    defineRestApi (api: any, methodName: any, paths: string[] = []) {
-        const keys = Object.keys (api);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = api[key];
-            const uppercaseMethod = key.toUpperCase ();
-            const lowercaseMethod = key.toLowerCase ();
-            const camelcaseMethod = this.capitalize (lowercaseMethod);
-            if (Array.isArray (value)) {
-                for (let k = 0; k < value.length; k++) {
-                    const path = value[k].trim ();
-                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths);
-                }
-            // the options HTTP method conflicts with the 'options' API url path
-            // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
-            } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i) !== null) {
-                const endpoints = Object.keys (value);
-                for (let j = 0; j < endpoints.length; j++) {
-                    const endpoint = endpoints[j];
-                    const path = endpoint.trim ();
-                    const config = value[endpoint];
-                    if (typeof config === 'object') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config);
-                    } else if (typeof config === 'number') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { 'cost': config });
-                    } else {
-                        throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
-                    }
-                }
-            } else {
-                this.defineRestApi (value, methodName, paths.concat ([ key ]));
-            }
-        }
     }
 
     log (...args: any[]) {

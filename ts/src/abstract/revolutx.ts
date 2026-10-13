@@ -8,25 +8,108 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGet20PublicOrderBookSymbol (params?: {}): Promise<Dict>;
-    publicGet10PublicTickers (params?: {}): Promise<Dict>;
-    publicGet10PublicCandlesSymbol (params?: {}): Promise<Dict>;
-    publicGet10PublicTradesAll (params?: {}): Promise<Dict>;
-    publicGet10PublicConfigurationCurrencies (params?: {}): Promise<Dict>;
-    publicGet10PublicConfigurationPairs (params?: {}): Promise<Dict>;
-    privateGet10Balances (params?: {}): Promise<Dict | List>;
-    privateGet10OrdersActive (params?: {}): Promise<Dict>;
-    privateGet10OrdersHistorical (params?: {}): Promise<Dict>;
-    privateGet10OrdersVenueOrderId (params?: {}): Promise<Dict>;
-    privateGet10OrdersFillsVenueOrderId (params?: {}): Promise<Dict | List>;
-    privateGet10TradesPrivateSymbol (params?: {}): Promise<Dict>;
-    privateGet10Transactions (params?: {}): Promise<Dict | List>;
-    privatePost10Orders (params?: {}): Promise<Dict>;
-    privatePut10OrdersVenueOrderId (params?: {}): Promise<Dict>;
-    privateDelete10Orders (params?: {}): Promise<Dict | List>;
-    privateDelete10OrdersVenueOrderId (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    publicGet20PublicOrderBookSymbol (params = {}): Promise<Dict> {
+        return this.request ("2.0/public/order-book/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_2_0_public_order_book_symbol (params = {}): Promise<Dict> {
+        return this.request ("2.0/public/order-book/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGet10PublicTickers (params = {}): Promise<Dict> {
+        return this.request ("1.0/public/tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_1_0_public_tickers (params = {}): Promise<Dict> {
+        return this.request ("1.0/public/tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGet10PublicCandlesSymbol (params = {}): Promise<Dict> {
+        return this.request ("1.0/public/candles/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_1_0_public_candles_symbol (params = {}): Promise<Dict> {
+        return this.request ("1.0/public/candles/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGet10PublicTradesAll (params = {}): Promise<Dict> {
+        return this.request ("1.0/public/trades/all", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_1_0_public_trades_all (params = {}): Promise<Dict> {
+        return this.request ("1.0/public/trades/all", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGet10PublicConfigurationCurrencies (params = {}): Promise<Dict> {
+        return this.request ("1.0/public/configuration/currencies", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_1_0_public_configuration_currencies (params = {}): Promise<Dict> {
+        return this.request ("1.0/public/configuration/currencies", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGet10PublicConfigurationPairs (params = {}): Promise<Dict> {
+        return this.request ("1.0/public/configuration/pairs", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_1_0_public_configuration_pairs (params = {}): Promise<Dict> {
+        return this.request ("1.0/public/configuration/pairs", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGet10Balances (params = {}): Promise<Dict | List> {
+        return this.request ("1.0/balances", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_1_0_balances (params = {}): Promise<Dict | List> {
+        return this.request ("1.0/balances", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGet10OrdersActive (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders/active", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_1_0_orders_active (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders/active", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGet10OrdersHistorical (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders/historical", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_1_0_orders_historical (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders/historical", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGet10OrdersVenueOrderId (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders/{venue_order_id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_1_0_orders_venue_order_id (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders/{venue_order_id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGet10OrdersFillsVenueOrderId (params = {}): Promise<Dict | List> {
+        return this.request ("1.0/orders/fills/{venue_order_id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_1_0_orders_fills_venue_order_id (params = {}): Promise<Dict | List> {
+        return this.request ("1.0/orders/fills/{venue_order_id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGet10TradesPrivateSymbol (params = {}): Promise<Dict> {
+        return this.request ("1.0/trades/private/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_1_0_trades_private_symbol (params = {}): Promise<Dict> {
+        return this.request ("1.0/trades/private/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGet10Transactions (params = {}): Promise<Dict | List> {
+        return this.request ("1.0/transactions", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_1_0_transactions (params = {}): Promise<Dict | List> {
+        return this.request ("1.0/transactions", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privatePost10Orders (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_1_0_orders (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePut10OrdersVenueOrderId (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders/{venue_order_id}", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    private_put_1_0_orders_venue_order_id (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders/{venue_order_id}", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privateDelete10Orders (params = {}): Promise<Dict | List> {
+        return this.request ("1.0/orders", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_1_0_orders (params = {}): Promise<Dict | List> {
+        return this.request ("1.0/orders", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDelete10OrdersVenueOrderId (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders/{venue_order_id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_1_0_orders_venue_order_id (params = {}): Promise<Dict> {
+        return this.request ("1.0/orders/{venue_order_id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

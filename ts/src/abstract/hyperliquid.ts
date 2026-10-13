@@ -8,10 +8,18 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicPostInfo (params?: {}): Promise<Dict | List | string>;
-    privatePostExchange (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    publicPostInfo (params = {}): Promise<Dict | List | string> {
+        return this.request ("info", "public", 'POST', params, undefined, undefined, {"cost":10,"byType":{"l2Book":2,"allMids":2,"clearinghouseState":2,"orderStatus":2,"spotClearinghouseState":2,"exchangeStatus":2,"candleSnapshot":4}});
+    }
+    public_post_info (params = {}): Promise<Dict | List | string> {
+        return this.request ("info", "public", 'POST', params, undefined, undefined, {"cost":10,"byType":{"l2Book":2,"allMids":2,"clearinghouseState":2,"orderStatus":2,"spotClearinghouseState":2,"exchangeStatus":2,"candleSnapshot":4}});
+    }
+    privatePostExchange (params = {}): Promise<Dict> {
+        return this.request ("exchange", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_exchange (params = {}): Promise<Dict> {
+        return this.request ("exchange", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

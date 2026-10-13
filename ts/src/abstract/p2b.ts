@@ -8,26 +8,114 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetMarkets (params?: {}): Promise<Dict>;
-    publicGetMarket (params?: {}): Promise<Dict>;
-    publicGetTickers (params?: {}): Promise<Dict>;
-    publicGetTicker (params?: {}): Promise<Dict>;
-    publicGetBook (params?: {}): Promise<Dict>;
-    publicGetHistory (params?: {}): Promise<Dict>;
-    publicGetDepthResult (params?: {}): Promise<Dict>;
-    publicGetMarketKline (params?: {}): Promise<Dict>;
-    privatePostAccountBalances (params?: {}): Promise<Dict>;
-    privatePostAccountBalance (params?: {}): Promise<Dict>;
-    privatePostOrderNew (params?: {}): Promise<Dict>;
-    privatePostOrderCancel (params?: {}): Promise<Dict>;
-    privatePostOrders (params?: {}): Promise<Dict>;
-    privatePostAccountMarketOrderHistory (params?: {}): Promise<Dict>;
-    privatePostAccountMarketDealHistory (params?: {}): Promise<Dict>;
-    privatePostAccountOrder (params?: {}): Promise<Dict>;
-    privatePostAccountOrderHistory (params?: {}): Promise<Dict>;
-    privatePostAccountExecutedHistory (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    publicGetMarkets (params = {}): Promise<Dict> {
+        return this.request ("markets", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_markets (params = {}): Promise<Dict> {
+        return this.request ("markets", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetMarket (params = {}): Promise<Dict> {
+        return this.request ("market", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_market (params = {}): Promise<Dict> {
+        return this.request ("market", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetTickers (params = {}): Promise<Dict> {
+        return this.request ("tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_tickers (params = {}): Promise<Dict> {
+        return this.request ("tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetTicker (params = {}): Promise<Dict> {
+        return this.request ("ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_ticker (params = {}): Promise<Dict> {
+        return this.request ("ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetBook (params = {}): Promise<Dict> {
+        return this.request ("book", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_book (params = {}): Promise<Dict> {
+        return this.request ("book", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetHistory (params = {}): Promise<Dict> {
+        return this.request ("history", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_history (params = {}): Promise<Dict> {
+        return this.request ("history", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetDepthResult (params = {}): Promise<Dict> {
+        return this.request ("depth/result", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_depth_result (params = {}): Promise<Dict> {
+        return this.request ("depth/result", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetMarketKline (params = {}): Promise<Dict> {
+        return this.request ("market/kline", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_market_kline (params = {}): Promise<Dict> {
+        return this.request ("market/kline", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privatePostAccountBalances (params = {}): Promise<Dict> {
+        return this.request ("account/balances", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_account_balances (params = {}): Promise<Dict> {
+        return this.request ("account/balances", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostAccountBalance (params = {}): Promise<Dict> {
+        return this.request ("account/balance", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_account_balance (params = {}): Promise<Dict> {
+        return this.request ("account/balance", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostOrderNew (params = {}): Promise<Dict> {
+        return this.request ("order/new", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_order_new (params = {}): Promise<Dict> {
+        return this.request ("order/new", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostOrderCancel (params = {}): Promise<Dict> {
+        return this.request ("order/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_order_cancel (params = {}): Promise<Dict> {
+        return this.request ("order/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostOrders (params = {}): Promise<Dict> {
+        return this.request ("orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_orders (params = {}): Promise<Dict> {
+        return this.request ("orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostAccountMarketOrderHistory (params = {}): Promise<Dict> {
+        return this.request ("account/market_order_history", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_account_market_order_history (params = {}): Promise<Dict> {
+        return this.request ("account/market_order_history", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostAccountMarketDealHistory (params = {}): Promise<Dict> {
+        return this.request ("account/market_deal_history", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_account_market_deal_history (params = {}): Promise<Dict> {
+        return this.request ("account/market_deal_history", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostAccountOrder (params = {}): Promise<Dict> {
+        return this.request ("account/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_account_order (params = {}): Promise<Dict> {
+        return this.request ("account/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostAccountOrderHistory (params = {}): Promise<Dict> {
+        return this.request ("account/order_history", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_account_order_history (params = {}): Promise<Dict> {
+        return this.request ("account/order_history", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostAccountExecutedHistory (params = {}): Promise<Dict> {
+        return this.request ("account/executed_history", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_account_executed_history (params = {}): Promise<Dict> {
+        return this.request ("account/executed_history", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

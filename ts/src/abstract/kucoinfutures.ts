@@ -8,369 +8,2172 @@
 import { Dict } from '../base/types.js';
 import _kucoin from '../kucoin.js';
 
-interface kucoin {
-    publicGetCurrencies (params?: {}): Promise<Dict>;
-    publicGetCurrenciesCurrency (params?: {}): Promise<Dict>;
-    publicGetSymbols (params?: {}): Promise<Dict>;
-    publicGetMarketOrderbookLevel1 (params?: {}): Promise<Dict>;
-    publicGetMarketAllTickers (params?: {}): Promise<Dict>;
-    publicGetMarketStats (params?: {}): Promise<Dict>;
-    publicGetMarkets (params?: {}): Promise<Dict>;
-    publicGetMarketOrderbookLevelLevelLimit (params?: {}): Promise<Dict>;
-    publicGetMarketOrderbookLevel220 (params?: {}): Promise<Dict>;
-    publicGetMarketOrderbookLevel2100 (params?: {}): Promise<Dict>;
-    publicGetMarketHistories (params?: {}): Promise<Dict>;
-    publicGetMarketCandles (params?: {}): Promise<Dict>;
-    publicGetPrices (params?: {}): Promise<Dict>;
-    publicGetTimestamp (params?: {}): Promise<Dict>;
-    publicGetStatus (params?: {}): Promise<Dict>;
-    publicGetMarkPriceSymbolCurrent (params?: {}): Promise<Dict>;
-    publicGetMarkPriceAllSymbols (params?: {}): Promise<Dict>;
-    publicGetMarginConfig (params?: {}): Promise<Dict>;
-    publicGetAnnouncements (params?: {}): Promise<Dict>;
-    publicGetMarginCollateralRatio (params?: {}): Promise<Dict>;
-    publicGetMarginAvailableInventory (params?: {}): Promise<Dict>;
-    publicGetConvertSymbol (params?: {}): Promise<Dict>;
-    publicGetConvertCurrencies (params?: {}): Promise<Dict>;
-    publicPostBulletPublic (params?: {}): Promise<Dict>;
-    privateGetUserInfo (params?: {}): Promise<Dict>;
-    privateGetUserApiKey (params?: {}): Promise<Dict>;
-    privateGetAccounts (params?: {}): Promise<Dict>;
-    privateGetAccountsAccountId (params?: {}): Promise<Dict>;
-    privateGetAccountsLedgers (params?: {}): Promise<Dict>;
-    privateGetHfAccountsLedgers (params?: {}): Promise<Dict>;
-    privateGetHfMarginAccountLedgers (params?: {}): Promise<Dict>;
-    privateGetTransactionHistory (params?: {}): Promise<Dict>;
-    privateGetSubUser (params?: {}): Promise<Dict>;
-    privateGetSubAccountsSubUserId (params?: {}): Promise<Dict>;
-    privateGetSubAccounts (params?: {}): Promise<Dict>;
-    privateGetSubApiKey (params?: {}): Promise<Dict>;
-    privateGetMarginAccount (params?: {}): Promise<Dict>;
-    privateGetMarginAccounts (params?: {}): Promise<Dict>;
-    privateGetIsolatedAccounts (params?: {}): Promise<Dict>;
-    privateGetDepositAddresses (params?: {}): Promise<Dict>;
-    privateGetDeposits (params?: {}): Promise<Dict>;
-    privateGetHistDeposits (params?: {}): Promise<Dict>;
-    privateGetWithdrawals (params?: {}): Promise<Dict>;
-    privateGetHistWithdrawals (params?: {}): Promise<Dict>;
-    privateGetWithdrawalsQuotas (params?: {}): Promise<Dict>;
-    privateGetAccountsTransferable (params?: {}): Promise<Dict>;
-    privateGetTransferList (params?: {}): Promise<Dict>;
-    privateGetBaseFee (params?: {}): Promise<Dict>;
-    privateGetTradeFees (params?: {}): Promise<Dict>;
-    privateGetMarketOrderbookLevelLevel (params?: {}): Promise<Dict>;
-    privateGetMarketOrderbookLevel2 (params?: {}): Promise<Dict>;
-    privateGetMarketOrderbookLevel3 (params?: {}): Promise<Dict>;
-    privateGetHfAccountsOpened (params?: {}): Promise<Dict>;
-    privateGetHfOrdersActive (params?: {}): Promise<Dict>;
-    privateGetHfOrdersActiveSymbols (params?: {}): Promise<Dict>;
-    privateGetHfMarginOrderActiveSymbols (params?: {}): Promise<Dict>;
-    privateGetHfOrdersDone (params?: {}): Promise<Dict>;
-    privateGetHfOrdersOrderId (params?: {}): Promise<Dict>;
-    privateGetHfOrdersClientOrderClientOid (params?: {}): Promise<Dict>;
-    privateGetHfOrdersDeadCancelAllQuery (params?: {}): Promise<Dict>;
-    privateGetHfFills (params?: {}): Promise<Dict>;
-    privateGetOrders (params?: {}): Promise<Dict>;
-    privateGetLimitOrders (params?: {}): Promise<Dict>;
-    privateGetOrdersOrderId (params?: {}): Promise<Dict>;
-    privateGetOrderClientOrderClientOid (params?: {}): Promise<Dict>;
-    privateGetFills (params?: {}): Promise<Dict>;
-    privateGetLimitFills (params?: {}): Promise<Dict>;
-    privateGetStopOrder (params?: {}): Promise<Dict>;
-    privateGetStopOrderOrderId (params?: {}): Promise<Dict>;
-    privateGetStopOrderQueryOrderByClientOid (params?: {}): Promise<Dict>;
-    privateGetOcoOrderOrderId (params?: {}): Promise<Dict>;
-    privateGetOcoOrderDetailsOrderId (params?: {}): Promise<Dict>;
-    privateGetOcoClientOrderClientOid (params?: {}): Promise<Dict>;
-    privateGetOcoOrders (params?: {}): Promise<Dict>;
-    privateGetHfMarginOrdersActive (params?: {}): Promise<Dict>;
-    privateGetHfMarginOrdersDone (params?: {}): Promise<Dict>;
-    privateGetHfMarginOrdersOrderId (params?: {}): Promise<Dict>;
-    privateGetHfMarginOrdersClientOrderClientOid (params?: {}): Promise<Dict>;
-    privateGetHfMarginFills (params?: {}): Promise<Dict>;
-    privateGetHfMarginStopOrders (params?: {}): Promise<Dict>;
-    privateGetHfMarginStopOrderOrderId (params?: {}): Promise<Dict>;
-    privateGetHfMarginStopOrderClientOid (params?: {}): Promise<Dict>;
-    privateGetHfMarginOcoOrderOrderId (params?: {}): Promise<Dict>;
-    privateGetHfMarginOcoOrderClientOid (params?: {}): Promise<Dict>;
-    privateGetHfMarginOcoOrderDetailOrderId (params?: {}): Promise<Dict>;
-    privateGetHfMarginOcoOrders (params?: {}): Promise<Dict>;
-    privateGetEtfInfo (params?: {}): Promise<Dict>;
-    privateGetMarginCurrencies (params?: {}): Promise<Dict>;
-    privateGetRiskLimitStrategy (params?: {}): Promise<Dict>;
-    privateGetIsolatedSymbols (params?: {}): Promise<Dict>;
-    privateGetMarginSymbols (params?: {}): Promise<Dict>;
-    privateGetIsolatedAccountSymbol (params?: {}): Promise<Dict>;
-    privateGetMarginBorrow (params?: {}): Promise<Dict>;
-    privateGetMarginRepay (params?: {}): Promise<Dict>;
-    privateGetMarginInterest (params?: {}): Promise<Dict>;
-    privateGetMarginBorrowRate (params?: {}): Promise<Dict>;
-    privateGetProjectList (params?: {}): Promise<Dict>;
-    privateGetProjectMarketInterestRate (params?: {}): Promise<Dict>;
-    privateGetRedeemOrders (params?: {}): Promise<Dict>;
-    privateGetPurchaseOrders (params?: {}): Promise<Dict>;
-    privateGetBrokerApiRebaseDownload (params?: {}): Promise<Dict>;
-    privateGetBrokerQueryMyCommission (params?: {}): Promise<Dict>;
-    privateGetBrokerQueryUser (params?: {}): Promise<Dict>;
-    privateGetBrokerQueryDetailByUid (params?: {}): Promise<Dict>;
-    privateGetMigrateUserAccountStatus (params?: {}): Promise<Dict>;
-    privateGetConvertQuote (params?: {}): Promise<Dict>;
-    privateGetConvertOrderDetail (params?: {}): Promise<Dict>;
-    privateGetConvertOrderHistory (params?: {}): Promise<Dict>;
-    privateGetConvertLimitQuote (params?: {}): Promise<Dict>;
-    privateGetConvertLimitOrderDetail (params?: {}): Promise<Dict>;
-    privateGetConvertLimitOrders (params?: {}): Promise<Dict>;
-    privateGetAffiliateInviterStatistics (params?: {}): Promise<Dict>;
-    privateGetAffiliateQueryInvitees (params?: {}): Promise<Dict>;
-    privateGetAffiliateQueryMyCommission (params?: {}): Promise<Dict>;
-    privateGetAffiliateQueryTransactionByUid (params?: {}): Promise<Dict>;
-    privateGetAffiliateQueryTransactionByTime (params?: {}): Promise<Dict>;
-    privateGetAffiliateQueryKumining (params?: {}): Promise<Dict>;
-    privatePostSubUserCreated (params?: {}): Promise<Dict>;
-    privatePostSubApiKey (params?: {}): Promise<Dict>;
-    privatePostSubApiKeyUpdate (params?: {}): Promise<Dict>;
-    privatePostDepositAddresses (params?: {}): Promise<Dict>;
-    privatePostWithdrawals (params?: {}): Promise<Dict>;
-    privatePostAccountsUniversalTransfer (params?: {}): Promise<Dict>;
-    privatePostAccountsSubTransfer (params?: {}): Promise<Dict>;
-    privatePostAccountsInnerTransfer (params?: {}): Promise<Dict>;
-    privatePostTransferOut (params?: {}): Promise<Dict>;
-    privatePostTransferIn (params?: {}): Promise<Dict>;
-    privatePostHfOrders (params?: {}): Promise<Dict>;
-    privatePostHfOrdersTest (params?: {}): Promise<Dict>;
-    privatePostHfOrdersSync (params?: {}): Promise<Dict>;
-    privatePostHfOrdersMulti (params?: {}): Promise<Dict>;
-    privatePostHfOrdersMultiSync (params?: {}): Promise<Dict>;
-    privatePostHfOrdersAlter (params?: {}): Promise<Dict>;
-    privatePostHfOrdersDeadCancelAll (params?: {}): Promise<Dict>;
-    privatePostOrders (params?: {}): Promise<Dict>;
-    privatePostOrdersTest (params?: {}): Promise<Dict>;
-    privatePostOrdersMulti (params?: {}): Promise<Dict>;
-    privatePostStopOrder (params?: {}): Promise<Dict>;
-    privatePostOcoOrder (params?: {}): Promise<Dict>;
-    privatePostHfMarginOrder (params?: {}): Promise<Dict>;
-    privatePostHfMarginOrderTest (params?: {}): Promise<Dict>;
-    privatePostHfMarginStopOrder (params?: {}): Promise<Dict>;
-    privatePostMarginOrder (params?: {}): Promise<Dict>;
-    privatePostMarginOrderTest (params?: {}): Promise<Dict>;
-    privatePostHfMarginOcoOrder (params?: {}): Promise<Dict>;
-    privatePostMarginBorrow (params?: {}): Promise<Dict>;
-    privatePostMarginRepay (params?: {}): Promise<Dict>;
-    privatePostPurchase (params?: {}): Promise<Dict>;
-    privatePostRedeem (params?: {}): Promise<Dict>;
-    privatePostLendPurchaseUpdate (params?: {}): Promise<Dict>;
-    privatePostConvertOrder (params?: {}): Promise<Dict>;
-    privatePostConvertLimitOrder (params?: {}): Promise<Dict>;
-    privatePostBulletPrivate (params?: {}): Promise<Dict>;
-    privatePostPositionUpdateUserLeverage (params?: {}): Promise<Dict>;
-    privatePostDepositAddressCreate (params?: {}): Promise<Dict>;
-    privateDeleteSubApiKey (params?: {}): Promise<Dict>;
-    privateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<Dict>;
-    privateDeleteHfOrdersOrderId (params?: {}): Promise<Dict>;
-    privateDeleteHfOrdersSyncOrderId (params?: {}): Promise<Dict>;
-    privateDeleteHfOrdersClientOrderClientOid (params?: {}): Promise<Dict>;
-    privateDeleteHfOrdersSyncClientOrderClientOid (params?: {}): Promise<Dict>;
-    privateDeleteHfOrdersCancelOrderId (params?: {}): Promise<Dict>;
-    privateDeleteHfOrders (params?: {}): Promise<Dict>;
-    privateDeleteHfOrdersCancelAll (params?: {}): Promise<Dict>;
-    privateDeleteOrdersOrderId (params?: {}): Promise<Dict>;
-    privateDeleteOrderClientOrderClientOid (params?: {}): Promise<Dict>;
-    privateDeleteOrders (params?: {}): Promise<Dict>;
-    privateDeleteStopOrderOrderId (params?: {}): Promise<Dict>;
-    privateDeleteStopOrderCancelOrderByClientOid (params?: {}): Promise<Dict>;
-    privateDeleteStopOrderCancel (params?: {}): Promise<Dict>;
-    privateDeleteOcoOrderOrderId (params?: {}): Promise<Dict>;
-    privateDeleteOcoClientOrderClientOid (params?: {}): Promise<Dict>;
-    privateDeleteOcoOrders (params?: {}): Promise<Dict>;
-    privateDeleteHfMarginOrdersOrderId (params?: {}): Promise<Dict>;
-    privateDeleteHfMarginOrdersClientOrderClientOid (params?: {}): Promise<Dict>;
-    privateDeleteHfMarginOrders (params?: {}): Promise<Dict>;
-    privateDeleteHfMarginStopOrderCancelById (params?: {}): Promise<Dict>;
-    privateDeleteHfMarginStopOrderCancelByClientOid (params?: {}): Promise<Dict>;
-    privateDeleteHfMarginStopOrderCancel (params?: {}): Promise<Dict>;
-    privateDeleteHfMarginOcoOrderCancelById (params?: {}): Promise<Dict>;
-    privateDeleteHfMarginOcoOrderCancelByClientOid (params?: {}): Promise<Dict>;
-    privateDeleteHfMarginOcoOrderCancel (params?: {}): Promise<Dict>;
-    privateDeleteConvertLimitOrderCancel (params?: {}): Promise<Dict>;
-    futuresPublicGetContractsActive (params?: {}): Promise<Dict>;
-    futuresPublicGetContractsSymbol (params?: {}): Promise<Dict>;
-    futuresPublicGetTicker (params?: {}): Promise<Dict>;
-    futuresPublicGetAllTickers (params?: {}): Promise<Dict>;
-    futuresPublicGetLevel2Snapshot (params?: {}): Promise<Dict>;
-    futuresPublicGetLevel2Depth20 (params?: {}): Promise<Dict>;
-    futuresPublicGetLevel2Depth100 (params?: {}): Promise<Dict>;
-    futuresPublicGetTradeHistory (params?: {}): Promise<Dict>;
-    futuresPublicGetKlineQuery (params?: {}): Promise<Dict>;
-    futuresPublicGetInterestQuery (params?: {}): Promise<Dict>;
-    futuresPublicGetIndexQuery (params?: {}): Promise<Dict>;
-    futuresPublicGetMarkPriceSymbolCurrent (params?: {}): Promise<Dict>;
-    futuresPublicGetPremiumQuery (params?: {}): Promise<Dict>;
-    futuresPublicGetTradeStatistics (params?: {}): Promise<Dict>;
-    futuresPublicGetFundingRateSymbolCurrent (params?: {}): Promise<Dict>;
-    futuresPublicGetContractFundingRates (params?: {}): Promise<Dict>;
-    futuresPublicGetTimestamp (params?: {}): Promise<Dict>;
-    futuresPublicGetStatus (params?: {}): Promise<Dict>;
-    futuresPublicGetLevel2MessageQuery (params?: {}): Promise<Dict>;
-    futuresPublicGetContractsRiskLimitSymbol (params?: {}): Promise<Dict>;
-    futuresPublicGetLevel3MessageQuery (params?: {}): Promise<Dict>;
-    futuresPublicGetLevel3Snapshot (params?: {}): Promise<Dict>;
-    futuresPublicPostBulletPublic (params?: {}): Promise<Dict>;
-    futuresPrivateGetTransactionHistory (params?: {}): Promise<Dict>;
-    futuresPrivateGetAccountOverview (params?: {}): Promise<Dict>;
-    futuresPrivateGetAccountOverviewAll (params?: {}): Promise<Dict>;
-    futuresPrivateGetTransferList (params?: {}): Promise<Dict>;
-    futuresPrivateGetOrders (params?: {}): Promise<Dict>;
-    futuresPrivateGetStopOrders (params?: {}): Promise<Dict>;
-    futuresPrivateGetRecentDoneOrders (params?: {}): Promise<Dict>;
-    futuresPrivateGetOrdersOrderId (params?: {}): Promise<Dict>;
-    futuresPrivateGetOrdersByClientOid (params?: {}): Promise<Dict>;
-    futuresPrivateGetFills (params?: {}): Promise<Dict>;
-    futuresPrivateGetRecentFills (params?: {}): Promise<Dict>;
-    futuresPrivateGetTradeFees (params?: {}): Promise<Dict>;
-    futuresPrivateGetOpenOrderStatistics (params?: {}): Promise<Dict>;
-    futuresPrivateGetPosition (params?: {}): Promise<Dict>;
-    futuresPrivateGetPositions (params?: {}): Promise<Dict>;
-    futuresPrivateGetMarginMaxWithdrawMargin (params?: {}): Promise<Dict>;
-    futuresPrivateGetContractsRiskLimitSymbol (params?: {}): Promise<Dict>;
-    futuresPrivateGetFundingHistory (params?: {}): Promise<Dict>;
-    futuresPrivateGetCopyTradeFuturesGetMaxOpenSize (params?: {}): Promise<Dict>;
-    futuresPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin (params?: {}): Promise<Dict>;
-    futuresPrivateGetHistoryPositions (params?: {}): Promise<Dict>;
-    futuresPrivateGetPositionGetMarginMode (params?: {}): Promise<Dict>;
-    futuresPrivateGetPositionGetPositionMode (params?: {}): Promise<Dict>;
-    futuresPrivateGetDepositAddress (params?: {}): Promise<Dict>;
-    futuresPrivateGetDepositList (params?: {}): Promise<Dict>;
-    futuresPrivateGetWithdrawalsQuotas (params?: {}): Promise<Dict>;
-    futuresPrivateGetWithdrawalList (params?: {}): Promise<Dict>;
-    futuresPrivateGetSubApiKey (params?: {}): Promise<Dict>;
-    futuresPrivateGetTradeStatistics (params?: {}): Promise<Dict>;
-    futuresPrivateGetGetMaxOpenSize (params?: {}): Promise<Dict>;
-    futuresPrivateGetGetCrossUserLeverage (params?: {}): Promise<Dict>;
-    futuresPrivatePostTransferOut (params?: {}): Promise<Dict>;
-    futuresPrivatePostTransferIn (params?: {}): Promise<Dict>;
-    futuresPrivatePostOrders (params?: {}): Promise<Dict>;
-    futuresPrivatePostStOrders (params?: {}): Promise<Dict>;
-    futuresPrivatePostOrdersTest (params?: {}): Promise<Dict>;
-    futuresPrivatePostOrdersMulti (params?: {}): Promise<Dict>;
-    futuresPrivatePostPositionMarginAutoDepositStatus (params?: {}): Promise<Dict>;
-    futuresPrivatePostMarginWithdrawMargin (params?: {}): Promise<Dict>;
-    futuresPrivatePostPositionMarginDepositMargin (params?: {}): Promise<Dict>;
-    futuresPrivatePostPositionRiskLimitLevelChange (params?: {}): Promise<Dict>;
-    futuresPrivatePostCopyTradeFuturesOrders (params?: {}): Promise<Dict>;
-    futuresPrivatePostCopyTradeFuturesOrdersTest (params?: {}): Promise<Dict>;
-    futuresPrivatePostCopyTradeFuturesStOrders (params?: {}): Promise<Dict>;
-    futuresPrivatePostCopyTradeFuturesPositionMarginDepositMargin (params?: {}): Promise<Dict>;
-    futuresPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin (params?: {}): Promise<Dict>;
-    futuresPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange (params?: {}): Promise<Dict>;
-    futuresPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus (params?: {}): Promise<Dict>;
-    futuresPrivatePostCopyTradeFuturesPositionChangeMarginMode (params?: {}): Promise<Dict>;
-    futuresPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage (params?: {}): Promise<Dict>;
-    futuresPrivatePostCopyTradeGetCrossModeMarginRequirement (params?: {}): Promise<Dict>;
-    futuresPrivatePostCopyTradePositionSwitchPositionMode (params?: {}): Promise<Dict>;
-    futuresPrivatePostChangeCrossUserLeverage (params?: {}): Promise<Dict>;
-    futuresPrivatePostWithdrawals (params?: {}): Promise<Dict>;
-    futuresPrivatePostSubApiKey (params?: {}): Promise<Dict>;
-    futuresPrivatePostSubApiKeyUpdate (params?: {}): Promise<Dict>;
-    futuresPrivatePostPositionChangeMarginMode (params?: {}): Promise<Dict>;
-    futuresPrivatePostPositionSwitchPositionMode (params?: {}): Promise<Dict>;
-    futuresPrivatePostBulletPrivate (params?: {}): Promise<Dict>;
-    futuresPrivateDeleteOrdersOrderId (params?: {}): Promise<Dict>;
-    futuresPrivateDeleteOrdersClientOrderClientOid (params?: {}): Promise<Dict>;
-    futuresPrivateDeleteOrders (params?: {}): Promise<Dict>;
-    futuresPrivateDeleteStopOrders (params?: {}): Promise<Dict>;
-    futuresPrivateDeleteCopyTradeFuturesOrders (params?: {}): Promise<Dict>;
-    futuresPrivateDeleteCopyTradeFuturesOrdersClientOrder (params?: {}): Promise<Dict>;
-    futuresPrivateDeleteOrdersMultiCancel (params?: {}): Promise<Dict>;
-    futuresPrivateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<Dict>;
-    futuresPrivateDeleteCancelTransferOut (params?: {}): Promise<Dict>;
-    futuresPrivateDeleteSubApiKey (params?: {}): Promise<Dict>;
-    webExchangeGetCurrencyCurrencyChainInfo (params?: {}): Promise<Dict>;
-    webExchangeGetContractSymbolFundingRates (params?: {}): Promise<Dict>;
-    brokerGetBrokerNdInfo (params?: {}): Promise<Dict>;
-    brokerGetBrokerNdAccount (params?: {}): Promise<Dict>;
-    brokerGetBrokerNdAccountApikey (params?: {}): Promise<Dict>;
-    brokerGetBrokerNdRebaseDownload (params?: {}): Promise<Dict>;
-    brokerGetBrokerNdMarkUp (params?: {}): Promise<Dict>;
-    brokerGetAssetNdbrokerDepositList (params?: {}): Promise<Dict>;
-    brokerGetBrokerNdTransferDetail (params?: {}): Promise<Dict>;
-    brokerGetBrokerNdDepositDetail (params?: {}): Promise<Dict>;
-    brokerGetBrokerNdWithdrawDetail (params?: {}): Promise<Dict>;
-    brokerPostBrokerNdTransfer (params?: {}): Promise<Dict>;
-    brokerPostBrokerNdAccount (params?: {}): Promise<Dict>;
-    brokerPostBrokerNdAccountApikey (params?: {}): Promise<Dict>;
-    brokerPostBrokerNdAccountUpdateApikey (params?: {}): Promise<Dict>;
-    brokerPostBrokerNdMarkUp (params?: {}): Promise<Dict>;
-    brokerDeleteBrokerNdAccountApikey (params?: {}): Promise<Dict>;
-    earnGetOtcLoanDiscountRateConfigs (params?: {}): Promise<Dict>;
-    earnGetOtcLoanLoan (params?: {}): Promise<Dict>;
-    earnGetOtcLoanAccounts (params?: {}): Promise<Dict>;
-    earnGetEarnRedeemPreview (params?: {}): Promise<Dict>;
-    earnGetEarnSavingProducts (params?: {}): Promise<Dict>;
-    earnGetEarnHoldAssets (params?: {}): Promise<Dict>;
-    earnGetEarnPromotionProducts (params?: {}): Promise<Dict>;
-    earnGetEarnKcsStakingProducts (params?: {}): Promise<Dict>;
-    earnGetEarnStakingProducts (params?: {}): Promise<Dict>;
-    earnGetEarnEthStakingProducts (params?: {}): Promise<Dict>;
-    earnGetStructEarnDualProducts (params?: {}): Promise<Dict>;
-    earnGetStructEarnOrders (params?: {}): Promise<Dict>;
-    earnPostEarnOrders (params?: {}): Promise<Dict>;
-    earnPostStructEarnOrders (params?: {}): Promise<Dict>;
-    earnDeleteEarnOrders (params?: {}): Promise<Dict>;
-    utaGetMarketAnnouncement (params?: {}): Promise<Dict>;
-    utaGetMarketCurrency (params?: {}): Promise<Dict>;
-    utaGetAssetCurrencies (params?: {}): Promise<Dict>;
-    utaGetMarketInstrument (params?: {}): Promise<Dict>;
-    utaGetMarketTicker (params?: {}): Promise<Dict>;
-    utaGetMarketTrade (params?: {}): Promise<Dict>;
-    utaGetMarketKline (params?: {}): Promise<Dict>;
-    utaGetMarketFundingRate (params?: {}): Promise<Dict>;
-    utaGetMarketFundingRateHistory (params?: {}): Promise<Dict>;
-    utaGetMarketCrossConfig (params?: {}): Promise<Dict>;
-    utaGetMarketCollateralDiscountRatio (params?: {}): Promise<Dict>;
-    utaGetMarketIndexPrice (params?: {}): Promise<Dict>;
-    utaGetMarketPositionTiers (params?: {}): Promise<Dict>;
-    utaGetMarketOpenInterest (params?: {}): Promise<Dict>;
-    utaGetServerStatus (params?: {}): Promise<Dict>;
-    utaGetMarketBorrowableCurrency (params?: {}): Promise<Dict>;
-    utaGetUserMyIp (params?: {}): Promise<Dict>;
-    utaGetMarketFiatPrice (params?: {}): Promise<Dict>;
-    utaV2GetMarketFundingRate (params?: {}): Promise<Dict>;
-    utaPrivateGetMarketOrderbook (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountBalance (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountTransferQuota (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountMode (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountLedger (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountInterestHistory (params?: {}): Promise<Dict>;
-    utaPrivateGetAssetDepositAddress (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountDepositAddress (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountModeAccountBalance (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountModeAccountOverview (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountModeOrderDetail (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountModeOrderOpenList (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountModeOrderHistory (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountModeOrderExecution (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountModePositionOpenList (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountModePositionHistory (params?: {}): Promise<Dict>;
-    utaPrivateGetPositionHistory (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountModePositionTiers (params?: {}): Promise<Dict>;
-    utaPrivateGetSubAccountBalance (params?: {}): Promise<Dict>;
-    utaPrivateGetUserFeeRate (params?: {}): Promise<Dict>;
-    utaPrivateGetDcpQuery (params?: {}): Promise<Dict>;
-    utaPrivateGetUnifiedAccountLeverage (params?: {}): Promise<Dict>;
-    utaPrivateGetPositionFundingHistory (params?: {}): Promise<Dict>;
-    utaPrivateGetAccountInterestLimits (params?: {}): Promise<Dict>;
-    utaPrivatePostAccountTransfer (params?: {}): Promise<Dict>;
-    utaPrivatePostAccountMode (params?: {}): Promise<Dict>;
-    utaPrivatePostAccountModeAccountModifyLeverage (params?: {}): Promise<Dict>;
-    utaPrivatePostAccountModeOrderPlace (params?: {}): Promise<Dict>;
-    utaPrivatePostAccountModeOrderPlaceBatch (params?: {}): Promise<Dict>;
-    utaPrivatePostAccountModeOrderCancel (params?: {}): Promise<Dict>;
-    utaPrivatePostAccountModeOrderCancelBatch (params?: {}): Promise<Dict>;
-    utaPrivatePostAccountModeOrderCancelAll (params?: {}): Promise<Dict>;
-    utaPrivatePostSubAccountCanTransferOut (params?: {}): Promise<Dict>;
-    utaPrivatePostDcpSet (params?: {}): Promise<Dict>;
-    utaPrivatePostAccountModeAccountModifyLeverageMarginCross (params?: {}): Promise<Dict>;
+abstract class kucoin extends _kucoin {
+    override publicGetCurrencies (params = {}): Promise<Dict> {
+        return this.request ("currencies", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override public_get_currencies (params = {}): Promise<Dict> {
+        return this.request ("currencies", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override publicGetCurrenciesCurrency (params = {}): Promise<Dict> {
+        return this.request ("currencies/{currency}", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override public_get_currencies_currency (params = {}): Promise<Dict> {
+        return this.request ("currencies/{currency}", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override publicGetSymbols (params = {}): Promise<Dict> {
+        return this.request ("symbols", "public", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override public_get_symbols (params = {}): Promise<Dict> {
+        return this.request ("symbols", "public", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override publicGetMarketOrderbookLevel1 (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level1", "public", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override public_get_market_orderbook_level1 (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level1", "public", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override publicGetMarketAllTickers (params = {}): Promise<Dict> {
+        return this.request ("market/allTickers", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override public_get_market_alltickers (params = {}): Promise<Dict> {
+        return this.request ("market/allTickers", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override publicGetMarketStats (params = {}): Promise<Dict> {
+        return this.request ("market/stats", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override public_get_market_stats (params = {}): Promise<Dict> {
+        return this.request ("market/stats", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override publicGetMarkets (params = {}): Promise<Dict> {
+        return this.request ("markets", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override public_get_markets (params = {}): Promise<Dict> {
+        return this.request ("markets", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override publicGetMarketOrderbookLevelLevelLimit (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level{level}_{limit}", "public", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override public_get_market_orderbook_level_level_limit (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level{level}_{limit}", "public", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override publicGetMarketOrderbookLevel220 (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level2_20", "public", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override public_get_market_orderbook_level2_20 (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level2_20", "public", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override publicGetMarketOrderbookLevel2100 (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level2_100", "public", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override public_get_market_orderbook_level2_100 (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level2_100", "public", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override publicGetMarketHistories (params = {}): Promise<Dict> {
+        return this.request ("market/histories", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override public_get_market_histories (params = {}): Promise<Dict> {
+        return this.request ("market/histories", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override publicGetMarketCandles (params = {}): Promise<Dict> {
+        return this.request ("market/candles", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override public_get_market_candles (params = {}): Promise<Dict> {
+        return this.request ("market/candles", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override publicGetPrices (params = {}): Promise<Dict> {
+        return this.request ("prices", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override public_get_prices (params = {}): Promise<Dict> {
+        return this.request ("prices", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override publicGetTimestamp (params = {}): Promise<Dict> {
+        return this.request ("timestamp", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override public_get_timestamp (params = {}): Promise<Dict> {
+        return this.request ("timestamp", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override publicGetStatus (params = {}): Promise<Dict> {
+        return this.request ("status", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override public_get_status (params = {}): Promise<Dict> {
+        return this.request ("status", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override publicGetMarkPriceSymbolCurrent (params = {}): Promise<Dict> {
+        return this.request ("mark-price/{symbol}/current", "public", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override public_get_mark_price_symbol_current (params = {}): Promise<Dict> {
+        return this.request ("mark-price/{symbol}/current", "public", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override publicGetMarkPriceAllSymbols (params = {}): Promise<Dict> {
+        return this.request ("mark-price/all-symbols", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override public_get_mark_price_all_symbols (params = {}): Promise<Dict> {
+        return this.request ("mark-price/all-symbols", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override publicGetMarginConfig (params = {}): Promise<Dict> {
+        return this.request ("margin/config", "public", 'GET', params, undefined, undefined, {"cost":25});
+    }
+    override public_get_margin_config (params = {}): Promise<Dict> {
+        return this.request ("margin/config", "public", 'GET', params, undefined, undefined, {"cost":25});
+    }
+    override publicGetAnnouncements (params = {}): Promise<Dict> {
+        return this.request ("announcements", "public", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override public_get_announcements (params = {}): Promise<Dict> {
+        return this.request ("announcements", "public", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override publicGetMarginCollateralRatio (params = {}): Promise<Dict> {
+        return this.request ("margin/collateralRatio", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override public_get_margin_collateralratio (params = {}): Promise<Dict> {
+        return this.request ("margin/collateralRatio", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override publicGetMarginAvailableInventory (params = {}): Promise<Dict> {
+        return this.request ("margin/available-inventory", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override public_get_margin_available_inventory (params = {}): Promise<Dict> {
+        return this.request ("margin/available-inventory", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override publicGetConvertSymbol (params = {}): Promise<Dict> {
+        return this.request ("convert/symbol", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override public_get_convert_symbol (params = {}): Promise<Dict> {
+        return this.request ("convert/symbol", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override publicGetConvertCurrencies (params = {}): Promise<Dict> {
+        return this.request ("convert/currencies", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override public_get_convert_currencies (params = {}): Promise<Dict> {
+        return this.request ("convert/currencies", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override publicPostBulletPublic (params = {}): Promise<Dict> {
+        return this.request ("bullet-public", "public", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override public_post_bullet_public (params = {}): Promise<Dict> {
+        return this.request ("bullet-public", "public", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override privateGetUserInfo (params = {}): Promise<Dict> {
+        return this.request ("user-info", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_user_info (params = {}): Promise<Dict> {
+        return this.request ("user-info", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetUserApiKey (params = {}): Promise<Dict> {
+        return this.request ("user/api-key", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_user_api_key (params = {}): Promise<Dict> {
+        return this.request ("user/api-key", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetAccounts (params = {}): Promise<Dict> {
+        return this.request ("accounts", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_accounts (params = {}): Promise<Dict> {
+        return this.request ("accounts", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetAccountsAccountId (params = {}): Promise<Dict> {
+        return this.request ("accounts/{accountId}", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_accounts_accountid (params = {}): Promise<Dict> {
+        return this.request ("accounts/{accountId}", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetAccountsLedgers (params = {}): Promise<Dict> {
+        return this.request ("accounts/ledgers", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_accounts_ledgers (params = {}): Promise<Dict> {
+        return this.request ("accounts/ledgers", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfAccountsLedgers (params = {}): Promise<Dict> {
+        return this.request ("hf/accounts/ledgers", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_accounts_ledgers (params = {}): Promise<Dict> {
+        return this.request ("hf/accounts/ledgers", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfMarginAccountLedgers (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/account/ledgers", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_margin_account_ledgers (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/account/ledgers", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetTransactionHistory (params = {}): Promise<Dict> {
+        return this.request ("transaction-history", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_transaction_history (params = {}): Promise<Dict> {
+        return this.request ("transaction-history", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetSubUser (params = {}): Promise<Dict> {
+        return this.request ("sub/user", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_sub_user (params = {}): Promise<Dict> {
+        return this.request ("sub/user", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetSubAccountsSubUserId (params = {}): Promise<Dict> {
+        return this.request ("sub-accounts/{subUserId}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override private_get_sub_accounts_subuserid (params = {}): Promise<Dict> {
+        return this.request ("sub-accounts/{subUserId}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override privateGetSubAccounts (params = {}): Promise<Dict> {
+        return this.request ("sub-accounts", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_sub_accounts (params = {}): Promise<Dict> {
+        return this.request ("sub-accounts", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetSubApiKey (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_sub_api_key (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetMarginAccount (params = {}): Promise<Dict> {
+        return this.request ("margin/account", "private", 'GET', params, undefined, undefined, {"cost":40});
+    }
+    override private_get_margin_account (params = {}): Promise<Dict> {
+        return this.request ("margin/account", "private", 'GET', params, undefined, undefined, {"cost":40});
+    }
+    override privateGetMarginAccounts (params = {}): Promise<Dict> {
+        return this.request ("margin/accounts", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override private_get_margin_accounts (params = {}): Promise<Dict> {
+        return this.request ("margin/accounts", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override privateGetIsolatedAccounts (params = {}): Promise<Dict> {
+        return this.request ("isolated/accounts", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override private_get_isolated_accounts (params = {}): Promise<Dict> {
+        return this.request ("isolated/accounts", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override privateGetDepositAddresses (params = {}): Promise<Dict> {
+        return this.request ("deposit-addresses", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_deposit_addresses (params = {}): Promise<Dict> {
+        return this.request ("deposit-addresses", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetDeposits (params = {}): Promise<Dict> {
+        return this.request ("deposits", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_deposits (params = {}): Promise<Dict> {
+        return this.request ("deposits", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetHistDeposits (params = {}): Promise<Dict> {
+        return this.request ("hist-deposits", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_hist_deposits (params = {}): Promise<Dict> {
+        return this.request ("hist-deposits", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetWithdrawals (params = {}): Promise<Dict> {
+        return this.request ("withdrawals", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_withdrawals (params = {}): Promise<Dict> {
+        return this.request ("withdrawals", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetHistWithdrawals (params = {}): Promise<Dict> {
+        return this.request ("hist-withdrawals", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_hist_withdrawals (params = {}): Promise<Dict> {
+        return this.request ("hist-withdrawals", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetWithdrawalsQuotas (params = {}): Promise<Dict> {
+        return this.request ("withdrawals/quotas", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_withdrawals_quotas (params = {}): Promise<Dict> {
+        return this.request ("withdrawals/quotas", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetAccountsTransferable (params = {}): Promise<Dict> {
+        return this.request ("accounts/transferable", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_accounts_transferable (params = {}): Promise<Dict> {
+        return this.request ("accounts/transferable", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetTransferList (params = {}): Promise<Dict> {
+        return this.request ("transfer-list", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_transfer_list (params = {}): Promise<Dict> {
+        return this.request ("transfer-list", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetBaseFee (params = {}): Promise<Dict> {
+        return this.request ("base-fee", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_base_fee (params = {}): Promise<Dict> {
+        return this.request ("base-fee", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetTradeFees (params = {}): Promise<Dict> {
+        return this.request ("trade-fees", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_trade_fees (params = {}): Promise<Dict> {
+        return this.request ("trade-fees", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetMarketOrderbookLevelLevel (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level{level}", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_market_orderbook_level_level (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level{level}", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetMarketOrderbookLevel2 (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level2", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_market_orderbook_level2 (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level2", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetMarketOrderbookLevel3 (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level3", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_market_orderbook_level3 (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook/level3", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetHfAccountsOpened (params = {}): Promise<Dict> {
+        return this.request ("hf/accounts/opened", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_accounts_opened (params = {}): Promise<Dict> {
+        return this.request ("hf/accounts/opened", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfOrdersActive (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/active", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_orders_active (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/active", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfOrdersActiveSymbols (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/active/symbols", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_orders_active_symbols (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/active/symbols", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfMarginOrderActiveSymbols (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/order/active/symbols", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_margin_order_active_symbols (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/order/active/symbols", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfOrdersDone (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/done", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_orders_done (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/done", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_orders_orderid (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfOrdersClientOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/client-order/{clientOid}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_orders_client_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/client-order/{clientOid}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfOrdersDeadCancelAllQuery (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/dead-cancel-all/query", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_orders_dead_cancel_all_query (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/dead-cancel-all/query", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfFills (params = {}): Promise<Dict> {
+        return this.request ("hf/fills", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_fills (params = {}): Promise<Dict> {
+        return this.request ("hf/fills", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetOrders (params = {}): Promise<Dict> {
+        return this.request ("orders", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_orders (params = {}): Promise<Dict> {
+        return this.request ("orders", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetLimitOrders (params = {}): Promise<Dict> {
+        return this.request ("limit/orders", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_limit_orders (params = {}): Promise<Dict> {
+        return this.request ("limit/orders", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ("orders/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_orders_orderid (params = {}): Promise<Dict> {
+        return this.request ("orders/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetOrderClientOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("order/client-order/{clientOid}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_order_client_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("order/client-order/{clientOid}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetFills (params = {}): Promise<Dict> {
+        return this.request ("fills", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override private_get_fills (params = {}): Promise<Dict> {
+        return this.request ("fills", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override privateGetLimitFills (params = {}): Promise<Dict> {
+        return this.request ("limit/fills", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_limit_fills (params = {}): Promise<Dict> {
+        return this.request ("limit/fills", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetStopOrder (params = {}): Promise<Dict> {
+        return this.request ("stop-order", "private", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override private_get_stop_order (params = {}): Promise<Dict> {
+        return this.request ("stop-order", "private", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override privateGetStopOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ("stop-order/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_stop_order_orderid (params = {}): Promise<Dict> {
+        return this.request ("stop-order/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetStopOrderQueryOrderByClientOid (params = {}): Promise<Dict> {
+        return this.request ("stop-order/queryOrderByClientOid", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_stop_order_queryorderbyclientoid (params = {}): Promise<Dict> {
+        return this.request ("stop-order/queryOrderByClientOid", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetOcoOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ("oco/order/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_oco_order_orderid (params = {}): Promise<Dict> {
+        return this.request ("oco/order/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetOcoOrderDetailsOrderId (params = {}): Promise<Dict> {
+        return this.request ("oco/order/details/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_oco_order_details_orderid (params = {}): Promise<Dict> {
+        return this.request ("oco/order/details/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetOcoClientOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("oco/client-order/{clientOid}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_oco_client_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("oco/client-order/{clientOid}", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetOcoOrders (params = {}): Promise<Dict> {
+        return this.request ("oco/orders", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_oco_orders (params = {}): Promise<Dict> {
+        return this.request ("oco/orders", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfMarginOrdersActive (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/active", "private", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override private_get_hf_margin_orders_active (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/active", "private", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override privateGetHfMarginOrdersDone (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/done", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override private_get_hf_margin_orders_done (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/done", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override privateGetHfMarginOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override private_get_hf_margin_orders_orderid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/{orderId}", "private", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override privateGetHfMarginOrdersClientOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/client-order/{clientOid}", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_hf_margin_orders_client_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/client-order/{clientOid}", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetHfMarginFills (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/fills", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_hf_margin_fills (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/fills", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetHfMarginStopOrders (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-orders", "private", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override private_get_hf_margin_stop_orders (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-orders", "private", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override privateGetHfMarginStopOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order/orderId", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_hf_margin_stop_order_orderid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order/orderId", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetHfMarginStopOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order/clientOid", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_hf_margin_stop_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order/clientOid", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetHfMarginOcoOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/orderId", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_margin_oco_order_orderid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/orderId", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfMarginOcoOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/clientOid", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_margin_oco_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/clientOid", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfMarginOcoOrderDetailOrderId (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/detail/orderId", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_margin_oco_order_detail_orderid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/detail/orderId", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetHfMarginOcoOrders (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-orders", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override private_get_hf_margin_oco_orders (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-orders", "private", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override privateGetEtfInfo (params = {}): Promise<Dict> {
+        return this.request ("etf/info", "private", 'GET', params, undefined, undefined, {"cost":25});
+    }
+    override private_get_etf_info (params = {}): Promise<Dict> {
+        return this.request ("etf/info", "private", 'GET', params, undefined, undefined, {"cost":25});
+    }
+    override privateGetMarginCurrencies (params = {}): Promise<Dict> {
+        return this.request ("margin/currencies", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_margin_currencies (params = {}): Promise<Dict> {
+        return this.request ("margin/currencies", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetRiskLimitStrategy (params = {}): Promise<Dict> {
+        return this.request ("risk/limit/strategy", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_risk_limit_strategy (params = {}): Promise<Dict> {
+        return this.request ("risk/limit/strategy", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetIsolatedSymbols (params = {}): Promise<Dict> {
+        return this.request ("isolated/symbols", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_isolated_symbols (params = {}): Promise<Dict> {
+        return this.request ("isolated/symbols", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetMarginSymbols (params = {}): Promise<Dict> {
+        return this.request ("margin/symbols", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_margin_symbols (params = {}): Promise<Dict> {
+        return this.request ("margin/symbols", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetIsolatedAccountSymbol (params = {}): Promise<Dict> {
+        return this.request ("isolated/account/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":50});
+    }
+    override private_get_isolated_account_symbol (params = {}): Promise<Dict> {
+        return this.request ("isolated/account/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":50});
+    }
+    override privateGetMarginBorrow (params = {}): Promise<Dict> {
+        return this.request ("margin/borrow", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override private_get_margin_borrow (params = {}): Promise<Dict> {
+        return this.request ("margin/borrow", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override privateGetMarginRepay (params = {}): Promise<Dict> {
+        return this.request ("margin/repay", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override private_get_margin_repay (params = {}): Promise<Dict> {
+        return this.request ("margin/repay", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    override privateGetMarginInterest (params = {}): Promise<Dict> {
+        return this.request ("margin/interest", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_margin_interest (params = {}): Promise<Dict> {
+        return this.request ("margin/interest", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetMarginBorrowRate (params = {}): Promise<Dict> {
+        return this.request ("margin/borrowRate", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_margin_borrowrate (params = {}): Promise<Dict> {
+        return this.request ("margin/borrowRate", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetProjectList (params = {}): Promise<Dict> {
+        return this.request ("project/list", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override private_get_project_list (params = {}): Promise<Dict> {
+        return this.request ("project/list", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override privateGetProjectMarketInterestRate (params = {}): Promise<Dict> {
+        return this.request ("project/marketInterestRate", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_project_marketinterestrate (params = {}): Promise<Dict> {
+        return this.request ("project/marketInterestRate", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetRedeemOrders (params = {}): Promise<Dict> {
+        return this.request ("redeem/orders", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override private_get_redeem_orders (params = {}): Promise<Dict> {
+        return this.request ("redeem/orders", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override privateGetPurchaseOrders (params = {}): Promise<Dict> {
+        return this.request ("purchase/orders", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override private_get_purchase_orders (params = {}): Promise<Dict> {
+        return this.request ("purchase/orders", "private", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override privateGetBrokerApiRebaseDownload (params = {}): Promise<Dict> {
+        return this.request ("broker/api/rebase/download", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_broker_api_rebase_download (params = {}): Promise<Dict> {
+        return this.request ("broker/api/rebase/download", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetBrokerQueryMyCommission (params = {}): Promise<Dict> {
+        return this.request ("broker/queryMyCommission", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_broker_querymycommission (params = {}): Promise<Dict> {
+        return this.request ("broker/queryMyCommission", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetBrokerQueryUser (params = {}): Promise<Dict> {
+        return this.request ("broker/queryUser", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_broker_queryuser (params = {}): Promise<Dict> {
+        return this.request ("broker/queryUser", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetBrokerQueryDetailByUid (params = {}): Promise<Dict> {
+        return this.request ("broker/queryDetailByUid", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_broker_querydetailbyuid (params = {}): Promise<Dict> {
+        return this.request ("broker/queryDetailByUid", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetMigrateUserAccountStatus (params = {}): Promise<Dict> {
+        return this.request ("migrate/user/account/status", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override private_get_migrate_user_account_status (params = {}): Promise<Dict> {
+        return this.request ("migrate/user/account/status", "private", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override privateGetConvertQuote (params = {}): Promise<Dict> {
+        return this.request ("convert/quote", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_convert_quote (params = {}): Promise<Dict> {
+        return this.request ("convert/quote", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetConvertOrderDetail (params = {}): Promise<Dict> {
+        return this.request ("convert/order/detail", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_convert_order_detail (params = {}): Promise<Dict> {
+        return this.request ("convert/order/detail", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetConvertOrderHistory (params = {}): Promise<Dict> {
+        return this.request ("convert/order/history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_convert_order_history (params = {}): Promise<Dict> {
+        return this.request ("convert/order/history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetConvertLimitQuote (params = {}): Promise<Dict> {
+        return this.request ("convert/limit/quote", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override private_get_convert_limit_quote (params = {}): Promise<Dict> {
+        return this.request ("convert/limit/quote", "private", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override privateGetConvertLimitOrderDetail (params = {}): Promise<Dict> {
+        return this.request ("convert/limit/order/detail", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_convert_limit_order_detail (params = {}): Promise<Dict> {
+        return this.request ("convert/limit/order/detail", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetConvertLimitOrders (params = {}): Promise<Dict> {
+        return this.request ("convert/limit/orders", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override private_get_convert_limit_orders (params = {}): Promise<Dict> {
+        return this.request ("convert/limit/orders", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override privateGetAffiliateInviterStatistics (params = {}): Promise<Dict> {
+        return this.request ("affiliate/inviter/statistics", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override private_get_affiliate_inviter_statistics (params = {}): Promise<Dict> {
+        return this.request ("affiliate/inviter/statistics", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override privateGetAffiliateQueryInvitees (params = {}): Promise<Dict> {
+        return this.request ("affiliate/queryInvitees", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override private_get_affiliate_queryinvitees (params = {}): Promise<Dict> {
+        return this.request ("affiliate/queryInvitees", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override privateGetAffiliateQueryMyCommission (params = {}): Promise<Dict> {
+        return this.request ("affiliate/queryMyCommission", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override private_get_affiliate_querymycommission (params = {}): Promise<Dict> {
+        return this.request ("affiliate/queryMyCommission", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override privateGetAffiliateQueryTransactionByUid (params = {}): Promise<Dict> {
+        return this.request ("affiliate/queryTransactionByUid", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override private_get_affiliate_querytransactionbyuid (params = {}): Promise<Dict> {
+        return this.request ("affiliate/queryTransactionByUid", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override privateGetAffiliateQueryTransactionByTime (params = {}): Promise<Dict> {
+        return this.request ("affiliate/queryTransactionByTime", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override private_get_affiliate_querytransactionbytime (params = {}): Promise<Dict> {
+        return this.request ("affiliate/queryTransactionByTime", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override privateGetAffiliateQueryKumining (params = {}): Promise<Dict> {
+        return this.request ("affiliate/queryKumining", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override private_get_affiliate_querykumining (params = {}): Promise<Dict> {
+        return this.request ("affiliate/queryKumining", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override privatePostSubUserCreated (params = {}): Promise<Dict> {
+        return this.request ("sub/user/created", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    override private_post_sub_user_created (params = {}): Promise<Dict> {
+        return this.request ("sub/user/created", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    override privatePostSubApiKey (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override private_post_sub_api_key (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override privatePostSubApiKeyUpdate (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key/update", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    override private_post_sub_api_key_update (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key/update", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    override privatePostDepositAddresses (params = {}): Promise<Dict> {
+        return this.request ("deposit-addresses", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override private_post_deposit_addresses (params = {}): Promise<Dict> {
+        return this.request ("deposit-addresses", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override privatePostWithdrawals (params = {}): Promise<Dict> {
+        return this.request ("withdrawals", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    override private_post_withdrawals (params = {}): Promise<Dict> {
+        return this.request ("withdrawals", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    override privatePostAccountsUniversalTransfer (params = {}): Promise<Dict> {
+        return this.request ("accounts/universal-transfer", "private", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override private_post_accounts_universal_transfer (params = {}): Promise<Dict> {
+        return this.request ("accounts/universal-transfer", "private", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override privatePostAccountsSubTransfer (params = {}): Promise<Dict> {
+        return this.request ("accounts/sub-transfer", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    override private_post_accounts_sub_transfer (params = {}): Promise<Dict> {
+        return this.request ("accounts/sub-transfer", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    override privatePostAccountsInnerTransfer (params = {}): Promise<Dict> {
+        return this.request ("accounts/inner-transfer", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    override private_post_accounts_inner_transfer (params = {}): Promise<Dict> {
+        return this.request ("accounts/inner-transfer", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    override privatePostTransferOut (params = {}): Promise<Dict> {
+        return this.request ("transfer-out", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override private_post_transfer_out (params = {}): Promise<Dict> {
+        return this.request ("transfer-out", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override privatePostTransferIn (params = {}): Promise<Dict> {
+        return this.request ("transfer-in", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override private_post_transfer_in (params = {}): Promise<Dict> {
+        return this.request ("transfer-in", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override privatePostHfOrders (params = {}): Promise<Dict> {
+        return this.request ("hf/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override private_post_hf_orders (params = {}): Promise<Dict> {
+        return this.request ("hf/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override privatePostHfOrdersTest (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/test", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override private_post_hf_orders_test (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/test", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override privatePostHfOrdersSync (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/sync", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override private_post_hf_orders_sync (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/sync", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override privatePostHfOrdersMulti (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/multi", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override private_post_hf_orders_multi (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/multi", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override privatePostHfOrdersMultiSync (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/multi/sync", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override private_post_hf_orders_multi_sync (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/multi/sync", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override privatePostHfOrdersAlter (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/alter", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override private_post_hf_orders_alter (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/alter", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    override privatePostHfOrdersDeadCancelAll (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/dead-cancel-all", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override private_post_hf_orders_dead_cancel_all (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/dead-cancel-all", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override privatePostOrders (params = {}): Promise<Dict> {
+        return this.request ("orders", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override private_post_orders (params = {}): Promise<Dict> {
+        return this.request ("orders", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override privatePostOrdersTest (params = {}): Promise<Dict> {
+        return this.request ("orders/test", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override private_post_orders_test (params = {}): Promise<Dict> {
+        return this.request ("orders/test", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override privatePostOrdersMulti (params = {}): Promise<Dict> {
+        return this.request ("orders/multi", "private", 'POST', params, undefined, undefined, {"cost":3});
+    }
+    override private_post_orders_multi (params = {}): Promise<Dict> {
+        return this.request ("orders/multi", "private", 'POST', params, undefined, undefined, {"cost":3});
+    }
+    override privatePostStopOrder (params = {}): Promise<Dict> {
+        return this.request ("stop-order", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override private_post_stop_order (params = {}): Promise<Dict> {
+        return this.request ("stop-order", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override privatePostOcoOrder (params = {}): Promise<Dict> {
+        return this.request ("oco/order", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override private_post_oco_order (params = {}): Promise<Dict> {
+        return this.request ("oco/order", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override privatePostHfMarginOrder (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/order", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override private_post_hf_margin_order (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/order", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override privatePostHfMarginOrderTest (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/order/test", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override private_post_hf_margin_order_test (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/order/test", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override privatePostHfMarginStopOrder (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order", "private", 'POST', params, undefined, undefined, {"cost":3});
+    }
+    override private_post_hf_margin_stop_order (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order", "private", 'POST', params, undefined, undefined, {"cost":3});
+    }
+    override privatePostMarginOrder (params = {}): Promise<Dict> {
+        return this.request ("margin/order", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    override private_post_margin_order (params = {}): Promise<Dict> {
+        return this.request ("margin/order", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    override privatePostMarginOrderTest (params = {}): Promise<Dict> {
+        return this.request ("margin/order/test", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    override private_post_margin_order_test (params = {}): Promise<Dict> {
+        return this.request ("margin/order/test", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    override privatePostHfMarginOcoOrder (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override private_post_hf_margin_oco_order (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order", "private", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override privatePostMarginBorrow (params = {}): Promise<Dict> {
+        return this.request ("margin/borrow", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    override private_post_margin_borrow (params = {}): Promise<Dict> {
+        return this.request ("margin/borrow", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    override privatePostMarginRepay (params = {}): Promise<Dict> {
+        return this.request ("margin/repay", "private", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override private_post_margin_repay (params = {}): Promise<Dict> {
+        return this.request ("margin/repay", "private", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override privatePostPurchase (params = {}): Promise<Dict> {
+        return this.request ("purchase", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    override private_post_purchase (params = {}): Promise<Dict> {
+        return this.request ("purchase", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    override privatePostRedeem (params = {}): Promise<Dict> {
+        return this.request ("redeem", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    override private_post_redeem (params = {}): Promise<Dict> {
+        return this.request ("redeem", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    override privatePostLendPurchaseUpdate (params = {}): Promise<Dict> {
+        return this.request ("lend/purchase/update", "private", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override private_post_lend_purchase_update (params = {}): Promise<Dict> {
+        return this.request ("lend/purchase/update", "private", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override privatePostConvertOrder (params = {}): Promise<Dict> {
+        return this.request ("convert/order", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override private_post_convert_order (params = {}): Promise<Dict> {
+        return this.request ("convert/order", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override privatePostConvertLimitOrder (params = {}): Promise<Dict> {
+        return this.request ("convert/limit/order", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override private_post_convert_limit_order (params = {}): Promise<Dict> {
+        return this.request ("convert/limit/order", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override privatePostBulletPrivate (params = {}): Promise<Dict> {
+        return this.request ("bullet-private", "private", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override private_post_bullet_private (params = {}): Promise<Dict> {
+        return this.request ("bullet-private", "private", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override privatePostPositionUpdateUserLeverage (params = {}): Promise<Dict> {
+        return this.request ("position/update-user-leverage", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    override private_post_position_update_user_leverage (params = {}): Promise<Dict> {
+        return this.request ("position/update-user-leverage", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    override privatePostDepositAddressCreate (params = {}): Promise<Dict> {
+        return this.request ("deposit-address/create", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override private_post_deposit_address_create (params = {}): Promise<Dict> {
+        return this.request ("deposit-address/create", "private", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override privateDeleteSubApiKey (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "private", 'DELETE', params, undefined, undefined, {"cost":30});
+    }
+    override private_delete_sub_api_key (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "private", 'DELETE', params, undefined, undefined, {"cost":30});
+    }
+    override privateDeleteWithdrawalsWithdrawalId (params = {}): Promise<Dict> {
+        return this.request ("withdrawals/{withdrawalId}", "private", 'DELETE', params, undefined, undefined, {"cost":20});
+    }
+    override private_delete_withdrawals_withdrawalid (params = {}): Promise<Dict> {
+        return this.request ("withdrawals/{withdrawalId}", "private", 'DELETE', params, undefined, undefined, {"cost":20});
+    }
+    override privateDeleteHfOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    override private_delete_hf_orders_orderid (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    override privateDeleteHfOrdersSyncOrderId (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/sync/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    override private_delete_hf_orders_sync_orderid (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/sync/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    override privateDeleteHfOrdersClientOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/client-order/{clientOid}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    override private_delete_hf_orders_client_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/client-order/{clientOid}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    override privateDeleteHfOrdersSyncClientOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/sync/client-order/{clientOid}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    override private_delete_hf_orders_sync_client_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/sync/client-order/{clientOid}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    override privateDeleteHfOrdersCancelOrderId (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/cancel/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    override private_delete_hf_orders_cancel_orderid (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/cancel/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    override privateDeleteHfOrders (params = {}): Promise<Dict> {
+        return this.request ("hf/orders", "private", 'DELETE', params, undefined, undefined, {"cost":2});
+    }
+    override private_delete_hf_orders (params = {}): Promise<Dict> {
+        return this.request ("hf/orders", "private", 'DELETE', params, undefined, undefined, {"cost":2});
+    }
+    override privateDeleteHfOrdersCancelAll (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/cancelAll", "private", 'DELETE', params, undefined, undefined, {"cost":30});
+    }
+    override private_delete_hf_orders_cancelall (params = {}): Promise<Dict> {
+        return this.request ("hf/orders/cancelAll", "private", 'DELETE', params, undefined, undefined, {"cost":30});
+    }
+    override privateDeleteOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ("orders/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override private_delete_orders_orderid (params = {}): Promise<Dict> {
+        return this.request ("orders/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override privateDeleteOrderClientOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("order/client-order/{clientOid}", "private", 'DELETE', params, undefined, undefined, {"cost":5});
+    }
+    override private_delete_order_client_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("order/client-order/{clientOid}", "private", 'DELETE', params, undefined, undefined, {"cost":5});
+    }
+    override privateDeleteOrders (params = {}): Promise<Dict> {
+        return this.request ("orders", "private", 'DELETE', params, undefined, undefined, {"cost":20});
+    }
+    override private_delete_orders (params = {}): Promise<Dict> {
+        return this.request ("orders", "private", 'DELETE', params, undefined, undefined, {"cost":20});
+    }
+    override privateDeleteStopOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ("stop-order/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override private_delete_stop_order_orderid (params = {}): Promise<Dict> {
+        return this.request ("stop-order/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override privateDeleteStopOrderCancelOrderByClientOid (params = {}): Promise<Dict> {
+        return this.request ("stop-order/cancelOrderByClientOid", "private", 'DELETE', params, undefined, undefined, {"cost":5});
+    }
+    override private_delete_stop_order_cancelorderbyclientoid (params = {}): Promise<Dict> {
+        return this.request ("stop-order/cancelOrderByClientOid", "private", 'DELETE', params, undefined, undefined, {"cost":5});
+    }
+    override privateDeleteStopOrderCancel (params = {}): Promise<Dict> {
+        return this.request ("stop-order/cancel", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override private_delete_stop_order_cancel (params = {}): Promise<Dict> {
+        return this.request ("stop-order/cancel", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override privateDeleteOcoOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ("oco/order/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override private_delete_oco_order_orderid (params = {}): Promise<Dict> {
+        return this.request ("oco/order/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override privateDeleteOcoClientOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("oco/client-order/{clientOid}", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override private_delete_oco_client_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("oco/client-order/{clientOid}", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override privateDeleteOcoOrders (params = {}): Promise<Dict> {
+        return this.request ("oco/orders", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override private_delete_oco_orders (params = {}): Promise<Dict> {
+        return this.request ("oco/orders", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override privateDeleteHfMarginOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":2});
+    }
+    override private_delete_hf_margin_orders_orderid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":2});
+    }
+    override privateDeleteHfMarginOrdersClientOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/client-order/{clientOid}", "private", 'DELETE', params, undefined, undefined, {"cost":2});
+    }
+    override private_delete_hf_margin_orders_client_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders/client-order/{clientOid}", "private", 'DELETE', params, undefined, undefined, {"cost":2});
+    }
+    override privateDeleteHfMarginOrders (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders", "private", 'DELETE', params, undefined, undefined, {"cost":5});
+    }
+    override private_delete_hf_margin_orders (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/orders", "private", 'DELETE', params, undefined, undefined, {"cost":5});
+    }
+    override privateDeleteHfMarginStopOrderCancelById (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order/cancel-by-id", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override private_delete_hf_margin_stop_order_cancel_by_id (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order/cancel-by-id", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override privateDeleteHfMarginStopOrderCancelByClientOid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order/cancel-by-clientOid", "private", 'DELETE', params, undefined, undefined, {"cost":5});
+    }
+    override private_delete_hf_margin_stop_order_cancel_by_clientoid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order/cancel-by-clientOid", "private", 'DELETE', params, undefined, undefined, {"cost":5});
+    }
+    override privateDeleteHfMarginStopOrderCancel (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order/cancel", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override private_delete_hf_margin_stop_order_cancel (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/stop-order/cancel", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override privateDeleteHfMarginOcoOrderCancelById (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/cancel-by-id", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override private_delete_hf_margin_oco_order_cancel_by_id (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/cancel-by-id", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override privateDeleteHfMarginOcoOrderCancelByClientOid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/cancel-by-clientOid", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override private_delete_hf_margin_oco_order_cancel_by_clientoid (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/cancel-by-clientOid", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override privateDeleteHfMarginOcoOrderCancel (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/cancel", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override private_delete_hf_margin_oco_order_cancel (params = {}): Promise<Dict> {
+        return this.request ("hf/margin/oco-order/cancel", "private", 'DELETE', params, undefined, undefined, {"cost":3});
+    }
+    override privateDeleteConvertLimitOrderCancel (params = {}): Promise<Dict> {
+        return this.request ("convert/limit/order/cancel", "private", 'DELETE', params, undefined, undefined, {"cost":5});
+    }
+    override private_delete_convert_limit_order_cancel (params = {}): Promise<Dict> {
+        return this.request ("convert/limit/order/cancel", "private", 'DELETE', params, undefined, undefined, {"cost":5});
+    }
+    override futuresPublicGetContractsActive (params = {}): Promise<Dict> {
+        return this.request ("contracts/active", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublic_get_contracts_active (params = {}): Promise<Dict> {
+        return this.request ("contracts/active", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublicGetContractsSymbol (params = {}): Promise<Dict> {
+        return this.request ("contracts/{symbol}", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublic_get_contracts_symbol (params = {}): Promise<Dict> {
+        return this.request ("contracts/{symbol}", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublicGetTicker (params = {}): Promise<Dict> {
+        return this.request ("ticker", "futuresPublic", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPublic_get_ticker (params = {}): Promise<Dict> {
+        return this.request ("ticker", "futuresPublic", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPublicGetAllTickers (params = {}): Promise<Dict> {
+        return this.request ("allTickers", "futuresPublic", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPublic_get_alltickers (params = {}): Promise<Dict> {
+        return this.request ("allTickers", "futuresPublic", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPublicGetLevel2Snapshot (params = {}): Promise<Dict> {
+        return this.request ("level2/snapshot", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublic_get_level2_snapshot (params = {}): Promise<Dict> {
+        return this.request ("level2/snapshot", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublicGetLevel2Depth20 (params = {}): Promise<Dict> {
+        return this.request ("level2/depth20", "futuresPublic", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPublic_get_level2_depth20 (params = {}): Promise<Dict> {
+        return this.request ("level2/depth20", "futuresPublic", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPublicGetLevel2Depth100 (params = {}): Promise<Dict> {
+        return this.request ("level2/depth100", "futuresPublic", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPublic_get_level2_depth100 (params = {}): Promise<Dict> {
+        return this.request ("level2/depth100", "futuresPublic", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPublicGetTradeHistory (params = {}): Promise<Dict> {
+        return this.request ("trade/history", "futuresPublic", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPublic_get_trade_history (params = {}): Promise<Dict> {
+        return this.request ("trade/history", "futuresPublic", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPublicGetKlineQuery (params = {}): Promise<Dict> {
+        return this.request ("kline/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublic_get_kline_query (params = {}): Promise<Dict> {
+        return this.request ("kline/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublicGetInterestQuery (params = {}): Promise<Dict> {
+        return this.request ("interest/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPublic_get_interest_query (params = {}): Promise<Dict> {
+        return this.request ("interest/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPublicGetIndexQuery (params = {}): Promise<Dict> {
+        return this.request ("index/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPublic_get_index_query (params = {}): Promise<Dict> {
+        return this.request ("index/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPublicGetMarkPriceSymbolCurrent (params = {}): Promise<Dict> {
+        return this.request ("mark-price/{symbol}/current", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublic_get_mark_price_symbol_current (params = {}): Promise<Dict> {
+        return this.request ("mark-price/{symbol}/current", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublicGetPremiumQuery (params = {}): Promise<Dict> {
+        return this.request ("premium/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublic_get_premium_query (params = {}): Promise<Dict> {
+        return this.request ("premium/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublicGetTradeStatistics (params = {}): Promise<Dict> {
+        return this.request ("trade-statistics", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublic_get_trade_statistics (params = {}): Promise<Dict> {
+        return this.request ("trade-statistics", "futuresPublic", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPublicGetFundingRateSymbolCurrent (params = {}): Promise<Dict> {
+        return this.request ("funding-rate/{symbol}/current", "futuresPublic", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPublic_get_funding_rate_symbol_current (params = {}): Promise<Dict> {
+        return this.request ("funding-rate/{symbol}/current", "futuresPublic", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPublicGetContractFundingRates (params = {}): Promise<Dict> {
+        return this.request ("contract/funding-rates", "futuresPublic", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPublic_get_contract_funding_rates (params = {}): Promise<Dict> {
+        return this.request ("contract/funding-rates", "futuresPublic", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPublicGetTimestamp (params = {}): Promise<Dict> {
+        return this.request ("timestamp", "futuresPublic", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPublic_get_timestamp (params = {}): Promise<Dict> {
+        return this.request ("timestamp", "futuresPublic", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPublicGetStatus (params = {}): Promise<Dict> {
+        return this.request ("status", "futuresPublic", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPublic_get_status (params = {}): Promise<Dict> {
+        return this.request ("status", "futuresPublic", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPublicGetLevel2MessageQuery (params = {}): Promise<Dict> {
+        return this.request ("level2/message/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":1.3953});
+    }
+    override futuresPublic_get_level2_message_query (params = {}): Promise<Dict> {
+        return this.request ("level2/message/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":1.3953});
+    }
+    override futuresPublicGetContractsRiskLimitSymbol (params = {}): Promise<Dict> {
+        return this.request ("contracts/risk-limit/{symbol}", "futuresPublic", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override futuresPublic_get_contracts_risk_limit_symbol (params = {}): Promise<Dict> {
+        return this.request ("contracts/risk-limit/{symbol}", "futuresPublic", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override futuresPublicGetLevel3MessageQuery (params = {}): Promise<Dict> {
+        return this.request ("level3/message/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override futuresPublic_get_level3_message_query (params = {}): Promise<Dict> {
+        return this.request ("level3/message/query", "futuresPublic", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override futuresPublicGetLevel3Snapshot (params = {}): Promise<Dict> {
+        return this.request ("level3/snapshot", "futuresPublic", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override futuresPublic_get_level3_snapshot (params = {}): Promise<Dict> {
+        return this.request ("level3/snapshot", "futuresPublic", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    override futuresPublicPostBulletPublic (params = {}): Promise<Dict> {
+        return this.request ("bullet-public", "futuresPublic", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPublic_post_bullet_public (params = {}): Promise<Dict> {
+        return this.request ("bullet-public", "futuresPublic", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivateGetTransactionHistory (params = {}): Promise<Dict> {
+        return this.request ("transaction-history", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_transaction_history (params = {}): Promise<Dict> {
+        return this.request ("transaction-history", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetAccountOverview (params = {}): Promise<Dict> {
+        return this.request ("account-overview", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivate_get_account_overview (params = {}): Promise<Dict> {
+        return this.request ("account-overview", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivateGetAccountOverviewAll (params = {}): Promise<Dict> {
+        return this.request ("account-overview-all", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":12});
+    }
+    override futuresPrivate_get_account_overview_all (params = {}): Promise<Dict> {
+        return this.request ("account-overview-all", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":12});
+    }
+    override futuresPrivateGetTransferList (params = {}): Promise<Dict> {
+        return this.request ("transfer-list", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivate_get_transfer_list (params = {}): Promise<Dict> {
+        return this.request ("transfer-list", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivateGetOrders (params = {}): Promise<Dict> {
+        return this.request ("orders", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_orders (params = {}): Promise<Dict> {
+        return this.request ("orders", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetStopOrders (params = {}): Promise<Dict> {
+        return this.request ("stopOrders", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":12});
+    }
+    override futuresPrivate_get_stoporders (params = {}): Promise<Dict> {
+        return this.request ("stopOrders", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":12});
+    }
+    override futuresPrivateGetRecentDoneOrders (params = {}): Promise<Dict> {
+        return this.request ("recentDoneOrders", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivate_get_recentdoneorders (params = {}): Promise<Dict> {
+        return this.request ("recentDoneOrders", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivateGetOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ("orders/{orderId}", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivate_get_orders_orderid (params = {}): Promise<Dict> {
+        return this.request ("orders/{orderId}", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivateGetOrdersByClientOid (params = {}): Promise<Dict> {
+        return this.request ("orders/byClientOid", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivate_get_orders_byclientoid (params = {}): Promise<Dict> {
+        return this.request ("orders/byClientOid", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivateGetFills (params = {}): Promise<Dict> {
+        return this.request ("fills", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivate_get_fills (params = {}): Promise<Dict> {
+        return this.request ("fills", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivateGetRecentFills (params = {}): Promise<Dict> {
+        return this.request ("recentFills", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPrivate_get_recentfills (params = {}): Promise<Dict> {
+        return this.request ("recentFills", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPrivateGetTradeFees (params = {}): Promise<Dict> {
+        return this.request ("trade-fees", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPrivate_get_trade_fees (params = {}): Promise<Dict> {
+        return this.request ("trade-fees", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPrivateGetOpenOrderStatistics (params = {}): Promise<Dict> {
+        return this.request ("openOrderStatistics", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivate_get_openorderstatistics (params = {}): Promise<Dict> {
+        return this.request ("openOrderStatistics", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivateGetPosition (params = {}): Promise<Dict> {
+        return this.request ("position", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_position (params = {}): Promise<Dict> {
+        return this.request ("position", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetPositions (params = {}): Promise<Dict> {
+        return this.request ("positions", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_positions (params = {}): Promise<Dict> {
+        return this.request ("positions", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetMarginMaxWithdrawMargin (params = {}): Promise<Dict> {
+        return this.request ("margin/maxWithdrawMargin", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivate_get_margin_maxwithdrawmargin (params = {}): Promise<Dict> {
+        return this.request ("margin/maxWithdrawMargin", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivateGetContractsRiskLimitSymbol (params = {}): Promise<Dict> {
+        return this.request ("contracts/risk-limit/{symbol}", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivate_get_contracts_risk_limit_symbol (params = {}): Promise<Dict> {
+        return this.request ("contracts/risk-limit/{symbol}", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivateGetFundingHistory (params = {}): Promise<Dict> {
+        return this.request ("funding-history", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivate_get_funding_history (params = {}): Promise<Dict> {
+        return this.request ("funding-history", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivateGetCopyTradeFuturesGetMaxOpenSize (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/get-max-open-size", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivate_get_copy_trade_futures_get_max_open_size (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/get-max-open-size", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/margin/max-withdraw-margin", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivate_get_copy_trade_futures_position_margin_max_withdraw_margin (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/margin/max-withdraw-margin", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivateGetHistoryPositions (params = {}): Promise<Dict> {
+        return this.request ("history-positions", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_history_positions (params = {}): Promise<Dict> {
+        return this.request ("history-positions", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetPositionGetMarginMode (params = {}): Promise<Dict> {
+        return this.request ("position/getMarginMode", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_position_getmarginmode (params = {}): Promise<Dict> {
+        return this.request ("position/getMarginMode", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetPositionGetPositionMode (params = {}): Promise<Dict> {
+        return this.request ("position/getPositionMode", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_position_getpositionmode (params = {}): Promise<Dict> {
+        return this.request ("position/getPositionMode", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetDepositAddress (params = {}): Promise<Dict> {
+        return this.request ("deposit-address", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_deposit_address (params = {}): Promise<Dict> {
+        return this.request ("deposit-address", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetDepositList (params = {}): Promise<Dict> {
+        return this.request ("deposit-list", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_deposit_list (params = {}): Promise<Dict> {
+        return this.request ("deposit-list", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetWithdrawalsQuotas (params = {}): Promise<Dict> {
+        return this.request ("withdrawals/quotas", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_withdrawals_quotas (params = {}): Promise<Dict> {
+        return this.request ("withdrawals/quotas", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetWithdrawalList (params = {}): Promise<Dict> {
+        return this.request ("withdrawal-list", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_withdrawal_list (params = {}): Promise<Dict> {
+        return this.request ("withdrawal-list", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetSubApiKey (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_sub_api_key (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetTradeStatistics (params = {}): Promise<Dict> {
+        return this.request ("trade-statistics", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_trade_statistics (params = {}): Promise<Dict> {
+        return this.request ("trade-statistics", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetGetMaxOpenSize (params = {}): Promise<Dict> {
+        return this.request ("getMaxOpenSize", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_getmaxopensize (params = {}): Promise<Dict> {
+        return this.request ("getMaxOpenSize", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivateGetGetCrossUserLeverage (params = {}): Promise<Dict> {
+        return this.request ("getCrossUserLeverage", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_get_getcrossuserleverage (params = {}): Promise<Dict> {
+        return this.request ("getCrossUserLeverage", "futuresPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostTransferOut (params = {}): Promise<Dict> {
+        return this.request ("transfer-out", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivate_post_transfer_out (params = {}): Promise<Dict> {
+        return this.request ("transfer-out", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivatePostTransferIn (params = {}): Promise<Dict> {
+        return this.request ("transfer-in", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivate_post_transfer_in (params = {}): Promise<Dict> {
+        return this.request ("transfer-in", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivatePostOrders (params = {}): Promise<Dict> {
+        return this.request ("orders", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_orders (params = {}): Promise<Dict> {
+        return this.request ("orders", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostStOrders (params = {}): Promise<Dict> {
+        return this.request ("st-orders", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_st_orders (params = {}): Promise<Dict> {
+        return this.request ("st-orders", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostOrdersTest (params = {}): Promise<Dict> {
+        return this.request ("orders/test", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_orders_test (params = {}): Promise<Dict> {
+        return this.request ("orders/test", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostOrdersMulti (params = {}): Promise<Dict> {
+        return this.request ("orders/multi", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPrivate_post_orders_multi (params = {}): Promise<Dict> {
+        return this.request ("orders/multi", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPrivatePostPositionMarginAutoDepositStatus (params = {}): Promise<Dict> {
+        return this.request ("position/margin/auto-deposit-status", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivate_post_position_margin_auto_deposit_status (params = {}): Promise<Dict> {
+        return this.request ("position/margin/auto-deposit-status", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivatePostMarginWithdrawMargin (params = {}): Promise<Dict> {
+        return this.request ("margin/withdrawMargin", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivate_post_margin_withdrawmargin (params = {}): Promise<Dict> {
+        return this.request ("margin/withdrawMargin", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivatePostPositionMarginDepositMargin (params = {}): Promise<Dict> {
+        return this.request ("position/margin/deposit-margin", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivate_post_position_margin_deposit_margin (params = {}): Promise<Dict> {
+        return this.request ("position/margin/deposit-margin", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivatePostPositionRiskLimitLevelChange (params = {}): Promise<Dict> {
+        return this.request ("position/risk-limit-level/change", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivate_post_position_risk_limit_level_change (params = {}): Promise<Dict> {
+        return this.request ("position/risk-limit-level/change", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivatePostCopyTradeFuturesOrders (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/orders", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_copy_trade_futures_orders (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/orders", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostCopyTradeFuturesOrdersTest (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/orders/test", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_copy_trade_futures_orders_test (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/orders/test", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostCopyTradeFuturesStOrders (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/st-orders", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_copy_trade_futures_st_orders (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/st-orders", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostCopyTradeFuturesPositionMarginDepositMargin (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/margin/deposit-margin", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivate_post_copy_trade_futures_position_margin_deposit_margin (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/margin/deposit-margin", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/margin/withdraw-margin", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivate_post_copy_trade_futures_position_margin_withdraw_margin (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/margin/withdraw-margin", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/risk-limit-level/change", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_copy_trade_futures_position_risk_limit_level_change (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/risk-limit-level/change", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/margin/auto-deposit-status", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivate_post_copy_trade_futures_position_margin_auto_deposit_status (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/margin/auto-deposit-status", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override futuresPrivatePostCopyTradeFuturesPositionChangeMarginMode (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/changeMarginMode", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_copy_trade_futures_position_changemarginmode (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/changeMarginMode", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/changeCrossUserLeverage", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_copy_trade_futures_position_changecrossuserleverage (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/position/changeCrossUserLeverage", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostCopyTradeGetCrossModeMarginRequirement (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/getCrossModeMarginRequirement", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPrivate_post_copy_trade_getcrossmodemarginrequirement (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/getCrossModeMarginRequirement", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override futuresPrivatePostCopyTradePositionSwitchPositionMode (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/position/switchPositionMode", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_copy_trade_position_switchpositionmode (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/position/switchPositionMode", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostChangeCrossUserLeverage (params = {}): Promise<Dict> {
+        return this.request ("changeCrossUserLeverage", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_changecrossuserleverage (params = {}): Promise<Dict> {
+        return this.request ("changeCrossUserLeverage", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostWithdrawals (params = {}): Promise<Dict> {
+        return this.request ("withdrawals", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_withdrawals (params = {}): Promise<Dict> {
+        return this.request ("withdrawals", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostSubApiKey (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_sub_api_key (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostSubApiKeyUpdate (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key/update", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_sub_api_key_update (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key/update", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostPositionChangeMarginMode (params = {}): Promise<Dict> {
+        return this.request ("position/changeMarginMode", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_position_changemarginmode (params = {}): Promise<Dict> {
+        return this.request ("position/changeMarginMode", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostPositionSwitchPositionMode (params = {}): Promise<Dict> {
+        return this.request ("position/switchPositionMode", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivate_post_position_switchpositionmode (params = {}): Promise<Dict> {
+        return this.request ("position/switchPositionMode", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override futuresPrivatePostBulletPrivate (params = {}): Promise<Dict> {
+        return this.request ("bullet-private", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivate_post_bullet_private (params = {}): Promise<Dict> {
+        return this.request ("bullet-private", "futuresPrivate", 'POST', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivateDeleteOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ("orders/{orderId}", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":2});
+    }
+    override futuresPrivate_delete_orders_orderid (params = {}): Promise<Dict> {
+        return this.request ("orders/{orderId}", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":2});
+    }
+    override futuresPrivateDeleteOrdersClientOrderClientOid (params = {}): Promise<Dict> {
+        return this.request ("orders/client-order/{clientOid}", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":2});
+    }
+    override futuresPrivate_delete_orders_client_order_clientoid (params = {}): Promise<Dict> {
+        return this.request ("orders/client-order/{clientOid}", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":2});
+    }
+    override futuresPrivateDeleteOrders (params = {}): Promise<Dict> {
+        return this.request ("orders", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivate_delete_orders (params = {}): Promise<Dict> {
+        return this.request ("orders", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":20});
+    }
+    override futuresPrivateDeleteStopOrders (params = {}): Promise<Dict> {
+        return this.request ("stopOrders", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":30});
+    }
+    override futuresPrivate_delete_stoporders (params = {}): Promise<Dict> {
+        return this.request ("stopOrders", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":30});
+    }
+    override futuresPrivateDeleteCopyTradeFuturesOrders (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/orders", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":1.5});
+    }
+    override futuresPrivate_delete_copy_trade_futures_orders (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/orders", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":1.5});
+    }
+    override futuresPrivateDeleteCopyTradeFuturesOrdersClientOrder (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/orders/client-order", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":1.5});
+    }
+    override futuresPrivate_delete_copy_trade_futures_orders_client_order (params = {}): Promise<Dict> {
+        return this.request ("copy-trade/futures/orders/client-order", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":1.5});
+    }
+    override futuresPrivateDeleteOrdersMultiCancel (params = {}): Promise<Dict> {
+        return this.request ("orders/multi-cancel", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":40});
+    }
+    override futuresPrivate_delete_orders_multi_cancel (params = {}): Promise<Dict> {
+        return this.request ("orders/multi-cancel", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":40});
+    }
+    override futuresPrivateDeleteWithdrawalsWithdrawalId (params = {}): Promise<Dict> {
+        return this.request ("withdrawals/{withdrawalId}", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivate_delete_withdrawals_withdrawalid (params = {}): Promise<Dict> {
+        return this.request ("withdrawals/{withdrawalId}", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivateDeleteCancelTransferOut (params = {}): Promise<Dict> {
+        return this.request ("cancel/transfer-out", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivate_delete_cancel_transfer_out (params = {}): Promise<Dict> {
+        return this.request ("cancel/transfer-out", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivateDeleteSubApiKey (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
+    override futuresPrivate_delete_sub_api_key (params = {}): Promise<Dict> {
+        return this.request ("sub/api-key", "futuresPrivate", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
+    override webExchangeGetCurrencyCurrencyChainInfo (params = {}): Promise<Dict> {
+        return this.request ("currency/currency/chain-info", "webExchange", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    override webExchange_get_currency_currency_chain_info (params = {}): Promise<Dict> {
+        return this.request ("currency/currency/chain-info", "webExchange", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    override webExchangeGetContractSymbolFundingRates (params = {}): Promise<Dict> {
+        return this.request ("contract/{symbol}/funding-rates", "webExchange", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override webExchange_get_contract_symbol_funding_rates (params = {}): Promise<Dict> {
+        return this.request ("contract/{symbol}/funding-rates", "webExchange", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override brokerGetBrokerNdInfo (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/info", "broker", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override broker_get_broker_nd_info (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/info", "broker", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override brokerGetBrokerNdAccount (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account", "broker", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override broker_get_broker_nd_account (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account", "broker", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override brokerGetBrokerNdAccountApikey (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account/apikey", "broker", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override broker_get_broker_nd_account_apikey (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account/apikey", "broker", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override brokerGetBrokerNdRebaseDownload (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/rebase/download", "broker", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override broker_get_broker_nd_rebase_download (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/rebase/download", "broker", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override brokerGetBrokerNdMarkUp (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/mark-up", "broker", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override broker_get_broker_nd_mark_up (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/mark-up", "broker", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override brokerGetAssetNdbrokerDepositList (params = {}): Promise<Dict> {
+        return this.request ("asset/ndbroker/deposit/list", "broker", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override broker_get_asset_ndbroker_deposit_list (params = {}): Promise<Dict> {
+        return this.request ("asset/ndbroker/deposit/list", "broker", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override brokerGetBrokerNdTransferDetail (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/transfer/detail", "broker", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override broker_get_broker_nd_transfer_detail (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/transfer/detail", "broker", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override brokerGetBrokerNdDepositDetail (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/deposit/detail", "broker", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override broker_get_broker_nd_deposit_detail (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/deposit/detail", "broker", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override brokerGetBrokerNdWithdrawDetail (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/withdraw/detail", "broker", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override broker_get_broker_nd_withdraw_detail (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/withdraw/detail", "broker", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override brokerPostBrokerNdTransfer (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/transfer", "broker", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override broker_post_broker_nd_transfer (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/transfer", "broker", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override brokerPostBrokerNdAccount (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account", "broker", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override broker_post_broker_nd_account (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account", "broker", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override brokerPostBrokerNdAccountApikey (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account/apikey", "broker", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override broker_post_broker_nd_account_apikey (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account/apikey", "broker", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override brokerPostBrokerNdAccountUpdateApikey (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account/update-apikey", "broker", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override broker_post_broker_nd_account_update_apikey (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account/update-apikey", "broker", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override brokerPostBrokerNdMarkUp (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/mark-up", "broker", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override broker_post_broker_nd_mark_up (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/mark-up", "broker", 'POST', params, undefined, undefined, {"cost":6});
+    }
+    override brokerDeleteBrokerNdAccountApikey (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account/apikey", "broker", 'DELETE', params, undefined, undefined, {"cost":6});
+    }
+    override broker_delete_broker_nd_account_apikey (params = {}): Promise<Dict> {
+        return this.request ("broker/nd/account/apikey", "broker", 'DELETE', params, undefined, undefined, {"cost":6});
+    }
+    override earnGetOtcLoanDiscountRateConfigs (params = {}): Promise<Dict> {
+        return this.request ("otc-loan/discount-rate-configs", "earn", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override earn_get_otc_loan_discount_rate_configs (params = {}): Promise<Dict> {
+        return this.request ("otc-loan/discount-rate-configs", "earn", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override earnGetOtcLoanLoan (params = {}): Promise<Dict> {
+        return this.request ("otc-loan/loan", "earn", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override earn_get_otc_loan_loan (params = {}): Promise<Dict> {
+        return this.request ("otc-loan/loan", "earn", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override earnGetOtcLoanAccounts (params = {}): Promise<Dict> {
+        return this.request ("otc-loan/accounts", "earn", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override earn_get_otc_loan_accounts (params = {}): Promise<Dict> {
+        return this.request ("otc-loan/accounts", "earn", 'GET', params, undefined, undefined, {"cost":2});
+    }
+    override earnGetEarnRedeemPreview (params = {}): Promise<Dict> {
+        return this.request ("earn/redeem-preview", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earn_get_earn_redeem_preview (params = {}): Promise<Dict> {
+        return this.request ("earn/redeem-preview", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earnGetEarnSavingProducts (params = {}): Promise<Dict> {
+        return this.request ("earn/saving/products", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earn_get_earn_saving_products (params = {}): Promise<Dict> {
+        return this.request ("earn/saving/products", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earnGetEarnHoldAssets (params = {}): Promise<Dict> {
+        return this.request ("earn/hold-assets", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earn_get_earn_hold_assets (params = {}): Promise<Dict> {
+        return this.request ("earn/hold-assets", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earnGetEarnPromotionProducts (params = {}): Promise<Dict> {
+        return this.request ("earn/promotion/products", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earn_get_earn_promotion_products (params = {}): Promise<Dict> {
+        return this.request ("earn/promotion/products", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earnGetEarnKcsStakingProducts (params = {}): Promise<Dict> {
+        return this.request ("earn/kcs-staking/products", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earn_get_earn_kcs_staking_products (params = {}): Promise<Dict> {
+        return this.request ("earn/kcs-staking/products", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earnGetEarnStakingProducts (params = {}): Promise<Dict> {
+        return this.request ("earn/staking/products", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earn_get_earn_staking_products (params = {}): Promise<Dict> {
+        return this.request ("earn/staking/products", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earnGetEarnEthStakingProducts (params = {}): Promise<Dict> {
+        return this.request ("earn/eth-staking/products", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earn_get_earn_eth_staking_products (params = {}): Promise<Dict> {
+        return this.request ("earn/eth-staking/products", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earnGetStructEarnDualProducts (params = {}): Promise<Dict> {
+        return this.request ("struct-earn/dual/products", "earn", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override earn_get_struct_earn_dual_products (params = {}): Promise<Dict> {
+        return this.request ("struct-earn/dual/products", "earn", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override earnGetStructEarnOrders (params = {}): Promise<Dict> {
+        return this.request ("struct-earn/orders", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earn_get_struct_earn_orders (params = {}): Promise<Dict> {
+        return this.request ("struct-earn/orders", "earn", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override earnPostEarnOrders (params = {}): Promise<Dict> {
+        return this.request ("earn/orders", "earn", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override earn_post_earn_orders (params = {}): Promise<Dict> {
+        return this.request ("earn/orders", "earn", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override earnPostStructEarnOrders (params = {}): Promise<Dict> {
+        return this.request ("struct-earn/orders", "earn", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override earn_post_struct_earn_orders (params = {}): Promise<Dict> {
+        return this.request ("struct-earn/orders", "earn", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override earnDeleteEarnOrders (params = {}): Promise<Dict> {
+        return this.request ("earn/orders", "earn", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
+    override earn_delete_earn_orders (params = {}): Promise<Dict> {
+        return this.request ("earn/orders", "earn", 'DELETE', params, undefined, undefined, {"cost":10});
+    }
+    override utaGetMarketAnnouncement (params = {}): Promise<Dict> {
+        return this.request ("market/announcement", "uta", 'GET', params, undefined, undefined, {"cost":40});
+    }
+    override uta_get_market_announcement (params = {}): Promise<Dict> {
+        return this.request ("market/announcement", "uta", 'GET', params, undefined, undefined, {"cost":40});
+    }
+    override utaGetMarketCurrency (params = {}): Promise<Dict> {
+        return this.request ("market/currency", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override uta_get_market_currency (params = {}): Promise<Dict> {
+        return this.request ("market/currency", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaGetAssetCurrencies (params = {}): Promise<Dict> {
+        return this.request ("asset/currencies", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override uta_get_asset_currencies (params = {}): Promise<Dict> {
+        return this.request ("asset/currencies", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaGetMarketInstrument (params = {}): Promise<Dict> {
+        return this.request ("market/instrument", "uta", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override uta_get_market_instrument (params = {}): Promise<Dict> {
+        return this.request ("market/instrument", "uta", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override utaGetMarketTicker (params = {}): Promise<Dict> {
+        return this.request ("market/ticker", "uta", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override uta_get_market_ticker (params = {}): Promise<Dict> {
+        return this.request ("market/ticker", "uta", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override utaGetMarketTrade (params = {}): Promise<Dict> {
+        return this.request ("market/trade", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override uta_get_market_trade (params = {}): Promise<Dict> {
+        return this.request ("market/trade", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaGetMarketKline (params = {}): Promise<Dict> {
+        return this.request ("market/kline", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override uta_get_market_kline (params = {}): Promise<Dict> {
+        return this.request ("market/kline", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaGetMarketFundingRate (params = {}): Promise<Dict> {
+        return this.request ("market/funding-rate", "uta", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override uta_get_market_funding_rate (params = {}): Promise<Dict> {
+        return this.request ("market/funding-rate", "uta", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override utaGetMarketFundingRateHistory (params = {}): Promise<Dict> {
+        return this.request ("market/funding-rate-history", "uta", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override uta_get_market_funding_rate_history (params = {}): Promise<Dict> {
+        return this.request ("market/funding-rate-history", "uta", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override utaGetMarketCrossConfig (params = {}): Promise<Dict> {
+        return this.request ("market/cross-config", "uta", 'GET', params, undefined, undefined, {"cost":50});
+    }
+    override uta_get_market_cross_config (params = {}): Promise<Dict> {
+        return this.request ("market/cross-config", "uta", 'GET', params, undefined, undefined, {"cost":50});
+    }
+    override utaGetMarketCollateralDiscountRatio (params = {}): Promise<Dict> {
+        return this.request ("market/collateral-discount-ratio", "uta", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override uta_get_market_collateral_discount_ratio (params = {}): Promise<Dict> {
+        return this.request ("market/collateral-discount-ratio", "uta", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override utaGetMarketIndexPrice (params = {}): Promise<Dict> {
+        return this.request ("market/index-price", "uta", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override uta_get_market_index_price (params = {}): Promise<Dict> {
+        return this.request ("market/index-price", "uta", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override utaGetMarketPositionTiers (params = {}): Promise<Dict> {
+        return this.request ("market/position-tiers", "uta", 'GET', params, undefined, undefined, {"cost":40});
+    }
+    override uta_get_market_position_tiers (params = {}): Promise<Dict> {
+        return this.request ("market/position-tiers", "uta", 'GET', params, undefined, undefined, {"cost":40});
+    }
+    override utaGetMarketOpenInterest (params = {}): Promise<Dict> {
+        return this.request ("market/open-interest", "uta", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override uta_get_market_open_interest (params = {}): Promise<Dict> {
+        return this.request ("market/open-interest", "uta", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override utaGetServerStatus (params = {}): Promise<Dict> {
+        return this.request ("server/status", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override uta_get_server_status (params = {}): Promise<Dict> {
+        return this.request ("server/status", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaGetMarketBorrowableCurrency (params = {}): Promise<Dict> {
+        return this.request ("market/borrowable-currency", "uta", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override uta_get_market_borrowable_currency (params = {}): Promise<Dict> {
+        return this.request ("market/borrowable-currency", "uta", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override utaGetUserMyIp (params = {}): Promise<Dict> {
+        return this.request ("user/my-ip", "uta", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override uta_get_user_my_ip (params = {}): Promise<Dict> {
+        return this.request ("user/my-ip", "uta", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override utaGetMarketFiatPrice (params = {}): Promise<Dict> {
+        return this.request ("market/fiat-price", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override uta_get_market_fiat_price (params = {}): Promise<Dict> {
+        return this.request ("market/fiat-price", "uta", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaV2GetMarketFundingRate (params = {}): Promise<Dict> {
+        return this.request ("market/funding-rate", "utaV2", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaV2_get_market_funding_rate (params = {}): Promise<Dict> {
+        return this.request ("market/funding-rate", "utaV2", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaPrivateGetMarketOrderbook (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook", "utaPrivate", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaPrivate_get_market_orderbook (params = {}): Promise<Dict> {
+        return this.request ("market/orderbook", "utaPrivate", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaPrivateGetAccountBalance (params = {}): Promise<Dict> {
+        return this.request ("account/balance", "utaPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivate_get_account_balance (params = {}): Promise<Dict> {
+        return this.request ("account/balance", "utaPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivateGetAccountTransferQuota (params = {}): Promise<Dict> {
+        return this.request ("account/transfer-quota", "utaPrivate", 'GET', params, undefined, undefined, {"cost":40});
+    }
+    override utaPrivate_get_account_transfer_quota (params = {}): Promise<Dict> {
+        return this.request ("account/transfer-quota", "utaPrivate", 'GET', params, undefined, undefined, {"cost":40});
+    }
+    override utaPrivateGetAccountMode (params = {}): Promise<Dict> {
+        return this.request ("account/mode", "utaPrivate", 'GET', params, undefined, undefined, {"cost":60});
+    }
+    override utaPrivate_get_account_mode (params = {}): Promise<Dict> {
+        return this.request ("account/mode", "utaPrivate", 'GET', params, undefined, undefined, {"cost":60});
+    }
+    override utaPrivateGetAccountLedger (params = {}): Promise<Dict> {
+        return this.request ("account/ledger", "utaPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override utaPrivate_get_account_ledger (params = {}): Promise<Dict> {
+        return this.request ("account/ledger", "utaPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override utaPrivateGetAccountInterestHistory (params = {}): Promise<Dict> {
+        return this.request ("account/interest-history", "utaPrivate", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override utaPrivate_get_account_interest_history (params = {}): Promise<Dict> {
+        return this.request ("account/interest-history", "utaPrivate", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override utaPrivateGetAssetDepositAddress (params = {}): Promise<Dict> {
+        return this.request ("asset/deposit/address", "utaPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivate_get_asset_deposit_address (params = {}): Promise<Dict> {
+        return this.request ("asset/deposit/address", "utaPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivateGetAccountDepositAddress (params = {}): Promise<Dict> {
+        return this.request ("account/deposit/address", "utaPrivate", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override utaPrivate_get_account_deposit_address (params = {}): Promise<Dict> {
+        return this.request ("account/deposit/address", "utaPrivate", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    override utaPrivateGetAccountModeAccountBalance (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/account/balance", "utaPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivate_get_accountmode_account_balance (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/account/balance", "utaPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivateGetAccountModeAccountOverview (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/account/overview", "utaPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivate_get_accountmode_account_overview (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/account/overview", "utaPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivateGetAccountModeOrderDetail (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/detail", "utaPrivate", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivate_get_accountmode_order_detail (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/detail", "utaPrivate", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivateGetAccountModeOrderOpenList (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/open-list", "utaPrivate", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivate_get_accountmode_order_open_list (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/open-list", "utaPrivate", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivateGetAccountModeOrderHistory (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/history", "utaPrivate", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivate_get_accountmode_order_history (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/history", "utaPrivate", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivateGetAccountModeOrderExecution (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/execution", "utaPrivate", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivate_get_accountmode_order_execution (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/execution", "utaPrivate", 'GET', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivateGetAccountModePositionOpenList (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/position/open-list", "utaPrivate", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaPrivate_get_accountmode_position_open_list (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/position/open-list", "utaPrivate", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaPrivateGetAccountModePositionHistory (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/position/history", "utaPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override utaPrivate_get_accountmode_position_history (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/position/history", "utaPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override utaPrivateGetPositionHistory (params = {}): Promise<Dict> {
+        return this.request ("position/history", "utaPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override utaPrivate_get_position_history (params = {}): Promise<Dict> {
+        return this.request ("position/history", "utaPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override utaPrivateGetAccountModePositionTiers (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/position/tiers", "utaPrivate", 'GET', params, undefined, undefined, {"cost":40});
+    }
+    override utaPrivate_get_accountmode_position_tiers (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/position/tiers", "utaPrivate", 'GET', params, undefined, undefined, {"cost":40});
+    }
+    override utaPrivateGetSubAccountBalance (params = {}): Promise<Dict> {
+        return this.request ("sub-account/balance", "utaPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivate_get_sub_account_balance (params = {}): Promise<Dict> {
+        return this.request ("sub-account/balance", "utaPrivate", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivateGetUserFeeRate (params = {}): Promise<Dict> {
+        return this.request ("user/fee-rate", "utaPrivate", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaPrivate_get_user_fee_rate (params = {}): Promise<Dict> {
+        return this.request ("user/fee-rate", "utaPrivate", 'GET', params, undefined, undefined, {"cost":6});
+    }
+    override utaPrivateGetDcpQuery (params = {}): Promise<Dict> {
+        return this.request ("dcp/query", "utaPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override utaPrivate_get_dcp_query (params = {}): Promise<Dict> {
+        return this.request ("dcp/query", "utaPrivate", 'GET', params, undefined, undefined, {"cost":4});
+    }
+    override utaPrivateGetUnifiedAccountLeverage (params = {}): Promise<Dict> {
+        return this.request ("unified/account/leverage", "utaPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override utaPrivate_get_unified_account_leverage (params = {}): Promise<Dict> {
+        return this.request ("unified/account/leverage", "utaPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override utaPrivateGetPositionFundingHistory (params = {}): Promise<Dict> {
+        return this.request ("position/funding-history", "utaPrivate", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override utaPrivate_get_position_funding_history (params = {}): Promise<Dict> {
+        return this.request ("position/funding-history", "utaPrivate", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    override utaPrivateGetAccountInterestLimits (params = {}): Promise<Dict> {
+        return this.request ("account/interest-limits", "utaPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override utaPrivate_get_account_interest_limits (params = {}): Promise<Dict> {
+        return this.request ("account/interest-limits", "utaPrivate", 'GET', params, undefined, undefined, {"cost":20});
+    }
+    override utaPrivatePostAccountTransfer (params = {}): Promise<Dict> {
+        return this.request ("account/transfer", "utaPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivate_post_account_transfer (params = {}): Promise<Dict> {
+        return this.request ("account/transfer", "utaPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivatePostAccountMode (params = {}): Promise<Dict> {
+        return this.request ("account/mode", "utaPrivate", 'POST', params, undefined, undefined, {"cost":60});
+    }
+    override utaPrivate_post_account_mode (params = {}): Promise<Dict> {
+        return this.request ("account/mode", "utaPrivate", 'POST', params, undefined, undefined, {"cost":60});
+    }
+    override utaPrivatePostAccountModeAccountModifyLeverage (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/account/modify-leverage", "utaPrivate", 'POST', params, undefined, undefined, {"cost":40});
+    }
+    override utaPrivate_post_accountmode_account_modify_leverage (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/account/modify-leverage", "utaPrivate", 'POST', params, undefined, undefined, {"cost":40});
+    }
+    override utaPrivatePostAccountModeOrderPlace (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/place", "utaPrivate", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override utaPrivate_post_accountmode_order_place (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/place", "utaPrivate", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override utaPrivatePostAccountModeOrderPlaceBatch (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/place-batch", "utaPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivate_post_accountmode_order_place_batch (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/place-batch", "utaPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivatePostAccountModeOrderCancel (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/cancel", "utaPrivate", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override utaPrivate_post_accountmode_order_cancel (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/cancel", "utaPrivate", 'POST', params, undefined, undefined, {"cost":2});
+    }
+    override utaPrivatePostAccountModeOrderCancelBatch (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/cancel-batch", "utaPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivate_post_accountmode_order_cancel_batch (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/cancel-batch", "utaPrivate", 'POST', params, undefined, undefined, {"cost":8});
+    }
+    override utaPrivatePostAccountModeOrderCancelAll (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/cancel-all", "utaPrivate", 'POST', params, undefined, undefined, {"cost":40});
+    }
+    override utaPrivate_post_accountmode_order_cancel_all (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/order/cancel-all", "utaPrivate", 'POST', params, undefined, undefined, {"cost":40});
+    }
+    override utaPrivatePostSubAccountCanTransferOut (params = {}): Promise<Dict> {
+        return this.request ("sub-account/canTransferOut", "utaPrivate", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivate_post_sub_account_cantransferout (params = {}): Promise<Dict> {
+        return this.request ("sub-account/canTransferOut", "utaPrivate", 'POST', params, undefined, undefined, {"cost":10});
+    }
+    override utaPrivatePostDcpSet (params = {}): Promise<Dict> {
+        return this.request ("dcp/set", "utaPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override utaPrivate_post_dcp_set (params = {}): Promise<Dict> {
+        return this.request ("dcp/set", "utaPrivate", 'POST', params, undefined, undefined, {"cost":4});
+    }
+    override utaPrivatePostAccountModeAccountModifyLeverageMarginCross (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/account/modify-leverage-margin-cross", "utaPrivate", 'POST', params, undefined, undefined, {"cost":40});
+    }
+    override utaPrivate_post_accountmode_account_modify_leverage_margin_cross (params = {}): Promise<Dict> {
+        return this.request ("{accountMode}/account/modify-leverage-margin-cross", "utaPrivate", 'POST', params, undefined, undefined, {"cost":40});
+    }
 }
-abstract class kucoin extends _kucoin {}
-
 export default kucoin

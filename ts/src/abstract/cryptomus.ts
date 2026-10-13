@@ -8,39 +8,192 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetV2UserApiExchangeMarkets (params?: {}): Promise<Dict>;
-    publicGetV2UserApiExchangeMarketPrice (params?: {}): Promise<Dict>;
-    publicGetV2UserApiExchangeMarketsPrice (params?: {}): Promise<Dict>;
-    publicGetV1ExchangeMarketAssets (params?: {}): Promise<Dict>;
-    publicGetV1ExchangeMarketOrderBookCurrencyPair (params?: {}): Promise<Dict>;
-    publicGetV1ExchangeMarketTickers (params?: {}): Promise<Dict>;
-    publicGetV1ExchangeMarketTradesCurrencyPair (params?: {}): Promise<Dict>;
-    privateGetV2UserApiExchangeOrders (params?: {}): Promise<Dict>;
-    privateGetV2UserApiExchangeOrdersHistory (params?: {}): Promise<Dict>;
-    privateGetV2UserApiExchangeAccountBalance (params?: {}): Promise<Dict>;
-    privateGetV2UserApiExchangeAccountTariffs (params?: {}): Promise<Dict>;
-    privateGetV2UserApiPaymentServices (params?: {}): Promise<Dict>;
-    privateGetV2UserApiPayoutServices (params?: {}): Promise<Dict>;
-    privateGetV2UserApiTransactionList (params?: {}): Promise<Dict>;
-    privateGetV2UserApiBalance (params?: {}): Promise<Dict>;
-    privateGetV2UserApiConvertDirectionList (params?: {}): Promise<Dict>;
-    privateGetV2UserApiConvertOrderList (params?: {}): Promise<Dict>;
-    privateGetV2UserApiAmlCheckBalance (params?: {}): Promise<Dict>;
-    privateGetV2UserApiAmlCheckCurrencies (params?: {}): Promise<Dict>;
-    privateGetV2UserApiAmlCheckPackages (params?: {}): Promise<Dict>;
-    privateGetV2UserApiAmlCheckRequest (params?: {}): Promise<Dict>;
-    privateGetV2UserApiAmlCheckRequestId (params?: {}): Promise<Dict>;
-    privatePostV2UserApiExchangeOrders (params?: {}): Promise<Dict>;
-    privatePostV2UserApiExchangeOrdersMarket (params?: {}): Promise<Dict>;
-    privatePostV2UserApiConvert (params?: {}): Promise<Dict>;
-    privatePostV2UserApiConvertCalculate (params?: {}): Promise<Dict>;
-    privatePostV2UserApiConvertLimit (params?: {}): Promise<Dict>;
-    privatePostV2UserApiAmlCheckRequest (params?: {}): Promise<Dict>;
-    privatePostV2UserApiAmlCheckRequestIdReportSend (params?: {}): Promise<Dict>;
-    privateDeleteV2UserApiExchangeOrdersOrderId (params?: {}): Promise<Dict>;
-    privateDeleteV2UserApiConvertOrderUuid (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    publicGetV2UserApiExchangeMarkets (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/markets", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_v2_user_api_exchange_markets (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/markets", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetV2UserApiExchangeMarketPrice (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/market/price", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_v2_user_api_exchange_market_price (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/market/price", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetV2UserApiExchangeMarketsPrice (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/markets/price", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_v2_user_api_exchange_markets_price (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/markets/price", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetV1ExchangeMarketAssets (params = {}): Promise<Dict> {
+        return this.request ("v1/exchange/market/assets", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_v1_exchange_market_assets (params = {}): Promise<Dict> {
+        return this.request ("v1/exchange/market/assets", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetV1ExchangeMarketOrderBookCurrencyPair (params = {}): Promise<Dict> {
+        return this.request ("v1/exchange/market/order-book/{currencyPair}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_v1_exchange_market_order_book_currencypair (params = {}): Promise<Dict> {
+        return this.request ("v1/exchange/market/order-book/{currencyPair}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetV1ExchangeMarketTickers (params = {}): Promise<Dict> {
+        return this.request ("v1/exchange/market/tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_v1_exchange_market_tickers (params = {}): Promise<Dict> {
+        return this.request ("v1/exchange/market/tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetV1ExchangeMarketTradesCurrencyPair (params = {}): Promise<Dict> {
+        return this.request ("v1/exchange/market/trades/{currencyPair}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_v1_exchange_market_trades_currencypair (params = {}): Promise<Dict> {
+        return this.request ("v1/exchange/market/trades/{currencyPair}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiExchangeOrders (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/orders", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_exchange_orders (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/orders", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiExchangeOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/orders/history", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_exchange_orders_history (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/orders/history", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiExchangeAccountBalance (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/account/balance", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_exchange_account_balance (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/account/balance", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiExchangeAccountTariffs (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/account/tariffs", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_exchange_account_tariffs (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/account/tariffs", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiPaymentServices (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/payment/services", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_payment_services (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/payment/services", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiPayoutServices (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/payout/services", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_payout_services (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/payout/services", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiTransactionList (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/transaction/list", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_transaction_list (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/transaction/list", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiBalance (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/balance", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_balance (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/balance", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiConvertDirectionList (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert/direction-list", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_convert_direction_list (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert/direction-list", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiConvertOrderList (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert/order-list", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_convert_order_list (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert/order-list", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiAmlCheckBalance (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/balance", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_aml_check_balance (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/balance", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiAmlCheckCurrencies (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/currencies", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_aml_check_currencies (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/currencies", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiAmlCheckPackages (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/packages", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_aml_check_packages (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/packages", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiAmlCheckRequest (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/request", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_aml_check_request (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/request", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetV2UserApiAmlCheckRequestId (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/request/{id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_v2_user_api_aml_check_request_id (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/request/{id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privatePostV2UserApiExchangeOrders (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_v2_user_api_exchange_orders (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostV2UserApiExchangeOrdersMarket (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/orders/market", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_v2_user_api_exchange_orders_market (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/orders/market", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostV2UserApiConvert (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_v2_user_api_convert (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostV2UserApiConvertCalculate (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert/calculate", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_v2_user_api_convert_calculate (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert/calculate", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostV2UserApiConvertLimit (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert/limit", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_v2_user_api_convert_limit (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert/limit", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostV2UserApiAmlCheckRequest (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/request", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_v2_user_api_aml_check_request (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/request", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostV2UserApiAmlCheckRequestIdReportSend (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/request/{id}/report/send", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_v2_user_api_aml_check_request_id_report_send (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/aml/check/request/{id}/report/send", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteV2UserApiExchangeOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/orders/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_v2_user_api_exchange_orders_orderid (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/exchange/orders/{orderId}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteV2UserApiConvertOrderUuid (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert/{orderUuid}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_v2_user_api_convert_orderuuid (params = {}): Promise<Dict> {
+        return this.request ("v2/user-api/convert/{orderUuid}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

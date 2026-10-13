@@ -8,151 +8,864 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    v1PublicGetPublicVolumeStats (params?: {}): Promise<Dict>;
-    v1PublicGetPublicBrokerName (params?: {}): Promise<Dict>;
-    v1PublicGetPublicChainInfoBrokerId (params?: {}): Promise<Dict>;
-    v1PublicGetPublicSystemInfo (params?: {}): Promise<Dict>;
-    v1PublicGetPublicVaultBalance (params?: {}): Promise<Dict>;
-    v1PublicGetPublicInsurancefund (params?: {}): Promise<Dict>;
-    v1PublicGetPublicChainInfo (params?: {}): Promise<Dict>;
-    v1PublicGetFaucetUsdc (params?: {}): Promise<Dict>;
-    v1PublicGetPublicAccount (params?: {}): Promise<Dict>;
-    v1PublicGetGetAccount (params?: {}): Promise<Dict>;
-    v1PublicGetRegistrationNonce (params?: {}): Promise<Dict>;
-    v1PublicGetGetOrderlyKey (params?: {}): Promise<Dict>;
-    v1PublicGetPublicLiquidation (params?: {}): Promise<Dict>;
-    v1PublicGetPublicLiquidatedPositions (params?: {}): Promise<Dict>;
-    v1PublicGetPublicConfig (params?: {}): Promise<Dict>;
-    v1PublicGetPublicCampaignRanking (params?: {}): Promise<Dict>;
-    v1PublicGetPublicCampaignStats (params?: {}): Promise<Dict>;
-    v1PublicGetPublicCampaignUser (params?: {}): Promise<Dict>;
-    v1PublicGetPublicCampaignStatsDetails (params?: {}): Promise<Dict>;
-    v1PublicGetPublicCampaigns (params?: {}): Promise<Dict>;
-    v1PublicGetPublicPointsLeaderboard (params?: {}): Promise<Dict>;
-    v1PublicGetClientPoints (params?: {}): Promise<Dict>;
-    v1PublicGetPublicPointsEpoch (params?: {}): Promise<Dict>;
-    v1PublicGetPublicPointsEpochDates (params?: {}): Promise<Dict>;
-    v1PublicGetPublicReferralCheckRefCode (params?: {}): Promise<Dict>;
-    v1PublicGetPublicReferralVerifyRefCode (params?: {}): Promise<Dict>;
-    v1PublicGetReferralAdminInfo (params?: {}): Promise<Dict>;
-    v1PublicGetReferralInfo (params?: {}): Promise<Dict>;
-    v1PublicGetReferralRefereeInfo (params?: {}): Promise<Dict>;
-    v1PublicGetReferralRefereeRebateSummary (params?: {}): Promise<Dict>;
-    v1PublicGetReferralRefereeHistory (params?: {}): Promise<Dict>;
-    v1PublicGetReferralReferralHistory (params?: {}): Promise<Dict>;
-    v1PublicGetReferralRebateSummary (params?: {}): Promise<Dict>;
-    v1PublicGetClientDistributionHistory (params?: {}): Promise<Dict>;
-    v1PublicGetTvConfig (params?: {}): Promise<Dict>;
-    v1PublicGetTvHistory (params?: {}): Promise<Dict>;
-    v1PublicGetTvSymbolInfo (params?: {}): Promise<Dict>;
-    v1PublicGetTvKlineHistory (params?: {}): Promise<Dict>;
-    v1PublicGetPublicFundingRateHistory (params?: {}): Promise<Dict>;
-    v1PublicGetPublicFundingRateSymbol (params?: {}): Promise<Dict>;
-    v1PublicGetPublicFundingRates (params?: {}): Promise<Dict>;
-    v1PublicGetPublicInfo (params?: {}): Promise<Dict>;
-    v1PublicGetPublicInfoSymbol (params?: {}): Promise<Dict>;
-    v1PublicGetPublicMarketTrades (params?: {}): Promise<Dict>;
-    v1PublicGetPublicToken (params?: {}): Promise<Dict>;
-    v1PublicGetPublicFutures (params?: {}): Promise<Dict>;
-    v1PublicGetPublicFuturesSymbol (params?: {}): Promise<Dict>;
-    v1PublicPostRegisterAccount (params?: {}): Promise<Dict>;
-    v1PublicPostPublicQuery (params?: {}): Promise<Dict>;
-    v1PrivateGetClientKeyInfo (params?: {}): Promise<Dict>;
-    v1PrivateGetClientOrderlyKeyIpRestriction (params?: {}): Promise<Dict>;
-    v1PrivateGetOrderOid (params?: {}): Promise<Dict>;
-    v1PrivateGetClientOrderClientOrderId (params?: {}): Promise<Dict>;
-    v1PrivateGetAlgoOrderOid (params?: {}): Promise<Dict>;
-    v1PrivateGetAlgoClientOrderClientOrderId (params?: {}): Promise<Dict>;
-    v1PrivateGetOrders (params?: {}): Promise<Dict>;
-    v1PrivateGetAlgoOrders (params?: {}): Promise<Dict>;
-    v1PrivateGetTradeTid (params?: {}): Promise<Dict>;
-    v1PrivateGetTrades (params?: {}): Promise<Dict>;
-    v1PrivateGetOrderOidTrades (params?: {}): Promise<Dict>;
-    v1PrivateGetClientLiquidatorLiquidations (params?: {}): Promise<Dict>;
-    v1PrivateGetLiquidations (params?: {}): Promise<Dict>;
-    v1PrivateGetAssetHistory (params?: {}): Promise<Dict>;
-    v1PrivateGetClientHolding (params?: {}): Promise<Dict>;
-    v1PrivateGetWithdrawNonce (params?: {}): Promise<Dict>;
-    v1PrivateGetSettleNonce (params?: {}): Promise<Dict>;
-    v1PrivateGetPnlSettlementHistory (params?: {}): Promise<Dict>;
-    v1PrivateGetInternalTransferHistory (params?: {}): Promise<Dict>;
-    v1PrivateGetVolumeUserDaily (params?: {}): Promise<Dict>;
-    v1PrivateGetVolumeUserStats (params?: {}): Promise<Dict>;
-    v1PrivateGetClientStatistics (params?: {}): Promise<Dict>;
-    v1PrivateGetClientInfo (params?: {}): Promise<Dict>;
-    v1PrivateGetClientStatisticsDaily (params?: {}): Promise<Dict>;
-    v1PrivateGetPositions (params?: {}): Promise<Dict>;
-    v1PrivateGetPositionSymbol (params?: {}): Promise<Dict>;
-    v1PrivateGetFundingFeeHistory (params?: {}): Promise<Dict>;
-    v1PrivateGetNotificationInboxNotifications (params?: {}): Promise<Dict>;
-    v1PrivateGetNotificationInboxUnread (params?: {}): Promise<Dict>;
-    v1PrivateGetVolumeBrokerDaily (params?: {}): Promise<Dict>;
-    v1PrivateGetBrokerFeeRateDefault (params?: {}): Promise<Dict>;
-    v1PrivateGetBrokerUserInfo (params?: {}): Promise<Dict>;
-    v1PrivateGetBrokerDailyFeeRevenue (params?: {}): Promise<Dict>;
-    v1PrivateGetOrderbookSymbol (params?: {}): Promise<Dict>;
-    v1PrivateGetKline (params?: {}): Promise<Dict>;
-    v1PrivateGetClientLeverages (params?: {}): Promise<Dict>;
-    v1PrivateGetClientMarginModes (params?: {}): Promise<Dict>;
-    v1PrivateGetReferralMultiLevelAdmin (params?: {}): Promise<Dict>;
-    v1PrivateGetReferralMultiLevelAdminInfo (params?: {}): Promise<Dict>;
-    v1PrivateGetReferralMultiLevelAdminRefereeList (params?: {}): Promise<Dict>;
-    v1PrivateGetReferralMultiLevelAdminSummary (params?: {}): Promise<Dict>;
-    v1PrivateGetReferralMultiLevelMaxRebateRate (params?: {}): Promise<Dict>;
-    v1PrivateGetReferralMultiLevelRebateInfo (params?: {}): Promise<Dict>;
-    v1PrivateGetReferralMultiLevelRefereeList (params?: {}): Promise<Dict>;
-    v1PrivateGetReferralMultiLevelStatistics (params?: {}): Promise<Dict>;
-    v1PrivateGetReferralMultiLevelVolumePrerequisite (params?: {}): Promise<Dict>;
-    v1PrivatePostOrderlyKey (params?: {}): Promise<Dict>;
-    v1PrivatePostClientSetOrderlyKeyIpRestriction (params?: {}): Promise<Dict>;
-    v1PrivatePostClientResetOrderlyKeyIpRestriction (params?: {}): Promise<Dict>;
-    v1PrivatePostOrder (params?: {}): Promise<Dict>;
-    v1PrivatePostBatchOrder (params?: {}): Promise<Dict>;
-    v1PrivatePostAlgoOrder (params?: {}): Promise<Dict>;
-    v1PrivatePostLiquidation (params?: {}): Promise<Dict>;
-    v1PrivatePostClaimInsuranceFund (params?: {}): Promise<Dict>;
-    v1PrivatePostWithdrawRequest (params?: {}): Promise<Dict>;
-    v1PrivatePostSettlePnl (params?: {}): Promise<Dict>;
-    v1PrivatePostInternalTransfer (params?: {}): Promise<Dict>;
-    v1PrivatePostNotificationInboxMarkRead (params?: {}): Promise<Dict>;
-    v1PrivatePostNotificationInboxMarkReadAll (params?: {}): Promise<Dict>;
-    v1PrivatePostClientLeverage (params?: {}): Promise<Dict>;
-    v1PrivatePostClientLeverages (params?: {}): Promise<Dict>;
-    v1PrivatePostClientMarginMode (params?: {}): Promise<Dict>;
-    v1PrivatePostPositionMargin (params?: {}): Promise<Dict>;
-    v1PrivatePostClientMaintenanceConfig (params?: {}): Promise<Dict>;
-    v1PrivatePostDelegateSigner (params?: {}): Promise<Dict>;
-    v1PrivatePostDelegateOrderlyKey (params?: {}): Promise<Dict>;
-    v1PrivatePostDelegateSettlePnl (params?: {}): Promise<Dict>;
-    v1PrivatePostDelegateWithdrawRequest (params?: {}): Promise<Dict>;
-    v1PrivatePostBrokerFeeRateSet (params?: {}): Promise<Dict>;
-    v1PrivatePostBrokerFeeRateSetDefault (params?: {}): Promise<Dict>;
-    v1PrivatePostBrokerFeeRateDefault (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralCreate (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralUpdate (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralBind (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralEditSplit (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralEditRefereeDescription (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralMultiLevelAdmin (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralMultiLevelAdminUpdate (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralMultiLevelAdminCreateAffiliate (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralMultiLevelAdminResetAffiliate (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralMultiLevelAdminUpdateAffiliate (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralMultiLevelClaimCode (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralMultiLevelRebateRateSetDefault (params?: {}): Promise<Dict>;
-    v1PrivatePostReferralMultiLevelRebateRateUpdate (params?: {}): Promise<Dict>;
-    v1PrivatePutOrder (params?: {}): Promise<Dict>;
-    v1PrivatePutAlgoOrder (params?: {}): Promise<Dict>;
-    v1PrivateDeleteOrder (params?: {}): Promise<Dict>;
-    v1PrivateDeleteAlgoOrder (params?: {}): Promise<Dict>;
-    v1PrivateDeleteClientOrder (params?: {}): Promise<Dict>;
-    v1PrivateDeleteAlgoClientOrder (params?: {}): Promise<Dict>;
-    v1PrivateDeleteAlgoOrders (params?: {}): Promise<Dict>;
-    v1PrivateDeleteOrders (params?: {}): Promise<List>;
-    v1PrivateDeleteBatchOrder (params?: {}): Promise<Dict>;
-    v1PrivateDeleteClientBatchOrder (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    v1PublicGetPublicVolumeStats (params = {}): Promise<Dict> {
+        return this.request ("public/volume/stats", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_volume_stats (params = {}): Promise<Dict> {
+        return this.request ("public/volume/stats", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicBrokerName (params = {}): Promise<Dict> {
+        return this.request ("public/broker/name", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_broker_name (params = {}): Promise<Dict> {
+        return this.request ("public/broker/name", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicChainInfoBrokerId (params = {}): Promise<Dict> {
+        return this.request ("public/chain_info/{broker_id}", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_chain_info_broker_id (params = {}): Promise<Dict> {
+        return this.request ("public/chain_info/{broker_id}", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicSystemInfo (params = {}): Promise<Dict> {
+        return this.request ("public/system_info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_system_info (params = {}): Promise<Dict> {
+        return this.request ("public/system_info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicVaultBalance (params = {}): Promise<Dict> {
+        return this.request ("public/vault_balance", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_vault_balance (params = {}): Promise<Dict> {
+        return this.request ("public/vault_balance", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicInsurancefund (params = {}): Promise<Dict> {
+        return this.request ("public/insurancefund", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_insurancefund (params = {}): Promise<Dict> {
+        return this.request ("public/insurancefund", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicChainInfo (params = {}): Promise<Dict> {
+        return this.request ("public/chain_info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_chain_info (params = {}): Promise<Dict> {
+        return this.request ("public/chain_info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetFaucetUsdc (params = {}): Promise<Dict> {
+        return this.request ("faucet/usdc", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_faucet_usdc (params = {}): Promise<Dict> {
+        return this.request ("faucet/usdc", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicAccount (params = {}): Promise<Dict> {
+        return this.request ("public/account", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_account (params = {}): Promise<Dict> {
+        return this.request ("public/account", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetGetAccount (params = {}): Promise<Dict> {
+        return this.request ("get_account", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_get_account (params = {}): Promise<Dict> {
+        return this.request ("get_account", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetRegistrationNonce (params = {}): Promise<Dict> {
+        return this.request ("registration_nonce", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_registration_nonce (params = {}): Promise<Dict> {
+        return this.request ("registration_nonce", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetGetOrderlyKey (params = {}): Promise<Dict> {
+        return this.request ("get_orderly_key", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_get_orderly_key (params = {}): Promise<Dict> {
+        return this.request ("get_orderly_key", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicLiquidation (params = {}): Promise<Dict> {
+        return this.request ("public/liquidation", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_liquidation (params = {}): Promise<Dict> {
+        return this.request ("public/liquidation", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicLiquidatedPositions (params = {}): Promise<Dict> {
+        return this.request ("public/liquidated_positions", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_liquidated_positions (params = {}): Promise<Dict> {
+        return this.request ("public/liquidated_positions", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicConfig (params = {}): Promise<Dict> {
+        return this.request ("public/config", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_config (params = {}): Promise<Dict> {
+        return this.request ("public/config", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicCampaignRanking (params = {}): Promise<Dict> {
+        return this.request ("public/campaign/ranking", ["v1","public"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1_public_get_public_campaign_ranking (params = {}): Promise<Dict> {
+        return this.request ("public/campaign/ranking", ["v1","public"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1PublicGetPublicCampaignStats (params = {}): Promise<Dict> {
+        return this.request ("public/campaign/stats", ["v1","public"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1_public_get_public_campaign_stats (params = {}): Promise<Dict> {
+        return this.request ("public/campaign/stats", ["v1","public"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1PublicGetPublicCampaignUser (params = {}): Promise<Dict> {
+        return this.request ("public/campaign/user", ["v1","public"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1_public_get_public_campaign_user (params = {}): Promise<Dict> {
+        return this.request ("public/campaign/user", ["v1","public"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1PublicGetPublicCampaignStatsDetails (params = {}): Promise<Dict> {
+        return this.request ("public/campaign/stats/details", ["v1","public"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1_public_get_public_campaign_stats_details (params = {}): Promise<Dict> {
+        return this.request ("public/campaign/stats/details", ["v1","public"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1PublicGetPublicCampaigns (params = {}): Promise<Dict> {
+        return this.request ("public/campaigns", ["v1","public"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1_public_get_public_campaigns (params = {}): Promise<Dict> {
+        return this.request ("public/campaigns", ["v1","public"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1PublicGetPublicPointsLeaderboard (params = {}): Promise<Dict> {
+        return this.request ("public/points/leaderboard", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_points_leaderboard (params = {}): Promise<Dict> {
+        return this.request ("public/points/leaderboard", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetClientPoints (params = {}): Promise<Dict> {
+        return this.request ("client/points", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_client_points (params = {}): Promise<Dict> {
+        return this.request ("client/points", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicPointsEpoch (params = {}): Promise<Dict> {
+        return this.request ("public/points/epoch", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_points_epoch (params = {}): Promise<Dict> {
+        return this.request ("public/points/epoch", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicPointsEpochDates (params = {}): Promise<Dict> {
+        return this.request ("public/points/epoch_dates", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_points_epoch_dates (params = {}): Promise<Dict> {
+        return this.request ("public/points/epoch_dates", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicReferralCheckRefCode (params = {}): Promise<Dict> {
+        return this.request ("public/referral/check_ref_code", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_referral_check_ref_code (params = {}): Promise<Dict> {
+        return this.request ("public/referral/check_ref_code", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicReferralVerifyRefCode (params = {}): Promise<Dict> {
+        return this.request ("public/referral/verify_ref_code", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_referral_verify_ref_code (params = {}): Promise<Dict> {
+        return this.request ("public/referral/verify_ref_code", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetReferralAdminInfo (params = {}): Promise<Dict> {
+        return this.request ("referral/admin_info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_referral_admin_info (params = {}): Promise<Dict> {
+        return this.request ("referral/admin_info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetReferralInfo (params = {}): Promise<Dict> {
+        return this.request ("referral/info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_referral_info (params = {}): Promise<Dict> {
+        return this.request ("referral/info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetReferralRefereeInfo (params = {}): Promise<Dict> {
+        return this.request ("referral/referee_info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_referral_referee_info (params = {}): Promise<Dict> {
+        return this.request ("referral/referee_info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetReferralRefereeRebateSummary (params = {}): Promise<Dict> {
+        return this.request ("referral/referee_rebate_summary", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_referral_referee_rebate_summary (params = {}): Promise<Dict> {
+        return this.request ("referral/referee_rebate_summary", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetReferralRefereeHistory (params = {}): Promise<Dict> {
+        return this.request ("referral/referee_history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_referral_referee_history (params = {}): Promise<Dict> {
+        return this.request ("referral/referee_history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetReferralReferralHistory (params = {}): Promise<Dict> {
+        return this.request ("referral/referral_history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_referral_referral_history (params = {}): Promise<Dict> {
+        return this.request ("referral/referral_history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetReferralRebateSummary (params = {}): Promise<Dict> {
+        return this.request ("referral/rebate_summary", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_referral_rebate_summary (params = {}): Promise<Dict> {
+        return this.request ("referral/rebate_summary", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetClientDistributionHistory (params = {}): Promise<Dict> {
+        return this.request ("client/distribution_history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_client_distribution_history (params = {}): Promise<Dict> {
+        return this.request ("client/distribution_history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetTvConfig (params = {}): Promise<Dict> {
+        return this.request ("tv/config", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_tv_config (params = {}): Promise<Dict> {
+        return this.request ("tv/config", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetTvHistory (params = {}): Promise<Dict> {
+        return this.request ("tv/history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_tv_history (params = {}): Promise<Dict> {
+        return this.request ("tv/history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetTvSymbolInfo (params = {}): Promise<Dict> {
+        return this.request ("tv/symbol_info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_tv_symbol_info (params = {}): Promise<Dict> {
+        return this.request ("tv/symbol_info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetTvKlineHistory (params = {}): Promise<Dict> {
+        return this.request ("tv/kline_history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":20});
+    }
+    v1_public_get_tv_kline_history (params = {}): Promise<Dict> {
+        return this.request ("tv/kline_history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":20});
+    }
+    v1PublicGetPublicFundingRateHistory (params = {}): Promise<Dict> {
+        return this.request ("public/funding_rate_history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_funding_rate_history (params = {}): Promise<Dict> {
+        return this.request ("public/funding_rate_history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicFundingRateSymbol (params = {}): Promise<Dict> {
+        return this.request ("public/funding_rate/{symbol}", ["v1","public"], 'GET', params, undefined, undefined, {"cost":0.33});
+    }
+    v1_public_get_public_funding_rate_symbol (params = {}): Promise<Dict> {
+        return this.request ("public/funding_rate/{symbol}", ["v1","public"], 'GET', params, undefined, undefined, {"cost":0.33});
+    }
+    v1PublicGetPublicFundingRates (params = {}): Promise<Dict> {
+        return this.request ("public/funding_rates", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_funding_rates (params = {}): Promise<Dict> {
+        return this.request ("public/funding_rates", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicInfo (params = {}): Promise<Dict> {
+        return this.request ("public/info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_info (params = {}): Promise<Dict> {
+        return this.request ("public/info", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicInfoSymbol (params = {}): Promise<Dict> {
+        return this.request ("public/info/{symbol}", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_info_symbol (params = {}): Promise<Dict> {
+        return this.request ("public/info/{symbol}", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicMarketTrades (params = {}): Promise<Dict> {
+        return this.request ("public/market_trades", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_market_trades (params = {}): Promise<Dict> {
+        return this.request ("public/market_trades", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicToken (params = {}): Promise<Dict> {
+        return this.request ("public/token", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_token (params = {}): Promise<Dict> {
+        return this.request ("public/token", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicFutures (params = {}): Promise<Dict> {
+        return this.request ("public/futures", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_futures (params = {}): Promise<Dict> {
+        return this.request ("public/futures", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicGetPublicFuturesSymbol (params = {}): Promise<Dict> {
+        return this.request ("public/futures/{symbol}", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_get_public_futures_symbol (params = {}): Promise<Dict> {
+        return this.request ("public/futures/{symbol}", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicPostRegisterAccount (params = {}): Promise<Dict> {
+        return this.request ("register_account", ["v1","public"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_post_register_account (params = {}): Promise<Dict> {
+        return this.request ("register_account", ["v1","public"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PublicPostPublicQuery (params = {}): Promise<Dict> {
+        return this.request ("public/query", ["v1","public"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_public_post_public_query (params = {}): Promise<Dict> {
+        return this.request ("public/query", ["v1","public"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetClientKeyInfo (params = {}): Promise<Dict> {
+        return this.request ("client/key_info", ["v1","private"], 'GET', params, undefined, undefined, {"cost":6});
+    }
+    v1_private_get_client_key_info (params = {}): Promise<Dict> {
+        return this.request ("client/key_info", ["v1","private"], 'GET', params, undefined, undefined, {"cost":6});
+    }
+    v1PrivateGetClientOrderlyKeyIpRestriction (params = {}): Promise<Dict> {
+        return this.request ("client/orderly_key_ip_restriction", ["v1","private"], 'GET', params, undefined, undefined, {"cost":6});
+    }
+    v1_private_get_client_orderly_key_ip_restriction (params = {}): Promise<Dict> {
+        return this.request ("client/orderly_key_ip_restriction", ["v1","private"], 'GET', params, undefined, undefined, {"cost":6});
+    }
+    v1PrivateGetOrderOid (params = {}): Promise<Dict> {
+        return this.request ("order/{oid}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_order_oid (params = {}): Promise<Dict> {
+        return this.request ("order/{oid}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetClientOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ("client/order/{client_order_id}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_client_order_client_order_id (params = {}): Promise<Dict> {
+        return this.request ("client/order/{client_order_id}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetAlgoOrderOid (params = {}): Promise<Dict> {
+        return this.request ("algo/order/{oid}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_algo_order_oid (params = {}): Promise<Dict> {
+        return this.request ("algo/order/{oid}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetAlgoClientOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ("algo/client/order/{client_order_id}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_algo_client_order_client_order_id (params = {}): Promise<Dict> {
+        return this.request ("algo/client/order/{client_order_id}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetOrders (params = {}): Promise<Dict> {
+        return this.request ("orders", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_orders (params = {}): Promise<Dict> {
+        return this.request ("orders", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetAlgoOrders (params = {}): Promise<Dict> {
+        return this.request ("algo/orders", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_algo_orders (params = {}): Promise<Dict> {
+        return this.request ("algo/orders", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetTradeTid (params = {}): Promise<Dict> {
+        return this.request ("trade/{tid}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_trade_tid (params = {}): Promise<Dict> {
+        return this.request ("trade/{tid}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetTrades (params = {}): Promise<Dict> {
+        return this.request ("trades", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_trades (params = {}): Promise<Dict> {
+        return this.request ("trades", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetOrderOidTrades (params = {}): Promise<Dict> {
+        return this.request ("order/{oid}/trades", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_order_oid_trades (params = {}): Promise<Dict> {
+        return this.request ("order/{oid}/trades", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetClientLiquidatorLiquidations (params = {}): Promise<Dict> {
+        return this.request ("client/liquidator_liquidations", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_client_liquidator_liquidations (params = {}): Promise<Dict> {
+        return this.request ("client/liquidator_liquidations", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetLiquidations (params = {}): Promise<Dict> {
+        return this.request ("liquidations", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_liquidations (params = {}): Promise<Dict> {
+        return this.request ("liquidations", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetAssetHistory (params = {}): Promise<Dict> {
+        return this.request ("asset/history", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_get_asset_history (params = {}): Promise<Dict> {
+        return this.request ("asset/history", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivateGetClientHolding (params = {}): Promise<Dict> {
+        return this.request ("client/holding", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_client_holding (params = {}): Promise<Dict> {
+        return this.request ("client/holding", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetWithdrawNonce (params = {}): Promise<Dict> {
+        return this.request ("withdraw_nonce", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_withdraw_nonce (params = {}): Promise<Dict> {
+        return this.request ("withdraw_nonce", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetSettleNonce (params = {}): Promise<Dict> {
+        return this.request ("settle_nonce", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_settle_nonce (params = {}): Promise<Dict> {
+        return this.request ("settle_nonce", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetPnlSettlementHistory (params = {}): Promise<Dict> {
+        return this.request ("pnl_settlement/history", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_pnl_settlement_history (params = {}): Promise<Dict> {
+        return this.request ("pnl_settlement/history", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetInternalTransferHistory (params = {}): Promise<Dict> {
+        return this.request ("internal_transfer_history", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_internal_transfer_history (params = {}): Promise<Dict> {
+        return this.request ("internal_transfer_history", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetVolumeUserDaily (params = {}): Promise<Dict> {
+        return this.request ("volume/user/daily", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_get_volume_user_daily (params = {}): Promise<Dict> {
+        return this.request ("volume/user/daily", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivateGetVolumeUserStats (params = {}): Promise<Dict> {
+        return this.request ("volume/user/stats", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_get_volume_user_stats (params = {}): Promise<Dict> {
+        return this.request ("volume/user/stats", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivateGetClientStatistics (params = {}): Promise<Dict> {
+        return this.request ("client/statistics", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_get_client_statistics (params = {}): Promise<Dict> {
+        return this.request ("client/statistics", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivateGetClientInfo (params = {}): Promise<Dict> {
+        return this.request ("client/info", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_get_client_info (params = {}): Promise<Dict> {
+        return this.request ("client/info", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivateGetClientStatisticsDaily (params = {}): Promise<Dict> {
+        return this.request ("client/statistics/daily", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_get_client_statistics_daily (params = {}): Promise<Dict> {
+        return this.request ("client/statistics/daily", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivateGetPositions (params = {}): Promise<Dict> {
+        return this.request ("positions", ["v1","private"], 'GET', params, undefined, undefined, {"cost":3.33});
+    }
+    v1_private_get_positions (params = {}): Promise<Dict> {
+        return this.request ("positions", ["v1","private"], 'GET', params, undefined, undefined, {"cost":3.33});
+    }
+    v1PrivateGetPositionSymbol (params = {}): Promise<Dict> {
+        return this.request ("position/{symbol}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":3.33});
+    }
+    v1_private_get_position_symbol (params = {}): Promise<Dict> {
+        return this.request ("position/{symbol}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":3.33});
+    }
+    v1PrivateGetFundingFeeHistory (params = {}): Promise<Dict> {
+        return this.request ("funding_fee/history", ["v1","private"], 'GET', params, undefined, undefined, {"cost":30});
+    }
+    v1_private_get_funding_fee_history (params = {}): Promise<Dict> {
+        return this.request ("funding_fee/history", ["v1","private"], 'GET', params, undefined, undefined, {"cost":30});
+    }
+    v1PrivateGetNotificationInboxNotifications (params = {}): Promise<Dict> {
+        return this.request ("notification/inbox/notifications", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_get_notification_inbox_notifications (params = {}): Promise<Dict> {
+        return this.request ("notification/inbox/notifications", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivateGetNotificationInboxUnread (params = {}): Promise<Dict> {
+        return this.request ("notification/inbox/unread", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_get_notification_inbox_unread (params = {}): Promise<Dict> {
+        return this.request ("notification/inbox/unread", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivateGetVolumeBrokerDaily (params = {}): Promise<Dict> {
+        return this.request ("volume/broker/daily", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_get_volume_broker_daily (params = {}): Promise<Dict> {
+        return this.request ("volume/broker/daily", ["v1","private"], 'GET', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivateGetBrokerFeeRateDefault (params = {}): Promise<Dict> {
+        return this.request ("broker/fee_rate/default", ["v1","private"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_get_broker_fee_rate_default (params = {}): Promise<Dict> {
+        return this.request ("broker/fee_rate/default", ["v1","private"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivateGetBrokerUserInfo (params = {}): Promise<Dict> {
+        return this.request ("broker/user_info", ["v1","private"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_get_broker_user_info (params = {}): Promise<Dict> {
+        return this.request ("broker/user_info", ["v1","private"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivateGetBrokerDailyFeeRevenue (params = {}): Promise<Dict> {
+        return this.request ("broker/daily_fee_revenue", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_broker_daily_fee_revenue (params = {}): Promise<Dict> {
+        return this.request ("broker/daily_fee_revenue", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetOrderbookSymbol (params = {}): Promise<Dict> {
+        return this.request ("orderbook/{symbol}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_orderbook_symbol (params = {}): Promise<Dict> {
+        return this.request ("orderbook/{symbol}", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetKline (params = {}): Promise<Dict> {
+        return this.request ("kline", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_kline (params = {}): Promise<Dict> {
+        return this.request ("kline", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetClientLeverages (params = {}): Promise<Dict> {
+        return this.request ("client/leverages", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_client_leverages (params = {}): Promise<Dict> {
+        return this.request ("client/leverages", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetClientMarginModes (params = {}): Promise<Dict> {
+        return this.request ("client/margin_modes", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_client_margin_modes (params = {}): Promise<Dict> {
+        return this.request ("client/margin_modes", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetReferralMultiLevelAdmin (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin", ["v1","private"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_get_referral_multi_level_admin (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin", ["v1","private"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivateGetReferralMultiLevelAdminInfo (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/info", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_referral_multi_level_admin_info (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/info", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetReferralMultiLevelAdminRefereeList (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/referee_list", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_referral_multi_level_admin_referee_list (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/referee_list", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetReferralMultiLevelAdminSummary (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/summary", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_referral_multi_level_admin_summary (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/summary", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetReferralMultiLevelMaxRebateRate (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/max_rebate_rate", ["v1","private"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_get_referral_multi_level_max_rebate_rate (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/max_rebate_rate", ["v1","private"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivateGetReferralMultiLevelRebateInfo (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/rebate_info", ["v1","private"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_get_referral_multi_level_rebate_info (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/rebate_info", ["v1","private"], 'GET', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivateGetReferralMultiLevelRefereeList (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/referee_list", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_referral_multi_level_referee_list (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/referee_list", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetReferralMultiLevelStatistics (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/statistics", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_referral_multi_level_statistics (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/statistics", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateGetReferralMultiLevelVolumePrerequisite (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/volume_prerequisite", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_get_referral_multi_level_volume_prerequisite (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/volume_prerequisite", ["v1","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostOrderlyKey (params = {}): Promise<Dict> {
+        return this.request ("orderly_key", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_orderly_key (params = {}): Promise<Dict> {
+        return this.request ("orderly_key", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostClientSetOrderlyKeyIpRestriction (params = {}): Promise<Dict> {
+        return this.request ("client/set_orderly_key_ip_restriction", ["v1","private"], 'POST', params, undefined, undefined, {"cost":6});
+    }
+    v1_private_post_client_set_orderly_key_ip_restriction (params = {}): Promise<Dict> {
+        return this.request ("client/set_orderly_key_ip_restriction", ["v1","private"], 'POST', params, undefined, undefined, {"cost":6});
+    }
+    v1PrivatePostClientResetOrderlyKeyIpRestriction (params = {}): Promise<Dict> {
+        return this.request ("client/reset_orderly_key_ip_restriction", ["v1","private"], 'POST', params, undefined, undefined, {"cost":6});
+    }
+    v1_private_post_client_reset_orderly_key_ip_restriction (params = {}): Promise<Dict> {
+        return this.request ("client/reset_orderly_key_ip_restriction", ["v1","private"], 'POST', params, undefined, undefined, {"cost":6});
+    }
+    v1PrivatePostOrder (params = {}): Promise<Dict> {
+        return this.request ("order", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_order (params = {}): Promise<Dict> {
+        return this.request ("order", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostBatchOrder (params = {}): Promise<Dict> {
+        return this.request ("batch-order", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_batch_order (params = {}): Promise<Dict> {
+        return this.request ("batch-order", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ("algo/order", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_algo_order (params = {}): Promise<Dict> {
+        return this.request ("algo/order", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostLiquidation (params = {}): Promise<Dict> {
+        return this.request ("liquidation", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_liquidation (params = {}): Promise<Dict> {
+        return this.request ("liquidation", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostClaimInsuranceFund (params = {}): Promise<Dict> {
+        return this.request ("claim_insurance_fund", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_claim_insurance_fund (params = {}): Promise<Dict> {
+        return this.request ("claim_insurance_fund", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostWithdrawRequest (params = {}): Promise<Dict> {
+        return this.request ("withdraw_request", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_withdraw_request (params = {}): Promise<Dict> {
+        return this.request ("withdraw_request", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostSettlePnl (params = {}): Promise<Dict> {
+        return this.request ("settle_pnl", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_settle_pnl (params = {}): Promise<Dict> {
+        return this.request ("settle_pnl", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostInternalTransfer (params = {}): Promise<Dict> {
+        return this.request ("internal_transfer", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_internal_transfer (params = {}): Promise<Dict> {
+        return this.request ("internal_transfer", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostNotificationInboxMarkRead (params = {}): Promise<Dict> {
+        return this.request ("notification/inbox/mark_read", ["v1","private"], 'POST', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_post_notification_inbox_mark_read (params = {}): Promise<Dict> {
+        return this.request ("notification/inbox/mark_read", ["v1","private"], 'POST', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivatePostNotificationInboxMarkReadAll (params = {}): Promise<Dict> {
+        return this.request ("notification/inbox/mark_read_all", ["v1","private"], 'POST', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_post_notification_inbox_mark_read_all (params = {}): Promise<Dict> {
+        return this.request ("notification/inbox/mark_read_all", ["v1","private"], 'POST', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivatePostClientLeverage (params = {}): Promise<Dict> {
+        return this.request ("client/leverage", ["v1","private"], 'POST', params, undefined, undefined, {"cost":120});
+    }
+    v1_private_post_client_leverage (params = {}): Promise<Dict> {
+        return this.request ("client/leverage", ["v1","private"], 'POST', params, undefined, undefined, {"cost":120});
+    }
+    v1PrivatePostClientLeverages (params = {}): Promise<Dict> {
+        return this.request ("client/leverages", ["v1","private"], 'POST', params, undefined, undefined, {"cost":120});
+    }
+    v1_private_post_client_leverages (params = {}): Promise<Dict> {
+        return this.request ("client/leverages", ["v1","private"], 'POST', params, undefined, undefined, {"cost":120});
+    }
+    v1PrivatePostClientMarginMode (params = {}): Promise<Dict> {
+        return this.request ("client/margin_mode", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_client_margin_mode (params = {}): Promise<Dict> {
+        return this.request ("client/margin_mode", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostPositionMargin (params = {}): Promise<Dict> {
+        return this.request ("position_margin", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_position_margin (params = {}): Promise<Dict> {
+        return this.request ("position_margin", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostClientMaintenanceConfig (params = {}): Promise<Dict> {
+        return this.request ("client/maintenance_config", ["v1","private"], 'POST', params, undefined, undefined, {"cost":60});
+    }
+    v1_private_post_client_maintenance_config (params = {}): Promise<Dict> {
+        return this.request ("client/maintenance_config", ["v1","private"], 'POST', params, undefined, undefined, {"cost":60});
+    }
+    v1PrivatePostDelegateSigner (params = {}): Promise<Dict> {
+        return this.request ("delegate_signer", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_delegate_signer (params = {}): Promise<Dict> {
+        return this.request ("delegate_signer", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostDelegateOrderlyKey (params = {}): Promise<Dict> {
+        return this.request ("delegate_orderly_key", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_delegate_orderly_key (params = {}): Promise<Dict> {
+        return this.request ("delegate_orderly_key", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostDelegateSettlePnl (params = {}): Promise<Dict> {
+        return this.request ("delegate_settle_pnl", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_delegate_settle_pnl (params = {}): Promise<Dict> {
+        return this.request ("delegate_settle_pnl", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostDelegateWithdrawRequest (params = {}): Promise<Dict> {
+        return this.request ("delegate_withdraw_request", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_delegate_withdraw_request (params = {}): Promise<Dict> {
+        return this.request ("delegate_withdraw_request", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostBrokerFeeRateSet (params = {}): Promise<Dict> {
+        return this.request ("broker/fee_rate/set", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_broker_fee_rate_set (params = {}): Promise<Dict> {
+        return this.request ("broker/fee_rate/set", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostBrokerFeeRateSetDefault (params = {}): Promise<Dict> {
+        return this.request ("broker/fee_rate/set_default", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_broker_fee_rate_set_default (params = {}): Promise<Dict> {
+        return this.request ("broker/fee_rate/set_default", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostBrokerFeeRateDefault (params = {}): Promise<Dict> {
+        return this.request ("broker/fee_rate/default", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_broker_fee_rate_default (params = {}): Promise<Dict> {
+        return this.request ("broker/fee_rate/default", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostReferralCreate (params = {}): Promise<Dict> {
+        return this.request ("referral/create", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_referral_create (params = {}): Promise<Dict> {
+        return this.request ("referral/create", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostReferralUpdate (params = {}): Promise<Dict> {
+        return this.request ("referral/update", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_referral_update (params = {}): Promise<Dict> {
+        return this.request ("referral/update", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostReferralBind (params = {}): Promise<Dict> {
+        return this.request ("referral/bind", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_referral_bind (params = {}): Promise<Dict> {
+        return this.request ("referral/bind", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostReferralEditSplit (params = {}): Promise<Dict> {
+        return this.request ("referral/edit_split", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_referral_edit_split (params = {}): Promise<Dict> {
+        return this.request ("referral/edit_split", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostReferralEditRefereeDescription (params = {}): Promise<Dict> {
+        return this.request ("referral/edit_referee_description", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_referral_edit_referee_description (params = {}): Promise<Dict> {
+        return this.request ("referral/edit_referee_description", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostReferralMultiLevelAdmin (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_referral_multi_level_admin (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostReferralMultiLevelAdminUpdate (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/update", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_referral_multi_level_admin_update (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/update", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostReferralMultiLevelAdminCreateAffiliate (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/create/affiliate", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_post_referral_multi_level_admin_create_affiliate (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/create/affiliate", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePostReferralMultiLevelAdminResetAffiliate (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/reset/affiliate", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_referral_multi_level_admin_reset_affiliate (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/reset/affiliate", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostReferralMultiLevelAdminUpdateAffiliate (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/update/affiliate", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_referral_multi_level_admin_update_affiliate (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/admin/update/affiliate", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostReferralMultiLevelClaimCode (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/claim_code", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_referral_multi_level_claim_code (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/claim_code", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostReferralMultiLevelRebateRateSetDefault (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/rebate_rate/set_default", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_referral_multi_level_rebate_rate_set_default (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/rebate_rate/set_default", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePostReferralMultiLevelRebateRateUpdate (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/rebate_rate/update", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1_private_post_referral_multi_level_rebate_rate_update (params = {}): Promise<Dict> {
+        return this.request ("referral/multi_level/rebate_rate/update", ["v1","private"], 'POST', params, undefined, undefined, {"cost":10});
+    }
+    v1PrivatePutOrder (params = {}): Promise<Dict> {
+        return this.request ("order", ["v1","private"], 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_put_order (params = {}): Promise<Dict> {
+        return this.request ("order", ["v1","private"], 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivatePutAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ("algo/order", ["v1","private"], 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_put_algo_order (params = {}): Promise<Dict> {
+        return this.request ("algo/order", ["v1","private"], 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateDeleteOrder (params = {}): Promise<Dict> {
+        return this.request ("order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_delete_order (params = {}): Promise<Dict> {
+        return this.request ("order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateDeleteAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ("algo/order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_delete_algo_order (params = {}): Promise<Dict> {
+        return this.request ("algo/order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateDeleteClientOrder (params = {}): Promise<Dict> {
+        return this.request ("client/order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_delete_client_order (params = {}): Promise<Dict> {
+        return this.request ("client/order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateDeleteAlgoClientOrder (params = {}): Promise<Dict> {
+        return this.request ("algo/client/order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_delete_algo_client_order (params = {}): Promise<Dict> {
+        return this.request ("algo/client/order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateDeleteAlgoOrders (params = {}): Promise<Dict> {
+        return this.request ("algo/orders", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_delete_algo_orders (params = {}): Promise<Dict> {
+        return this.request ("algo/orders", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateDeleteOrders (params = {}): Promise<List> {
+        return this.request ("orders", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_delete_orders (params = {}): Promise<List> {
+        return this.request ("orders", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateDeleteBatchOrder (params = {}): Promise<Dict> {
+        return this.request ("batch-order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_delete_batch_order (params = {}): Promise<Dict> {
+        return this.request ("batch-order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1PrivateDeleteClientBatchOrder (params = {}): Promise<Dict> {
+        return this.request ("client/batch-order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    v1_private_delete_client_batch_order (params = {}): Promise<Dict> {
+        return this.request ("client/batch-order", ["v1","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

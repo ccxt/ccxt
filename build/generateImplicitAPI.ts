@@ -500,6 +500,9 @@ let storedParents: Dict = {};
 // (`instance.api`). The Go emitter bakes the TransformedApi entry into a wrapper
 // only for these (see createImplicitMethodsGo).
 let storedResolvableNames: Dict = {};
+// pro id -> its pro parent, for pro classes that extend the parent's pro class rather
+// than their own rest class: they get their endpoints from abstract/pro/<id>.ts
+let storedDetachedPro: Dict = {};
 
 // when true, we are generating the implicit APIs for the prediction-market
 // exchanges (ts/src/prediction/) which live in their own namespace/subfolder
@@ -519,6 +522,7 @@ function resetStoredMethods () {
     storedJavaMethods = {};
     storedParents = {};
     storedResolvableNames = {};
+    storedDetachedPro = {};
 }
 
 
@@ -677,6 +681,9 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                 const phpConfig = JSON.stringify (config).replace (/{/g, 'array(').replace (/:/g, ' => ').replace (/}/g, ')').replace (/,/g, ', ')
                 storedContext[id].push ({
                     endpoint,
+                    paths,
+                    tsPath: JSON.stringify (paths.length === 1 ? paths[0] : paths),
+                    tsConfig: JSON.stringify (config),
                     phpPath: paths.length === 1 ? `'${paths[0]}'` : 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
                     pyPath: paths.length === 1 ? `'${paths[0]}'` : '[' + paths.map (x => `'${x}'`).join (', ') + ']',
                     phpConfig: phpConfig,
@@ -719,9 +726,6 @@ function createImplicitMethodsPhp(){
         const camelCaseMethods = storedCamelCaseMethods[exchange];
         const underscoreMethods = storedUnderscoreMethods[exchange]
 
-        const typeScriptMethods = camelCaseMethods.map (method => {
-            return `${IDEN}${method} (params?: {}): Promise<${typescriptReturnType (exchange, method)}>;`
-        });
         const phpMethods = underscoreMethods.concat (camelCaseMethods).map ((method, idx) => {
             const i = idx % underscoreMethods.length
             const context = storedContext[exchange][i]
@@ -750,11 +754,7 @@ ${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '
 ${IDEN}}`
         })
 
-        typeScriptMethods.push ('}')
         phpMethods.push ('}')
-        const footer = storedTypeScriptMethods[exchange].pop ()
-        storedTypeScriptMethods[exchange] = storedTypeScriptMethods[exchange].concat (typeScriptMethods).concat ([ footer ])
-        finalizeTypescriptImport (exchange)
         storedPhpMethods[exchange] = storedPhpMethods[exchange].concat (phpMethods)
     }
 }
@@ -767,14 +767,49 @@ function createImplicitMethodsTs(){
         const exchange = exchanges[index];
         const camelCaseMethods = storedCamelCaseMethods[exchange];
 
-        const typeScriptMethods = camelCaseMethods.map (method => {
-            return `${IDEN}${method} (params?: {}): Promise<${typescriptReturnType (exchange, method)}>;`
-        });
+        const inherited = typescriptInheritedNames (exchange);
+        const typeScriptMethods = camelCaseMethods.map ((method, i) => typescriptMethod (exchange, method, storedContext[exchange][i], inherited));
         typeScriptMethods.push ('}')
         const footer = storedTypeScriptMethods[exchange].pop ()
         storedTypeScriptMethods[exchange] = storedTypeScriptMethods[exchange].concat (typeScriptMethods).concat ([ footer ])
         finalizeTypescriptImport (exchange)
     }
+}
+
+// the camelCase and snake_case names users call an endpoint by, spelled exactly as the
+// former runtime defineRestApiEndpoint built them (they differ from the cross-port names)
+function typescriptMethodNames (context: Dict): string[] {
+    const cap = (x: string) => x.charAt (0).toUpperCase () + x.slice (1);
+    const paths: string[] = context.paths;
+    const lower = context.method.toLowerCase ();
+    const splitPath = context.endpoint.trim ().split (/[^a-zA-Z0-9]/);
+    const camel = [ paths[0] ].concat (paths.slice (1).map (cap)).join ('') + cap (lower) + cap (splitPath.map (cap).join (''));
+    const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_');
+    const underscoreSuffix = splitPath.map ((x: string) => x.trim ().toLowerCase ()).filter ((x: string) => x.length > 0).join ('_');
+    return [ camel, underscorePrefix + '_' + lower + '_' + underscoreSuffix ];
+}
+
+// every endpoint name the parent's generated abstract already defines
+function typescriptInheritedNames (exchange: string): Set<string> {
+    const parent = storedParents[exchange];
+    const names = new Set<string> ();
+    for (const context of storedContext[parent] || []) {
+        for (const name of typescriptMethodNames (context)) {
+            names.add (name);
+        }
+    }
+    return names;
+}
+
+// one implicit endpoint as real methods of the abstract class, under both its names
+function typescriptMethod (exchange: string, method: string, context: Dict, inherited: Set<string>): string {
+    const returnType = typescriptReturnType (exchange, method);
+    const call = `return this.request (${JSON.stringify (context.endpoint.trim ())}, ${context.tsPath}, '${context.method}', params, undefined, undefined, ${context.tsConfig});`;
+    return typescriptMethodNames (context).map ((name) => [
+        `${IDEN}${inherited.has (name) ? 'override ' : ''}${name} (params = {}): Promise<${returnType}> {`,
+        `${IDEN}${IDEN}${call}`,
+        `${IDEN}}`,
+    ].join ('\n')).join ('\n')
 }
 
 // -------------------------------------------------------------------------
@@ -1062,6 +1097,19 @@ async function editFiles (path: string, methods: Dict, extension: string) {
     // await unlinkFiles (path, extension)
 }
 
+// the same endpoints, layered over the pro parent for the pro classes in storedDetachedPro
+async function editDetachedProFilesTs () {
+    const ids = Object.keys (storedDetachedPro);
+    fs.mkdirSync (TS_PATH + 'pro/', { recursive: true });
+    await Promise.all (ids.map ((id) => {
+        const parent = storedDetachedPro[id];
+        const lines = storedTypeScriptMethods[id].map ((line: string) => line
+            .replace (`import _${parent} from '../${parent}.js';`, `import _${parent} from '../../pro/${parent}.js';`)
+            .replace (`from '../base/types.js';`, `from '../../base/types.js';`));
+        return writeFile (TS_PATH + 'pro/' + id + '.ts', lines.join ('\n') + '\n');
+    }));
+}
+
 async function unlinkFiles (path: string, extension: string) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const abstract = fs.readdirSync (path)
@@ -1123,8 +1171,8 @@ function createTypescriptHeader(instance: Exchange, parent: string){
     } else {
         importParent = `import _${parent} from '${basePath}${parent}.js';`
     }
-    const typescriptHeader = `interface ${parent} {`
-    const typescriptFooter = `abstract class ${parent} extends _${parent} {}\n\nexport default ${parent}` // hotswap later
+    const typescriptHeader = `abstract class ${parent} extends _${parent} {`
+    const typescriptFooter = `export default ${parent}` // hotswap later
     storedTypeScriptMethods[exchange] = [ getPreamble (), importType, importParent, '', typescriptHeader, typescriptFooter ];
 }
 
@@ -1241,6 +1289,10 @@ function populateImplicitMethods(exchanges: string[]) {
             const proInstance = new proContainer[exchange] ()
             api = proInstance.api
             describing = proInstance;
+            const proParent = Object.getPrototypeOf (proContainer[exchange]);
+            if (!(proContainer[exchange].prototype instanceof exchangeClass) && proParent.name !== 'Exchange') {
+                storedDetachedPro[exchange] = proParent.name;
+            }
         }
         const parent = Object.getPrototypeOf (Object.getPrototypeOf(instance)).constructor.name
         createTypescriptHeader(instance, parent);
@@ -1296,6 +1348,7 @@ async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boo
     if (shouldGenerateAll || langKeys['--ts'] || typedPort) {
         createImplicitMethodsTs ()
         await editFiles (TS_PATH + subdir, storedTypeScriptMethods, '.ts');
+        await editDetachedProFilesTs ();
         log.bright.cyan ('TypeScript implicit api methods completed!')
 
     }

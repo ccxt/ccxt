@@ -8,129 +8,732 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetPublicCurrency (params?: {}): Promise<Dict>;
-    publicGetPublicCurrencyCurrency (params?: {}): Promise<Dict>;
-    publicGetPublicSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicSymbolSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicTicker (params?: {}): Promise<Dict>;
-    publicGetPublicTickerSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicPriceRate (params?: {}): Promise<Dict>;
-    publicGetPublicPriceHistory (params?: {}): Promise<Dict>;
-    publicGetPublicPriceTicker (params?: {}): Promise<Dict>;
-    publicGetPublicPriceTickerSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicTrades (params?: {}): Promise<Dict>;
-    publicGetPublicTradesSymbol (params?: {}): Promise<List>;
-    publicGetPublicOrderbook (params?: {}): Promise<Dict>;
-    publicGetPublicOrderbookSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicCandles (params?: {}): Promise<Dict>;
-    publicGetPublicCandlesSymbol (params?: {}): Promise<List>;
-    publicGetPublicConvertedCandles (params?: {}): Promise<Dict>;
-    publicGetPublicConvertedCandlesSymbol (params?: {}): Promise<List>;
-    publicGetPublicFuturesInfo (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesInfoSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesHistoryFunding (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesHistoryFundingSymbol (params?: {}): Promise<List>;
-    publicGetPublicFuturesCandlesIndexPrice (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesCandlesIndexPriceSymbol (params?: {}): Promise<List>;
-    publicGetPublicFuturesCandlesMarkPrice (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesCandlesMarkPriceSymbol (params?: {}): Promise<List>;
-    publicGetPublicFuturesCandlesPremiumIndex (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesCandlesPremiumIndexSymbol (params?: {}): Promise<List>;
-    publicGetPublicFuturesCandlesOpenInterest (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesCandlesOpenInterestSymbol (params?: {}): Promise<List>;
-    privateGetSpotBalance (params?: {}): Promise<Dict>;
-    privateGetSpotBalanceCurrency (params?: {}): Promise<Dict>;
-    privateGetSpotOrder (params?: {}): Promise<List>;
-    privateGetSpotOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateGetSpotFee (params?: {}): Promise<List>;
-    privateGetSpotFeeSymbol (params?: {}): Promise<Dict>;
-    privateGetSpotHistoryOrder (params?: {}): Promise<List>;
-    privateGetSpotHistoryTrade (params?: {}): Promise<List>;
-    privateGetMarginAccount (params?: {}): Promise<List>;
-    privateGetMarginAccountIsolatedSymbol (params?: {}): Promise<Dict>;
-    privateGetMarginAccountCrossCurrency (params?: {}): Promise<List>;
-    privateGetMarginOrder (params?: {}): Promise<List>;
-    privateGetMarginOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateGetMarginConfig (params?: {}): Promise<Dict>;
-    privateGetMarginHistoryOrder (params?: {}): Promise<List>;
-    privateGetMarginHistoryTrade (params?: {}): Promise<List>;
-    privateGetMarginHistoryPositions (params?: {}): Promise<List>;
-    privateGetMarginHistoryClearing (params?: {}): Promise<List>;
-    privateGetMarginSettings (params?: {}): Promise<Dict>;
-    privateGetFuturesBalance (params?: {}): Promise<Dict>;
-    privateGetFuturesBalanceCurrency (params?: {}): Promise<Dict>;
-    privateGetFuturesAccount (params?: {}): Promise<List>;
-    privateGetFuturesAccountIsolatedSymbol (params?: {}): Promise<Dict>;
-    privateGetFuturesOrder (params?: {}): Promise<List>;
-    privateGetFuturesOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateGetFuturesConfig (params?: {}): Promise<Dict>;
-    privateGetFuturesFee (params?: {}): Promise<List>;
-    privateGetFuturesFeeSymbol (params?: {}): Promise<Dict>;
-    privateGetFuturesHistoryOrder (params?: {}): Promise<List>;
-    privateGetFuturesHistoryTrade (params?: {}): Promise<List>;
-    privateGetFuturesHistoryPositions (params?: {}): Promise<List>;
-    privateGetFuturesHistoryClearing (params?: {}): Promise<List>;
-    privateGetUserApiKeys (params?: {}): Promise<List>;
-    privateGetWalletBalance (params?: {}): Promise<Dict>;
-    privateGetWalletBalanceCurrency (params?: {}): Promise<Dict>;
-    privateGetWalletCryptoAddressWhiteList (params?: {}): Promise<Dict>;
-    privateGetWalletCryptoAddress (params?: {}): Promise<List>;
-    privateGetWalletCryptoAddressRecentDeposit (params?: {}): Promise<List>;
-    privateGetWalletCryptoAddressRecentWithdraw (params?: {}): Promise<List>;
-    privateGetWalletCryptoAddressCheckMine (params?: {}): Promise<Dict>;
-    privateGetWalletTransactions (params?: {}): Promise<List>;
-    privateGetWalletTransactionsTxId (params?: {}): Promise<Dict>;
-    privateGetWalletCryptoFeeEstimate (params?: {}): Promise<Dict>;
-    privateGetWalletCryptoFeeWithdrawHash (params?: {}): Promise<Dict>;
-    privateGetWalletAirdrops (params?: {}): Promise<List>;
-    privateGetWalletAmountLocks (params?: {}): Promise<List>;
-    privateGetSubAccount (params?: {}): Promise<List>;
-    privateGetSubAccountAcl (params?: {}): Promise<List>;
-    privateGetSubAccountBalanceSubAccID (params?: {}): Promise<Dict>;
-    privateGetSubAccountCryptoAddressSubAccIDCurrency (params?: {}): Promise<Dict>;
-    privatePostSpotOrder (params?: {}): Promise<Dict>;
-    privatePostSpotOrderList (params?: {}): Promise<List>;
-    privatePostMarginOrder (params?: {}): Promise<Dict>;
-    privatePostMarginOrderList (params?: {}): Promise<List>;
-    privatePostFuturesOrder (params?: {}): Promise<Dict>;
-    privatePostFuturesOrderList (params?: {}): Promise<List>;
-    privatePostWalletCryptoAddress (params?: {}): Promise<Dict>;
-    privatePostWalletCryptoWithdraw (params?: {}): Promise<Dict>;
-    privatePostWalletConvert (params?: {}): Promise<List>;
-    privatePostWalletTransfer (params?: {}): Promise<Dict>;
-    privatePostWalletInternalWithdraw (params?: {}): Promise<Dict>;
-    privatePostWalletCryptoCheckOffchainAvailable (params?: {}): Promise<Dict>;
-    privatePostWalletCryptoFeesEstimate (params?: {}): Promise<List>;
-    privatePostWalletCryptoFeeEstimateBulk (params?: {}): Promise<List>;
-    privatePostWalletAirdropsIdClaim (params?: {}): Promise<Dict>;
-    privatePostSubAccountFreeze (params?: {}): Promise<Dict>;
-    privatePostSubAccountActivate (params?: {}): Promise<Dict>;
-    privatePostSubAccountTransfer (params?: {}): Promise<Dict>;
-    privatePostSubAccountTransferSubToSuper (params?: {}): Promise<Dict>;
-    privatePostSubAccountTransferSubToSub (params?: {}): Promise<Dict>;
-    privatePostSubAccountAcl (params?: {}): Promise<List>;
-    privatePatchSpotOrderClientOrderId (params?: {}): Promise<Dict>;
-    privatePatchMarginOrderClientOrderId (params?: {}): Promise<Dict>;
-    privatePatchFuturesOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateDeleteSpotOrder (params?: {}): Promise<List>;
-    privateDeleteSpotOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateDeleteMarginPosition (params?: {}): Promise<List>;
-    privateDeleteMarginPositionIsolatedSymbol (params?: {}): Promise<Dict>;
-    privateDeleteMarginOrder (params?: {}): Promise<List>;
-    privateDeleteMarginOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateDeleteFuturesPosition (params?: {}): Promise<List>;
-    privateDeleteFuturesPositionMarginModeSymbol (params?: {}): Promise<Dict>;
-    privateDeleteFuturesOrder (params?: {}): Promise<List>;
-    privateDeleteFuturesOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateDeleteWalletCryptoWithdrawId (params?: {}): Promise<Dict>;
-    privatePutMarginAccountIsolatedSymbol (params?: {}): Promise<Dict>;
-    privatePutMarginSettingsAmm (params?: {}): Promise<Dict>;
-    privatePutMarginMarginSettingsAmr (params?: {}): Promise<Dict>;
-    privatePutFuturesAccountIsolatedSymbol (params?: {}): Promise<Dict>;
-    privatePutFuturesMarginSettingsAmr (params?: {}): Promise<Dict>;
-    privatePutWalletCryptoWithdrawId (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    publicGetPublicCurrency (params = {}): Promise<Dict> {
+        return this.request ("public/currency", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_currency (params = {}): Promise<Dict> {
+        return this.request ("public/currency", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicCurrencyCurrency (params = {}): Promise<Dict> {
+        return this.request ("public/currency/{currency}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_currency_currency (params = {}): Promise<Dict> {
+        return this.request ("public/currency/{currency}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicSymbol (params = {}): Promise<Dict> {
+        return this.request ("public/symbol", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_symbol (params = {}): Promise<Dict> {
+        return this.request ("public/symbol", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicSymbolSymbol (params = {}): Promise<Dict> {
+        return this.request ("public/symbol/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_symbol_symbol (params = {}): Promise<Dict> {
+        return this.request ("public/symbol/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicTicker (params = {}): Promise<Dict> {
+        return this.request ("public/ticker", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_ticker (params = {}): Promise<Dict> {
+        return this.request ("public/ticker", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicTickerSymbol (params = {}): Promise<Dict> {
+        return this.request ("public/ticker/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_ticker_symbol (params = {}): Promise<Dict> {
+        return this.request ("public/ticker/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicPriceRate (params = {}): Promise<Dict> {
+        return this.request ("public/price/rate", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_price_rate (params = {}): Promise<Dict> {
+        return this.request ("public/price/rate", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicPriceHistory (params = {}): Promise<Dict> {
+        return this.request ("public/price/history", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_price_history (params = {}): Promise<Dict> {
+        return this.request ("public/price/history", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicPriceTicker (params = {}): Promise<Dict> {
+        return this.request ("public/price/ticker", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_price_ticker (params = {}): Promise<Dict> {
+        return this.request ("public/price/ticker", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicPriceTickerSymbol (params = {}): Promise<Dict> {
+        return this.request ("public/price/ticker/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_price_ticker_symbol (params = {}): Promise<Dict> {
+        return this.request ("public/price/ticker/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicTrades (params = {}): Promise<Dict> {
+        return this.request ("public/trades", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_trades (params = {}): Promise<Dict> {
+        return this.request ("public/trades", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicTradesSymbol (params = {}): Promise<List> {
+        return this.request ("public/trades/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_trades_symbol (params = {}): Promise<List> {
+        return this.request ("public/trades/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicOrderbook (params = {}): Promise<Dict> {
+        return this.request ("public/orderbook", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_orderbook (params = {}): Promise<Dict> {
+        return this.request ("public/orderbook", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicOrderbookSymbol (params = {}): Promise<Dict> {
+        return this.request ("public/orderbook/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_orderbook_symbol (params = {}): Promise<Dict> {
+        return this.request ("public/orderbook/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicCandles (params = {}): Promise<Dict> {
+        return this.request ("public/candles", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_candles (params = {}): Promise<Dict> {
+        return this.request ("public/candles", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicCandlesSymbol (params = {}): Promise<List> {
+        return this.request ("public/candles/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_candles_symbol (params = {}): Promise<List> {
+        return this.request ("public/candles/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicConvertedCandles (params = {}): Promise<Dict> {
+        return this.request ("public/converted/candles", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_converted_candles (params = {}): Promise<Dict> {
+        return this.request ("public/converted/candles", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicConvertedCandlesSymbol (params = {}): Promise<List> {
+        return this.request ("public/converted/candles/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_converted_candles_symbol (params = {}): Promise<List> {
+        return this.request ("public/converted/candles/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesInfo (params = {}): Promise<Dict> {
+        return this.request ("public/futures/info", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_info (params = {}): Promise<Dict> {
+        return this.request ("public/futures/info", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesInfoSymbol (params = {}): Promise<Dict> {
+        return this.request ("public/futures/info/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_info_symbol (params = {}): Promise<Dict> {
+        return this.request ("public/futures/info/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesHistoryFunding (params = {}): Promise<Dict> {
+        return this.request ("public/futures/history/funding", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_history_funding (params = {}): Promise<Dict> {
+        return this.request ("public/futures/history/funding", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesHistoryFundingSymbol (params = {}): Promise<List> {
+        return this.request ("public/futures/history/funding/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_history_funding_symbol (params = {}): Promise<List> {
+        return this.request ("public/futures/history/funding/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesCandlesIndexPrice (params = {}): Promise<Dict> {
+        return this.request ("public/futures/candles/index_price", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_candles_index_price (params = {}): Promise<Dict> {
+        return this.request ("public/futures/candles/index_price", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesCandlesIndexPriceSymbol (params = {}): Promise<List> {
+        return this.request ("public/futures/candles/index_price/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_candles_index_price_symbol (params = {}): Promise<List> {
+        return this.request ("public/futures/candles/index_price/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesCandlesMarkPrice (params = {}): Promise<Dict> {
+        return this.request ("public/futures/candles/mark_price", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_candles_mark_price (params = {}): Promise<Dict> {
+        return this.request ("public/futures/candles/mark_price", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesCandlesMarkPriceSymbol (params = {}): Promise<List> {
+        return this.request ("public/futures/candles/mark_price/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_candles_mark_price_symbol (params = {}): Promise<List> {
+        return this.request ("public/futures/candles/mark_price/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesCandlesPremiumIndex (params = {}): Promise<Dict> {
+        return this.request ("public/futures/candles/premium_index", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_candles_premium_index (params = {}): Promise<Dict> {
+        return this.request ("public/futures/candles/premium_index", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesCandlesPremiumIndexSymbol (params = {}): Promise<List> {
+        return this.request ("public/futures/candles/premium_index/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_candles_premium_index_symbol (params = {}): Promise<List> {
+        return this.request ("public/futures/candles/premium_index/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesCandlesOpenInterest (params = {}): Promise<Dict> {
+        return this.request ("public/futures/candles/open_interest", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_candles_open_interest (params = {}): Promise<Dict> {
+        return this.request ("public/futures/candles/open_interest", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    publicGetPublicFuturesCandlesOpenInterestSymbol (params = {}): Promise<List> {
+        return this.request ("public/futures/candles/open_interest/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    public_get_public_futures_candles_open_interest_symbol (params = {}): Promise<List> {
+        return this.request ("public/futures/candles/open_interest/{symbol}", "public", 'GET', params, undefined, undefined, {"cost":10});
+    }
+    privateGetSpotBalance (params = {}): Promise<Dict> {
+        return this.request ("spot/balance", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_spot_balance (params = {}): Promise<Dict> {
+        return this.request ("spot/balance", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSpotBalanceCurrency (params = {}): Promise<Dict> {
+        return this.request ("spot/balance/{currency}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_spot_balance_currency (params = {}): Promise<Dict> {
+        return this.request ("spot/balance/{currency}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSpotOrder (params = {}): Promise<List> {
+        return this.request ("spot/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_spot_order (params = {}): Promise<List> {
+        return this.request ("spot/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetSpotOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ("spot/order/{client_order_id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_spot_order_client_order_id (params = {}): Promise<Dict> {
+        return this.request ("spot/order/{client_order_id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetSpotFee (params = {}): Promise<List> {
+        return this.request ("spot/fee", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_spot_fee (params = {}): Promise<List> {
+        return this.request ("spot/fee", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSpotFeeSymbol (params = {}): Promise<Dict> {
+        return this.request ("spot/fee/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_spot_fee_symbol (params = {}): Promise<Dict> {
+        return this.request ("spot/fee/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSpotHistoryOrder (params = {}): Promise<List> {
+        return this.request ("spot/history/order", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_spot_history_order (params = {}): Promise<List> {
+        return this.request ("spot/history/order", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSpotHistoryTrade (params = {}): Promise<List> {
+        return this.request ("spot/history/trade", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_spot_history_trade (params = {}): Promise<List> {
+        return this.request ("spot/history/trade", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetMarginAccount (params = {}): Promise<List> {
+        return this.request ("margin/account", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_margin_account (params = {}): Promise<List> {
+        return this.request ("margin/account", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetMarginAccountIsolatedSymbol (params = {}): Promise<Dict> {
+        return this.request ("margin/account/isolated/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_margin_account_isolated_symbol (params = {}): Promise<Dict> {
+        return this.request ("margin/account/isolated/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetMarginAccountCrossCurrency (params = {}): Promise<List> {
+        return this.request ("margin/account/cross/{currency}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_margin_account_cross_currency (params = {}): Promise<List> {
+        return this.request ("margin/account/cross/{currency}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetMarginOrder (params = {}): Promise<List> {
+        return this.request ("margin/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_margin_order (params = {}): Promise<List> {
+        return this.request ("margin/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetMarginOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ("margin/order/{client_order_id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_margin_order_client_order_id (params = {}): Promise<Dict> {
+        return this.request ("margin/order/{client_order_id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetMarginConfig (params = {}): Promise<Dict> {
+        return this.request ("margin/config", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_margin_config (params = {}): Promise<Dict> {
+        return this.request ("margin/config", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetMarginHistoryOrder (params = {}): Promise<List> {
+        return this.request ("margin/history/order", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_margin_history_order (params = {}): Promise<List> {
+        return this.request ("margin/history/order", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetMarginHistoryTrade (params = {}): Promise<List> {
+        return this.request ("margin/history/trade", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_margin_history_trade (params = {}): Promise<List> {
+        return this.request ("margin/history/trade", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetMarginHistoryPositions (params = {}): Promise<List> {
+        return this.request ("margin/history/positions", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_margin_history_positions (params = {}): Promise<List> {
+        return this.request ("margin/history/positions", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetMarginHistoryClearing (params = {}): Promise<List> {
+        return this.request ("margin/history/clearing", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_margin_history_clearing (params = {}): Promise<List> {
+        return this.request ("margin/history/clearing", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetMarginSettings (params = {}): Promise<Dict> {
+        return this.request ("margin-settings", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_margin_settings (params = {}): Promise<Dict> {
+        return this.request ("margin-settings", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetFuturesBalance (params = {}): Promise<Dict> {
+        return this.request ("futures/balance", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_futures_balance (params = {}): Promise<Dict> {
+        return this.request ("futures/balance", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetFuturesBalanceCurrency (params = {}): Promise<Dict> {
+        return this.request ("futures/balance/{currency}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_futures_balance_currency (params = {}): Promise<Dict> {
+        return this.request ("futures/balance/{currency}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetFuturesAccount (params = {}): Promise<List> {
+        return this.request ("futures/account", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_futures_account (params = {}): Promise<List> {
+        return this.request ("futures/account", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetFuturesAccountIsolatedSymbol (params = {}): Promise<Dict> {
+        return this.request ("futures/account/isolated/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_futures_account_isolated_symbol (params = {}): Promise<Dict> {
+        return this.request ("futures/account/isolated/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetFuturesOrder (params = {}): Promise<List> {
+        return this.request ("futures/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_futures_order (params = {}): Promise<List> {
+        return this.request ("futures/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetFuturesOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ("futures/order/{client_order_id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_futures_order_client_order_id (params = {}): Promise<Dict> {
+        return this.request ("futures/order/{client_order_id}", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetFuturesConfig (params = {}): Promise<Dict> {
+        return this.request ("futures/config", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_futures_config (params = {}): Promise<Dict> {
+        return this.request ("futures/config", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetFuturesFee (params = {}): Promise<List> {
+        return this.request ("futures/fee", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_futures_fee (params = {}): Promise<List> {
+        return this.request ("futures/fee", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetFuturesFeeSymbol (params = {}): Promise<Dict> {
+        return this.request ("futures/fee/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_futures_fee_symbol (params = {}): Promise<Dict> {
+        return this.request ("futures/fee/{symbol}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetFuturesHistoryOrder (params = {}): Promise<List> {
+        return this.request ("futures/history/order", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_futures_history_order (params = {}): Promise<List> {
+        return this.request ("futures/history/order", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetFuturesHistoryTrade (params = {}): Promise<List> {
+        return this.request ("futures/history/trade", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_futures_history_trade (params = {}): Promise<List> {
+        return this.request ("futures/history/trade", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetFuturesHistoryPositions (params = {}): Promise<List> {
+        return this.request ("futures/history/positions", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_futures_history_positions (params = {}): Promise<List> {
+        return this.request ("futures/history/positions", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetFuturesHistoryClearing (params = {}): Promise<List> {
+        return this.request ("futures/history/clearing", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_futures_history_clearing (params = {}): Promise<List> {
+        return this.request ("futures/history/clearing", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetUserApiKeys (params = {}): Promise<List> {
+        return this.request ("user/api-keys", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_user_api_keys (params = {}): Promise<List> {
+        return this.request ("user/api-keys", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetWalletBalance (params = {}): Promise<Dict> {
+        return this.request ("wallet/balance", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_balance (params = {}): Promise<Dict> {
+        return this.request ("wallet/balance", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletBalanceCurrency (params = {}): Promise<Dict> {
+        return this.request ("wallet/balance/{currency}", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_balance_currency (params = {}): Promise<Dict> {
+        return this.request ("wallet/balance/{currency}", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletCryptoAddressWhiteList (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/address/white-list", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_crypto_address_white_list (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/address/white-list", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletCryptoAddress (params = {}): Promise<List> {
+        return this.request ("wallet/crypto/address", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_crypto_address (params = {}): Promise<List> {
+        return this.request ("wallet/crypto/address", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletCryptoAddressRecentDeposit (params = {}): Promise<List> {
+        return this.request ("wallet/crypto/address/recent-deposit", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_crypto_address_recent_deposit (params = {}): Promise<List> {
+        return this.request ("wallet/crypto/address/recent-deposit", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletCryptoAddressRecentWithdraw (params = {}): Promise<List> {
+        return this.request ("wallet/crypto/address/recent-withdraw", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_crypto_address_recent_withdraw (params = {}): Promise<List> {
+        return this.request ("wallet/crypto/address/recent-withdraw", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletCryptoAddressCheckMine (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/address/check-mine", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_crypto_address_check_mine (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/address/check-mine", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletTransactions (params = {}): Promise<List> {
+        return this.request ("wallet/transactions", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_transactions (params = {}): Promise<List> {
+        return this.request ("wallet/transactions", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletTransactionsTxId (params = {}): Promise<Dict> {
+        return this.request ("wallet/transactions/{tx_id}", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_transactions_tx_id (params = {}): Promise<Dict> {
+        return this.request ("wallet/transactions/{tx_id}", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletCryptoFeeEstimate (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/fee/estimate", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_crypto_fee_estimate (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/fee/estimate", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletCryptoFeeWithdrawHash (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/fee/withdraw/hash", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_crypto_fee_withdraw_hash (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/fee/withdraw/hash", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletAirdrops (params = {}): Promise<List> {
+        return this.request ("wallet/airdrops", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_airdrops (params = {}): Promise<List> {
+        return this.request ("wallet/airdrops", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetWalletAmountLocks (params = {}): Promise<List> {
+        return this.request ("wallet/amount-locks", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    private_get_wallet_amount_locks (params = {}): Promise<List> {
+        return this.request ("wallet/amount-locks", "private", 'GET', params, undefined, undefined, {"cost":30});
+    }
+    privateGetSubAccount (params = {}): Promise<List> {
+        return this.request ("sub-account", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_sub_account (params = {}): Promise<List> {
+        return this.request ("sub-account", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSubAccountAcl (params = {}): Promise<List> {
+        return this.request ("sub-account/acl", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_sub_account_acl (params = {}): Promise<List> {
+        return this.request ("sub-account/acl", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSubAccountBalanceSubAccID (params = {}): Promise<Dict> {
+        return this.request ("sub-account/balance/{subAccID}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_sub_account_balance_subaccid (params = {}): Promise<Dict> {
+        return this.request ("sub-account/balance/{subAccID}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSubAccountCryptoAddressSubAccIDCurrency (params = {}): Promise<Dict> {
+        return this.request ("sub-account/crypto/address/{subAccID}/{currency}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_sub_account_crypto_address_subaccid_currency (params = {}): Promise<Dict> {
+        return this.request ("sub-account/crypto/address/{subAccID}/{currency}", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privatePostSpotOrder (params = {}): Promise<Dict> {
+        return this.request ("spot/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_spot_order (params = {}): Promise<Dict> {
+        return this.request ("spot/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostSpotOrderList (params = {}): Promise<List> {
+        return this.request ("spot/order/list", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_spot_order_list (params = {}): Promise<List> {
+        return this.request ("spot/order/list", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostMarginOrder (params = {}): Promise<Dict> {
+        return this.request ("margin/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_margin_order (params = {}): Promise<Dict> {
+        return this.request ("margin/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostMarginOrderList (params = {}): Promise<List> {
+        return this.request ("margin/order/list", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_margin_order_list (params = {}): Promise<List> {
+        return this.request ("margin/order/list", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesOrder (params = {}): Promise<Dict> {
+        return this.request ("futures/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_order (params = {}): Promise<Dict> {
+        return this.request ("futures/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesOrderList (params = {}): Promise<List> {
+        return this.request ("futures/order/list", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_order_list (params = {}): Promise<List> {
+        return this.request ("futures/order/list", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostWalletCryptoAddress (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/address", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    private_post_wallet_crypto_address (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/address", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    privatePostWalletCryptoWithdraw (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/withdraw", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    private_post_wallet_crypto_withdraw (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/withdraw", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    privatePostWalletConvert (params = {}): Promise<List> {
+        return this.request ("wallet/convert", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    private_post_wallet_convert (params = {}): Promise<List> {
+        return this.request ("wallet/convert", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    privatePostWalletTransfer (params = {}): Promise<Dict> {
+        return this.request ("wallet/transfer", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    private_post_wallet_transfer (params = {}): Promise<Dict> {
+        return this.request ("wallet/transfer", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    privatePostWalletInternalWithdraw (params = {}): Promise<Dict> {
+        return this.request ("wallet/internal/withdraw", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    private_post_wallet_internal_withdraw (params = {}): Promise<Dict> {
+        return this.request ("wallet/internal/withdraw", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    privatePostWalletCryptoCheckOffchainAvailable (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/check-offchain-available", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    private_post_wallet_crypto_check_offchain_available (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/check-offchain-available", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    privatePostWalletCryptoFeesEstimate (params = {}): Promise<List> {
+        return this.request ("wallet/crypto/fees/estimate", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    private_post_wallet_crypto_fees_estimate (params = {}): Promise<List> {
+        return this.request ("wallet/crypto/fees/estimate", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    privatePostWalletCryptoFeeEstimateBulk (params = {}): Promise<List> {
+        return this.request ("wallet/crypto/fee/estimate/bulk", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    private_post_wallet_crypto_fee_estimate_bulk (params = {}): Promise<List> {
+        return this.request ("wallet/crypto/fee/estimate/bulk", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    privatePostWalletAirdropsIdClaim (params = {}): Promise<Dict> {
+        return this.request ("wallet/airdrops/{id}/claim", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    private_post_wallet_airdrops_id_claim (params = {}): Promise<Dict> {
+        return this.request ("wallet/airdrops/{id}/claim", "private", 'POST', params, undefined, undefined, {"cost":30});
+    }
+    privatePostSubAccountFreeze (params = {}): Promise<Dict> {
+        return this.request ("sub-account/freeze", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_sub_account_freeze (params = {}): Promise<Dict> {
+        return this.request ("sub-account/freeze", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostSubAccountActivate (params = {}): Promise<Dict> {
+        return this.request ("sub-account/activate", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_sub_account_activate (params = {}): Promise<Dict> {
+        return this.request ("sub-account/activate", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostSubAccountTransfer (params = {}): Promise<Dict> {
+        return this.request ("sub-account/transfer", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_sub_account_transfer (params = {}): Promise<Dict> {
+        return this.request ("sub-account/transfer", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostSubAccountTransferSubToSuper (params = {}): Promise<Dict> {
+        return this.request ("sub-account/transfer/sub-to-super", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_sub_account_transfer_sub_to_super (params = {}): Promise<Dict> {
+        return this.request ("sub-account/transfer/sub-to-super", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostSubAccountTransferSubToSub (params = {}): Promise<Dict> {
+        return this.request ("sub-account/transfer/sub-to-sub", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_sub_account_transfer_sub_to_sub (params = {}): Promise<Dict> {
+        return this.request ("sub-account/transfer/sub-to-sub", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostSubAccountAcl (params = {}): Promise<List> {
+        return this.request ("sub-account/acl", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_sub_account_acl (params = {}): Promise<List> {
+        return this.request ("sub-account/acl", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePatchSpotOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ("spot/order/{client_order_id}", "private", 'PATCH', params, undefined, undefined, {"cost":1});
+    }
+    private_patch_spot_order_client_order_id (params = {}): Promise<Dict> {
+        return this.request ("spot/order/{client_order_id}", "private", 'PATCH', params, undefined, undefined, {"cost":1});
+    }
+    privatePatchMarginOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ("margin/order/{client_order_id}", "private", 'PATCH', params, undefined, undefined, {"cost":1});
+    }
+    private_patch_margin_order_client_order_id (params = {}): Promise<Dict> {
+        return this.request ("margin/order/{client_order_id}", "private", 'PATCH', params, undefined, undefined, {"cost":1});
+    }
+    privatePatchFuturesOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ("futures/order/{client_order_id}", "private", 'PATCH', params, undefined, undefined, {"cost":1});
+    }
+    private_patch_futures_order_client_order_id (params = {}): Promise<Dict> {
+        return this.request ("futures/order/{client_order_id}", "private", 'PATCH', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteSpotOrder (params = {}): Promise<List> {
+        return this.request ("spot/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_spot_order (params = {}): Promise<List> {
+        return this.request ("spot/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteSpotOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ("spot/order/{client_order_id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_spot_order_client_order_id (params = {}): Promise<Dict> {
+        return this.request ("spot/order/{client_order_id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteMarginPosition (params = {}): Promise<List> {
+        return this.request ("margin/position", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_margin_position (params = {}): Promise<List> {
+        return this.request ("margin/position", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteMarginPositionIsolatedSymbol (params = {}): Promise<Dict> {
+        return this.request ("margin/position/isolated/{symbol}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_margin_position_isolated_symbol (params = {}): Promise<Dict> {
+        return this.request ("margin/position/isolated/{symbol}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteMarginOrder (params = {}): Promise<List> {
+        return this.request ("margin/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_margin_order (params = {}): Promise<List> {
+        return this.request ("margin/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteMarginOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ("margin/order/{client_order_id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_margin_order_client_order_id (params = {}): Promise<Dict> {
+        return this.request ("margin/order/{client_order_id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteFuturesPosition (params = {}): Promise<List> {
+        return this.request ("futures/position", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_futures_position (params = {}): Promise<List> {
+        return this.request ("futures/position", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteFuturesPositionMarginModeSymbol (params = {}): Promise<Dict> {
+        return this.request ("futures/position/{margin_mode}/{symbol}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_futures_position_margin_mode_symbol (params = {}): Promise<Dict> {
+        return this.request ("futures/position/{margin_mode}/{symbol}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteFuturesOrder (params = {}): Promise<List> {
+        return this.request ("futures/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_futures_order (params = {}): Promise<List> {
+        return this.request ("futures/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteFuturesOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ("futures/order/{client_order_id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_futures_order_client_order_id (params = {}): Promise<Dict> {
+        return this.request ("futures/order/{client_order_id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteWalletCryptoWithdrawId (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/withdraw/{id}", "private", 'DELETE', params, undefined, undefined, {"cost":30});
+    }
+    private_delete_wallet_crypto_withdraw_id (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/withdraw/{id}", "private", 'DELETE', params, undefined, undefined, {"cost":30});
+    }
+    privatePutMarginAccountIsolatedSymbol (params = {}): Promise<Dict> {
+        return this.request ("margin/account/isolated/{symbol}", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    private_put_margin_account_isolated_symbol (params = {}): Promise<Dict> {
+        return this.request ("margin/account/isolated/{symbol}", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privatePutMarginSettingsAmm (params = {}): Promise<Dict> {
+        return this.request ("margin-settings/amm", "private", 'PUT', params, undefined, undefined, {"cost":15});
+    }
+    private_put_margin_settings_amm (params = {}): Promise<Dict> {
+        return this.request ("margin-settings/amm", "private", 'PUT', params, undefined, undefined, {"cost":15});
+    }
+    privatePutMarginMarginSettingsAmr (params = {}): Promise<Dict> {
+        return this.request ("margin/margin-settings/amr", "private", 'PUT', params, undefined, undefined, {"cost":15});
+    }
+    private_put_margin_margin_settings_amr (params = {}): Promise<Dict> {
+        return this.request ("margin/margin-settings/amr", "private", 'PUT', params, undefined, undefined, {"cost":15});
+    }
+    privatePutFuturesAccountIsolatedSymbol (params = {}): Promise<Dict> {
+        return this.request ("futures/account/isolated/{symbol}", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    private_put_futures_account_isolated_symbol (params = {}): Promise<Dict> {
+        return this.request ("futures/account/isolated/{symbol}", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privatePutFuturesMarginSettingsAmr (params = {}): Promise<Dict> {
+        return this.request ("futures/margin-settings/amr", "private", 'PUT', params, undefined, undefined, {"cost":15});
+    }
+    private_put_futures_margin_settings_amr (params = {}): Promise<Dict> {
+        return this.request ("futures/margin-settings/amr", "private", 'PUT', params, undefined, undefined, {"cost":15});
+    }
+    privatePutWalletCryptoWithdrawId (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/withdraw/{id}", "private", 'PUT', params, undefined, undefined, {"cost":30});
+    }
+    private_put_wallet_crypto_withdraw_id (params = {}): Promise<Dict> {
+        return this.request ("wallet/crypto/withdraw/{id}", "private", 'PUT', params, undefined, undefined, {"cost":30});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

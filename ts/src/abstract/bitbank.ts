@@ -8,37 +8,180 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetPairTicker (params?: {}): Promise<Dict>;
-    publicGetTickers (params?: {}): Promise<Dict>;
-    publicGetTickersJpy (params?: {}): Promise<Dict>;
-    publicGetPairDepth (params?: {}): Promise<Dict>;
-    publicGetPairTransactions (params?: {}): Promise<Dict>;
-    publicGetPairTransactionsYyyymmdd (params?: {}): Promise<Dict>;
-    publicGetPairCandlestickCandletypeYyyymmdd (params?: {}): Promise<Dict>;
-    publicGetPairCircuitBreakInfo (params?: {}): Promise<Dict>;
-    privateGetUserAssets (params?: {}): Promise<Dict>;
-    privateGetUserSpotOrder (params?: {}): Promise<Dict>;
-    privateGetUserSpotActiveOrders (params?: {}): Promise<Dict>;
-    privateGetUserMarginStatus (params?: {}): Promise<Dict>;
-    privateGetUserMarginPositions (params?: {}): Promise<Dict>;
-    privateGetUserSpotTradeHistory (params?: {}): Promise<Dict>;
-    privateGetUserDepositHistory (params?: {}): Promise<Dict>;
-    privateGetUserUnconfirmedDeposits (params?: {}): Promise<Dict>;
-    privateGetUserDepositOriginators (params?: {}): Promise<Dict>;
-    privateGetUserWithdrawalAccount (params?: {}): Promise<Dict>;
-    privateGetUserWithdrawalHistory (params?: {}): Promise<Dict>;
-    privateGetSpotStatus (params?: {}): Promise<Dict>;
-    privateGetSpotPairs (params?: {}): Promise<Dict>;
-    privatePostUserSpotOrder (params?: {}): Promise<Dict>;
-    privatePostUserSpotCancelOrder (params?: {}): Promise<Dict>;
-    privatePostUserSpotCancelOrders (params?: {}): Promise<Dict>;
-    privatePostUserSpotOrdersInfo (params?: {}): Promise<Dict>;
-    privatePostUserConfirmDeposits (params?: {}): Promise<Dict>;
-    privatePostUserConfirmDepositsAll (params?: {}): Promise<Dict>;
-    privatePostUserRequestWithdrawal (params?: {}): Promise<Dict>;
-    marketsGetSpotPairs (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    publicGetPairTicker (params = {}): Promise<Dict> {
+        return this.request ("{pair}/ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_pair_ticker (params = {}): Promise<Dict> {
+        return this.request ("{pair}/ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetTickers (params = {}): Promise<Dict> {
+        return this.request ("tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_tickers (params = {}): Promise<Dict> {
+        return this.request ("tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetTickersJpy (params = {}): Promise<Dict> {
+        return this.request ("tickers_jpy", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_tickers_jpy (params = {}): Promise<Dict> {
+        return this.request ("tickers_jpy", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetPairDepth (params = {}): Promise<Dict> {
+        return this.request ("{pair}/depth", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_pair_depth (params = {}): Promise<Dict> {
+        return this.request ("{pair}/depth", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetPairTransactions (params = {}): Promise<Dict> {
+        return this.request ("{pair}/transactions", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_pair_transactions (params = {}): Promise<Dict> {
+        return this.request ("{pair}/transactions", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetPairTransactionsYyyymmdd (params = {}): Promise<Dict> {
+        return this.request ("{pair}/transactions/{yyyymmdd}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_pair_transactions_yyyymmdd (params = {}): Promise<Dict> {
+        return this.request ("{pair}/transactions/{yyyymmdd}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetPairCandlestickCandletypeYyyymmdd (params = {}): Promise<Dict> {
+        return this.request ("{pair}/candlestick/{candletype}/{yyyymmdd}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_pair_candlestick_candletype_yyyymmdd (params = {}): Promise<Dict> {
+        return this.request ("{pair}/candlestick/{candletype}/{yyyymmdd}", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    publicGetPairCircuitBreakInfo (params = {}): Promise<Dict> {
+        return this.request ("{pair}/circuit_break_info", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_pair_circuit_break_info (params = {}): Promise<Dict> {
+        return this.request ("{pair}/circuit_break_info", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUserAssets (params = {}): Promise<Dict> {
+        return this.request ("user/assets", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_user_assets (params = {}): Promise<Dict> {
+        return this.request ("user/assets", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUserSpotOrder (params = {}): Promise<Dict> {
+        return this.request ("user/spot/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_user_spot_order (params = {}): Promise<Dict> {
+        return this.request ("user/spot/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUserSpotActiveOrders (params = {}): Promise<Dict> {
+        return this.request ("user/spot/active_orders", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_user_spot_active_orders (params = {}): Promise<Dict> {
+        return this.request ("user/spot/active_orders", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUserMarginStatus (params = {}): Promise<Dict> {
+        return this.request ("user/margin/status", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_user_margin_status (params = {}): Promise<Dict> {
+        return this.request ("user/margin/status", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUserMarginPositions (params = {}): Promise<Dict> {
+        return this.request ("user/margin/positions", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_user_margin_positions (params = {}): Promise<Dict> {
+        return this.request ("user/margin/positions", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUserSpotTradeHistory (params = {}): Promise<Dict> {
+        return this.request ("user/spot/trade_history", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_user_spot_trade_history (params = {}): Promise<Dict> {
+        return this.request ("user/spot/trade_history", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUserDepositHistory (params = {}): Promise<Dict> {
+        return this.request ("user/deposit_history", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_user_deposit_history (params = {}): Promise<Dict> {
+        return this.request ("user/deposit_history", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUserUnconfirmedDeposits (params = {}): Promise<Dict> {
+        return this.request ("user/unconfirmed_deposits", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_user_unconfirmed_deposits (params = {}): Promise<Dict> {
+        return this.request ("user/unconfirmed_deposits", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUserDepositOriginators (params = {}): Promise<Dict> {
+        return this.request ("user/deposit_originators", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_user_deposit_originators (params = {}): Promise<Dict> {
+        return this.request ("user/deposit_originators", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUserWithdrawalAccount (params = {}): Promise<Dict> {
+        return this.request ("user/withdrawal_account", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_user_withdrawal_account (params = {}): Promise<Dict> {
+        return this.request ("user/withdrawal_account", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetUserWithdrawalHistory (params = {}): Promise<Dict> {
+        return this.request ("user/withdrawal_history", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_user_withdrawal_history (params = {}): Promise<Dict> {
+        return this.request ("user/withdrawal_history", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetSpotStatus (params = {}): Promise<Dict> {
+        return this.request ("spot/status", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_spot_status (params = {}): Promise<Dict> {
+        return this.request ("spot/status", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetSpotPairs (params = {}): Promise<Dict> {
+        return this.request ("spot/pairs", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_spot_pairs (params = {}): Promise<Dict> {
+        return this.request ("spot/pairs", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privatePostUserSpotOrder (params = {}): Promise<Dict> {
+        return this.request ("user/spot/order", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    private_post_user_spot_order (params = {}): Promise<Dict> {
+        return this.request ("user/spot/order", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    privatePostUserSpotCancelOrder (params = {}): Promise<Dict> {
+        return this.request ("user/spot/cancel_order", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    private_post_user_spot_cancel_order (params = {}): Promise<Dict> {
+        return this.request ("user/spot/cancel_order", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    privatePostUserSpotCancelOrders (params = {}): Promise<Dict> {
+        return this.request ("user/spot/cancel_orders", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    private_post_user_spot_cancel_orders (params = {}): Promise<Dict> {
+        return this.request ("user/spot/cancel_orders", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    privatePostUserSpotOrdersInfo (params = {}): Promise<Dict> {
+        return this.request ("user/spot/orders_info", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    private_post_user_spot_orders_info (params = {}): Promise<Dict> {
+        return this.request ("user/spot/orders_info", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    privatePostUserConfirmDeposits (params = {}): Promise<Dict> {
+        return this.request ("user/confirm_deposits", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    private_post_user_confirm_deposits (params = {}): Promise<Dict> {
+        return this.request ("user/confirm_deposits", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    privatePostUserConfirmDepositsAll (params = {}): Promise<Dict> {
+        return this.request ("user/confirm_deposits_all", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    private_post_user_confirm_deposits_all (params = {}): Promise<Dict> {
+        return this.request ("user/confirm_deposits_all", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    privatePostUserRequestWithdrawal (params = {}): Promise<Dict> {
+        return this.request ("user/request_withdrawal", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    private_post_user_request_withdrawal (params = {}): Promise<Dict> {
+        return this.request ("user/request_withdrawal", "private", 'POST', params, undefined, undefined, {"cost":1.66});
+    }
+    marketsGetSpotPairs (params = {}): Promise<Dict> {
+        return this.request ("spot/pairs", "markets", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    markets_get_spot_pairs (params = {}): Promise<Dict> {
+        return this.request ("spot/pairs", "markets", 'GET', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

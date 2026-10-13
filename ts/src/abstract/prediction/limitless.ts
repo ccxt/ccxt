@@ -8,66 +8,354 @@
 import { Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
-interface Exchange {
-    limitlessPublicGetMarketsActive (params?: {}): Promise<Dict>;
-    limitlessPublicGetMarketsActiveCategoryId (params?: {}): Promise<Dict>;
-    limitlessPublicGetCategories (params?: {}): Promise<List>;
-    limitlessPublicGetMarketsAddressOrSlug (params?: {}): Promise<Dict>;
-    limitlessPublicGetMarketsCategoriesCount (params?: {}): Promise<Dict>;
-    limitlessPublicGetMarketsActiveSlugs (params?: {}): Promise<List>;
-    limitlessPublicGetMarketsSearch (params?: {}): Promise<Dict>;
-    limitlessPublicGetMarketsSlugOrderbook (params?: {}): Promise<Dict>;
-    limitlessPublicGetMarketsSlugHistoricalPrice (params?: {}): Promise<Dict>;
-    limitlessPublicGetAuthSigningMessage (params?: {}): Promise<string>;
-    limitlessPublicGetMarketsAddressOrSlugOracleCandles (params?: {}): Promise<Dict>;
-    limitlessPublicGetMarketsSlugGetFeedEvents (params?: {}): Promise<Dict>;
-    limitlessPublicGetMarketsSlugEvents (params?: {}): Promise<Dict>;
-    limitlessPublicGetMarketsTimeline (params?: {}): Promise<Dict>;
-    limitlessPublicGetMarketsSlugTimeline (params?: {}): Promise<Dict>;
-    limitlessPublicGetNavigation (params?: {}): Promise<List>;
-    limitlessPublicGetMarketPagesByPath (params?: {}): Promise<Dict>;
-    limitlessPublicGetMarketPagesIdMarkets (params?: {}): Promise<Dict>;
-    limitlessPublicGetPropertyKeys (params?: {}): Promise<List>;
-    limitlessPublicGetPropertyKeysId (params?: {}): Promise<Dict>;
-    limitlessPublicGetPropertyKeysIdOptions (params?: {}): Promise<List>;
-    limitlessPublicGetPortfolioAccountTradedVolume (params?: {}): Promise<Dict>;
-    limitlessPublicGetPortfolioAccountPositions (params?: {}): Promise<Dict>;
-    limitlessPublicGetPortfolioAccountPnlChart (params?: {}): Promise<Dict>;
-    limitlessPrivateGetAuthApiKeys (params?: {}): Promise<Dict>;
-    limitlessPrivateGetProfilesPartnerAccounts (params?: {}): Promise<Dict>;
-    limitlessPrivateGetMarketsSlugUserOrders (params?: {}): Promise<List>;
-    limitlessPrivateGetPortfolioPositions (params?: {}): Promise<Dict>;
-    limitlessPrivateGetPortfolioTrades (params?: {}): Promise<Dict>;
-    limitlessPrivateGetMarketsSlugLockedBalance (params?: {}): Promise<Dict>;
-    limitlessPrivateGetProfilesMe (params?: {}): Promise<Dict>;
-    limitlessPrivateGetProfilesAccount (params?: {}): Promise<Dict>;
-    limitlessPrivateGetPortfolioPnlChart (params?: {}): Promise<Dict>;
-    limitlessPrivateGetPortfolioHistory (params?: {}): Promise<Dict>;
-    limitlessPrivateGetPortfolioPoints (params?: {}): Promise<Dict>;
-    limitlessPrivateGetPortfolioTradingAllowance (params?: {}): Promise<Dict>;
-    limitlessPrivateGetAuthApiTokensCapabilities (params?: {}): Promise<Dict>;
-    limitlessPrivateGetAuthApiTokens (params?: {}): Promise<List>;
-    limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances (params?: {}): Promise<Dict>;
-    limitlessPrivatePostAuthLogout (params?: {}): Promise<Dict>;
-    limitlessPrivatePostAuthApiKeys (params?: {}): Promise<Dict>;
-    limitlessPrivatePostAuthLogin (params?: {}): Promise<Dict>;
-    limitlessPrivatePostOrders (params?: {}): Promise<Dict>;
-    limitlessPrivatePostOrdersCancel (params?: {}): Promise<Dict>;
-    limitlessPrivatePostOrdersCancelBatch (params?: {}): Promise<Dict>;
-    limitlessPrivatePostOrdersBatchCancel (params?: {}): Promise<Dict>;
-    limitlessPrivatePostOrdersStatusBatch (params?: {}): Promise<Dict>;
-    limitlessPrivatePostPortfolioRedeem (params?: {}): Promise<Dict>;
-    limitlessPrivatePostPortfolioWithdraw (params?: {}): Promise<Dict>;
-    limitlessPrivatePostPortfolioWithdrawalAddresses (params?: {}): Promise<Dict>;
-    limitlessPrivatePostAuthApiTokensDerive (params?: {}): Promise<Dict>;
-    limitlessPrivatePostProfilesPartnerAccounts (params?: {}): Promise<Dict>;
-    limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry (params?: {}): Promise<Dict>;
-    limitlessPrivateDeleteAuthApiKeys (params?: {}): Promise<Dict>;
-    limitlessPrivateDeleteOrdersOrderId (params?: {}): Promise<Dict>;
-    limitlessPrivateDeleteOrdersAllSlug (params?: {}): Promise<Dict>;
-    limitlessPrivateDeleteAuthApiTokensTokenId (params?: {}): Promise<Dict>;
-    limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    limitlessPublicGetMarketsActive (params = {}): Promise<Dict> {
+        return this.request ("markets/active", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_active (params = {}): Promise<Dict> {
+        return this.request ("markets/active", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsActiveCategoryId (params = {}): Promise<Dict> {
+        return this.request ("markets/active/{categoryId}", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_active_categoryid (params = {}): Promise<Dict> {
+        return this.request ("markets/active/{categoryId}", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetCategories (params = {}): Promise<List> {
+        return this.request ("categories", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_categories (params = {}): Promise<List> {
+        return this.request ("categories", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsAddressOrSlug (params = {}): Promise<Dict> {
+        return this.request ("markets/{addressOrSlug}", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_addressorslug (params = {}): Promise<Dict> {
+        return this.request ("markets/{addressOrSlug}", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsCategoriesCount (params = {}): Promise<Dict> {
+        return this.request ("markets/categories/count", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_categories_count (params = {}): Promise<Dict> {
+        return this.request ("markets/categories/count", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsActiveSlugs (params = {}): Promise<List> {
+        return this.request ("markets/active/slugs", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_active_slugs (params = {}): Promise<List> {
+        return this.request ("markets/active/slugs", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsSearch (params = {}): Promise<Dict> {
+        return this.request ("markets/search", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_search (params = {}): Promise<Dict> {
+        return this.request ("markets/search", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsSlugOrderbook (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/orderbook", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_slug_orderbook (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/orderbook", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsSlugHistoricalPrice (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/historical-price", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_slug_historical_price (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/historical-price", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetAuthSigningMessage (params = {}): Promise<string> {
+        return this.request ("auth/signing-message", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_auth_signing_message (params = {}): Promise<string> {
+        return this.request ("auth/signing-message", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsAddressOrSlugOracleCandles (params = {}): Promise<Dict> {
+        return this.request ("markets/{addressOrSlug}/oracle-candles", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_addressorslug_oracle_candles (params = {}): Promise<Dict> {
+        return this.request ("markets/{addressOrSlug}/oracle-candles", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsSlugGetFeedEvents (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/get-feed-events", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_slug_get_feed_events (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/get-feed-events", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsSlugEvents (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/events", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_slug_events (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/events", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsTimeline (params = {}): Promise<Dict> {
+        return this.request ("markets/timeline", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_timeline (params = {}): Promise<Dict> {
+        return this.request ("markets/timeline", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketsSlugTimeline (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/timeline", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_markets_slug_timeline (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/timeline", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetNavigation (params = {}): Promise<List> {
+        return this.request ("navigation", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_navigation (params = {}): Promise<List> {
+        return this.request ("navigation", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketPagesByPath (params = {}): Promise<Dict> {
+        return this.request ("market-pages/by-path", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_market_pages_by_path (params = {}): Promise<Dict> {
+        return this.request ("market-pages/by-path", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetMarketPagesIdMarkets (params = {}): Promise<Dict> {
+        return this.request ("market-pages/{id}/markets", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_market_pages_id_markets (params = {}): Promise<Dict> {
+        return this.request ("market-pages/{id}/markets", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetPropertyKeys (params = {}): Promise<List> {
+        return this.request ("property-keys", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_property_keys (params = {}): Promise<List> {
+        return this.request ("property-keys", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetPropertyKeysId (params = {}): Promise<Dict> {
+        return this.request ("property-keys/{id}", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_property_keys_id (params = {}): Promise<Dict> {
+        return this.request ("property-keys/{id}", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetPropertyKeysIdOptions (params = {}): Promise<List> {
+        return this.request ("property-keys/{id}/options", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_property_keys_id_options (params = {}): Promise<List> {
+        return this.request ("property-keys/{id}/options", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetPortfolioAccountTradedVolume (params = {}): Promise<Dict> {
+        return this.request ("portfolio/{account}/traded-volume", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_portfolio_account_traded_volume (params = {}): Promise<Dict> {
+        return this.request ("portfolio/{account}/traded-volume", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetPortfolioAccountPositions (params = {}): Promise<Dict> {
+        return this.request ("portfolio/{account}/positions", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_portfolio_account_positions (params = {}): Promise<Dict> {
+        return this.request ("portfolio/{account}/positions", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPublicGetPortfolioAccountPnlChart (params = {}): Promise<Dict> {
+        return this.request ("portfolio/{account}/pnl-chart", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_public_get_portfolio_account_pnl_chart (params = {}): Promise<Dict> {
+        return this.request ("portfolio/{account}/pnl-chart", ["limitless","public"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetAuthApiKeys (params = {}): Promise<Dict> {
+        return this.request ("auth/api-keys", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_auth_api_keys (params = {}): Promise<Dict> {
+        return this.request ("auth/api-keys", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetProfilesPartnerAccounts (params = {}): Promise<Dict> {
+        return this.request ("profiles/partner-accounts", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_profiles_partner_accounts (params = {}): Promise<Dict> {
+        return this.request ("profiles/partner-accounts", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetMarketsSlugUserOrders (params = {}): Promise<List> {
+        return this.request ("markets/{slug}/user-orders", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_markets_slug_user_orders (params = {}): Promise<List> {
+        return this.request ("markets/{slug}/user-orders", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetPortfolioPositions (params = {}): Promise<Dict> {
+        return this.request ("portfolio/positions", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_portfolio_positions (params = {}): Promise<Dict> {
+        return this.request ("portfolio/positions", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetPortfolioTrades (params = {}): Promise<Dict> {
+        return this.request ("portfolio/trades", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_portfolio_trades (params = {}): Promise<Dict> {
+        return this.request ("portfolio/trades", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetMarketsSlugLockedBalance (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/locked-balance", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_markets_slug_locked_balance (params = {}): Promise<Dict> {
+        return this.request ("markets/{slug}/locked-balance", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetProfilesMe (params = {}): Promise<Dict> {
+        return this.request ("profiles/me", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_profiles_me (params = {}): Promise<Dict> {
+        return this.request ("profiles/me", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetProfilesAccount (params = {}): Promise<Dict> {
+        return this.request ("profiles/{account}", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_profiles_account (params = {}): Promise<Dict> {
+        return this.request ("profiles/{account}", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetPortfolioPnlChart (params = {}): Promise<Dict> {
+        return this.request ("portfolio/pnl-chart", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_portfolio_pnl_chart (params = {}): Promise<Dict> {
+        return this.request ("portfolio/pnl-chart", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetPortfolioHistory (params = {}): Promise<Dict> {
+        return this.request ("portfolio/history", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_portfolio_history (params = {}): Promise<Dict> {
+        return this.request ("portfolio/history", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetPortfolioPoints (params = {}): Promise<Dict> {
+        return this.request ("portfolio/points", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_portfolio_points (params = {}): Promise<Dict> {
+        return this.request ("portfolio/points", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetPortfolioTradingAllowance (params = {}): Promise<Dict> {
+        return this.request ("portfolio/trading/allowance", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_portfolio_trading_allowance (params = {}): Promise<Dict> {
+        return this.request ("portfolio/trading/allowance", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetAuthApiTokensCapabilities (params = {}): Promise<Dict> {
+        return this.request ("auth/api-tokens/capabilities", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_auth_api_tokens_capabilities (params = {}): Promise<Dict> {
+        return this.request ("auth/api-tokens/capabilities", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetAuthApiTokens (params = {}): Promise<List> {
+        return this.request ("auth/api-tokens", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_auth_api_tokens (params = {}): Promise<List> {
+        return this.request ("auth/api-tokens", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances (params = {}): Promise<Dict> {
+        return this.request ("profiles/partner-accounts/{profileId}/allowances", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_get_profiles_partner_accounts_profileid_allowances (params = {}): Promise<Dict> {
+        return this.request ("profiles/partner-accounts/{profileId}/allowances", ["limitless","private"], 'GET', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostAuthLogout (params = {}): Promise<Dict> {
+        return this.request ("auth/logout", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_auth_logout (params = {}): Promise<Dict> {
+        return this.request ("auth/logout", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostAuthApiKeys (params = {}): Promise<Dict> {
+        return this.request ("auth/api-keys", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_auth_api_keys (params = {}): Promise<Dict> {
+        return this.request ("auth/api-keys", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostAuthLogin (params = {}): Promise<Dict> {
+        return this.request ("auth/login", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_auth_login (params = {}): Promise<Dict> {
+        return this.request ("auth/login", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostOrders (params = {}): Promise<Dict> {
+        return this.request ("orders", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_orders (params = {}): Promise<Dict> {
+        return this.request ("orders", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostOrdersCancel (params = {}): Promise<Dict> {
+        return this.request ("orders/cancel", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_orders_cancel (params = {}): Promise<Dict> {
+        return this.request ("orders/cancel", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostOrdersCancelBatch (params = {}): Promise<Dict> {
+        return this.request ("orders/cancel-batch", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_orders_cancel_batch (params = {}): Promise<Dict> {
+        return this.request ("orders/cancel-batch", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostOrdersBatchCancel (params = {}): Promise<Dict> {
+        return this.request ("orders/batch-cancel", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_orders_batch_cancel (params = {}): Promise<Dict> {
+        return this.request ("orders/batch-cancel", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostOrdersStatusBatch (params = {}): Promise<Dict> {
+        return this.request ("orders/status/batch", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_orders_status_batch (params = {}): Promise<Dict> {
+        return this.request ("orders/status/batch", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostPortfolioRedeem (params = {}): Promise<Dict> {
+        return this.request ("portfolio/redeem", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_portfolio_redeem (params = {}): Promise<Dict> {
+        return this.request ("portfolio/redeem", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostPortfolioWithdraw (params = {}): Promise<Dict> {
+        return this.request ("portfolio/withdraw", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_portfolio_withdraw (params = {}): Promise<Dict> {
+        return this.request ("portfolio/withdraw", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostPortfolioWithdrawalAddresses (params = {}): Promise<Dict> {
+        return this.request ("portfolio/withdrawal-addresses", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_portfolio_withdrawal_addresses (params = {}): Promise<Dict> {
+        return this.request ("portfolio/withdrawal-addresses", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostAuthApiTokensDerive (params = {}): Promise<Dict> {
+        return this.request ("auth/api-tokens/derive", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_auth_api_tokens_derive (params = {}): Promise<Dict> {
+        return this.request ("auth/api-tokens/derive", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostProfilesPartnerAccounts (params = {}): Promise<Dict> {
+        return this.request ("profiles/partner-accounts", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_profiles_partner_accounts (params = {}): Promise<Dict> {
+        return this.request ("profiles/partner-accounts", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry (params = {}): Promise<Dict> {
+        return this.request ("profiles/partner-accounts/{profileId}/allowances/retry", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_post_profiles_partner_accounts_profileid_allowances_retry (params = {}): Promise<Dict> {
+        return this.request ("profiles/partner-accounts/{profileId}/allowances/retry", ["limitless","private"], 'POST', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateDeleteAuthApiKeys (params = {}): Promise<Dict> {
+        return this.request ("auth/api-keys", ["limitless","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_delete_auth_api_keys (params = {}): Promise<Dict> {
+        return this.request ("auth/api-keys", ["limitless","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateDeleteOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ("orders/{order_id}", ["limitless","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_delete_orders_order_id (params = {}): Promise<Dict> {
+        return this.request ("orders/{order_id}", ["limitless","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateDeleteOrdersAllSlug (params = {}): Promise<Dict> {
+        return this.request ("orders/all/{slug}", ["limitless","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_delete_orders_all_slug (params = {}): Promise<Dict> {
+        return this.request ("orders/all/{slug}", ["limitless","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateDeleteAuthApiTokensTokenId (params = {}): Promise<Dict> {
+        return this.request ("auth/api-tokens/{tokenId}", ["limitless","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_delete_auth_api_tokens_tokenid (params = {}): Promise<Dict> {
+        return this.request ("auth/api-tokens/{tokenId}", ["limitless","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (params = {}): Promise<Dict> {
+        return this.request ("portfolio/withdrawal-addresses/{address}", ["limitless","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    limitless_private_delete_portfolio_withdrawal_addresses_address (params = {}): Promise<Dict> {
+        return this.request ("portfolio/withdrawal-addresses/{address}", ["limitless","private"], 'DELETE', params, undefined, undefined, {"cost":1});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange

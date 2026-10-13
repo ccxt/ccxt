@@ -8,136 +8,774 @@
 import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetSpotApiV33MarketSummary (params?: {}): Promise<List>;
-    publicGetSpotApiV33Ohlcv (params?: {}): Promise<List>;
-    publicGetSpotApiV33Price (params?: {}): Promise<Dict | List>;
-    publicGetSpotApiV33Orderbook (params?: {}): Promise<Dict | List>;
-    publicGetSpotApiV33OrderbookL2 (params?: {}): Promise<Dict | List>;
-    publicGetSpotApiV33Trades (params?: {}): Promise<List>;
-    publicGetSpotApiV33Time (params?: {}): Promise<Dict>;
-    publicGetFuturesApiV23MarketSummary (params?: {}): Promise<List>;
-    publicGetFuturesApiV23Ohlcv (params?: {}): Promise<List>;
-    publicGetFuturesApiV23Price (params?: {}): Promise<Dict | List>;
-    publicGetFuturesApiV23Orderbook (params?: {}): Promise<Dict | List>;
-    publicGetFuturesApiV23OrderbookL2 (params?: {}): Promise<Dict | List>;
-    publicGetFuturesApiV23Trades (params?: {}): Promise<List>;
-    publicGetFuturesApiV23FundingHistory (params?: {}): Promise<Dict | List>;
-    publicGetFuturesApiV23MarketRiskLimit (params?: {}): Promise<Dict | List>;
-    publicGetSpotApiV32AvailableCurrencyNetworks (params?: {}): Promise<Dict | List>;
-    publicGetSpotApiV32ExchangeRate (params?: {}): Promise<Dict | List>;
-    publicGetPublicApiWalletV1CryptoNetworks (params?: {}): Promise<Dict | List>;
-    publicGetPublicApiWalletV1AssetsExchangeRate (params?: {}): Promise<Dict | List>;
-    publicGetPublicApiMarketV1Markets (params?: {}): Promise<Dict>;
-    publicGetPublicApiMarketV1ExchangeInfo (params?: {}): Promise<Dict | List>;
-    publicGetPublicApiMarketV1Orderbook (params?: {}): Promise<Dict>;
-    publicGetPublicApiMarketV1Trades (params?: {}): Promise<Dict>;
-    publicGetPublicApiMarketV1Klines (params?: {}): Promise<Dict>;
-    publicGetPublicApiMarketV1Ticker24hr (params?: {}): Promise<Dict>;
-    publicGetPublicApiMarketV1TickerPrice (params?: {}): Promise<Dict | List>;
-    publicGetPublicApiMarketV1TickerIndices (params?: {}): Promise<Dict | List>;
-    publicGetPublicApiMarketV1TickerL1 (params?: {}): Promise<Dict | List>;
-    publicGetPublicApiMarketV1RecentFundingHistory (params?: {}): Promise<Dict>;
-    publicGetPublicApiMarketV1RiskLimits (params?: {}): Promise<Dict>;
-    publicGetPublicApiWalletV1CryptoList (params?: {}): Promise<Dict | List>;
-    publicGetPublicApiOtcV1Markets (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV33Order (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV33UserOpenOrders (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV33UserTradeHistory (params?: {}): Promise<List>;
-    privateGetSpotApiV33UserFees (params?: {}): Promise<List>;
-    privateGetSpotApiV33InvestProducts (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV33InvestOrders (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV33InvestHistory (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV23Order (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV23UserOpenOrders (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV23UserTradeHistory (params?: {}): Promise<List>;
-    privateGetFuturesApiV23UserPositions (params?: {}): Promise<List>;
-    privateGetFuturesApiV23RiskLimit (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV23Leverage (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV23UserFees (params?: {}): Promise<List>;
-    privateGetFuturesApiV23PositionMode (params?: {}): Promise<List>;
-    privateGetFuturesApiV23UserMarginSetting (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV23UserWallet (params?: {}): Promise<List>;
-    privateGetFuturesApiV23UserWalletHistory (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV23UserUnifiedWalletMargin (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV23UserMargin (params?: {}): Promise<Dict | List>;
-    privateGetOtcApiV1GetMarket (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV32UserWallet (params?: {}): Promise<List>;
-    privateGetSpotApiV32UserWalletHistory (params?: {}): Promise<List>;
-    privateGetSpotApiV33UserWalletAddress (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV32AvailableCurrencies (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV32SubaccountWalletHistory (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV4TradeOrders (params?: {}): Promise<List>;
-    privateGetSpotApiV4TradeOrder (params?: {}): Promise<Dict>;
-    privateGetSpotApiV4TradeTradeHistory (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV4TradeFees (params?: {}): Promise<List>;
-    privateGetFuturesApiV3TradeOrders (params?: {}): Promise<List>;
-    privateGetFuturesApiV3TradeRiskLimit (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV3TradePositionMode (params?: {}): Promise<List>;
-    privateGetFuturesApiV3TradeLeverage (params?: {}): Promise<List>;
-    privateGetFuturesApiV3TradeTradeHistory (params?: {}): Promise<List>;
-    privateGetFuturesApiV3TradePositions (params?: {}): Promise<List>;
-    privateGetFuturesApiV3TradeMarginSetting (params?: {}): Promise<Dict | List>;
-    privateGetPublicApiWalletV1Assets (params?: {}): Promise<Dict | List>;
-    privateGetPublicApiWalletV1UserAssets (params?: {}): Promise<Dict>;
-    privateGetPublicApiWalletV1UserWalletHistory (params?: {}): Promise<Dict | List>;
-    privateGetPublicApiWalletV1UserCryptoAddress (params?: {}): Promise<Dict | List>;
-    privateGetPublicApiOtcV1Quotes (params?: {}): Promise<Dict | List>;
-    privatePostSpotApiV33Order (params?: {}): Promise<Dict | List>;
-    privatePostSpotApiV33OrderPeg (params?: {}): Promise<Dict | List>;
-    privatePostSpotApiV33OrderCancelAllAfter (params?: {}): Promise<Dict>;
-    privatePostSpotApiV33InvestDeposit (params?: {}): Promise<Dict | List>;
-    privatePostSpotApiV33InvestRenew (params?: {}): Promise<Dict | List>;
-    privatePostSpotApiV33InvestRedeem (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV23Order (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV23OrderPeg (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV23OrderCancelAllAfter (params?: {}): Promise<Dict>;
-    privatePostFuturesApiV23OrderClosePosition (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV23RiskLimit (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV23Leverage (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV23SettleIn (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV23OrderBindTpsl (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV23PositionMode (params?: {}): Promise<Dict>;
-    privatePostFuturesApiV23UserWalletTransfer (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV23SubaccountWalletTransfer (params?: {}): Promise<Dict | List>;
-    privatePostOtcApiV1Quote (params?: {}): Promise<Dict | List>;
-    privatePostOtcApiV1AcceptQuoteId (params?: {}): Promise<Dict | List>;
-    privatePostOtcApiV1RejectQuoteId (params?: {}): Promise<Dict | List>;
-    privatePostOtcApiV1QueryOrderQuoteId (params?: {}): Promise<Dict | List>;
-    privatePostSpotApiV33UserWalletAddress (params?: {}): Promise<Dict | List>;
-    privatePostSpotApiV33UserWalletWithdraw (params?: {}): Promise<Dict | List>;
-    privatePostSpotApiV32UserWalletConvert (params?: {}): Promise<Dict | List>;
-    privatePostSpotApiV33UserWalletTransfer (params?: {}): Promise<Dict | List>;
-    privatePostSpotApiV4TradeOrders (params?: {}): Promise<List>;
-    privatePostSpotApiV4TradeOrdersCancelAllAfter (params?: {}): Promise<Dict>;
-    privatePostSpotApiV4TradeOrdersAlgo (params?: {}): Promise<List>;
-    privatePostFuturesApiV3TradeOrders (params?: {}): Promise<Dict>;
-    privatePostFuturesApiV3TradeOrdersCancelAllAfter (params?: {}): Promise<Dict>;
-    privatePostFuturesApiV3TradeOrdersAlgo (params?: {}): Promise<Dict>;
-    privatePostFuturesApiV3TradeSettleIn (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV3TradeRiskLimit (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV3TradePositionsTpsl (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV3TradePositionMode (params?: {}): Promise<Dict>;
-    privatePostFuturesApiV3TradeLeverage (params?: {}): Promise<Dict>;
-    privatePostPublicApiWalletV1UserCryptoAddress (params?: {}): Promise<Dict | List>;
-    privatePostPublicApiWalletV1UserCryptoWithdraw (params?: {}): Promise<Dict | List>;
-    privatePostPublicApiWalletV1UserAssetsSendTo (params?: {}): Promise<Dict | List>;
-    privatePostPublicApiWalletV1UserAssetsConvert (params?: {}): Promise<Dict | List>;
-    privatePostPublicApiOtcV1Quotes (params?: {}): Promise<Dict | List>;
-    privatePostPublicApiOtcV1QuotesAccept (params?: {}): Promise<Dict | List>;
-    privatePutSpotApiV33Order (params?: {}): Promise<Dict | List>;
-    privatePutFuturesApiV23Order (params?: {}): Promise<Dict | List>;
-    privatePutSpotApiV4TradeOrders (params?: {}): Promise<List>;
-    privatePutFuturesApiV3TradeOrders (params?: {}): Promise<List>;
-    privateDeleteSpotApiV33Order (params?: {}): Promise<Dict | List>;
-    privateDeleteFuturesApiV23Order (params?: {}): Promise<Dict | List>;
-    privateDeleteSpotApiV33UserWalletAddress (params?: {}): Promise<Dict | List>;
-    privateDeleteSpotApiV4TradeOrders (params?: {}): Promise<List>;
-    privateDeleteSpotApiV4TradeOrdersAll (params?: {}): Promise<List>;
-    privateDeleteFuturesApiV3TradeOrders (params?: {}): Promise<List>;
-    privateDeleteFuturesApiV3TradePositions (params?: {}): Promise<Dict | List>;
-    privateDeletePublicApiWalletV1UserCryptoAddress (params?: {}): Promise<Dict | List>;
+abstract class Exchange extends _Exchange {
+    publicGetSpotApiV33MarketSummary (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.3/market_summary", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_spot_api_v3_3_market_summary (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.3/market_summary", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetSpotApiV33Ohlcv (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.3/ohlcv", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_spot_api_v3_3_ohlcv (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.3/ohlcv", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetSpotApiV33Price (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/price", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_spot_api_v3_3_price (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/price", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetSpotApiV33Orderbook (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/orderbook", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_spot_api_v3_3_orderbook (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/orderbook", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetSpotApiV33OrderbookL2 (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/orderbook/L2", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_spot_api_v3_3_orderbook_l2 (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/orderbook/L2", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetSpotApiV33Trades (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.3/trades", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_spot_api_v3_3_trades (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.3/trades", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetSpotApiV33Time (params = {}): Promise<Dict> {
+        return this.request ("spot/api/v3.3/time", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_spot_api_v3_3_time (params = {}): Promise<Dict> {
+        return this.request ("spot/api/v3.3/time", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetFuturesApiV23MarketSummary (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/market_summary", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_futures_api_v2_3_market_summary (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/market_summary", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetFuturesApiV23Ohlcv (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/ohlcv", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_futures_api_v2_3_ohlcv (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/ohlcv", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetFuturesApiV23Price (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/price", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_futures_api_v2_3_price (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/price", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetFuturesApiV23Orderbook (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/orderbook", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_futures_api_v2_3_orderbook (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/orderbook", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetFuturesApiV23OrderbookL2 (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/orderbook/L2", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_futures_api_v2_3_orderbook_l2 (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/orderbook/L2", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetFuturesApiV23Trades (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/trades", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_futures_api_v2_3_trades (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/trades", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetFuturesApiV23FundingHistory (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/funding_history", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_futures_api_v2_3_funding_history (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/funding_history", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetFuturesApiV23MarketRiskLimit (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/market/risk_limit", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    public_get_futures_api_v2_3_market_risk_limit (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/market/risk_limit", "public", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    publicGetSpotApiV32AvailableCurrencyNetworks (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.2/availableCurrencyNetworks", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    public_get_spot_api_v3_2_availablecurrencynetworks (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.2/availableCurrencyNetworks", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    publicGetSpotApiV32ExchangeRate (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.2/exchangeRate", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    public_get_spot_api_v3_2_exchangerate (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.2/exchangeRate", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    publicGetPublicApiWalletV1CryptoNetworks (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/crypto/networks", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    public_get_public_api_wallet_v1_crypto_networks (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/crypto/networks", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    publicGetPublicApiWalletV1AssetsExchangeRate (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/assets/exchangeRate", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    public_get_public_api_wallet_v1_assets_exchangerate (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/assets/exchangeRate", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    publicGetPublicApiMarketV1Markets (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/markets", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    public_get_public_api_market_v1_markets (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/markets", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    publicGetPublicApiMarketV1ExchangeInfo (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/market/v1/exchangeInfo", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    public_get_public_api_market_v1_exchangeinfo (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/market/v1/exchangeInfo", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    publicGetPublicApiMarketV1Orderbook (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/orderbook", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    public_get_public_api_market_v1_orderbook (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/orderbook", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    publicGetPublicApiMarketV1Trades (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/trades", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    public_get_public_api_market_v1_trades (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/trades", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    publicGetPublicApiMarketV1Klines (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/klines", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    public_get_public_api_market_v1_klines (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/klines", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    publicGetPublicApiMarketV1Ticker24hr (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/ticker/24hr", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    public_get_public_api_market_v1_ticker_24hr (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/ticker/24hr", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    publicGetPublicApiMarketV1TickerPrice (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/market/v1/ticker/price", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    public_get_public_api_market_v1_ticker_price (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/market/v1/ticker/price", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    publicGetPublicApiMarketV1TickerIndices (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/market/v1/ticker/indices", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    public_get_public_api_market_v1_ticker_indices (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/market/v1/ticker/indices", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    publicGetPublicApiMarketV1TickerL1 (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/market/v1/ticker/l1", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    public_get_public_api_market_v1_ticker_l1 (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/market/v1/ticker/l1", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    publicGetPublicApiMarketV1RecentFundingHistory (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/recentFundingHistory", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    public_get_public_api_market_v1_recentfundinghistory (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/recentFundingHistory", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    publicGetPublicApiMarketV1RiskLimits (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/riskLimits", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    public_get_public_api_market_v1_risklimits (params = {}): Promise<Dict> {
+        return this.request ("public-api/market/v1/riskLimits", "public", 'GET', params, undefined, undefined, {"cost":3});
+    }
+    publicGetPublicApiWalletV1CryptoList (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/crypto/list", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    public_get_public_api_wallet_v1_crypto_list (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/crypto/list", "public", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    publicGetPublicApiOtcV1Markets (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/otc/v1/markets", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    public_get_public_api_otc_v1_markets (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/otc/v1/markets", "public", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetSpotApiV33Order (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_spot_api_v3_3_order (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetSpotApiV33UserOpenOrders (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/open_orders", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_spot_api_v3_3_user_open_orders (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/open_orders", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetSpotApiV33UserTradeHistory (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.3/user/trade_history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_spot_api_v3_3_user_trade_history (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.3/user/trade_history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetSpotApiV33UserFees (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.3/user/fees", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_spot_api_v3_3_user_fees (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.3/user/fees", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetSpotApiV33InvestProducts (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/products", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_spot_api_v3_3_invest_products (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/products", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetSpotApiV33InvestOrders (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/orders", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_spot_api_v3_3_invest_orders (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/orders", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetSpotApiV33InvestHistory (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_spot_api_v3_3_invest_history (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV23Order (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_futures_api_v2_3_order (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetFuturesApiV23UserOpenOrders (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/open_orders", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_futures_api_v2_3_user_open_orders (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/open_orders", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetFuturesApiV23UserTradeHistory (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/user/trade_history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v2_3_user_trade_history (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/user/trade_history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV23UserPositions (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/user/positions", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v2_3_user_positions (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/user/positions", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV23RiskLimit (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/risk_limit", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v2_3_risk_limit (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/risk_limit", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV23Leverage (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/leverage", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v2_3_leverage (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/leverage", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV23UserFees (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/user/fees", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v2_3_user_fees (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/user/fees", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV23PositionMode (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/position_mode", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v2_3_position_mode (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/position_mode", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV23UserMarginSetting (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/margin_setting", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v2_3_user_margin_setting (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/margin_setting", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV23UserWallet (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/user/wallet", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v2_3_user_wallet (params = {}): Promise<List> {
+        return this.request ("futures/api/v2.3/user/wallet", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV23UserWalletHistory (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/wallet_history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v2_3_user_wallet_history (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/wallet_history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV23UserUnifiedWalletMargin (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/unifiedWallet/margin", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v2_3_user_unifiedwallet_margin (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/unifiedWallet/margin", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV23UserMargin (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/margin", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v2_3_user_margin (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/margin", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetOtcApiV1GetMarket (params = {}): Promise<Dict | List> {
+        return this.request ("otc/api/v1/getMarket", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_otc_api_v1_getmarket (params = {}): Promise<Dict | List> {
+        return this.request ("otc/api/v1/getMarket", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privateGetSpotApiV32UserWallet (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.2/user/wallet", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_spot_api_v3_2_user_wallet (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.2/user/wallet", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSpotApiV32UserWalletHistory (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.2/user/wallet_history", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_spot_api_v3_2_user_wallet_history (params = {}): Promise<List> {
+        return this.request ("spot/api/v3.2/user/wallet_history", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSpotApiV33UserWalletAddress (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/wallet/address", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_spot_api_v3_3_user_wallet_address (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/wallet/address", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSpotApiV32AvailableCurrencies (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.2/availableCurrencies", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_spot_api_v3_2_availablecurrencies (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.2/availableCurrencies", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSpotApiV32SubaccountWalletHistory (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.2/subaccount/wallet/history", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_spot_api_v3_2_subaccount_wallet_history (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.2/subaccount/wallet/history", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetSpotApiV4TradeOrders (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_spot_api_v4_trade_orders (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetSpotApiV4TradeOrder (params = {}): Promise<Dict> {
+        return this.request ("spot/api/v4/trade/order", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_spot_api_v4_trade_order (params = {}): Promise<Dict> {
+        return this.request ("spot/api/v4/trade/order", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetSpotApiV4TradeTradeHistory (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v4/trade/trade_history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_spot_api_v4_trade_trade_history (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v4/trade/trade_history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetSpotApiV4TradeFees (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/fees", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_spot_api_v4_trade_fees (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/fees", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV3TradeOrders (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/orders", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v3_trade_orders (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/orders", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV3TradeRiskLimit (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/risk_limit", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v3_trade_risk_limit (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/risk_limit", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV3TradePositionMode (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/position_mode", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v3_trade_position_mode (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/position_mode", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV3TradeLeverage (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/leverage", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v3_trade_leverage (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/leverage", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV3TradeTradeHistory (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/trade_history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v3_trade_trade_history (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/trade_history", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV3TradePositions (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/positions", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v3_trade_positions (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/positions", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetFuturesApiV3TradeMarginSetting (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/margin_setting", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    private_get_futures_api_v3_trade_margin_setting (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/margin_setting", "private", 'GET', params, undefined, undefined, {"cost":5});
+    }
+    privateGetPublicApiWalletV1Assets (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/assets", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_public_api_wallet_v1_assets (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/assets", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetPublicApiWalletV1UserAssets (params = {}): Promise<Dict> {
+        return this.request ("public-api/wallet/v1/user/assets", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_public_api_wallet_v1_user_assets (params = {}): Promise<Dict> {
+        return this.request ("public-api/wallet/v1/user/assets", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetPublicApiWalletV1UserWalletHistory (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/walletHistory", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_public_api_wallet_v1_user_wallethistory (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/walletHistory", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetPublicApiWalletV1UserCryptoAddress (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/crypto/address", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    private_get_public_api_wallet_v1_user_crypto_address (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/crypto/address", "private", 'GET', params, undefined, undefined, {"cost":15});
+    }
+    privateGetPublicApiOtcV1Quotes (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/otc/v1/quotes", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    private_get_public_api_otc_v1_quotes (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/otc/v1/quotes", "private", 'GET', params, undefined, undefined, {"cost":1});
+    }
+    privatePostSpotApiV33Order (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_spot_api_v3_3_order (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostSpotApiV33OrderPeg (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/order/peg", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_spot_api_v3_3_order_peg (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/order/peg", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostSpotApiV33OrderCancelAllAfter (params = {}): Promise<Dict> {
+        return this.request ("spot/api/v3.3/order/cancelAllAfter", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_spot_api_v3_3_order_cancelallafter (params = {}): Promise<Dict> {
+        return this.request ("spot/api/v3.3/order/cancelAllAfter", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostSpotApiV33InvestDeposit (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/deposit", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    private_post_spot_api_v3_3_invest_deposit (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/deposit", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostSpotApiV33InvestRenew (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/renew", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    private_post_spot_api_v3_3_invest_renew (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/renew", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostSpotApiV33InvestRedeem (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/redeem", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    private_post_spot_api_v3_3_invest_redeem (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/invest/redeem", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostFuturesApiV23Order (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_api_v2_3_order (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesApiV23OrderPeg (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order/peg", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_api_v2_3_order_peg (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order/peg", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesApiV23OrderCancelAllAfter (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v2.3/order/cancelAllAfter", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_api_v2_3_order_cancelallafter (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v2.3/order/cancelAllAfter", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesApiV23OrderClosePosition (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order/close_position", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_api_v2_3_order_close_position (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order/close_position", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesApiV23RiskLimit (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/risk_limit", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    private_post_futures_api_v2_3_risk_limit (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/risk_limit", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostFuturesApiV23Leverage (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/leverage", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    private_post_futures_api_v2_3_leverage (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/leverage", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostFuturesApiV23SettleIn (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/settle_in", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    private_post_futures_api_v2_3_settle_in (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/settle_in", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostFuturesApiV23OrderBindTpsl (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order/bind/tpsl", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_api_v2_3_order_bind_tpsl (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order/bind/tpsl", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesApiV23PositionMode (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v2.3/position_mode", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    private_post_futures_api_v2_3_position_mode (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v2.3/position_mode", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostFuturesApiV23UserWalletTransfer (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/wallet/transfer", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    private_post_futures_api_v2_3_user_wallet_transfer (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/user/wallet/transfer", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostFuturesApiV23SubaccountWalletTransfer (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/subaccount/wallet/transfer", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    private_post_futures_api_v2_3_subaccount_wallet_transfer (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/subaccount/wallet/transfer", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostOtcApiV1Quote (params = {}): Promise<Dict | List> {
+        return this.request ("otc/api/v1/quote", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_otc_api_v1_quote (params = {}): Promise<Dict | List> {
+        return this.request ("otc/api/v1/quote", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostOtcApiV1AcceptQuoteId (params = {}): Promise<Dict | List> {
+        return this.request ("otc/api/v1/accept/{quoteId}", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_otc_api_v1_accept_quoteid (params = {}): Promise<Dict | List> {
+        return this.request ("otc/api/v1/accept/{quoteId}", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostOtcApiV1RejectQuoteId (params = {}): Promise<Dict | List> {
+        return this.request ("otc/api/v1/reject/{quoteId}", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_otc_api_v1_reject_quoteid (params = {}): Promise<Dict | List> {
+        return this.request ("otc/api/v1/reject/{quoteId}", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostOtcApiV1QueryOrderQuoteId (params = {}): Promise<Dict | List> {
+        return this.request ("otc/api/v1/queryOrder/{quoteId}", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_otc_api_v1_queryorder_quoteid (params = {}): Promise<Dict | List> {
+        return this.request ("otc/api/v1/queryOrder/{quoteId}", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostSpotApiV33UserWalletAddress (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/wallet/address", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_spot_api_v3_3_user_wallet_address (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/wallet/address", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostSpotApiV33UserWalletWithdraw (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/wallet/withdraw", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_spot_api_v3_3_user_wallet_withdraw (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/wallet/withdraw", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostSpotApiV32UserWalletConvert (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.2/user/wallet/convert", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_spot_api_v3_2_user_wallet_convert (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.2/user/wallet/convert", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostSpotApiV33UserWalletTransfer (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/wallet/transfer", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_spot_api_v3_3_user_wallet_transfer (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/wallet/transfer", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostSpotApiV4TradeOrders (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_spot_api_v4_trade_orders (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostSpotApiV4TradeOrdersCancelAllAfter (params = {}): Promise<Dict> {
+        return this.request ("spot/api/v4/trade/orders/cancel_all_after", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_spot_api_v4_trade_orders_cancel_all_after (params = {}): Promise<Dict> {
+        return this.request ("spot/api/v4/trade/orders/cancel_all_after", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostSpotApiV4TradeOrdersAlgo (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders/algo", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_spot_api_v4_trade_orders_algo (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders/algo", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesApiV3TradeOrders (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v3/trade/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_api_v3_trade_orders (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v3/trade/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesApiV3TradeOrdersCancelAllAfter (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v3/trade/orders/cancel_all_after", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_api_v3_trade_orders_cancel_all_after (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v3/trade/orders/cancel_all_after", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesApiV3TradeOrdersAlgo (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v3/trade/orders/algo", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_api_v3_trade_orders_algo (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v3/trade/orders/algo", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesApiV3TradeSettleIn (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/settle_in", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    private_post_futures_api_v3_trade_settle_in (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/settle_in", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostFuturesApiV3TradeRiskLimit (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/risk_limit", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    private_post_futures_api_v3_trade_risk_limit (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/risk_limit", "private", 'POST', params, undefined, undefined, {"cost":5});
+    }
+    privatePostFuturesApiV3TradePositionsTpsl (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/positions/tpsl", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_api_v3_trade_positions_tpsl (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/positions/tpsl", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesApiV3TradePositionMode (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v3/trade/position_mode", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_api_v3_trade_position_mode (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v3/trade/position_mode", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostFuturesApiV3TradeLeverage (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v3/trade/leverage", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_futures_api_v3_trade_leverage (params = {}): Promise<Dict> {
+        return this.request ("futures/api/v3/trade/leverage", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostPublicApiWalletV1UserCryptoAddress (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/crypto/address", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_public_api_wallet_v1_user_crypto_address (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/crypto/address", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostPublicApiWalletV1UserCryptoWithdraw (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/crypto/withdraw", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_public_api_wallet_v1_user_crypto_withdraw (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/crypto/withdraw", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostPublicApiWalletV1UserAssetsSendTo (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/assets/sendTo", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_public_api_wallet_v1_user_assets_sendto (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/assets/sendTo", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostPublicApiWalletV1UserAssetsConvert (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/assets/convert", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    private_post_public_api_wallet_v1_user_assets_convert (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/assets/convert", "private", 'POST', params, undefined, undefined, {"cost":15});
+    }
+    privatePostPublicApiOtcV1Quotes (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/otc/v1/quotes", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_public_api_otc_v1_quotes (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/otc/v1/quotes", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePostPublicApiOtcV1QuotesAccept (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/otc/v1/quotes/accept", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    private_post_public_api_otc_v1_quotes_accept (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/otc/v1/quotes/accept", "private", 'POST', params, undefined, undefined, {"cost":1});
+    }
+    privatePutSpotApiV33Order (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/order", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    private_put_spot_api_v3_3_order (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/order", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privatePutFuturesApiV23Order (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    private_put_futures_api_v2_3_order (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privatePutSpotApiV4TradeOrders (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    private_put_spot_api_v4_trade_orders (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privatePutFuturesApiV3TradeOrders (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/orders", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    private_put_futures_api_v3_trade_orders (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/orders", "private", 'PUT', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteSpotApiV33Order (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_spot_api_v3_3_order (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteFuturesApiV23Order (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_futures_api_v2_3_order (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v2.3/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteSpotApiV33UserWalletAddress (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/wallet/address", "private", 'DELETE', params, undefined, undefined, {"cost":15});
+    }
+    private_delete_spot_api_v3_3_user_wallet_address (params = {}): Promise<Dict | List> {
+        return this.request ("spot/api/v3.3/user/wallet/address", "private", 'DELETE', params, undefined, undefined, {"cost":15});
+    }
+    privateDeleteSpotApiV4TradeOrders (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_spot_api_v4_trade_orders (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteSpotApiV4TradeOrdersAll (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders/all", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_spot_api_v4_trade_orders_all (params = {}): Promise<List> {
+        return this.request ("spot/api/v4/trade/orders/all", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteFuturesApiV3TradeOrders (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/orders", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_futures_api_v3_trade_orders (params = {}): Promise<List> {
+        return this.request ("futures/api/v3/trade/orders", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeleteFuturesApiV3TradePositions (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/positions", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    private_delete_futures_api_v3_trade_positions (params = {}): Promise<Dict | List> {
+        return this.request ("futures/api/v3/trade/positions", "private", 'DELETE', params, undefined, undefined, {"cost":1});
+    }
+    privateDeletePublicApiWalletV1UserCryptoAddress (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/crypto/address", "private", 'DELETE', params, undefined, undefined, {"cost":15});
+    }
+    private_delete_public_api_wallet_v1_user_crypto_address (params = {}): Promise<Dict | List> {
+        return this.request ("public-api/wallet/v1/user/crypto/address", "private", 'DELETE', params, undefined, undefined, {"cost":15});
+    }
 }
-abstract class Exchange extends _Exchange {}
-
 export default Exchange
