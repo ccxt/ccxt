@@ -1993,7 +1993,7 @@ func (this *Lbank) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...an
 	//    }
 	//
 	var balanceResponse any = func() any {
-		if response == nil {
+		if IsEqual(response, nil) {
 			return map[string]any{}
 		}
 		return response

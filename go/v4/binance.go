@@ -6510,7 +6510,7 @@ func (this *Binance) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 		ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(firstTicker, market))}
 		return nil
 	}
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " fetchTicker() returned empty response"))
 	}
 
@@ -7843,7 +7843,7 @@ func (this *Binance) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	//     ]
 	//
 	var responseList []any = []any{}
-	if response != nil {
+	if !IsEqual(response, nil) {
 		responseList = this.ToArray(response)
 	}
 
@@ -8214,7 +8214,7 @@ func (this *Binance) editContractOrderBody(ch chan EndpointResult[map[string]any
 	//         "updateTime": 1684300587845
 	//     }
 	//
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -9490,7 +9490,7 @@ func (this *Binance) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 			response = r16.Value
 		}
 	}
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -10437,7 +10437,7 @@ func (this *Binance) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 		}
 		response = r11.Value
 	}
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -11364,7 +11364,7 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[any], id any, option
 	//         "priceProtect": false
 	//     }
 	//
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -11781,7 +11781,7 @@ func (this *Binance) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 		}
 		response = r13.Value
 	}
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -12520,7 +12520,7 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 	//         ]
 	//     }
 	var responseList any = []any{}
-	if response != nil {
+	if !IsEqual(response, nil) {
 		if IsEqual(stock, true) {
 			var rows any = this.SafeList(response, "rows", []any{})
 			responseList = rows
@@ -14299,7 +14299,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs
 		//    ]
 		//
 		var result map[string]any = map[string]any{}
-		if response == nil {
+		if IsEqual(response, nil) {
 			panic(NullResponse(this.Id + " method() returned empty response"))
 		}
 		var fees []any = this.ToArray(response)
@@ -15477,7 +15477,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan AsyncResult[any], optional
 			panic(NotSupported(this.Id + " loadLeverageBrackets() supports linear and inverse contracts only"))
 		}
 		this.Options.Store("leverageBrackets", this.CreateSafeDictionary())
-		if response == nil {
+		if IsEqual(response, nil) {
 			panic(NullResponse(this.Id + " loadLeverageBrackets() returned empty response"))
 		}
 		var entries []any = this.ToArray(response)
@@ -16263,7 +16263,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan AsyncResult[[]any], optional
 	//     ]
 	//
 	var result []any = []any{}
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " method() returned empty response"))
 	}
 	var positions []any = this.ToArray(response)
@@ -16473,7 +16473,7 @@ func (this *Binance) setLeverageBody(ch chan AsyncResult[any], leverage int64, o
 	} else {
 		panic(NotSupported(this.Id + " setLeverage() supports linear and inverse contracts only"))
 	}
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " setLeverage() returned empty response"))
 	}
 
@@ -16588,7 +16588,7 @@ func (this *Binance) setMarginModeBody(ch chan AsyncResult[any], marginMode stri
 		}(this)
 
 	}
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " setMarginMode() returned empty response"))
 	}
 
@@ -16681,7 +16681,7 @@ func (this *Binance) setPositionModeBody(ch chan AsyncResult[any], hedged any, o
 	//       "msg": "success"
 	//     }
 	//
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " setPositionMode() returned empty response"))
 	}
 
@@ -20207,7 +20207,7 @@ func (this *Binance) fetchConvertQuoteBody(ch chan AsyncResult[map[string]any], 
 	//
 	var fromCurrency map[string]any = this.Currency(fromCode)
 	var toCurrency map[string]any = this.Currency(toCode)
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " parseConversion() returned empty response"))
 	}
 
@@ -20273,7 +20273,7 @@ func (this *Binance) createConvertTradeBody(ch chan AsyncResult[map[string]any],
 	}
 	var fromCurrency map[string]any = this.Currency(fromCode)
 	var toCurrency map[string]any = this.Currency(toCode)
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " parseConversion() returned empty response"))
 	}
 

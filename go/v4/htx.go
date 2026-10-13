@@ -3619,7 +3619,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol 
 	//         }
 	//     }
 	//
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " fetchOrderBook() returned empty response"))
 	}
 	if InOp(response, "tick") {
@@ -10717,7 +10717,7 @@ func (this *Htx) setLeverageBody(ch chan AsyncResult[any], leverage int64, optio
 			panic(NotSupported(this.Id + " setLeverage() not support this market type"))
 		}
 	}
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " setLeverage() returned empty response"))
 	}
 
@@ -12789,7 +12789,7 @@ func (this *Htx) closePositionBody(ch chan AsyncResult[any], symbol string, opti
 		ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(data, market))}
 		return nil
 	}
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
