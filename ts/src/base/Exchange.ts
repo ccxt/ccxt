@@ -2835,7 +2835,7 @@ export class BaseExchange {
                 'createDepositAddress': undefined,
                 'createLimitBuyOrder': undefined,
                 'createLimitBuyOrderWs': undefined,
-                'createLimitOrder': 'emulated',
+                'createLimitOrder': undefined,
                 'createLimitOrderWs': undefined,
                 'createLimitSellOrder': undefined,
                 'createLimitSellOrderWs': undefined,
@@ -2843,8 +2843,8 @@ export class BaseExchange {
                 'createMarketBuyOrderWs': undefined,
                 'createMarketBuyOrderWithCost': undefined,
                 'createMarketBuyOrderWithCostWs': undefined,
-                'createMarketOrder': 'emulated',
-                'createMarketOrderWs': 'emulated',
+                'createMarketOrder': undefined,
+                'createMarketOrderWs': undefined,
                 'createMarketOrderWithCost': undefined,
                 'createMarketOrderWithCostWs': undefined,
                 'createMarketSellOrder': undefined,
@@ -2883,7 +2883,7 @@ export class BaseExchange {
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchADLRank': undefined,
-                'fetchBalance': 'emulated',
+                'fetchBalance': undefined,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
@@ -4115,15 +4115,11 @@ export class BaseExchange {
         if (this.has['fetchOrderBook'] !== undefined) {
             this.has['fetchL2OrderBook'] = this.has['fetchOrderBook'];
         }
-        if (this.has['createLimitOrder'] === undefined) {
-            if (this.has['createOrder'] !== undefined) {
-                this.has['createLimitOrder'] = this.has['createOrder'];
-            }
+        if (this.has['createLimitOrder'] === undefined && this.has['createOrder'] !== undefined) {
+            this.has['createLimitOrder'] = this.has['createOrder'];
         }
-        if (this.has['createMarketOrder'] === undefined) {
-            if (this.has['createOrder'] !== undefined) {
-                this.has['createMarketOrder'] = this.has['createOrder'];
-            }
+        if (this.has['createMarketOrder'] === undefined && this.has['createOrder'] !== undefined) {
+            this.has['createMarketOrder'] = this.has['createOrder'];
         }
     }
 
