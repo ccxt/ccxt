@@ -1560,6 +1560,13 @@ class testMainClass:
         set_fetch_response(exchange, None)  # reset state
         return True
 
+    def ws_request_was_sent(self, exchange, url, id):
+        sent_messages = get_ws_sent_messages(exchange, url)
+        for i in range(0, len(sent_messages)):
+            if exchange.safe_string(sent_messages[i], 'id') == id:
+                return True
+        return False
+
     async def inject_ws_messages(self, exchange, url, messages, sequential=False):
         # before every frame, wait until the watch flow is actually awaiting
         # something — a fixed head-start sleep is not enough on slow ci
@@ -1569,6 +1576,12 @@ class testMainClass:
             while not ws_client_has_pending_futures(exchange, url) and (waited < 5000):
                 await exchange.sleep(50)
                 waited = waited + 50
+            # a reply frame must not arrive before its request was sent, or it is dropped
+            frame_id = exchange.safe_string(messages[i], 'id')
+            waited_sent = 0
+            while (frame_id is not None) and not self.ws_request_was_sent(exchange, url, frame_id) and (waited_sent < 5000):
+                await exchange.sleep(50)
+                waited_sent = waited_sent + 50
             inject_ws_message(exchange, url, messages[i])
             # threaded runtimes resolve futures on another thread — wait for
             # the consumed frame to settle so the pending check above does not
