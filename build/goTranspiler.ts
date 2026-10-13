@@ -4754,7 +4754,7 @@ class NewTranspiler {
                 // free for the typed sync method emitted into the same core file
                 "asyncMethodSuffix": GO_ASYNC_SUFFIX,
                 // implicit endpoints are emitted unsuffixed by the Go api generator
-                "asyncSuffixExemptPaths": [ "/ts/src/abstract/" ],
+                "asyncSuffixExemptPaths": [ "(^|/)ts/src/abstract/" ],
                 // required OrderType/OrderSide params of the unified order methods print `string` on the
                 // base, every override and go/v4/exchange_interface.go (audit: no override nil-compares them)
                 "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
