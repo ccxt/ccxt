@@ -25,8 +25,11 @@ public partial class BaseExchange
     {
         var userConfig = (dict)userConfig2;
         this.initializeProperties(userConfig);
-        var empty = new List<string>();
-        transformApiNew(this.api);
+        // transformedApi is identical per type unless the user overrides `api`: build once, share read-only
+        if (userConfig != null && userConfig.ContainsKey("api"))
+            transformApiNew(this.api);
+        else
+            this.transformedApi = transformedApiCache.GetOrAdd(this.GetType(), _ => { transformApiNew(this.api); return this.transformedApi; });
 
         this.initHttpClient();
 
@@ -38,25 +41,22 @@ public partial class BaseExchange
         }
     }
 
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, dict> transformedApiCache = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, HttpClient> sharedHttpClients = new();
+    private static readonly Regex endpointSplitRegex = new Regex(@"[^a-zA-Z0-9]", RegexOptions.Compiled);
+
+    // one pooled HttpClient per proxy url, shared across instances (headers/timeouts are per request)
     private void initHttpClient()
     {
-        var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
-        if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
+        var proxyUrl = (this.httpProxy != null && this.httpProxy.ToString().Length > 0) ? this.httpProxy.ToString()
+            : (this.httpsProxy != null && this.httpsProxy.ToString().Length > 0) ? this.httpsProxy.ToString() : "";
+        this.httpClient = sharedHttpClients.GetOrAdd(proxyUrl, url =>
         {
-            var proxy = new WebProxy(this.httpProxy.ToString());
-            handler.Proxy = proxy;
-            this.httpClient = new HttpClient(handler);
-        }
-        else if (this.httpsProxy != null && this.httpsProxy.ToString().Length > 0)
-        {
-            var proxy = new WebProxy(this.httpsProxy.ToString());
-            handler.Proxy = proxy;
-            this.httpClient = new HttpClient(handler);
-        }
-        else
-        {
-            this.httpClient = new HttpClient(handler);
-        }
+            var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
+            if (url.Length > 0)
+                handler.Proxy = new WebProxy(url);
+            return new HttpClient(handler);
+        });
     }
 
     private void transformApiNew(Dictionary<string, object> api, List<string> paths = null)
@@ -119,9 +119,7 @@ public partial class BaseExchange
 
                     // calculate the endpoint
                     // string input = string.Join("/", paths) + "/" + key + "/" + endpoint;
-                    string pattern = @"[^a-zA-Z0-9]";
-                    Regex rgx = new Regex(pattern);
-                    var result = rgx.Split(endpoint);
+                    var result = endpointSplitRegex.Split(endpoint);
                     // create unified endpoint name
                     var listKey = new List<string>() { key };
                     var pathParts = paths.Concat(listKey).Concat(result.Where(x => x.Length > 0));
@@ -350,7 +348,6 @@ public partial class BaseExchange
             throw e;
         }
 
-        this.httpClient.DefaultRequestHeaders.Clear();
 
         var responseHeaders = response?.Headers.ToDictionary(x => x.Key, y => y.Value.First());
         this.last_response_headers = responseHeaders;

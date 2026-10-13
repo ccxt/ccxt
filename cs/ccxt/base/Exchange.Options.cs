@@ -174,11 +174,14 @@ public partial class BaseExchange
     public Func<object, object, object, object> socksProxyCallback { get; set; } = null;
     public Func<object, object, object, object> socks_proxy_callback { get; set; } = null;
 
-    // WS options
+    // WS options (ws caches are created lazily on first access; REST-only instances never pay for them)
 
-    public IDictionary<string, object> tickers = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public IDictionary<string, object> fundingRates = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public IDictionary<string, object> bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    private IDictionary<string, object> _tickers; private bool _tickersSet;
+    public IDictionary<string, object> tickers { get { if (!_tickersSet) { System.Threading.Interlocked.CompareExchange(ref _tickers, new ccxt.pro.CustomConcurrentDictionary<string, object>(), null); _tickersSet = true; } return _tickers; } set { _tickers = value; _tickersSet = true; } }
+    private IDictionary<string, object> _fundingRates; private bool _fundingRatesSet;
+    public IDictionary<string, object> fundingRates { get { if (!_fundingRatesSet) { System.Threading.Interlocked.CompareExchange(ref _fundingRates, new ccxt.pro.CustomConcurrentDictionary<string, object>(), null); _fundingRatesSet = true; } return _fundingRates; } set { _fundingRates = value; _fundingRatesSet = true; } }
+    private IDictionary<string, object> _bidsasks; private bool _bidsasksSet;
+    public IDictionary<string, object> bidsasks { get { if (!_bidsasksSet) { System.Threading.Interlocked.CompareExchange(ref _bidsasks, new ccxt.pro.CustomConcurrentDictionary<string, object>(), null); _bidsasksSet = true; } return _bidsasks; } set { _bidsasks = value; _bidsasksSet = true; } }
 
     public object transactions = new dict();
     // ws caches: always an ArrayCache subclass or null (every writer in cs/**, bitstamp's
@@ -187,17 +190,21 @@ public partial class BaseExchange
     public ccxt.pro.ArrayCache myTrades;
     public ccxt.pro.ArrayCache orders;
     public object triggerOrders;
-    public IDictionary<string, object> balance = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    private IDictionary<string, object> _balance; private bool _balanceSet;
+    public IDictionary<string, object> balance { get { if (!_balanceSet) { System.Threading.Interlocked.CompareExchange(ref _balance, new ccxt.pro.CustomConcurrentDictionary<string, object>(), null); _balanceSet = true; } return _balance; } set { _balance = value; _balanceSet = true; } }
 
     public bool newUpdates;
 
     public object positions;
     public ccxt.pro.ArrayCache liquidations;
     public object myLiquidations;
-    public IDictionary<string, object> trades = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public IDictionary<string, object> orderbooks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    private IDictionary<string, object> _trades; private bool _tradesSet;
+    public IDictionary<string, object> trades { get { if (!_tradesSet) { System.Threading.Interlocked.CompareExchange(ref _trades, new ccxt.pro.CustomConcurrentDictionary<string, object>(), null); _tradesSet = true; } return _trades; } set { _trades = value; _tradesSet = true; } }
+    private IDictionary<string, object> _orderbooks; private bool _orderbooksSet;
+    public IDictionary<string, object> orderbooks { get { if (!_orderbooksSet) { System.Threading.Interlocked.CompareExchange(ref _orderbooks, new ccxt.pro.CustomConcurrentDictionary<string, object>(), null); _orderbooksSet = true; } return _orderbooks; } set { _orderbooks = value; _orderbooksSet = true; } }
 
-    public IDictionary<string, object> ohlcvs = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    private IDictionary<string, object> _ohlcvs; private bool _ohlcvsSet;
+    public IDictionary<string, object> ohlcvs { get { if (!_ohlcvsSet) { System.Threading.Interlocked.CompareExchange(ref _ohlcvs, new ccxt.pro.CustomConcurrentDictionary<string, object>(), null); _ohlcvsSet = true; } return _ohlcvs; } set { _ohlcvs = value; _ohlcvsSet = true; } }
     public object wssProxy { get; set; } = null;
     public object wss_proxy { get; set; } = null;
 
@@ -238,7 +245,8 @@ public partial class BaseExchange
     {
         var properties = this.describe();
 
-        var extendedProperties = this.deepExtend(properties, userConfig);
+        // describe() returns a fresh tree, so a no-op deepExtend copy is skipped
+        var extendedProperties = (userConfig == null || userConfig.Count == 0) ? properties : this.deepExtend(properties, userConfig);
 
         this.version = SafeString(extendedProperties, "version", null);
 
