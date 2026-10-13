@@ -57,7 +57,6 @@ __all__ = [
 
 # -----------------------------------------------------------------------------
 
-import types
 import logging
 import base64
 import binascii
@@ -105,7 +104,6 @@ class BaseExchange(object):
     """Base exchange class"""
     # snake_case -> camelCase attribute names, shared by every instance since
     # the conversion is a pure function of the name
-    _camelcase_cache = {}
     id = 'Exchange'
     name = None
     countries = None
@@ -396,28 +394,6 @@ class BaseExchange(object):
 
         if self.safe_bool(config, 'sandbox') or self.safe_bool(config, 'testnet'):
             self.set_sandbox_mode(True)
-
-        # convert all properties from underscore notation foo_bar to camelcase notation fooBar
-        cls = type(self)
-        camelcase_cache = self._camelcase_cache
-        for name in dir(self):
-            if name[0] != '_' and name[-1] != '_' and '_' in name:
-                camelcase = camelcase_cache.get(name)
-                if camelcase is None:
-                    parts = name.split('_')
-                    # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
-                    exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE', 'adl': 'ADL'}
-                    camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
-                    camelcase_cache[name] = camelcase
-                attr = getattr(self, name)
-                if isinstance(attr, types.MethodType):
-                    setattr(cls, camelcase, getattr(cls, name))
-                else:
-                    if hasattr(self, camelcase):
-                        if attr is not None:
-                            setattr(self, camelcase, attr)
-                    else:
-                        setattr(self, camelcase, attr)
 
         if not self.session and self.synchronous:
             # requests/urllib3 connects via socket.create_connection, which resolves
