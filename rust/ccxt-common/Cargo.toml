@@ -1,18 +1,18 @@
 [package]
-name = "ccxt-core"
+name = "ccxt-common"
 version = "4.5.86"
 edition = "2021"
 description = "CCXT: CryptoCurrency eXchange Trading Library (Rust) – core engine runtime"
 license = "MIT"
 repository = "https://github.com/ccxt/ccxt"
 homepage = "https://ccxt.com"
-documentation = "https://docs.rs/ccxt-core"
+documentation = "https://docs.rs/ccxt-common"
 readme = "README.md"
 keywords = ["cryptocurrency", "exchange", "trading", "bitcoin", "ccxt"]
 categories = ["api-bindings", "asynchronous", "finance"]
 
 [lib]
-name = "ccxt_core"
+name = "ccxt_common"
 path = "src/lib.rs"
 
 [features]
