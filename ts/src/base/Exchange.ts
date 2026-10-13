@@ -629,9 +629,6 @@ export class BaseExchange {
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
         this.afterConstruct ();
-        if ((this.safeBool (userConfig, 'sandbox', false)) || (this.safeBool (userConfig, 'testnet', false))) {
-            this.setSandboxMode (true);
-        }
         // exchange specific libs
         this.loadExchangeSpecificFiles ();
     }
