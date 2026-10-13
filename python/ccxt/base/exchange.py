@@ -2128,6 +2128,11 @@ class BaseExchange(object):
     def un_camel_case(self, str):
         return re.sub('(?!^)([A-Z]+)', r'_\1', str).lower()
 
+    def resolve_method(self, name):
+        # dynamic calls pass TS camelCase names; implicit API keeps both spellings, unified methods are snake_case only
+        method = getattr(self, name, None)
+        return method if method is not None else getattr(self, self.un_camel_case(name))
+
     def fix_stringified_json_members(self, content):
         # when stringified json has members with their values also stringified, like:
         # '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
