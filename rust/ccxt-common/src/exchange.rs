@@ -724,13 +724,6 @@ impl Exchange {
             self.set_markets_inline(described_markets);
         }
         self.build_implicit_api();
-        // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        if crate::value::safe_bool(&user_config, "sandbox", Some(false)) == Some(true)
-            || crate::value::safe_bool(&user_config, "testnet", Some(false)) == Some(true)
-        {
-            <Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(self, Value::Bool(true));
-        }
     }
 
     fn apply_config(&mut self, cfg: &Value) {
