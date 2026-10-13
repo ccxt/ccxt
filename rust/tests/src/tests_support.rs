@@ -18,7 +18,7 @@ pub fn make_exchange(config: Value) -> ccxt::exchange::BaseCore {
     // the TS constructor). A bare `Exchange` has no such Core, so run it here
     // — `test.afterConstructor` and anything reading networksById / features /
     // the tokenBucket depends on it.
-    ccxt::exchange_generated::ExchangeBase::after_construct(&mut core, &[config.clone()]);
+    ccxt::exchange_generated::ExchangeBase::after_construct(&mut core, Exchange::new(Some(config.clone())));
     core
 }
 
