@@ -1,0 +1,20 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "precision": 0.00000001,
+        "info": {},
+        "networks": {},
+        "fees": {},
+        "limits": { "deposit": {}, "withdraw": {} }
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "precision": 0.000001,
+        "info": {},
+        "networks": {},
+        "fees": {},
+        "limits": { "deposit": {}, "withdraw": {} }
+    }
+}
