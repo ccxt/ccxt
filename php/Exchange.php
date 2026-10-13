@@ -1334,7 +1334,7 @@ class BaseExchange {
             }
         }
 
-        $this->after_construct();
+        $this->after_construct($options);
     }
 
     public function init_throttler() {

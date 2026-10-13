@@ -4090,7 +4090,7 @@ export class BaseExchange {
         return timestamp;
     }
 
-    afterConstruct (userConfig: Dict) {
+    afterConstruct (userConfig: Dict = {}) {
         // networks
         this.createNetworksByIdObject ();
         this.featuresGenerator ();

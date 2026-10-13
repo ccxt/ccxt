@@ -30,7 +30,7 @@ public partial class BaseExchange
 
         this.initHttpClient();
 
-        this.afterConstruct();
+        this.afterConstruct(userConfig);
     }
 
     private void initHttpClient()

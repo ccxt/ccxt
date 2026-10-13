@@ -363,7 +363,7 @@ public class BaseExchange {
         this.initializeProperties(defaultConfig);
         this.initHttpClient();
         this.httpClientProxyFingerprint = currentProxyFingerprint();
-        this.afterConstruct();
+        this.afterConstruct(defaultConfig);
         this.transformApiNew(this.api, new ArrayList<>());
     }
 
