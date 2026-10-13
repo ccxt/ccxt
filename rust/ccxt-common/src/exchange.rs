@@ -54,6 +54,20 @@ tokio::task_local! {
     static WS_DRIVEN_URLS: std::sync::Mutex<std::collections::HashSet<String>>;
 }
 
+/// The keep-alive interval of a ws client, from `describe()['streaming']`
+/// (TS `Client.keepAlive`, 30 s unless the venue sets it). `None` when the
+/// venue turns it off with `0` or `false`.
+fn ws_keep_alive(streaming: &Value) -> Option<std::time::Duration> {
+    match crate::value::get_value_k(streaming, "keepAlive") {
+        Value::Null => Some(std::time::Duration::from_millis(30_000)),
+        Value::Bool(false) => None,
+        v => match v.as_f64() {
+            Some(ms) if ms > 0.0 => Some(std::time::Duration::from_millis(ms as u64)),
+            _ => None,
+        },
+    }
+}
+
 /// Snapshot + reset the global HTTP/JSON timings. Returns
 /// `(http_nanos, json_nanos, http_calls)` and zeroes them.
 pub fn take_http_timings() -> (u64, u64, u64) {
@@ -272,6 +286,8 @@ pub struct Exchange {
     pub features:          Value,
     pub has:               Value,
     pub exceptions:        Value,
+    /// `describe()['streaming']`: ws client options, read for `keepAlive`.
+    pub streaming:         Value,
     pub urls:              Value,
     pub api:               Value,
     pub options:           Value,
@@ -551,6 +567,7 @@ impl Exchange {
             features:          Value::Null,
             has:               Value::Map(HashMap::new()),
             exceptions:        Value::Null,
+            streaming:         Value::Null,
             urls:              base_urls(),
             api:               Value::Null,
             // Base-class default `options` (Exchange.ts describe()). Kept
@@ -684,6 +701,7 @@ impl Exchange {
         assign(&mut self.id, get("id"));
         assign(&mut self.name, get("name"));
         assign(&mut self.exceptions, get("exceptions"));
+        assign(&mut self.streaming, get("streaming"));
         assign(&mut self.requiredCredentials, get("requiredCredentials"));
         assign(&mut self.precisionMode, get("precisionMode"));
         assign(&mut self.timeframes, get("timeframes"));
@@ -1247,6 +1265,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         hashes: Vec<String>,
         url: String,
     ) -> impl ::std::future::Future<Output = Value> + Send { async move {
+        let keep_alive = ws_keep_alive(&self.streaming);
         loop {
             // Run coroutines scheduled via spawn/delay, inline (they need
             // &mut self). Drain repeatedly: a coroutine may schedule another
@@ -1283,7 +1302,32 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             // periodic coroutine (binance's `keepAliveListenKey`) still fires
             // on a stream that has gone quiet. `next_message` keeps its frames
             // in the client's queue, so timing out drops nothing.
-            let next_due = crate::exchange_stubs::next_spawn_due();
+            // The exchange-level keep-alive (TS `Client.onPingInterval`). The
+            // venue builds the frame, so it is sent from here, where the venue
+            // is reachable, and the read below wakes up for it.
+            if let Some(ka) = keep_alive {
+                if client.app_ping_wait(std::time::Instant::now(), ka) == Some(std::time::Duration::ZERO) {
+                    let frame = self
+                        .dispatch_to_derived("ping", vec![crate::pro::ws_client::client_value(&url)])
+                        .await;
+                    if self.internals.dynamic_dispatch_miss.as_deref() == Some("ping") {
+                        self.internals.dynamic_dispatch_miss = None;
+                    }
+                    match frame {
+                        Some(Value::Null) => client.disable_app_ping(),
+                        Some(Value::Str(s)) => { client.send_text(s.to_string()); }
+                        Some(v) => { client.send_text(v.to_json().to_string()); }
+                        // re-entry guard: skip this round
+                        None => {}
+                    }
+                    client.app_ping_sent(std::time::Instant::now(), ka);
+                }
+            }
+            let ping_due = keep_alive.and_then(|ka| client.app_ping_wait(std::time::Instant::now(), ka));
+            let next_due = match (crate::exchange_stubs::next_spawn_due(), ping_due) {
+                (Some(a), Some(b)) => Some(a.min(b)),
+                (a, b) => a.or(b),
+            };
             let received = match next_due {
                 Some(d) => match tokio::time::timeout(d, client.next_message()).await {
                     Ok(m) => m,
@@ -2668,5 +2712,28 @@ mod http_error_tests {
         let mut core = BaseCore::new(Exchange::new(None));
         let error = fetch_error(&mut core, url).await;
         assert!(error.contains("ExchangeError"), "{error}");
+    }
+}
+
+#[cfg(test)]
+mod ws_keep_alive_tests {
+    use super::ws_keep_alive;
+    use crate::Value;
+    use std::time::Duration;
+
+    fn streaming(keep_alive: Value) -> Value {
+        let mut m = indexmap::IndexMap::new();
+        m.insert("keepAlive".to_string(), keep_alive);
+        Value::Map(m)
+    }
+
+    // TS `Client` defaults `keepAlive` to 30000 ms; a venue overrides it in
+    // `describe()['streaming']`, and `0` or `false` turns the ping off.
+    #[test]
+    fn keep_alive_from_streaming() {
+        assert_eq!(ws_keep_alive(&Value::Null), Some(Duration::from_millis(30_000)));
+        assert_eq!(ws_keep_alive(&streaming(Value::Int(18_000))), Some(Duration::from_millis(18_000)));
+        assert_eq!(ws_keep_alive(&streaming(Value::Int(0))), None);
+        assert_eq!(ws_keep_alive(&streaming(Value::Bool(false))), None);
     }
 }

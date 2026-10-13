@@ -73,6 +73,25 @@ pub struct ClientState {
     mock: Mutex<bool>,
     mock_sent: Mutex<Vec<Value>>,
     ws_test_completed: Mutex<bool>,
+    /// When the exchange's own keep-alive message is next due, see
+    /// `app_ping_wait`.
+    app_ping: Mutex<AppPing>,
+}
+
+/// Schedule of the exchange-level keep-alive: the frame the venue's `ping`
+/// method builds (TS `Client.onPingInterval` sends `this.ping (this)` every
+/// `keepAlive` ms). Some venues close a socket that sends only protocol Pings,
+/// e.g. bitget expects the text `"ping"` and disconnects after ~2 minutes
+/// without it. The frame is built by the exchange drive loop, which owns the
+/// venue, so the connection only tracks when it is due.
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum AppPing {
+    /// No watch has asked yet, the first ping is one interval after that.
+    Unarmed,
+    Due(std::time::Instant),
+    /// The venue has no `ping` method: the protocol Ping task alone keeps
+    /// the connection alive.
+    Disabled,
 }
 
 /// One single-flight slot. `settled` stays populated after the flight closes so
@@ -354,6 +373,39 @@ impl ClientState {
 
     pub fn on_pong(&self) {
         *self.last_pong_ms.lock().unwrap() = now_ms();
+    }
+
+    /// Time left until the exchange keep-alive message is due at `now`,
+    /// `Duration::ZERO` once it is, `None` when the venue has none. The first
+    /// call arms the schedule one `keep_alive` interval ahead, like the TS
+    /// `setInterval`.
+    pub fn app_ping_wait(
+        &self,
+        now: std::time::Instant,
+        keep_alive: std::time::Duration,
+    ) -> Option<std::time::Duration> {
+        let mut state = self.app_ping.lock().unwrap();
+        match *state {
+            AppPing::Disabled => None,
+            AppPing::Unarmed => {
+                *state = AppPing::Due(now + keep_alive);
+                Some(keep_alive)
+            }
+            AppPing::Due(at) => Some(at.saturating_duration_since(now)),
+        }
+    }
+
+    /// Record that the keep-alive message went out at `now`.
+    pub fn app_ping_sent(&self, now: std::time::Instant, keep_alive: std::time::Duration) {
+        let mut state = self.app_ping.lock().unwrap();
+        if *state != AppPing::Disabled {
+            *state = AppPing::Due(now + keep_alive);
+        }
+    }
+
+    /// The venue builds no keep-alive message, stop asking for one.
+    pub fn disable_app_ping(&self) {
+        *self.app_ping.lock().unwrap() = AppPing::Disabled;
     }
 
     /// Drop resolved/rejected/subscription/future state,
@@ -639,6 +691,7 @@ fn ensure_slot(url: &str) -> Arc<ClientState> {
         mock: Mutex::new(false),
         mock_sent: Mutex::new(Vec::new()),
         ws_test_completed: Mutex::new(false),
+        app_ping: Mutex::new(AppPing::Unarmed),
     });
     reg.insert(url.to_string(), state.clone());
     state
@@ -962,6 +1015,31 @@ mod tests {
             }
         });
         format!("ws://{addr}")
+    }
+
+    // The exchange keep-alive schedule mirrors the TS `setInterval`: the
+    // first ping is one interval after the first watch, the next one an
+    // interval after each send, and a venue without `ping` is never asked
+    // again.
+    #[test]
+    fn app_ping_schedule() {
+        let url = "ws://app-ping.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let keep_alive = std::time::Duration::from_secs(30);
+        let t0 = std::time::Instant::now();
+        assert_eq!(client.app_ping_wait(t0, keep_alive), Some(keep_alive));
+        let t1 = t0 + std::time::Duration::from_secs(10);
+        assert_eq!(client.app_ping_wait(t1, keep_alive), Some(std::time::Duration::from_secs(20)));
+        let t2 = t0 + std::time::Duration::from_secs(31);
+        assert_eq!(client.app_ping_wait(t2, keep_alive), Some(std::time::Duration::ZERO));
+        client.app_ping_sent(t2, keep_alive);
+        assert_eq!(client.app_ping_wait(t2, keep_alive), Some(keep_alive));
+        client.disable_app_ping();
+        assert_eq!(client.app_ping_wait(t2 + keep_alive, keep_alive), None);
+        client.app_ping_sent(t2 + keep_alive, keep_alive);
+        assert_eq!(client.app_ping_wait(t2 + keep_alive, keep_alive), None);
+        drop_client(url);
     }
 
     // The transpiled `client.reset(error)` path (`value_reset` →
