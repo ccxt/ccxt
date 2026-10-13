@@ -1,6 +1,6 @@
 [package]
 name = "ccxt-base"
-version = "4.5.85"
+version = "4.5.86"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – untyped engine (runtime, Value, REST/prediction Cores, WS infra)"
 license = "MIT"
@@ -156,7 +156,7 @@ all-prediction = ["prediction-binance", "prediction-hyperliquid", "prediction-ka
 # END GENERATED FEATURES
 
 [dependencies]
-ccxt-core = { path = "../ccxt-core", version = "4.5.85" }
+ccxt-core = { path = "../ccxt-core", version = "4.5.86" }
 indexmap = { version = "2", features = ["serde"] }
 futures = "0.3"
 

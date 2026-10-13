@@ -200,7 +200,7 @@ var sxbet = require('./src/prediction/sxbet.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.85';
+const version = '4.5.86';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
