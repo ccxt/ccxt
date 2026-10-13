@@ -190,7 +190,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt"
-version = "4.5.85"
+version = "4.5.86"
 dependencies = [
  "async-trait",
  "ccxt-base",
@@ -198,9 +198,9 @@ dependencies = [
 
 [[package]]
 name = "ccxt-base"
-version = "4.5.85"
+version = "4.5.86"
 dependencies = [
- "ccxt-core",
+ "ccxt-common",
  "futures",
  "indexmap",
  "serde_json",
@@ -208,8 +208,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "ccxt-core"
-version = "4.5.85"
+name = "ccxt-common"
+version = "4.5.86"
 dependencies = [
  "async-trait",
  "base64",
@@ -242,7 +242,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt-prediction"
-version = "4.5.85"
+version = "4.5.86"
 dependencies = [
  "async-trait",
  "ccxt-base",
@@ -250,7 +250,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt-pro"
-version = "4.5.85"
+version = "4.5.86"
 dependencies = [
  "async-trait",
  "ccxt-base",

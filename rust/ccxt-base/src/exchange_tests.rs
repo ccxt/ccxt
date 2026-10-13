@@ -1,5 +1,5 @@
 // Unit tests for Exchange runtime behaviors requiring a concrete venue (Binance).
-// Moved from ccxt-core so ccxt-core remains decoupled from generated venues,
+// Moved from ccxt-common so ccxt-common remains decoupled from generated venues,
 // while ccxt-base continues running these tests under `cargo test -p ccxt-base --features transpiled-base`.
 
 #[cfg(all(test, feature = "engine", feature = "binance"))]
