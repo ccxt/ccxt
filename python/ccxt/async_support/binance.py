@@ -13389,12 +13389,14 @@ class binance(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        symbolKey = 'pair'
         if market['linear'] is True:
-            symbolKey = 'symbol'
-        request[symbolKey] = market['id']
-        if market['inverse'] is True:
-            request['contractType'] = self.safe_string(paramsPaginate, 'contractType', 'CURRENT_QUARTER')
+            request['symbol'] = market['id']
+        elif market['inverse'] is True:
+            # dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+            request['pair'] = self.safe_string(market['info'], 'pair')
+            request['contractType'] = 'PERPETUAL' if (market['swap'] is True) else self.safe_string(market['info'], 'contractType')
+        else:
+            raise NotSupported(self.id + ' fetchOpenInterestHistory() supports linear and inverse contracts only')
         if since is not None:
             request['startTime'] = since
         until = self.safe_integer(paramsPaginate, 'until')  # unified in milliseconds
@@ -13419,6 +13421,19 @@ class binance(Exchange, ImplicitAPI):
         #          "sumOpenInterest":"75375.61700000",
         #          "sumOpenInterestValue":"3248828883.71251440",
         #          "timestamp":1642179900000
+        #      },
+        #      ...
+        #  ]
+        #
+        # inverse
+        #
+        #  [
+        #      {
+        #          "contractType":"PERPETUAL",
+        #          "sumOpenInterest":"13069401.00000000",
+        #          "sumOpenInterestValue":"15796.96988405",
+        #          "pair":"BTCUSD",
+        #          "timestamp":1791835200000
         #      },
         #      ...
         #  ]
