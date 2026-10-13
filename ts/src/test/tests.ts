@@ -2021,6 +2021,16 @@ class testMainClass {
         return true;
     }
 
+    wsRequestWasSent (exchange: any, url: string, id: string) {
+        const sentMessages = getWsSentMessages (exchange, url);
+        for (let i = 0; i < sentMessages.length; i++) {
+            if (exchange.safeString (sentMessages[i], 'id') === id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     async injectWsMessages (exchange: any, url: string, messages: List, sequential = false) {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
@@ -2030,6 +2040,13 @@ class testMainClass {
             while (!wsClientHasPendingFutures (exchange, url) && (waited < 5000)) {
                 await exchange.sleep (50);
                 waited = waited + 50;
+            }
+            // a reply frame must not arrive before its request was sent, or it is dropped
+            const frameId = exchange.safeString (messages[i], 'id');
+            let waitedSent = 0;
+            while ((frameId !== undefined) && !this.wsRequestWasSent (exchange, url, frameId) && (waitedSent < 5000)) {
+                await exchange.sleep (50);
+                waitedSent = waitedSent + 50;
             }
             injectWsMessage (exchange, url, messages[i]);
             // threaded runtimes resolve futures on another thread — wait for
