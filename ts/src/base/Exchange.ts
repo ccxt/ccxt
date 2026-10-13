@@ -213,7 +213,7 @@ const prototypeAliasPairs = (proto: object): string[] => {
             if (snake === k) {
                 continue;
             }
-            // generated abstract classes define both names on one class, so no alias is needed
+            // a class defining both names itself needs no alias
             const owner = ownerOf (proto, k);
             if ((owner !== undefined) && (owner === ownerOf (proto, snake))) {
                 continue;

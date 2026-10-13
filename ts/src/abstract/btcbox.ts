@@ -12,73 +12,37 @@ abstract class Exchange extends _Exchange {
     publicGetDepth (params = {}): Promise<Dict> {
         return this.request ("depth", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_depth (params = {}): Promise<Dict> {
-        return this.request ("depth", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetOrders (params = {}): Promise<List> {
-        return this.request ("orders", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_orders (params = {}): Promise<List> {
         return this.request ("orders", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetTicker (params = {}): Promise<Dict> {
         return this.request ("ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_ticker (params = {}): Promise<Dict> {
-        return this.request ("ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetTickers (params = {}): Promise<Dict> {
-        return this.request ("tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_tickers (params = {}): Promise<Dict> {
         return this.request ("tickers", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     privatePostBalance (params = {}): Promise<Dict> {
         return this.request ("balance", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_balance (params = {}): Promise<Dict> {
-        return this.request ("balance", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostOrderHistory (params = {}): Promise<List> {
-        return this.request ("order_history", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_order_history (params = {}): Promise<List> {
         return this.request ("order_history", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostTradeAdd (params = {}): Promise<Dict> {
         return this.request ("trade_add", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_trade_add (params = {}): Promise<Dict> {
-        return this.request ("trade_add", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostTradeCancel (params = {}): Promise<Dict> {
-        return this.request ("trade_cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_trade_cancel (params = {}): Promise<Dict> {
         return this.request ("trade_cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostTradeList (params = {}): Promise<List> {
         return this.request ("trade_list", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_trade_list (params = {}): Promise<List> {
-        return this.request ("trade_list", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostTradeView (params = {}): Promise<Dict> {
-        return this.request ("trade_view", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_trade_view (params = {}): Promise<Dict> {
         return this.request ("trade_view", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostWallet (params = {}): Promise<Dict> {
         return this.request ("wallet", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_wallet (params = {}): Promise<Dict> {
-        return this.request ("wallet", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     webApiGetAjaxCoinCoinInfo (params = {}): Promise<Dict> {
-        return this.request ("ajax/coin/coinInfo", "webApi", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    webApi_get_ajax_coin_coininfo (params = {}): Promise<Dict> {
         return this.request ("ajax/coin/coinInfo", "webApi", 'GET', params, undefined, undefined, {"cost":1});
     }
 }

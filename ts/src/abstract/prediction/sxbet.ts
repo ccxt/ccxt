@@ -12,205 +12,103 @@ abstract class Exchange extends _Exchange {
     sxbetPublicGetMetadataObv3 (params = {}): Promise<Dict> {
         return this.request ("metadata/obv3", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_public_get_metadata_obv3 (params = {}): Promise<Dict> {
-        return this.request ("metadata/obv3", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPublicGetOrderbookV3Snapshot (params = {}): Promise<Dict> {
-        return this.request ("orderbook-v3/snapshot", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_public_get_orderbook_v3_snapshot (params = {}): Promise<Dict> {
         return this.request ("orderbook-v3/snapshot", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPublicGetTradesV3Public (params = {}): Promise<Dict> {
         return this.request ("trades-v3/public", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_public_get_trades_v3_public (params = {}): Promise<Dict> {
-        return this.request ("trades-v3/public", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPublicGetMarketsActive (params = {}): Promise<Dict> {
-        return this.request ("markets/active", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_public_get_markets_active (params = {}): Promise<Dict> {
         return this.request ("markets/active", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPublicGetMarketsFind (params = {}): Promise<Dict | List> {
         return this.request ("markets/find", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_public_get_markets_find (params = {}): Promise<Dict | List> {
-        return this.request ("markets/find", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPublicGetMarketsPopular (params = {}): Promise<Dict | List> {
-        return this.request ("markets/popular", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_public_get_markets_popular (params = {}): Promise<Dict | List> {
         return this.request ("markets/popular", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPublicGetTradesConsolidated (params = {}): Promise<Dict | List> {
         return this.request ("trades/consolidated", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_public_get_trades_consolidated (params = {}): Promise<Dict | List> {
-        return this.request ("trades/consolidated", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPublicGetTradesOrders (params = {}): Promise<Dict | List> {
-        return this.request ("trades/orders", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_public_get_trades_orders (params = {}): Promise<Dict | List> {
         return this.request ("trades/orders", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPublicGetTradesPortfolioRefunds (params = {}): Promise<Dict | List> {
         return this.request ("trades/portfolio/refunds", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_public_get_trades_portfolio_refunds (params = {}): Promise<Dict | List> {
-        return this.request ("trades/portfolio/refunds", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPublicGetFixtureActive (params = {}): Promise<Dict | List> {
-        return this.request ("fixture/active", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_public_get_fixture_active (params = {}): Promise<Dict | List> {
         return this.request ("fixture/active", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPublicGetFixtureStatus (params = {}): Promise<Dict | List> {
         return this.request ("fixture/status", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_public_get_fixture_status (params = {}): Promise<Dict | List> {
-        return this.request ("fixture/status", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPublicGetSports (params = {}): Promise<Dict | List> {
-        return this.request ("sports", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_public_get_sports (params = {}): Promise<Dict | List> {
         return this.request ("sports", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPublicGetLeagues (params = {}): Promise<Dict | List> {
         return this.request ("leagues", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_public_get_leagues (params = {}): Promise<Dict | List> {
-        return this.request ("leagues", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPublicGetLeaguesActive (params = {}): Promise<Dict | List> {
-        return this.request ("leagues/active", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_public_get_leagues_active (params = {}): Promise<Dict | List> {
         return this.request ("leagues/active", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPublicGetTeams (params = {}): Promise<Dict | List> {
         return this.request ("teams", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_public_get_teams (params = {}): Promise<Dict | List> {
-        return this.request ("teams", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPublicGetLiveScores (params = {}): Promise<Dict | List> {
-        return this.request ("live-scores", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_public_get_live_scores (params = {}): Promise<Dict | List> {
         return this.request ("live-scores", ["sxbet","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPrivateGetUserRealtimeTokenV3ApiKey (params = {}): Promise<Dict> {
         return this.request ("user/realtime-token-v3/api-key", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_private_get_user_realtime_token_v3_api_key (params = {}): Promise<Dict> {
-        return this.request ("user/realtime-token-v3/api-key", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPrivateGetUserProxy (params = {}): Promise<Dict> {
-        return this.request ("user/proxy", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_private_get_user_proxy (params = {}): Promise<Dict> {
         return this.request ("user/proxy", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPrivateGetUserBalanceV3 (params = {}): Promise<Dict> {
         return this.request ("user/balance-v3", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_private_get_user_balance_v3 (params = {}): Promise<Dict> {
-        return this.request ("user/balance-v3", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPrivateGetUserTransferToProxyPending (params = {}): Promise<Dict | List> {
-        return this.request ("user/transfer-to-proxy/pending", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_private_get_user_transfer_to_proxy_pending (params = {}): Promise<Dict | List> {
         return this.request ("user/transfer-to-proxy/pending", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPrivateGetUserTransferToProxyStatus (params = {}): Promise<Dict | List> {
         return this.request ("user/transfer-to-proxy/status", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_private_get_user_transfer_to_proxy_status (params = {}): Promise<Dict | List> {
-        return this.request ("user/transfer-to-proxy/status", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPrivateGetOrdersV3 (params = {}): Promise<Dict> {
-        return this.request ("orders-v3", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_private_get_orders_v3 (params = {}): Promise<Dict> {
         return this.request ("orders-v3", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPrivateGetOrdersV3OrderId (params = {}): Promise<Dict> {
         return this.request ("orders-v3/{orderId}", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_private_get_orders_v3_orderid (params = {}): Promise<Dict> {
-        return this.request ("orders-v3/{orderId}", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPrivateGetOrdersV3OddsBest (params = {}): Promise<Dict> {
-        return this.request ("orders-v3/odds/best", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_private_get_orders_v3_odds_best (params = {}): Promise<Dict> {
         return this.request ("orders-v3/odds/best", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPrivateGetTradesV3 (params = {}): Promise<Dict> {
         return this.request ("trades-v3", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_private_get_trades_v3 (params = {}): Promise<Dict> {
-        return this.request ("trades-v3", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPrivateGetFillsV3 (params = {}): Promise<Dict> {
-        return this.request ("fills-v3", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_private_get_fills_v3 (params = {}): Promise<Dict> {
         return this.request ("fills-v3", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     sxbetPrivateGetPositionsV3 (params = {}): Promise<Dict> {
         return this.request ("positions-v3", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    sxbet_private_get_positions_v3 (params = {}): Promise<Dict> {
-        return this.request ("positions-v3", ["sxbet","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     sxbetPrivateDeleteOrdersV3 (params = {}): Promise<Dict> {
-        return this.request ("orders-v3", ["sxbet","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_private_delete_orders_v3 (params = {}): Promise<Dict> {
         return this.request ("orders-v3", ["sxbet","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
     sxbetPrivateDeleteOrdersV3Event (params = {}): Promise<Dict> {
         return this.request ("orders-v3/event", ["sxbet","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
-    sxbet_private_delete_orders_v3_event (params = {}): Promise<Dict> {
-        return this.request ("orders-v3/event", ["sxbet","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
     sxbetPrivateDeleteOrdersV3All (params = {}): Promise<Dict> {
-        return this.request ("orders-v3/all", ["sxbet","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_private_delete_orders_v3_all (params = {}): Promise<Dict> {
         return this.request ("orders-v3/all", ["sxbet","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
     sxbetPrivatePostOrdersV3 (params = {}): Promise<Dict> {
         return this.request ("orders-v3", ["sxbet","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    sxbet_private_post_orders_v3 (params = {}): Promise<Dict> {
-        return this.request ("orders-v3", ["sxbet","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     sxbetPrivatePostUserDeployProxy (params = {}): Promise<Dict | List> {
-        return this.request ("user/deploy-proxy", ["sxbet","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_private_post_user_deploy_proxy (params = {}): Promise<Dict | List> {
         return this.request ("user/deploy-proxy", ["sxbet","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     sxbetPrivatePostUserTransferToProxy (params = {}): Promise<Dict> {
         return this.request ("user/transfer-to-proxy", ["sxbet","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    sxbet_private_post_user_transfer_to_proxy (params = {}): Promise<Dict> {
-        return this.request ("user/transfer-to-proxy", ["sxbet","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     sxbetPrivatePostHeartbeatV3 (params = {}): Promise<Dict | List> {
-        return this.request ("heartbeat/v3", ["sxbet","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    sxbet_private_post_heartbeat_v3 (params = {}): Promise<Dict | List> {
         return this.request ("heartbeat/v3", ["sxbet","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
 }

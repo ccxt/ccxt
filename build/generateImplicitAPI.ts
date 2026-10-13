@@ -776,17 +776,14 @@ function createImplicitMethodsTs(){
     }
 }
 
-// the camelCase and snake_case names users call an endpoint by, spelled exactly as the
-// former runtime defineRestApiEndpoint built them (they differ from the cross-port names)
-function typescriptMethodNames (context: Dict): string[] {
+// the camelCase name users call an endpoint by; the snake_case alias is attached at runtime
+function typescriptMethodName (context: Dict): string {
     const cap = (x: string) => x.charAt (0).toUpperCase () + x.slice (1);
     const paths: string[] = context.paths;
     const lower = context.method.toLowerCase ();
     const splitPath = context.endpoint.trim ().split (/[^a-zA-Z0-9]/);
     const camel = [ paths[0] ].concat (paths.slice (1).map (cap)).join ('') + cap (lower) + cap (splitPath.map (cap).join (''));
-    const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_');
-    const underscoreSuffix = splitPath.map ((x: string) => x.trim ().toLowerCase ()).filter ((x: string) => x.length > 0).join ('_');
-    return [ camel, underscorePrefix + '_' + lower + '_' + underscoreSuffix ];
+    return camel;
 }
 
 // every endpoint name the parent's generated abstract already defines
@@ -794,22 +791,21 @@ function typescriptInheritedNames (exchange: string): Set<string> {
     const parent = storedParents[exchange];
     const names = new Set<string> ();
     for (const context of storedContext[parent] || []) {
-        for (const name of typescriptMethodNames (context)) {
-            names.add (name);
-        }
+        names.add (typescriptMethodName (context));
     }
     return names;
 }
 
-// one implicit endpoint as real methods of the abstract class, under both its names
+// one implicit endpoint as a real method of the abstract class
 function typescriptMethod (exchange: string, method: string, context: Dict, inherited: Set<string>): string {
     const returnType = typescriptReturnType (exchange, method);
     const call = `return this.request (${JSON.stringify (context.endpoint.trim ())}, ${context.tsPath}, '${context.method}', params, undefined, undefined, ${context.tsConfig});`;
-    return typescriptMethodNames (context).map ((name) => [
+    const name = typescriptMethodName (context);
+    return [
         `${IDEN}${inherited.has (name) ? 'override ' : ''}${name} (params = {}): Promise<${returnType}> {`,
         `${IDEN}${IDEN}${call}`,
         `${IDEN}}`,
-    ].join ('\n')).join ('\n')
+    ].join ('\n')
 }
 
 // -------------------------------------------------------------------------

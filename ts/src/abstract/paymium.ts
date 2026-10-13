@@ -12,151 +12,76 @@ abstract class Exchange extends _Exchange {
     publicGetCountries (params = {}): Promise<List> {
         return this.request ("countries", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_countries (params = {}): Promise<List> {
-        return this.request ("countries", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetCurrencies (params = {}): Promise<List> {
-        return this.request ("currencies", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_currencies (params = {}): Promise<List> {
         return this.request ("currencies", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetDataCurrencyTicker (params = {}): Promise<Dict> {
         return this.request ("data/{currency}/ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_data_currency_ticker (params = {}): Promise<Dict> {
-        return this.request ("data/{currency}/ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetDataCurrencyTrades (params = {}): Promise<List> {
-        return this.request ("data/{currency}/trades", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_data_currency_trades (params = {}): Promise<List> {
         return this.request ("data/{currency}/trades", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetDataCurrencyDepth (params = {}): Promise<Dict> {
         return this.request ("data/{currency}/depth", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_data_currency_depth (params = {}): Promise<Dict> {
-        return this.request ("data/{currency}/depth", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetBitcoinChartsIdTrades (params = {}): Promise<List> {
-        return this.request ("bitcoin_charts/{id}/trades", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_bitcoin_charts_id_trades (params = {}): Promise<List> {
         return this.request ("bitcoin_charts/{id}/trades", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetBitcoinChartsIdDepth (params = {}): Promise<Dict> {
         return this.request ("bitcoin_charts/{id}/depth", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_bitcoin_charts_id_depth (params = {}): Promise<Dict> {
-        return this.request ("bitcoin_charts/{id}/depth", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetUser (params = {}): Promise<Dict> {
-        return this.request ("user", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_user (params = {}): Promise<Dict> {
         return this.request ("user", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetUserAddresses (params = {}): Promise<List> {
         return this.request ("user/addresses", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_user_addresses (params = {}): Promise<List> {
-        return this.request ("user/addresses", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetUserAddressesAddress (params = {}): Promise<Dict> {
-        return this.request ("user/addresses/{address}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_user_addresses_address (params = {}): Promise<Dict> {
         return this.request ("user/addresses/{address}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetUserOrders (params = {}): Promise<List> {
         return this.request ("user/orders", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_user_orders (params = {}): Promise<List> {
-        return this.request ("user/orders", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetUserOrdersUuid (params = {}): Promise<Dict> {
-        return this.request ("user/orders/{uuid}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_user_orders_uuid (params = {}): Promise<Dict> {
         return this.request ("user/orders/{uuid}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetUserPriceAlerts (params = {}): Promise<List> {
         return this.request ("user/price_alerts", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_user_price_alerts (params = {}): Promise<List> {
-        return this.request ("user/price_alerts", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetUserWithdrawals (params = {}): Promise<List> {
-        return this.request ("user/withdrawals", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_user_withdrawals (params = {}): Promise<List> {
         return this.request ("user/withdrawals", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetMerchantGetPaymentUuid (params = {}): Promise<Dict> {
         return this.request ("merchant/get_payment/{uuid}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_merchant_get_payment_uuid (params = {}): Promise<Dict> {
-        return this.request ("merchant/get_payment/{uuid}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privatePostUserAddresses (params = {}): Promise<Dict> {
-        return this.request ("user/addresses", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_user_addresses (params = {}): Promise<Dict> {
         return this.request ("user/addresses", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostUserOrders (params = {}): Promise<Dict> {
         return this.request ("user/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_user_orders (params = {}): Promise<Dict> {
-        return this.request ("user/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostUserWithdrawals (params = {}): Promise<Dict> {
-        return this.request ("user/withdrawals", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_user_withdrawals (params = {}): Promise<Dict> {
         return this.request ("user/withdrawals", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostUserEmailTransfers (params = {}): Promise<Dict> {
         return this.request ("user/email_transfers", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_user_email_transfers (params = {}): Promise<Dict> {
-        return this.request ("user/email_transfers", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostUserPaymentRequests (params = {}): Promise<List> {
-        return this.request ("user/payment_requests", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_user_payment_requests (params = {}): Promise<List> {
         return this.request ("user/payment_requests", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostUserPriceAlerts (params = {}): Promise<Dict> {
         return this.request ("user/price_alerts", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_user_price_alerts (params = {}): Promise<Dict> {
-        return this.request ("user/price_alerts", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostMerchantCreatePayment (params = {}): Promise<Dict> {
-        return this.request ("merchant/create_payment", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_merchant_create_payment (params = {}): Promise<Dict> {
         return this.request ("merchant/create_payment", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privateDeleteUserOrdersUuid (params = {}): Promise<Dict> {
         return this.request ("user/orders/{uuid}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
     }
-    private_delete_user_orders_uuid (params = {}): Promise<Dict> {
-        return this.request ("user/orders/{uuid}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
-    }
     privateDeleteUserOrdersUuidCancel (params = {}): Promise<Dict> {
         return this.request ("user/orders/{uuid}/cancel", "private", 'DELETE', params, undefined, undefined, {"cost":1});
     }
-    private_delete_user_orders_uuid_cancel (params = {}): Promise<Dict> {
-        return this.request ("user/orders/{uuid}/cancel", "private", 'DELETE', params, undefined, undefined, {"cost":1});
-    }
     privateDeleteUserPriceAlertsId (params = {}): Promise<Dict> {
-        return this.request ("user/price_alerts/{id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
-    }
-    private_delete_user_price_alerts_id (params = {}): Promise<Dict> {
         return this.request ("user/price_alerts/{id}", "private", 'DELETE', params, undefined, undefined, {"cost":1});
     }
 }

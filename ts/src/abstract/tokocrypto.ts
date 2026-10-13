@@ -12,211 +12,106 @@ abstract class Exchange extends _Exchange {
     binanceGetPing (params = {}): Promise<Dict> {
         return this.request ("ping", "binance", 'GET', params, undefined, undefined, {"cost":1});
     }
-    binance_get_ping (params = {}): Promise<Dict> {
-        return this.request ("ping", "binance", 'GET', params, undefined, undefined, {"cost":1});
-    }
     binanceGetTime (params = {}): Promise<Dict> {
-        return this.request ("time", "binance", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    binance_get_time (params = {}): Promise<Dict> {
         return this.request ("time", "binance", 'GET', params, undefined, undefined, {"cost":1});
     }
     binanceGetDepth (params = {}): Promise<Dict> {
         return this.request ("depth", "binance", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[100,1],[500,5],[1000,10],[5000,50]]});
     }
-    binance_get_depth (params = {}): Promise<Dict> {
-        return this.request ("depth", "binance", 'GET', params, undefined, undefined, {"cost":1,"byLimit":[[100,1],[500,5],[1000,10],[5000,50]]});
-    }
     binanceGetTrades (params = {}): Promise<List> {
-        return this.request ("trades", "binance", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    binance_get_trades (params = {}): Promise<List> {
         return this.request ("trades", "binance", 'GET', params, undefined, undefined, {"cost":1});
     }
     binanceGetAggTrades (params = {}): Promise<List> {
         return this.request ("aggTrades", "binance", 'GET', params, undefined, undefined, {"cost":1});
     }
-    binance_get_aggtrades (params = {}): Promise<List> {
-        return this.request ("aggTrades", "binance", 'GET', params, undefined, undefined, {"cost":1});
-    }
     binanceGetHistoricalTrades (params = {}): Promise<List> {
-        return this.request ("historicalTrades", "binance", 'GET', params, undefined, undefined, {"cost":5});
-    }
-    binance_get_historicaltrades (params = {}): Promise<List> {
         return this.request ("historicalTrades", "binance", 'GET', params, undefined, undefined, {"cost":5});
     }
     binanceGetKlines (params = {}): Promise<List> {
         return this.request ("klines", "binance", 'GET', params, undefined, undefined, {"cost":1});
     }
-    binance_get_klines (params = {}): Promise<List> {
-        return this.request ("klines", "binance", 'GET', params, undefined, undefined, {"cost":1});
-    }
     binanceGetTicker24hr (params = {}): Promise<Dict | List> {
-        return this.request ("ticker/24hr", "binance", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
-    }
-    binance_get_ticker_24hr (params = {}): Promise<Dict | List> {
         return this.request ("ticker/24hr", "binance", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":40});
     }
     binanceGetTickerPrice (params = {}): Promise<Dict> {
         return this.request ("ticker/price", "binance", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":2});
     }
-    binance_get_ticker_price (params = {}): Promise<Dict> {
-        return this.request ("ticker/price", "binance", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":2});
-    }
     binanceGetTickerBookTicker (params = {}): Promise<List> {
-        return this.request ("ticker/bookTicker", "binance", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":2});
-    }
-    binance_get_ticker_bookticker (params = {}): Promise<List> {
         return this.request ("ticker/bookTicker", "binance", 'GET', params, undefined, undefined, {"cost":1,"noSymbol":2});
     }
     binanceGetExchangeInfo (params = {}): Promise<Dict> {
         return this.request ("exchangeInfo", "binance", 'GET', params, undefined, undefined, {"cost":10});
     }
-    binance_get_exchangeinfo (params = {}): Promise<Dict> {
-        return this.request ("exchangeInfo", "binance", 'GET', params, undefined, undefined, {"cost":10});
-    }
     binanceGetExecutionRules (params = {}): Promise<Dict> {
-        return this.request ("executionRules", "binance", 'GET', params, undefined, undefined, {"cost":2,"noSymbol":40});
-    }
-    binance_get_executionrules (params = {}): Promise<Dict> {
         return this.request ("executionRules", "binance", 'GET', params, undefined, undefined, {"cost":2,"noSymbol":40});
     }
     binancePutUserDataStream (params = {}): Promise<Dict> {
         return this.request ("userDataStream", "binance", 'PUT', params, undefined, undefined, {"cost":1});
     }
-    binance_put_userdatastream (params = {}): Promise<Dict> {
-        return this.request ("userDataStream", "binance", 'PUT', params, undefined, undefined, {"cost":1});
-    }
     binancePostUserDataStream (params = {}): Promise<Dict> {
-        return this.request ("userDataStream", "binance", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    binance_post_userdatastream (params = {}): Promise<Dict> {
         return this.request ("userDataStream", "binance", 'POST', params, undefined, undefined, {"cost":1});
     }
     binanceDeleteUserDataStream (params = {}): Promise<Dict> {
         return this.request ("userDataStream", "binance", 'DELETE', params, undefined, undefined, {"cost":1});
     }
-    binance_delete_userdatastream (params = {}): Promise<Dict> {
-        return this.request ("userDataStream", "binance", 'DELETE', params, undefined, undefined, {"cost":1});
-    }
     publicGetOpenV1CommonTime (params = {}): Promise<Dict> {
-        return this.request ("open/v1/common/time", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_open_v1_common_time (params = {}): Promise<Dict> {
         return this.request ("open/v1/common/time", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetOpenV1CommonSymbols (params = {}): Promise<Dict> {
         return this.request ("open/v1/common/symbols", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_open_v1_common_symbols (params = {}): Promise<Dict> {
-        return this.request ("open/v1/common/symbols", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetOpenV1MarketDepth (params = {}): Promise<Dict> {
-        return this.request ("open/v1/market/depth", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_open_v1_market_depth (params = {}): Promise<Dict> {
         return this.request ("open/v1/market/depth", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetOpenV1MarketTrades (params = {}): Promise<Dict> {
         return this.request ("open/v1/market/trades", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_open_v1_market_trades (params = {}): Promise<Dict> {
-        return this.request ("open/v1/market/trades", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetOpenV1MarketAggTrades (params = {}): Promise<Dict> {
-        return this.request ("open/v1/market/agg-trades", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_open_v1_market_agg_trades (params = {}): Promise<Dict> {
         return this.request ("open/v1/market/agg-trades", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetOpenV1MarketKlines (params = {}): Promise<Dict> {
         return this.request ("open/v1/market/klines", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_open_v1_market_klines (params = {}): Promise<Dict> {
-        return this.request ("open/v1/market/klines", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetOpenV1OrdersDetail (params = {}): Promise<Dict> {
-        return this.request ("open/v1/orders/detail", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_open_v1_orders_detail (params = {}): Promise<Dict> {
         return this.request ("open/v1/orders/detail", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetOpenV1Orders (params = {}): Promise<Dict> {
         return this.request ("open/v1/orders", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_open_v1_orders (params = {}): Promise<Dict> {
-        return this.request ("open/v1/orders", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetOpenV1AccountSpot (params = {}): Promise<Dict> {
-        return this.request ("open/v1/account/spot", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_open_v1_account_spot (params = {}): Promise<Dict> {
         return this.request ("open/v1/account/spot", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetOpenV1AccountSpotAsset (params = {}): Promise<Dict> {
         return this.request ("open/v1/account/spot/asset", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_open_v1_account_spot_asset (params = {}): Promise<Dict> {
-        return this.request ("open/v1/account/spot/asset", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetOpenV1OrdersTrades (params = {}): Promise<Dict> {
-        return this.request ("open/v1/orders/trades", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_open_v1_orders_trades (params = {}): Promise<Dict> {
         return this.request ("open/v1/orders/trades", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetOpenV1Withdraws (params = {}): Promise<Dict> {
         return this.request ("open/v1/withdraws", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_open_v1_withdraws (params = {}): Promise<Dict> {
-        return this.request ("open/v1/withdraws", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetOpenV1Deposits (params = {}): Promise<Dict> {
-        return this.request ("open/v1/deposits", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_open_v1_deposits (params = {}): Promise<Dict> {
         return this.request ("open/v1/deposits", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetOpenV1DepositsAddress (params = {}): Promise<Dict> {
         return this.request ("open/v1/deposits/address", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_open_v1_deposits_address (params = {}): Promise<Dict> {
-        return this.request ("open/v1/deposits/address", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privatePostOpenV1Orders (params = {}): Promise<Dict> {
-        return this.request ("open/v1/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_open_v1_orders (params = {}): Promise<Dict> {
         return this.request ("open/v1/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostOpenV1OrdersCancel (params = {}): Promise<Dict> {
         return this.request ("open/v1/orders/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_open_v1_orders_cancel (params = {}): Promise<Dict> {
-        return this.request ("open/v1/orders/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostOpenV1OrdersOco (params = {}): Promise<Dict> {
-        return this.request ("open/v1/orders/oco", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_open_v1_orders_oco (params = {}): Promise<Dict> {
         return this.request ("open/v1/orders/oco", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostOpenV1Withdraws (params = {}): Promise<Dict> {
         return this.request ("open/v1/withdraws", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_open_v1_withdraws (params = {}): Promise<Dict> {
-        return this.request ("open/v1/withdraws", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostOpenV1UserDataStream (params = {}): Promise<Dict> {
         return this.request ("open/v1/user-data-stream", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_open_v1_user_data_stream (params = {}): Promise<Dict> {
-        return this.request ("open/v1/user-data-stream", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostOpenV1UserListenToken (params = {}): Promise<Dict> {
-        return this.request ("open/v1/user-listen-token", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_open_v1_user_listen_token (params = {}): Promise<Dict> {
         return this.request ("open/v1/user-listen-token", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
 }

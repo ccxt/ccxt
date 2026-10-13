@@ -12,97 +12,49 @@ abstract class Exchange extends _Exchange {
     gatewayPublicGetSymbols (params = {}): Promise<List> {
         return this.request ("symbols", ["gateway","public"], 'GET', params, undefined, undefined, {"cost":2});
     }
-    gateway_public_get_symbols (params = {}): Promise<List> {
-        return this.request ("symbols", ["gateway","public"], 'GET', params, undefined, undefined, {"cost":2});
-    }
     gatewayPublicGetQuery (params = {}): Promise<Dict> {
-        return this.request ("query", ["gateway","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    gateway_public_get_query (params = {}): Promise<Dict> {
         return this.request ("query", ["gateway","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     gatewayPublicGetEdgeQuery (params = {}): Promise<Dict> {
         return this.request ("edge/query", ["gateway","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    gateway_public_get_edge_query (params = {}): Promise<Dict> {
-        return this.request ("edge/query", ["gateway","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     gatewayPublicPostQuery (params = {}): Promise<Dict> {
-        return this.request ("query", ["gateway","public"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    gateway_public_post_query (params = {}): Promise<Dict> {
         return this.request ("query", ["gateway","public"], 'POST', params, undefined, undefined, {"cost":1});
     }
     gatewayPublicPostEdgeQuery (params = {}): Promise<Dict> {
         return this.request ("edge/query", ["gateway","public"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    gateway_public_post_edge_query (params = {}): Promise<Dict> {
-        return this.request ("edge/query", ["gateway","public"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     gatewayPrivatePostExecute (params = {}): Promise<Dict> {
-        return this.request ("execute", ["gateway","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    gateway_private_post_execute (params = {}): Promise<Dict> {
         return this.request ("execute", ["gateway","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     gatewayV2PublicGetAssets (params = {}): Promise<List> {
         return this.request ("assets", ["gatewayV2","public"], 'GET', params, undefined, undefined, {"cost":2});
     }
-    gatewayV2_public_get_assets (params = {}): Promise<List> {
-        return this.request ("assets", ["gatewayV2","public"], 'GET', params, undefined, undefined, {"cost":2});
-    }
     gatewayV2PublicGetPairs (params = {}): Promise<List> {
-        return this.request ("pairs", ["gatewayV2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    gatewayV2_public_get_pairs (params = {}): Promise<List> {
         return this.request ("pairs", ["gatewayV2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     gatewayV2PublicGetOrderbook (params = {}): Promise<Dict> {
         return this.request ("orderbook", ["gatewayV2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    gatewayV2_public_get_orderbook (params = {}): Promise<Dict> {
-        return this.request ("orderbook", ["gatewayV2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     archivePost (params = {}): Promise<Dict> {
-        return this.request ("", "archive", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    archive_post_ (params = {}): Promise<Dict> {
         return this.request ("", "archive", 'POST', params, undefined, undefined, {"cost":1});
     }
     archiveV2PublicGetTickers (params = {}): Promise<Dict> {
         return this.request ("tickers", ["archiveV2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    archiveV2_public_get_tickers (params = {}): Promise<Dict> {
-        return this.request ("tickers", ["archiveV2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     archiveV2PublicGetContracts (params = {}): Promise<Dict> {
-        return this.request ("contracts", ["archiveV2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    archiveV2_public_get_contracts (params = {}): Promise<Dict> {
         return this.request ("contracts", ["archiveV2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     archiveV2PublicGetTrades (params = {}): Promise<List> {
         return this.request ("trades", ["archiveV2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    archiveV2_public_get_trades (params = {}): Promise<List> {
-        return this.request ("trades", ["archiveV2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     archiveV2PublicGetSymbols (params = {}): Promise<Dict> {
-        return this.request ("symbols", ["archiveV2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    archiveV2_public_get_symbols (params = {}): Promise<Dict> {
         return this.request ("symbols", ["archiveV2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     triggerPrivatePostExecute (params = {}): Promise<Dict> {
         return this.request ("execute", ["trigger","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    trigger_private_post_execute (params = {}): Promise<Dict> {
-        return this.request ("execute", ["trigger","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     triggerPrivatePostQuery (params = {}): Promise<Dict> {
-        return this.request ("query", ["trigger","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    trigger_private_post_query (params = {}): Promise<Dict> {
         return this.request ("query", ["trigger","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
 }

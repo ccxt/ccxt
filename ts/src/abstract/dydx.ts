@@ -12,361 +12,181 @@ abstract class Exchange extends _Exchange {
     indexerGetAddressesAddress (params = {}): Promise<Dict> {
         return this.request ("addresses/{address}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_addresses_address (params = {}): Promise<Dict> {
-        return this.request ("addresses/{address}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetAddressesAddressParentSubaccountNumberNumber (params = {}): Promise<Dict> {
-        return this.request ("addresses/{address}/parentSubaccountNumber/{number}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_addresses_address_parentsubaccountnumber_number (params = {}): Promise<Dict> {
         return this.request ("addresses/{address}/parentSubaccountNumber/{number}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetAddressesAddressSubaccountNumberSubaccountNumber (params = {}): Promise<Dict> {
         return this.request ("addresses/{address}/subaccountNumber/{subaccountNumber}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_addresses_address_subaccountnumber_subaccountnumber (params = {}): Promise<Dict> {
-        return this.request ("addresses/{address}/subaccountNumber/{subaccountNumber}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetAssetPositions (params = {}): Promise<Dict> {
-        return this.request ("assetPositions", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_assetpositions (params = {}): Promise<Dict> {
         return this.request ("assetPositions", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetAssetPositionsParentSubaccountNumber (params = {}): Promise<Dict> {
         return this.request ("assetPositions/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_assetpositions_parentsubaccountnumber (params = {}): Promise<Dict> {
-        return this.request ("assetPositions/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetCandlesPerpetualMarketsMarket (params = {}): Promise<Dict> {
-        return this.request ("candles/perpetualMarkets/{market}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_candles_perpetualmarkets_market (params = {}): Promise<Dict> {
         return this.request ("candles/perpetualMarkets/{market}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetComplianceScreenAddress (params = {}): Promise<Dict> {
         return this.request ("compliance/screen/{address}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_compliance_screen_address (params = {}): Promise<Dict> {
-        return this.request ("compliance/screen/{address}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetFills (params = {}): Promise<Dict> {
-        return this.request ("fills", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_fills (params = {}): Promise<Dict> {
         return this.request ("fills", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetFillsParentSubaccountNumber (params = {}): Promise<Dict> {
         return this.request ("fills/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_fills_parentsubaccountnumber (params = {}): Promise<Dict> {
-        return this.request ("fills/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetFundingPayments (params = {}): Promise<Dict> {
-        return this.request ("fundingPayments", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_fundingpayments (params = {}): Promise<Dict> {
         return this.request ("fundingPayments", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetFundingPaymentsParentSubaccount (params = {}): Promise<Dict> {
         return this.request ("fundingPayments/parentSubaccount", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_fundingpayments_parentsubaccount (params = {}): Promise<Dict> {
-        return this.request ("fundingPayments/parentSubaccount", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetHeight (params = {}): Promise<Dict> {
-        return this.request ("height", "indexer", 'GET', params, undefined, undefined, {"cost":0.1});
-    }
-    indexer_get_height (params = {}): Promise<Dict> {
         return this.request ("height", "indexer", 'GET', params, undefined, undefined, {"cost":0.1});
     }
     indexerGetHistoricalPnl (params = {}): Promise<Dict> {
         return this.request ("historical-pnl", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_historical_pnl (params = {}): Promise<Dict> {
-        return this.request ("historical-pnl", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetHistoricalPnlParentSubaccountNumber (params = {}): Promise<Dict> {
-        return this.request ("historical-pnl/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_historical_pnl_parentsubaccountnumber (params = {}): Promise<Dict> {
         return this.request ("historical-pnl/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetHistoricalBlockTradingRewardsAddress (params = {}): Promise<Dict> {
         return this.request ("historicalBlockTradingRewards/{address}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_historicalblocktradingrewards_address (params = {}): Promise<Dict> {
-        return this.request ("historicalBlockTradingRewards/{address}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetHistoricalFundingMarket (params = {}): Promise<Dict> {
-        return this.request ("historicalFunding/{market}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_historicalfunding_market (params = {}): Promise<Dict> {
         return this.request ("historicalFunding/{market}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetHistoricalTradingRewardAggregationsAddress (params = {}): Promise<Dict> {
         return this.request ("historicalTradingRewardAggregations/{address}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_historicaltradingrewardaggregations_address (params = {}): Promise<Dict> {
-        return this.request ("historicalTradingRewardAggregations/{address}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetOrderbooksPerpetualMarketMarket (params = {}): Promise<Dict> {
-        return this.request ("orderbooks/perpetualMarket/{market}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_orderbooks_perpetualmarket_market (params = {}): Promise<Dict> {
         return this.request ("orderbooks/perpetualMarket/{market}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetOrders (params = {}): Promise<List> {
         return this.request ("orders", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_orders (params = {}): Promise<List> {
-        return this.request ("orders", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetOrdersParentSubaccountNumber (params = {}): Promise<Dict> {
-        return this.request ("orders/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_orders_parentsubaccountnumber (params = {}): Promise<Dict> {
         return this.request ("orders/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetOrdersOrderId (params = {}): Promise<Dict> {
         return this.request ("orders/{orderId}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_orders_orderid (params = {}): Promise<Dict> {
-        return this.request ("orders/{orderId}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetPerpetualMarkets (params = {}): Promise<Dict> {
-        return this.request ("perpetualMarkets", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_perpetualmarkets (params = {}): Promise<Dict> {
         return this.request ("perpetualMarkets", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetPerpetualPositions (params = {}): Promise<Dict> {
         return this.request ("perpetualPositions", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_perpetualpositions (params = {}): Promise<Dict> {
-        return this.request ("perpetualPositions", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetPerpetualPositionsParentSubaccountNumber (params = {}): Promise<Dict> {
-        return this.request ("perpetualPositions/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_perpetualpositions_parentsubaccountnumber (params = {}): Promise<Dict> {
         return this.request ("perpetualPositions/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetScreen (params = {}): Promise<Dict> {
         return this.request ("screen", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_screen (params = {}): Promise<Dict> {
-        return this.request ("screen", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetSparklines (params = {}): Promise<Dict> {
-        return this.request ("sparklines", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_sparklines (params = {}): Promise<Dict> {
         return this.request ("sparklines", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetTime (params = {}): Promise<Dict> {
         return this.request ("time", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_time (params = {}): Promise<Dict> {
-        return this.request ("time", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetTradesPerpetualMarketMarket (params = {}): Promise<Dict> {
-        return this.request ("trades/perpetualMarket/{market}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_trades_perpetualmarket_market (params = {}): Promise<Dict> {
         return this.request ("trades/perpetualMarket/{market}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetTransfers (params = {}): Promise<Dict> {
         return this.request ("transfers", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_transfers (params = {}): Promise<Dict> {
-        return this.request ("transfers", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetTransfersBetween (params = {}): Promise<Dict> {
-        return this.request ("transfers/between", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_transfers_between (params = {}): Promise<Dict> {
         return this.request ("transfers/between", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetTransfersParentSubaccountNumber (params = {}): Promise<Dict> {
         return this.request ("transfers/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_transfers_parentsubaccountnumber (params = {}): Promise<Dict> {
-        return this.request ("transfers/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetVaultV1MegavaultHistoricalPnl (params = {}): Promise<Dict> {
-        return this.request ("vault/v1/megavault/historicalPnl", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_vault_v1_megavault_historicalpnl (params = {}): Promise<Dict> {
         return this.request ("vault/v1/megavault/historicalPnl", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetVaultV1MegavaultPositions (params = {}): Promise<Dict> {
         return this.request ("vault/v1/megavault/positions", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_vault_v1_megavault_positions (params = {}): Promise<Dict> {
-        return this.request ("vault/v1/megavault/positions", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetVaultV1VaultsHistoricalPnl (params = {}): Promise<Dict> {
-        return this.request ("vault/v1/vaults/historicalPnl", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_vault_v1_vaults_historicalpnl (params = {}): Promise<Dict> {
         return this.request ("vault/v1/vaults/historicalPnl", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetPerpetualMarketSparklines (params = {}): Promise<Dict> {
         return this.request ("perpetualMarketSparklines", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_perpetualmarketsparklines (params = {}): Promise<Dict> {
-        return this.request ("perpetualMarketSparklines", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetPerpetualMarketsTicker (params = {}): Promise<Dict> {
-        return this.request ("perpetualMarkets/{ticker}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_perpetualmarkets_ticker (params = {}): Promise<Dict> {
         return this.request ("perpetualMarkets/{ticker}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetPerpetualMarketsTickerOrderbook (params = {}): Promise<Dict> {
         return this.request ("perpetualMarkets/{ticker}/orderbook", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_perpetualmarkets_ticker_orderbook (params = {}): Promise<Dict> {
-        return this.request ("perpetualMarkets/{ticker}/orderbook", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetTradesPerpetualMarketTicker (params = {}): Promise<Dict> {
-        return this.request ("trades/perpetualMarket/{ticker}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_trades_perpetualmarket_ticker (params = {}): Promise<Dict> {
         return this.request ("trades/perpetualMarket/{ticker}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetHistoricalFundingTicker (params = {}): Promise<Dict> {
         return this.request ("historicalFunding/{ticker}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_historicalfunding_ticker (params = {}): Promise<Dict> {
-        return this.request ("historicalFunding/{ticker}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetCandlesTickerResolution (params = {}): Promise<Dict> {
-        return this.request ("candles/{ticker}/{resolution}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_candles_ticker_resolution (params = {}): Promise<Dict> {
         return this.request ("candles/{ticker}/{resolution}", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetAddressesAddressSubaccounts (params = {}): Promise<Dict> {
         return this.request ("addresses/{address}/subaccounts", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_addresses_address_subaccounts (params = {}): Promise<Dict> {
-        return this.request ("addresses/{address}/subaccounts", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions (params = {}): Promise<Dict> {
-        return this.request ("addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_addresses_address_subaccountnumber_subaccountnumber_assetpositions (params = {}): Promise<Dict> {
         return this.request ("addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions (params = {}): Promise<Dict> {
         return this.request ("addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_addresses_address_subaccountnumber_subaccountnumber_perpetualpositions (params = {}): Promise<Dict> {
-        return this.request ("addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders (params = {}): Promise<Dict> {
-        return this.request ("addresses/{address}/subaccountNumber/{subaccountNumber}/orders", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_addresses_address_subaccountnumber_subaccountnumber_orders (params = {}): Promise<Dict> {
         return this.request ("addresses/{address}/subaccountNumber/{subaccountNumber}/orders", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetFillsParentSubaccount (params = {}): Promise<Dict> {
         return this.request ("fills/parentSubaccount", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_fills_parentsubaccount (params = {}): Promise<Dict> {
-        return this.request ("fills/parentSubaccount", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetHistoricalPnlParentSubaccount (params = {}): Promise<Dict> {
-        return this.request ("historical-pnl/parentSubaccount", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_historical_pnl_parentsubaccount (params = {}): Promise<Dict> {
         return this.request ("historical-pnl/parentSubaccount", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetPnl (params = {}): Promise<Dict> {
         return this.request ("pnl", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_pnl (params = {}): Promise<Dict> {
-        return this.request ("pnl", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetPnlParentSubaccountNumber (params = {}): Promise<Dict> {
-        return this.request ("pnl/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_pnl_parentsubaccountnumber (params = {}): Promise<Dict> {
         return this.request ("pnl/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerGetTradeHistory (params = {}): Promise<Dict> {
         return this.request ("tradeHistory", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
-    indexer_get_tradehistory (params = {}): Promise<Dict> {
-        return this.request ("tradeHistory", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
     indexerGetTradeHistoryParentSubaccountNumber (params = {}): Promise<Dict> {
-        return this.request ("tradeHistory/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    indexer_get_tradehistory_parentsubaccountnumber (params = {}): Promise<Dict> {
         return this.request ("tradeHistory/parentSubaccountNumber", "indexer", 'GET', params, undefined, undefined, {"cost":1});
     }
     indexerPostTurnkeySignin (params = {}): Promise<Dict> {
         return this.request ("turnkey/signin", "indexer", 'POST', params, undefined, undefined, {"cost":1});
     }
-    indexer_post_turnkey_signin (params = {}): Promise<Dict> {
-        return this.request ("turnkey/signin", "indexer", 'POST', params, undefined, undefined, {"cost":1});
-    }
     indexerPostTurnkeyUploadAddress (params = {}): Promise<Dict> {
-        return this.request ("turnkey/uploadAddress", "indexer", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    indexer_post_turnkey_uploadaddress (params = {}): Promise<Dict> {
         return this.request ("turnkey/uploadAddress", "indexer", 'POST', params, undefined, undefined, {"cost":1});
     }
     nodeRpcGetAbciInfo (params = {}): Promise<Dict> {
         return this.request ("abci_info", "nodeRpc", 'GET', params, undefined, undefined, {"cost":1});
     }
-    nodeRpc_get_abci_info (params = {}): Promise<Dict> {
-        return this.request ("abci_info", "nodeRpc", 'GET', params, undefined, undefined, {"cost":1});
-    }
     nodeRpcGetBlock (params = {}): Promise<Dict> {
-        return this.request ("block", "nodeRpc", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    nodeRpc_get_block (params = {}): Promise<Dict> {
         return this.request ("block", "nodeRpc", 'GET', params, undefined, undefined, {"cost":1});
     }
     nodeRpcGetBroadcastTxAsync (params = {}): Promise<Dict> {
         return this.request ("broadcast_tx_async", "nodeRpc", 'GET', params, undefined, undefined, {"cost":1});
     }
-    nodeRpc_get_broadcast_tx_async (params = {}): Promise<Dict> {
-        return this.request ("broadcast_tx_async", "nodeRpc", 'GET', params, undefined, undefined, {"cost":1});
-    }
     nodeRpcGetBroadcastTxSync (params = {}): Promise<Dict> {
-        return this.request ("broadcast_tx_sync", "nodeRpc", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    nodeRpc_get_broadcast_tx_sync (params = {}): Promise<Dict> {
         return this.request ("broadcast_tx_sync", "nodeRpc", 'GET', params, undefined, undefined, {"cost":1});
     }
     nodeRpcGetTx (params = {}): Promise<Dict> {
         return this.request ("tx", "nodeRpc", 'GET', params, undefined, undefined, {"cost":1});
     }
-    nodeRpc_get_tx (params = {}): Promise<Dict> {
-        return this.request ("tx", "nodeRpc", 'GET', params, undefined, undefined, {"cost":1});
-    }
     nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (params = {}): Promise<Dict> {
-        return this.request ("cosmos/auth/v1beta1/account_info/{dydxAddress}", "nodeRest", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    nodeRest_get_cosmos_auth_v1beta1_account_info_dydxaddress (params = {}): Promise<Dict> {
         return this.request ("cosmos/auth/v1beta1/account_info/{dydxAddress}", "nodeRest", 'GET', params, undefined, undefined, {"cost":1});
     }
     nodeRestPostCosmosTxV1beta1Encode (params = {}): Promise<Dict> {
         return this.request ("cosmos/tx/v1beta1/encode", "nodeRest", 'POST', params, undefined, undefined, {"cost":1});
     }
-    nodeRest_post_cosmos_tx_v1beta1_encode (params = {}): Promise<Dict> {
-        return this.request ("cosmos/tx/v1beta1/encode", "nodeRest", 'POST', params, undefined, undefined, {"cost":1});
-    }
     nodeRestPostCosmosTxV1beta1Simulate (params = {}): Promise<Dict> {
-        return this.request ("cosmos/tx/v1beta1/simulate", "nodeRest", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    nodeRest_post_cosmos_tx_v1beta1_simulate (params = {}): Promise<Dict> {
         return this.request ("cosmos/tx/v1beta1/simulate", "nodeRest", 'POST', params, undefined, undefined, {"cost":1});
     }
 }

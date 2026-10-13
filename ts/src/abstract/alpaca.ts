@@ -12,577 +12,289 @@ abstract class Exchange extends _Exchange {
     brokerPrivateGetV1AccountsAccountIdTokenizationRequests (params = {}): Promise<List> {
         return this.request ("v1/accounts/{account_id}/tokenization/requests", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    broker_private_get_v1_accounts_account_id_tokenization_requests (params = {}): Promise<List> {
-        return this.request ("v1/accounts/{account_id}/tokenization/requests", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId (params = {}): Promise<Dict> {
-        return this.request ("v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    broker_private_get_v1_accounts_account_id_tokenization_requests_tokenization_request_id (params = {}): Promise<Dict> {
         return this.request ("v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId (params = {}): Promise<Dict> {
         return this.request ("v1/accounts/{account_id}/tokenization/requests:by_client_request_id", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    broker_private_get_v1_accounts_account_id_tokenization_requests_by_client_request_id (params = {}): Promise<Dict> {
-        return this.request ("v1/accounts/{account_id}/tokenization/requests:by_client_request_id", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId (params = {}): Promise<Dict> {
-        return this.request ("v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    broker_private_get_v1_accounts_account_id_tokenization_requests_by_issuer_request_id (params = {}): Promise<Dict> {
         return this.request ("v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     brokerPrivateGetV1FpslAnalyticsAccountIdLoans (params = {}): Promise<Dict> {
         return this.request ("v1/fpsl/analytics/{account_id}/loans", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    broker_private_get_v1_fpsl_analytics_account_id_loans (params = {}): Promise<Dict> {
-        return this.request ("v1/fpsl/analytics/{account_id}/loans", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     brokerPrivateGetV1Ipos (params = {}): Promise<Dict> {
-        return this.request ("v1/ipos", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    broker_private_get_v1_ipos (params = {}): Promise<Dict> {
         return this.request ("v1/ipos", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     brokerPrivateGetV1IposOfferingReference (params = {}): Promise<Dict> {
         return this.request ("v1/ipos/{offering_reference}", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    broker_private_get_v1_ipos_offering_reference (params = {}): Promise<Dict> {
-        return this.request ("v1/ipos/{offering_reference}", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     brokerPrivateGetV1WalletsTravelRuleVasps (params = {}): Promise<Dict> {
-        return this.request ("v1/wallets/travel-rule/vasps", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    broker_private_get_v1_wallets_travel_rule_vasps (params = {}): Promise<Dict> {
         return this.request ("v1/wallets/travel-rule/vasps", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     brokerPrivateGetV1beta1Acats (params = {}): Promise<Dict> {
         return this.request ("v1beta1/acats", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    broker_private_get_v1beta1_acats (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/acats", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     brokerPrivateGetV1beta1AcatsContrabrokers (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/acats/contrabrokers", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    broker_private_get_v1beta1_acats_contrabrokers (params = {}): Promise<Dict> {
         return this.request ("v1beta1/acats/contrabrokers", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     brokerPrivateGetV1beta1AcatsAccountId (params = {}): Promise<Dict> {
         return this.request ("v1beta1/acats/{account_id}", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    broker_private_get_v1beta1_acats_account_id (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/acats/{account_id}", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     brokerPrivateGetV1beta1AcatsAccountIdAcatsId (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/acats/{account_id}/{acats_id}", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    broker_private_get_v1beta1_acats_account_id_acats_id (params = {}): Promise<Dict> {
         return this.request ("v1beta1/acats/{account_id}/{acats_id}", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets (params = {}): Promise<List> {
         return this.request ("v1beta1/acats/{account_id}/{acats_id}/assets", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    broker_private_get_v1beta1_acats_account_id_acats_id_assets (params = {}): Promise<List> {
-        return this.request ("v1beta1/acats/{account_id}/{acats_id}/assets", ["broker","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     brokerPrivatePostV1beta1AcatsAccountId (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/acats/{account_id}", ["broker","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    broker_private_post_v1beta1_acats_account_id (params = {}): Promise<Dict> {
         return this.request ("v1beta1/acats/{account_id}", ["broker","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo (params = {}): Promise<Dict> {
         return this.request ("v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", ["broker","private"], 'PATCH', params, undefined, undefined, {"cost":1});
     }
-    broker_private_patch_v1_accounts_account_id_wallets_whitelists_whitelisted_address_id_travel_rule_info (params = {}): Promise<Dict> {
-        return this.request ("v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", ["broker","private"], 'PATCH', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2Account (params = {}): Promise<Dict> {
-        return this.request ("v2/account", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_account (params = {}): Promise<Dict> {
         return this.request ("v2/account", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2Orders (params = {}): Promise<List> {
         return this.request ("v2/orders", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_orders (params = {}): Promise<List> {
-        return this.request ("v2/orders", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2OrdersOrderId (params = {}): Promise<Dict> {
-        return this.request ("v2/orders/{order_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_orders_order_id (params = {}): Promise<Dict> {
         return this.request ("v2/orders/{order_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2Positions (params = {}): Promise<List> {
         return this.request ("v2/positions", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_positions (params = {}): Promise<List> {
-        return this.request ("v2/positions", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2PositionsSymbolOrAssetId (params = {}): Promise<Dict> {
-        return this.request ("v2/positions/{symbol_or_asset_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_positions_symbol_or_asset_id (params = {}): Promise<Dict> {
         return this.request ("v2/positions/{symbol_or_asset_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2AccountPortfolioHistory (params = {}): Promise<Dict> {
         return this.request ("v2/account/portfolio/history", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_account_portfolio_history (params = {}): Promise<Dict> {
-        return this.request ("v2/account/portfolio/history", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2Watchlists (params = {}): Promise<List> {
-        return this.request ("v2/watchlists", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_watchlists (params = {}): Promise<List> {
         return this.request ("v2/watchlists", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2WatchlistsWatchlistId (params = {}): Promise<Dict> {
         return this.request ("v2/watchlists/{watchlist_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_watchlists_watchlist_id (params = {}): Promise<Dict> {
-        return this.request ("v2/watchlists/{watchlist_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2WatchlistsByName (params = {}): Promise<Dict> {
-        return this.request ("v2/watchlists:by_name", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_watchlists_by_name (params = {}): Promise<Dict> {
         return this.request ("v2/watchlists:by_name", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2AccountConfigurations (params = {}): Promise<Dict> {
         return this.request ("v2/account/configurations", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_account_configurations (params = {}): Promise<Dict> {
-        return this.request ("v2/account/configurations", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2AccountActivities (params = {}): Promise<List> {
-        return this.request ("v2/account/activities", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_account_activities (params = {}): Promise<List> {
         return this.request ("v2/account/activities", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2AccountActivitiesActivityType (params = {}): Promise<List> {
         return this.request ("v2/account/activities/{activity_type}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_account_activities_activity_type (params = {}): Promise<List> {
-        return this.request ("v2/account/activities/{activity_type}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2Calendar (params = {}): Promise<List> {
-        return this.request ("v2/calendar", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_calendar (params = {}): Promise<List> {
         return this.request ("v2/calendar", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2Clock (params = {}): Promise<Dict> {
         return this.request ("v2/clock", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_clock (params = {}): Promise<Dict> {
-        return this.request ("v2/clock", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2Assets (params = {}): Promise<List> {
-        return this.request ("v2/assets", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_assets (params = {}): Promise<List> {
         return this.request ("v2/assets", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2AssetsSymbolOrAssetId (params = {}): Promise<Dict> {
         return this.request ("v2/assets/{symbol_or_asset_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_assets_symbol_or_asset_id (params = {}): Promise<Dict> {
-        return this.request ("v2/assets/{symbol_or_asset_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2CorporateActionsAnnouncementsId (params = {}): Promise<Dict> {
-        return this.request ("v2/corporate_actions/announcements/{id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_corporate_actions_announcements_id (params = {}): Promise<Dict> {
         return this.request ("v2/corporate_actions/announcements/{id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2CorporateActionsAnnouncements (params = {}): Promise<List> {
         return this.request ("v2/corporate_actions/announcements", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_corporate_actions_announcements (params = {}): Promise<List> {
-        return this.request ("v2/corporate_actions/announcements", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2Wallets (params = {}): Promise<Dict> {
-        return this.request ("v2/wallets", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_wallets (params = {}): Promise<Dict> {
         return this.request ("v2/wallets", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2WalletsTransfers (params = {}): Promise<List> {
         return this.request ("v2/wallets/transfers", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_wallets_transfers (params = {}): Promise<List> {
-        return this.request ("v2/wallets/transfers", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV1Locates (params = {}): Promise<Dict> {
-        return this.request ("v1/locates", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v1_locates (params = {}): Promise<Dict> {
         return this.request ("v1/locates", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV1LocatesLocateId (params = {}): Promise<Dict> {
         return this.request ("v1/locates/{locate_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v1_locates_locate_id (params = {}): Promise<Dict> {
-        return this.request ("v1/locates/{locate_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV1LocatesQuotes (params = {}): Promise<Dict> {
-        return this.request ("v1/locates/quotes", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v1_locates_quotes (params = {}): Promise<Dict> {
         return this.request ("v1/locates/quotes", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2TokenizationRequests (params = {}): Promise<List> {
         return this.request ("v2/tokenization/requests", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_tokenization_requests (params = {}): Promise<List> {
-        return this.request ("v2/tokenization/requests", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2TokenizationRequestsTokenizationRequestId (params = {}): Promise<Dict> {
-        return this.request ("v2/tokenization/requests/{tokenization_request_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_tokenization_requests_tokenization_request_id (params = {}): Promise<Dict> {
         return this.request ("v2/tokenization/requests/{tokenization_request_id}", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivateGetV2TokenizationRequestsByClientRequestId (params = {}): Promise<Dict> {
         return this.request ("v2/tokenization/requests:by_client_request_id", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    trader_private_get_v2_tokenization_requests_by_client_request_id (params = {}): Promise<Dict> {
-        return this.request ("v2/tokenization/requests:by_client_request_id", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateGetV2WalletsTravelRuleVasps (params = {}): Promise<Dict> {
-        return this.request ("v2/wallets/travel-rule/vasps", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_get_v2_wallets_travel_rule_vasps (params = {}): Promise<Dict> {
         return this.request ("v2/wallets/travel-rule/vasps", ["trader","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     traderPrivatePostV2Orders (params = {}): Promise<Dict> {
         return this.request ("v2/orders", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    trader_private_post_v2_orders (params = {}): Promise<Dict> {
-        return this.request ("v2/orders", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     traderPrivatePostV2Watchlists (params = {}): Promise<Dict> {
-        return this.request ("v2/watchlists", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_post_v2_watchlists (params = {}): Promise<Dict> {
         return this.request ("v2/watchlists", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     traderPrivatePostV2WatchlistsWatchlistId (params = {}): Promise<Dict> {
         return this.request ("v2/watchlists/{watchlist_id}", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    trader_private_post_v2_watchlists_watchlist_id (params = {}): Promise<Dict> {
-        return this.request ("v2/watchlists/{watchlist_id}", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     traderPrivatePostV2WatchlistsByName (params = {}): Promise<Dict> {
-        return this.request ("v2/watchlists:by_name", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_post_v2_watchlists_by_name (params = {}): Promise<Dict> {
         return this.request ("v2/watchlists:by_name", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     traderPrivatePostV2WalletsTransfers (params = {}): Promise<Dict> {
         return this.request ("v2/wallets/transfers", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    trader_private_post_v2_wallets_transfers (params = {}): Promise<Dict> {
-        return this.request ("v2/wallets/transfers", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     traderPrivatePostV1Locates (params = {}): Promise<Dict> {
-        return this.request ("v1/locates", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_post_v1_locates (params = {}): Promise<Dict> {
         return this.request ("v1/locates", ["trader","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     traderPrivatePutV2OrdersOrderId (params = {}): Promise<Dict> {
         return this.request ("v2/orders/{order_id}", ["trader","private"], 'PUT', params, undefined, undefined, {"cost":1});
     }
-    trader_private_put_v2_orders_order_id (params = {}): Promise<Dict> {
-        return this.request ("v2/orders/{order_id}", ["trader","private"], 'PUT', params, undefined, undefined, {"cost":1});
-    }
     traderPrivatePutV2WatchlistsWatchlistId (params = {}): Promise<Dict> {
-        return this.request ("v2/watchlists/{watchlist_id}", ["trader","private"], 'PUT', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_put_v2_watchlists_watchlist_id (params = {}): Promise<Dict> {
         return this.request ("v2/watchlists/{watchlist_id}", ["trader","private"], 'PUT', params, undefined, undefined, {"cost":1});
     }
     traderPrivatePutV2WatchlistsByName (params = {}): Promise<Dict> {
         return this.request ("v2/watchlists:by_name", ["trader","private"], 'PUT', params, undefined, undefined, {"cost":1});
     }
-    trader_private_put_v2_watchlists_by_name (params = {}): Promise<Dict> {
-        return this.request ("v2/watchlists:by_name", ["trader","private"], 'PUT', params, undefined, undefined, {"cost":1});
-    }
     traderPrivatePatchV2OrdersOrderId (params = {}): Promise<Dict> {
-        return this.request ("v2/orders/{order_id}", ["trader","private"], 'PATCH', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_patch_v2_orders_order_id (params = {}): Promise<Dict> {
         return this.request ("v2/orders/{order_id}", ["trader","private"], 'PATCH', params, undefined, undefined, {"cost":1});
     }
     traderPrivatePatchV2AccountConfigurations (params = {}): Promise<Dict> {
         return this.request ("v2/account/configurations", ["trader","private"], 'PATCH', params, undefined, undefined, {"cost":1});
     }
-    trader_private_patch_v2_account_configurations (params = {}): Promise<Dict> {
-        return this.request ("v2/account/configurations", ["trader","private"], 'PATCH', params, undefined, undefined, {"cost":1});
-    }
     traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo (params = {}): Promise<Dict> {
-        return this.request ("v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", ["trader","private"], 'PATCH', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_patch_v2_wallets_whitelists_whitelisted_address_id_travel_rule_info (params = {}): Promise<Dict> {
         return this.request ("v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", ["trader","private"], 'PATCH', params, undefined, undefined, {"cost":1});
     }
     traderPrivateDeleteV2Orders (params = {}): Promise<List> {
         return this.request ("v2/orders", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
-    trader_private_delete_v2_orders (params = {}): Promise<List> {
-        return this.request ("v2/orders", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateDeleteV2OrdersOrderId (params = {}): Promise<Dict> {
-        return this.request ("v2/orders/{order_id}", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_delete_v2_orders_order_id (params = {}): Promise<Dict> {
         return this.request ("v2/orders/{order_id}", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
     traderPrivateDeleteV2Positions (params = {}): Promise<List> {
         return this.request ("v2/positions", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
-    trader_private_delete_v2_positions (params = {}): Promise<List> {
-        return this.request ("v2/positions", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateDeleteV2PositionsSymbolOrAssetId (params = {}): Promise<Dict> {
-        return this.request ("v2/positions/{symbol_or_asset_id}", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_delete_v2_positions_symbol_or_asset_id (params = {}): Promise<Dict> {
         return this.request ("v2/positions/{symbol_or_asset_id}", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
     traderPrivateDeleteV2WatchlistsWatchlistId (params = {}): Promise<Dict> {
         return this.request ("v2/watchlists/{watchlist_id}", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
-    trader_private_delete_v2_watchlists_watchlist_id (params = {}): Promise<Dict> {
-        return this.request ("v2/watchlists/{watchlist_id}", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
     traderPrivateDeleteV2WatchlistsByName (params = {}): Promise<Dict> {
-        return this.request ("v2/watchlists:by_name", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
-    trader_private_delete_v2_watchlists_by_name (params = {}): Promise<Dict> {
         return this.request ("v2/watchlists:by_name", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
     traderPrivateDeleteV2WatchlistsWatchlistIdSymbol (params = {}): Promise<Dict> {
         return this.request ("v2/watchlists/{watchlist_id}/{symbol}", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
-    trader_private_delete_v2_watchlists_watchlist_id_symbol (params = {}): Promise<Dict> {
-        return this.request ("v2/watchlists/{watchlist_id}/{symbol}", ["trader","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
     marketPublicGetV1beta3CryptoLocBars (params = {}): Promise<Dict> {
-        return this.request ("v1beta3/crypto/{loc}/bars", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_public_get_v1beta3_crypto_loc_bars (params = {}): Promise<Dict> {
         return this.request ("v1beta3/crypto/{loc}/bars", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPublicGetV1beta3CryptoLocLatestBars (params = {}): Promise<Dict> {
         return this.request ("v1beta3/crypto/{loc}/latest/bars", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_public_get_v1beta3_crypto_loc_latest_bars (params = {}): Promise<Dict> {
-        return this.request ("v1beta3/crypto/{loc}/latest/bars", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPublicGetV1beta3CryptoLocLatestOrderbooks (params = {}): Promise<Dict> {
-        return this.request ("v1beta3/crypto/{loc}/latest/orderbooks", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_public_get_v1beta3_crypto_loc_latest_orderbooks (params = {}): Promise<Dict> {
         return this.request ("v1beta3/crypto/{loc}/latest/orderbooks", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPublicGetV1beta3CryptoLocLatestQuotes (params = {}): Promise<Dict> {
         return this.request ("v1beta3/crypto/{loc}/latest/quotes", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_public_get_v1beta3_crypto_loc_latest_quotes (params = {}): Promise<Dict> {
-        return this.request ("v1beta3/crypto/{loc}/latest/quotes", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPublicGetV1beta3CryptoLocLatestTrades (params = {}): Promise<Dict> {
-        return this.request ("v1beta3/crypto/{loc}/latest/trades", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_public_get_v1beta3_crypto_loc_latest_trades (params = {}): Promise<Dict> {
         return this.request ("v1beta3/crypto/{loc}/latest/trades", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPublicGetV1beta3CryptoLocQuotes (params = {}): Promise<Dict> {
         return this.request ("v1beta3/crypto/{loc}/quotes", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_public_get_v1beta3_crypto_loc_quotes (params = {}): Promise<Dict> {
-        return this.request ("v1beta3/crypto/{loc}/quotes", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPublicGetV1beta3CryptoLocSnapshots (params = {}): Promise<Dict> {
-        return this.request ("v1beta3/crypto/{loc}/snapshots", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_public_get_v1beta3_crypto_loc_snapshots (params = {}): Promise<Dict> {
         return this.request ("v1beta3/crypto/{loc}/snapshots", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPublicGetV1beta3CryptoLocTrades (params = {}): Promise<Dict> {
         return this.request ("v1beta3/crypto/{loc}/trades", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_public_get_v1beta3_crypto_loc_trades (params = {}): Promise<Dict> {
-        return this.request ("v1beta3/crypto/{loc}/trades", ["market","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV1beta1CorporateActions (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/corporate-actions", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v1beta1_corporate_actions (params = {}): Promise<Dict> {
         return this.request ("v1beta1/corporate-actions", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV1beta1FixedIncomeLatestPrices (params = {}): Promise<Dict> {
         return this.request ("v1beta1/fixed_income/latest/prices", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v1beta1_fixed_income_latest_prices (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/fixed_income/latest/prices", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV1beta1FixedIncomeLatestQuotes (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/fixed_income/latest/quotes", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v1beta1_fixed_income_latest_quotes (params = {}): Promise<Dict> {
         return this.request ("v1beta1/fixed_income/latest/quotes", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV1beta1ForexLatestRates (params = {}): Promise<Dict> {
         return this.request ("v1beta1/forex/latest/rates", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v1beta1_forex_latest_rates (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/forex/latest/rates", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV1beta1ForexRates (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/forex/rates", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v1beta1_forex_rates (params = {}): Promise<Dict> {
         return this.request ("v1beta1/forex/rates", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV1beta1LogosSymbol (params = {}): Promise<string> {
         return this.request ("v1beta1/logos/{symbol}", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v1beta1_logos_symbol (params = {}): Promise<string> {
-        return this.request ("v1beta1/logos/{symbol}", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV1beta1News (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/news", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v1beta1_news (params = {}): Promise<Dict> {
         return this.request ("v1beta1/news", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV1beta1ScreenerStocksMostActives (params = {}): Promise<Dict> {
         return this.request ("v1beta1/screener/stocks/most-actives", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v1beta1_screener_stocks_most_actives (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/screener/stocks/most-actives", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV1beta1ScreenerMarketTypeMovers (params = {}): Promise<Dict> {
-        return this.request ("v1beta1/screener/{market_type}/movers", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v1beta1_screener_market_type_movers (params = {}): Promise<Dict> {
         return this.request ("v1beta1/screener/{market_type}/movers", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV2StocksAuctions (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/auctions", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v2_stocks_auctions (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/auctions", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV2StocksBars (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/bars", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v2_stocks_bars (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/bars", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV2StocksBarsLatest (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/bars/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v2_stocks_bars_latest (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/bars/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV2StocksMetaConditionsTicktype (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/meta/conditions/{ticktype}", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v2_stocks_meta_conditions_ticktype (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/meta/conditions/{ticktype}", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV2StocksMetaExchanges (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/meta/exchanges", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v2_stocks_meta_exchanges (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/meta/exchanges", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV2StocksQuotes (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/quotes", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v2_stocks_quotes (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/quotes", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV2StocksQuotesLatest (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/quotes/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v2_stocks_quotes_latest (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/quotes/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV2StocksSnapshots (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/snapshots", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v2_stocks_snapshots (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/snapshots", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV2StocksTrades (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/trades", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v2_stocks_trades (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/trades", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV2StocksTradesLatest (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/trades/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v2_stocks_trades_latest (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/trades/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV2StocksSymbolAuctions (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/{symbol}/auctions", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v2_stocks_symbol_auctions (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/{symbol}/auctions", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV2StocksSymbolBars (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/{symbol}/bars", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v2_stocks_symbol_bars (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/{symbol}/bars", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV2StocksSymbolBarsLatest (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/{symbol}/bars/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v2_stocks_symbol_bars_latest (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/{symbol}/bars/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV2StocksSymbolQuotes (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/{symbol}/quotes", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v2_stocks_symbol_quotes (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/{symbol}/quotes", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV2StocksSymbolQuotesLatest (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/{symbol}/quotes/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v2_stocks_symbol_quotes_latest (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/{symbol}/quotes/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV2StocksSymbolSnapshot (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/{symbol}/snapshot", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v2_stocks_symbol_snapshot (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/{symbol}/snapshot", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     marketPrivateGetV2StocksSymbolTrades (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/{symbol}/trades", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    market_private_get_v2_stocks_symbol_trades (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/{symbol}/trades", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     marketPrivateGetV2StocksSymbolTradesLatest (params = {}): Promise<Dict> {
-        return this.request ("v2/stocks/{symbol}/trades/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    market_private_get_v2_stocks_symbol_trades_latest (params = {}): Promise<Dict> {
         return this.request ("v2/stocks/{symbol}/trades/latest", ["market","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
 }

@@ -12,337 +12,169 @@ abstract class Exchange extends _Exchange {
     publicGetBookCurrencyQuote (params = {}): Promise<Dict> {
         return this.request ("book/{currency}/{quote}", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_book_currency_quote (params = {}): Promise<Dict> {
-        return this.request ("book/{currency}/{quote}", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetChartWeek (params = {}): Promise<Dict> {
-        return this.request ("chart/week", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_chart_week (params = {}): Promise<Dict> {
         return this.request ("chart/week", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetChartWeekCurrencyQuote (params = {}): Promise<Dict> {
         return this.request ("chart/week/{currency}/{quote}", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_chart_week_currency_quote (params = {}): Promise<Dict> {
-        return this.request ("chart/week/{currency}/{quote}", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetCurrency (params = {}): Promise<List> {
-        return this.request ("currency", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_currency (params = {}): Promise<List> {
         return this.request ("currency", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetCurrencyAvailable (params = {}): Promise<List> {
         return this.request ("currency/available", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_currency_available (params = {}): Promise<List> {
-        return this.request ("currency/available", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetCurrencyQuotes (params = {}): Promise<List> {
-        return this.request ("currency/quotes", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_currency_quotes (params = {}): Promise<List> {
         return this.request ("currency/quotes", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetCurrencyCurrency (params = {}): Promise<Dict> {
         return this.request ("currency/{currency}", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_currency_currency (params = {}): Promise<Dict> {
-        return this.request ("currency/{currency}", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetPair (params = {}): Promise<List> {
-        return this.request ("pair", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_pair (params = {}): Promise<List> {
         return this.request ("pair", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetPairAvailable (params = {}): Promise<List> {
         return this.request ("pair/available", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_pair_available (params = {}): Promise<List> {
-        return this.request ("pair/available", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetTicker (params = {}): Promise<List> {
-        return this.request ("ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_ticker (params = {}): Promise<List> {
         return this.request ("ticker", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetTickerBaseQuote (params = {}): Promise<Dict> {
         return this.request ("ticker/{base}/{quote}", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_ticker_base_quote (params = {}): Promise<Dict> {
-        return this.request ("ticker/{base}/{quote}", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetTime (params = {}): Promise<Dict> {
-        return this.request ("time", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_time (params = {}): Promise<Dict> {
         return this.request ("time", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetTradeHistoryCurrencyQuote (params = {}): Promise<List> {
         return this.request ("trade/history/{currency}/{quote}", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_trade_history_currency_quote (params = {}): Promise<List> {
-        return this.request ("trade/history/{currency}/{quote}", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetTradeFeeCurrencyQuote (params = {}): Promise<Dict> {
-        return this.request ("trade/fee/{currency}/{quote}", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_trade_fee_currency_quote (params = {}): Promise<Dict> {
         return this.request ("trade/fee/{currency}/{quote}", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetTradeFeeLevels (params = {}): Promise<List> {
         return this.request ("trade/feeLevels", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_trade_feelevels (params = {}): Promise<List> {
-        return this.request ("trade/feeLevels", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetTransactionBindings (params = {}): Promise<List> {
-        return this.request ("transaction/bindings", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_transaction_bindings (params = {}): Promise<List> {
         return this.request ("transaction/bindings", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetAuthAccount (params = {}): Promise<List> {
         return this.request ("auth/account", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_auth_account (params = {}): Promise<List> {
-        return this.request ("auth/account", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetAuthAccountCurrencyCurrencyType (params = {}): Promise<List> {
-        return this.request ("auth/account/currency/{currency}/{type}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_auth_account_currency_currency_type (params = {}): Promise<List> {
         return this.request ("auth/account/currency/{currency}/{type}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetAuthAccountFiltered (params = {}): Promise<List> {
         return this.request ("auth/account/filtered", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_auth_account_filtered (params = {}): Promise<List> {
-        return this.request ("auth/account/filtered", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetAuthOrder (params = {}): Promise<List> {
-        return this.request ("auth/order", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_auth_order (params = {}): Promise<List> {
         return this.request ("auth/order", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetAuthOrderActive (params = {}): Promise<List> {
         return this.request ("auth/order/active", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_auth_order_active (params = {}): Promise<List> {
-        return this.request ("auth/order/active", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetAuthOrderGetOrderId (params = {}): Promise<Dict> {
-        return this.request ("auth/order/getOrder/{id}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_auth_order_getorder_id (params = {}): Promise<Dict> {
         return this.request ("auth/order/getOrder/{id}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetAuthOrderPairCurrencyQuote (params = {}): Promise<List> {
         return this.request ("auth/order/pair/{currency}/{quote}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_auth_order_pair_currency_quote (params = {}): Promise<List> {
-        return this.request ("auth/order/pair/{currency}/{quote}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetAuthOrderPairCurrencyQuoteActive (params = {}): Promise<List> {
-        return this.request ("auth/order/pair/{currency}/{quote}/active", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_auth_order_pair_currency_quote_active (params = {}): Promise<List> {
         return this.request ("auth/order/pair/{currency}/{quote}/active", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetAuthStopOrder (params = {}): Promise<List> {
         return this.request ("auth/stopOrder", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_auth_stoporder (params = {}): Promise<List> {
-        return this.request ("auth/stopOrder", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetAuthStopOrderGetOrderId (params = {}): Promise<Dict> {
-        return this.request ("auth/stopOrder/getOrder/{id}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_auth_stoporder_getorder_id (params = {}): Promise<Dict> {
         return this.request ("auth/stopOrder/getOrder/{id}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetAuthStopOrderPairCurrencyQuote (params = {}): Promise<List> {
         return this.request ("auth/stopOrder/pair/{currency}/{quote}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_auth_stoporder_pair_currency_quote (params = {}): Promise<List> {
-        return this.request ("auth/stopOrder/pair/{currency}/{quote}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetAuthStopOrderPairCurrencyQuoteActive (params = {}): Promise<List> {
-        return this.request ("auth/stopOrder/pair/{currency}/{quote}/active", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_auth_stoporder_pair_currency_quote_active (params = {}): Promise<List> {
         return this.request ("auth/stopOrder/pair/{currency}/{quote}/active", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetAuthTrade (params = {}): Promise<List> {
         return this.request ("auth/trade", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_auth_trade (params = {}): Promise<List> {
-        return this.request ("auth/trade", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetAuthTradePairCurrencyQuote (params = {}): Promise<List> {
-        return this.request ("auth/trade/pair/{currency}/{quote}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_auth_trade_pair_currency_quote (params = {}): Promise<List> {
         return this.request ("auth/trade/pair/{currency}/{quote}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetAuthTradeFeeCurrencyQuote (params = {}): Promise<Dict> {
         return this.request ("auth/trade/fee/{currency}/{quote}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_auth_trade_fee_currency_quote (params = {}): Promise<Dict> {
-        return this.request ("auth/trade/fee/{currency}/{quote}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetAuthTransaction (params = {}): Promise<Dict> {
-        return this.request ("auth/transaction", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_auth_transaction (params = {}): Promise<Dict> {
         return this.request ("auth/transaction", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetAuthTransactionBindings (params = {}): Promise<Dict> {
         return this.request ("auth/transaction/bindings", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_auth_transaction_bindings (params = {}): Promise<Dict> {
-        return this.request ("auth/transaction/bindings", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetAuthTransactionBindingsCurrency (params = {}): Promise<List> {
-        return this.request ("auth/transaction/bindings/{currency}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_auth_transaction_bindings_currency (params = {}): Promise<List> {
         return this.request ("auth/transaction/bindings/{currency}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetAuthTransactionId (params = {}): Promise<Dict> {
         return this.request ("auth/transaction/{id}", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_auth_transaction_id (params = {}): Promise<Dict> {
-        return this.request ("auth/transaction/{id}", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetAuthTransfer (params = {}): Promise<Dict> {
-        return this.request ("auth/transfer", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_auth_transfer (params = {}): Promise<Dict> {
         return this.request ("auth/transfer", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privatePostAuthOrderCancel (params = {}): Promise<Dict> {
         return this.request ("auth/order/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_auth_order_cancel (params = {}): Promise<Dict> {
-        return this.request ("auth/order/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostAuthOrderCancelAll (params = {}): Promise<Dict> {
-        return this.request ("auth/order/cancelAll", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_auth_order_cancelall (params = {}): Promise<Dict> {
         return this.request ("auth/order/cancelAll", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostAuthOrderCancelAllCurrencyQuote (params = {}): Promise<Dict> {
         return this.request ("auth/order/cancelAll/{currency}/{quote}", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_auth_order_cancelall_currency_quote (params = {}): Promise<Dict> {
-        return this.request ("auth/order/cancelAll/{currency}/{quote}", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostAuthOrderCancelBulk (params = {}): Promise<Dict> {
-        return this.request ("auth/order/cancelBulk", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_auth_order_cancelbulk (params = {}): Promise<Dict> {
         return this.request ("auth/order/cancelBulk", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostAuthOrderPlace (params = {}): Promise<Dict> {
         return this.request ("auth/order/place", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_auth_order_place (params = {}): Promise<Dict> {
-        return this.request ("auth/order/place", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostAuthOrderPlaceBulk (params = {}): Promise<Dict> {
-        return this.request ("auth/order/placeBulk", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_auth_order_placebulk (params = {}): Promise<Dict> {
         return this.request ("auth/order/placeBulk", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostAuthSpotDeposit (params = {}): Promise<Dict> {
         return this.request ("auth/spot/deposit", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_auth_spot_deposit (params = {}): Promise<Dict> {
-        return this.request ("auth/spot/deposit", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostAuthSpotWithdraw (params = {}): Promise<Dict> {
-        return this.request ("auth/spot/withdraw", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_auth_spot_withdraw (params = {}): Promise<Dict> {
         return this.request ("auth/spot/withdraw", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostAuthStopOrderCancel (params = {}): Promise<Dict> {
         return this.request ("auth/stopOrder/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_auth_stoporder_cancel (params = {}): Promise<Dict> {
-        return this.request ("auth/stopOrder/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostAuthStopOrderCancelAll (params = {}): Promise<Dict> {
-        return this.request ("auth/stopOrder/cancelAll", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_auth_stoporder_cancelall (params = {}): Promise<Dict> {
         return this.request ("auth/stopOrder/cancelAll", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostAuthStopOrderCancelAllCurrencyQuote (params = {}): Promise<Dict> {
         return this.request ("auth/stopOrder/cancelAll/{currency}/{quote}", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_auth_stoporder_cancelall_currency_quote (params = {}): Promise<Dict> {
-        return this.request ("auth/stopOrder/cancelAll/{currency}/{quote}", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostAuthStopOrderPlace (params = {}): Promise<Dict> {
-        return this.request ("auth/stopOrder/place", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_auth_stoporder_place (params = {}): Promise<Dict> {
         return this.request ("auth/stopOrder/place", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostAuthTransactionDepositAddress (params = {}): Promise<Dict> {
         return this.request ("auth/transaction/depositAddress", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_auth_transaction_depositaddress (params = {}): Promise<Dict> {
-        return this.request ("auth/transaction/depositAddress", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostAuthTransactionWithdraw (params = {}): Promise<Dict> {
-        return this.request ("auth/transaction/withdraw", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_auth_transaction_withdraw (params = {}): Promise<Dict> {
         return this.request ("auth/transaction/withdraw", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostAuthTransactionWithdrawCancel (params = {}): Promise<Dict> {
         return this.request ("auth/transaction/withdraw/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_auth_transaction_withdraw_cancel (params = {}): Promise<Dict> {
-        return this.request ("auth/transaction/withdraw/cancel", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostAuthTransactionWithdrawConfirm (params = {}): Promise<Dict> {
-        return this.request ("auth/transaction/withdraw/confirm", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_auth_transaction_withdraw_confirm (params = {}): Promise<Dict> {
         return this.request ("auth/transaction/withdraw/confirm", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostAuthTransactionWithdrawResendCode (params = {}): Promise<Dict> {
         return this.request ("auth/transaction/withdraw/resendCode", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_auth_transaction_withdraw_resendcode (params = {}): Promise<Dict> {
-        return this.request ("auth/transaction/withdraw/resendCode", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostAuthTransferEmail (params = {}): Promise<Dict> {
-        return this.request ("auth/transfer/email", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_auth_transfer_email (params = {}): Promise<Dict> {
         return this.request ("auth/transfer/email", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostAuthTransferId (params = {}): Promise<Dict> {
         return this.request ("auth/transfer/id", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_auth_transfer_id (params = {}): Promise<Dict> {
-        return this.request ("auth/transfer/id", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostAuthTransferPhone (params = {}): Promise<Dict> {
-        return this.request ("auth/transfer/phone", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_auth_transfer_phone (params = {}): Promise<Dict> {
         return this.request ("auth/transfer/phone", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
 }

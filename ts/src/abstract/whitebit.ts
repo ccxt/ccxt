@@ -12,823 +12,412 @@ abstract class Exchange extends _Exchange {
     webGetV1Healthcheck (params = {}): Promise<Dict> {
         return this.request ("v1/healthcheck", "web", 'GET', params, undefined, undefined, {"cost":1});
     }
-    web_get_v1_healthcheck (params = {}): Promise<Dict> {
-        return this.request ("v1/healthcheck", "web", 'GET', params, undefined, undefined, {"cost":1});
-    }
     v1PublicGetMarkets (params = {}): Promise<Dict> {
-        return this.request ("markets", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v1_public_get_markets (params = {}): Promise<Dict> {
         return this.request ("markets", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v1PublicGetTickers (params = {}): Promise<Dict> {
         return this.request ("tickers", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v1_public_get_tickers (params = {}): Promise<Dict> {
-        return this.request ("tickers", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v1PublicGetTicker (params = {}): Promise<Dict> {
-        return this.request ("ticker", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v1_public_get_ticker (params = {}): Promise<Dict> {
         return this.request ("ticker", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v1PublicGetSymbols (params = {}): Promise<Dict> {
         return this.request ("symbols", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v1_public_get_symbols (params = {}): Promise<Dict> {
-        return this.request ("symbols", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v1PublicGetDepthResult (params = {}): Promise<Dict> {
-        return this.request ("depth/result", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v1_public_get_depth_result (params = {}): Promise<Dict> {
         return this.request ("depth/result", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v1PublicGetHistory (params = {}): Promise<Dict> {
         return this.request ("history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v1_public_get_history (params = {}): Promise<Dict> {
-        return this.request ("history", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v1PublicGetKline (params = {}): Promise<Dict> {
-        return this.request ("kline", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v1_public_get_kline (params = {}): Promise<Dict> {
         return this.request ("kline", ["v1","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v1PrivatePostAccountBalance (params = {}): Promise<Dict> {
         return this.request ("account/balance", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v1_private_post_account_balance (params = {}): Promise<Dict> {
-        return this.request ("account/balance", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v1PrivatePostOrderNew (params = {}): Promise<Dict> {
-        return this.request ("order/new", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v1_private_post_order_new (params = {}): Promise<Dict> {
         return this.request ("order/new", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v1PrivatePostOrderCancel (params = {}): Promise<Dict> {
         return this.request ("order/cancel", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v1_private_post_order_cancel (params = {}): Promise<Dict> {
-        return this.request ("order/cancel", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v1PrivatePostOrders (params = {}): Promise<Dict> {
-        return this.request ("orders", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v1_private_post_orders (params = {}): Promise<Dict> {
         return this.request ("orders", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v1PrivatePostAccountOrderHistory (params = {}): Promise<Dict> {
         return this.request ("account/order_history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v1_private_post_account_order_history (params = {}): Promise<Dict> {
-        return this.request ("account/order_history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v1PrivatePostAccountExecutedHistory (params = {}): Promise<Dict> {
-        return this.request ("account/executed_history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v1_private_post_account_executed_history (params = {}): Promise<Dict> {
         return this.request ("account/executed_history", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v1PrivatePostAccountExecutedHistoryAll (params = {}): Promise<Dict> {
         return this.request ("account/executed_history/all", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v1_private_post_account_executed_history_all (params = {}): Promise<Dict> {
-        return this.request ("account/executed_history/all", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v1PrivatePostAccountOrder (params = {}): Promise<Dict> {
-        return this.request ("account/order", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v1_private_post_account_order (params = {}): Promise<Dict> {
         return this.request ("account/order", ["v1","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v2PublicGetMarkets (params = {}): Promise<Dict> {
         return this.request ("markets", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v2_public_get_markets (params = {}): Promise<Dict> {
-        return this.request ("markets", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v2PublicGetTicker (params = {}): Promise<Dict> {
-        return this.request ("ticker", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v2_public_get_ticker (params = {}): Promise<Dict> {
         return this.request ("ticker", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v2PublicGetAssets (params = {}): Promise<Dict> {
         return this.request ("assets", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v2_public_get_assets (params = {}): Promise<Dict> {
-        return this.request ("assets", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v2PublicGetFee (params = {}): Promise<Dict> {
-        return this.request ("fee", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v2_public_get_fee (params = {}): Promise<Dict> {
         return this.request ("fee", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v2PublicGetDepthMarket (params = {}): Promise<Dict> {
         return this.request ("depth/{market}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v2_public_get_depth_market (params = {}): Promise<Dict> {
-        return this.request ("depth/{market}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v2PublicGetTradesMarket (params = {}): Promise<Dict> {
-        return this.request ("trades/{market}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v2_public_get_trades_market (params = {}): Promise<Dict> {
         return this.request ("trades/{market}", ["v2","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v4PublicGetAssets (params = {}): Promise<Dict> {
         return this.request ("assets", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v4_public_get_assets (params = {}): Promise<Dict> {
-        return this.request ("assets", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v4PublicGetCollateralMarkets (params = {}): Promise<Dict> {
-        return this.request ("collateral/markets", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v4_public_get_collateral_markets (params = {}): Promise<Dict> {
         return this.request ("collateral/markets", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v4PublicGetFee (params = {}): Promise<Dict> {
         return this.request ("fee", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v4_public_get_fee (params = {}): Promise<Dict> {
-        return this.request ("fee", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v4PublicGetFundingHistoryMarket (params = {}): Promise<List> {
-        return this.request ("funding-history/{market}", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v4_public_get_funding_history_market (params = {}): Promise<List> {
         return this.request ("funding-history/{market}", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v4PublicGetOrderbookDepthMarket (params = {}): Promise<Dict> {
         return this.request ("orderbook/depth/{market}", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v4_public_get_orderbook_depth_market (params = {}): Promise<Dict> {
-        return this.request ("orderbook/depth/{market}", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v4PublicGetOrderbookMarket (params = {}): Promise<Dict> {
-        return this.request ("orderbook/{market}", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v4_public_get_orderbook_market (params = {}): Promise<Dict> {
         return this.request ("orderbook/{market}", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v4PublicGetTicker (params = {}): Promise<Dict> {
         return this.request ("ticker", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v4_public_get_ticker (params = {}): Promise<Dict> {
-        return this.request ("ticker", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v4PublicGetTradesMarket (params = {}): Promise<List> {
-        return this.request ("trades/{market}", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v4_public_get_trades_market (params = {}): Promise<List> {
         return this.request ("trades/{market}", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v4PublicGetTime (params = {}): Promise<Dict> {
         return this.request ("time", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v4_public_get_time (params = {}): Promise<Dict> {
-        return this.request ("time", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v4PublicGetPing (params = {}): Promise<List> {
-        return this.request ("ping", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v4_public_get_ping (params = {}): Promise<List> {
         return this.request ("ping", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v4PublicGetMarkets (params = {}): Promise<List> {
         return this.request ("markets", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v4_public_get_markets (params = {}): Promise<List> {
-        return this.request ("markets", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v4PublicGetFutures (params = {}): Promise<Dict> {
-        return this.request ("futures", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v4_public_get_futures (params = {}): Promise<Dict> {
         return this.request ("futures", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v4PublicGetPlatformStatus (params = {}): Promise<Dict> {
         return this.request ("platform/status", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    v4_public_get_platform_status (params = {}): Promise<Dict> {
-        return this.request ("platform/status", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     v4PublicGetMiningPool (params = {}): Promise<Dict> {
-        return this.request ("mining-pool", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    v4_public_get_mining_pool (params = {}): Promise<Dict> {
         return this.request ("mining-pool", ["v4","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostCollateralAccountBalance (params = {}): Promise<Dict> {
         return this.request ("collateral-account/balance", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_collateral_account_balance (params = {}): Promise<Dict> {
-        return this.request ("collateral-account/balance", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostCollateralAccountBalanceSummary (params = {}): Promise<List> {
-        return this.request ("collateral-account/balance-summary", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_collateral_account_balance_summary (params = {}): Promise<List> {
         return this.request ("collateral-account/balance-summary", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostCollateralAccountPositionsHistory (params = {}): Promise<List> {
         return this.request ("collateral-account/positions/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_collateral_account_positions_history (params = {}): Promise<List> {
-        return this.request ("collateral-account/positions/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostCollateralAccountLeverage (params = {}): Promise<Dict> {
-        return this.request ("collateral-account/leverage", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_collateral_account_leverage (params = {}): Promise<Dict> {
         return this.request ("collateral-account/leverage", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostCollateralAccountPositionsOpen (params = {}): Promise<List> {
         return this.request ("collateral-account/positions/open", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_collateral_account_positions_open (params = {}): Promise<List> {
-        return this.request ("collateral-account/positions/open", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostCollateralAccountPositionsClosedPnl (params = {}): Promise<List> {
-        return this.request ("collateral-account/positions/closed-pnl", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_collateral_account_positions_closed_pnl (params = {}): Promise<List> {
         return this.request ("collateral-account/positions/closed-pnl", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostCollateralAccountSummary (params = {}): Promise<Dict> {
         return this.request ("collateral-account/summary", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_collateral_account_summary (params = {}): Promise<Dict> {
-        return this.request ("collateral-account/summary", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostCollateralAccountFundingHistory (params = {}): Promise<Dict> {
-        return this.request ("collateral-account/funding-history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_collateral_account_funding_history (params = {}): Promise<Dict> {
         return this.request ("collateral-account/funding-history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountAddress (params = {}): Promise<Dict> {
         return this.request ("main-account/address", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_address (params = {}): Promise<Dict> {
-        return this.request ("main-account/address", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountBalance (params = {}): Promise<Dict> {
-        return this.request ("main-account/balance", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_balance (params = {}): Promise<Dict> {
         return this.request ("main-account/balance", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountCreateNewAddress (params = {}): Promise<Dict> {
         return this.request ("main-account/create-new-address", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_create_new_address (params = {}): Promise<Dict> {
-        return this.request ("main-account/create-new-address", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountCodes (params = {}): Promise<Dict> {
-        return this.request ("main-account/codes", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_codes (params = {}): Promise<Dict> {
         return this.request ("main-account/codes", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountCodesApply (params = {}): Promise<Dict> {
         return this.request ("main-account/codes/apply", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_codes_apply (params = {}): Promise<Dict> {
-        return this.request ("main-account/codes/apply", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountCodesMy (params = {}): Promise<Dict> {
-        return this.request ("main-account/codes/my", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_codes_my (params = {}): Promise<Dict> {
         return this.request ("main-account/codes/my", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountCodesHistory (params = {}): Promise<Dict> {
         return this.request ("main-account/codes/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_codes_history (params = {}): Promise<Dict> {
-        return this.request ("main-account/codes/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountFiatDepositUrl (params = {}): Promise<Dict> {
-        return this.request ("main-account/fiat-deposit-url", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_fiat_deposit_url (params = {}): Promise<Dict> {
         return this.request ("main-account/fiat-deposit-url", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountHistory (params = {}): Promise<Dict> {
         return this.request ("main-account/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_history (params = {}): Promise<Dict> {
-        return this.request ("main-account/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountWithdraw (params = {}): Promise<Dict> {
-        return this.request ("main-account/withdraw", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_withdraw (params = {}): Promise<Dict> {
         return this.request ("main-account/withdraw", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountWithdrawPay (params = {}): Promise<List> {
         return this.request ("main-account/withdraw-pay", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_withdraw_pay (params = {}): Promise<List> {
-        return this.request ("main-account/withdraw-pay", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountExpressWithdrawToken (params = {}): Promise<Dict> {
-        return this.request ("main-account/express-withdraw/token", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_express_withdraw_token (params = {}): Promise<Dict> {
         return this.request ("main-account/express-withdraw/token", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountTransfer (params = {}): Promise<List> {
         return this.request ("main-account/transfer", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_transfer (params = {}): Promise<List> {
-        return this.request ("main-account/transfer", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountSmartPlans (params = {}): Promise<List> {
-        return this.request ("main-account/smart/plans", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_smart_plans (params = {}): Promise<List> {
         return this.request ("main-account/smart/plans", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountSmartInvestment (params = {}): Promise<Dict> {
         return this.request ("main-account/smart/investment", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_smart_investment (params = {}): Promise<Dict> {
-        return this.request ("main-account/smart/investment", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountSmartInvestmentClose (params = {}): Promise<Dict> {
-        return this.request ("main-account/smart/investment/close", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_smart_investment_close (params = {}): Promise<Dict> {
         return this.request ("main-account/smart/investment/close", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountSmartInvestments (params = {}): Promise<Dict> {
         return this.request ("main-account/smart/investments", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_smart_investments (params = {}): Promise<Dict> {
-        return this.request ("main-account/smart/investments", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountFee (params = {}): Promise<List> {
-        return this.request ("main-account/fee", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_fee (params = {}): Promise<List> {
         return this.request ("main-account/fee", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountSmartInterestPaymentHistory (params = {}): Promise<Dict> {
         return this.request ("main-account/smart/interest-payment-history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_smart_interest_payment_history (params = {}): Promise<Dict> {
-        return this.request ("main-account/smart/interest-payment-history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountSmartFlexPlans (params = {}): Promise<List> {
-        return this.request ("main-account/smart-flex/plans", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_smart_flex_plans (params = {}): Promise<List> {
         return this.request ("main-account/smart-flex/plans", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountSmartFlexInvestments (params = {}): Promise<Dict> {
         return this.request ("main-account/smart-flex/investments", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_smart_flex_investments (params = {}): Promise<Dict> {
-        return this.request ("main-account/smart-flex/investments", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountSmartFlexInvestmentsHistory (params = {}): Promise<Dict> {
-        return this.request ("main-account/smart-flex/investments/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_smart_flex_investments_history (params = {}): Promise<Dict> {
         return this.request ("main-account/smart-flex/investments/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory (params = {}): Promise<Dict> {
         return this.request ("main-account/smart-flex/investments/payment-history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_smart_flex_investments_payment_history (params = {}): Promise<Dict> {
-        return this.request ("main-account/smart-flex/investments/payment-history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountSmartFlexInvestmentsInvest (params = {}): Promise<Dict> {
-        return this.request ("main-account/smart-flex/investments/invest", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_smart_flex_investments_invest (params = {}): Promise<Dict> {
         return this.request ("main-account/smart-flex/investments/invest", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw (params = {}): Promise<Dict> {
         return this.request ("main-account/smart-flex/investments/withdraw", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_smart_flex_investments_withdraw (params = {}): Promise<Dict> {
-        return this.request ("main-account/smart-flex/investments/withdraw", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMainAccountSmartFlexInvestmentsClose (params = {}): Promise<Dict> {
-        return this.request ("main-account/smart-flex/investments/close", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_main_account_smart_flex_investments_close (params = {}): Promise<Dict> {
         return this.request ("main-account/smart-flex/investments/close", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest (params = {}): Promise<Dict> {
         return this.request ("main-account/smart-flex/investments/auto-invest", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_main_account_smart_flex_investments_auto_invest (params = {}): Promise<Dict> {
-        return this.request ("main-account/smart-flex/investments/auto-invest", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostTradeAccountBalance (params = {}): Promise<Dict> {
-        return this.request ("trade-account/balance", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_trade_account_balance (params = {}): Promise<Dict> {
         return this.request ("trade-account/balance", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostTradeAccountExecutedHistory (params = {}): Promise<Dict | List> {
         return this.request ("trade-account/executed-history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_trade_account_executed_history (params = {}): Promise<Dict | List> {
-        return this.request ("trade-account/executed-history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostTradeAccountOrderHistory (params = {}): Promise<Dict> {
-        return this.request ("trade-account/order/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_trade_account_order_history (params = {}): Promise<Dict> {
         return this.request ("trade-account/order/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostTradeAccountOrderHistoryQuery (params = {}): Promise<List> {
         return this.request ("trade-account/order/history/query", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_trade_account_order_history_query (params = {}): Promise<List> {
-        return this.request ("trade-account/order/history/query", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostTradeAccountOrder (params = {}): Promise<Dict> {
-        return this.request ("trade-account/order", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_trade_account_order (params = {}): Promise<Dict> {
         return this.request ("trade-account/order", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrderCollateralLimit (params = {}): Promise<Dict> {
         return this.request ("order/collateral/limit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_order_collateral_limit (params = {}): Promise<Dict> {
-        return this.request ("order/collateral/limit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostOrderCollateralMarket (params = {}): Promise<Dict> {
-        return this.request ("order/collateral/market", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_order_collateral_market (params = {}): Promise<Dict> {
         return this.request ("order/collateral/market", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrderCollateralStopLimit (params = {}): Promise<Dict> {
         return this.request ("order/collateral/stop-limit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_order_collateral_stop_limit (params = {}): Promise<Dict> {
-        return this.request ("order/collateral/stop-limit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostOrderCollateralTriggerMarket (params = {}): Promise<Dict> {
-        return this.request ("order/collateral/trigger-market", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_order_collateral_trigger_market (params = {}): Promise<Dict> {
         return this.request ("order/collateral/trigger-market", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrderCollateralBulk (params = {}): Promise<List> {
         return this.request ("order/collateral/bulk", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_order_collateral_bulk (params = {}): Promise<List> {
-        return this.request ("order/collateral/bulk", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostOrderNew (params = {}): Promise<Dict> {
-        return this.request ("order/new", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_order_new (params = {}): Promise<Dict> {
         return this.request ("order/new", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrderMarket (params = {}): Promise<Dict> {
         return this.request ("order/market", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_order_market (params = {}): Promise<Dict> {
-        return this.request ("order/market", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostOrderStockMarket (params = {}): Promise<Dict> {
-        return this.request ("order/stock_market", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_order_stock_market (params = {}): Promise<Dict> {
         return this.request ("order/stock_market", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrderStopLimit (params = {}): Promise<Dict> {
         return this.request ("order/stop_limit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_order_stop_limit (params = {}): Promise<Dict> {
-        return this.request ("order/stop_limit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostOrderStopMarket (params = {}): Promise<Dict> {
-        return this.request ("order/stop_market", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_order_stop_market (params = {}): Promise<Dict> {
         return this.request ("order/stop_market", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrderCancel (params = {}): Promise<Dict> {
         return this.request ("order/cancel", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_order_cancel (params = {}): Promise<Dict> {
-        return this.request ("order/cancel", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostOrderCancelAll (params = {}): Promise<List> {
-        return this.request ("order/cancel/all", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_order_cancel_all (params = {}): Promise<List> {
         return this.request ("order/cancel/all", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrderCancelBulk (params = {}): Promise<List> {
         return this.request ("order/cancel/bulk", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_order_cancel_bulk (params = {}): Promise<List> {
-        return this.request ("order/cancel/bulk", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostOrderKillSwitch (params = {}): Promise<Dict> {
-        return this.request ("order/kill-switch", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_order_kill_switch (params = {}): Promise<Dict> {
         return this.request ("order/kill-switch", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrderKillSwitchStatus (params = {}): Promise<List> {
         return this.request ("order/kill-switch/status", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_order_kill_switch_status (params = {}): Promise<List> {
-        return this.request ("order/kill-switch/status", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostOrderBulk (params = {}): Promise<List> {
-        return this.request ("order/bulk", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_order_bulk (params = {}): Promise<List> {
         return this.request ("order/bulk", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrderModify (params = {}): Promise<Dict> {
         return this.request ("order/modify", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_order_modify (params = {}): Promise<Dict> {
-        return this.request ("order/modify", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostOrderConditionalCancel (params = {}): Promise<List> {
-        return this.request ("order/conditional-cancel", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_order_conditional_cancel (params = {}): Promise<List> {
         return this.request ("order/conditional-cancel", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrders (params = {}): Promise<List> {
         return this.request ("orders", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_orders (params = {}): Promise<List> {
-        return this.request ("orders", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostOcoOrders (params = {}): Promise<List> {
-        return this.request ("oco-orders", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_oco_orders (params = {}): Promise<List> {
         return this.request ("oco-orders", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrderCollateralOco (params = {}): Promise<Dict> {
         return this.request ("order/collateral/oco", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_order_collateral_oco (params = {}): Promise<Dict> {
-        return this.request ("order/collateral/oco", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostOrderOcoCancel (params = {}): Promise<Dict> {
-        return this.request ("order/oco-cancel", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_order_oco_cancel (params = {}): Promise<Dict> {
         return this.request ("order/oco-cancel", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostOrderOtoCancel (params = {}): Promise<List> {
         return this.request ("order/oto-cancel", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_order_oto_cancel (params = {}): Promise<List> {
-        return this.request ("order/oto-cancel", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostProfileWebsocketToken (params = {}): Promise<Dict> {
-        return this.request ("profile/websocket_token", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_profile_websocket_token (params = {}): Promise<Dict> {
         return this.request ("profile/websocket_token", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostConvertEstimate (params = {}): Promise<Dict> {
         return this.request ("convert/estimate", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_convert_estimate (params = {}): Promise<Dict> {
-        return this.request ("convert/estimate", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostConvertConfirm (params = {}): Promise<Dict> {
-        return this.request ("convert/confirm", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_convert_confirm (params = {}): Promise<Dict> {
         return this.request ("convert/confirm", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostConvertHistory (params = {}): Promise<Dict> {
         return this.request ("convert/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_convert_history (params = {}): Promise<Dict> {
-        return this.request ("convert/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostSubAccountCreate (params = {}): Promise<Dict> {
-        return this.request ("sub-account/create", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_sub_account_create (params = {}): Promise<Dict> {
         return this.request ("sub-account/create", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostSubAccountDelete (params = {}): Promise<Dict> {
         return this.request ("sub-account/delete", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_sub_account_delete (params = {}): Promise<Dict> {
-        return this.request ("sub-account/delete", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostSubAccountEdit (params = {}): Promise<Dict> {
-        return this.request ("sub-account/edit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_sub_account_edit (params = {}): Promise<Dict> {
         return this.request ("sub-account/edit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostSubAccountList (params = {}): Promise<Dict> {
         return this.request ("sub-account/list", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_sub_account_list (params = {}): Promise<Dict> {
-        return this.request ("sub-account/list", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostSubAccountTransfer (params = {}): Promise<Dict> {
-        return this.request ("sub-account/transfer", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_sub_account_transfer (params = {}): Promise<Dict> {
         return this.request ("sub-account/transfer", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostSubAccountBlock (params = {}): Promise<Dict> {
         return this.request ("sub-account/block", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_sub_account_block (params = {}): Promise<Dict> {
-        return this.request ("sub-account/block", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostSubAccountUnblock (params = {}): Promise<Dict> {
-        return this.request ("sub-account/unblock", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_sub_account_unblock (params = {}): Promise<Dict> {
         return this.request ("sub-account/unblock", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostSubAccountBalances (params = {}): Promise<Dict> {
         return this.request ("sub-account/balances", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_sub_account_balances (params = {}): Promise<Dict> {
-        return this.request ("sub-account/balances", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostSubAccountTransferHistory (params = {}): Promise<Dict> {
-        return this.request ("sub-account/transfer/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_sub_account_transfer_history (params = {}): Promise<Dict> {
         return this.request ("sub-account/transfer/history", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostSubAccountApiKeyCreate (params = {}): Promise<Dict> {
         return this.request ("sub-account/api-key/create", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_sub_account_api_key_create (params = {}): Promise<Dict> {
-        return this.request ("sub-account/api-key/create", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostSubAccountApiKeyEdit (params = {}): Promise<Dict> {
-        return this.request ("sub-account/api-key/edit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_sub_account_api_key_edit (params = {}): Promise<Dict> {
         return this.request ("sub-account/api-key/edit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostSubAccountApiKeyDelete (params = {}): Promise<Dict> {
         return this.request ("sub-account/api-key/delete", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_sub_account_api_key_delete (params = {}): Promise<Dict> {
-        return this.request ("sub-account/api-key/delete", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostSubAccountApiKeyList (params = {}): Promise<Dict> {
-        return this.request ("sub-account/api-key/list", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_sub_account_api_key_list (params = {}): Promise<Dict> {
         return this.request ("sub-account/api-key/list", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostSubAccountApiKeyReset (params = {}): Promise<Dict> {
         return this.request ("sub-account/api-key/reset", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_sub_account_api_key_reset (params = {}): Promise<Dict> {
-        return this.request ("sub-account/api-key/reset", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostSubAccountApiKeyIpAddressList (params = {}): Promise<Dict> {
-        return this.request ("sub-account/api-key/ip-address/list", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_sub_account_api_key_ip_address_list (params = {}): Promise<Dict> {
         return this.request ("sub-account/api-key/ip-address/list", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostSubAccountApiKeyIpAddressCreate (params = {}): Promise<Dict> {
         return this.request ("sub-account/api-key/ip-address/create", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_sub_account_api_key_ip_address_create (params = {}): Promise<Dict> {
-        return this.request ("sub-account/api-key/ip-address/create", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostSubAccountApiKeyIpAddressDelete (params = {}): Promise<Dict> {
-        return this.request ("sub-account/api-key/ip-address/delete", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_sub_account_api_key_ip_address_delete (params = {}): Promise<Dict> {
         return this.request ("sub-account/api-key/ip-address/delete", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMiningRewards (params = {}): Promise<Dict> {
         return this.request ("mining/rewards", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_mining_rewards (params = {}): Promise<Dict> {
-        return this.request ("mining/rewards", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMiningHashrate (params = {}): Promise<Dict> {
-        return this.request ("mining/hashrate", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_mining_hashrate (params = {}): Promise<Dict> {
         return this.request ("mining/hashrate", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMiningPayoutDestination (params = {}): Promise<Dict> {
         return this.request ("mining/payout-destination", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_mining_payout_destination (params = {}): Promise<Dict> {
-        return this.request ("mining/payout-destination", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMiningPayoutDestinationEdit (params = {}): Promise<Dict> {
-        return this.request ("mining/payout-destination/edit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_mining_payout_destination_edit (params = {}): Promise<Dict> {
         return this.request ("mining/payout-destination/edit", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMiningMinersInfo (params = {}): Promise<Dict> {
         return this.request ("mining/miners/info", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_mining_miners_info (params = {}): Promise<Dict> {
-        return this.request ("mining/miners/info", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMiningWorkersNames (params = {}): Promise<Dict> {
-        return this.request ("mining/workers/names", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_mining_workers_names (params = {}): Promise<Dict> {
         return this.request ("mining/workers/names", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMiningWorkersHashrate (params = {}): Promise<Dict> {
         return this.request ("mining/workers/hashrate", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_mining_workers_hashrate (params = {}): Promise<Dict> {
-        return this.request ("mining/workers/hashrate", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMiningWatcherLinksCreate (params = {}): Promise<Dict> {
-        return this.request ("mining/watcher-links/create", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_mining_watcher_links_create (params = {}): Promise<Dict> {
         return this.request ("mining/watcher-links/create", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMiningWatcherLinksList (params = {}): Promise<Dict> {
         return this.request ("mining/watcher-links/list", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_mining_watcher_links_list (params = {}): Promise<Dict> {
-        return this.request ("mining/watcher-links/list", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMiningAccountsCreate (params = {}): Promise<Dict> {
-        return this.request ("mining/accounts/create", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_mining_accounts_create (params = {}): Promise<Dict> {
         return this.request ("mining/accounts/create", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMiningAccounts (params = {}): Promise<Dict> {
         return this.request ("mining/accounts", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_mining_accounts (params = {}): Promise<Dict> {
-        return this.request ("mining/accounts", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostMarketFee (params = {}): Promise<Dict> {
-        return this.request ("market/fee", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_market_fee (params = {}): Promise<Dict> {
         return this.request ("market/fee", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostMarketFeeSingle (params = {}): Promise<Dict> {
         return this.request ("market/fee/single", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_market_fee_single (params = {}): Promise<Dict> {
-        return this.request ("market/fee/single", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostConditionalOrders (params = {}): Promise<Dict> {
-        return this.request ("conditional-orders", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_conditional_orders (params = {}): Promise<Dict> {
         return this.request ("conditional-orders", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     v4PrivatePostTravelRuleVasps (params = {}): Promise<Dict> {
         return this.request ("travel-rule/vasps", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_travel_rule_vasps (params = {}): Promise<Dict> {
-        return this.request ("travel-rule/vasps", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostTravelRuleDepositVerification (params = {}): Promise<Dict> {
         return this.request ("travel-rule/deposit/verification", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    v4_private_post_travel_rule_deposit_verification (params = {}): Promise<Dict> {
-        return this.request ("travel-rule/deposit/verification", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     v4PrivatePostJwt (params = {}): Promise<Dict> {
-        return this.request ("jwt", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    v4_private_post_jwt (params = {}): Promise<Dict> {
         return this.request ("jwt", ["v4","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
 }

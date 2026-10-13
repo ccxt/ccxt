@@ -12,169 +12,85 @@ abstract class Exchange extends _Exchange {
     publicGetMarketExchangeInfo (params = {}): Promise<Dict> {
         return this.request ("market/exchange-info", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_market_exchange_info (params = {}): Promise<Dict> {
-        return this.request ("market/exchange-info", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetMarketInventory (params = {}): Promise<Dict> {
-        return this.request ("market/inventory", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_market_inventory (params = {}): Promise<Dict> {
         return this.request ("market/inventory", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetMarketDataPrices (params = {}): Promise<Dict> {
         return this.request ("market/data/prices", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_market_data_prices (params = {}): Promise<Dict> {
-        return this.request ("market/data/prices", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetMarketDataStats (params = {}): Promise<Dict> {
-        return this.request ("market/data/stats", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_market_data_stats (params = {}): Promise<Dict> {
         return this.request ("market/data/stats", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetMarketDataTrades (params = {}): Promise<Dict> {
         return this.request ("market/data/trades", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_market_data_trades (params = {}): Promise<Dict> {
-        return this.request ("market/data/trades", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetMarketDataKlines (params = {}): Promise<Dict> {
-        return this.request ("market/data/klines", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_market_data_klines (params = {}): Promise<Dict> {
         return this.request ("market/data/klines", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetMarketDataOpenInterest (params = {}): Promise<Dict> {
         return this.request ("market/data/open-interest", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_market_data_open_interest (params = {}): Promise<Dict> {
-        return this.request ("market/data/open-interest", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetMarketDataOrderbook (params = {}): Promise<Dict> {
-        return this.request ("market/data/orderbook", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_market_data_orderbook (params = {}): Promise<Dict> {
         return this.request ("market/data/orderbook", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     publicGetMarketDataFundingRates (params = {}): Promise<Dict> {
         return this.request ("market/data/funding-rates", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
-    public_get_market_data_funding_rates (params = {}): Promise<Dict> {
-        return this.request ("market/data/funding-rates", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
     publicGetExchangeUtcTimestamp (params = {}): Promise<Dict> {
-        return this.request ("exchange/utc-timestamp", "public", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    public_get_exchange_utc_timestamp (params = {}): Promise<Dict> {
         return this.request ("exchange/utc-timestamp", "public", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetCapitalBalance (params = {}): Promise<Dict> {
         return this.request ("capital/balance", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_capital_balance (params = {}): Promise<Dict> {
-        return this.request ("capital/balance", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetCapitalHistory (params = {}): Promise<Dict> {
-        return this.request ("capital/history", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_capital_history (params = {}): Promise<Dict> {
         return this.request ("capital/history", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetCapitalDepositInfo (params = {}): Promise<Dict> {
         return this.request ("capital/deposit-info", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_capital_deposit_info (params = {}): Promise<Dict> {
-        return this.request ("capital/deposit-info", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetTradeAccountInfo (params = {}): Promise<Dict> {
-        return this.request ("trade/account/info", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_trade_account_info (params = {}): Promise<Dict> {
         return this.request ("trade/account/info", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetTradeAccountTrades (params = {}): Promise<Dict> {
         return this.request ("trade/account/trades", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_trade_account_trades (params = {}): Promise<Dict> {
-        return this.request ("trade/account/trades", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetTradeAccountTradingHistory (params = {}): Promise<Dict> {
-        return this.request ("trade/account/trading_history", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_trade_account_trading_history (params = {}): Promise<Dict> {
         return this.request ("trade/account/trading_history", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetTradeAccountSettlementsHistory (params = {}): Promise<Dict> {
         return this.request ("trade/account/settlements_history", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_trade_account_settlements_history (params = {}): Promise<Dict> {
-        return this.request ("trade/account/settlements_history", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetTradeOrders (params = {}): Promise<List> {
-        return this.request ("trade/orders", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_trade_orders (params = {}): Promise<List> {
         return this.request ("trade/orders", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privateGetTradeOrder (params = {}): Promise<Dict> {
         return this.request ("trade/order", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
-    private_get_trade_order (params = {}): Promise<Dict> {
-        return this.request ("trade/order", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
     privateGetTradeOrdersHistory (params = {}): Promise<Dict> {
-        return this.request ("trade/orders/history", "private", 'GET', params, undefined, undefined, {"cost":1});
-    }
-    private_get_trade_orders_history (params = {}): Promise<Dict> {
         return this.request ("trade/orders/history", "private", 'GET', params, undefined, undefined, {"cost":1});
     }
     privatePutTradeOrder (params = {}): Promise<Dict> {
         return this.request ("trade/order", "private", 'PUT', params, undefined, undefined, {"cost":1});
     }
-    private_put_trade_order (params = {}): Promise<Dict> {
-        return this.request ("trade/order", "private", 'PUT', params, undefined, undefined, {"cost":1});
-    }
     privateDeleteTradeOrder (params = {}): Promise<Dict> {
-        return this.request ("trade/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
-    }
-    private_delete_trade_order (params = {}): Promise<Dict> {
         return this.request ("trade/order", "private", 'DELETE', params, undefined, undefined, {"cost":1});
     }
     privateDeleteTradeOrders (params = {}): Promise<Dict> {
         return this.request ("trade/orders", "private", 'DELETE', params, undefined, undefined, {"cost":1});
     }
-    private_delete_trade_orders (params = {}): Promise<Dict> {
-        return this.request ("trade/orders", "private", 'DELETE', params, undefined, undefined, {"cost":1});
-    }
     privatePostTradeOrder (params = {}): Promise<Dict> {
-        return this.request ("trade/order", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_trade_order (params = {}): Promise<Dict> {
         return this.request ("trade/order", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostTradeOrders (params = {}): Promise<Dict> {
         return this.request ("trade/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_trade_orders (params = {}): Promise<Dict> {
-        return this.request ("trade/orders", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostCapitalWithdraw (params = {}): Promise<Dict> {
-        return this.request ("capital/withdraw", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_capital_withdraw (params = {}): Promise<Dict> {
         return this.request ("capital/withdraw", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
     privatePostCapitalTransfer (params = {}): Promise<Dict> {
         return this.request ("capital/transfer", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
-    private_post_capital_transfer (params = {}): Promise<Dict> {
-        return this.request ("capital/transfer", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
     privatePostTradeAccountLeverage (params = {}): Promise<Dict> {
-        return this.request ("trade/account/leverage", "private", 'POST', params, undefined, undefined, {"cost":1});
-    }
-    private_post_trade_account_leverage (params = {}): Promise<Dict> {
         return this.request ("trade/account/leverage", "private", 'POST', params, undefined, undefined, {"cost":1});
     }
 }

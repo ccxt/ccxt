@@ -12,445 +12,223 @@ abstract class Exchange extends _Exchange {
     kalshiPublicGetEvents (params = {}): Promise<Dict> {
         return this.request ("events", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_events (params = {}): Promise<Dict> {
-        return this.request ("events", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetEventsMultivariate (params = {}): Promise<Dict> {
-        return this.request ("events/multivariate", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_events_multivariate (params = {}): Promise<Dict> {
         return this.request ("events/multivariate", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetEventsFeeChanges (params = {}): Promise<Dict> {
         return this.request ("events/fee_changes", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_events_fee_changes (params = {}): Promise<Dict> {
-        return this.request ("events/fee_changes", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetEventsEventTicker (params = {}): Promise<Dict> {
-        return this.request ("events/{event_ticker}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_events_event_ticker (params = {}): Promise<Dict> {
         return this.request ("events/{event_ticker}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetEventsEventTickerMetadata (params = {}): Promise<Dict> {
         return this.request ("events/{event_ticker}/metadata", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_events_event_ticker_metadata (params = {}): Promise<Dict> {
-        return this.request ("events/{event_ticker}/metadata", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetSeries (params = {}): Promise<Dict> {
-        return this.request ("series", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_series (params = {}): Promise<Dict> {
         return this.request ("series", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetSeriesFeeChanges (params = {}): Promise<Dict> {
         return this.request ("series/fee_changes", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_series_fee_changes (params = {}): Promise<Dict> {
-        return this.request ("series/fee_changes", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetSeriesSeriesTicker (params = {}): Promise<Dict> {
-        return this.request ("series/{series_ticker}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_series_series_ticker (params = {}): Promise<Dict> {
         return this.request ("series/{series_ticker}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (params = {}): Promise<Dict> {
         return this.request ("series/{series_ticker}/markets/{ticker}/candlesticks", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_series_series_ticker_markets_ticker_candlesticks (params = {}): Promise<Dict> {
-        return this.request ("series/{series_ticker}/markets/{ticker}/candlesticks", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks (params = {}): Promise<Dict> {
-        return this.request ("series/{series_ticker}/events/{ticker}/candlesticks", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_series_series_ticker_events_ticker_candlesticks (params = {}): Promise<Dict> {
         return this.request ("series/{series_ticker}/events/{ticker}/candlesticks", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory (params = {}): Promise<Dict> {
         return this.request ("series/{series_ticker}/events/{ticker}/forecast_percentile_history", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_series_series_ticker_events_ticker_forecast_percentile_history (params = {}): Promise<Dict> {
-        return this.request ("series/{series_ticker}/events/{ticker}/forecast_percentile_history", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetMarkets (params = {}): Promise<Dict> {
-        return this.request ("markets", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_markets (params = {}): Promise<Dict> {
         return this.request ("markets", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetMarketsTrades (params = {}): Promise<Dict> {
         return this.request ("markets/trades", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_markets_trades (params = {}): Promise<Dict> {
-        return this.request ("markets/trades", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetMarketsOrderbooks (params = {}): Promise<Dict> {
-        return this.request ("markets/orderbooks", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_markets_orderbooks (params = {}): Promise<Dict> {
         return this.request ("markets/orderbooks", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetMarketsCandlesticks (params = {}): Promise<Dict> {
         return this.request ("markets/candlesticks", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_markets_candlesticks (params = {}): Promise<Dict> {
-        return this.request ("markets/candlesticks", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetMarketsTicker (params = {}): Promise<Dict> {
-        return this.request ("markets/{ticker}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_markets_ticker (params = {}): Promise<Dict> {
         return this.request ("markets/{ticker}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetMarketsTickerOrderbook (params = {}): Promise<Dict> {
         return this.request ("markets/{ticker}/orderbook", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_markets_ticker_orderbook (params = {}): Promise<Dict> {
-        return this.request ("markets/{ticker}/orderbook", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetExchangeStatus (params = {}): Promise<Dict> {
-        return this.request ("exchange/status", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_exchange_status (params = {}): Promise<Dict> {
         return this.request ("exchange/status", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetExchangeSchedule (params = {}): Promise<Dict> {
         return this.request ("exchange/schedule", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_exchange_schedule (params = {}): Promise<Dict> {
-        return this.request ("exchange/schedule", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetExchangeAnnouncements (params = {}): Promise<Dict> {
-        return this.request ("exchange/announcements", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_exchange_announcements (params = {}): Promise<Dict> {
         return this.request ("exchange/announcements", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetExchangeUserDataTimestamp (params = {}): Promise<Dict> {
         return this.request ("exchange/user_data_timestamp", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_exchange_user_data_timestamp (params = {}): Promise<Dict> {
-        return this.request ("exchange/user_data_timestamp", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetMilestones (params = {}): Promise<Dict> {
-        return this.request ("milestones", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_milestones (params = {}): Promise<Dict> {
         return this.request ("milestones", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetMilestonesMilestoneId (params = {}): Promise<Dict> {
         return this.request ("milestones/{milestone_id}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_milestones_milestone_id (params = {}): Promise<Dict> {
-        return this.request ("milestones/{milestone_id}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetStructuredTargets (params = {}): Promise<Dict> {
-        return this.request ("structured_targets", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_structured_targets (params = {}): Promise<Dict> {
         return this.request ("structured_targets", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetStructuredTargetsStructuredTargetId (params = {}): Promise<Dict> {
         return this.request ("structured_targets/{structured_target_id}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_structured_targets_structured_target_id (params = {}): Promise<Dict> {
-        return this.request ("structured_targets/{structured_target_id}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetSearchFiltersBySport (params = {}): Promise<Dict> {
-        return this.request ("search/filters_by_sport", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_search_filters_by_sport (params = {}): Promise<Dict> {
         return this.request ("search/filters_by_sport", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetSearchTagsByCategories (params = {}): Promise<Dict> {
         return this.request ("search/tags_by_categories", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_search_tags_by_categories (params = {}): Promise<Dict> {
-        return this.request ("search/tags_by_categories", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetLiveDataBatch (params = {}): Promise<Dict> {
-        return this.request ("live_data/batch", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_live_data_batch (params = {}): Promise<Dict> {
         return this.request ("live_data/batch", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetLiveDataMilestoneMilestoneId (params = {}): Promise<Dict> {
         return this.request ("live_data/milestone/{milestone_id}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_live_data_milestone_milestone_id (params = {}): Promise<Dict> {
-        return this.request ("live_data/milestone/{milestone_id}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetHistoricalMarkets (params = {}): Promise<Dict> {
-        return this.request ("historical/markets", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_historical_markets (params = {}): Promise<Dict> {
         return this.request ("historical/markets", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetHistoricalMarketsTickerCandlesticks (params = {}): Promise<Dict> {
         return this.request ("historical/markets/{ticker}/candlesticks", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_historical_markets_ticker_candlesticks (params = {}): Promise<Dict> {
-        return this.request ("historical/markets/{ticker}/candlesticks", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetHistoricalTrades (params = {}): Promise<Dict> {
-        return this.request ("historical/trades", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_historical_trades (params = {}): Promise<Dict> {
         return this.request ("historical/trades", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetHistoricalCutoffTimestamps (params = {}): Promise<Dict> {
         return this.request ("historical/cutoff_timestamps", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_historical_cutoff_timestamps (params = {}): Promise<Dict> {
-        return this.request ("historical/cutoff_timestamps", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetMultivariateEventCollections (params = {}): Promise<Dict> {
-        return this.request ("multivariate_event_collections", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_multivariate_event_collections (params = {}): Promise<Dict> {
         return this.request ("multivariate_event_collections", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetMultivariateEventCollectionsCollectionTicker (params = {}): Promise<Dict> {
         return this.request ("multivariate_event_collections/{collection_ticker}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_multivariate_event_collections_collection_ticker (params = {}): Promise<Dict> {
-        return this.request ("multivariate_event_collections/{collection_ticker}", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (params = {}): Promise<Dict> {
-        return this.request ("multivariate_event_collections/{collection_ticker}/lookup", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_public_get_multivariate_event_collections_collection_ticker_lookup (params = {}): Promise<Dict> {
         return this.request ("multivariate_event_collections/{collection_ticker}/lookup", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPublicGetIncentivePrograms (params = {}): Promise<Dict> {
         return this.request ("incentive_programs", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_public_get_incentive_programs (params = {}): Promise<Dict> {
-        return this.request ("incentive_programs", ["kalshi","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivateGetPortfolioBalance (params = {}): Promise<Dict> {
-        return this.request ("portfolio/balance", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_get_portfolio_balance (params = {}): Promise<Dict> {
         return this.request ("portfolio/balance", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivateGetPortfolioOrders (params = {}): Promise<Dict> {
         return this.request ("portfolio/orders", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_get_portfolio_orders (params = {}): Promise<Dict> {
-        return this.request ("portfolio/orders", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivateGetPortfolioOrdersOrderId (params = {}): Promise<Dict> {
-        return this.request ("portfolio/orders/{order_id}", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_get_portfolio_orders_order_id (params = {}): Promise<Dict> {
         return this.request ("portfolio/orders/{order_id}", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition (params = {}): Promise<Dict> {
         return this.request ("portfolio/orders/{order_id}/queue_position", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_get_portfolio_orders_order_id_queue_position (params = {}): Promise<Dict> {
-        return this.request ("portfolio/orders/{order_id}/queue_position", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivateGetPortfolioOrdersQueuePositions (params = {}): Promise<Dict> {
-        return this.request ("portfolio/orders/queue_positions", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_get_portfolio_orders_queue_positions (params = {}): Promise<Dict> {
         return this.request ("portfolio/orders/queue_positions", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivateGetPortfolioPositions (params = {}): Promise<Dict> {
         return this.request ("portfolio/positions", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_get_portfolio_positions (params = {}): Promise<Dict> {
-        return this.request ("portfolio/positions", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivateGetPortfolioFills (params = {}): Promise<Dict> {
-        return this.request ("portfolio/fills", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_get_portfolio_fills (params = {}): Promise<Dict> {
         return this.request ("portfolio/fills", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivateGetPortfolioSettlements (params = {}): Promise<Dict> {
         return this.request ("portfolio/settlements", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_get_portfolio_settlements (params = {}): Promise<Dict> {
-        return this.request ("portfolio/settlements", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivateGetPortfolioDeposits (params = {}): Promise<Dict> {
-        return this.request ("portfolio/deposits", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_get_portfolio_deposits (params = {}): Promise<Dict> {
         return this.request ("portfolio/deposits", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivateGetPortfolioWithdrawals (params = {}): Promise<Dict> {
         return this.request ("portfolio/withdrawals", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_get_portfolio_withdrawals (params = {}): Promise<Dict> {
-        return this.request ("portfolio/withdrawals", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivateGetPortfolioOrderGroups (params = {}): Promise<Dict> {
-        return this.request ("portfolio/order_groups", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_get_portfolio_order_groups (params = {}): Promise<Dict> {
         return this.request ("portfolio/order_groups", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivateGetPortfolioOrderGroupsOrderGroupId (params = {}): Promise<Dict> {
         return this.request ("portfolio/order_groups/{order_group_id}", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_get_portfolio_order_groups_order_group_id (params = {}): Promise<Dict> {
-        return this.request ("portfolio/order_groups/{order_group_id}", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue (params = {}): Promise<Dict> {
-        return this.request ("portfolio/summary/total_resting_order_value", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_get_portfolio_summary_total_resting_order_value (params = {}): Promise<Dict> {
         return this.request ("portfolio/summary/total_resting_order_value", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivateGetPortfolioSubaccountsBalances (params = {}): Promise<Dict> {
         return this.request ("portfolio/subaccounts/balances", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_get_portfolio_subaccounts_balances (params = {}): Promise<Dict> {
-        return this.request ("portfolio/subaccounts/balances", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivateGetPortfolioSubaccountsNetting (params = {}): Promise<Dict> {
-        return this.request ("portfolio/subaccounts/netting", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_get_portfolio_subaccounts_netting (params = {}): Promise<Dict> {
         return this.request ("portfolio/subaccounts/netting", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivateGetPortfolioSubaccountsTransfers (params = {}): Promise<Dict> {
         return this.request ("portfolio/subaccounts/transfers", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_get_portfolio_subaccounts_transfers (params = {}): Promise<Dict> {
-        return this.request ("portfolio/subaccounts/transfers", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivateGetHistoricalFills (params = {}): Promise<Dict> {
-        return this.request ("historical/fills", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_get_historical_fills (params = {}): Promise<Dict> {
         return this.request ("historical/fills", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivateGetHistoricalOrders (params = {}): Promise<Dict> {
         return this.request ("historical/orders", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_get_historical_orders (params = {}): Promise<Dict> {
-        return this.request ("historical/orders", ["kalshi","private"], 'GET', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivatePostPortfolioOrders (params = {}): Promise<Dict> {
-        return this.request ("portfolio/orders", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_post_portfolio_orders (params = {}): Promise<Dict> {
         return this.request ("portfolio/orders", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivatePostPortfolioEventsOrders (params = {}): Promise<Dict> {
         return this.request ("portfolio/events/orders", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_post_portfolio_events_orders (params = {}): Promise<Dict> {
-        return this.request ("portfolio/events/orders", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivatePostPortfolioOrdersBatched (params = {}): Promise<Dict> {
-        return this.request ("portfolio/orders/batched", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_post_portfolio_orders_batched (params = {}): Promise<Dict> {
         return this.request ("portfolio/orders/batched", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivatePostPortfolioOrdersOrderIdAmend (params = {}): Promise<Dict> {
         return this.request ("portfolio/orders/{order_id}/amend", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_post_portfolio_orders_order_id_amend (params = {}): Promise<Dict> {
-        return this.request ("portfolio/orders/{order_id}/amend", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivatePostPortfolioOrdersOrderIdDecrease (params = {}): Promise<Dict> {
-        return this.request ("portfolio/orders/{order_id}/decrease", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_post_portfolio_orders_order_id_decrease (params = {}): Promise<Dict> {
         return this.request ("portfolio/orders/{order_id}/decrease", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivatePostPortfolioOrderGroupsCreate (params = {}): Promise<Dict> {
         return this.request ("portfolio/order_groups/create", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_post_portfolio_order_groups_create (params = {}): Promise<Dict> {
-        return this.request ("portfolio/order_groups/create", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivatePostPortfolioSubaccounts (params = {}): Promise<Dict> {
-        return this.request ("portfolio/subaccounts", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_post_portfolio_subaccounts (params = {}): Promise<Dict> {
         return this.request ("portfolio/subaccounts", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivatePostPortfolioSubaccountsTransfer (params = {}): Promise<Dict> {
         return this.request ("portfolio/subaccounts/transfer", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_post_portfolio_subaccounts_transfer (params = {}): Promise<Dict> {
-        return this.request ("portfolio/subaccounts/transfer", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivatePostMultivariateEventCollectionsCollectionTicker (params = {}): Promise<Dict> {
-        return this.request ("multivariate_event_collections/{collection_ticker}", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_post_multivariate_event_collections_collection_ticker (params = {}): Promise<Dict> {
         return this.request ("multivariate_event_collections/{collection_ticker}", ["kalshi","private"], 'POST', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset (params = {}): Promise<Dict> {
         return this.request ("portfolio/order_groups/{order_group_id}/reset", ["kalshi","private"], 'PUT', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_put_portfolio_order_groups_order_group_id_reset (params = {}): Promise<Dict> {
-        return this.request ("portfolio/order_groups/{order_group_id}/reset", ["kalshi","private"], 'PUT', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger (params = {}): Promise<Dict> {
-        return this.request ("portfolio/order_groups/{order_group_id}/trigger", ["kalshi","private"], 'PUT', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_put_portfolio_order_groups_order_group_id_trigger (params = {}): Promise<Dict> {
         return this.request ("portfolio/order_groups/{order_group_id}/trigger", ["kalshi","private"], 'PUT', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit (params = {}): Promise<Dict> {
         return this.request ("portfolio/order_groups/{order_group_id}/limit", ["kalshi","private"], 'PUT', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_put_portfolio_order_groups_order_group_id_limit (params = {}): Promise<Dict> {
-        return this.request ("portfolio/order_groups/{order_group_id}/limit", ["kalshi","private"], 'PUT', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivatePutPortfolioSubaccountsNetting (params = {}): Promise<Dict> {
-        return this.request ("portfolio/subaccounts/netting", ["kalshi","private"], 'PUT', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_put_portfolio_subaccounts_netting (params = {}): Promise<Dict> {
         return this.request ("portfolio/subaccounts/netting", ["kalshi","private"], 'PUT', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (params = {}): Promise<Dict> {
         return this.request ("multivariate_event_collections/{collection_ticker}/lookup", ["kalshi","private"], 'PUT', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_put_multivariate_event_collections_collection_ticker_lookup (params = {}): Promise<Dict> {
-        return this.request ("multivariate_event_collections/{collection_ticker}/lookup", ["kalshi","private"], 'PUT', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivateDeletePortfolioOrdersOrderId (params = {}): Promise<Dict> {
-        return this.request ("portfolio/orders/{order_id}", ["kalshi","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_delete_portfolio_orders_order_id (params = {}): Promise<Dict> {
         return this.request ("portfolio/orders/{order_id}", ["kalshi","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivateDeletePortfolioOrdersBatched (params = {}): Promise<Dict> {
         return this.request ("portfolio/orders/batched", ["kalshi","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_delete_portfolio_orders_batched (params = {}): Promise<Dict> {
-        return this.request ("portfolio/orders/batched", ["kalshi","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
     kalshiPrivateDeletePortfolioEventsOrdersOrderId (params = {}): Promise<Dict> {
-        return this.request ("portfolio/events/orders/{order_id}", ["kalshi","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
-    kalshi_private_delete_portfolio_events_orders_order_id (params = {}): Promise<Dict> {
         return this.request ("portfolio/events/orders/{order_id}", ["kalshi","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
     kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId (params = {}): Promise<Dict> {
         return this.request ("portfolio/order_groups/{order_group_id}", ["kalshi","private"], 'DELETE', params, undefined, undefined, {"cost":1});
     }
-    kalshi_private_delete_portfolio_order_groups_order_group_id (params = {}): Promise<Dict> {
-        return this.request ("portfolio/order_groups/{order_group_id}", ["kalshi","private"], 'DELETE', params, undefined, undefined, {"cost":1});
-    }
     electionsPublicGetSearchSeries (params = {}): Promise<Dict> {
-        return this.request ("search/series", ["elections","public"], 'GET', params, undefined, undefined, {"cost":1});
-    }
-    elections_public_get_search_series (params = {}): Promise<Dict> {
         return this.request ("search/series", ["elections","public"], 'GET', params, undefined, undefined, {"cost":1});
     }
 }
