@@ -617,18 +617,18 @@ export class BaseExchange {
                 this[property] = value;
             }
         }
-        // generate old metainfo interface
-        const hasKeys = Object.keys (this.has);
-        for (let i = 0; i < hasKeys.length; i++) {
-            const k = hasKeys[i];
-            this['has' + this.capitalize (k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
-        }
         // generate implicit api
         if (this.api !== undefined) {
             this.defineRestApi (this.api, 'request');
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
         this.afterConstruct ();
+        // generate old metainfo interface
+        const hasKeys = Object.keys (this.has);
+        for (let i = 0; i < hasKeys.length; i++) {
+            const k = hasKeys[i];
+            this['has' + this.capitalize (k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
+        }
         if ((this.safeBool (userConfig, 'sandbox', false)) || (this.safeBool (userConfig, 'testnet', false))) {
             this.setSandboxMode (true);
         }
