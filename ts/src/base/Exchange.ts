@@ -4112,7 +4112,7 @@ export class BaseExchange {
     }
 
     hasAutocorrect () {
-        if (this.has['fetchOrderBook'] !== undefined) {
+        if (this.has['fetchOrderBook'] !== undefined && this.has['fetchL2OrderBook'] === undefined) {
             this.has['fetchL2OrderBook'] = this.has['fetchOrderBook'];
         }
         if (this.has['createLimitOrder'] === undefined && this.has['createOrder'] !== undefined) {
