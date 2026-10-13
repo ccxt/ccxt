@@ -324,8 +324,6 @@ export declare class BaseExchange {
     getCcxtVersion(): string;
     throttle(cost?: Num): any;
     initThrottler(): void;
-    defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
-    defineRestApi(api: any, methodName: any, paths?: string[]): void;
     log(...args: any[]): void;
     loadProxyModules(): Promise<any>;
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
