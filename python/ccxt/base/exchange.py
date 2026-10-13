@@ -123,7 +123,9 @@ class BaseExchange(object):
     trust_env = False
     aiohttp_trust_env = False
     requests_trust_env = False
-    session = None  # Session () by default
+    _session = None  # exposed via the lazy `session` property
+    # describe() keys never written by library code: shared across instances, treat as read-only
+    _describe_shared_keys = ('api', 'has', 'exceptions', 'httpExceptions', 'timeframes')
     tcp_connector = None  # aiohttp.TCPConnector
     aiohttp_socks_connector = None
     socks_proxy_sessions = None
@@ -384,10 +386,14 @@ class BaseExchange(object):
         self.origin = self.uuid()
         self.userAgent = default_user_agent()
 
-        settings = self.deep_extend(self.describe(), config)
+        cached, shared = self._describe_cached()
+        settings = {k: (v if k in shared else self._copy_tree(v)) for k, v in cached.items()}
+        settings = self.deep_extend(settings, config)
 
         for key in settings:
-            if hasattr(self, key) and isinstance(getattr(self, key), dict):
+            if key in shared and key not in config:
+                setattr(self, key, shared[key])
+            elif hasattr(self, key) and isinstance(getattr(self, key), dict):
                 setattr(self, key, self.deep_extend(getattr(self, key), settings[key]))
             else:
                 setattr(self, key, settings[key])
@@ -413,19 +419,50 @@ class BaseExchange(object):
                 if isinstance(attr, types.MethodType):
                     setattr(cls, camelcase, getattr(cls, name))
                 else:
+                    if getattr(cls, camelcase, None) is attr and attr is getattr(cls, name, None):
+                        continue  # static class table (ecdsa_curves etc.): already shared via the class
                     if hasattr(self, camelcase):
                         if attr is not None:
                             setattr(self, camelcase, attr)
                     else:
                         setattr(self, camelcase, attr)
 
-        if not self.session and self.synchronous:
-            # requests/urllib3 connects via socket.create_connection, which resolves
-            # with AF_UNSPEC and tries IPv4 and IPv6 addresses in getaddrinfo order,
-            # so the default Session is already dual-stack (no family is forced here)
-            self.session = Session()
-            self.session.trust_env = self.requests_trust_env
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
+
+    @property
+    def session(self):
+        # sync requests.Session is created on first use; the async base assigns its own
+        if self._session is None and self.synchronous:
+            self._session = Session()  # dual-stack: urllib3 resolves with AF_UNSPEC
+            self._session.trust_env = self.requests_trust_env
+        return self._session
+
+    @session.setter
+    def session(self, value):
+        self._session = value
+
+    @staticmethod
+    def _copy_tree(value):
+        if isinstance(value, dict):
+            return {k: BaseExchange._copy_tree(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [BaseExchange._copy_tree(v) for v in value]
+        return value
+
+    def _describe_cached(self):
+        # describe() is pure per class: build it once; read-only subtrees are shared by every instance
+        cls = type(self)
+        entry = cls.__dict__.get('_describe_cache')
+        if entry is None:
+            cached = self.describe()
+            shared = {}
+            for key in self._describe_shared_keys:
+                if key in cached:
+                    base = getattr(cls, key, None)
+                    shared[key] = self.deep_extend(base, cached[key]) if isinstance(base, dict) else cached[key]
+            entry = (cached, shared)
+            setattr(cls, '_describe_cache', entry)
+        return entry
 
     def __del__(self):
         self.close()
@@ -1701,6 +1738,8 @@ class BaseExchange(object):
         48: hashes.SHA384,
         64: hashes.SHA512,
     }
+    ecdsaCurves = ecdsa_curves  # camelCase twins live on the class, not on each instance
+    ecdsaPrehashedAlgorithms = ecdsa_prehashed_algorithms
 
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
@@ -2191,9 +2230,9 @@ class BaseExchange(object):
         # [REST]
         if clean_instance_data:
             self.clean_rest_data()
-        if self.session:
+        if self._session:
             try:
-                self.session.close()
+                self._session.close()
             except Exception as e:
                 pass
 
