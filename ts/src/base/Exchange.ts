@@ -40,6 +40,8 @@ import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
 import { Future, type FutureInterface } from './ws/Future.js';
 import { WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+
+const implicitApiTables = new WeakMap<any, any[]> ();
 // ----------------------------------------------------------------------------
 //
 // import types
@@ -625,7 +627,11 @@ export class BaseExchange {
         }
         // generate implicit api
         if (this.api !== undefined) {
-            this.defineRestApi (this.api, 'request');
+            if ('api' in userConfig) {
+                this.defineRestApi (this.api, 'request');
+            } else {
+                this.defineRestApiFromTable ('request');
+            }
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
         this.afterConstruct ();
@@ -692,7 +698,7 @@ export class BaseExchange {
         this.throttler = new Throttler (this.tokenBucket);
     }
 
-    defineRestApiEndpoint (methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config = {}) {
+    defineRestApiEndpoint (methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config = {}, table: any[] | undefined = undefined, apiKey: Str = undefined, endpointKey: Str = undefined) {
         const splitPath = path.split (/[^a-zA-Z0-9]/);
         const camelcaseSuffix = splitPath.map (this.capitalize).join ('');
         const underscoreSuffix = splitPath.map ((x: string) => x.trim ().toLowerCase ()).filter ((x: string) => x.length > 0).join ('_');
@@ -701,6 +707,12 @@ export class BaseExchange {
         const camelcase = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix);
         const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix;
         const typeArgument = (paths.length > 1) ? paths : paths[0];
+        if (table !== undefined) {
+            // collecting the per-class table: the config is looked up again in the instance's own
+            // api block when the methods are attached, so each instance keeps its own config objects
+            table.push ({ 'camelcase': camelcase, 'underscore': underscore, 'path': path, 'typeArgument': typeArgument, 'uppercaseMethod': uppercaseMethod, 'paths': paths, 'apiKey': apiKey, 'endpointKey': endpointKey });
+            return;
+        }
         // handle call costs here
         const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context);
         // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
@@ -708,7 +720,37 @@ export class BaseExchange {
         this[underscore] = partial;
     }
 
-    defineRestApi (api: any, methodName: any, paths: string[] = []) {
+    defineRestApiFromTable (methodName: any) {
+        const cls = this.constructor;
+        let table = implicitApiTables.get (cls);
+        if (table === undefined) {
+            table = [];
+            this.defineRestApi (this.api, methodName, [], table);
+            implicitApiTables.set (cls, table);
+        }
+        for (let i = 0; i < table.length; i++) {
+            const entry = table[i];
+            let node = this.api;
+            const entryPaths = entry['paths'];
+            for (let j = 0; j < entryPaths.length; j++) {
+                node = node[entryPaths[j]];
+            }
+            const value = node[entry['apiKey']];
+            let config = {};
+            if (!Array.isArray (value)) {
+                const endpointConfig = value[entry['endpointKey']];
+                config = (typeof endpointConfig === 'number') ? { 'cost': endpointConfig } : endpointConfig;
+            }
+            const path = entry['path'];
+            const typeArgument = entry['typeArgument'];
+            const uppercaseMethod = entry['uppercaseMethod'];
+            const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context);
+            this[entry['camelcase']] = partial;
+            this[entry['underscore']] = partial;
+        }
+    }
+
+    defineRestApi (api: any, methodName: any, paths: string[] = [], table: any[] | undefined = undefined) {
         const keys = Object.keys (api);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -719,7 +761,7 @@ export class BaseExchange {
             if (Array.isArray (value)) {
                 for (let k = 0; k < value.length; k++) {
                     const path = value[k].trim ();
-                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths);
+                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, {}, table, key, value[k]);
                 }
             // the options HTTP method conflicts with the 'options' API url path
             // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
@@ -730,15 +772,15 @@ export class BaseExchange {
                     const path = endpoint.trim ();
                     const config = value[endpoint];
                     if (typeof config === 'object') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config);
+                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config, table, key, endpoint);
                     } else if (typeof config === 'number') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { 'cost': config });
+                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { 'cost': config }, table, key, endpoint);
                     } else {
                         throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
                     }
                 }
             } else {
-                this.defineRestApi (value, methodName, paths.concat ([ key ]));
+                this.defineRestApi (value, methodName, paths.concat ([ key ]), table);
             }
         }
     }
