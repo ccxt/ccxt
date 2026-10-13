@@ -364,8 +364,22 @@ public class BaseExchange {
         this.initHttpClient();
         this.httpClientProxyFingerprint = currentProxyFingerprint();
         this.afterConstruct();
-        this.transformApiNew(this.api, new ArrayList<>());
+        boolean customApi = userConfig instanceof Map && ((Map<?, ?>) userConfig).containsKey("api");
+        if (customApi) {
+            this.transformApiNew(this.api, new ArrayList<>());
+        } else {
+            // endpoint table depends only on the class's describe()['api']: build once, share read-only
+            this.transformedApi = TRANSFORMED_API_CACHE.computeIfAbsent(this.getClass(), c -> {
+                this.transformApiNew(this.api, new ArrayList<>());
+                return java.util.Collections.unmodifiableMap(this.transformedApi);
+            });
+        }
     }
+
+    private static final java.util.concurrent.ConcurrentHashMap<Class<?>, Map<String, Object>> TRANSFORMED_API_CACHE =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.concurrent.ConcurrentHashMap<String, HttpClient> SHARED_HTTP_CLIENTS =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     // add to derived files constructor that calls base constructor with userConfig
     public BaseExchange (Object userConfig) {
@@ -379,7 +393,10 @@ public class BaseExchange {
     public void initializeProperties(Map<String, Object> userConfig) {
 
         var properties = this.describe();
-        Map<String, Object> extendedProperties = this.deepExtend(properties, userConfig);
+        // describe() already returns a fresh tree; only merge when the user passed config
+        Map<String, Object> extendedProperties = (userConfig == null || userConfig.isEmpty())
+                ? (Map<String, Object>) properties
+                : this.deepExtend(properties, userConfig);
 
         this.version = SafeMethods.SafeStringTyped(extendedProperties, "version", "");
 
@@ -591,8 +608,8 @@ public class BaseExchange {
                         apiObj = null; // defensive; original C# would blow up here
                     }
 
-                    Map<String, Object> entry = new HashMap<>();
-                    entry.put("method", key.toUpperCase());
+                    Map<String, Object> entry = new HashMap<>(8);
+                    entry.put("method", key.toUpperCase().intern());
                     entry.put("path", endpoint);
                     entry.put("api", apiObj);
                     entry.put("cost", cost);
@@ -2158,6 +2175,11 @@ public class BaseExchange {
     }
 
     private void initHttpClient() {
+        // one HttpClient (one SelectorManager thread + pool) per proxy fingerprint, shared JVM-wide
+        this.httpClient = SHARED_HTTP_CLIENTS.computeIfAbsent(currentProxyFingerprint(), fp -> buildHttpClient());
+    }
+
+    private HttpClient buildHttpClient() {
         // HttpClient uses JVM default dual-stack DNS (no preferIPv4Stack).
         var builder = HttpClient.newBuilder();
         // Java's HttpClient defaults to Redirect.NEVER, but TS/Node fetch and
@@ -2167,14 +2189,14 @@ public class BaseExchange {
         // parsers (fetchCurrenciesFromWeb populating options['tradingPairs'])
         // empty-handed and silently degrading market metadata.
         builder.followRedirects(HttpClient.Redirect.NORMAL);
+        builder.executor(VIRTUAL_EXECUTOR);
 
         boolean httpsProxySet = this.httpsProxy != null && !this.httpsProxy.toString().isEmpty();
         boolean httpProxySet = this.httpProxy != null && !this.httpProxy.toString().isEmpty();
         boolean socksProxySet = this.socksProxy != null && !this.socksProxy.toString().isEmpty();
 
         if (!httpsProxySet && !httpProxySet && !socksProxySet) {
-            this.httpClient = builder.build();
-            return;
+            return builder.build();
         }
 
         if (socksProxySet) {
@@ -2202,7 +2224,7 @@ public class BaseExchange {
             builder.proxy(java.net.ProxySelector.of(new java.net.InetSocketAddress(host, port)));
         }
 
-        this.httpClient = builder.build();
+        return builder.build();
     }
 
     public CompletableFuture<Object> fetch(Object url2, Object method2, Object headers2, Object body2) {
