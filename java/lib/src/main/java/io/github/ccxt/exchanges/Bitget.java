@@ -3689,7 +3689,7 @@ public class Bitget extends BitgetApi
                 Boolean accountIsUTa = false;
                 try
                 {
-                    (this.privateUtaGetV3AccountSettings()).join();
+                    (this.privateUtaGetV3AccountSettings(new HashMap<String, Object>() {{}})).join();
                     accountIsUTa = true;
                 } catch(Exception e)
                 {

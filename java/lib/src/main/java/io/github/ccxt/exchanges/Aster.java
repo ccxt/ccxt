@@ -5352,7 +5352,7 @@ public class Aster extends AsterApi
             {
                 return true;  // skip if builder fee is already approved
             }
-            List<Object> result = (this.fapiPrivateGetV3Builder()).join();
+            List<Object> result = (this.fapiPrivateGetV3Builder(new HashMap<String, Object>() {{}})).join();
             //
             //    [
             //        {

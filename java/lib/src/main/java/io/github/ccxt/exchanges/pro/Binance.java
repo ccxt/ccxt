@@ -1702,7 +1702,6 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         });
 
     }
-    // waiters retry and the next caller re-leads
     public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
         return this.unWatchTrades(symbol, (Object) (parameters));

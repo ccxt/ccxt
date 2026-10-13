@@ -1864,7 +1864,7 @@ public class Binance extends BinanceApi
                 return cachedWallet;
             }
             String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "walletAddress", this.walletAddress)).get(0);
-            Map<String, Object> response = (this.sapiPrivateGetWalletList()).join();
+            Map<String, Object> response = (this.sapiPrivateGetWalletList(new HashMap<String, Object>() {{}})).join();
             //
             // {
             //     "wallets": [

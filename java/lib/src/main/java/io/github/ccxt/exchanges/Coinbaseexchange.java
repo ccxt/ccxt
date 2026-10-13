@@ -2617,7 +2617,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Object accounts = this.safeValue(this.options, "coinbaseAccounts");
             if (java.util.Objects.equals(accounts, null))
             {
-                accounts = (this.privateGetCoinbaseAccounts()).join();
+                accounts = (this.privateGetCoinbaseAccounts(new HashMap<String, Object>() {{}})).join();
                 Helpers.addElementToObject(this.options, "coinbaseAccounts", accounts); // cache it
                 Helpers.addElementToObject(this.options, "coinbaseAccountsByCurrencyId", this.indexBy(accounts, "currency"));
             }

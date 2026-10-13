@@ -1849,7 +1849,7 @@ public class Paradex extends ParadexApi
             {
                 return cachedConfig;
             }
-            Map<String, Object> response = (this.publicGetSystemConfig()).join();
+            Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
             //
             // {
             //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
@@ -2986,7 +2986,7 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> response = (this.privateGetBalance()).join();
+            Map<String, Object> response = (this.privateGetBalance(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //         "results": [
@@ -3152,7 +3152,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Map<String, Object> response = (this.privateGetPositions()).join();
+            Map<String, Object> response = (this.privateGetPositions(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //         "results": [

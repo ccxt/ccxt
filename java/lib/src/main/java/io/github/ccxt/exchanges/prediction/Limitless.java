@@ -3649,7 +3649,7 @@ public class Limitless extends LimitlessApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> categoriesResponse = (this.limitlessPublicGetCategories()).join();
+            List<Object> categoriesResponse = (this.limitlessPublicGetCategories(new HashMap<String, Object>() {{}})).join();
             List<Object> categories = new ArrayList<Object>(Arrays.asList());
             if ((categoriesResponse instanceof List))
             {

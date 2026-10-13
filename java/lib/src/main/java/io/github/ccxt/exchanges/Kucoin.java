@@ -2810,7 +2810,7 @@ public class Kucoin extends KucoinApi
 
             if (!(((Map<?, ?>)this.options).containsKey("hf")) || (java.util.Objects.equals(this.options.get("hf"), null)) || java.util.Objects.requireNonNullElse(force, false))
             {
-                Map<String, Object> result = (this.privateGetHfAccountsOpened()).join();
+                Map<String, Object> result = (this.privateGetHfAccountsOpened(new HashMap<String, Object>() {{}})).join();
                 Helpers.addElementToObject(this.options, "hf", this.safeBool(result, "data", (Object) null));
             }
             return true;

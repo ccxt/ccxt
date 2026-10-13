@@ -2746,7 +2746,7 @@ public class Gate extends GateApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> underlyingsResponse = (this.publicOptionsGetUnderlyings()).join();
+            List<Object> underlyingsResponse = (this.publicOptionsGetUnderlyings(new HashMap<String, Object>() {{}})).join();
             //
             //    [
             //        {

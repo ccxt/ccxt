@@ -288,7 +288,7 @@ public class Btcbox extends BtcboxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object promise1 = this.publicGetTickers();
+            Object promise1 = this.publicGetTickers(new HashMap<String, Object>() {{}});
             Object promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true, (String) null, (String) null);
             var response1response2Variable = (CompletableFuture.allOf(((CompletableFuture<?>) promise1), ((CompletableFuture<?>) promise2)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) promise1).join(), ((CompletableFuture<?>) promise2).join())))).join();
             var response1 = ((List<Object>) response1response2Variable).get(0);
