@@ -323,8 +323,8 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
     }
     file_put_contents ($filePath, $content);
     include_once $filePath;
+    unlink ($filePath);
     $initedClass = new $newClassName($args);
-    // unlink ($filePath);
     return $initedClass;
 }
 
