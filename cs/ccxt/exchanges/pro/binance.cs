@@ -3305,8 +3305,6 @@ public partial class binance : ccxt.binance
             await client.future(messageHash);
             return;
         }
-        client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
-        ((IDictionary<string,object>)client.subscriptions)[(string)marketTypeVar] = true;
         Int64 requestId = this.requestId(url);
         string requestHash = requestId.ToString();
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -3319,6 +3317,10 @@ public partial class binance : ccxt.binance
             { "method", this.handleUserDataStreamSubscribe },
             { "subscription", marketTypeVar },
         };
+        // created right before the request, after the signing above: concurrent callers find it, and in
+        // the threaded ports the ack can not arrive between this future and the request one watch () adds
+        client.future(messageHash);
+        ((IDictionary<string,object>)client.subscriptions)[(string)marketTypeVar] = true;
         try
         {
             await this.watch(url, requestHash, message, requestHash, subscription);
