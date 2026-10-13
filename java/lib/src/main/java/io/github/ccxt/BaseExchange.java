@@ -775,6 +775,11 @@ public class BaseExchange {
         return Encode.binaryToBase16(buff2);
     }
 
+    public String binaryToString(Object buff) {
+        // utf-8 decode of a byte array, mirrors TS binaryToString and the C# base
+        return new String((byte[]) buff, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
     public static String binaryToBase64(Object buff) {
         return Encode.binaryToBase64((byte[]) buff);
     }

@@ -156,7 +156,803 @@
                         "symbol": "BTC/USD:USDC"
                     }
                 ],
-                "disabledGO": "go orderbook state diverges on replay - investigate with the other disabledGO orderbook entries"
+                "options": {
+                    "sbe": false
+                }
+            },
+            {
+                "description": "sbe orderbook snapshots, a delta and an unknown template in between are skipped",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "5900030001000200c87e6ea4ba5d060022846aca010000000000000000000000800000000000000080000000000000008000000000000000800000000000000080000000000000008000000000000000800000000000000080000000000000008010000f0080d326ea93070000983a0000000000008006d0c293070000a0ba22000000000000a3e09a93070000a0ba22000000000080e2d28493070000384a00000000000000f5936d9307000018790000000000000025815a93070000a0ba22000000000000fec73093070000c05d000000000000807bce0e93070000c05d000000000000005ea20a93070000a0ba220000000000800b96d592070000a0ba2200000000008044b78592070000a0ba220000000000801dfe5b92070000c832000000000000807dd83592070000a0ba2200000000008042802d92070000c05d00000000000080bbec2992070000c05d00000000000010000f0080dd0c7294070000984b1200000000000074a57294070000a0ba22000000000080d7949a94070000a0ba220000000000006b71af94070000983a00000000000080f026bd940700001879000000000000003b84c294070000a0ba220000000000809e73ea94070000a0ba2200000000008049042c95070000a0ba22000000000000adf35395070000a0ba22000000000000a77b7c95070000a0ba2200000000000082f9aa95070000a0ba220000000000803124ce95070000983a000000000000008aa8da95070000a0ba22000000000000113cde95070000983a00000000000080e71f2b96070000a0ba2200000000000c4254432d5553442d50455250"
+                    },
+                    {
+                        "binary": "5900030001000200680570a4ba5d060023846aca01000000010000000000000080000000000000008000000000000000800000000000000080000000000000008000000000000000800000000000000080000000000000008000000000000000801000010080d326ea9307000000000000000000001000010080dd0c729407000020a10700000000000c4254432d5553442d50455250"
+                    },
+                    {
+                        "binary": "08006300010002000100000000000000"
+                    },
+                    {
+                        "binary": "5900030001000200285d71a4ba5d06002d846aca010000000000000000000000800000000000000080000000000000008000000000000000800000000000000080000000000000008000000000000000800000000000000080000000000000008010000f00006abfea93070000a0ba22000000000080d326ea93070000983a0000000000008006d0c293070000a0ba22000000000000a3e09a93070000a0ba22000000000080e2d28493070000384a00000000000000f5936d9307000018790000000000000025815a93070000a0ba22000000000000fec73093070000c05d000000000000807bce0e93070000c05d000000000000005ea20a93070000a0ba220000000000800b96d592070000a0ba2200000000008044b78592070000a0ba220000000000801dfe5b92070000c832000000000000807dd83592070000a0ba2200000000008042802d92070000c05d00000000000010000f00002b266394070000984b12000000000080d7949a94070000a0ba220000000000006b71af94070000983a00000000000080f026bd940700001879000000000000003b84c294070000a0ba220000000000809e73ea94070000a0ba2200000000008049042c95070000a0ba22000000000000adf35395070000a0ba22000000000000a77b7c95070000a0ba2200000000000082f9aa95070000a0ba220000000000803124ce95070000983a000000000000008aa8da95070000a0ba22000000000000113cde95070000983a00000000000080e71f2b96070000a0ba22000000000000b0dc7096070000983a0000000000000c4254432d5553442d50455250"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                83318.7,
+                                0.00015
+                            ],
+                            [
+                                83312.1,
+                                0.02276
+                            ],
+                            [
+                                83305.4,
+                                0.02276
+                            ],
+                            [
+                                83301.7,
+                                0.00019
+                            ],
+                            [
+                                83297.8,
+                                0.00031
+                            ],
+                            [
+                                83294.6,
+                                0.02276
+                            ],
+                            [
+                                83287.6,
+                                0.00024
+                            ],
+                            [
+                                83281.9,
+                                0.00024
+                            ],
+                            [
+                                83281.2,
+                                0.02276
+                            ],
+                            [
+                                83272.3,
+                                0.02276
+                            ],
+                            [
+                                83258.9,
+                                0.02276
+                            ],
+                            [
+                                83251.9,
+                                0.00013
+                            ],
+                            [
+                                83245.5,
+                                0.02276
+                            ],
+                            [
+                                83244.1,
+                                0.00024
+                            ],
+                            [
+                                83243.5,
+                                0.00024
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                83341.5,
+                                0.01199
+                            ],
+                            [
+                                83341.6,
+                                0.02276
+                            ],
+                            [
+                                83348.3,
+                                0.02276
+                            ],
+                            [
+                                83351.8,
+                                0.00015
+                            ],
+                            [
+                                83354.1,
+                                0.00031
+                            ],
+                            [
+                                83355,
+                                0.02276
+                            ],
+                            [
+                                83361.7,
+                                0.02276
+                            ],
+                            [
+                                83372.7,
+                                0.02276
+                            ],
+                            [
+                                83379.4,
+                                0.02276
+                            ],
+                            [
+                                83386.2,
+                                0.02276
+                            ],
+                            [
+                                83394,
+                                0.02276
+                            ],
+                            [
+                                83399.9,
+                                0.00015
+                            ],
+                            [
+                                83402,
+                                0.02276
+                            ],
+                            [
+                                83402.6,
+                                0.00015
+                            ],
+                            [
+                                83415.5,
+                                0.02276
+                            ]
+                        ],
+                        "timestamp": 1791906064269,
+                        "datetime": "2026-10-13T15:41:04.269Z",
+                        "nonce": 7690945570,
+                        "symbol": "BTC/USD:USDC"
+                    },
+                    {
+                        "bids": [
+                            [
+                                83318.8,
+                                0.02276
+                            ],
+                            [
+                                83318.7,
+                                0.00015
+                            ],
+                            [
+                                83312.1,
+                                0.02276
+                            ],
+                            [
+                                83305.4,
+                                0.02276
+                            ],
+                            [
+                                83301.7,
+                                0.00019
+                            ],
+                            [
+                                83297.8,
+                                0.00031
+                            ],
+                            [
+                                83294.6,
+                                0.02276
+                            ],
+                            [
+                                83287.6,
+                                0.00024
+                            ],
+                            [
+                                83281.9,
+                                0.00024
+                            ],
+                            [
+                                83281.2,
+                                0.02276
+                            ],
+                            [
+                                83272.3,
+                                0.02276
+                            ],
+                            [
+                                83258.9,
+                                0.02276
+                            ],
+                            [
+                                83251.9,
+                                0.00013
+                            ],
+                            [
+                                83245.5,
+                                0.02276
+                            ],
+                            [
+                                83244.1,
+                                0.00024
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                83339,
+                                0.01199
+                            ],
+                            [
+                                83348.3,
+                                0.02276
+                            ],
+                            [
+                                83351.8,
+                                0.00015
+                            ],
+                            [
+                                83354.1,
+                                0.00031
+                            ],
+                            [
+                                83355,
+                                0.02276
+                            ],
+                            [
+                                83361.7,
+                                0.02276
+                            ],
+                            [
+                                83372.7,
+                                0.02276
+                            ],
+                            [
+                                83379.4,
+                                0.02276
+                            ],
+                            [
+                                83386.2,
+                                0.02276
+                            ],
+                            [
+                                83394,
+                                0.02276
+                            ],
+                            [
+                                83399.9,
+                                0.00015
+                            ],
+                            [
+                                83402,
+                                0.02276
+                            ],
+                            [
+                                83402.6,
+                                0.00015
+                            ],
+                            [
+                                83415.5,
+                                0.02276
+                            ],
+                            [
+                                83427.2,
+                                0.00015
+                            ]
+                        ],
+                        "timestamp": 1791906064457,
+                        "datetime": "2026-10-13T15:41:04.457Z",
+                        "nonce": 7690945581,
+                        "symbol": "BTC/USD:USDC"
+                    }
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "sbe trade frame",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "trades.BTC-USD-PERP"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "1000280001000200c87e6ea4ba5d06000700000000000000"
+                    },
+                    {
+                        "binary": "320001000100020098c258a6ba5d060080876aca01000000327a5c24817a3b21018049d7fa93070000b87603000000000098c258a6ba5d0600010c4254432d5553442d504552501c31373931393036303936333930323031373039323333343730303032"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "trades.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1791906096390201709233470002",
+                            "market": "BTC-USD-PERP",
+                            "side": "BUY",
+                            "size": "0.00227",
+                            "price": "83321.5",
+                            "created_at": 1791906096399,
+                            "trade_type": "FILL"
+                        },
+                        "id": "1791906096390201709233470002",
+                        "order": null,
+                        "timestamp": 1791906096399,
+                        "datetime": "2026-10-13T15:41:36.399Z",
+                        "symbol": "BTC/USD:USDC",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 83321.5,
+                        "amount": 0.00227,
+                        "cost": 189.139805,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "sbe trade frame resolves the trades.ALL subscription",
+                "input": [
+                    null
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "trades.ALL"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "320001000100020098c258a6ba5d060080876aca01000000327a5c24817a3b21018049d7fa93070000b87603000000000098c258a6ba5d0600010c534f4c2d5553442d504552501c31373931393036303936333930323031373039323333343730303032"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "trades.ALL"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1791906096390201709233470002",
+                            "market": "SOL-USD-PERP",
+                            "side": "BUY",
+                            "size": "0.00227",
+                            "price": "83321.5",
+                            "created_at": 1791906096399,
+                            "trade_type": "FILL"
+                        },
+                        "id": "1791906096390201709233470002",
+                        "order": null,
+                        "timestamp": 1791906096399,
+                        "datetime": "2026-10-13T15:41:36.399Z",
+                        "symbol": "SOL/USD:USDC",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 83321.5,
+                        "amount": 0.00227,
+                        "cost": 189.139805,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ],
+                "disabledPHP": "watch_trades() takes a non-nullable string symbol in php, so the ALL subscription cannot be asked for"
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "sbe markets summary frame",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "markets_summary.BTC-USD-PERP"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "f00004000100020080f9ffa8ba5d0600000000000000000068cdffd893070000ff9c37ff9207000000c2ea949307000028429bcd04bd0100c0b684df01000000b6130000000000000035dfb9930700008049d7fa93070000ffffffffffffff7f64350c00000000000000000000000080000000000000008000000000000000800000000000000080618cf6050000000000000000000000000000000000000000000000000000008000000000000000800000000000000080000000000000008000000000000000806e5d020992070000404c31010000000070186800000000000000000000000080000000000000000028030203000000000c4254432d5553442d50455250"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "markets_summary.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USDC",
+                    "timestamp": 1791906140912,
+                    "datetime": "2026-10-13T15:42:20.912Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 83310.6,
+                    "bidVolume": null,
+                    "ask": 83321.5,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 82643.17198098017,
+                    "close": 83304.4,
+                    "last": 83304.4,
+                    "previousClose": null,
+                    "change": 661.2280190198225,
+                    "percentage": 0.8001,
+                    "average": 82973.7,
+                    "baseVolume": null,
+                    "quoteVolume": 4893033.037338,
+                    "markPrice": 83315.82229864,
+                    "info": {
+                        "symbol": "BTC-USD-PERP",
+                        "mark_price": "83315.82229864",
+                        "last_traded_price": "83304.4",
+                        "bid": "83310.6",
+                        "ask": "83321.5",
+                        "volume_24h": "4893033.037338",
+                        "total_volume": "92233720368.54775807",
+                        "created_at": 1791906140912,
+                        "open_interest": "80.44984",
+                        "funding_rate": "0.00005046",
+                        "price_change_rate_24h": "0.008001"
+                    },
+                    "indexPrice": null
+                }
+            }
+        ],
+        "watchFundingRate": [
+            {
+                "description": "sbe funding data frame",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "funding_data"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "420005000100020080f9ffa8ba5d06000000000000000000b6130000000000008be3da1b3b02000080f9ffa8ba5d06009ddd0d1900000000b61300000000000008009782ffffffffffff0c4254432d5553442d50455250"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "funding_data"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "market": "BTC-USD-PERP",
+                        "funding_index": "24528.93655947",
+                        "funding_premium": "4.20339101",
+                        "funding_rate": "0.00005046",
+                        "funding_rate_8h": "0.00005046",
+                        "funding_period_hours": 8,
+                        "created_at": 1791906140912
+                    },
+                    "symbol": "BTC/USD:USDC",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": 0,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1791906140912,
+                    "datetime": "2026-10-13T15:42:20.912Z",
+                    "fundingRate": 5.046e-05,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            },
+            {
+                "description": "sbe funding data frame with a negative rate",
+                "input": [
+                    "SOL/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "funding_data"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "420005000100020080f9ffa8ba5d0600000000000000000087c5ffffffffffff8be3da1b3b02000080f9ffa8ba5d06009ddd0d190000000087c5ffffffffffff08009782ffffffffffff0c534f4c2d5553442d50455250"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "funding_data"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "market": "SOL-USD-PERP",
+                        "funding_index": "24528.93655947",
+                        "funding_premium": "4.20339101",
+                        "funding_rate": "-0.00014969",
+                        "funding_rate_8h": "-0.00014969",
+                        "funding_period_hours": 8,
+                        "created_at": 1791906140912
+                    },
+                    "symbol": "SOL/USD:USDC",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": 0,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1791906140912,
+                    "datetime": "2026-10-13T15:42:20.912Z",
+                    "fundingRate": -0.00014969,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "sbe order frames, open then canceled",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999
+                },
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "orders.BTC-USD-PERP"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "8000140001000200c0d3c7a4ba5d06002a00000000000000030201038049d7fa93070000000000000000008020a107000000000020a10700000000000000000000000080bbafb6a4ba5d0600bbafb6a4ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b58abb6a4ba5d060034b1b6a4ba5d0600010100001c313739313930363036393030303230313730393233333437303030310a6d792d6f726465722d310c4254432d5553442d50455250000000"
+                    },
+                    {
+                        "binary": "8000140001000200c0d3c7a4ba5d06002a00000000000000040201038049d7fa93070000000000000000008020a1070000000000400d0300000000008049d7fa93070000bbafb6a4ba5d0600a737d5a4ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b58abb6a4ba5d060034b1b6a4ba5d0600010100001c313739313930363036393030303230313730393233333437303030310a6d792d6f726465722d310c4254432d5553442d504552500d555345525f43414e43454c45440000"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "orders.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "1791906069000201709233470001",
+                            "clientOrderId": "my-order-1",
+                            "timestamp": 1791906069000,
+                            "datetime": "2026-10-13T15:41:09.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1791906069000,
+                            "status": "open",
+                            "symbol": "BTC/USD:USDC",
+                            "type": "limit",
+                            "timeInForce": "PO",
+                            "postOnly": true,
+                            "reduceOnly": true,
+                            "side": "sell",
+                            "price": 83321.5,
+                            "triggerPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null,
+                            "average": null,
+                            "amount": 0.005,
+                            "filled": 0,
+                            "remaining": 0.005,
+                            "cost": 0,
+                            "trades": [],
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "avg_fill_price": null,
+                                "client_id": "my-order-1",
+                                "created_at": 1791906069000,
+                                "flags": [
+                                    "REDUCE_ONLY"
+                                ],
+                                "id": "1791906069000201709233470001",
+                                "instruction": "POST_ONLY",
+                                "last_updated_at": 1791906069000,
+                                "market": "BTC-USD-PERP",
+                                "price": "83321.5",
+                                "published_at": 1791906069000,
+                                "received_at": 1791906068999,
+                                "remaining_size": "0.005",
+                                "seq_no": "42",
+                                "side": "SELL",
+                                "size": "0.005",
+                                "status": "OPEN",
+                                "stp": "EXPIRE_MAKER",
+                                "timestamp": 1791906070123,
+                                "trigger_price": null,
+                                "type": "LIMIT"
+                            },
+                            "fees": [
+                                {
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "stopPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "id": "1791906069000201709233470001",
+                            "clientOrderId": "my-order-1",
+                            "timestamp": 1791906069000,
+                            "datetime": "2026-10-13T15:41:09.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1791906071000,
+                            "status": "canceled",
+                            "symbol": "BTC/USD:USDC",
+                            "type": "limit",
+                            "timeInForce": "PO",
+                            "postOnly": true,
+                            "reduceOnly": true,
+                            "side": "sell",
+                            "price": 83321.5,
+                            "triggerPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null,
+                            "average": 83321.5,
+                            "amount": 0.005,
+                            "filled": 0.003,
+                            "remaining": 0.002,
+                            "cost": 249.9645,
+                            "trades": [],
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "avg_fill_price": "83321.5",
+                                "client_id": "my-order-1",
+                                "created_at": 1791906069000,
+                                "flags": [
+                                    "REDUCE_ONLY"
+                                ],
+                                "id": "1791906069000201709233470001",
+                                "instruction": "POST_ONLY",
+                                "last_updated_at": 1791906071000,
+                                "market": "BTC-USD-PERP",
+                                "price": "83321.5",
+                                "published_at": 1791906069000,
+                                "received_at": 1791906068999,
+                                "remaining_size": "0.002",
+                                "seq_no": "42",
+                                "side": "SELL",
+                                "size": "0.005",
+                                "status": "CLOSED",
+                                "stp": "EXPIRE_MAKER",
+                                "timestamp": 1791906070123,
+                                "trigger_price": null,
+                                "type": "LIMIT",
+                                "cancel_reason": "USER_CANCELED"
+                            },
+                            "fees": [
+                                {
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "stopPrice": null
+                        }
+                    ]
+                ]
             }
         ]
     }
