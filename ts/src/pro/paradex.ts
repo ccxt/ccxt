@@ -44,6 +44,9 @@ export default class paradex extends paradexRest {
                 // servers answer a connect without it with a 400, false keeps the JSON feed for any
                 // environment that still serves it
                 'sbe': true,
+                // the schema version asked for at connect. the decoder reads 1:0 to 1:3 (it takes the
+                // block length from each frame header), a server answers a version above its cap with a 400
+                'sbeSchemaVersion': '3',
                 // SBE frames must reach handleMessage as raw bytes, the JSON feed only sends text frames
                 'decompressBinary': false,
             },
@@ -56,9 +59,8 @@ export default class paradex extends paradexRest {
         if (!this.safeBool (this.options, 'sbe', true)) {
             return url;
         }
-        // schema 1:2 is what every environment serves: asking for a version above the
-        // server cap fails the connect with a 400 rather than downgrading
-        return url + '?sbeSchemaId=1&sbeSchemaVersion=2';
+        const schemaVersion = this.safeString (this.options, 'sbeSchemaVersion', '3');
+        return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion;
     }
 
     getOrderBookChannel (marketId: Str): string {
@@ -635,7 +637,7 @@ export default class paradex extends paradexRest {
 
     parseSbeMessage (message: any): any {
         //
-        // Paradex SBE schema 1:2 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
+        // Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
         // header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
         // blockLength bytes, then repeating groups and length-prefixed strings. The frame is rebuilt in
         // the shape of the matching JSON subscription message, so the JSON handlers parse both.
@@ -875,10 +877,12 @@ export default class paradex extends paradexRest {
 
     parseSbeMarketSummary (frameHex: string, blockLength: number, frameLength: number): any {
         //
-        // MarketSummaryEvent (templateId 4), 240-byte block, of which the first 12 int64 fields are read
+        // MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
+        // 12 int64 fields and settlementTwapEstimate are read
         //
         //     ts, seq, markPrice, indexPrice, lastPrice, volumeUsd24h, openInterest, fundingRate, bid,
-        //     ask, totalVolume, priceChangeRate24h, ... then the market string
+        //     ask, totalVolume, priceChangeRate24h, ..., settlementTwapEstimate (1:3, at 240), then the
+        //     market string
         //
         if (blockLength < 96) {
             return undefined;
@@ -887,6 +891,11 @@ export default class paradex extends paradexRest {
         const stringsLength = (strings === undefined) ? 0 : strings.length;
         if (stringsLength < 1) {
             return undefined;
+        }
+        // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
+        let settlementTwapEstimate: Str = undefined;
+        if (blockLength >= 248) {
+            settlementTwapEstimate = this.sbeReadDecimal (frameHex, 248);
         }
         return {
             'symbol': strings[0],
@@ -901,6 +910,7 @@ export default class paradex extends paradexRest {
             'open_interest': this.sbeReadDecimal (frameHex, 56),
             'funding_rate': this.sbeReadDecimal (frameHex, 64),
             'price_change_rate_24h': this.sbeReadDecimal (frameHex, 96),
+            'settlement_twap_estimate': settlementTwapEstimate,
         };
     }
 

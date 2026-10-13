@@ -165,7 +165,7 @@
                 "input": [
                     "BTC/USD:USDC"
                 ],
-                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
                 "messages": [
                     {
                         "jsonrpc": "2.0",
@@ -468,7 +468,7 @@
                 "input": [
                     "BTC/USD:USDC"
                 ],
-                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
                 "messages": [
                     {
                         "jsonrpc": "2.0",
@@ -530,7 +530,7 @@
                 "input": [
                     null
                 ],
-                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
                 "messages": [
                     {
                         "jsonrpc": "2.0",
@@ -592,6 +592,140 @@
                 "input": [
                     "BTC/USD:USDC"
                 ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "markets_summary.BTC-USD-PERP"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "f8000400010003008028cba1bd5d06000000000000000000f4d179b98f070000ea20e9ae8e070000805c6ab2900700002462df31de2e0100f093dfdb01000000581f00000000000080a200a58f070000803143d88f070000ffffffffffffff7f54150f000000000000000000000000800000000000000080000000000000008000000000000000803db3f605000000000000000000000000000000000000000000000000000000800000000000000080000000000000008000000000000000800000000000000080858472d18d070000c8dc310100000000d8b96d000000000000000000000000800000000000000000ba7ac8040000000000000000000000800c4254432d5553442d50455250"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "markets_summary.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USDC",
+                    "timestamp": 1791918904912,
+                    "datetime": "2026-10-13T19:15:04.912Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 83135.3,
+                    "bidVolume": null,
+                    "ask": 83143.9,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 82366.30903518718,
+                    "close": 83180.5,
+                    "last": 83180.5,
+                    "previousClose": null,
+                    "change": 814.1909648128252,
+                    "percentage": 0.9885,
+                    "average": 82773.4,
+                    "baseVolume": null,
+                    "quoteVolume": 3330068.310513,
+                    "markPrice": 83138.73486324,
+                    "info": {
+                        "symbol": "BTC-USD-PERP",
+                        "mark_price": "83138.73486324",
+                        "last_traded_price": "83180.5",
+                        "bid": "83135.3",
+                        "ask": "83143.9",
+                        "volume_24h": "3330068.310513",
+                        "total_volume": "92233720368.54775807",
+                        "created_at": 1791918904912,
+                        "open_interest": "79.8383",
+                        "funding_rate": "0.00008024",
+                        "price_change_rate_24h": "0.009885",
+                        "settlement_twap_estimate": null
+                    },
+                    "indexPrice": null
+                }
+            },
+            {
+                "description": "sbe 1:3 markets summary frame with a settlement twap estimate",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "result": {
+                            "channel": "markets_summary.BTC-USD-PERP"
+                        },
+                        "usIn": 1791906064381973,
+                        "usDiff": 133,
+                        "usOut": 1791906064382106
+                    },
+                    {
+                        "binary": "f8000400010003008028cba1bd5d06000000000000000000f4d179b98f070000ea20e9ae8e070000805c6ab2900700002462df31de2e0100f093dfdb01000000581f00000000000080a200a58f070000803143d88f070000ffffffffffffff7f54150f000000000000000000000000800000000000000080000000000000008000000000000000803db3f605000000000000000000000000000000000000000000000000000000800000000000000080000000000000008000000000000000800000000000000080858472d18d070000c8dc310100000000d8b96d000000000000000000000000800000000000000000ba7ac80400000000800c94d58e0700000c4254432d5553442d50455250"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "markets_summary.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USDC",
+                    "timestamp": 1791918904912,
+                    "datetime": "2026-10-13T19:15:04.912Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 83135.3,
+                    "bidVolume": null,
+                    "ask": 83143.9,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 82366.30903518718,
+                    "close": 83180.5,
+                    "last": 83180.5,
+                    "previousClose": null,
+                    "change": 814.1909648128252,
+                    "percentage": 0.9885,
+                    "average": 82773.4,
+                    "baseVolume": null,
+                    "quoteVolume": 3330068.310513,
+                    "markPrice": 83138.73486324,
+                    "info": {
+                        "symbol": "BTC-USD-PERP",
+                        "mark_price": "83138.73486324",
+                        "last_traded_price": "83180.5",
+                        "bid": "83135.3",
+                        "ask": "83143.9",
+                        "volume_24h": "3330068.310513",
+                        "total_volume": "92233720368.54775807",
+                        "created_at": 1791918904912,
+                        "open_interest": "79.8383",
+                        "funding_rate": "0.00008024",
+                        "price_change_rate_24h": "0.009885",
+                        "settlement_twap_estimate": "83100.5"
+                    },
+                    "indexPrice": null
+                }
+            },
+            {
+                "description": "sbe 1:2 markets summary frame (240-byte block), schema version from options",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
                 "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
                 "messages": [
                     {
@@ -648,9 +782,13 @@
                         "created_at": 1791906140912,
                         "open_interest": "80.44984",
                         "funding_rate": "0.00005046",
-                        "price_change_rate_24h": "0.008001"
+                        "price_change_rate_24h": "0.008001",
+                        "settlement_twap_estimate": null
                     },
                     "indexPrice": null
+                },
+                "options": {
+                    "sbeSchemaVersion": "2"
                 }
             }
         ],
@@ -660,7 +798,7 @@
                 "input": [
                     "BTC/USD:USDC"
                 ],
-                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
                 "messages": [
                     {
                         "jsonrpc": "2.0",
@@ -718,7 +856,7 @@
                 "input": [
                     "SOL/USD:USDC"
                 ],
-                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
                 "messages": [
                     {
                         "jsonrpc": "2.0",
@@ -782,7 +920,7 @@
                 "input": [
                     "BTC/USD:USDC"
                 ],
-                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=2",
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
                 "messages": [
                     {
                         "jsonrpc": "2.0",
