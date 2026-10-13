@@ -2926,7 +2926,7 @@ export class BaseExchange {
                 'fetchIsolatedBorrowRates': undefined,
                 'fetchMarginAdjustmentHistory': undefined,
                 'fetchIsolatedPositions': undefined,
-                'fetchL2OrderBook': 'emulated',
+                'fetchL2OrderBook': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
