@@ -2916,8 +2916,6 @@ export default class binance extends binanceRest {
             await client.future (messageHash);
             return;
         }
-        client.future (messageHash); // created ahead of the request below, so concurrent callers can find it
-        client.subscriptions[marketType] = true;
         const requestId = this.requestId (url);
         const requestHash = requestId.toString ();
         const message: Dict = {
@@ -2930,6 +2928,10 @@ export default class binance extends binanceRest {
             'method': this.handleUserDataStreamSubscribe,
             'subscription': marketType,
         };
+        // created right before the request, after the signing above: concurrent callers find it, and in
+        // the threaded ports the ack can not arrive between this future and the request one watch () adds
+        client.future (messageHash);
+        client.subscriptions[marketType] = true;
         try {
             await this.watch (url, requestHash, message, requestHash, subscription);
             client.resolve (marketType, messageHash);
