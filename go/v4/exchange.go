@@ -37,7 +37,7 @@ type BaseExchange struct {
 	loadMarketsSubscribers []chan AsyncResult[any]
 	Itf                    any
 	DerivedExchange        IDerivedExchange
-	methodCache            sync.Map
+	methodCache            *sync.Map // shared per exchange type, see WarmUpCache
 	cacheLoaded            bool
 	Version                string
 	Id                     string
@@ -245,13 +245,16 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	if this.MarketsMutex == nil {
 		this.MarketsMutex = &sync.Mutex{}
 	}
-	describeValues := this.Describe()
 	if userConfig == nil {
 		userConfig = map[string]any{}
 	}
-
-	extendedProperties := this.DeepExtend(describeValues, exchangeConfig)
-	extendedProperties = this.DeepExtend(extendedProperties, userConfig)
+	var extendedProperties map[string]any
+	if len(exchangeConfig) > 0 {
+		// generated exchanges pass a describe that already extends the base one
+		extendedProperties = this.DeepExtend(exchangeConfig, userConfig)
+	} else {
+		extendedProperties = this.DeepExtend(this.DeepExtend(this.Describe(), exchangeConfig), userConfig)
+	}
 	this.Itf = itf
 	// this.id = SafeString(extendedProperties, "id", "").(string)
 	// this.Id = this.id333
@@ -294,14 +297,68 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.AfterConstruct()
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
-	this.transformApiNew(this.Api)
-	transport := newDualStackTransport()
+	this.TransformedApi = sharedTransformedApi(this, itf, userConfig)
 
 	this.httpClient = &http.Client{
 		Timeout:   30 * time.Second,
-		Transport: transport,
+		Transport: defaultTransport(),
 	}
 }
+
+var (
+	transformedApiCache sync.Map // reflect.Type -> map[string]any (read-only)
+	defaultTransportVal *http.Transport
+	defaultTransportMu  sync.Once
+	proxyTransports     sync.Map // proxy url -> *http.Transport
+	apiSplitRegex       = regexp.MustCompile(`[^a-zA-Z0-9]`)
+)
+
+// sharedTransformedApi builds the endpoint table once per exchange type; a user api override bypasses the cache.
+func sharedTransformedApi(this *BaseExchange, itf any, userConfig map[string]any) map[string]any {
+	if _, overridden := userConfig["api"]; overridden || itf == nil {
+		this.TransformedApi = map[string]any{}
+		this.transformApiNew(this.Api)
+		return this.TransformedApi
+	}
+	key := reflect.TypeOf(itf)
+	if cached, ok := transformedApiCache.Load(key); ok {
+		return cached.(map[string]any)
+	}
+	this.TransformedApi = map[string]any{}
+	this.transformApiNew(this.Api)
+	actual, _ := transformedApiCache.LoadOrStore(key, this.TransformedApi)
+	return actual.(map[string]any)
+}
+
+func defaultTransport() *http.Transport {
+	defaultTransportMu.Do(func() { defaultTransportVal = newDualStackTransport() })
+	return defaultTransportVal
+}
+
+func proxyTransport(proxyUrlStr string) *http.Transport {
+	if t, ok := proxyTransports.Load(proxyUrlStr); ok {
+		return t.(*http.Transport)
+	}
+	proxyURLParsed, _ := url.Parse(proxyUrlStr)
+	t := &http.Transport{
+		Proxy:               http.ProxyURL(proxyURLParsed),
+		DialContext:         newDualStackDialer().DialContext, // dual-stack dial to the proxy
+		MaxConnsPerHost:     8,                                // hard ceiling per target host
+		MaxIdleConnsPerHost: 4,                                // reuse pool
+		IdleConnTimeout:     90 * time.Second,
+	}
+	actual, _ := proxyTransports.LoadOrStore(proxyUrlStr, t)
+	return actual.(*http.Transport)
+}
+
+// methodEntry is the per-type reflection data used by CallInternalMethod (unbound: Func takes the receiver first).
+type methodEntry struct {
+	method     reflect.Method
+	numIn      int
+	isVariadic bool
+}
+
+var methodCaches sync.Map // reflect.Type -> *sync.Map of name -> methodEntry
 
 func (this *BaseExchange) Init(userConfig map[string]any) {
 	if this.FetchHistoryCache == nil {
@@ -367,34 +424,26 @@ func NewExchange() ICoreExchange {
 
 func (this *BaseExchange) WarmUpCache() {
 	// itf fields
-	if this.cacheLoaded {
+	if this.cacheLoaded && this.methodCache != nil {
 		return
 	}
-	this.cacheLoaded = true
-	itf := this.Itf
-	baseValue := reflect.ValueOf(itf)
-	baseType := baseValue.Type()
+	baseType := reflect.TypeOf(this.Itf)
+	if cached, ok := methodCaches.Load(baseType); ok {
+		this.methodCache = cached.(*sync.Map)
+		this.cacheLoaded = true
+		return
+	}
+	table := &sync.Map{}
 
 	for i := 0; i < baseType.NumMethod(); i++ {
 		method := baseType.Method(i)
 		name := method.Name
-		cacheKey := fmt.Sprintf("%s", name)
-
-		methodValue := baseValue.MethodByName(name)
-		methodType := method.Type
-		numIn := methodType.NumIn()
-		isVariadic := methodType.IsVariadic()
-
-		cacheValue := map[string]any{
-			"method":      method,
-			"methodValue": methodValue,
-			"methodType":  methodType,
-			"numIn":       numIn,
-			"isVariadic":  isVariadic,
-		}
-
-		this.methodCache.Store(cacheKey, cacheValue)
+		// numIn counts the receiver, as before; Func is called with itf prepended
+		table.Store(name, methodEntry{method: method, numIn: method.Type.NumIn(), isVariadic: method.Type.IsVariadic()})
 	}
+	actual, _ := methodCaches.LoadOrStore(baseType, table)
+	this.methodCache = actual.(*sync.Map)
+	this.cacheLoaded = true
 }
 
 func (this *BaseExchange) InitThrottler() {
@@ -1009,11 +1058,11 @@ func (this *BaseExchange) transformApiNew(api Dict, paths ...string) {
 					}
 				}
 
-				pattern := `[^a-zA-Z0-9]`
-				rgx := regexp.MustCompile(pattern)
-				result := rgx.Split(endpoint, -1)
+				result := apiSplitRegex.Split(endpoint, -1)
 
-				pathParts := append(paths, key)
+				// fresh slice: append(paths, key) could alias paths' backing array
+				pathParts := make([]string, 0, len(paths)+1+len(result))
+				pathParts = append(append(pathParts, paths...), key)
 				for _, part := range result {
 					if len(part) > 0 {
 						pathParts = append(pathParts, part)
@@ -1042,7 +1091,7 @@ func (this *BaseExchange) transformApiNew(api Dict, paths ...string) {
 			}
 		} else {
 			if nestedDict, ok := value.(map[string]any); ok {
-				this.transformApiNew(nestedDict, append(paths, key)...)
+				this.transformApiNew(nestedDict, append(paths[:len(paths):len(paths)], key)...)
 			}
 		}
 	}
@@ -1138,7 +1187,7 @@ func (this *BaseExchange) callInternal(name2 string, args ...any) <-chan AsyncRe
 
 		this.WarmUpCache()
 
-		ch <- <-CallInternalMethod(&this.methodCache, this.Itf, name2, args...)
+		ch <- <-CallInternalMethod(this.methodCache, this.Itf, name2, args...)
 	}()
 	// res := <-CallInternalMethod(this.Itf, name2, args...)
 	// return res
@@ -1598,14 +1647,10 @@ func (this *BaseExchange) UpdateProxySettings() {
 		// rebuild the transport only when the proxy URL changes, otherwise a
 		// fresh transport (and connection pool) is created on every request
 		if proxyUrlStr != this.lastProxyURL || this.httpClient.Transport == nil {
-			proxyURLParsed, _ := url.Parse(proxyUrlStr)
-			this.httpClient.Transport = &http.Transport{
-				Proxy:               http.ProxyURL(proxyURLParsed),
-				DialContext:         newDualStackDialer().DialContext, // dual-stack dial to the proxy
-				MaxConnsPerHost:     8,                                // hard ceiling per target host
-				MaxIdleConnsPerHost: 4,                                // reuse pool
-				IdleConnTimeout:     90 * time.Second,
+			if old, ok := this.httpClient.Transport.(*http.Transport); ok && this.lastProxyURL != "" {
+				old.CloseIdleConnections() // drop idle conns to the previous proxy
 			}
+			this.httpClient.Transport = proxyTransport(proxyUrlStr)
 			this.lastProxyURL = proxyUrlStr
 		}
 	}

@@ -237,7 +237,8 @@ func (this *BaseExchange) SetVerbose(verbose any) {
 }
 
 func (this *BaseExchange) GetCache() *sync.Map {
-	return &this.methodCache
+	this.WarmUpCache()
+	return this.methodCache
 }
 
 func (this *BaseExchange) GetItf() any {

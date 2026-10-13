@@ -3050,26 +3050,15 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 			panic(name + " :method not found")
 		}
 
-		cachedMap := cachedMethod.(map[string]any)
-
-		// var method reflect.Method
-		// for i := 0; i < baseType.NumMethod(); i++ {
-		// 	method = baseType.Method(i)
-		// 	if name == method.Name {
-		// 		break
-		// 	}
-		// }
-
-		// method := cachedMap["method"].(reflect.Method)
-		methodValue := cachedMap["methodValue"].(reflect.Value)
-		methodType := cachedMap["methodType"].(reflect.Type)
-		numIn := derefScalar(cachedMap["numIn"]).(int)
-		isVariadic := derefScalar(cachedMap["isVariadic"]).(bool)
+		entry := cachedMethod.(methodEntry)
+		methodType := entry.method.Type
+		numIn := entry.numIn
+		isVariadic := entry.isVariadic
 
 		var in []reflect.Value
 		// Fixed argument handling for both regular and variadic functions
 		for k := 0; k < numIn-1; k++ {
-			paramType := methodType.In(k + 1) // Account for receiver not being part of args
+			paramType := methodType.In(k + 1) // Account for receiver (In(0)) not being part of args
 			if paramType.Kind() == reflect.String {
 				// a required string parameter: no zero-value default, a wrong type panics
 				var arg any = nil
@@ -3103,7 +3092,7 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 		}
 
 		// Call the method with the constructed arguments
-		res := methodValue.Call(in)
+		res := entry.method.Func.Call(append([]reflect.Value{reflect.ValueOf(itf)}, in...))
 
 		// Handle the result
 		if len(res) > 0 && res[0].Kind() == reflect.Chan {
