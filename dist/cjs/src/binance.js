@@ -1380,7 +1380,7 @@ class binance extends binance$1["default"] {
                     'warnOnSTPForInverse': true,
                     'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 },
-                'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
+                'defaultType': 'spot', // 'spot', 'margin', 'swap', 'future', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'fetchOpenOrders': {
@@ -1409,7 +1409,6 @@ class binance extends binance$1["default"] {
                     'spot': 'x-TKT5PX2F',
                     'margin': 'x-TKT5PX2F',
                     'future': 'x-cvBPrNm9',
-                    'delivery': 'x-xcKtGhcu',
                     'swap': 'x-cvBPrNm9',
                     'option': 'x-xcKtGhcu',
                     'inverse': 'x-xcKtGhcu',
@@ -1421,7 +1420,6 @@ class binance extends binance$1["default"] {
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
                     'future': 'UMFUTURE', // backwards compatibility
-                    'delivery': 'CMFUTURE', // backwards compatibility
                     'linear': 'UMFUTURE',
                     'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
@@ -2821,12 +2819,7 @@ class binance extends binance$1["default"] {
         });
     }
     isInverse(type, subType = undefined) {
-        if (subType === undefined) {
-            return (type === 'delivery');
-        }
-        else {
-            return subType === 'inverse';
-        }
+        return subType === 'inverse';
     }
     isLinear(type, subType = undefined) {
         if (subType === undefined) {
@@ -2910,12 +2903,12 @@ class binance extends binance$1["default"] {
         if (this.markets === undefined) {
             throw new errors.ExchangeError(this.id + ' markets not loaded');
         }
-        // defaultType has legacy support on binance
+        // defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
         let defaultType = this.safeString(this.options, 'defaultType');
         const defaultSubType = this.safeString(this.options, 'defaultSubType');
-        const isLegacyLinear = defaultType === 'future';
-        const isLegacyInverse = defaultType === 'delivery';
-        const isLegacy = isLegacyLinear || isLegacyInverse;
+        const isLegacy = defaultType === 'future';
+        const isLegacyInverse = isLegacy && (defaultSubType === 'inverse');
+        const isLegacyLinear = isLegacy && !isLegacyInverse;
         if (typeof symbol === 'string') {
             if ((this.markets !== undefined) && (symbol in this.markets)) {
                 const market = this.markets[symbol];
@@ -4153,7 +4146,7 @@ class binance extends binance$1["default"] {
      * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information // option
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'option', 'savings', 'funding' or 'papi', use params.subType 'inverse' for COIN-M
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
@@ -7262,10 +7255,7 @@ class binance extends binance$1["default"] {
             const defaultType = this.safeString(this.options, 'defaultType', 'spot');
             const defaultSubType = this.safeString(this.options, 'defaultSubType');
             idMarketType = defaultType;
-            if (defaultType === 'delivery') {
-                idMarketType = 'inverse';
-            }
-            else if ((defaultSubType === 'inverse') && ((defaultType === 'swap') || (defaultType === 'future'))) {
+            if ((defaultSubType === 'inverse') && ((defaultType === 'swap') || (defaultType === 'future'))) {
                 idMarketType = 'inverse';
             }
         }
@@ -13842,7 +13832,7 @@ class binance extends binance$1["default"] {
         }
         const type = this.safeString(params, 'type', defaultType);
         if ((type === 'margin') || (type === 'spot')) {
-            throw new errors.NotSupported(this.id + ' add / reduce margin only supported with type future or delivery');
+            throw new errors.NotSupported(this.id + ' add / reduce margin only supported with linear or inverse swap/future markets');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
