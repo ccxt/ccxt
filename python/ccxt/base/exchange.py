@@ -2131,7 +2131,15 @@ class BaseExchange(object):
     def resolve_method(self, name):
         # dynamic calls pass TS camelCase names; implicit API keeps both spellings, unified methods are snake_case only
         method = getattr(self, name, None)
-        return method if method is not None else getattr(self, self.un_camel_case(name))
+        if method is not None:
+            return method
+        if name == 'fetchOHLCVWs':
+            return self.fetch_ohlcv_ws
+        # same rules as the transpiler's unCamelCase (ts/src/base/functions/string.ts)
+        snake = re.sub(r'[a-z0-9][A-Z]', lambda m: m.group(0)[0] + '_' + m.group(0)[1], name)
+        snake = re.sub(r'[A-Z0-9][A-Z0-9][a-z][^$]', lambda m: m.group(0)[0] + '_' + m.group(0)[1:], snake)
+        snake = re.sub(r'[a-z][0-9]$', lambda m: m.group(0)[0] + '_' + m.group(0)[1], snake)
+        return getattr(self, snake.lower())
 
     def fix_stringified_json_members(self, content):
         # when stringified json has members with their values also stringified, like:
