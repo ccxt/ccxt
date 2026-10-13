@@ -14,7 +14,7 @@ fn helperTestHandleMarketTypeAndParams() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
             m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("defaultType".to_string(), Value::Str("valueFromOptions".into()));
+        m.insert("defaultType".to_string(), Value::Str("option".into()));
         m.insert("fetchX".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("defaultType".to_string(), Value::Str("valueFromMethodOptions".into()));
@@ -81,7 +81,7 @@ fn helperTestHandleMarketTypeAndParams() {
 }), Value::Null]);
     let mut marketType5: Value = marketType5params5Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     let mut params5: Value = marketType5params5Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType5.as_str() == Some("valueFromOptions")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType5.as_str() == Some("option")))));
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
